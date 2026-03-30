@@ -1,0 +1,19 @@
+{
+  "name": "recipe-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "bun@1.1.38",
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "generate": "cd backend && npm run generate",
+    "encore": "cd backend && encore run",
+    "build": "turbo run build --filter=@recipe/frontend",
+    "clean": "cd frontend && npm run clean",
+    "mobile": "cd frontend && npm run mobile",
+    "store": "cd frontend && npm run store"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  }
+}
