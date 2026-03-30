@@ -29,6 +29,7 @@ import {
   MicrophoneStage, 
   Gift, 
   AppWindow,
+  ChartBar,
   IconProps
 } from "@phosphor-icons/react";
 import React from "react";
@@ -91,5 +92,6 @@ export const MINI_APPS: MiniApp[] = [
   { id: 'ai-products', name: 'All AI Products', description: 'Comprehensive AI directory', icon: Robot, category: 'Dev & Design', color: '#4C6EF5', href: '/apps/ai-list' },
   { id: 'design-suggestion', name: 'Design Suggestion', description: 'Get professional feedback', icon: Lightbulb, category: 'Dev & Design', color: '#FAB005', href: '/apps/design' },
   { id: 'tutorial-prompts', name: 'Tutorial Prompts', description: 'Learning with AI prompts', icon: Code, category: 'Dev & Design', color: '#2F9E44', href: '/apps/prompts' },
+  { id: 'meme-sorts', name: 'Meme Sorts', description: 'BogoSort, StalinSort, ThanosSort...', icon: ChartBar, category: 'Dev & Design', color: '#748FFC', href: '/apps/meme-sorts', isImplemented: true },
   { id: 'project-hub', name: 'Project Hub', description: 'Manage your own projects', icon: AppWindow, category: 'Dev & Design', color: '#1971C2', href: '/apps/proj-hub' },
 ];
