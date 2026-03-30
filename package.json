@@ -13,7 +13,4 @@
     "mobile": "cd frontend && npm run mobile",
     "store": "cd frontend && npm run store"
   },
-  "devDependencies": {
-    "turbo": "^2.3.3"
-  }
 }

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProviderWrapper } from "@/components/ClerkProvider";
-import { ShareIntentHandler } from "@/components/ShareIntentHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReciMe - Recipe Manager",
-  description: "Your personal recipe manager",
+  title: "Everything - Mini Apps Center",
+  description: "One hub for all your daily digital needs - Games, Utilities, Productivity and more.",
 };
 
 export default function RootLayout({
@@ -30,9 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProviderWrapper>
-          <ShareIntentHandler>
-            {children}
-          </ShareIntentHandler>
+          {children}
         </ClerkProviderWrapper>
       </body>
     </html>

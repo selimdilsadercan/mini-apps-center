@@ -134,7 +134,7 @@ function RecipeContent() {
         </button>
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => router.push(`/edit-recipe?id=${recipeId}`)}
+            onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <PencilSimple size={24} color="#374151" />

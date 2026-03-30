@@ -1,175 +1,150 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import Header from "@/components/Header";
 import AppBar, { ActivePage } from "@/components/AppBar";
-import { 
-  Image,
-  Plus
-} from "@phosphor-icons/react";
-import { getUserRecipesAction, getOrCreateUserAction } from "./actions";
-import type { lib } from "@/lib/client";
+import { MINI_APPS, MiniApp } from "@/lib/apps";
+import { useRouter } from "next/navigation";
+import { Sparkle, Plus } from "@phosphor-icons/react";
 
 export default function Home() {
+  const { isLoaded } = useUser();
   const router = useRouter();
-  const { user, isLoaded } = useUser();
-  
-  const [recipes, setRecipes] = useState<lib.RecipeSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
 
-  // Clerk user yüklendiğinde Supabase user ID'sini al
-  useEffect(() => {
-    async function fetchSupabaseUser() {
-      if (!user?.id) return;
-      
-      const result = await getOrCreateUserAction(user.id);
-      if (result.data) {
-        setSupabaseUserId(result.data.id);
-      } else {
-        console.error("User bulunamadı. Clerk ID:", user.id, result.error);
-        setError(result.error || "Kullanıcı bilgisi bulunamadı");
-      }
-    }
-    
-    if (isLoaded && user) {
-      fetchSupabaseUser();
-    }
-  }, [user, isLoaded]);
-
-  // Supabase user ID hazır olduğunda tarifleri getir
-  useEffect(() => {
-    if (supabaseUserId) {
-      fetchRecipes();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabaseUserId]);
-
-  async function fetchRecipes() {
-    if (!supabaseUserId) return;
-    
-    try {
-      setLoading(true);
-      const result = await getUserRecipesAction(supabaseUserId);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setRecipes(result.data || []);
-      }
-    } catch (err) {
-      setError("Tarifler yüklenirken hata oluştu");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Clerk henüz yüklenmemişse veya kullanıcı giriş yapmamışsa
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Sparkle size={16} className="text-indigo-400 animate-pulse" />
+            </div>
+          </div>
         </main>
-        <AppBar activePage={ActivePage.COOKBOOKS} />
+        <AppBar activePage={ActivePage.HUB} />
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <Header />
-        <main className="flex-1 flex flex-col items-center justify-center px-5">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Tariflerinizi görüntüleyin</h2>
-          <p className="text-gray-600 text-center">Tariflerinizi görmek için giriş yapın.</p>
-        </main>
-        <AppBar activePage={ActivePage.COOKBOOKS} />
-      </div>
-    );
-  }
+  const myApps = MINI_APPS.filter((app) => app.isImplemented);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-      {/* Header - Üst kısım (logo + giriş) */}
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] selection:bg-indigo-100">
       <Header />
 
-      {/* Main Content */}
-      <main className="flex-1 px-5 pb-24 overflow-y-auto">
-        {/* Category Selector */}
-        <div className="flex items-center gap-2 mt-4 mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Tariflerim</h2>
+      <main className="flex-1 px-6 pb-28 overflow-y-auto max-w-lg mx-auto w-full pt-10">
+        {/* Background Decorative Gradient */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 blur-[120px] rounded-full"></div>
+          <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
-          </div>
-        )}
+        {/* Personalized Workspace Header */}
+        <section className="mb-12">
+          <h1 className="text-4xl font-[900] text-gray-900 tracking-tightest mb-1.5 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500">
+            Everyday.
+          </h1>
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest pl-0.5">
+            Personal Modules Hub
+          </p>
+        </section>
 
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-12 text-red-500">
-            {error}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && recipes.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Henüz tarif eklemediniz.</p>
-            <p className="text-gray-500 text-sm mt-1">Sağ alttaki + butonuna tıklayarak ilk tarifinizi ekleyin!</p>
-          </div>
-        )}
-
-        {/* Recipe Grid */}
-        {!loading && !error && recipes.length > 0 && (
-          <div className="grid grid-cols-2 gap-4">
-            {recipes.map((recipe) => (
-              <div
-                key={recipe.id}
-                onClick={() => router.push(`/recipe?id=${recipe.id}`)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
-              >
-                {/* Recipe Image */}
-                <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
-                  {recipe.image_url ? (
-                    <img
-                      src={recipe.image_url}
-                      alt={recipe.title || "Tarif"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image size={48} color="#9CA3AF" />
-                  )}
-                </div>
-                {/* Recipe Title */}
-                <div className="p-3">
-                  <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
-                    {recipe.title}
-                  </h3>
-                </div>
-              </div>
+        {/* My Apps Icon Grid (OS Style) */}
+        <section className="mb-12">
+          <div className="grid grid-cols-4 gap-y-8 gap-x-4">
+            {myApps.map((app) => (
+              <MiniAppIcon key={app.id} app={app} />
             ))}
+
+            {/* "Add More" / Discover Shortcut */}
+            <button
+              onClick={() => router.push("/discover")}
+              className="flex flex-col items-center group gap-2 active:scale-95 transition-all duration-200"
+            >
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] bg-white border border-gray-100 flex items-center justify-center shadow-sm group-hover:border-indigo-200 group-hover:bg-indigo-50/50 transition-all">
+                <Plus
+                  size={24}
+                  color="#CBD5E1"
+                  weight="bold"
+                  className="group-hover:text-indigo-400 group-hover:scale-110 transition-all"
+                />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 group-hover:text-indigo-400">
+                Discover
+              </span>
+            </button>
+          </div>
+        </section>
+
+        {/* Empty State if no apps implemented yet */}
+        {myApps.length === 0 && (
+          <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-[2.5rem] border border-white shadow-xl shadow-indigo-100/20 px-8">
+            <div className="bg-indigo-600/10 w-16 h-16 rounded-[1rem] flex items-center justify-center mx-auto mb-6 transform rotate-3">
+              <Sparkle size={32} weight="fill" className="text-indigo-600" />
+            </div>
+            <h3 className="text-lg font-black text-gray-900 mb-2">
+              Build your OS
+            </h3>
+            <p className="text-gray-500 text-[13px] leading-relaxed mb-8">
+              Your home screen is empty. Add modules from the discover section
+              to customize your experience.
+            </p>
+            <button
+              onClick={() => router.push("/discover")}
+              className="w-full bg-indigo-600 text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-all"
+            >
+              Start Exploring
+            </button>
           </div>
         )}
       </main>
 
-      {/* Floating Action Button - Navigate to Create Recipe */}
-      <button 
-        onClick={() => router.push("/create-recipe")}
-        className="fixed right-5 bottom-30 w-14 h-14 bg-[#FF6B35] rounded-full shadow-lg flex items-center justify-center hover:bg-[#e55a2b] transition-colors hover:scale-105 active:scale-95 z-50"
-      >
-        <Plus size={28} weight="bold" color="white" />
-      </button>
-
-      {/* AppBar - Alt kısım (navigation) */}
-      <AppBar activePage={ActivePage.COOKBOOKS} />
+      <AppBar activePage={ActivePage.HUB} />
     </div>
+  );
+}
+
+/**
+ * OS-Style Mini App Icon Component (Internal to Home)
+ */
+function MiniAppIcon({ app }: { app: MiniApp }) {
+  const router = useRouter();
+  const Icon = app.icon;
+
+  return (
+    <button
+      onClick={() => router.push(app.href)}
+      className="flex flex-col items-center group gap-2 active:scale-95 transition-all duration-200"
+    >
+      {/* OS Icon Container - Squircle */}
+      <div
+        className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg relative overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:shadow-indigo-200/50"
+        style={{
+          backgroundColor: app.color,
+          boxShadow: `0 8px 24px -6px ${app.color}40`,
+        }}
+      >
+        {/* Depth Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
+        {/* Glossy Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+        {/* Inner Border */}
+        <div className="absolute inset-0 border border-white/20 rounded-[1.25rem]"></div>
+
+        <Icon
+          size={32}
+          weight="fill"
+          color="white"
+          className="relative z-10 transition-transform duration-300 group-hover:rotate-6"
+        />
+      </div>
+
+      {/* App Label */}
+      <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-1 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors">
+        {app.name}
+      </span>
+    </button>
   );
 }
