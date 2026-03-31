@@ -32,6 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
+    public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
@@ -50,6 +51,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
@@ -82,6 +84,71 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+export namespace itu_yemekhane {
+    export interface Dish {
+        id: string
+        name: string
+        category: string
+        calories: number
+    }
+
+    export interface MenuResponse {
+        date: string
+        mealType: string
+        dishes: Dish[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getDislikedDishes = this.getDislikedDishes.bind(this)
+            this.getMenu = this.getMenu.bind(this)
+            this.toggleDislike = this.toggleDislike.bind(this)
+        }
+
+        /**
+         * Get all disliked dishes for global display at the bottom via Supabase RPC.
+         * GET /disliked
+         */
+        public async getDislikedDishes(): Promise<{
+    dishes: string[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/disliked`)
+            return await resp.json() as {
+    dishes: string[]
+}
+        }
+
+        /**
+         * Scrapes the ITU cafeteria menu from the provided external page.
+         */
+        public async getMenu(): Promise<MenuResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/menu`)
+            return await resp.json() as MenuResponse
+        }
+
+        /**
+         * Toggles a dish (name) in the disliked library using Supabase RPC.
+         * POST /disliked
+         */
+        public async toggleDislike(params: {
+    dishName: string
+}): Promise<{
+    status: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/disliked`, JSON.stringify(params))
+            return await resp.json() as {
+    status: string
+}
+        }
+    }
 }
 
 export namespace recipe {

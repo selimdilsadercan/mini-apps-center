@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "encore run",
     "test": "vitest",
-    "generate": "encore gen client -e staging --output=../frontend/lib/client.ts",
+    "generate": "encore gen client -e local --output=../frontend/lib/client.ts",
     "clean": "rimraf node_modules .encore"
   },
   "devDependencies": {
@@ -20,8 +20,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.86.2",
     "axios": "^1.13.2",
-    "cheerio": "^1.1.2",
-    "encore.dev": "^1.56.0",
+    "node-html-parser": "^6.1.13",
+    "encore.dev": "1.56.0",
     "puppeteer": "^24.32.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
