@@ -86,7 +86,7 @@ export const getUserSubscriptions = api(
   { expose: true, method: "GET", path: "/subcenter/user/:userId" },
   async ({ userId }: GetUserSubscriptionsRequest): Promise<GetUserSubscriptionsResponse> => {
     const { data, error } = await supabase.rpc("subcenter_get_user_items", {
-      user_id_param: userId,
+      clerk_id_param: userId,
     });
 
     if (error) {
@@ -106,7 +106,7 @@ export const createSubscription = api(
   { expose: true, method: "POST", path: "/subcenter/create" },
   async ({ userId, name, price, currency, cycle, category, color, icon, startDate }: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
     const { data, error } = await supabase.rpc("subcenter_create_item", {
-      user_id_param: userId,
+      clerk_id_param: userId,
       name_param: name,
       price_param: price,
       currency_param: currency,
@@ -135,7 +135,7 @@ export const deleteSubscription = api(
   async ({ id, userId }: DeleteSubscriptionRequest): Promise<DeleteSubscriptionResponse> => {
     const { data, error } = await supabase.rpc("subcenter_delete_item", {
       item_id_param: id,
-      user_id_param: userId,
+      clerk_id_param: userId,
     });
 
     if (error) {
@@ -156,7 +156,7 @@ export const updateSubscription = api(
   async ({ id, userId, name, price, currency, cycle, category, color, icon, startDate }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
     const { data, error } = await supabase.rpc("subcenter_update_item", {
       item_id_param: id,
-      user_id_param: userId,
+      clerk_id_param: userId,
       name_param: name,
       price_param: price,
       currency_param: currency,

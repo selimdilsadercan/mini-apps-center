@@ -1,4 +1,4 @@
 {
-	"id":   "recipe-backend-5yt2",
+	"id":   "mini-apps-center-8u7i",
 	"lang": "typescript"
 }
