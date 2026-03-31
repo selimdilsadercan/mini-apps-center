@@ -43,9 +43,9 @@ interface GetOrCreateUserResponse {
  * GET /identity/user/clerk/:clerkId
  */
 export const getUserByClerkId = api(
-  { expose: true, method: "GET", path: "/identity/user/clerk/:clerkId" },
+  { expose: true, method: "GET", path: "/users/user/clerk/:clerkId" },
   async ({ clerkId }: GetUserByClerkIdRequest): Promise<GetUserByClerkIdResponse> => {
-    const { data, error } = await supabase.rpc("get_user_by_clerk_id", {
+    const { data, error } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
     });
 
@@ -63,9 +63,9 @@ export const getUserByClerkId = api(
  * POST /identity/user/create
  */
 export const createUser = api(
-  { expose: true, method: "POST", path: "/identity/user/create" },
+  { expose: true, method: "POST", path: "/users/user/create" },
   async ({ clerkId }: CreateUserRequest): Promise<CreateUserResponse> => {
-    const { data, error } = await supabase.rpc("create_user_with_clerk_id", {
+    const { data, error } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
     });
 
@@ -83,10 +83,10 @@ export const createUser = api(
  * POST /identity/user/get-or-create
  */
 export const getOrCreateUser = api(
-  { expose: true, method: "POST", path: "/identity/user/get-or-create" },
+  { expose: true, method: "POST", path: "/users/user/get-or-create" },
   async ({ clerkId }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
     // Önce mevcut user'ı ara
-    const { data: existingData, error: existingError } = await supabase.rpc("get_user_by_clerk_id", {
+    const { data: existingData, error: existingError } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
     });
 
@@ -103,7 +103,7 @@ export const getOrCreateUser = api(
     // Yoksa oluştur
     console.log("Supabase user bulunamadı, yeni oluşturuluyor...");
     
-    const { data: newData, error: newError } = await supabase.rpc("create_user_with_clerk_id", {
+    const { data: newData, error: newError } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
     });
 

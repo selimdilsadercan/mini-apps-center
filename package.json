@@ -12,5 +12,5 @@
     "clean": "cd frontend && npm run clean",
     "mobile": "cd frontend && npm run mobile",
     "store": "cd frontend && npm run store"
-  },
+  }
 }

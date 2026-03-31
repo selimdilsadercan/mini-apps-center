@@ -1,7 +1,6 @@
--- Yeni tarif oluşturan fonksiyon (tam versiyon)
-DROP FUNCTION IF EXISTS create_new_recipe;
+DROP FUNCTION IF EXISTS recipe_create_item;
 
-CREATE FUNCTION create_new_recipe(
+CREATE FUNCTION recipe_create_item(
   title_param TEXT,
   user_id_param UUID,
   ingredients_param JSONB DEFAULT NULL,

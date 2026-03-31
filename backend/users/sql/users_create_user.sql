@@ -1,7 +1,6 @@
--- Yeni kullanıcı oluşturan veya mevcut olanı döndüren fonksiyon (Clerk ID ile)
-DROP FUNCTION IF EXISTS create_user_with_clerk_id;
+DROP FUNCTION IF EXISTS users_create_user;
 
-CREATE FUNCTION create_user_with_clerk_id(clerk_id_param TEXT)
+CREATE FUNCTION users_create_user(clerk_id_param TEXT)
 RETURNS TABLE (
   id UUID,
   clerk_id TEXT,

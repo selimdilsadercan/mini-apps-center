@@ -1,7 +1,6 @@
--- Clerk ID ile kullanıcı bulan fonksiyon
-DROP FUNCTION IF EXISTS get_user_by_clerk_id;
+DROP FUNCTION IF EXISTS users_get_user;
 
-CREATE FUNCTION get_user_by_clerk_id(clerk_id_param TEXT)
+CREATE FUNCTION users_get_user(clerk_id_param TEXT)
 RETURNS TABLE (
   id UUID,
   clerk_id TEXT,

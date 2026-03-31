@@ -142,7 +142,7 @@ function MiniAppIcon({ app }: { app: MiniApp }) {
       </div>
 
       {/* App Label */}
-      <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-1 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors">
+      <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2]">
         {app.name}
       </span>
     </button>

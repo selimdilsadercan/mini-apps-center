@@ -1,7 +1,6 @@
--- Belirli kullanıcının tariflerini döndüren fonksiyon
-DROP FUNCTION IF EXISTS get_user_recipes;
+DROP FUNCTION IF EXISTS recipe_get_user_items;
 
-CREATE FUNCTION get_user_recipes(user_id_param UUID)
+CREATE FUNCTION recipe_get_user_items(user_id_param UUID)
 RETURNS TABLE (
   id UUID,
   title TEXT,

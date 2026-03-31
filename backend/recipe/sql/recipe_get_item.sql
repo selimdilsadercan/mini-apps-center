@@ -1,7 +1,6 @@
--- Tek bir tarifinTÜM detaylarını getiren fonksiyon
-DROP FUNCTION IF EXISTS get_recipe;
+DROP FUNCTION IF EXISTS recipe_get_item;
 
-CREATE FUNCTION get_recipe(recipe_id_param UUID)
+CREATE FUNCTION recipe_get_item(recipe_id_param UUID)
 RETURNS TABLE (
   id UUID,
   title TEXT,

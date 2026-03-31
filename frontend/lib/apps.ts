@@ -51,7 +51,7 @@ export const MINI_APPS: MiniApp[] = [
   // Utilities
   { id: 'morning-notifications', name: 'Morning Notifications', description: 'Weather and daily updates', icon: Bell, category: 'Utilities', color: '#FF6B6B', href: '/apps/morning' },
   { id: 'save-money', name: 'Tasarruf Challanges', description: 'Money saving challenges', icon: PiggyBank, category: 'Utilities', color: '#51CF66', href: '/apps/savings' },
-  { id: 'subscription-manager', name: 'Subscription Manager', description: 'Track all your subscriptions', icon: CreditCard, category: 'Utilities', color: '#339AF0', href: '/apps/subs' },
+  { id: 'subcenter', name: 'Subscription Center', description: 'Track all your subscriptions & spending', icon: CreditCard, category: 'Utilities', color: '#339AF0', href: '/apps/subcenter', isImplemented: true },
   { id: 'medicine-stock', name: 'İlaç Stok', description: 'Track your medicine stock', icon: FirstAid, category: 'Utilities', color: '#FF8787', href: '/apps/medicine' },
   { id: 'habit-media', name: 'Habbit Media', description: 'Habit tracking with media focus', icon: Calendar, category: 'Utilities', color: '#748FFC', href: '/apps/habits' },
   

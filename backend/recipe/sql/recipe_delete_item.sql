@@ -1,7 +1,6 @@
--- Tarif silen fonksiyon (sadece tarifi oluşturan kullanıcı silebilir)
-DROP FUNCTION IF EXISTS delete_recipe;
+DROP FUNCTION IF EXISTS recipe_delete_item;
 
-CREATE FUNCTION delete_recipe(
+CREATE FUNCTION recipe_delete_item(
   recipe_id_param UUID,
   user_id_param UUID
 )
