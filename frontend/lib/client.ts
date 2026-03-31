@@ -253,6 +253,8 @@ export namespace subcenter {
     export interface CreateSubscriptionRequest {
         userId: string
         name: string
+        planName?: string
+        region?: string
         price: number
         currency: string
         cycle: string
@@ -274,14 +276,33 @@ export namespace subcenter {
         success: boolean
     }
 
+    export interface GetGlobalPresetsResponse {
+        presets: GlobalPreset[]
+    }
+
     export interface GetUserSubscriptionsResponse {
         subscriptions: Subscription[]
+    }
+
+    export interface GlobalPreset {
+        id: string
+        name: string
+        "plan_name": string
+        region: string
+        "avg_price": number
+        currency: string
+        category: string
+        color: string
+        icon: string
+        "usage_count": number
     }
 
     export interface Subscription {
         id: string
         "user_id": string
         name: string
+        "plan_name": string
+        region: string
         price: number
         currency: string
         cycle: string
@@ -295,6 +316,8 @@ export namespace subcenter {
     export interface UpdateSubscriptionRequest {
         userId: string
         name: string
+        planName: string
+        region: string
         price: number
         currency: string
         cycle: string
@@ -315,12 +338,13 @@ export namespace subcenter {
             this.baseClient = baseClient
             this.createSubscription = this.createSubscription.bind(this)
             this.deleteSubscription = this.deleteSubscription.bind(this)
+            this.getGlobalPresets = this.getGlobalPresets.bind(this)
             this.getUserSubscriptions = this.getUserSubscriptions.bind(this)
             this.updateSubscription = this.updateSubscription.bind(this)
         }
 
         /**
-         * Create a new subscription
+         * Create a new subscription and update community presets
          * POST /subcenter/create
          */
         public async createSubscription(params: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> {
@@ -342,6 +366,16 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/subcenter/${encodeURIComponent(id)}`, undefined, {query})
             return await resp.json() as DeleteSubscriptionResponse
+        }
+
+        /**
+         * Get top community-driven subscription presets
+         * GET /subcenter/presets
+         */
+        public async getGlobalPresets(): Promise<GetGlobalPresetsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/presets`)
+            return await resp.json() as GetGlobalPresetsResponse
         }
 
         /**

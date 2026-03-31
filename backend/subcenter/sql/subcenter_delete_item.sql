@@ -1,8 +1,9 @@
-DROP FUNCTION IF EXISTS subcenter_delete_item;
+DROP FUNCTION IF EXISTS subcenter_delete_item(UUID, UUID);
+DROP FUNCTION IF EXISTS subcenter_delete_item(UUID, TEXT);
 
-CREATE FUNCTION subcenter_delete_item(
+CREATE OR REPLACE FUNCTION subcenter_delete_item(
   item_id_param UUID,
-  user_id_param UUID
+  clerk_id_param TEXT
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -13,7 +14,7 @@ DECLARE
 BEGIN
   DELETE FROM subcenter_items
   WHERE id = item_id_param
-    AND user_id = user_id_param;
+    AND user_id = clerk_id_param;
   
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   

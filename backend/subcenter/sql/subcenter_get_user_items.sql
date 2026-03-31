@@ -1,10 +1,12 @@
 DROP FUNCTION IF EXISTS subcenter_get_user_items;
 
-CREATE FUNCTION subcenter_get_user_items(clerk_id_param TEXT)
+CREATE OR REPLACE FUNCTION subcenter_get_user_items(clerk_id_param TEXT)
 RETURNS TABLE (
   id UUID,
   user_id TEXT,
   name TEXT,
+  plan_name TEXT,
+  region TEXT,
   price NUMERIC,
   currency TEXT,
   cycle TEXT,
@@ -21,6 +23,8 @@ AS $$
     id,
     user_id,
     name,
+    plan_name,
+    region,
     price,
     currency,
     cycle,
