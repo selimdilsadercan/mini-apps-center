@@ -14,7 +14,6 @@ export default function Home() {
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -32,7 +31,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] selection:bg-indigo-100">
-      <Header />
 
       <main className="flex-1 px-6 pb-28 overflow-y-auto max-w-lg mx-auto w-full pt-10">
         {/* Background Decorative Gradient */}
@@ -41,15 +39,6 @@ export default function Home() {
           <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
         </div>
 
-        {/* Personalized Workspace Header */}
-        <section className="mb-12">
-          <h1 className="text-4xl font-[900] text-gray-900 tracking-tightest mb-1.5 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500">
-            Everyday.
-          </h1>
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest pl-0.5">
-            Personal Modules Hub
-          </p>
-        </section>
 
         {/* My Apps Icon Grid (OS Style) */}
         <section className="mb-12">
@@ -61,18 +50,19 @@ export default function Home() {
             {/* "Add More" / Discover Shortcut */}
             <button
               onClick={() => router.push("/discover")}
-              className="flex flex-col items-center group gap-2 active:scale-95 transition-all duration-200"
+              className="flex flex-col items-center group gap-2 cursor-pointer active:scale-95 transition-all duration-200"
             >
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] bg-white border border-gray-100 flex items-center justify-center shadow-sm group-hover:border-indigo-200 group-hover:bg-indigo-50/50 transition-all">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 relative overflow-hidden group-hover:scale-105 transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]"></div>
                 <Plus
-                  size={24}
-                  color="#CBD5E1"
+                  size={28}
+                  color="white"
                   weight="bold"
-                  className="group-hover:text-indigo-400 group-hover:scale-110 transition-all"
+                  className="transition-all"
                 />
               </div>
-              <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 group-hover:text-indigo-400">
-                Discover
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 group-hover:text-blue-500">
+                Explore
               </span>
             </button>
           </div>
@@ -116,7 +106,7 @@ function MiniAppIcon({ app }: { app: MiniApp }) {
   return (
     <button
       onClick={() => router.push(app.href)}
-      className="flex flex-col items-center group gap-2 active:scale-95 transition-all duration-200"
+      className="flex flex-col items-center group gap-2 cursor-pointer active:scale-95 transition-all duration-200"
     >
       {/* OS Icon Container - Squircle */}
       <div

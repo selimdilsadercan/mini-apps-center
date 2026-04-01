@@ -32,7 +32,6 @@ export default function Discover() {
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -48,11 +47,10 @@ export default function Discover() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-      <Header />
 
       <main className="flex-1 px-5 pb-28 overflow-y-auto max-w-3xl mx-auto w-full">
         {/* Search & Categories Section */}
-        <section className="sticky top-[64px] z-40 bg-[#FAF9F7]/95 backdrop-blur-md pt-2 pb-4 -mx-5 px-5 transition-all duration-300">
+        <section className="sticky top-0 z-40 bg-[#FAF9F7]/95 backdrop-blur-md pt-8 pb-4 -mx-5 px-5 transition-all duration-300">
           <div className="relative group mb-5">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none group-focus-within:text-indigo-600 text-gray-400 transition-colors">
               <MagnifyingGlass size={20} weight="bold" />
