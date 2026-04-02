@@ -140,6 +140,16 @@ export const MINI_APPS: MiniApp[] = [
     color: "#20C997",
     href: "/apps/free-games",
   },
+  {
+    id: "game-companion",
+    name: "Eşlikçi",
+    description: "Board game companion and score tracker",
+    icon: GameController,
+    category: "Games",
+    color: "#228BE6",
+    href: "/apps/game-companion",
+    isImplemented: true,
+  },
 
   // Productivity
   {
