@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProviderWrapper } from "@/components/ClerkProvider";
 import { NotificationHandler } from "@/components/notifications/notification-handler";
 import { Toaster } from "react-hot-toast";
+import { GreetingHandler } from "@/components/GreetingHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <ClerkProviderWrapper>
           <NotificationHandler />
+          <GreetingHandler />
           {children}
           <Toaster position="top-center" />
         </ClerkProviderWrapper>

@@ -8,16 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "generate": "npx tsx scripts/generate-types.ts",
-    "ios": "next build --turbopack && npx cap sync && npx cap open ios",
+    "ios": "next build && npx cap sync && npx cap open ios",
     "increment-version": "npx tsx scripts/increment-version.ts",
-    "mobile": "next build --turbopack && npm run sync && npm run apk && npm run open-apk",
-    "sync": "npx cap sync",
-    "store": "npm run increment-version && next build --turbopack && npm run sync && npm run apk && npm run open-aab",
-    "apk": "cd android && gradlew.bat assembleDebug && gradlew.bat bundleRelease && cd ..",
+    "mobile": "next build && npm run sync && npm run apk && npm run open-apk",
+    "sync": "node node_modules/@capacitor/cli/bin/capacitor sync",
+    "store": "npm run increment-version && next build && npm run sync && npm run apk && npm run open-aab",
+    "apk": "cd android && cmd /c gradlew.bat assembleDebug && cmd /c gradlew.bat bundleRelease",
     "open-apk": "explorer android\\app\\build\\outputs\\apk\\debug",
-    "aab": "npm run increment-version && cd android && gradlew.bat bundleRelease && cd ..",
+    "aab": "npm run increment-version && cd android && cmd /c gradlew.bat bundleRelease",
     "open-aab": "explorer android\\app\\build\\outputs\\bundle\\release",
-    "clean": "cd android && gradlew.bat clean"
+    "clean": "cd android && cmd /c gradlew.bat clean"
   },
   "dependencies": {
     "@capacitor-firebase/messaging": "^8.2.0",
@@ -47,8 +47,10 @@
     "clsx": "^2.1.1",
     "firebase": "^12.11.0",
     "framer-motion": "^12.38.0",
+    "lru-cache": "^11.3.3",
     "lucide-react": "^0.556.0",
     "next": "16.0.7",
+    "path-scurry": "^2.0.2",
     "pdfjs-dist": "4.4.168",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -56,6 +58,7 @@
     "react-hot-toast": "^2.6.0",
     "send-intent": "^7.0.0",
     "tailwind-merge": "^3.4.0",
+    "tar": "^7.5.13",
     "vaul": "^1.1.2"
   },
   "devDependencies": {
