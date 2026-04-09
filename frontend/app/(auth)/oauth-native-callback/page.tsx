@@ -26,7 +26,7 @@ export default function OAuthNativeCallbackPage() {
 
       try {
         await handleRedirectCallback({
-           redirectUrl: "https://recipe-tan-five.vercel.app/sso-callback"
+           redirectUrl: "https://mini-apps-center-frontend.vercel.app/sso-callback"
         });
         console.log("Silent verification success");
       } catch (err) {

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 
 // OAuth callback URL - Vercel'de host ediliyor
-const SSO_CALLBACK_URL_BASE = "https://recipe-tan-five.vercel.app/sso-callback";
+const SSO_CALLBACK_URL_BASE = "https://mini-apps-center-frontend.vercel.app/sso-callback";
 
 export default function SignUpPage() {
   const { signUp, isLoaded } = useSignUp();
