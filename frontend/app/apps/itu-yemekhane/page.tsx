@@ -265,8 +265,14 @@ export function ITUYemekhaneAppContent({
             </h1>
           </div>
 
-          <div className="w-8 flex justify-end">
-            {!isMock ? (
+          <div className="flex items-center gap-1">
+            <button 
+               onClick={handleExpand}
+               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative group shadow-sm active:scale-95"
+            >
+              <Maximize2 className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+            </button>
+            {!isMock && (
               <Link
                 href="/apps/itu-yemekhane/notifications"
                 className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative group shadow-sm active:scale-95"
@@ -274,13 +280,6 @@ export function ITUYemekhaneAppContent({
                 <Bell className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
                 <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" />
               </Link>
-            ) : (
-              <button 
-                 onClick={handleExpand}
-                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative group shadow-sm active:scale-95"
-              >
-                <Maximize2 className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-              </button>
             )}
           </div>
         </div>
