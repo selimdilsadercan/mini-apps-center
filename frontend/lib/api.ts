@@ -27,12 +27,11 @@ function getBaseURL() {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     
-    // Sadece WEB ortamında ve LOCALHOST ise yerel Encore'a bağlan
-    if (isWeb && (hostname === "localhost" || hostname === "127.0.0.1")) {
+    // Kullanıcı Şartı: Sadece localhost VE isNative değilse locale bağlan, yoksa staging
+    if ((hostname === "localhost" || hostname === "127.0.0.1") && !isNative) {
       return Local;
     }
     
-    // Native (iOS/Android) veya prod/staging web ise staging'e bağlan
     return Environment("staging");
   }
 

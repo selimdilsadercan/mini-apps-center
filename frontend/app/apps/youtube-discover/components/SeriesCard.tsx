@@ -10,7 +10,7 @@ export default function SeriesCard({ series }: { series: Series }) {
     : null;
 
   return (
-    <Link href={`/apps/youtube-discover/seri/${series.id}`} className="group block h-full">
+    <Link href={`/apps/youtube-discover/seri?id=${series.id}`} className="group block h-full">
       <div className="relative h-full flex flex-col overflow-hidden rounded-[2rem] bg-slate-900/40 border border-white/5 transition-all duration-500 hover:border-white/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-red-950/20 active:scale-[0.98]">
         
         {/* Thumbnail Area */}

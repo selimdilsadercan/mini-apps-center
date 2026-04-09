@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { 
   Star, 
   BookmarkSimple, 
@@ -16,18 +17,16 @@ import {
   ListPlus,
   ArrowArcLeft
 } from "@phosphor-icons/react";
-import { fetchSeriesById } from "../../lib/api";
-import { Series, CATEGORY_LABELS } from "../../lib/types";
-import StarRating from "../../components/StarRating";
-import { getSeriesData, toggleWatchlist, setRating, toggleEpisodeWatched, getWatchProgress } from "../../lib/store";
+import { fetchSeriesById } from "../lib/api";
+import { Series, CATEGORY_LABELS } from "../lib/types";
+import StarRating from "../components/StarRating";
+import { getSeriesData, toggleWatchlist, setRating, toggleEpisodeWatched, getWatchProgress } from "../lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function SeriesPage({
-  params, 
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function SeriesDetailContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+  
   const [series, setSeries] = useState<Series | any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -39,7 +38,8 @@ export default function SeriesPage({
   const [progress, setProgress] = useState(0);
   const [playingVideo, setPlayingVideo] = useState<any>(null);
 
-  const loadSeries = async () => {
+  const loadSeries = useCallback(async () => {
+    if (!id) return;
     try {
       setLoading(true);
       const data = await fetchSeriesById(id);
@@ -51,18 +51,23 @@ export default function SeriesPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   const refreshUserData = useCallback(() => {
-    if (!series) return;
+    if (!series || !id) return;
     const data = getSeriesData(id);
     setUserData(data);
     setProgress(getWatchProgress(id, series.episodes?.length || 0));
   }, [id, series]);
 
   useEffect(() => {
-    loadSeries();
-  }, [id]);
+    if (id) {
+      loadSeries();
+    } else {
+      setLoading(false);
+      setError(true);
+    }
+  }, [id, loadSeries]);
 
   useEffect(() => {
     if (series) {
@@ -79,7 +84,7 @@ export default function SeriesPage({
     );
   }
 
-  if (error || !series) {
+  if (error || !series || !id) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 px-6 text-center">
         <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center mb-6 border border-white/5">
@@ -98,18 +103,24 @@ export default function SeriesPage({
   }
 
   const handleToggleWatchlist = () => {
-    toggleWatchlist(id);
-    refreshUserData();
+    if (id) {
+        toggleWatchlist(id);
+        refreshUserData();
+    }
   };
 
   const handleRate = (value: number) => {
-    setRating(id, value);
-    refreshUserData();
+    if (id) {
+        setRating(id, value);
+        refreshUserData();
+    }
   };
 
   const handleToggleEpisode = (episodeId: string) => {
-    toggleEpisodeWatched(id, episodeId);
-    refreshUserData();
+    if (id) {
+        toggleEpisodeWatched(id, episodeId);
+        refreshUserData();
+    }
   };
 
   const watchedCount = userData.watchedEpisodes.length;
@@ -383,5 +394,17 @@ export default function SeriesPage({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function SeriesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+        <div className="w-16 h-16 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <SeriesDetailContent />
+    </Suspense>
   );
 }

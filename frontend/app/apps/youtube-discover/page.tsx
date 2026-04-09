@@ -121,7 +121,7 @@ export default function YouTubeDiscoverPage() {
 
               <div className="flex items-center gap-4">
                 <Link
-                  href={`/apps/youtube-discover/seri/${featured.id}`}
+                  href={`/apps/youtube-discover/seri?id=${featured.id}`}
                   className="flex items-center gap-2.5 bg-red-600 hover:bg-red-500 text-white px-8 py-4 rounded-2xl font-black text-sm transition-all shadow-xl shadow-red-900/40 active:scale-95 group"
                 >
                   <Play size={22} weight="fill" />
