@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.recipe.app"
+    namespace "com.everything.miniapps"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.recipe.app"
+        applicationId "com.everything.miniapps"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 67

@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useAuth } from "@/components/FirebaseAuthProvider";
+import { useAuth } from "@clerk/clerk-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import {
   ArrowLeft,
   Plus,
@@ -13,8 +10,29 @@ import {
   GameController,
   Check,
 } from "@phosphor-icons/react";
-import Sidebar from "@/components/Sidebar";
-import GameImage from "@/components/GameImage";
+import Sidebar from "../../components/Sidebar";
+import { MOCK_GAMES, MOCK_GAME_LISTS } from "../../lib/mock-data";
+
+// Type shim
+type Id<T> = string;
+
+// Local mock hooks
+const useQuery = (apiPath: any, args?: any): any => {
+  if (apiPath.toString().includes("getGameListById")) return MOCK_GAME_LISTS[0];
+  if (apiPath.toString().includes("getGames")) return MOCK_GAMES;
+  return [];
+};
+
+const useMutation = (apiPath: any) => async (args: any) => {
+  console.log("Mock mutation:", apiPath, args);
+  return true;
+};
+
+const api = {
+  gameLists: { getGameList: "getGameList", updateGameList: "updateGameList", addGamesToList: "addGamesToList", removeGamesFromList: "removeGamesFromList" },
+  games: { getGames: "getGames" }
+} as any;
+const GameImage = ({ game, size }: any) => <div className="w-8 h-8 bg-gray-200 rounded"></div>;
 
 function EditListPageContent() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -100,10 +118,10 @@ function EditListPageContent() {
       // Update games in list
       const currentGameIds = gameList.gameIds;
       const gamesToAdd = selectedGames.filter(
-        (id) => !currentGameIds.includes(id)
+        (id: any) => !currentGameIds.includes(id)
       );
       const gamesToRemove = currentGameIds.filter(
-        (id) => !selectedGames.includes(id)
+        (id: any) => !selectedGames.includes(id)
       );
 
       if (gamesToAdd.length > 0) {
@@ -120,17 +138,17 @@ function EditListPageContent() {
     }
   };
 
-  const handleGameToggle = (gameId: Id<"games">) => {
-    setSelectedGames((prev) =>
+  const handleGameToggle = (gameId: any) => {
+    setSelectedGames((prev: any) =>
       prev.includes(gameId)
-        ? prev.filter((id) => id !== gameId)
+        ? prev.filter((id: any) => id !== gameId)
         : [...prev, gameId]
     );
   };
 
   const handleSelectAll = () => {
     if (games) {
-      setSelectedGames(games.map((game) => game._id));
+      setSelectedGames((games as any[]).map((game: any) => game._id));
     }
   };
 
@@ -257,7 +275,7 @@ function EditListPageContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {games.map((game) => (
+                {(games as any[]).map((game: any) => (
                   <div
                     key={game._id}
                     className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${

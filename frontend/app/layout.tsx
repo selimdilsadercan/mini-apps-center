@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProviderWrapper } from "@/components/ClerkProvider";
+import { NotificationHandler } from "@/components/notifications/notification-handler";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProviderWrapper>
+          <NotificationHandler />
           {children}
+          <Toaster position="top-center" />
         </ClerkProviderWrapper>
       </body>
     </html>

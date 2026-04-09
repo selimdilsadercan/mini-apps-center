@@ -68,17 +68,17 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
   // Initialize bets for players
   useEffect(() => {
     if (gamePlayers.length > 0) {
-      const playerIds = gamePlayers
-        .map((p) => p._id)
+      const playerIds = (gamePlayers as any[])
+        .map((p: any) => p._id)
         .sort()
         .join(",");
 
       // Only initialize if player IDs have changed
       if (playerIds !== initializedRef.current) {
         // Initialize balances to $100 for each player
-        setPlayerBalances((prev) => {
+        setPlayerBalances((prev: any) => {
           const initialBalances: { [key: string]: number } = {};
-          gamePlayers.forEach((player) => {
+          (gamePlayers as any[]).forEach((player: any) => {
             if (!prev[player._id]) {
               initialBalances[player._id] = 100;
             }
@@ -88,9 +88,9 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
 
         // Deduct $5 entry fee only once when game first starts
         if (!entryFeePaidRef.current) {
-          setPlayerBalances((prev) => {
+          setPlayerBalances((prev: any) => {
             const updated = { ...prev };
-            gamePlayers.forEach((player) => {
+            (gamePlayers as any[]).forEach((player: any) => {
               if (updated[player._id] !== undefined) {
                 updated[player._id] = Math.max(0, updated[player._id] - 5);
               }
@@ -99,9 +99,9 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
           });
 
           // Add entry fees to pot
-          setPlayerBets((prev) => {
+          setPlayerBets((prev: any) => {
             const initialBets: { [key: string]: number } = {};
-            gamePlayers.forEach((player) => {
+            (gamePlayers as any[]).forEach((player: any) => {
               initialBets[player._id] = (prev[player._id] || 0) + 5; // Each player contributes $5 entry fee
             });
             initializedRef.current = playerIds;
@@ -110,9 +110,9 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
 
           entryFeePaidRef.current = true;
         } else {
-          setPlayerBets((prev) => {
+          setPlayerBets((prev: any) => {
             const initialBets: { [key: string]: number } = {};
-            gamePlayers.forEach((player) => {
+            (gamePlayers as any[]).forEach((player: any) => {
               initialBets[player._id] = prev[player._id] || 0;
             });
             initializedRef.current = playerIds;
@@ -241,20 +241,20 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
 
   // Calculate total pot (sum of all player bets)
   const calculatePot = () => {
-    return Object.values(playerBets).reduce((sum, bet) => sum + bet, 0);
+    return Object.values(playerBets).reduce((sum: number, bet: any) => sum + bet, 0);
   };
 
   const checkRoundEnd = () => {
-    const activePlayers = gamePlayers.filter((p) => !foldedPlayers[p._id]);
+    const activePlayers = (gamePlayers as any[]).filter((p: any) => !(foldedPlayers as any)[p._id]);
     if (activePlayers.length <= 1) return false; // Game over
 
     // Check if all active players have acted
-    const allActed = activePlayers.every((p) => playersActed[p._id] === true);
+    const allActed = activePlayers.every((p: any) => (playersActed as any)[p._id] === true);
     if (!allActed) return false;
 
     // Check if all active players have the same bet
-    const activePlayerBets = activePlayers.map((p) => playerBets[p._id] || 0);
-    const allBetsEqual = activePlayerBets.every((bet) => bet === currentBet);
+    const activePlayerBets = activePlayers.map((p: any) => (playerBets as any)[p._id] || 0);
+    const allBetsEqual = activePlayerBets.every((bet: any) => bet === currentBet);
 
     return allBetsEqual;
   };
@@ -274,7 +274,7 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
       setPendingRaises({});
 
       // Set turn to first active player
-      const activePlayers = gamePlayers.filter((p) => !foldedPlayers[p._id]);
+      const activePlayers = (gamePlayers as any[]).filter((p: any) => !foldedPlayers[p._id]);
       if (activePlayers.length > 0) {
         setCurrentTurn(activePlayers[0]._id);
       }
@@ -300,9 +300,9 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
     setShowWinnerModal(false);
 
     // Deduct entry fee for new game
-    setPlayerBalances((prev) => {
+    setPlayerBalances((prev: any) => {
       const updated = { ...prev };
-      gamePlayers.forEach((player) => {
+      (gamePlayers as any[]).forEach((player: any) => {
         if (updated[player._id] !== undefined) {
           updated[player._id] = Math.max(0, updated[player._id] - 5);
         }
@@ -313,7 +313,7 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
     // Add entry fees to pot for new game
     setPlayerBets((prev) => {
       const initialBets: { [key: string]: number } = {};
-      gamePlayers.forEach((player) => {
+      (gamePlayers as any[]).forEach((player: any) => {
         initialBets[player._id] = 5; // Each player contributes $5 entry fee
       });
       return initialBets;
@@ -330,7 +330,7 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
   };
 
   const moveToNextPlayer = (currentPlayerId: string) => {
-    const activePlayers = gamePlayers.filter((p) => !foldedPlayers[p._id]);
+    const activePlayers = (gamePlayers as any[]).filter((p: any) => !(foldedPlayers as any)[p._id]);
 
     // If only one player left, they win automatically
     if (activePlayers.length <= 1) {
@@ -365,7 +365,7 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
     }
 
     const currentIndex = activePlayers.findIndex(
-      (p) => p._id === currentPlayerId
+      (p: any) => p._id === currentPlayerId
     );
     const nextIndex = (currentIndex + 1) % activePlayers.length;
     setCurrentTurn(activePlayers[nextIndex]._id);
@@ -633,7 +633,7 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
             <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
               Bahis Turu:
             </span>
-            {[1, 2, 3, 4].map((round) => (
+            {[1, 2, 3, 4].map((round: number) => (
               <div
                 key={round}
                 className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
@@ -690,9 +690,9 @@ export default function PokerGame({ gameSaveId }: PokerGameProps) {
               </div>
             </div>
             <div className="space-y-2 mb-6">
-              {gamePlayers
-                .filter((p) => !foldedPlayers[p._id])
-                .map((player) => (
+              {(gamePlayers as any[])
+                .filter((p: any) => !(foldedPlayers as any)[p._id])
+                .map((player: any) => (
                   <button
                     key={player._id}
                     onClick={() => selectWinner(player._id)}

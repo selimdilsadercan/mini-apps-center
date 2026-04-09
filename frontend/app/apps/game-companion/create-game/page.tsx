@@ -117,12 +117,12 @@ function CreateGameContent() {
 
       // Add all players from the selected group
       const groupPlayers = players.filter(
-        (player) =>
+        (player: any) =>
           player.groupId === selectedGroupId &&
           player._id !== currentUserAsPlayer._id,
       );
 
-      autoSelectedPlayers.push(...groupPlayers.map((p) => p._id));
+      autoSelectedPlayers.push(...groupPlayers.map((p: any) => p._id));
 
       setSelectedPlayers(autoSelectedPlayers);
     }
@@ -175,7 +175,7 @@ function CreateGameContent() {
       if (gameSettings.gameplay === "takimli") {
         const allTeamPlayers = [...redTeam, ...blueTeam];
         const unassignedPlayers = selectedPlayers.filter(
-          (playerId) => !allTeamPlayers.includes(playerId),
+          (playerId: any) => !allTeamPlayers.includes(playerId),
         );
 
         if (unassignedPlayers.length > 0) {
@@ -245,15 +245,15 @@ function CreateGameContent() {
   };
 
   const togglePlayer = (playerId: string) => {
-    setSelectedPlayers((prev) =>
+    setSelectedPlayers((prev: any) =>
       prev.includes(playerId)
-        ? prev.filter((id) => id !== playerId)
+        ? prev.filter((id: any) => id !== playerId)
         : [...prev, playerId],
     );
   };
 
   const updateGameSetting = (key: string, value: string | boolean) => {
-    setGameSettings((prev) => {
+    setGameSettings((prev: any) => {
       const newSettings = { ...prev, [key]: value };
 
       // Reset round winner when calculation mode changes
@@ -283,20 +283,20 @@ function CreateGameContent() {
 
   const movePlayerToTeam = (playerId: string, team: "red" | "blue") => {
     // Remove player from both teams first
-    setRedTeam((prev) => prev.filter((id) => id !== playerId));
-    setBlueTeam((prev) => prev.filter((id) => id !== playerId));
+    setRedTeam((prev: any) => prev.filter((id: any) => id !== playerId));
+    setBlueTeam((prev: any) => prev.filter((id: any) => id !== playerId));
 
     // Add to the specified team
     if (team === "red") {
-      setRedTeam((prev) => [...prev, playerId]);
+      setRedTeam((prev: any) => [...prev, playerId]);
     } else {
-      setBlueTeam((prev) => [...prev, playerId]);
+      setBlueTeam((prev: any) => [...prev, playerId]);
     }
   };
 
   const removePlayerFromTeams = (playerId: string) => {
-    setRedTeam((prev) => prev.filter((id) => id !== playerId));
-    setBlueTeam((prev) => prev.filter((id) => id !== playerId));
+    setRedTeam((prev: any) => prev.filter((id: any) => id !== playerId));
+    setBlueTeam((prev: any) => prev.filter((id: any) => id !== playerId));
   };
 
   const handleCreatePlayer = async (name: string, avatar?: string) => {
@@ -311,7 +311,7 @@ function CreateGameContent() {
       });
 
       // Automatically select the new player
-      setSelectedPlayers((prev) => [...prev, result]);
+      setSelectedPlayers((prev: any) => [...prev, result]);
       toast.success(`${name} oyuncu olarak eklendi!`);
     } catch (error) {
       console.error("Error creating player:", error);
@@ -356,10 +356,10 @@ function CreateGameContent() {
 
     return {
       redTeam: redTeam.map(
-        (id) => allPlayers.find((p) => p._id === id)?.name || "Unknown",
+        (id: any) => allPlayers.find((p: any) => p._id === id)?.name || "Unknown",
       ),
       blueTeam: blueTeam.map(
-        (id) => allPlayers.find((p) => p._id === id)?.name || "Unknown",
+        (id: any) => allPlayers.find((p: any) => p._id === id)?.name || "Unknown",
       ),
       totalPlayers: selectedPlayers.length,
       assignedPlayers: redTeam.length + blueTeam.length,
@@ -373,7 +373,7 @@ function CreateGameContent() {
   const filterPlayers = (playerList: typeof players) => {
     if (!searchQuery.trim()) return playerList;
     return (
-      playerList?.filter((player) =>
+      playerList?.filter((player: any) =>
         player.name.toLowerCase().includes(searchQuery.toLowerCase()),
       ) || []
     );
@@ -382,7 +382,7 @@ function CreateGameContent() {
   // Group players by their group, excluding the current user's player
   const groupedPlayers =
     players?.reduce(
-      (acc, player) => {
+      (acc: any, player: any) => {
         // Skip the current user's player since it's shown in the "Ben" section
         if (currentUserAsPlayer && player._id === currentUserAsPlayer._id) {
           return acc;
@@ -400,7 +400,7 @@ function CreateGameContent() {
 
   // Filter grouped players based on search query
   const filteredGroupedPlayers = Object.keys(groupedPlayers).reduce(
-    (acc, groupId) => {
+    (acc: any, groupId: any) => {
       const filteredPlayers = filterPlayers(groupedPlayers[groupId]);
       if (filteredPlayers && filteredPlayers.length > 0) {
         acc[groupId] = filteredPlayers;
@@ -567,17 +567,17 @@ function CreateGameContent() {
 
                 {/* Groups List */}
                 <div className="space-y-3 max-h-92 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                  {groups?.map((group) => {
+                  {(groups as any[])?.map((group: any) => {
                     // Get players in this group
                     const groupPlayers =
-                      players?.filter(
-                        (player) => player.groupId === group._id,
+                      (players as any[])?.filter(
+                        (player: any) => player.groupId === group._id,
                       ) || [];
 
                     return (
                       <button
                         key={group._id}
-                        onClick={() => setSelectedGroupId(group._id)}
+                        onClick={() => setSelectedGroupId(group._id as any)}
                         className={`w-full px-4 py-4 rounded-xl transition-all border-2 ${
                           selectedGroupId === group._id
                             ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
@@ -605,7 +605,7 @@ function CreateGameContent() {
 
                           {/* Player Avatars */}
                           <div className="flex items-center -space-x-2 ml-2">
-                            {groupPlayers.slice(0, 3).map((player) => (
+                            {(groupPlayers as any[]).slice(0, 3).map((player: any) => (
                               <div
                                 key={player._id}
                                 className="w-8 h-8 rounded-full border-2 border-white dark:border-[var(--card-background)] overflow-hidden flex-shrink-0"
@@ -771,7 +771,7 @@ function CreateGameContent() {
                           Gruplandırılmamış
                         </h3>
                         <div className="space-y-0.5">
-                          {filteredGroupedPlayers.ungrouped.map((player) => (
+                          {(filteredGroupedPlayers.ungrouped as any[]).map((player: any) => (
                             <div
                               key={player._id}
                               className="flex items-center justify-between py-1"
@@ -826,14 +826,14 @@ function CreateGameContent() {
                     )}
 
                   {/* Grouped Players */}
-                  {groups
-                    ?.sort((a, b) => {
+                  {(groups as any[])
+                    ?.sort((a: any, b: any) => {
                       // Seçilen grup ilk sıraya gelsin
                       if (a._id === selectedGroupId) return -1;
                       if (b._id === selectedGroupId) return 1;
                       return 0;
                     })
-                    .map((group) => {
+                    .map((group: any) => {
                       const groupPlayers =
                         filteredGroupedPlayers[group._id] || [];
                       if (groupPlayers.length === 0) return null;
@@ -844,7 +844,7 @@ function CreateGameContent() {
                             {group.name}
                           </h3>
                           <div className="space-y-0.5">
-                            {groupPlayers.map((player) => (
+                            {(groupPlayers as any[]).map((player: any) => (
                               <div
                                 key={player._id}
                                 className="flex items-center justify-between py-1"
@@ -917,9 +917,9 @@ function CreateGameContent() {
                           </h2>
                           <div className="min-h-[120px] p-4 border-2 border-dashed border-red-300 dark:border-red-700 rounded-lg bg-red-50 dark:bg-red-950/30">
                             <div className="flex flex-wrap gap-2">
-                              {redTeam.map((playerId) => {
-                                const player = allPlayers.find(
-                                  (p) => p._id === playerId,
+                              {redTeam.map((playerId: any) => {
+                                const player = (allPlayers as any[]).find(
+                                  (p: any) => p._id === playerId,
                                 );
                                 return player ? (
                                   <TeamPlayer
@@ -945,9 +945,9 @@ function CreateGameContent() {
                           </h2>
                           <div className="min-h-[120px] p-4 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-950/30">
                             <div className="flex flex-wrap gap-2">
-                              {blueTeam.map((playerId) => {
-                                const player = allPlayers.find(
-                                  (p) => p._id === playerId,
+                              {blueTeam.map((playerId: any) => {
+                                const player = (allPlayers as any[]).find(
+                                  (p: any) => p._id === playerId,
                                 );
                                 return player ? (
                                   <TeamPlayer
@@ -973,9 +973,9 @@ function CreateGameContent() {
                         Oyuncular:
                       </h2>
                       <div className="flex flex-wrap gap-2">
-                        {selectedPlayers.map((playerId) => {
-                          const player = allPlayers.find(
-                            (p) => p._id === playerId,
+                        {selectedPlayers.map((playerId: any) => {
+                          const player = (allPlayers as any[]).find(
+                            (p: any) => p._id === playerId,
                           );
                           return player ? (
                             <div

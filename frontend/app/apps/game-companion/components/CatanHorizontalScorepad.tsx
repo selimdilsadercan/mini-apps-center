@@ -57,7 +57,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
     category: keyof CatanScores,
     value: number
   ) => {
-    setPlayerScores((prev) => ({
+    setPlayerScores((prev: any) => ({
       ...prev,
       [playerId]: {
         ...prev[playerId],
@@ -69,7 +69,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
   const getPlayerTotal = (playerId: string) => {
     const scores = playerScores[playerId];
     if (!scores) return 0;
-    return Object.values(scores).reduce((sum, score) => sum + score, 0);
+    return Object.values(scores).reduce((sum: number, score: any) => sum + score, 0);
   };
 
   const SettlementIcon = () => (
@@ -195,7 +195,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
             <div className="w-48 py-4"></div>
 
             {/* Player Columns */}
-            {gamePlayers.map((player) => (
+            {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={player._id}
                 className="min-w-[120px] py-4 px-3 flex flex-col items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm"
@@ -226,7 +226,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
           </div>
 
           {/* Scoring Category Rows */}
-          {scoringCategories.map((category) => (
+          {scoringCategories.map((category: any) => (
             <div key={category.key} className="flex min-w-max">
               {/* Category Name Column */}
               <div className="w-48 py-3 px-4 flex items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm">
@@ -246,7 +246,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
               </div>
 
               {/* Player Score Columns */}
-              {gamePlayers.map((player) => (
+              {(gamePlayers as any[]).map((player: any) => (
                 <ScoreCell
                   key={`${player._id}-${category.key}`}
                   playerId={player._id}
@@ -264,7 +264,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
             <div className="w-48 py-3 px-4 flex items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm">
               <span className="text-gray-800 font-bold text-sm">TOPLAM</span>
             </div>
-            {gamePlayers.map((player) => (
+            {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={`total-${player._id}`}
                 className="min-w-[120px] py-3 px-3 flex items-center justify-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm"

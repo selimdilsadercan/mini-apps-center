@@ -182,7 +182,7 @@ function PlayerDetailContent() {
     if (!gameSaves || gameSaves.length === 0) return {};
 
     const grouped = gameSaves.reduce(
-      (groups, gameSave) => {
+      (groups: any, gameSave: any) => {
         const group = getDateGroup(gameSave.createdTime);
         if (!groups[group]) {
           groups[group] = [];
@@ -197,7 +197,7 @@ function PlayerDetailContent() {
     const groupOrder = ["Bugün", "Dün", "Bu Hafta", "Bu Ay", "Daha Önce"];
     const orderedGroups: Record<string, any[]> = {};
 
-    groupOrder.forEach((groupName) => {
+    groupOrder.forEach((groupName: any) => {
       if (grouped[groupName]) {
         orderedGroups[groupName] = grouped[groupName];
       }
@@ -208,7 +208,7 @@ function PlayerDetailContent() {
 
   const getGameName = (gameTemplateId: any) => {
     if (!games) return "Bilinmeyen Oyun";
-    const game = games.find((g: any) => g._id === gameTemplateId);
+    const game = (games as any[]).find((g: any) => g._id === gameTemplateId);
     return game?.name || "Bilinmeyen Oyun";
   };
 
@@ -292,7 +292,7 @@ function PlayerDetailContent() {
                   </h1>
                   {player.groupId && groups && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {groups.find((g) => g._id === player.groupId)?.name ||
+                      {(groups as any[]).find((g: any) => g._id === player.groupId)?.name ||
                         "Bilinmiyor"}
                     </p>
                   )}
@@ -380,13 +380,13 @@ function PlayerDetailContent() {
               </div>
             ) : (
               <div className="space-y-6">
-                {Object.keys(groupedGameSaves).map((groupName) => (
+                {Object.keys(groupedGameSaves as any).map((groupName: any) => (
                   <div key={groupName}>
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
                       {groupName}
                     </h3>
                     <div className="space-y-2">
-                      {groupedGameSaves[groupName].map((gameSave) => {
+                      {(groupedGameSaves as any)[groupName].map((gameSave: any) => {
                         const allPlayerIdsInGame = [
                           ...(gameSave.players || []),
                           ...(gameSave.redTeam || []),

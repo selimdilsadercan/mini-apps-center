@@ -1,4 +1,4 @@
-package com.recipe.app;
+package com.everything.miniapps;
 
 import android.content.Intent;
 import android.content.ClipData;

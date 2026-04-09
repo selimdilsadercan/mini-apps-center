@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.recipe.app',
+  appId: 'com.everything.miniapps',
   appName: 'recipe',
   webDir: 'out',
   plugins: {
@@ -11,6 +11,9 @@ const config: CapacitorConfig = {
     },
     App: {
       // Enable deep linking
+    },
+    FirebaseMessaging: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   },
   android: {

@@ -64,7 +64,7 @@ export default function MunchkinScoreboard({
       | { [key: string]: PlayerScore }
       | undefined;
 
-    gameSave.players.forEach((playerId) => {
+    (gameSave.players as any[]).forEach((playerId: any) => {
       if (savedScores && savedScores[playerId]) {
         // Use saved scores from specialPoints
         initialScores[playerId] = savedScores[playerId];
@@ -110,7 +110,7 @@ export default function MunchkinScoreboard({
     field: keyof PlayerScore,
     value: number | "male" | "female"
   ) => {
-    setPlayerScores((prev) => ({
+    setPlayerScores((prev: any) => ({
       ...prev,
       [playerId]: {
         ...prev[playerId],
@@ -145,7 +145,7 @@ export default function MunchkinScoreboard({
       style={{ backgroundColor: "var(--background)" }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-        {gamePlayers.map((player) => {
+        {(gamePlayers as any[]).map((player: any) => {
           const scores = playerScores[player._id] || {
             level: 1,
             bonus: 0,

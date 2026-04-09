@@ -67,7 +67,7 @@ export default function SearchPage() {
     if (!searchQuery.trim()) {
       setFilteredGames(games);
     } else {
-      const filtered = games.filter((game) =>
+      const filtered = (games as any[]).filter((game: any) =>
         game.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredGames(filtered);
@@ -92,7 +92,7 @@ export default function SearchPage() {
   const handleGameSelect = async (gameId: string) => {
     // Save the recent search if user is logged in
     if (currentUser) {
-      const game = games?.find((g) => g._id === gameId);
+      const game = (games as any[])?.find((g: any) => g._id === gameId);
       if (game) {
         try {
           await saveRecentSearch({
@@ -178,7 +178,7 @@ export default function SearchPage() {
                 <div className="space-y-3">
                   {games === undefined
                     ? // Loading state for popular games
-                      Array.from({ length: 5 }).map((_, index) => (
+                      Array.from({ length: 5 }).map((_, index: any) => (
                         <div
                           key={index}
                           className="flex items-center p-3 bg-white dark:bg-[var(--card-background)] rounded-lg"
@@ -196,7 +196,7 @@ export default function SearchPage() {
                         </div>
                       ))
                     : // Show popular games (first 5 games)
-                      games.slice(0, 5).map((game) => (
+                      (games as any[]).slice(0, 5).map((game: any) => (
                         <div
                           key={game._id}
                           className="flex items-center p-3 bg-white dark:bg-[var(--card-background)] rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-[var(--card-background)]/80 transition-colors"
@@ -228,8 +228,8 @@ export default function SearchPage() {
                     Yakındaki aramalar
                   </h2>
                   <div className="space-y-3">
-                    {recentSearches.map((search) => {
-                      const game = games?.find((g) => g._id === search.gameId);
+                    {recentSearches.map((search: any) => {
+                      const game = (games as any[])?.find((g: any) => g._id === search.gameId);
                       if (!game) return null;
 
                       return (
@@ -284,7 +284,7 @@ export default function SearchPage() {
                 <div className="space-y-3">
                   {games === undefined
                     ? // Loading state for all games
-                      Array.from({ length: 8 }).map((_, index) => (
+                      Array.from({ length: 8 }).map((_, index: any) => (
                         <div
                           key={index}
                           className="flex items-center p-3 bg-white dark:bg-[var(--card-background)] rounded-lg"
@@ -302,7 +302,7 @@ export default function SearchPage() {
                         </div>
                       ))
                     : // Show all games
-                      games.map((game) => (
+                      (games as any[]).map((game: any) => (
                         <div
                           key={game._id}
                           className="flex items-center p-3 bg-white dark:bg-[var(--card-background)] rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-[var(--card-background)]/80 transition-colors"
@@ -330,7 +330,7 @@ export default function SearchPage() {
           ) : games === undefined ? (
             // Skeleton loading for games
             <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, index) => (
+              {Array.from({ length: 5 }).map((_, index: any) => (
                 <div
                   key={index}
                   className="flex items-center p-3 bg-white dark:bg-[var(--card-background)] rounded-lg"

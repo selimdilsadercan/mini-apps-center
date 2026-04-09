@@ -27,7 +27,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.recipe.app" />
+                <data android:scheme="com.everything.miniapps" />
             </intent-filter>
 
             <!-- Share Intent - Text paylaşımı -->
@@ -88,4 +88,5 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 </manifest>

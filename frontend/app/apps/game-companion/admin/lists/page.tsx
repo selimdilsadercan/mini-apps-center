@@ -141,13 +141,13 @@ export default function ListsPage() {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = gameLists.findIndex((list) => list._id === active.id);
-      const newIndex = gameLists.findIndex((list) => list._id === over?.id);
+      const oldIndex = (gameLists as any[]).findIndex((list: any) => list._id === active.id);
+      const newIndex = (gameLists as any[]).findIndex((list: any) => list._id === over?.id);
 
       const newLists = arrayMove(gameLists, oldIndex, newIndex);
 
       // Update order indices
-      const updates = newLists.map((list, index) => ({
+      const updates = newLists.map((list: any, index: number) => ({
         id: list._id,
         order: index + 1
       }));
@@ -313,9 +313,9 @@ export default function ListsPage() {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext items={gameLists.map(list => list._id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={(gameLists as any[]).map((list: any) => list._id)} strategy={verticalListSortingStrategy}>
                 <div className="divide-y divide-gray-200">
-                  {gameLists.map((list) => (
+                  {(gameLists as any[]).map((list: any) => (
                     <SortableItem
                       key={list._id}
                       list={list}

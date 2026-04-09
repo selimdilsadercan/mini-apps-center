@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+type Id<T> = string;
+const useMutation = (...args: any[]) => async (...args2: any[]) => "/api/mock-upload" as any;
+const useQuery = (...args: any[]) => null;
+const api = { files: { generateUploadUrl: "", getImageUrl: "" } } as any;
 import { Image, Upload, X, Check } from '@phosphor-icons/react';
 
 interface ImageUploadProps {

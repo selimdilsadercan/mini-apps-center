@@ -131,9 +131,9 @@ function EditGameContent() {
   // Load current list assignments
   useEffect(() => {
     if (game && gameLists) {
-      const currentLists = gameLists
-        .filter((list) => list.gameIds.includes(game._id))
-        .map((list) => list._id);
+      const currentLists = (gameLists as any[])
+        .filter((list: any) => list.gameIds.includes(game._id))
+        .map((list: any) => list._id);
       setSelectedLists(currentLists);
     }
   }, [game, gameLists]);
@@ -230,9 +230,9 @@ function EditGameContent() {
 
       // Update list assignments
       if (gameLists) {
-        const currentLists = gameLists
-          .filter((list) => list.gameIds.includes(gameId))
-          .map((list) => list._id);
+        const currentLists = (gameLists as any[])
+          .filter((list: any) => list.gameIds.includes(gameId))
+          .map((list: any) => list._id);
 
         const listsToAdd = selectedLists.filter(
           (id) => !currentLists.includes(id),
@@ -889,7 +889,7 @@ function EditGameContent() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {gameLists.map((list) => (
+                  {(gameLists as any[]).map((list: any) => (
                     <div
                       key={list._id}
                       className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${

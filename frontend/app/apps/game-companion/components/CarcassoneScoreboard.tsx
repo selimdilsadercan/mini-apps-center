@@ -96,7 +96,7 @@ export default function CarcassonneScoreboard({
       | undefined;
 
     const initial: PlayerScoresState = {};
-    gameSave.players.forEach((playerId) => {
+    (gameSave.players as any[]).forEach((playerId: string) => {
       if (savedScores && savedScores[playerId]) {
         initial[playerId] = {
           entries: savedScores[playerId].entries || [],
@@ -142,7 +142,7 @@ export default function CarcassonneScoreboard({
   };
 
   const addScoreEntry = (playerId: string, entry: Omit<ScoreEntry, "id">) => {
-    setPlayerScores((prev) => {
+    setPlayerScores((prev: any) => {
       const existing = prev[playerId] ?? { entries: [] };
       const id =
         typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -160,7 +160,7 @@ export default function CarcassonneScoreboard({
   };
 
   const deleteScoreEntry = (playerId: string, entryId: string) => {
-    setPlayerScores((prev) => {
+    setPlayerScores((prev: any) => {
       const existing = prev[playerId];
       if (!existing) return prev;
 
@@ -168,7 +168,7 @@ export default function CarcassonneScoreboard({
         ...prev,
         [playerId]: {
           ...existing,
-          entries: existing.entries.filter((e) => e.id !== entryId),
+          entries: existing.entries.filter((e: any) => e.id !== entryId),
         },
       };
     });
@@ -194,11 +194,11 @@ export default function CarcassonneScoreboard({
   };
 
   const getTotalPoints = (score: PlayerScore): number =>
-    score.entries.reduce((sum, e) => sum + (e.points || 0), 0);
+    score.entries.reduce((sum: number, e: any) => sum + (e.points || 0), 0);
 
   const getBreakdown = (score: PlayerScore): Record<ScoreType, number> => {
     return score.entries.reduce(
-      (acc, e) => {
+      (acc: any, e: any) => {
         acc[e.type] = (acc[e.type] || 0) + e.points;
         return acc;
       },
@@ -213,8 +213,8 @@ export default function CarcassonneScoreboard({
     const breakdown = getBreakdown(score);
     const parts: string[] = [];
 
-    (Object.keys(breakdown) as ScoreType[]).forEach((type) => {
-      const pts = breakdown[type];
+    (Object.keys(breakdown) as ScoreType[]).forEach((type: ScoreType) => {
+      const pts = (breakdown as any)[type];
       if (pts !== 0) {
         parts.push(`${SCORE_TYPE_LABELS[type]}: ${pts}`);
       }
@@ -235,7 +235,7 @@ export default function CarcassonneScoreboard({
 
   const activePlayer =
     modalPlayerId &&
-    gamePlayers.find((player) => player._id === modalPlayerId);
+    (gamePlayers as any[]).find((player: any) => player._id === modalPlayerId);
 
   return (
     <div
@@ -322,7 +322,7 @@ export default function CarcassonneScoreboard({
 
       {/* Player cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-        {gamePlayers.map((player) => {
+        {(gamePlayers as any[]).map((player: any) => {
           const scores =
             playerScores[player._id] || ({
               entries: [],
@@ -410,14 +410,14 @@ export default function CarcassonneScoreboard({
                       {[...scores.entries]
                         .slice()
                         .reverse()
-                        .map((entry) => (
+                        .map((entry: any) => (
                           <li
                             key={entry.id}
                             className="flex items-start justify-between"
                           >
                             <div className="flex-1 pr-2">
                               <span className="font-medium">
-                                {SCORE_TYPE_LABELS[entry.type]}
+                                {(SCORE_TYPE_LABELS as any)[entry.type]}
                               </span>
                               <span className="ml-1 text-gray-500 dark:text-gray-400">
                                 × {entry.quantity}

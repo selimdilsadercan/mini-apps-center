@@ -14,6 +14,8 @@ export enum ActivePage {
   DISCOVER = "discover",
   NOTIFICATIONS = "notifications",
   PROFILE = "profile",
+  GROCERIES = "groceries",
+  PLAN = "plan",
 }
 
 interface AppBarProps {

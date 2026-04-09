@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+type Id<T> = string;
+const useMutation = (apiPath: any) => async (...args: any[]) => ("/api/mock-upload" as any);
+const api = { files: { generateUploadUrl: "" }, games: { updateGame: "", deleteGamePdf: "" } } as any;
 import { File, X, Upload, CheckCircle } from '@phosphor-icons/react';
 
 interface PdfUploadProps {

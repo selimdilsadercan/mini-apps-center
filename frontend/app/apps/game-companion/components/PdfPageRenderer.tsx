@@ -35,11 +35,8 @@ export default function PdfPageRenderer({ pdfId, fileName = 'Kurallar.pdf' }: Pd
       try {
         const pdfjs = await import('pdfjs-dist');
         
-        // Set up worker
-        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.mjs',
-          import.meta.url,
-        ).toString();
+        // Set up worker via CDN for better reliability in Next.js + Capacitor
+        pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
         
         setPdfjsLib(pdfjs);
       } catch (err) {

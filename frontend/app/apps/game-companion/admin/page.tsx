@@ -208,7 +208,7 @@ function AdminPageContent() {
     }
   }, [games]);
 
-  const filteredGames = localGames.filter((game) => {
+  const filteredGames = localGames.filter((game: any) => {
     const matchesSearch = game.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -219,7 +219,7 @@ function AdminPageContent() {
 
   // Get unique list names for filter dropdown
   const uniqueListNames = Array.from(
-    new Set(games.map((game) => game.listName)),
+    new Set(games.map((game: any) => game.listName)),
   ).sort();
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -227,9 +227,9 @@ function AdminPageContent() {
 
     if (active.id !== over?.id && over?.id) {
       const oldIndex = filteredGames.findIndex(
-        (game) => game._id === active.id,
+        (game: any) => game._id === active.id,
       );
-      const newIndex = filteredGames.findIndex((game) => game._id === over.id);
+      const newIndex = filteredGames.findIndex((game: any) => game._id === over.id);
 
       if (oldIndex === -1 || newIndex === -1) {
         return;
@@ -239,7 +239,7 @@ function AdminPageContent() {
       setLocalGames(newGames);
 
       // Update indices
-      const updates = newGames.map((game, index) => ({
+      const updates = newGames.map((game: any, index: number) => ({
         id: game._id,
         index: index,
       }));
@@ -434,7 +434,7 @@ function AdminPageContent() {
                 >
                   Tüm Listeler
                 </option>
-                {uniqueListNames.map((listName) => (
+                {uniqueListNames.map((listName: any) => (
                   <option
                     key={listName}
                     value={listName}
@@ -488,11 +488,11 @@ function AdminPageContent() {
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={filteredGames.map((game) => game._id)}
+                  items={filteredGames.map((game: any) => game._id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="divide-y divide-gray-200 dark:divide-[var(--card-border)]">
-                    {filteredGames.map((game) => (
+                    {filteredGames.map((game: any) => (
                       <SortableItem
                         key={game._id}
                         game={game}

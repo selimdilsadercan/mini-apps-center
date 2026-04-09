@@ -36,6 +36,16 @@ interface GetOrCreateUserResponse {
   isNewUser: boolean;
 }
 
+interface SaveFcmTokenRequest {
+  clerkId: string;
+  token: string;
+  deviceType: string;
+}
+
+interface SaveFcmTokenResponse {
+  success: boolean;
+}
+
 // ==================== API ENDPOINTS ====================
 
 /**
@@ -119,5 +129,33 @@ export const getOrCreateUser = api(
     }
 
     return { user: newUser, isNewUser: true };
+  }
+);
+
+/**
+ * Kullanıcının FCM token'ını kaydeder veya günceller
+ * POST /users/fcm-token
+ */
+export const saveFcmToken = api(
+  { expose: true, method: "POST", path: "/users/fcm-token" },
+  async ({ clerkId, token, deviceType }: SaveFcmTokenRequest): Promise<SaveFcmTokenResponse> => {
+    const { error } = await supabase
+      .from("user_fcm_tokens")
+      .upsert(
+        {
+          clerk_id: clerkId,
+          fcm_token: token,
+          device_type: deviceType,
+          last_seen_at: new Date().toISOString(),
+        },
+        { onConflict: "clerk_id,fcm_token" }
+      );
+
+    if (error) {
+      console.error("saveFcmToken error:", error);
+      return { success: false };
+    }
+
+    return { success: true };
   }
 );

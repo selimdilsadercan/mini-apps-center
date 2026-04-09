@@ -23,7 +23,7 @@ export async function getOrCreateUserAction(
   try {
     const client = createBrowserClient();
     
-    const response = await client.identity.getOrCreateUser({ clerkId });
+    const response = await client.users.getOrCreateUser({ clerkId });
     
     if (response.user) {
       return {

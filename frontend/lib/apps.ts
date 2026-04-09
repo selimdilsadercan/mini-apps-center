@@ -31,6 +31,7 @@ import {
   AppWindow,
   ChartBar,
   IconProps,
+  Basket,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -129,7 +130,8 @@ export const MINI_APPS: MiniApp[] = [
     icon: Robot,
     category: "Games",
     color: "#845EF7",
-    href: "/apps/catan",
+    href: "/apps/catan-bot",
+    isImplemented: true,
   },
   {
     id: "free-games",
@@ -390,12 +392,13 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
   },
   {
-    id: "project-hub",
-    name: "Project Hub",
-    description: "Manage your own projects",
-    icon: AppWindow,
-    category: "Dev & Design",
-    color: "#1971C2",
-    href: "/apps/proj-hub",
+    id: "kiler",
+    name: "Kiler",
+    description: "Evdeki stoklarını yönet ve bayatlamadan tüket",
+    icon: Basket,
+    category: "Lifestyle",
+    color: "#40C057",
+    href: "/apps/kiler",
+    isImplemented: true,
   },
 ];

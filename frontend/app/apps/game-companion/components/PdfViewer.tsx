@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+type Id<T> = string;
+const useQuery = (...args: any[]) => null;
+const api = { files: { getFileUrl: "" } } as any;
 import { File, Download } from '@phosphor-icons/react';
 
 interface PdfViewerProps {

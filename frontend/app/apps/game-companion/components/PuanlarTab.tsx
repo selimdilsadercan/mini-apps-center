@@ -88,9 +88,9 @@ export default function PuanlarTab({
     }
     
     const redTeamPlayers =
-      players?.filter((player) => gameSave.redTeam?.includes(player._id)) || [];
+      (players as any[])?.filter((player: any) => gameSave.redTeam?.includes(player._id)) || [];
     const blueTeamPlayers =
-      players?.filter((player) => gameSave.blueTeam?.includes(player._id)) ||
+      (players as any[])?.filter((player: any) => gameSave.blueTeam?.includes(player._id)) ||
       [];
     
     return { redTeamPlayers, blueTeamPlayers };
@@ -234,7 +234,7 @@ export default function PuanlarTab({
       
       // Get the maximum number of rounds from the laps data
       const maxRounds = Math.max(
-        ...gameSave.laps.map((playerLaps: any[]) => playerLaps.length)
+        ...(gameSave.laps as any[]).map((playerLaps: any[]) => playerLaps.length)
       );
       
       // If no rounds have been recorded, don't show any round columns
@@ -264,18 +264,18 @@ export default function PuanlarTab({
     // Individual Mode - Original logic
     if (gameSave?.settings.calculationMode === "NoPoints") {
       // For crown mode, give 1 point to players with crowns
-      roundScores = gamePlayers.map((player) =>
+      roundScores = (gamePlayers as any[]).map((player: any) =>
         crownWinners[player._id] ? 1 : 0
       );
     } else if (gameSave?.settings.pointsPerRound === "Multiple") {
       // For multiple scores mode, send individual scores as arrays
-      roundScores = gamePlayers.map((player) => {
+      roundScores = (gamePlayers as any[]).map((player: any) => {
         const playerScores = multipleScores[player._id] || [];
         return playerScores.length > 0 ? playerScores : [0];
       });
     } else {
       // For single score mode, use the current scores
-      roundScores = gamePlayers.map((player) => currentScores[player._id] || 0);
+      roundScores = (gamePlayers as any[]).map((player: any) => currentScores[player._id] || 0);
     }
     
     // Check if all scores are 0
@@ -583,7 +583,7 @@ export default function PuanlarTab({
                       <div className="relative mr-3">
                         {redTeamPlayers && redTeamPlayers.length > 0 ? (
                           <div className="flex -space-x-2">
-                            {redTeamPlayers.slice(0, 3).map((player, index) => (
+                            {(redTeamPlayers as any[]).slice(0, 3).map((player: any, index: number) => (
                               <div
                                 key={player._id}
                                 className="relative"
@@ -635,9 +635,9 @@ export default function PuanlarTab({
                       <div className="relative mr-3">
                         {blueTeamPlayers && blueTeamPlayers.length > 0 ? (
                           <div className="flex -space-x-2">
-                            {blueTeamPlayers
+                            {(blueTeamPlayers as any[])
                               .slice(0, 3)
-                              .map((player, index) => (
+                              .map((player: any, index: number) => (
                               <div
                                 key={player._id}
                                 className="relative"
@@ -684,7 +684,7 @@ export default function PuanlarTab({
                   </div>
                 </>
               ) : (
-                gamePlayers.map((player, index) => (
+                (gamePlayers as any[]).map((player: any, index: number) => (
                   <div
                     key={player._id}
                     className={`pt-3 pb-0.5 pl-4 pr-2 flex items-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
@@ -732,7 +732,7 @@ export default function PuanlarTab({
                     </div>
                   </>
                 ) : (
-                  gamePlayers.map((player, index) => (
+                  (gamePlayers as any[]).map((player: any, index: number) => (
                     <div
                       key={player._id}
                       className={`py-2.5 px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
@@ -802,7 +802,7 @@ export default function PuanlarTab({
                     </div>
                   </>
                 ) : (
-                  gamePlayers.map((player, index) => (
+                (gamePlayers as any[]).map((player: any, index: number) => (
                     <div
                       key={player._id}
                       className={`py-2.5 px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
