@@ -242,12 +242,13 @@ export const MINI_APPS: MiniApp[] = [
   // Entertainment
   {
     id: "youtube-series",
-    name: "Youtube Series",
-    description: "Track your YT series",
+    name: "Youtube Discover",
+    description: "Yeni seriler keşfet ve izleme listeni yönet",
     icon: YoutubeLogo,
     category: "Entertainment",
     color: "#FF0000",
-    href: "/apps/yt-series",
+    href: "/apps/youtube-discover",
+    isImplemented: true,
   },
   {
     id: "theater-track",
