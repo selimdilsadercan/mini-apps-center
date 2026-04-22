@@ -1,0 +1,149 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Trophy,
+  Plus,
+  Sword,
+  Users,
+  CaretRight,
+  CircleNotch,
+  MagnifyingGlass
+} from "@phosphor-icons/react";
+import { motion } from "framer-motion";
+import Client, { Local } from "@/lib/client";
+
+const client = new Client(Local);
+
+export default function TournamentListPage() {
+  const router = useRouter();
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchListData();
+  }, []);
+
+  const fetchListData = async () => {
+    setLoading(true);
+    try {
+      // Mock data
+      const data = [
+        { name: "İTÜ Wordle Cup 2024", slug: "itu-wordle-2024", status: "active", icon: "🎮", participants_count: 32, capacity: 64, format: "league_knockout" },
+        { name: "BogoSort Challenge", slug: "bogosort-24", status: "upcoming", icon: "📊", participants_count: 8, capacity: 16, format: "knockout" }
+      ];
+      setTournaments(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0c] text-white p-4 md:p-12">
+      <div className="max-w-4xl mx-auto">
+        <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center border border-yellow-500/20 shadow-[0_0_20px_rgba(250,176,5,0.1)]">
+                <Trophy size={24} weight="fill" className="text-yellow-500" />
+              </div>
+              <h1 className="text-3xl font-black tracking-tighter uppercase italic">
+                Turnuva Merkezi
+              </h1>
+            </div>
+            <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
+              Tüm aktif ve gelecek turnuvaları yönet
+            </p>
+          </div>
+
+          <button className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/5 uppercase text-xs tracking-widest">
+            <Plus size={20} weight="bold" />
+            Turnuva Oluştur
+          </button>
+        </header>
+
+        <div className="relative mb-10 group">
+          <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-500 transition-colors">
+            <MagnifyingGlass size={20} weight="bold" />
+          </div>
+          <input
+            type="text"
+            placeholder="TURNUVA ARA..."
+            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold tracking-widest focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all placeholder:text-slate-600"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {loading ? (
+            <div className="col-span-full flex justify-center py-20">
+              <CircleNotch size={32} className="w-10 h-10 text-blue-600 animate-spin" />
+            </div>
+          ) : (
+            tournaments.map((t, idx) => (
+              <motion.div
+                key={t.slug}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                onClick={() => router.push(`/apps/tournament-editor/tournament?slug=${t.slug}`)}
+                className="group relative bg-[#121216] rounded-3xl border border-white/5 p-6 hover:border-blue-500/30 transition-all cursor-pointer shadow-2xl overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <CaretRight size={24} weight="bold" className="text-blue-500" />
+                </div>
+
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-3xl border border-white/10 group-hover:border-blue-500/20 transition-colors shadow-inner">
+                    {t.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black tracking-tight group-hover:text-blue-400 transition-colors">
+                      {t.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                          t.status === "active"
+                            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                            : "bg-slate-800 text-slate-500"
+                        }`}
+                      >
+                        {t.status === "active" ? "AKTİF" : "BEKLEMEDE"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/5 rounded-2xl p-4 border border-white/[0.03]">
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <Users size={14} weight="bold" />
+                      <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+                        Katılımcı
+                      </span>
+                    </div>
+                    <p className="text-lg font-black tracking-tighter leading-none">
+                      {t.participants_count} / {t.capacity}
+                    </p>
+                  </div>
+                  <div className="bg-white/5 rounded-2xl p-4 border border-white/[0.03]">
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <Sword size={14} weight="bold" />
+                      <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+                        Tür
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-black tracking-wider uppercase truncate leading-none mt-1.5">
+                      {t.format === "league_knockout" ? "LİG + ELEME" : "ELEME"}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

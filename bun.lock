@@ -10,7 +10,7 @@
       "dependencies": {
         "@supabase/supabase-js": "^2.86.2",
         "axios": "^1.13.2",
-        "encore.dev": "^1.56.4",
+        "encore.dev": "^1.56.6",
         "node-html-parser": "^6.1.13",
         "puppeteer": "^24.32.1",
         "puppeteer-extra": "^3.3.6",
@@ -1126,7 +1126,7 @@
 
     "encoding-sniffer": ["encoding-sniffer@0.2.1", "", { "dependencies": { "iconv-lite": "^0.6.3", "whatwg-encoding": "^3.1.1" } }, "sha512-5gvq20T6vfpekVtqrYQsSCFZ1wEg5+wW0/QaZMWkFr6BqD3NfKs0rLCx4rrVlSWJeZb5NBJgVLswK/w2MWU+Gw=="],
 
-    "encore.dev": ["encore.dev@1.56.4", "", {}, "sha512-SrYvqiMjonT+N/ESLLKnRHIftDeugixpwQyqYlDutrz8Kleen6SLW6FTV2KJata6zq7lFGsr/LgJiWeOUUxHuA=="],
+    "encore.dev": ["encore.dev@1.56.6", "", {}, "sha512-bDa8Yf+KNiLRL95rvxSi5uJHAkD0+uRPaEHZJgVexYD/wHjzyd3uwiF7Nj6z6ZBaDJHDGXZd42LS5BngE8vbbA=="],
 
     "end-of-stream": ["end-of-stream@1.4.5", "", { "dependencies": { "once": "^1.4.0" } }, "sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg=="],
 

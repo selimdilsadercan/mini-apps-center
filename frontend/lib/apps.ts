@@ -32,6 +32,7 @@ import {
   ChartBar,
   IconProps,
   Basket,
+  Trophy,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -150,6 +151,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Games",
     color: "#228BE6",
     href: "/apps/game-companion",
+    isImplemented: true,
+  },
+  {
+    id: "tournament-manager",
+    name: "Turnuva Merkezi",
+    description: "Lig ve Eleme usulü turnuvalar oluştur ve yönet",
+    icon: Trophy,
+    category: "Games",
+    color: "#FCC419",
+    href: "/apps/tournament-editor",
     isImplemented: true,
   },
 
