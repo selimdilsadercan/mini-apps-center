@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_delete_tournament(TEXT, TEXT);
+
 -- Delete Tournament RPC
 CREATE OR REPLACE FUNCTION tournament.delete_tournament(
     slug_param TEXT,

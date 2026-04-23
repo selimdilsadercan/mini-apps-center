@@ -229,58 +229,12 @@ export const deleteParticipant = api(
 export const fillWithMockPlayers = api(
   { expose: true, method: "POST", path: "/tournament/:slug/fill-mock" },
   async ({ slug }: { slug: string }): Promise<{ success: boolean }> => {
-    const { data: tournament, error: tError } = await supabase
-      .schema("tournament")
-      .from("tournaments")
-      .select("*")
-      .eq("slug", slug)
-      .single();
+    const { error } = await supabase.rpc("tournament.fill_mock_players", {
+      slug_param: slug
+    });
 
-    if (tError || !tournament) throw new APIError(ErrCode.NotFound, "Turnuva bulunamadı");
-
-    const { count, error: cError } = await supabase
-      .schema("tournament")
-      .from("participants")
-      .select("*", { count: "exact", head: true })
-      .eq("tournament_id", tournament.id);
-
-    const currentCount = count || 0;
-    const remaining = tournament.capacity - currentCount;
-
-    if (remaining <= 0) return { success: true };
-
-    const mockNames = [
-      "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet",
-      "Kilo", "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra", "Tango",
-      "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu", "Maverick", "Goose", "Iceman", "Viper",
-      "Phoenix", "Rooster", "Bob", "Hangman", "Coyote", "Payback", "Fanboy"
-    ];
-
-    const participantsToInsert = [];
-    for (let i = 0; i < remaining; i++) {
-      const randomName = `${mockNames[Math.floor(Math.random() * mockNames.length)]}_${Math.floor(Math.random() * 999)}`;
-      const manualId = `mock_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 5)}`;
-      
-      // Rastgele bir avatar URL'si üret (DiceBear)
-      const seed = Math.random().toString(36).substring(7);
-      const avatar = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}&backgroundColor=transparent`;
-
-      participantsToInsert.push({
-        tournament_id: tournament.id,
-        user_id: null, // Manuel/Mock oyuncu
-        username: randomName,
-        avatar: avatar,
-        joined_at: new Date().toISOString()
-      });
-    }
-
-    const { error: insertError } = await supabase
-      .schema("tournament")
-      .from("participants")
-      .insert(participantsToInsert);
-
-    if (insertError) {
-      console.error("fillWithMockPlayers error:", insertError);
+    if (error) {
+      console.error("RPC error filling mock players:", error);
       throw new APIError(ErrCode.Internal, "Mock oyuncular eklenemedi");
     }
 
@@ -386,106 +340,19 @@ export const getStandings = api(
 export const advanceTournament = api(
   { expose: true, method: "POST", path: "/tournament/:slug/advance" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    }
-
-    if (nextRoundMatches.length > 0) {
-        // Mevcut turun maçlarını bitmiş olarak işaretle
-        await supabase
-            .schema("tournament")
-            .from("matches")
-            .update({ status: "finished" })
-            .eq("tournament_id", tournament.id)
-            .eq("phase", "bracket")
-            .eq("round", currentRound);
-
-        await supabase.schema("tournament").from("matches").insert(nextRoundMatches);
-    } else if (winners.length === 1) {
-        // Şampiyon belli oldu
-        await supabase
-            .schema("tournament")
-            .from("matches")
-            .update({ status: "finished" })
-            .eq("tournament_id", tournament.id)
-            .eq("phase", "bracket")
-            .eq("round", currentRound);
-            
-        await supabase.from("tournaments").update({ status: "completed", winner_id: winners[0] }).eq("id", tournament.id);
-    }
-
-    return { success: true };
-}
-
-/**
- * Lig aşamasını bitirir ve Bracket (Eleme) aşamasını başlatır (İç mantık)
- */
-async function advanceToBracketLogic(tournament: any): Promise<{ success: boolean }> {
-    const { data: participants } = await supabase.schema("tournament").from("participants").select("*").eq("tournament_id", tournament.id);
-    
-    // Maçları getir (puanı girilmiş olan her şeyi dahil et)
-    const { data: matches } = await supabase
-      .schema("tournament")
-      .from("matches")
-      .select("*")
-      .eq("tournament_id", tournament.id);
-    
-    const validMatches = matches?.filter(m => m.scores && Object.keys(m.scores).length > 0) || [];
-
-    if (!participants) throw new APIError(ErrCode.Internal, "Katılımcılar getirilemedi");
-
-    // Puanları hesapla
-    const participantStats = participants.map(p => ({ id: p.id, points: 0, average: 0 }));
-    const statsMap = new Map(participantStats.map(s => [s.id, s]));
-
-    (validMatches || []).forEach(m => {
-      const pIds = [m.player1_id, m.player2_id, m.player3_id, m.player4_id].filter(Boolean);
-      pIds.forEach((pid, idx) => {
-        const stat = statsMap.get(pid!);
-        if (stat) {
-          const score = m.scores?.[pid!] || 0;
-          stat.points += score;
-          stat.average += score;
-        }
-      });
+    const { error } = await supabase.rpc("tournament.advance_tournament", {
+      slug_param: slug,
+      admin_clerk_id: adminUserId
     });
 
-    // Sırala ve ilk X kişiyi al
-    const topPlayers = participantStats
-      .sort((a, b) => b.points - a.points || b.average - a.average)
-      .slice(0, tournament.advance_count);
-
-    if (!topPlayers || topPlayers.length < 2) throw new APIError(ErrCode.InvalidArgument, "Üst tura çıkacak yeterli oyuncu yok");
-
-    // Bracket maçlarını oluştur
-    const bracketMatches = [];
-    const count = topPlayers.length;
-    
-    const ppm = tournament.players_per_match || 2;
-    
-    // Oyuncuları maçlara dağıt (4 kişilik veya 2 kişilik olabilir)
-    for (let i = 0; i < count; i += ppm) {
-        const matchPlayers = topPlayers.slice(i, i + ppm);
-        if (matchPlayers.length >= 2) {
-            bracketMatches.push({
-                tournament_id: tournament.id,
-                phase: "bracket",
-                round: 1,
-                player1_id: matchPlayers[0]?.id || null,
-                player2_id: matchPlayers[1]?.id || null,
-                player3_id: matchPlayers[2]?.id || null,
-                player4_id: matchPlayers[3]?.id || null,
-                status: "upcoming"
-            });
-        }
+    if (error) {
+      console.error("RPC error advancing tournament:", error);
+      throw new APIError(ErrCode.Internal, error.message || "Tur atlatılamadı");
     }
 
-    if (bracketMatches.length > 0) {
-        await supabase.schema("tournament").from("matches").insert(bracketMatches);
-        // Turnuvayı güncelle: Lig bitti, Bracket başladı (round 0)
-        await supabase.schema("tournament").from("tournaments").update({ current_league_round: 0 }).eq("id", tournament.id);
-    }
-    
     return { success: true };
-}
+  }
+);
 
 /**
  * Lig aşamasını bitirir ve Bracket (Eleme) aşamasını başlatır (API Export)
@@ -493,10 +360,17 @@ async function advanceToBracketLogic(tournament: any): Promise<{ success: boolea
 export const advanceToBracket = api(
   { expose: true, method: "POST", path: "/tournament/:slug/advance-to-bracket" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { data: tournament } = await supabase.schema("tournament").from("tournaments").select("*").eq("slug", slug).single();
-    if (!tournament) throw new APIError(ErrCode.NotFound, "Turnuva bulunamadı");
-    if (tournament.admin_user_id !== adminUserId) throw new APIError(ErrCode.PermissionDenied, "Yetkiniz yok");
-    return await advanceToBracketLogic(tournament);
+    const { error } = await supabase.rpc("tournament.advance_tournament", {
+      slug_param: slug,
+      admin_clerk_id: adminUserId
+    });
+
+    if (error) {
+      console.error("RPC error advancing to bracket:", error);
+      throw new APIError(ErrCode.Internal, error.message || "Eleme aşamasına geçilemedi");
+    }
+
+    return { success: true };
   }
 );
 

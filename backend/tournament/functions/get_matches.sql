@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_get_matches(TEXT);
+
 -- Get Tournament Matches RPC
 CREATE OR REPLACE FUNCTION tournament.get_matches(slug_param TEXT)
 RETURNS TABLE (

@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_update_participant(UUID, TEXT, TEXT);
+
 -- Update Participant RPC
 CREATE OR REPLACE FUNCTION tournament.update_participant(
     participant_id UUID,

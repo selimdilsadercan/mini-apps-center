@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_create_tournament(TEXT, TEXT, TEXT, INTEGER, TEXT, INTEGER, INTEGER, INTEGER, TEXT);
+
 -- Create Tournament RPC
 CREATE OR REPLACE FUNCTION tournament.create_tournament(
     name_param TEXT,

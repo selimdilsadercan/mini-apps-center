@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_auto_score_round(TEXT, TEXT);
+
 -- Auto Score Current Round RPC
 CREATE OR REPLACE FUNCTION tournament.auto_score_round(
     slug_param TEXT,

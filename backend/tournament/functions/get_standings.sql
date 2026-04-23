@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_get_standings(TEXT);
+
 -- Get Standings RPC
 CREATE OR REPLACE FUNCTION tournament.get_standings(slug_param TEXT)
 RETURNS SETOF tournament.participants AS $$

@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_reset_tournament(TEXT, TEXT);
+
 -- Reset Tournament RPC
 CREATE OR REPLACE FUNCTION tournament.reset_tournament(
     slug_param TEXT,

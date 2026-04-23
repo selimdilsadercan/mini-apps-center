@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_get_tournaments();
+
 -- Get All Tournaments with Participant Counts
 CREATE OR REPLACE FUNCTION tournament.get_tournaments()
 RETURNS TABLE (

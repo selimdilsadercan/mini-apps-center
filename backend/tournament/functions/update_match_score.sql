@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_update_match_score(UUID, JSONB);
+
 -- Update Match Score RPC
 CREATE OR REPLACE FUNCTION tournament.update_match_score(
     match_id UUID,

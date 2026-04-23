@@ -1,3 +1,6 @@
+-- Drop old function
+DROP FUNCTION IF EXISTS public.tournament_get_templates();
+
 -- Get Tournament Templates RPC
 CREATE OR REPLACE FUNCTION tournament.get_templates()
 RETURNS SETOF tournament.templates AS $$
