@@ -939,6 +939,10 @@ export namespace users {
         user: lib.User | null
     }
 
+    export interface GetUserPreferencesResponse {
+        appOrder: string[] | null
+    }
+
     export interface SaveFcmTokenRequest {
         clerkId: string
         token: string
@@ -946,6 +950,15 @@ export namespace users {
     }
 
     export interface SaveFcmTokenResponse {
+        success: boolean
+    }
+
+    export interface UpdateAppOrderRequest {
+        clerkId: string
+        appOrder: string[]
+    }
+
+    export interface UpdateAppOrderResponse {
         success: boolean
     }
 
@@ -957,7 +970,9 @@ export namespace users {
             this.createUser = this.createUser.bind(this)
             this.getOrCreateUser = this.getOrCreateUser.bind(this)
             this.getUserByClerkId = this.getUserByClerkId.bind(this)
+            this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
+            this.updateAppOrder = this.updateAppOrder.bind(this)
         }
 
         /**
@@ -991,6 +1006,16 @@ export namespace users {
         }
 
         /**
+         * Kullanıcının tercihlerini (sıralama vb.) getirir
+         * GET /users/preferences/:clerkId
+         */
+        public async getUserPreferences(clerkId: string): Promise<GetUserPreferencesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/users/preferences/${encodeURIComponent(clerkId)}`)
+            return await resp.json() as GetUserPreferencesResponse
+        }
+
+        /**
          * Kullanıcının FCM token'ını kaydeder veya günceller
          * POST /users/fcm-token
          */
@@ -998,6 +1023,16 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/fcm-token`, JSON.stringify(params))
             return await resp.json() as SaveFcmTokenResponse
+        }
+
+        /**
+         * Kullanıcının uygulama sıralamasını günceller
+         * POST /users/app-order
+         */
+        public async updateAppOrder(params: UpdateAppOrderRequest): Promise<UpdateAppOrderResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/app-order`, JSON.stringify(params))
+            return await resp.json() as UpdateAppOrderResponse
         }
     }
 }

@@ -46,6 +46,23 @@ interface SaveFcmTokenResponse {
   success: boolean;
 }
 
+interface UpdateAppOrderRequest {
+  clerkId: string;
+  appOrder: string[];
+}
+
+interface UpdateAppOrderResponse {
+  success: boolean;
+}
+
+interface GetUserPreferencesRequest {
+  clerkId: string;
+}
+
+interface GetUserPreferencesResponse {
+  appOrder: string[] | null;
+}
+
 // ==================== API ENDPOINTS ====================
 
 /**
@@ -157,5 +174,46 @@ export const saveFcmToken = api(
     }
 
     return { success: true };
+  }
+);
+
+/**
+ * Kullanıcının uygulama sıralamasını günceller
+ * POST /users/app-order
+ */
+export const updateAppOrder = api(
+  { expose: true, method: "POST", path: "/users/app-order" },
+  async ({ clerkId, appOrder }: UpdateAppOrderRequest): Promise<UpdateAppOrderResponse> => {
+    const { error } = await supabase.rpc("update_user_app_order", {
+      clerk_id_param: clerkId,
+      app_order_param: appOrder,
+    });
+
+    if (error) {
+      console.error("updateAppOrder error:", error);
+      return { success: false };
+    }
+
+    return { success: true };
+  }
+);
+
+/**
+ * Kullanıcının tercihlerini (sıralama vb.) getirir
+ * GET /users/preferences/:clerkId
+ */
+export const getUserPreferences = api(
+  { expose: true, method: "GET", path: "/users/preferences/:clerkId" },
+  async ({ clerkId }: GetUserPreferencesRequest): Promise<GetUserPreferencesResponse> => {
+    const { data, error } = await supabase.rpc("get_user_preferences", {
+      clerk_id_param: clerkId,
+    });
+
+    if (error) {
+      console.error("getUserPreferences error:", error);
+      return { appOrder: null };
+    }
+
+    return { appOrder: data?.[0]?.app_order || null };
   }
 );

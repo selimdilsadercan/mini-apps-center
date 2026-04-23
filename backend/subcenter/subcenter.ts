@@ -108,7 +108,7 @@ interface UpdateSubscriptionResponse {
 export const getGlobalPresets = api(
   { expose: true, method: "GET", path: "/subcenter/presets" },
   async (): Promise<GetGlobalPresetsResponse> => {
-    const { data, error } = await supabase.rpc("subcenter_get_global_presets", {
+    const { data, error } = await supabase.rpc("subcenter.get_global_presets", {
       limit_param: 15,
     });
 
@@ -128,7 +128,7 @@ export const getGlobalPresets = api(
 export const getUserSubscriptions = api(
   { expose: true, method: "GET", path: "/subcenter/user/:userId" },
   async ({ userId }: GetUserSubscriptionsRequest): Promise<GetUserSubscriptionsResponse> => {
-    const { data, error } = await supabase.rpc("subcenter_get_user_items", {
+    const { data, error } = await supabase.rpc("subcenter.get_user_items", {
       clerk_id_param: userId,
     });
 
@@ -152,7 +152,7 @@ export const createSubscription = api(
     const finalRegion = region || "TR";
 
     // 1. Save locally for the user
-    const { data, error } = await supabase.rpc("subcenter_create_item", {
+    const { data, error } = await supabase.rpc("subcenter.create_item", {
       clerk_id_param: userId,
       name_param: name,
       plan_name_param: finalPlanName,
@@ -172,7 +172,7 @@ export const createSubscription = api(
     }
 
     // 2. Intelligence: Contribution to Global Community Presets
-    supabase.rpc("subcenter_upsert_global_preset", {
+    supabase.rpc("subcenter.upsert_global_preset", {
       name_param: name,
       plan_name_param: finalPlanName,
       region_param: finalRegion,
@@ -195,7 +195,7 @@ export const createSubscription = api(
 export const deleteSubscription = api(
   { expose: true, method: "DELETE", path: "/subcenter/:id" },
   async ({ id, userId }: DeleteSubscriptionRequest): Promise<DeleteSubscriptionResponse> => {
-    const { data, error } = await supabase.rpc("subcenter_delete_item", {
+    const { data, error } = await supabase.rpc("subcenter.delete_item", {
       item_id_param: id,
       clerk_id_param: userId,
     });
@@ -216,7 +216,7 @@ export const deleteSubscription = api(
 export const updateSubscription = api(
   { expose: true, method: "PUT", path: "/subcenter/:id" },
   async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
-    const { data, error } = await supabase.rpc("subcenter_update_item", {
+    const { data, error } = await supabase.rpc("subcenter.update_item", {
       item_id_param: id,
       clerk_id_param: userId,
       name_param: name,

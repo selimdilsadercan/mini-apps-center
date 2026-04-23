@@ -74,3 +74,50 @@ export async function getOrCreateUserAction(
     };
   }
 }
+
+/**
+ * Kullanıcının uygulama sıralamasını günceller
+ */
+export async function updateAppOrderAction(
+  clerkId: string,
+  appOrder: string[]
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.users.updateAppOrder({ clerkId, appOrder });
+    
+    return {
+      data: response.success,
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to update app order:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error)
+    };
+  }
+}
+
+/**
+ * Kullanıcının uygulama tercihlerini getirir
+ */
+export async function getUserPreferencesAction(
+  clerkId: string
+): Promise<ActionResponse<string[]>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.users.getUserPreferences(clerkId);
+    
+    return {
+      data: response.appOrder,
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to get user preferences:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error)
+    };
+  }
+}

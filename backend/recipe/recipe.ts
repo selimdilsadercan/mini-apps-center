@@ -47,7 +47,7 @@ interface GetRecipeByIdResponse {
 export const getUserRecipes = api(
   { expose: true, method: "GET", path: "/recipe/user/:userId" },
   async ({ userId }: GetUserRecipesRequest): Promise<GetUserRecipesResponse> => {
-    const { data, error } = await supabase.rpc("recipe_get_user_items", {
+    const { data, error } = await supabase.rpc("recipe.get_user_recipes", {
       user_id_param: userId,
     });
 
@@ -67,7 +67,7 @@ export const getUserRecipes = api(
 export const createRecipe = api(
   { expose: true, method: "POST", path: "/recipe/create" },
   async ({ title, userId, ingredients, instructions }: CreateRecipeRequest): Promise<CreateRecipeResponse> => {
-    const { data, error } = await supabase.rpc("recipe_create_item", {
+    const { data, error } = await supabase.rpc("recipe.create", {
       title_param: title,
       user_id_param: userId,
       ingredients_param: ingredients || null,
@@ -90,7 +90,7 @@ export const createRecipe = api(
 export const getRecipeById = api(
   { expose: true, method: "GET", path: "/recipe/:recipeId" },
   async ({ recipeId }: GetRecipeByIdRequest): Promise<GetRecipeByIdResponse> => {
-    const { data, error } = await supabase.rpc("recipe_get_item", {
+    const { data, error } = await supabase.rpc("recipe.get", {
       recipe_id_param: recipeId,
     });
 
@@ -121,7 +121,7 @@ interface DeleteRecipeResponse {
 export const deleteRecipe = api(
   { expose: true, method: "DELETE", path: "/recipe/:recipeId" },
   async ({ recipeId, userId }: DeleteRecipeRequest): Promise<DeleteRecipeResponse> => {
-    const { data, error } = await supabase.rpc("recipe_delete_item", {
+    const { data, error } = await supabase.rpc("recipe.delete", {
       recipe_id_param: recipeId,
       user_id_param: userId,
     });
@@ -160,7 +160,7 @@ interface UpdateRecipeResponse {
 export const updateRecipe = api(
   { expose: true, method: "PUT", path: "/recipe/:recipeId" },
   async ({ recipeId, userId, title, ingredients, instructions }: UpdateRecipeRequest): Promise<UpdateRecipeResponse> => {
-    const { data, error } = await supabase.rpc("recipe_update_item", {
+    const { data, error } = await supabase.rpc("recipe.update", {
       recipe_id_param: recipeId,
       user_id_param: userId,
       title_param: title,
