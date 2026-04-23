@@ -175,7 +175,8 @@ function TournamentDetailContent() {
       // Admin manuel ekleme yaptığı için benzersiz bir ID üretiyoruz
       const manualPlayerId = `manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       
-      const res = await client.tournament.joinTournament(slug, {
+      const res = await client.tournament.joinTournament({
+        slug,
         userId: manualPlayerId,
         username: data.username,
         avatar: data.avatar

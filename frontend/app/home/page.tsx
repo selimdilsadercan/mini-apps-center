@@ -289,7 +289,7 @@ function SortableAppIcon({
   const Icon = app.icon;
 
   // Wiggle animation for edit mode
-  const wiggleVariants = {
+  const wiggleVariants: any = {
     wiggle: {
       rotate: [0, -1, 1, -1, 1, 0],
       transition: {
