@@ -35,10 +35,19 @@ This guide documents the mandatory conventions and structure for adding new appl
 ## 🌉 Frontend-Backend Integration
 
 ### 🛠️ Type Safety
-- **Mandatory:** Run `npm run generate` in the `backend/` directory after any backend change.
+- **Note:** The frontend client is automatically updated via a watcher when backend changes occur. No manual `npm run generate` is required during development.
 - **Rule:** NEVER import types directly from `backend/` in frontend code. 
 - **Usage:** Always import types and the service client from `@/lib/client`.
     - *Example:* `import { kiler } from "@/lib/client";`
+
+### 🚀 Frontend Client Initialization
+- Initialize the backend client within the page component using `new Client(Local)`.
+- Use the generated namespace for type safety.
+    - *Example:* 
+      ```tsx
+      import Client, { movies_this_year, Local } from "@/lib/client";
+      const client = new Client(Local);
+      ```
 
 ### 🚀 App Registration
 - Register new apps in `frontend/lib/apps.ts`.
