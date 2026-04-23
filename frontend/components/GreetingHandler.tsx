@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkle, Bell } from "@phosphor-icons/react";
+import { Bell } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
+import Client, { Local } from "@/lib/client";
+
+const client = new Client(Local);
 
 export function GreetingHandler() {
   const { user, isLoaded } = useUser();
@@ -14,6 +17,11 @@ export function GreetingHandler() {
 
   useEffect(() => {
     if (isLoaded && user) {
+      // Veritabanı ile senkronize et
+      client.users.getOrCreateUser({ clerkId: user.id }).catch(err => {
+        console.error("User sync error:", err);
+      });
+
       // Daha önce bildirim sorusu soruldu mu kontrol et
       const hasAskedNotification = localStorage.getItem("notification_prompt_shown");
       

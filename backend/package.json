@@ -8,12 +8,14 @@
   "scripts": {
     "dev": "encore run",
     "test": "vitest",
-    "generate": "encore gen client -e local --output=../frontend/lib/client.ts",
+    "generate": "encore gen client mini-apps-center-8u7i -e local --output=../frontend/lib/client.ts",
+    "generate:watch": "nodemon --watch . --ext ts --ignore node_modules --exec \"npm run generate\"",
     "clean": "rimraf node_modules .encore"
   },
   "devDependencies": {
     "@types/cheerio": "^1.0.0",
     "@types/node": "^20.5.7",
+    "nodemon": "^3.1.10",
     "typescript": "^5.2.2",
     "vitest": "^1.5.0"
   },

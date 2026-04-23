@@ -579,14 +579,19 @@ export namespace tournament {
         round: number
         "player1_id": string | null
         "player2_id": string | null
+        "player3_id"?: string | null
+        "player4_id"?: string | null
         "winner_id": string | null
-        score1: number
-        score2: number
         status: "upcoming" | "playing" | "finished" | "abandoned"
+        scores?: { [key: string]: number }
         username1?: string
         username2?: string
+        username3?: string
+        username4?: string
         avatar1?: string
         avatar2?: string
+        avatar3?: string
+        avatar4?: string
     }
 
     export interface MatchesResponse {
@@ -596,13 +601,9 @@ export namespace tournament {
     export interface Participant {
         id: string
         "tournament_id": string
-        "user_id": string
+        "user_id"?: string
         username: string
         avatar?: string
-        points: number
-        wins: number
-        losses: number
-        average: number
     }
 
     export interface StandingsResponse {
@@ -621,6 +622,7 @@ export namespace tournament {
         "current_league_round": number
         "league_match_count": number
         format: "league_knockout" | "knockout"
+        "players_per_match": number
         "start_at"?: string
         "winner_id"?: string
         "participants_count"?: number
@@ -633,16 +635,27 @@ export namespace tournament {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.advanceToBracket = this.advanceToBracket.bind(this)
+            this.advanceTournament = this.advanceTournament.bind(this)
+            this.autoScoreRound = this.autoScoreRound.bind(this)
+            this.createTournament = this.createTournament.bind(this)
+            this.deleteParticipant = this.deleteParticipant.bind(this)
+            this.deleteTournament = this.deleteTournament.bind(this)
+            this.fillWithMockPlayers = this.fillWithMockPlayers.bind(this)
             this.getStandings = this.getStandings.bind(this)
             this.getTournamentDetails = this.getTournamentDetails.bind(this)
             this.getTournamentMatches = this.getTournamentMatches.bind(this)
+            this.getTournamentTemplates = this.getTournamentTemplates.bind(this)
+            this.getTournaments = this.getTournaments.bind(this)
             this.joinTournament = this.joinTournament.bind(this)
+            this.resetCurrentRound = this.resetCurrentRound.bind(this)
+            this.resetTournament = this.resetTournament.bind(this)
             this.startTournament = this.startTournament.bind(this)
             this.updateMatchScore = this.updateMatchScore.bind(this)
+            this.updateParticipant = this.updateParticipant.bind(this)
         }
 
         /**
-         * Lig aşamasını bitirir ve Bracket (Eleme) aşamasını başlatır
+         * Lig aşamasını bitirir ve Bracket (Eleme) aşamasını başlatır (API Export)
          */
         public async advanceToBracket(slug: string, params: {
     adminUserId: string
@@ -651,6 +664,96 @@ export namespace tournament {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/advance-to-bracket`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Turnuvayı bir sonraki raunda veya aşamaya taşır
+         */
+        public async advanceTournament(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/advance`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Mevcut turdaki tüm maçlara otomatik skor atar (Sadece skor ekler, raundu bitirmez)
+         */
+        public async autoScoreRound(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/auto-score`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Yeni bir turnuva oluşturur
+         */
+        public async createTournament(params: {
+    name: string
+    slug: string
+    icon?: string
+    capacity: number
+    format: "league_knockout" | "knockout"
+    leagueMatchCount?: number
+    advanceCount?: number
+    playersPerMatch?: number
+    adminUserId: string
+}): Promise<Tournament> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament`, JSON.stringify(params))
+            return await resp.json() as Tournament
+        }
+
+        /**
+         * Bir katılımcıyı siler
+         */
+        public async deleteParticipant(id: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/tournament/participant/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Turnuvayı siler
+         */
+        public async deleteTournament(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Turnuvayı mock oyuncularla doldurur
+         */
+        public async fillWithMockPlayers(slug: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/fill-mock`)
             return await resp.json() as {
     success: boolean
 }
@@ -691,6 +794,32 @@ export namespace tournament {
         }
 
         /**
+         * Mevcut turnuva şablonlarını getirir
+         */
+        public async getTournamentTemplates(): Promise<{
+    templates: any[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tournament/templates`)
+            return await resp.json() as {
+    templates: any[]
+}
+        }
+
+        /**
+         * Tüm turnuvaları listeler
+         */
+        public async getTournaments(): Promise<{
+    tournaments: Tournament[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tournaments`)
+            return await resp.json() as {
+    tournaments: Tournament[]
+}
+        }
+
+        /**
          * Turnuvaya katılır
          */
         public async joinTournament(slug: string, params: {
@@ -702,6 +831,36 @@ export namespace tournament {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/join`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Mevcut raundu sıfırlar (Sadece o raundun skorlarını temizler)
+         */
+        public async resetCurrentRound(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/reset-round`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Turnuvayı tamamen sıfırlar (Tüm maçlar silinir, durum 'upcoming' yapılır)
+         */
+        public async resetTournament(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/reset`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }
@@ -725,15 +884,29 @@ export namespace tournament {
         /**
          * Maç skorunu günceller
          */
-        public async updateMatchScore(matchId: string, params: {
-    score1: number
-    score2: number
-    adminUserId: string
+        public async updateMatchScore(id: string, params: {
+    scores: { [key: string]: number }
 }): Promise<{
     success: boolean
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/match/${encodeURIComponent(matchId)}/score`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/match/${encodeURIComponent(id)}/score`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Oyuncu bilgilerini günceller
+         */
+        public async updateParticipant(id: string, params: {
+    username: string
+    avatar: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PATCH", `/tournament/participant/${encodeURIComponent(id)}`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

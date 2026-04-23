@@ -9,17 +9,22 @@ import {
   Users,
   CaretRight,
   CircleNotch,
+  ArrowLeft,
   MagnifyingGlass
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Client, { Local } from "@/lib/client";
+import CreateTournamentModal from "@/components/apps/tournament/CreateTournamentModal";
+import { useUser } from "@clerk/clerk-react";
 
 const client = new Client(Local);
 
 export default function TournamentListPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
     fetchListData();
@@ -28,12 +33,10 @@ export default function TournamentListPage() {
   const fetchListData = async () => {
     setLoading(true);
     try {
-      // Mock data
-      const data = [
-        { name: "İTÜ Wordle Cup 2024", slug: "itu-wordle-2024", status: "active", icon: "🎮", participants_count: 32, capacity: 64, format: "league_knockout" },
-        { name: "BogoSort Challenge", slug: "bogosort-24", status: "upcoming", icon: "📊", participants_count: 8, capacity: 16, format: "knockout" }
-      ];
-      setTournaments(data);
+      const data = await client.tournament.getTournaments();
+      setTournaments(data.tournaments);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -43,21 +46,33 @@ export default function TournamentListPage() {
     <div className="min-h-screen bg-[#0a0a0c] text-white p-4 md:p-12">
       <div className="max-w-4xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center border border-yellow-500/20 shadow-[0_0_20px_rgba(250,176,5,0.1)]">
-                <Trophy size={24} weight="fill" className="text-yellow-500" />
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => router.push("/")} 
+              className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors border border-white/10 group"
+              title="Ana Sayfaya Dön"
+            >
+              <ArrowLeft size={24} weight="bold" className="group-hover:-translate-x-1 transition-transform" />
+            </button>
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center border border-yellow-500/20 shadow-[0_0_20px_rgba(250,176,5,0.1)]">
+                  <Trophy size={24} weight="fill" className="text-yellow-500" />
+                </div>
+                <h1 className="text-3xl font-black tracking-tighter uppercase">
+                  Turnuva Merkezi
+                </h1>
               </div>
-              <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-                Turnuva Merkezi
-              </h1>
+              <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
+                Tüm aktif ve gelecek turnuvaları yönet
+              </p>
             </div>
-            <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">
-              Tüm aktif ve gelecek turnuvaları yönet
-            </p>
           </div>
 
-          <button className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/5 uppercase text-xs tracking-widest">
+          <button 
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/5 uppercase text-xs tracking-widest"
+          >
             <Plus size={20} weight="bold" />
             Turnuva Oluştur
           </button>
@@ -79,6 +94,28 @@ export default function TournamentListPage() {
             <div className="col-span-full flex justify-center py-20">
               <CircleNotch size={32} className="w-10 h-10 text-blue-600 animate-spin" />
             </div>
+          ) : tournaments.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="col-span-full py-24 flex flex-col items-center text-center bg-white/[0.02] border border-dashed border-white/10 rounded-[3rem]"
+            >
+              <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/5 shadow-2xl">
+                <Trophy size={48} weight="duotone" className="text-slate-700" />
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-tighter text-white mb-2">Henüz Turnuva Yok</h3>
+              <p className="text-slate-500 text-xs font-black uppercase tracking-widest max-w-xs leading-relaxed">
+                Efsanevi bir turnuva başlatmak için <br/> yukarıdaki butona tıkla
+              </p>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsCreateOpen(true)}
+                className="mt-10 px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-white/10"
+              >
+                İLK TURNUVANI OLUŞTUR
+              </motion.button>
+            </motion.div>
           ) : (
             tournaments.map((t, idx) => (
               <motion.div
@@ -144,6 +181,14 @@ export default function TournamentListPage() {
           )}
         </div>
       </div>
+
+      <CreateTournamentModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={fetchListData}
+        client={client}
+        adminUserId={user?.id || ""}
+      />
     </div>
   );
 }

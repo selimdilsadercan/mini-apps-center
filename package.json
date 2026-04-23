@@ -8,9 +8,10 @@
     "backend"
   ],
   "scripts": {
-    "dev": "bun x concurrently -n frontend,encore -c blue,green \"npm:frontend\" \"npm:encore\"",
+    "dev": "bun x concurrently -n frontend,encore,generate -c blue,green,yellow \"npm:frontend\" \"npm:encore\" \"npm:generate:watch\"",
     "frontend": "cd frontend && npm run dev",
     "generate": "cd backend && npm run generate",
+    "generate:watch": "cd backend && npm run generate:watch",
     "encore": "cd backend && encore run",
     "clean": "cd frontend && npm run clean",
     "mobile": "cd frontend && npm run mobile",
