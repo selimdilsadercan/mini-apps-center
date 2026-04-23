@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Mini-App Development Rules (SuperApp Ecosystem)
 
 This guide documents the mandatory conventions and structure for adding new applications to the SuperApp (mini-apps-center).
@@ -8,7 +12,7 @@ This guide documents the mandatory conventions and structure for adding new appl
 | :--- | :--- | :--- |
 | **Frontend UI** | `frontend/app/apps/[app-id]/` | Next.js Page components and local assets. |
 | **Backend Service** | `backend/[app-id]/` | Encore.ts service logic and endpoint definitions. |
-| **Database (SQL)** | `backend/[app-id]/sql/` | Supabase table definitions and RPC functions. |
+| **Database (SQL)** | `backend/[app-id]/table.sql/` | Supabase table definitions and RPC functions. |
 
 ## 🏷️ Naming Conventions
 
@@ -42,6 +46,4 @@ This guide documents the mandatory conventions and structure for adding new appl
 - Use **Phosphor Icons** and descriptive, localized names.
 
 ## ✨ UI/UX Standards
-- **Aesthetics:** Use "Everything" OS-style design tokens (Rounded 3xl, soft shadows, vibrant accent colors).
-- **Animations:** Implement `framer-motion` for page transitions and state changes.
-- **Interactivity:** Use `vaul` drawers for forms and complex interactions to maintain a mobile-first, native-app feel.
+- use tailwind always

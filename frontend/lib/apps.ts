@@ -299,6 +299,16 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
   },
   {
+    id: "movies-this-year",
+    name: "Movies This Year",
+    description: "Bu yılın en popüler ve beklenen filmlerini keşfet",
+    icon: VideoCamera,
+    category: "Entertainment",
+    color: "#E50914",
+    href: "/apps/movies-this-year",
+    isImplemented: true,
+  },
+  {
     id: "i-saw-this-actor",
     name: "I Saw This Actor",
     description: "Identify actors and filmography",
@@ -411,6 +421,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Lifestyle",
     color: "#40C057",
     href: "/apps/kiler",
+    isImplemented: true,
+  },
+  {
+    id: "sticker-editor",
+    name: "Sticker Maker",
+    description: "WhatsApp için kendi sticker paketlerini tasarla",
+    icon: MaskHappy,
+    category: "Dev & Design",
+    color: "#25D366",
+    href: "/apps/sticker-editor",
     isImplemented: true,
   },
 ];

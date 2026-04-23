@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 export default class Client {
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
+    public readonly movies_this_year: movies_this_year.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
@@ -55,6 +56,7 @@ export default class Client {
         const base = new BaseClient(this.target, this.options)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
+        this.movies_this_year = new movies_this_year.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
@@ -242,6 +244,76 @@ export namespace kiler {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/kiler/items/${encodeURIComponent(userId)}`)
             return await resp.json() as GetItemsResponse
+        }
+    }
+}
+
+export namespace movies_this_year {
+    export interface GetMoviesResponse {
+        movies: Movie[]
+    }
+
+    export interface Movie {
+        id: number
+        title: string
+        overview: string
+        "poster_path": string | null
+        "backdrop_path": string | null
+        "release_date": string
+        "vote_average": number
+        popularity: number
+        "genre_ids": number[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getMoviesThisYear = this.getMoviesThisYear.bind(this)
+            this.getTopRatedMovies = this.getTopRatedMovies.bind(this)
+            this.getUpcomingMovies = this.getUpcomingMovies.bind(this)
+            this.syncMoviesThisYear = this.syncMoviesThisYear.bind(this)
+        }
+
+        public async getMoviesThisYear(): Promise<GetMoviesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/discover`)
+            return await resp.json() as GetMoviesResponse
+        }
+
+        /**
+         * En yüksek puanlı filmleri getirir
+         * GET /movies-this-year/top-rated
+         */
+        public async getTopRatedMovies(): Promise<GetMoviesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/top-rated`)
+            return await resp.json() as GetMoviesResponse
+        }
+
+        /**
+         * Yakında vizyona girecek filmleri getirir
+         * GET /movies-this-year/upcoming
+         */
+        public async getUpcomingMovies(): Promise<GetMoviesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/upcoming`)
+            return await resp.json() as GetMoviesResponse
+        }
+
+        /**
+         * TMDB'den verileri çeker ve yerel JSON dosyasına kaydeder (Maliyet düşürmek için)
+         * POST /movies-this-year/sync
+         */
+        public async syncMoviesThisYear(): Promise<{
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/sync`)
+            return await resp.json() as {
+    count: number
+}
         }
     }
 }

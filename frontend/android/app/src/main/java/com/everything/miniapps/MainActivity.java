@@ -20,6 +20,10 @@ public class MainActivity extends BridgeActivity {
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // CRITICAL: Register custom plugins BEFORE super.onCreate()
+        // Capacitor builds the bridge inside super.onCreate(), so plugins must be registered first.
+        registerPlugin(WhatsAppStickerPlugin.class);
+        
         super.onCreate(savedInstanceState);
         
         Window window = getWindow();

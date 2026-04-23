@@ -11,7 +11,7 @@
     "ios": "next build && npx cap sync && npx cap open ios",
     "increment-version": "npx tsx scripts/increment-version.ts",
     "mobile": "next build && npm run sync && npm run apk && npm run open-apk",
-    "sync": "node node_modules/@capacitor/cli/bin/capacitor sync",
+    "sync": "cmd /c \"set CI=1 && npx cap sync\"",
     "store": "npm run increment-version && next build && npm run sync && npm run apk && npm run open-aab",
     "apk": "cd android && cmd /c gradlew.bat assembleDebug && cmd /c gradlew.bat bundleRelease",
     "open-apk": "explorer android\\app\\build\\outputs\\apk\\debug",
@@ -20,6 +20,7 @@
     "clean": "cd android && cmd /c gradlew.bat clean"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.53",
     "@capacitor-firebase/messaging": "^8.2.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.0",
@@ -44,6 +45,7 @@
     "@tiptap/react": "^3.22.3",
     "@tiptap/starter-kit": "^3.22.3",
     "@types/fabric": "^5.3.11",
+    "ai": "^6.0.168",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "fabric": "^7.3.1",
@@ -61,7 +63,8 @@
     "send-intent": "^7.0.0",
     "tailwind-merge": "^3.4.0",
     "tar": "^7.5.13",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

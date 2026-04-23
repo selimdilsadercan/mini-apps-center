@@ -35,43 +35,48 @@ export default function Home() {
   
   // State for apps and edit mode
   const [apps, setApps] = useState<MiniApp[]>([]);
+  const [isAppsLoading, setIsAppsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Load apps and custom order
   useEffect(() => {
     async function loadOrder() {
-      const implementedApps = MINI_APPS.filter((app) => app.isImplemented);
-      
-      let orderIds: string[] | null = null;
-
-      // Try backend first if user is logged in
-      if (user?.id) {
-        const { data, error } = await getUserPreferencesAction(user.id);
-        if (data && data.length > 0) {
-          orderIds = data;
-        }
-      }
-
-      // Fallback to localStorage
-      if (!orderIds) {
-        const savedOrder = localStorage.getItem(`app_order_${user?.id || 'guest'}`);
-        if (savedOrder) {
-          try {
-            orderIds = JSON.parse(savedOrder) as string[];
-          } catch (e) {}
-        }
-      }
-
-      if (orderIds) {
-        const orderedApps = orderIds
-          .map(id => implementedApps.find(app => app.id === id))
-          .filter((app): app is MiniApp => !!app);
+      try {
+        const implementedApps = MINI_APPS.filter((app) => app.isImplemented);
         
-        const newApps = implementedApps.filter(app => !orderIds!.includes(app.id));
-        setApps([...orderedApps, ...newApps]);
-      } else {
-        setApps(implementedApps);
+        let orderIds: string[] | null = null;
+
+        // Try backend first if user is logged in
+        if (user?.id) {
+          const { data, error } = await getUserPreferencesAction(user.id);
+          if (data && data.length > 0) {
+            orderIds = data;
+          }
+        }
+
+        // Fallback to localStorage
+        if (!orderIds) {
+          const savedOrder = localStorage.getItem(`app_order_${user?.id || 'guest'}`);
+          if (savedOrder) {
+            try {
+              orderIds = JSON.parse(savedOrder) as string[];
+            } catch (e) {}
+          }
+        }
+
+        if (orderIds) {
+          const orderedApps = orderIds
+            .map(id => implementedApps.find(app => app.id === id))
+            .filter((app): app is MiniApp => !!app);
+          
+          const newApps = implementedApps.filter(app => !orderIds!.includes(app.id));
+          setApps([...orderedApps, ...newApps]);
+        } else {
+          setApps(implementedApps);
+        }
+      } finally {
+        setIsAppsLoading(false);
       }
     }
 
@@ -134,7 +139,7 @@ export default function Home() {
     }
   };
 
-  if (!isLoaded) {
+  if (!isLoaded || isAppsLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
@@ -230,7 +235,7 @@ export default function Home() {
         </DndContext>
 
         {/* Empty State */}
-        {apps.length === 0 && (
+        {!isAppsLoading && apps.length === 0 && (
           <div className="text-center py-16 bg-white/60 backdrop-blur-sm rounded-[2.5rem] border border-white shadow-xl shadow-indigo-100/20 px-8">
             <div className="bg-indigo-600/10 w-16 h-16 rounded-[1rem] flex items-center justify-center mx-auto mb-6 transform rotate-3">
               <Sparkle size={32} weight="fill" className="text-indigo-600" />

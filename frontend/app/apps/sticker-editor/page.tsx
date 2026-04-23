@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { registerPlugin, Capacitor } from "@capacitor/core";
 import * as fabric from "fabric";
 import { 
   Plus, 
@@ -24,13 +25,36 @@ import { toast } from "react-hot-toast";
 
 const STICKER_SIZE = 512;
 
+interface WhatsAppStickerPlugin {
+  addStickerPack(options: {
+    identifier: string;
+    name: string;
+    publisher: string;
+    stickerBase64: string;
+    trayIconBase64?: string;
+  }): Promise<void>;
+}
+
+const WhatsAppSticker = registerPlugin<WhatsAppStickerPlugin>("WhatsAppSticker");
+
 export default function StickerEditorPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [showDebug, setShowDebug] = useState(false);
   const [activeTab, setActiveTab] = useState<"image" | "text" | "stickers" | "settings">("image");
   const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null);
+  
+  // Debug log helper
+  const logDebug = (msg: string) => {
+    console.log(`[DEBUG] ${msg}`);
+    setLogs(prev => [`${new Date().toLocaleTimeString()}: ${msg}`, ...prev].slice(0, 50));
+  };
 
   useEffect(() => {
+    logDebug(`Platform: ${Capacitor.getPlatform()}`);
+    logDebug(`WhatsAppSticker Plugin: ${WhatsAppSticker ? "Defined" : "Undefined"}`);
+    
     if (!canvasRef.current) return;
 
     // Fabric 6.x initialization
@@ -129,12 +153,52 @@ export default function StickerEditorPage() {
     toast.success("Sticker WebP olarak indirildi!");
   };
 
-  const addToWhatsApp = () => {
-    toast.loading("WhatsApp'a hazırlanıyor...", { duration: 2000 });
-    setTimeout(() => {
-      toast.dismiss();
-      toast.error("Native Bridge henüz kurulu değil. Yakında eklenecek!");
-    }, 2000);
+  const addToWhatsApp = async () => {
+    if (!canvas) return;
+
+    if (Capacitor.getPlatform() === "web") {
+      toast.error("WhatsApp'a doğrudan ekleme özelliği sadece mobil uygulamada çalışır. Lütfen sticker'ı indirip manuel paylaşın.");
+      return;
+    }
+
+    const loadingToast = toast.loading("WhatsApp'a hazırlanıyor...");
+    
+    logDebug("WhatsApp'a ekleme başlatıldı...");
+    
+    try {
+      // 1. Ana Sticker: 512x512
+      const stickerBase64 = canvas.toDataURL({
+        format: 'webp',
+        quality: 0.8,
+        multiplier: 1,
+      });
+      logDebug(`Sticker hazır (Base64: ${stickerBase64.length})`);
+
+      // 2. Tray Icon: 96x96
+      const trayBase64 = canvas.toDataURL({
+        format: 'png',
+        quality: 0.7,
+        multiplier: 96 / STICKER_SIZE,
+      });
+      logDebug(`Tray Icon hazır (96x96)`);
+
+      // 3. Native Plugin'i çağır
+      logDebug("Native plugin çağrılıyor: addStickerPack...");
+      await WhatsAppSticker.addStickerPack({
+        identifier: "mini_apps_pack_" + Date.now(),
+        name: "Mini Apps Sticker",
+        publisher: "Mini Apps Center",
+        stickerBase64: stickerBase64,
+        trayIconBase64: trayBase64,
+      });
+
+      logDebug("Native çağrı başarılı, WhatsApp açılıyor olmalı.");
+      toast.success("WhatsApp'a yönlendiriliyorsunuz!", { id: loadingToast });
+    } catch (err: any) {
+      logDebug(`HATA: ${err.message}`);
+      console.error("Native Bridge Error:", err);
+      toast.error("Hata: " + err.message, { id: loadingToast });
+    }
   };
 
   return (
@@ -142,7 +206,7 @@ export default function StickerEditorPage() {
       {/* Header */}
       <header className="p-4 border-b border-white/10 flex items-center justify-between bg-black/50 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <Link href="/apps">
+          <Link href="/home">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -319,6 +383,30 @@ export default function StickerEditorPage() {
           background: rgba(255, 255, 255, 0.2);
         }
       `}</style>
+      {/* Debug Console Toggle & Overlay */}
+      <div className="fixed bottom-4 left-4 z-[9999] flex flex-col items-start gap-2">
+        <Button 
+          size="sm" 
+          variant="secondary" 
+          onClick={() => setShowDebug(!showDebug)}
+          className="rounded-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold shadow-lg text-[10px] h-8 px-3"
+        >
+          {showDebug ? "Debug Kapat" : "Debug Console"}
+        </Button>
+
+        {showDebug && (
+          <div className="w-[300px] max-h-[200px] bg-black/90 border border-yellow-500/50 rounded-lg overflow-y-auto p-2 font-mono text-[10px] text-yellow-500 shadow-2xl backdrop-blur-xl">
+            <div className="flex justify-between items-center mb-1 border-b border-yellow-500/20 pb-1">
+              <span className="font-bold">SYSTEM LOGS</span>
+              <button onClick={() => setLogs([])} className="underline opacity-70">Clear</button>
+            </div>
+            {logs.map((log, i) => (
+              <div key={i} className="mb-1 last:mb-0 break-all">{log}</div>
+            ))}
+            {logs.length === 0 && <div className="opacity-50 italic">Log yok...</div>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
