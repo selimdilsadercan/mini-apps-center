@@ -23,7 +23,7 @@ BEGIN
 
     -- Reset tournament status
     UPDATE tournament.tournaments 
-    SET status = 'upcoming', current_league_round = 1, start_at = NULL, winner_id = NULL
+    SET status = 'upcoming', current_league_round = 1, start_at = NULL
     WHERE id = v_tournament_id;
 
     -- Reset participants stats

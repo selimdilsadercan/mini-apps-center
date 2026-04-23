@@ -604,6 +604,11 @@ export namespace tournament {
         "user_id"?: string
         username: string
         avatar?: string
+        points: number
+        wins: number
+        losses: number
+        average: number
+        "joined_at": string
     }
 
     export interface StandingsResponse {
@@ -822,7 +827,8 @@ export namespace tournament {
         /**
          * Turnuvaya katılır
          */
-        public async joinTournament(slug: string, params: {
+        public async joinTournament(params: {
+    slug: string
     userId: string
     username: string
     avatar?: string
@@ -830,7 +836,7 @@ export namespace tournament {
     success: boolean
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/join`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/join`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }
@@ -884,13 +890,14 @@ export namespace tournament {
         /**
          * Maç skorunu günceller
          */
-        public async updateMatchScore(id: string, params: {
+        public async updateMatchScore(params: {
+    matchId: string
     scores: { [key: string]: number }
 }): Promise<{
     success: boolean
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/match/${encodeURIComponent(id)}/score`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/match/update-score`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }
@@ -899,14 +906,15 @@ export namespace tournament {
         /**
          * Oyuncu bilgilerini günceller
          */
-        public async updateParticipant(id: string, params: {
+        public async updateParticipant(params: {
+    participantId: string
     username: string
     avatar: string
 }): Promise<{
     success: boolean
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("PATCH", `/tournament/participant/${encodeURIComponent(id)}`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("PATCH", `/tournament/participant/modify`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

@@ -66,7 +66,7 @@ interface DeleteItemResponse {
 export const getItems = api(
   { expose: true, method: "GET", path: "/kiler/items/:userId" },
   async ({ userId }: GetItemsRequest): Promise<GetItemsResponse> => {
-    const { data, error } = await supabase.rpc("kiler.get_items", {
+    const { data, error } = await supabase.schema("kiler").rpc("get_items", {
       clerk_id_param: userId,
     });
 
@@ -86,7 +86,7 @@ export const getItems = api(
 export const addItem = api(
   { expose: true, method: "POST", path: "/kiler/add" },
   async ({ userId, name, amount, unit, storageType, purchaseDate, expiryDate }: AddItemRequest): Promise<AddItemResponse> => {
-    const { data, error } = await supabase.rpc("kiler.add_item", {
+    const { data, error } = await supabase.schema("kiler").rpc("add_item", {
       clerk_id_param: userId,
       name_param: name,
       amount_param: amount,
@@ -112,7 +112,7 @@ export const addItem = api(
 export const deleteItem = api(
   { expose: true, method: "DELETE", path: "/kiler/item/:id" },
   async ({ id, userId }: DeleteItemRequest): Promise<DeleteItemResponse> => {
-    const { data, error } = await supabase.rpc("kiler.delete_item", {
+    const { data, error } = await supabase.schema("kiler").rpc("delete_item", {
       item_id_param: id,
       clerk_id_param: userId,
     });

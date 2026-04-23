@@ -124,9 +124,10 @@ function TournamentDetailContent() {
   };
 
   const calculatedStandings = useMemo(() => {
-    if (!standings || !matches) return [];
+    const currentStandings = standings || [];
+    const currentMatches = matches || [];
     
-    const stats = standings.map((p: any) => ({ 
+    const stats = currentStandings.map((p: any) => ({ 
       ...p, 
       points: 0, 
       wins: 0, 
@@ -136,7 +137,7 @@ function TournamentDetailContent() {
 
     const statsMap = new Map(stats.map((s: any) => [s.id, s]));
 
-    matches.filter((m: any) => m.scores && Object.keys(m.scores).length > 0).forEach((m: any) => {
+    currentMatches.filter((m: any) => m.scores && Object.keys(m.scores).length > 0).forEach((m: any) => {
       const pIds = [m.player1_id, m.player2_id, m.player3_id, m.player4_id].filter(Boolean);
       const ppm = tournament?.players_per_match || 2;
       
@@ -164,7 +165,7 @@ function TournamentDetailContent() {
       if (b.points !== a.points) return b.points - a.points;
       return a.username.localeCompare(b.username);
     });
-  }, [standings, matches, tournament]);
+  }, [standings, matches, tournament?.players_per_match, tournament?.username]);
 
   const handleJoin = async (data: { username: string; avatar: string }) => {
     if (!slug) return;
@@ -660,10 +661,10 @@ function TournamentDetailContent() {
                                       const scores = feederMatch.scores;
                                       const winnerId = Object.keys(scores).sort((a, b) => Number(scores[b]) - Number(scores[a]))[0];
                                       predictedWinner = [
-                                        { ...feederMatch.player1, id: feederMatch.player1_id },
-                                        { ...feederMatch.player2, id: feederMatch.player2_id },
-                                        { ...feederMatch.player3, id: feederMatch.player3_id },
-                                        { ...feederMatch.player4, id: feederMatch.player4_id }
+                                        { id: feederMatch.player1_id, username: (feederMatch as any).username1, avatar: (feederMatch as any).avatar1 },
+                                        { id: feederMatch.player2_id, username: (feederMatch as any).username2, avatar: (feederMatch as any).avatar2 },
+                                        { id: feederMatch.player3_id, username: (feederMatch as any).username3, avatar: (feederMatch as any).avatar3 },
+                                        { id: feederMatch.player4_id, username: (feederMatch as any).username4, avatar: (feederMatch as any).avatar4 }
                                       ].find(p => p.id === winnerId);
                                     }
 
@@ -697,10 +698,10 @@ function TournamentDetailContent() {
                                       <div className="bg-[#121216] border border-white/5 rounded-[2rem] overflow-hidden group-hover:border-blue-500/30 transition-all shadow-2xl w-full z-10">
                                         {Array.from({ length: tournament?.players_per_match || 2 }).map((_, slotIdx) => {
                                           const p = [
-                                            { ...m.player1, id: m.player1_id, score: (m.scores && m.scores[m.player1_id]) || 0 },
-                                            { ...m.player2, id: m.player2_id, score: (m.scores && m.scores[m.player2_id]) || 0 },
-                                            { ...m.player3, id: m.player3_id, score: (m.scores && m.scores[m.player3_id]) || 0 },
-                                            { ...m.player4, id: m.player4_id, score: (m.scores && m.scores[m.player4_id]) || 0 }
+                                            { id: m.player1_id, username: (m as any).username1, avatar: (m as any).avatar1, score: (m.scores && m.scores[m.player1_id]) || 0 },
+                                            { id: m.player2_id, username: (m as any).username2, avatar: (m as any).avatar2, score: (m.scores && m.scores[m.player2_id]) || 0 },
+                                            { id: m.player3_id, username: (m as any).username3, avatar: (m as any).avatar3, score: (m.scores && m.scores[m.player3_id]) || 0 },
+                                            { id: m.player4_id, username: (m as any).username4, avatar: (m as any).avatar4, score: (m.scores && m.scores[m.player4_id]) || 0 }
                                           ][slotIdx];
 
                                           const hasScores = m.scores && Object.keys(m.scores).length > 0;
@@ -779,78 +780,90 @@ function TournamentDetailContent() {
               ) : (
                 /* Normal Puan Durumu Tablosu */
                 <div className="bg-[#121216] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl shadow-black/40">
-                  <table className="w-full text-left border-collapse">
-                      <thead className="bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                         <tr>
-                            <th className="px-8 py-5 w-20 text-center">#</th>
-                            <th className="px-8 py-5">Oyuncu</th>
-                            <th className="px-4 py-5 text-center">G</th>
-                            <th className="px-4 py-5 text-center">M</th>
-                            <th className="px-8 py-5 text-center">Puan</th>
-                            <th className="px-4 py-5"></th>
-                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/[0.03]">
-                          {calculatedStandings.map((p: any, idx: number) => {
-                            const isLastAdvancing = idx === (tournament?.advance_count || 0) - 1;
-                            return (
-                              <tr 
-                                key={p.id} 
-                                className="group hover:bg-white/[0.02] transition-all"
-                                style={isLastAdvancing ? { borderBottom: '2px solid #3b82f6' } : {}}
-                              >
-                                 <td className={`px-8 py-6 text-center font-black text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-amber-700' : 'text-slate-600'}`}>
-                                   {idx + 1}
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <div className="flex items-center gap-4">
-                                       <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-                                          {p.avatar ? (
-                                            <img src={p.avatar} alt={p.username} className="w-full h-full object-contain" />
-                                          ) : (
-                                            <UserIcon className="w-5 h-5 text-slate-600" />
-                                          )}
-                                       </div>
-                                       <span className="font-bold text-slate-200">{p.username}</span>
-                                    </div>
-                                 </td>
-                                 <td className="px-4 py-6 text-center font-black text-emerald-500/50">{p.wins || 0}</td>
-                                 <td className="px-4 py-6 text-center font-black text-red-500/50">{p.losses || 0}</td>
-                                 <td className="px-8 py-6 text-center font-black text-blue-500 text-xl">{p.points}</td>
-                                 <td className="px-4 py-6 text-right">
-                                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <button 
-                                       onClick={() => {
-                                         setEditingPlayer(p);
-                                         setIsSetupOpen(true);
-                                       }}
-                                       className="p-2 bg-white/5 rounded-xl hover:bg-white/10 transition-colors text-slate-500 hover:text-blue-400"
-                                     >
-                                       <Pencil size={18} weight="bold" />
-                                     </button>
-                                     <button 
-                                       onClick={async () => {
-                                         if (confirm(`${p.username} isimli oyuncuyu silmek istediğinize emin misiniz?`)) {
-                                           try {
-                                             await client.tournament.deleteParticipant(p.id);
-                                             toast.success("Oyuncu silindi");
-                                             fetchDetailData();
-                                           } catch (err) {
-                                             toast.error("Silme sırasında hata oluştu");
+                  {calculatedStandings.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                       <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                          <Users size={32} weight="bold" className="text-slate-600" />
+                       </div>
+                       <h3 className="text-xl font-bold text-white mb-2">Henüz Oyuncu Yok</h3>
+                       <p className="text-slate-500 text-sm max-w-xs mx-auto">
+                         Turnuva henüz başlamadı. Oyuncu İşlemleri menüsünden oyuncu ekleyebilir veya mock oyuncular oluşturabilirsiniz.
+                       </p>
+                    </div>
+                  ) : (
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                           <tr>
+                              <th className="px-8 py-5 w-20 text-center">#</th>
+                              <th className="px-8 py-5">Oyuncu</th>
+                              <th className="px-4 py-5 text-center">G</th>
+                              <th className="px-4 py-5 text-center">M</th>
+                              <th className="px-8 py-5 text-center">Puan</th>
+                              <th className="px-4 py-5"></th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.03]">
+                            {calculatedStandings.map((p: any, idx: number) => {
+                              const isLastAdvancing = idx === (tournament?.advance_count || 0) - 1;
+                              return (
+                                <tr 
+                                  key={p.id} 
+                                  className="group hover:bg-white/[0.02] transition-all"
+                                  style={isLastAdvancing ? { borderBottom: '2px solid #3b82f6' } : {}}
+                                >
+                                   <td className={`px-8 py-6 text-center font-black text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-amber-700' : 'text-slate-600'}`}>
+                                     {idx + 1}
+                                   </td>
+                                   <td className="px-8 py-6">
+                                      <div className="flex items-center gap-4">
+                                         <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                            {p.avatar ? (
+                                              <img src={p.avatar} alt={p.username} className="w-full h-full object-contain" />
+                                            ) : (
+                                              <UserIcon className="w-5 h-5 text-slate-600" />
+                                            )}
+                                         </div>
+                                         <span className="font-bold text-slate-200">{p.username}</span>
+                                      </div>
+                                   </td>
+                                   <td className="px-4 py-6 text-center font-black text-emerald-500/50">{p.wins || 0}</td>
+                                   <td className="px-4 py-6 text-center font-black text-red-500/50">{p.losses || 0}</td>
+                                   <td className="px-8 py-6 text-center font-black text-blue-500 text-xl">{p.points}</td>
+                                   <td className="px-4 py-6 text-right">
+                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <button 
+                                         onClick={() => {
+                                           setEditingPlayer(p);
+                                           setIsSetupOpen(true);
+                                         }}
+                                         className="p-2 bg-white/5 rounded-xl hover:bg-white/10 transition-colors text-slate-500 hover:text-blue-400"
+                                       >
+                                         <Pencil size={18} weight="bold" />
+                                       </button>
+                                       <button 
+                                         onClick={async () => {
+                                           if (confirm(`${p.username} isimli oyuncuyu silmek istediğinize emin misiniz?`)) {
+                                             try {
+                                               await client.tournament.deleteParticipant(p.id);
+                                               toast.success("Oyuncu silindi");
+                                               fetchDetailData();
+                                             } catch (err) {
+                                               toast.error("Silme sırasında hata oluştu");
+                                             }
                                            }
-                                         }
-                                       }}
-                                       className="p-2 bg-white/5 rounded-xl hover:bg-red-500/10 transition-colors text-slate-500 hover:text-red-500"
-                                     >
-                                       <Trash size={18} weight="bold" />
-                                     </button>
-                                   </div>
-                                 </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                   </table>
+                                         }}
+                                         className="p-2 bg-white/5 rounded-xl hover:bg-red-500/10 transition-colors text-slate-500 hover:text-red-500"
+                                       >
+                                         <Trash size={18} weight="bold" />
+                                       </button>
+                                     </div>
+                                   </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                     </table>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -949,10 +962,10 @@ function TournamentDetailContent() {
                       };
 
                       const matchPlayers = [
-                        { ...match.player1, id: match.player1_id, score: getScore(match.player1_id) },
-                        { ...match.player2, id: match.player2_id, score: getScore(match.player2_id) },
-                        { ...match.player3, id: match.player3_id, score: getScore(match.player3_id) },
-                        { ...match.player4, id: match.player4_id, score: getScore(match.player4_id) }
+                        { id: match.player1_id, username: (match as any).username1, avatar: (match as any).avatar1, score: getScore(match.player1_id) },
+                        { id: match.player2_id, username: (match as any).username2, avatar: (match as any).avatar2, score: getScore(match.player2_id) },
+                        { id: match.player3_id, username: (match as any).username3, avatar: (match as any).avatar3, score: getScore(match.player3_id) },
+                        { id: match.player4_id, username: (match as any).username4, avatar: (match as any).avatar4, score: getScore(match.player4_id) }
                       ].filter(p => p.id).sort((a, b) => (b.score || 0) - (a.score || 0));
 
                       return (

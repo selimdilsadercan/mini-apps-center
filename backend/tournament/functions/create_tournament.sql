@@ -1,5 +1,6 @@
 -- Drop old function
 DROP FUNCTION IF EXISTS public.tournament_create_tournament(TEXT, TEXT, TEXT, INTEGER, TEXT, INTEGER, INTEGER, INTEGER, TEXT);
+DROP FUNCTION IF EXISTS tournament.create_tournament(TEXT, TEXT, TEXT, INTEGER, TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 
 -- Create Tournament RPC
 CREATE OR REPLACE FUNCTION tournament.create_tournament(
@@ -27,10 +28,10 @@ BEGIN
 
     INSERT INTO tournament.tournaments (
         name, slug, icon, capacity, format, 
-        league_match_count, advance_count, admin_user_id
+        league_match_count, advance_count, players_per_match, admin_user_id
     ) VALUES (
         name_param, slug_param, icon_param, capacity_param, format_param,
-        league_match_count_param, advance_count_param, v_admin_id
+        league_match_count_param, advance_count_param, players_per_match_param, v_admin_id
     ) RETURNING * INTO v_new_tournament;
 
     RETURN NEXT v_new_tournament;

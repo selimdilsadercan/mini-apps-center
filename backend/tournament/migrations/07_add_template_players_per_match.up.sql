@@ -1,8 +1,9 @@
--- Drop old versions
-DROP FUNCTION IF EXISTS public.tournament_get_templates();
+-- Migration: Add players_per_match to templates
+ALTER TABLE tournament.templates ADD COLUMN IF NOT EXISTS players_per_match INTEGER DEFAULT 2;
+
+-- Update get_templates function to include the new column
 DROP FUNCTION IF EXISTS tournament.get_templates();
 
--- Get Tournament Templates RPC
 CREATE OR REPLACE FUNCTION tournament.get_templates()
 RETURNS TABLE (
     id UUID,
@@ -25,3 +26,6 @@ BEGIN
     ORDER BY t.created_at ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Set Catan template to 4 players
+UPDATE tournament.templates SET players_per_match = 4 WHERE name = 'Catan Turnuvası';

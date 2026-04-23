@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS tournament.tournaments (
   current_league_round INTEGER DEFAULT 1,
   league_match_count INTEGER DEFAULT 3,
   format TEXT DEFAULT 'league_knockout', -- league_knockout, knockout
+  players_per_match INTEGER DEFAULT 2,
   start_at TIMESTAMPTZ,
-  winner_id UUID REFERENCES public.users(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -23,13 +23,9 @@ CREATE TABLE IF NOT EXISTS tournament.tournaments (
 CREATE TABLE IF NOT EXISTS tournament.participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tournament_id UUID NOT NULL REFERENCES tournament.tournaments(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES public.users(id),
+  user_id UUID REFERENCES public.users(id), -- Nullable for mock players
   username TEXT NOT NULL,
   avatar TEXT,
-  points INTEGER DEFAULT 0,
-  wins INTEGER DEFAULT 0,
-  losses INTEGER DEFAULT 0,
-  average INTEGER DEFAULT 0,
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   is_manual BOOLEAN DEFAULT FALSE,
   UNIQUE(tournament_id, user_id)
@@ -41,13 +37,11 @@ CREATE TABLE IF NOT EXISTS tournament.matches (
   tournament_id UUID NOT NULL REFERENCES tournament.tournaments(id) ON DELETE CASCADE,
   phase TEXT NOT NULL, -- 'league' or 'bracket'
   round INTEGER NOT NULL DEFAULT 1,
-  player1_id UUID REFERENCES public.users(id),
-  player2_id UUID REFERENCES public.users(id),
-  winner_id UUID REFERENCES public.users(id),
-  score1 INTEGER DEFAULT 0,
-  score2 INTEGER DEFAULT 0,
-  score1_json JSONB DEFAULT '[]',
-  score2_json JSONB DEFAULT '[]',
+  player1_id UUID REFERENCES tournament.participants(id) ON DELETE SET NULL,
+  player2_id UUID REFERENCES tournament.participants(id) ON DELETE SET NULL,
+  player3_id UUID REFERENCES tournament.participants(id) ON DELETE SET NULL,
+  player4_id UUID REFERENCES tournament.participants(id) ON DELETE SET NULL,
+  scores JSONB DEFAULT '{}',
   status TEXT DEFAULT 'upcoming', -- upcoming, playing, finished, abandoned
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -61,6 +55,7 @@ CREATE TABLE IF NOT EXISTS tournament.templates (
   capacity INTEGER NOT NULL,
   advance_count INTEGER,
   league_match_count INTEGER,
+  players_per_match INTEGER DEFAULT 2,
   config JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

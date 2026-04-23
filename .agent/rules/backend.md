@@ -28,3 +28,15 @@
 
 ### 2.2. Table Access
 - When direct table access is necessary, always specify the schema: `supabase.schema("service_name").from("table_name")`.
+
+---
+
+## Session Summary (Migration to Schema Architecture)
+The following services have been successfully migrated to the dedicated schema + RPC architecture:
+1. **Kiler**: `kiler` schema
+2. **Tournament**: `tournament` schema
+3. **ITU Yemekhane**: `itu_yemekhane` schema
+4. **Subcenter**: `subcenter` schema
+5. **Recipe**: `recipe` schema
+
+All direct `public` table accesses have been replaced with schema-qualified RPC calls.

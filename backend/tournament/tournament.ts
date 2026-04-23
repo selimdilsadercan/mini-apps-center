@@ -33,6 +33,11 @@ export interface Participant {
   user_id?: string;
   username: string;
   avatar?: string;
+  points: number;
+  wins: number;
+  losses: number;
+  average: number;
+  joined_at: string;
 }
 
 export interface Match {
@@ -83,7 +88,7 @@ export const createTournament = api(
     playersPerMatch?: number;
     adminUserId: string;
   }): Promise<Tournament> => {  
-    const { data, error } = await supabase.rpc("tournament.create_tournament", {
+    const { data, error } = await supabase.schema("tournament").rpc("create_tournament", {
       name_param: params.name,
       slug_param: params.slug,
       icon_param: params.icon || "🏆",
@@ -111,7 +116,7 @@ export const createTournament = api(
 export const getTournaments = api(
   { expose: true, method: "GET", path: "/tournaments" },
   async (): Promise<{ tournaments: Tournament[] }> => {
-    const { data, error } = await supabase.rpc("tournament.get_tournaments");
+    const { data, error } = await supabase.schema("tournament").rpc("get_tournaments");
 
     if (error) {
       console.error("RPC error fetching tournaments:", error);
@@ -128,7 +133,7 @@ export const getTournaments = api(
 export const getTournamentDetails = api(
   { expose: true, method: "GET", path: "/tournament/:slug" },
   async ({ slug, userId }: { slug: string; userId?: string }): Promise<Tournament> => {
-    const { data, error } = await supabase.rpc("tournament.get_tournament_details", {
+    const { data, error } = await supabase.schema("tournament").rpc("get_tournament_details", {
       slug_param: slug,
       viewer_clerk_id: userId
     });
@@ -145,9 +150,9 @@ export const getTournamentDetails = api(
  * Turnuvaya katılır
  */
 export const joinTournament = api(
-  { expose: true, method: "POST", path: "/tournament/:slug/join" },
+  { expose: true, method: "POST", path: "/tournament/join" },
   async ({ slug, userId, username, avatar }: { slug: string; userId: string; username: string; avatar?: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.join_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("join_tournament", {
       slug_param: slug,
       clerk_id_param: userId,
       username_param: username,
@@ -167,10 +172,10 @@ export const joinTournament = api(
  * Oyuncu bilgilerini günceller
  */
 export const updateParticipant = api(
-  { expose: true, method: "PATCH", path: "/tournament/participant/:id" },
-  async ({ id, username, avatar }: { id: string; username: string; avatar: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.update_participant", {
-      participant_id: id,
+  { expose: true, method: "PATCH", path: "/tournament/participant/modify" },
+  async ({ participantId, username, avatar }: { participantId: string; username: string; avatar: string }): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("tournament").rpc("update_participant", {
+      participant_id: participantId,
       username_param: username,
       avatar_param: avatar
     });
@@ -188,10 +193,10 @@ export const updateParticipant = api(
  * Maç skorunu günceller
  */
 export const updateMatchScore = api(
-  { expose: true, method: "POST", path: "/tournament/match/:id/score" },
-  async ({ id, scores }: { id: string; scores: { [participantId: string]: number } }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.update_match_score", {
-      match_id: id,
+  { expose: true, method: "POST", path: "/tournament/match/update-score" },
+  async ({ matchId, scores }: { matchId: string; scores: { [participantId: string]: number } }): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("tournament").rpc("update_match_score", {
+      match_id: matchId,
       scores_param: scores
     });
 
@@ -210,7 +215,7 @@ export const updateMatchScore = api(
 export const deleteParticipant = api(
   { expose: true, method: "DELETE", path: "/tournament/participant/:id" },
   async ({ id }: { id: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.delete_participant", {
+    const { error } = await supabase.schema("tournament").rpc("delete_participant", {
       participant_id: id
     });
 
@@ -229,7 +234,7 @@ export const deleteParticipant = api(
 export const fillWithMockPlayers = api(
   { expose: true, method: "POST", path: "/tournament/:slug/fill-mock" },
   async ({ slug }: { slug: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.fill_mock_players", {
+    const { error } = await supabase.schema("tournament").rpc("fill_mock_players", {
       slug_param: slug
     });
 
@@ -248,7 +253,7 @@ export const fillWithMockPlayers = api(
 export const deleteTournament = api(
   { expose: true, method: "POST", path: "/tournament/:slug/delete" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.delete_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("delete_tournament", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -269,7 +274,7 @@ export const deleteTournament = api(
 export const getTournamentTemplates = api(
   { expose: true, method: "GET", path: "/tournament/templates" },
   async (): Promise<{ templates: any[] }> => {
-    const { data, error } = await supabase.rpc("tournament.get_templates");
+    const { data, error } = await supabase.schema("tournament").rpc("get_templates");
 
     if (error) {
       console.error("RPC error fetching templates:", error);
@@ -286,7 +291,7 @@ export const getTournamentTemplates = api(
 export const startTournament = api(
   { expose: true, method: "POST", path: "/tournament/:slug/start" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.start_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("start_tournament", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -306,7 +311,7 @@ export const startTournament = api(
 export const getTournamentMatches = api(
   { expose: true, method: "GET", path: "/tournament/:slug/matches" },
   async ({ slug }: { slug: string }): Promise<MatchesResponse> => {
-    const { data, error } = await supabase.rpc("tournament.get_matches", {
+    const { data, error } = await supabase.schema("tournament").rpc("get_matches", {
       slug_param: slug
     });
 
@@ -325,11 +330,16 @@ export const getTournamentMatches = api(
 export const getStandings = api(
   { expose: true, method: "GET", path: "/tournament/:slug/standings" },
   async ({ slug }: { slug: string }): Promise<StandingsResponse> => {
-    const { data, error } = await supabase.rpc("tournament.get_standings", {
+    const { data, error } = await supabase.schema("tournament").rpc("get_standings", {
       slug_param: slug
     });
 
-    return { participants: data as Participant[] };
+    if (error) {
+      console.error("RPC error fetching standings:", error);
+      throw new APIError(ErrCode.Internal, "Puan durumu getirilemedi");
+    }
+
+    return { participants: (data as Participant[]) || [] };
   }
 );
 
@@ -340,7 +350,7 @@ export const getStandings = api(
 export const advanceTournament = api(
   { expose: true, method: "POST", path: "/tournament/:slug/advance" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.advance_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("advance_tournament", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -360,7 +370,7 @@ export const advanceTournament = api(
 export const advanceToBracket = api(
   { expose: true, method: "POST", path: "/tournament/:slug/advance-to-bracket" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.advance_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("advance_tournament", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -380,7 +390,7 @@ export const advanceToBracket = api(
 export const autoScoreRound = api(
   { expose: true, method: "POST", path: "/tournament/:slug/auto-score" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.auto_score_round", {
+    const { error } = await supabase.schema("tournament").rpc("auto_score_round", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -399,7 +409,7 @@ export const autoScoreRound = api(
 export const resetTournament = api(
   { expose: true, method: "POST", path: "/tournament/:slug/reset" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.reset_tournament", {
+    const { error } = await supabase.schema("tournament").rpc("reset_tournament", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });
@@ -419,7 +429,7 @@ export const resetTournament = api(
 export const resetCurrentRound = api(
   { expose: true, method: "POST", path: "/tournament/:slug/reset-round" },
   async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
-    const { error } = await supabase.rpc("tournament.reset_round", {
+    const { error } = await supabase.schema("tournament").rpc("reset_round", {
       slug_param: slug,
       admin_clerk_id: adminUserId
     });

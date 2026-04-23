@@ -67,10 +67,21 @@ export function getAvatarUrl(config: AvatarConfig): string {
 }
 
 export function parseAvatarUrl(url: string): AvatarConfig {
+  if (!url) return DEFAULT_AVATAR_CONFIG;
+  
   try {
     const urlObj = new URL(url);
     const params = urlObj.searchParams;
     
+    // If it's a seed-based URL (old format), we can't fully parse it, 
+    // but we can return the default instead of crashing or being empty
+    if (!params.has("top") && !params.has("skinColor")) {
+      return {
+        ...DEFAULT_AVATAR_CONFIG,
+        // We could potentially store the seed here if we wanted to support it
+      };
+    }
+
     return {
       skinColor: params.get("skinColor") || DEFAULT_AVATAR_CONFIG.skinColor,
       top: params.get("top") || DEFAULT_AVATAR_CONFIG.top,

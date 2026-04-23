@@ -116,7 +116,7 @@ export const getMenu = api(
 export const toggleDislike = api(
   { path: "/disliked", expose: true, method: "POST" },
   async (params: { dishName: string }): Promise<{ status: string }> => {
-    const { data, error } = await supabase.rpc("itu_yemekhane.toggle_dislike", {
+    const { data, error } = await supabase.schema("itu_yemekhane").rpc("toggle_dislike", {
       dish_name_param: params.dishName
     });
 
@@ -136,7 +136,7 @@ export const toggleDislike = api(
 export const getDislikedDishes = api(
   { path: "/disliked", expose: true, method: "GET" },
   async (): Promise<{ dishes: string[] }> => {
-    const { data, error } = await supabase.rpc("itu_yemekhane.get_dislikes");
+    const { data, error } = await supabase.schema("itu_yemekhane").rpc("get_dislikes");
 
     if (error) {
       console.error("DEBUG: getDislikedDishes RPC error:", error);

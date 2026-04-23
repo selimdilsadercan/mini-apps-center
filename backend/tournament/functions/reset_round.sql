@@ -34,7 +34,7 @@ BEGIN
     IF v_round IS NULL OR v_round = 0 THEN RETURN FALSE; END IF;
 
     UPDATE tournament.matches
-    SET scores = '[]', status = 'upcoming', winner_id = NULL, score1 = 0, score2 = 0
+    SET scores = '{}', status = 'upcoming'
     WHERE tournament_id = v_tournament.id AND phase = v_phase AND round = v_round;
 
     RETURN TRUE;

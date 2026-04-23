@@ -67,7 +67,7 @@ export default function ScoreUpdateModal({
       for (const key in scores) {
         finalScores[key] = Number(scores[key]) || 0;
       }
-      await client.tournament.updateMatchScore(match.id, { scores: finalScores });
+      await client.tournament.updateMatchScore({ matchId: match.id, scores: finalScores });
       onSuccess();
       onClose();
     } catch (err) {

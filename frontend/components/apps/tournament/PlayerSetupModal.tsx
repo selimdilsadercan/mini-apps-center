@@ -69,7 +69,7 @@ export default function PlayerSetupModal({
       const avatar = getAvatarUrl(avatarConfig);
       if (initialData) {
         await client.tournament.updateParticipant({
-          id: initialData.id,
+          participantId: initialData.id,
           username: username.trim(),
           avatar
         });
