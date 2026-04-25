@@ -1,0 +1,46 @@
+Numara,İsim,Cinsiyet,Arkadaşlar
+1,Engin Osman Yılmaz,Erkek,
+2,Meryem Öztürk,Kadın,
+3,Mehmet Emir Çelik,Erkek,
+4,Eren Bayar,Erkek,
+5,Ahmet Selim Dokumaz,Erkek,
+6,Osman Akçay,Erkek,Mustafa Mürsel Yeşildal
+7,Mustafa Mürsek Yeşildal,Erkek,Osman Akçay
+8,Sinejan Senkir,Kadın,
+9,Efe Demircan,Erkek,Umut Hasırcı
+10,Yiğit Emre Uzer,Erkek,
+11,Diren Barış Tolum,Erkek,
+12,Mustafa Serbak,Erkek,
+13,Baha Koçbaş,Erkek,
+14,Enes Çalışkan,Erkek,
+15,Eren Karagöz,Erkek,
+16,Ahmet İspir,Erkek,
+17,Eren Erpalabıyık,Erkek,
+19,Meriç Ege Ericek,Erkek,
+21,Ali Jazayeri,Erkek,
+22,Yılmaz Savaşlı,Erkek,
+23,Ahmet Unatoğlu,Erkek,Zahit Eren Terzi
+24,Mahmut Bayar,Erkek,
+25,Zahit Eren Terzi,Erkek,Ahmet Unatoğlu;Erdem Erkoç
+26,Ali Nabizadeh,Erkek,Ramazan Yüksel;Oğuzhan Yeşilselvi
+27,Hasan Can Şahinbay,Erkek,
+28,Utku Efe Yeşilyurt,Erkek,
+29,Taha Kayra Şeker,Erkek,
+31,Akif Berkay Keleş,Erkek,Yasir Çakır;Özgür Tülüce
+32,Yasir Çakır,Erkek,Özgür Tülüce;Akif Berkay Keleş
+34,Akif Aktaş,Erkek,Kerem Özcan
+35,Kağan Öztay,Erkek,
+36,Bora Bayram,Erkek,
+37,Umut Hasırcı,Erkek,Efe Demircan
+38,Elif Şimşek,Kadın,
+39,Kerem Özcan,Erkek,Akif Aktaş
+40,Mustafa Küçükcoşkun,Erkek,Bora Bayram;Ahmet Selim Dokumaz;Cemre Özdemir;Eren Bayar
+41,Can Kuru,Erkek,
+42,Ramazan Mert Doğan,Erkek,
+43,Emirhan Kayardan,Erkek,
+44,Ahmet Abalı,Erkek,
+45,Ramazan Yüksel,Erkek,
+46,Batuhan Berk Balcı,Erkek,
+47,Cemre Özdemir,Kadın,Mustafa Küçükcoşkun
+48,Alp Caner Danacı,Erkek,
+49,Oğuzhan Yeşilselvi,Erkek,Ali Nabizadeh;Ramazan Yüksel

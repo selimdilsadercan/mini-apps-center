@@ -680,6 +680,7 @@ export namespace tournament {
         wins: number
         losses: number
         average: number
+        "is_present": boolean
         "joined_at": string
     }
 
@@ -714,6 +715,7 @@ export namespace tournament {
             this.advanceToBracket = this.advanceToBracket.bind(this)
             this.advanceTournament = this.advanceTournament.bind(this)
             this.autoScoreRound = this.autoScoreRound.bind(this)
+            this.clearParticipants = this.clearParticipants.bind(this)
             this.createTournament = this.createTournament.bind(this)
             this.deleteParticipant = this.deleteParticipant.bind(this)
             this.deleteTournament = this.deleteTournament.bind(this)
@@ -727,6 +729,7 @@ export namespace tournament {
             this.resetCurrentRound = this.resetCurrentRound.bind(this)
             this.resetTournament = this.resetTournament.bind(this)
             this.startTournament = this.startTournament.bind(this)
+            this.toggleCheckIn = this.toggleCheckIn.bind(this)
             this.updateMatchScore = this.updateMatchScore.bind(this)
             this.updateParticipant = this.updateParticipant.bind(this)
         }
@@ -771,6 +774,21 @@ export namespace tournament {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/auto-score`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Turnuvadaki tüm katılımcıları siler
+         */
+        public async clearParticipants(slug: string, params: {
+    adminUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/clear-participants`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }
@@ -904,6 +922,7 @@ export namespace tournament {
     userId: string
     username: string
     avatar?: string
+    avoidList?: string[]
 }): Promise<{
     success: boolean
 }> {
@@ -956,6 +975,19 @@ export namespace tournament {
             const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/start`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        /**
+         * Oyuncunun yoklamasını alır veya iptal eder
+         */
+        public async toggleCheckIn(participantId: string): Promise<{
+    "is_present": boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/participant/${encodeURIComponent(participantId)}/toggle-check-in`)
+            return await resp.json() as {
+    "is_present": boolean
 }
         }
 

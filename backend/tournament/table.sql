@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS tournament.participants (
   avatar TEXT,
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   is_manual BOOLEAN DEFAULT FALSE,
+  avoid_list TEXT[] DEFAULT '{}',
   UNIQUE(tournament_id, user_id)
 );
 

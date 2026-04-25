@@ -288,6 +288,91 @@ function TournamentDetailContent() {
                                 </div>
                               </button>
 
+                              <label className="w-full flex items-center gap-3 p-4 rounded-2xl hover:bg-emerald-500/10 text-emerald-400 transition-colors group cursor-pointer">
+                                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                                  <Sword size={20} weight="bold" />
+                                </div>
+                                <div className="flex flex-col items-start text-left">
+                                  <span className="text-xs font-black uppercase tracking-widest text-white/90">CSV ile Ekle</span>
+                                  <span className="text-[9px] font-medium text-slate-500">Dosyadan toplu yükle</span>
+                                </div>
+                                <input 
+                                  type="file" 
+                                  accept=".csv" 
+                                  className="hidden" 
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file || !slug) return;
+                                    setIsPlayerMenuOpen(false);
+                                    setIsJoining(true);
+                                    
+                                    const reader = new FileReader();
+                                    reader.onload = async (event) => {
+                                      const text = event.target?.result as string;
+                                      const lines = text.split(/\r?\n/);
+                                      const players: { name: string; gender?: string; avoidList?: string[] }[] = [];
+                                      
+                                      // İlk satırı (header) atla veya kontrol et
+                                      for (let i = 1; i < lines.length; i++) {
+                                        const line = lines[i].trim();
+                                        if (!line) continue;
+                                        
+                                        // Virgül veya noktalı virgül ayrımı
+                                        const parts = line.includes(';') ? line.split(';') : line.split(',');
+                                        // Görsele göre: 0: Numara, 1: İsim, 2: Cinsiyet, 3: Arkadaşlar
+                                        const name = parts[1]?.trim();
+                                        const gender = parts[2]?.trim().toLowerCase();
+                                        const avoidStr = parts[3]?.trim();
+                                        const avoidList = avoidStr ? avoidStr.split(';').map(s => s.trim()) : [];
+                                        
+                                        if (name) players.push({ name, gender, avoidList });
+                                      }
+
+                                      if (players.length === 0) {
+                                        toast.error("Dosyada geçerli oyuncu bulunamadı.");
+                                        setIsJoining(false);
+                                        return;
+                                      }
+
+                                      let successCount = 0;
+                                      for (const p of players) {
+                                        try {
+                                          const isFemale = p.gender?.startsWith('k') || p.gender?.startsWith('f');
+                                          
+                                          // Daha stabil olan v8 versiyonuna dönüyoruz
+                                          let avatarUrl = `https://api.dicebear.com/8.x/avataaars/svg?seed=${encodeURIComponent(p.name)}`;
+                                          
+                                          if (isFemale) {
+                                            // Kadın: Pembe tonu + v8 uyumlu topType parametresi
+                                            avatarUrl += '&backgroundColor=ffd5dc&topType=LongHair,Bob,Curly,Curvy';
+                                          } else {
+                                            // Erkek: Mavi tonu + v8 uyumlu topType parametresi
+                                            avatarUrl += '&backgroundColor=b6e3f4&topType=ShortHairFlat,ShortHairRound,Sides,TheCaesar';
+                                          }
+
+                                          const manualPlayerId = `manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+                                          await client.tournament.joinTournament({
+                                            slug,
+                                            userId: manualPlayerId,
+                                            username: p.name,
+                                            avatar: avatarUrl,
+                                            avoidList: p.avoidList
+                                          });
+                                          successCount++;
+                                        } catch (err) {
+                                          console.error(`Hata: ${p.name}`, err);
+                                        }
+                                      }
+
+                                      toast.success(`${successCount} oyuncu başarıyla eklendi!`);
+                                      fetchDetailData();
+                                      setIsJoining(false);
+                                    };
+                                    reader.readAsText(file);
+                                  }}
+                                />
+                              </label>
+
                               <button
                                 onClick={async () => {
                                   if (!slug) return;
@@ -311,6 +396,35 @@ function TournamentDetailContent() {
                                 <div className="flex flex-col items-start text-left">
                                   <span className="text-xs font-black uppercase tracking-widest text-white/90">Otomatik Doldur</span>
                                   <span className="text-[9px] font-medium text-slate-500">Boş kontenjanları doldur</span>
+                                </div>
+                              </button>
+
+                              <div className="h-px bg-white/5 mx-2 my-1" />
+
+                              <button
+                                onClick={async () => {
+                                  if (!slug || !user?.id) return;
+                                  if (!confirm("TÜM OYUNCULARI silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
+                                  setIsPlayerMenuOpen(false);
+                                  setIsJoining(true);
+                                  try {
+                                    await client.tournament.clearParticipants(slug, { adminUserId: user.id });
+                                    toast.success("Tüm oyuncular temizlendi!");
+                                    fetchDetailData();
+                                  } catch (err) {
+                                    toast.error("Temizleme hatası");
+                                  } finally {
+                                    setIsJoining(false);
+                                  }
+                                }}
+                                className="w-full flex items-center gap-3 p-4 rounded-2xl hover:bg-red-500/10 text-red-500 transition-colors group"
+                              >
+                                <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                                  <Trash size={20} weight="bold" />
+                                </div>
+                                <div className="flex flex-col items-start text-left">
+                                  <span className="text-xs font-black uppercase tracking-widest">Tümünü Sil</span>
+                                  <span className="text-[9px] font-medium opacity-50">Oyuncu listesini boşalt</span>
                                 </div>
                               </button>
                             </div>
@@ -797,9 +911,15 @@ function TournamentDetailContent() {
                            <tr>
                               <th className="px-8 py-5 w-20 text-center">#</th>
                               <th className="px-8 py-5">Oyuncu</th>
-                              <th className="px-4 py-5 text-center">G</th>
-                              <th className="px-4 py-5 text-center">M</th>
-                              <th className="px-8 py-5 text-center">Puan</th>
+                              {tournament?.status === 'upcoming' ? (
+                                <th className="px-8 py-5 text-center">Katılım (Burada mı?)</th>
+                              ) : (
+                                <>
+                                  <th className="px-4 py-5 text-center">G</th>
+                                  <th className="px-4 py-5 text-center">M</th>
+                                  <th className="px-8 py-5 text-center">Puan</th>
+                                </>
+                              )}
                               <th className="px-4 py-5"></th>
                            </tr>
                         </thead>
@@ -809,7 +929,7 @@ function TournamentDetailContent() {
                               return (
                                 <tr 
                                   key={p.id} 
-                                  className="group hover:bg-white/[0.02] transition-all"
+                                  className={`group hover:bg-white/[0.02] transition-all ${p.is_present && tournament?.status === 'upcoming' ? 'bg-emerald-500/[0.03]' : ''}`}
                                   style={isLastAdvancing ? { borderBottom: '2px solid #3b82f6' } : {}}
                                 >
                                    <td className={`px-8 py-6 text-center font-black text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-amber-700' : 'text-slate-600'}`}>
@@ -827,9 +947,29 @@ function TournamentDetailContent() {
                                          <span className="font-bold text-slate-200">{p.username}</span>
                                       </div>
                                    </td>
-                                   <td className="px-4 py-6 text-center font-black text-emerald-500/50">{p.wins || 0}</td>
-                                   <td className="px-4 py-6 text-center font-black text-red-500/50">{p.losses || 0}</td>
-                                   <td className="px-8 py-6 text-center font-black text-blue-500 text-xl">{p.points}</td>
+                                   {tournament?.status === 'upcoming' ? (
+                                     <td className="px-8 py-6 text-center">
+                                       <button
+                                         onClick={async () => {
+                                           try {
+                                             await client.tournament.toggleCheckIn(p.id);
+                                             fetchDetailData();
+                                           } catch (err) {
+                                             toast.error("Yoklama alınamadı");
+                                           }
+                                         }}
+                                         className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto transition-all ${p.is_present ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-0' : 'bg-white/5 text-slate-600 hover:bg-white/10'}`}
+                                       >
+                                         <Check size={24} weight="bold" className={p.is_present ? 'opacity-100' : 'opacity-20'} />
+                                       </button>
+                                     </td>
+                                   ) : (
+                                     <>
+                                       <td className="px-4 py-6 text-center font-black text-emerald-500/50">{p.wins || 0}</td>
+                                       <td className="px-4 py-6 text-center font-black text-red-500/50">{p.losses || 0}</td>
+                                       <td className="px-8 py-6 text-center font-black text-blue-500 text-xl">{p.points}</td>
+                                     </>
+                                   )}
                                    <td className="px-4 py-6 text-right">
                                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                        <button 

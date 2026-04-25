@@ -37,6 +37,7 @@ export interface Participant {
   wins: number;
   losses: number;
   average: number;
+  is_present: boolean;
   joined_at: string;
 }
 
@@ -151,12 +152,13 @@ export const getTournamentDetails = api(
  */
 export const joinTournament = api(
   { expose: true, method: "POST", path: "/tournament/join" },
-  async ({ slug, userId, username, avatar }: { slug: string; userId: string; username: string; avatar?: string }): Promise<{ success: boolean }> => {
+  async ({ slug, userId, username, avatar, avoidList }: { slug: string; userId: string; username: string; avatar?: string; avoidList?: string[] }): Promise<{ success: boolean }> => {
     const { error } = await supabase.schema("tournament").rpc("join_tournament", {
       slug_param: slug,
       clerk_id_param: userId,
       username_param: username,
-      avatar_param: avatar
+      avatar_param: avatar,
+      avoid_list_param: avoidList || []
     });
 
     if (error) {
@@ -440,5 +442,57 @@ export const resetCurrentRound = api(
     }
 
     return { success: true };
+  }
+);
+/**
+ * Turnuvadaki tüm katılımcıları siler
+ */
+export const clearParticipants = api(
+  { expose: true, method: "POST", path: "/tournament/:slug/clear-participants" },
+  async ({ slug, adminUserId }: { slug: string; adminUserId: string }): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("tournament").rpc("clear_participants", {
+      slug_param: slug,
+      admin_clerk_id: adminUserId
+    });
+
+    if (error) {
+      console.error("RPC error clearing participants:", error);
+      throw new APIError(ErrCode.Internal, error.message || "Katılımcılar temizlenemedi");
+    }
+
+    return { success: true };
+  }
+);
+
+/**
+ * Oyuncunun yoklamasını alır veya iptal eder
+ */
+export const toggleCheckIn = api(
+  { expose: true, method: "POST", path: "/tournament/participant/:participantId/toggle-check-in" },
+  async ({ participantId }: { participantId: string }): Promise<{ is_present: boolean }> => {
+    // Önce mevcut durumu al
+    const { data: current, error: getError } = await supabase
+      .schema("tournament")
+      .from("participants")
+      .select("is_present")
+      .eq("id", participantId)
+      .single();
+
+    if (getError || !current) throw new APIError(ErrCode.NotFound, "Oyuncu bulunamadı");
+
+    const newStatus = !current.is_present;
+
+    const { error: updateError } = await supabase
+      .schema("tournament")
+      .from("participants")
+      .update({ is_present: newStatus })
+      .eq("id", participantId);
+
+    if (updateError) {
+      console.error("Error toggling check-in:", updateError);
+      throw new APIError(ErrCode.Internal, "Yoklama durumu güncellenemedi");
+    }
+
+    return { is_present: newStatus };
   }
 );

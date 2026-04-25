@@ -10,6 +10,12 @@ DECLARE
     v_player_idx INTEGER;
     v_shuffled_ids UUID[];
     v_p1 UUID; v_p2 UUID; v_p3 UUID; v_p4 UUID;
+    v_swap_idx INTEGER;
+    v_attempts INTEGER := 0;
+    v_has_conflict BOOLEAN;
+    v_p1_avoid TEXT[]; v_p2_avoid TEXT[]; v_p3_avoid TEXT[]; v_p4_avoid TEXT[];
+    v_p1_name TEXT; v_p2_name TEXT; v_p3_name TEXT; v_p4_name TEXT;
+    v_temp_id UUID;
 BEGIN
     SELECT t.id, t.admin_user_id, t.format, t.players_per_match
     INTO v_tournament_id, v_admin_id, v_format, v_ppm
@@ -27,9 +33,44 @@ BEGIN
 
     UPDATE tournament.tournaments SET status = 'active', start_at = NOW(), current_league_round = 1 WHERE id = v_tournament_id;
 
+    -- Initial random shuffle
     SELECT array_agg(p.id ORDER BY random()) INTO v_shuffled_ids
     FROM tournament.participants p WHERE p.tournament_id = v_tournament_id;
 
+    -- Heuristic: Try to resolve conflicts by swapping (max 50 attempts to avoid infinite loops)
+    WHILE v_attempts < 50 LOOP
+        v_has_conflict := FALSE;
+        v_player_idx := 1;
+        
+        WHILE v_player_idx + 1 <= v_participant_count LOOP
+            -- Get players in current potential match
+            v_p1 := v_shuffled_ids[v_player_idx];
+            v_p2 := v_shuffled_ids[v_player_idx + 1];
+            
+            -- Get their names and avoid lists
+            SELECT username, avoid_list INTO v_p1_name, v_p1_avoid FROM tournament.participants WHERE id = v_p1;
+            SELECT username, avoid_list INTO v_p2_name, v_p2_avoid FROM tournament.participants WHERE id = v_p2;
+
+            -- Check conflict between p1 and p2
+            IF (v_p1_name = ANY(v_p2_avoid)) OR (v_p2_name = ANY(v_p1_avoid)) THEN
+                v_has_conflict := TRUE;
+                -- Try to swap v_p2 with a random player from a later index
+                v_swap_idx := floor(random() * (v_participant_count - (v_player_idx + 1) + 1)) + (v_player_idx + 1);
+                IF v_swap_idx > v_participant_count THEN v_swap_idx := v_participant_count; END IF;
+                
+                v_temp_id := v_shuffled_ids[v_player_idx + 1];
+                v_shuffled_ids[v_player_idx + 1] := v_shuffled_ids[v_swap_idx];
+                v_shuffled_ids[v_swap_idx] := v_temp_id;
+            END IF;
+            
+            v_player_idx := v_player_idx + v_ppm;
+        END LOOP;
+        
+        EXIT WHEN NOT v_has_conflict;
+        v_attempts := v_attempts + 1;
+    END LOOP;
+
+    -- Create matches from final shuffled/swapped list
     v_player_idx := 1;
     WHILE v_player_idx + 1 <= v_participant_count LOOP
         v_p1 := v_shuffled_ids[v_player_idx];

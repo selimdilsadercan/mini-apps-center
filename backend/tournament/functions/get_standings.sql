@@ -14,6 +14,7 @@ RETURNS TABLE (
     wins BIGINT,
     losses BIGINT,
     average NUMERIC,
+    is_present BOOLEAN,
     joined_at TIMESTAMPTZ
 ) AS $$
 DECLARE
@@ -63,6 +64,7 @@ BEGIN
               AND (m.player1_id = p.id OR m.player2_id = p.id OR m.player3_id = p.id OR m.player4_id = p.id)
               AND m.status = 'finished'
         ), 0)::NUMERIC as average,
+        p.is_present,
         p.joined_at
     FROM tournament.participants p
     WHERE p.tournament_id = v_tournament_id

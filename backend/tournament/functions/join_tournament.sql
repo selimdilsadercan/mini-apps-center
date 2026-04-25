@@ -6,7 +6,8 @@ CREATE OR REPLACE FUNCTION tournament.join_tournament(
     slug_param TEXT,
     clerk_id_param TEXT,
     username_param TEXT,
-    avatar_param TEXT
+    avatar_param TEXT,
+    avoid_list_param TEXT[] DEFAULT '{}'
 )
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -33,9 +34,9 @@ BEGIN
     END IF;
 
     INSERT INTO tournament.participants (
-        tournament_id, user_id, username, avatar
+        tournament_id, user_id, username, avatar, avoid_list
     ) VALUES (
-        v_tournament_id, v_user_id, username_param, avatar_param
+        v_tournament_id, v_user_id, username_param, avatar_param, avoid_list_param
     );
 
     RETURN TRUE;
