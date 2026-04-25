@@ -728,6 +728,7 @@ export namespace tournament {
             this.joinTournament = this.joinTournament.bind(this)
             this.resetCurrentRound = this.resetCurrentRound.bind(this)
             this.resetTournament = this.resetTournament.bind(this)
+            this.saveManualMatches = this.saveManualMatches.bind(this)
             this.startTournament = this.startTournament.bind(this)
             this.toggleCheckIn = this.toggleCheckIn.bind(this)
             this.updateMatchScore = this.updateMatchScore.bind(this)
@@ -958,6 +959,22 @@ export namespace tournament {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/reset`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Manuel eşleşme değişikliklerini kaydetmek için kullanılır
+         */
+        public async saveManualMatches(slug: string, params: {
+    round: number
+    matches: any[]
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tournament/${encodeURIComponent(slug)}/save-manual-matches`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

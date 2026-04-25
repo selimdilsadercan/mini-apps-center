@@ -25,6 +25,7 @@ export interface AvatarConfig {
   accessories: string;
   clothing: string;
   clothesColor: string;
+  customUrl?: string;
 }
 
 export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
@@ -51,6 +52,8 @@ export function generateRandomAvatarConfig(): AvatarConfig {
 }
 
 export function getAvatarUrl(config: AvatarConfig): string {
+  if (config.customUrl) return config.customUrl;
+
   const params = new URLSearchParams({
     skinColor: config.skinColor,
     top: config.top,
@@ -78,7 +81,7 @@ export function parseAvatarUrl(url: string): AvatarConfig {
     if (!params.has("top") && !params.has("skinColor")) {
       return {
         ...DEFAULT_AVATAR_CONFIG,
-        // We could potentially store the seed here if we wanted to support it
+        customUrl: url
       };
     }
 
@@ -107,7 +110,7 @@ export default function AvatarSelector({ avatarConfig, onConfigChange }: AvatarS
   const avatarUrl = useMemo(() => getAvatarUrl(avatarConfig), [avatarConfig]);
 
   const handleConfigChange = (key: keyof AvatarConfig, value: string) => {
-    onConfigChange({ ...avatarConfig, [key]: value });
+    onConfigChange({ ...avatarConfig, [key]: value, customUrl: undefined });
   };
 
   const tabs = [

@@ -24,9 +24,9 @@ BEGIN
         RAISE EXCEPTION 'Tournament not found';
     END IF;
 
-    IF v_status != 'upcoming' THEN
-        RAISE EXCEPTION 'Tournament already started or finished';
-    END IF;
+    -- IF v_status != 'upcoming' THEN
+    --     RAISE EXCEPTION 'Tournament already started or finished';
+    -- END IF;
 
     -- Get user_id if not a manual player
     IF clerk_id_param NOT LIKE 'manual_%' AND clerk_id_param NOT LIKE 'mock_%' THEN

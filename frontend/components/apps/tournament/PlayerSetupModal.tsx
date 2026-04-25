@@ -33,14 +33,19 @@ export default function PlayerSetupModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (initialData) {
-      setUsername(initialData.username);
-      if (initialData.avatar) {
-        setAvatarConfig(parseAvatarUrl(initialData.avatar));
+    if (isOpen) {
+      if (initialData) {
+        setUsername(initialData.username);
+        if (initialData.avatar) {
+          setAvatarConfig(parseAvatarUrl(initialData.avatar));
+        }
+        setStep("username");
+      } else {
+        setUsername("");
+        setAvatarConfig(generateRandomAvatarConfig());
+        setStep("avatar");
       }
-    } else {
-      setUsername("");
-      setAvatarConfig(generateRandomAvatarConfig());
+      setError("");
     }
   }, [initialData, isOpen]);
 
@@ -50,8 +55,7 @@ export default function PlayerSetupModal({
     const trimmed = username.trim();
     if (!trimmed) return "Kullanıcı adı boş olamaz";
     if (trimmed.length < 3) return "En az 3 karakter olmalı";
-    if (trimmed.length > 15) return "En fazla 15 karakter olmalı";
-    if (!/^[a-zA-Z0-9_ğüşıöçĞÜŞİÖÇ]+$/.test(trimmed)) return "Geçersiz karakterler";
+    if (!/^[a-zA-Z0-9_ğüşıöçĞÜŞİÖÇ\s]+$/.test(trimmed)) return "Geçersiz karakterler";
     return null;
   };
 

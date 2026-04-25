@@ -496,3 +496,24 @@ export const toggleCheckIn = api(
     return { is_present: newStatus };
   }
 );
+
+/**
+ * Manuel eşleşme değişikliklerini kaydetmek için kullanılır
+ */
+export const saveManualMatches = api(
+  { expose: true, method: "POST", path: "/tournament/:slug/save-manual-matches" },
+  async ({ slug, round, matches }: { slug: string; round: number; matches: any[] }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("tournament").rpc("tournament_save_manual_matches", {
+      p_slug: slug,
+      p_round: round,
+      p_matches: matches
+    });
+
+    if (error) {
+      console.error("RPC error saving manual matches:", error);
+      throw new APIError(ErrCode.Internal, error.message || "Eşleşmeler kaydedilemedi");
+    }
+
+    return { success: (data as any).success };
+  }
+);
