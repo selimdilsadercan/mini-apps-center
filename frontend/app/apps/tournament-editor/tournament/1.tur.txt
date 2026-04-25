@@ -1,0 +1,81 @@
+==================================================
+           TURNUVA MASA LİSTESİ - 1. TUR
+==================================================
+Lütfen her oyuncunun aldığı puanı karşısına yazınız.
+
+[ MASA 1 ]
+[  ] Ahmet Selim Dokumaz      : ....... Puan
+[  ] Ali Jazayeri             : ....... Puan
+[  ] Ramazan Mert Doğan       : ....... Puan
+[  ] Ramazan Yüksel           : ....... Puan
+--------------------------------------------------
+
+[ MASA 2 ]
+[  ] Hasan Can Şahinbay       : 10 Puan
+[  ] Engin Osman Yılmaz       : 7 Puan
+[  ] Alp Caner Danacı         : 7 Puan
+[  ] Ahmet İspir              : 6 Puan
+--------------------------------------------------
+
+[ MASA 3 ]
+[  ] Utku Efe Yeşilyurt       : 10 Puan
+[  ] Eren Erpalabıyık         : 9 Puan
+[  ] Emirhan Kayardan         : 7 Puan
+[  ] Kağan Öztay              : 7 Puan
+--------------------------------------------------
+
+[ MASA 4 ]
+[  ] Osman Akçay              : 10 Puan
+[  ] Kerem Özcan              : 9 Puan
+[  ] Mahmut Bayar             : 7 Puan
+[  ] Akif Aktaş               : 7 Puan
+--------------------------------------------------
+
+[ MASA 5 ]
+[  ] Eren Karagöz             : ....... Puan
+[  ] Mustafa Mürsek Yeşildal  : ....... Puan
+[  ] Ahmet Abalı              : ....... Puan
+[  ] Ahmet Unatoğlu           : ....... Puan
+--------------------------------------------------
+
+[ MASA 6 ]
+[  ] Eren Bayar               : ....... Puan
+[  ] Cemre Özdemir            : ....... Puan
+[  ] Ahmet Selim Dokumaz      : ....... Puan
+[  ] Mehmet Emir Çelik        : ....... Puan
+--------------------------------------------------
+
+[ MASA 7 ]
+[  ] Özgür Tülüce             : ....... Puan
+[  ] Batuhan Berk Balcı       : ....... Puan
+[  ] Yiğit Emre Uzer          : ....... Puan
+[  ] Mustafa Serbak           : ....... Puan
+--------------------------------------------------
+
+[ MASA 8 ]
+[  ] Bora Bayram              : ....... Puan
+[  ] Oğuzhan Yeşilselvi       : ....... Puan
+[  ] Can Kuru                 : ....... Puan
+[  ] Osman Akçay              : ....... Puan
+--------------------------------------------------
+
+[ MASA 9 ]
+[  ] Enes Çalışkan            : ....... Puan
+[  ] Umut Hasırcı             : ....... Puan
+[  ] Baha Koçbaş              : ....... Puan
+[  ] Erdem Erkoç              : ....... Puan
+--------------------------------------------------
+
+[ MASA 10 ]
+[  ] Efe Demircan             : ....... Puan
+[  ] Meryem Öztürk            : ....... Puan
+[  ] Meriç Ege Ericek         : ....... Puan
+[  ] Elif Şimşek              : ....... Puan
+--------------------------------------------------
+
+[ MASA 11 ]
+[  ] Akif Berkay Keleş        : 10 Puan
+[  ] Taha Kayra Şeker         : 8 Puan
+[  ] Yılmaz Savaşlı           : 6 Puan
+[  ] Diren Barış Tolum        : 5 Puan
+==================================================
