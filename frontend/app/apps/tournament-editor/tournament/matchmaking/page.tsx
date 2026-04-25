@@ -14,12 +14,12 @@ import {
   Pencil
 } from "@phosphor-icons/react";
 import PlayerSetupModal from "@/components/apps/tournament/PlayerSetupModal";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import { toast } from "react-hot-toast";
 
 import { useUser } from "@clerk/clerk-react";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 function MatchmakingContent() {
   const router = useRouter();

@@ -24,12 +24,12 @@ import {
   PencilSimple
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
 
 import { SERVICE_CATALOG, ServicePreset } from "./data/presets";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 // Backend Types
 interface Subscription {

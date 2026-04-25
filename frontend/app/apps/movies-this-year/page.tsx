@@ -10,15 +10,16 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import Client, { movies_this_year, Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import { toast } from "react-hot-toast";
+import { movies_this_year } from "@/lib/client";
 
-// Initialize client
-const client = new Client(Local);
+const client = createBrowserClient();
 
 // Types for grouping
 interface DateGroup {
   date: string;
-  movies: movies_this_year.Movie[];
+  movies: any[];
 }
 
 export default function MoviesThisYear() {

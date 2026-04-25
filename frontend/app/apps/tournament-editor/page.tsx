@@ -13,11 +13,11 @@ import {
   MagnifyingGlass
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import CreateTournamentModal from "@/components/apps/tournament/CreateTournamentModal";
 import { useUser } from "@clerk/clerk-react";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export default function TournamentListPage() {
   const router = useRouter();

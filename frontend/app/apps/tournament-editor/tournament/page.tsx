@@ -22,12 +22,12 @@ import {
 } from "@phosphor-icons/react";
 import { User as UserIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import PlayerSetupModal from "@/components/apps/tournament/PlayerSetupModal";
 import ScoreUpdateModal from "@/components/apps/tournament/ScoreUpdateModal";
 import { toast } from "react-hot-toast";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 function TournamentDetailContent() {
   const router = useRouter();
