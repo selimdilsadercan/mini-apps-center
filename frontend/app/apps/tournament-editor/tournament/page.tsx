@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import {
@@ -29,7 +29,7 @@ import { toast } from "react-hot-toast";
 
 const client = new Client(Local);
 
-export default function TournamentDetailPage() {
+function TournamentDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoaded: userLoaded } = useUser();
@@ -1673,6 +1673,18 @@ export default function TournamentDetailPage() {
       />
     </div>
   </div>
+  );
+}
+
+export default function TournamentDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
+        <CircleNotch size={48} className="animate-spin text-blue-500" />
+      </div>
+    }>
+      <TournamentDetailContent />
+    </Suspense>
   );
 }
 

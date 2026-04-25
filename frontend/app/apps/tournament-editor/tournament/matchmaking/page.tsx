@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -21,7 +21,7 @@ import { useUser } from "@clerk/clerk-react";
 
 const client = new Client(Local);
 
-export default function MatchmakingPage() {
+function MatchmakingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoaded: userLoaded } = useUser();
@@ -276,5 +276,18 @@ export default function MatchmakingPage() {
         initialData={editingPlayer}
       />
     </div>
+  );
+}
+
+export default function MatchmakingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0c] flex flex-col items-center justify-center gap-4 text-blue-500">
+        <CircleNotch size={48} className="animate-spin" />
+        <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Yükleniyor...</span>
+      </div>
+    }>
+      <MatchmakingContent />
+    </Suspense>
   );
 }
