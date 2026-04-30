@@ -9,13 +9,13 @@ DECLARE
     v_list_id UUID;
     v_item JSONB;
 BEGIN
-    -- Ensure the list exists
+    -- Listeyi oluştur veya mevcut olanın ID'sini al
     INSERT INTO map_tracker.lists (name)
     VALUES (p_list_name)
     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
     RETURNING id INTO v_list_id;
 
-    -- Insert or update items
+    -- Mekanları döngüyle ekle/güncelle
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
         INSERT INTO map_tracker.items (
@@ -38,7 +38,7 @@ BEGIN
             v_item->>'note',
             COALESCE(v_item->'metadata', '{}'::jsonb)
         )
-        ON CONFLICT (list_id, name) DO NOTHING; -- Avoid duplicates in the same list
+        ON CONFLICT (list_id, name) DO NOTHING; -- Aynı listede aynı isimli mekan varsa pas geç
     END LOOP;
 END;
 $$;

@@ -5,20 +5,22 @@
 ### 1.1. Schema Isolation
 - Every independent service must have its own dedicated schema (e.g., `kiler`, `tournament`, `subcenter`).
 - The `public` schema should only contain global tables like `users` or shared metadata.
+- **KRİTİK**: Supabase Dashboard üzerinde yeni bir şema oluşturulduğunda, Encore veya API üzerinden erişilebilmesi için **Settings > API > Exposed schemas** listesine manuel olarak eklenmelidir. 
+  - [API Settings Link](https://supabase.com/dashboard/project/nxtmjrmimcpudskzzqcr/integrations/data_api/settings)
 
 ### 1.2. Table Management
 - **Root Table Definition**: Each service directory must contain a `table.sql` file that represents the **ideal/latest state** of the database structure for that service.
 - **Migrations**: 
-  - Any changes to an existing table MUST be performed via migration files located in a `migrations/` folder.
-  - Migration files should follow the naming convention `01_description.up.sql`.
-  - When a table is updated via migration, the root `table.sql` must also be updated to reflect the new state.
+  - Sadece tablo yapısı değişiklikleri (tablo oluşturma, kolon ekleme/çıkarma vb.) için kullanılmalıdır.
+  - Migration dosyaları `migrations/` klasöründe `01_description.up.sql` formatında olmalıdır.
+  - **Kritik Kural**: Migrasyon dosyalarının içine asla RPC fonksiyonları (CREATE FUNCTION) yazılmamalıdır.
 
 ### 1.3. Function Management (RPC)
-- **Location**: All RPC functions must be stored in a `functions/` folder within the service directory.
-- **Cleanup Requirement**: Every function SQL file **MUST** start with a `DROP FUNCTION IF EXISTS ...` statement.
-  - This is critical for clearing old versions of the function, especially when migrating from the `public` schema to a dedicated service schema.
-  - Example: `DROP FUNCTION IF EXISTS public.old_function_name(param_type);`
-- **Schema Qualification**: Functions should be created within the service's schema and explicitly reference tables using the schema prefix.
+- **Location**: Tüm RPC fonksiyonları servis dizini altındaki `functions/` klasöründe tutulmalıdır.
+- **Dosyalama**: Her fonksiyon, kendi ismini taşıyan bağımsız bir `.sql` dosyasında bulunmalıdır.
+- **Logic Değişiklikleri**: Fonksiyonlardaki mantıksal değişiklikler migrasyon gerektirmez; doğrudan ilgili `.sql` dosyası üzerinden güncellenir.
+- **Cleanup Requirement**: Her fonksiyon dosyası mutlaka `DROP FUNCTION IF EXISTS ...` ile başlamalıdır.
+- **Schema Qualification**: Fonksiyonlar servis şemasında oluşturulmalı ve tablolara şema ismiyle (örn: `kiler.items`) referans vermelidir.
 
 ## 2. Backend Logic (Encore.dev)
 
