@@ -1,0 +1,71 @@
+==================================================
+           TURNUVA MASA LİSTESİ - 2. TUR
+==================================================
+
+[ MASA 1 ]
+[  ] Yasir Çakır                : 10 Puan
+[  ] Taha Kayra Şeker           : 9 Puan
+[  ] Sinejan Senkiş             : 7 Puan
+[  ] Alp Caner Danacı           : 5 Puan
+--------------------------------------------------
+
+[ MASA 2 ]
+[  ] Ramazan Mert Doğan         : 5 Puan
+[  ] Hasan Can Şahinbay         : 10 Puan
+[  ] Akif Aktaş                 : 6 Puan
+[  ] Eren Karagöz               : 6 Puan
+--------------------------------------------------
+
+[ MASA 3 ]  
+[  ] Emirhan Kayardan           : 10 Puan
+[  ] Şerife Şirin Çevik         : 8 Puan
+[  ] Meriç Ege Ericek           : 7 Puan
+[  ] Ali Nabizade               : 3 Puan
+--------------------------------------------------
+
+[ MASA 4 ]
+[  ] Diren Barış Tolum          : 10 Puan
+[  ] Mahmut Bayar               : 7 Puan
+[  ] Can Kuru                   : 9 Puan
+[  ] Ali Jazayeri               : 5 Puan
+--------------------------------------------------
+
+[ MASA 5 ]
+[  ] Ahmet Unatoğlu             : 10 Puan (Çıktı)
+[  ] Ahmet Selim Dokumaz        : 8 Puan
+[  ] Yiğit Emre Uzer            : 6 Puan
+[  ] Ensar Cemil Ak             : 5 Puan
+--------------------------------------------------
+
+[ MASA 6 ]
+[  ] Oğuzhan Yeşilselvi         : 10 Puan
+[  ] Cemre Özdemir              : 7 Puan
+[  ] Kerem Özcan                : 7 Puan (Çıktı)
+[  ] Baha Koçbaş                : 4 Puan
+--------------------------------------------------
+
+[ MASA 7 ]
+[  ] Akif Berkay Keleş          : 10 Puan
+[  ] Eren Bayar                 : 7 Puan
+[  ] Kağan Öztay                : 5 Puan
+[  ] Zahit Eren Terzi           : 5 Puan
+--------------------------------------------------
+
+[ MASA 8 ]     
+[  ] Batuhan Berk Balcı         : 10 Puan
+[  ] Bora Bayram                : 6 Puan
+[  ] Efe Demircan               : 6 Puan
+--------------------------------------------------
+
+[ MASA 9 ]
+[  ] Eren Erpalabıyık           : 10 Puan
+[  ] Ahmet İspir                : 4 Puan
+[  ] Mehmet Emir Çelik          : 3 Puan
+--------------------------------------------------
+
+[ MASA 10 ]
+[  ] Umut Hasırcı               : 10 Puan
+[  ] Utku Efe Yeşilyurt         : 9 Puan
+[  ] Engin Osman Yılmaz         : 6 Puan
+[  ] Mustafa Küçükocşkun        : 5 Puan
+--------------------------------------------------

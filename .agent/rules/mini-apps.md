@@ -21,11 +21,13 @@ This guide documents the mandatory conventions and structure for adding new appl
 - This ID must be consistent across folder names, hrefs, and backend service names.
 
 ### 2. Database & SQL
-- **Table Names:** Must be prefixed with the app ID: `[app-id]_items` (e.g., `kiler_items`).
+- **Schema Isolation:** Every service must have its own dedicated schema named after the app ID (e.g., `kiler`, `map_tracker`).
 - **SQL File Organization:**
-    - `[app-id].sql`: Contains ONLY table definitions and indexes.
-    - `[app-id]_[function_name].sql`: Each RPC function must reside in its own file named after the function.
-- **Function Names:** Supabase RPC functions must be prefixed with the app ID: `[app-id]_get_items`.
+    - `table.sql`: Contains the **root/ideal state** of the database structure for that service.
+    - `migrations/`: Contains migration files (`01_init.up.sql`) for any changes.
+    - `functions/`: Each RPC function must reside in its own file in this folder.
+- **RPC Cleanup:** Every function SQL file **MUST** start with `DROP FUNCTION IF EXISTS [schema].[function_name]`.
+- **Naming:** Functions and tables should NOT use prefixes if they are inside a dedicated schema, but must be schema-qualified in calls.
 
 ### 3. Backend (Encore.ts)
 - Always create a dedicated `encore.service.ts` in the service root.

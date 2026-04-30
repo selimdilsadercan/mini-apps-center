@@ -433,4 +433,14 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/sticker-editor",
     isImplemented: true,
   },
+  {
+    id: "map-tracker",
+    name: "Harita Takip",
+    description: "Google Maps listelerini import et ve gitme durumunu takip et",
+    icon: MapTrifold,
+    category: "Lifestyle",
+    color: "#4dabf7",
+    href: "/apps/map-tracker",
+    isImplemented: true,
+  },
 ];

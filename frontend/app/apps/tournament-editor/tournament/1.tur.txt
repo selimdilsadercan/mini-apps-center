@@ -1,13 +1,12 @@
 ==================================================
            TURNUVA MASA LİSTESİ - 1. TUR
 ==================================================
-Lütfen her oyuncunun aldığı puanı karşısına yazınız.
 
 [ MASA 1 ]
-[  ] Ahmet Selim Dokumaz      : ....... Puan
-[  ] Ali Jazayeri             : ....... Puan
-[  ] Ramazan Mert Doğan       : ....... Puan
-[  ] Ramazan Yüksel           : ....... Puan
+[  ] Ramazan Mert Doğan       : 10 Puan
+[  ] Baha Koçbaş              : 9 Puan
+[  ] Ali Nabizade             : 8 Puan
+[  ] Ali Jazayeri             : 5 Puan
 --------------------------------------------------
 
 [ MASA 2 ]
@@ -25,57 +24,57 @@ Lütfen her oyuncunun aldığı puanı karşısına yazınız.
 --------------------------------------------------
 
 [ MASA 4 ]
-[  ] Osman Akçay              : 10 Puan
+[  ] Osman Akçay              : 10 Puan (Çıktı)
 [  ] Kerem Özcan              : 9 Puan
 [  ] Mahmut Bayar             : 7 Puan
 [  ] Akif Aktaş               : 7 Puan
 --------------------------------------------------
 
 [ MASA 5 ]
-[  ] Eren Karagöz             : ....... Puan
-[  ] Mustafa Mürsek Yeşildal  : ....... Puan
-[  ] Ahmet Abalı              : ....... Puan
-[  ] Ahmet Unatoğlu           : ....... Puan
+[  ] Mustafa Mürsek Yeşildal  : 10 Puan (Çıktı)
+[  ] Ahmet Unatoğlu           : 6 Puan
+[  ] Sinejan Senkiş           : 5 Puan
+[  ] Eren Karagöz             : 3 Puan
 --------------------------------------------------
 
 [ MASA 6 ]
-[  ] Eren Bayar               : ....... Puan
-[  ] Cemre Özdemir            : ....... Puan
-[  ] Ahmet Selim Dokumaz      : ....... Puan
-[  ] Mehmet Emir Çelik        : ....... Puan
+[  ] Cemre Özdemir            : 10 Puan
+[  ] Eren Bayar               : 8 Puan
+[  ] Ahmet Selim Dokumaz      : 8 Puan
+[  ] Mehmet Emir Çelik        : 5 Puan"
 --------------------------------------------------
 
 [ MASA 7 ]
-[  ] Özgür Tülüce             : ....... Puan
-[  ] Batuhan Berk Balcı       : ....... Puan
-[  ] Yiğit Emre Uzer          : ....... Puan
-[  ] Mustafa Serbak           : ....... Puan
+[  ] Şerife Şirin Çevik       : 10 Puan
+[  ] Yasir Çakır              : 9 Puan
+[  ] Batuhan Berk Balcı       : 8 Puan
+[  ] Yiğit Emre Uzer          : 7 Puan
 --------------------------------------------------
 
 [ MASA 8 ]
-[  ] Bora Bayram              : ....... Puan
-[  ] Oğuzhan Yeşilselvi       : ....... Puan
-[  ] Can Kuru                 : ....... Puan
-[  ] Osman Akçay              : ....... Puan
+[  ] Can Kuru                 : 10 Puan
+[  ] Oğuzhan Yeşilselvi       : 9 Puan
+[  ] Umut Hasırcı             : 7 Puan
+[  ] Zahit Eren Terzi         : 7 Puan
 --------------------------------------------------
 
 [ MASA 9 ]
-[  ] Enes Çalışkan            : ....... Puan
-[  ] Umut Hasırcı             : ....... Puan
-[  ] Baha Koçbaş              : ....... Puan
-[  ] Erdem Erkoç              : ....... Puan
+[  ] Bora Bayram              : 10 Puan
+[  ] Ensar Cemil Ak           : 9 Puan
+[  ] Kerem ?                  : 7 Puan (Çıktı)
+[  ] Mustafa Serbak           : 6 Puan (Çıktı)
 --------------------------------------------------
 
 [ MASA 10 ]
-[  ] Efe Demircan             : ....... Puan
-[  ] Meryem Öztürk            : ....... Puan
-[  ] Meriç Ege Ericek         : ....... Puan
-[  ] Elif Şimşek              : ....... Puan
+[  ] Efe Demircan             : 10 Puan
+[  ] Meriç Ege Ericek         : 9 Puan
+[  ] Mustafa Küçükocşkun      : 9 Puan
+[  ] Meryem Öztürk            : 7 Puan (Çıktı)
 --------------------------------------------------
 
 [ MASA 11 ]
 [  ] Akif Berkay Keleş        : 10 Puan
 [  ] Taha Kayra Şeker         : 8 Puan
-[  ] Yılmaz Savaşlı           : 6 Puan
+[  ] Yılmaz Savaşlı           : 6 Puan (Çıktı)
 [  ] Diren Barış Tolum        : 5 Puan
 ==================================================

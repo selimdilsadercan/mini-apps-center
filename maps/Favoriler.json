@@ -1,0 +1,353 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          28.8232263,
+          41.0364307
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2026-04-06T20:00:43Z",
+        "google_maps_url": "http://maps.google.com/?cid=8074722993029106585",
+        "location": {
+          "address": "Güneşli, Fevzi Çakmak Cd No:28 D:30, 34212 Bağcılar/İstanbul, Türkiye",
+          "country_code": "TR",
+          "name": "Bağcılar Güneşli Amatör Birlik Sahası"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.0141037,
+          41.0872935
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2025-11-07T17:39:16Z",
+        "google_maps_url": "http://maps.google.com/?cid=1354991811720639875",
+        "location": {
+          "address": "Yenilevent, Konaklar, Ihlamur Sk., 34330 Beşiktaş/İstanbul, Türkiye",
+          "country_code": "TR",
+          "name": "Beşiktaş Belediyesi Yenilevent Sporcular Parkı"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          36.8956820,
+          37.5858015
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2025-09-14T13:28:33Z",
+        "google_maps_url": "http://maps.google.com/?cid=16120439034028750780",
+        "location": {
+          "address": "Akif İnan, 46050 Onikişubat/Kahramanmaraş, Türkiye",
+          "name": "ONİKİŞUBAT BALEDİYESİ PARK VE BAHÇELER MÜDÜRLÜĞÜ"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          36.9530778,
+          37.6137470
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-09-08T15:46:47Z",
+        "google_maps_url": "http://maps.google.com/?cid=7885578329981357933",
+        "location": {
+          "address": "Dereli, 46090 Dulkadiroğlu/Kahramanmaraş, Türkiye",
+          "name": "Efendinin Efendi Oğlunun Malikanesi"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          28.9867202,
+          41.0516851
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-07-17T22:35:29Z",
+        "google_maps_url": "http://maps.google.com/?cid=18209851691465730283",
+        "location": {
+          "address": "Cumhuriyet, Ergenekon Cd. No:14/A, 34380 Şişli/İstanbul, Türkiye",
+          "name": "TANCA TEKNOLOJİ-TURKCELL TİM (ŞİŞLİ)"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          28.6429906,
+          41.0913263
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-05-18T11:04:31Z",
+        "google_maps_url": "http://maps.google.com/?cid=3633334697952692176",
+        "location": {
+          "address": "sur yapı, Orhan Gazi, Tunç Cd. no:8/c c blok, 34510 Esenyurt/İstanbul, Türkiye",
+          "country_code": "TR",
+          "name": "Semt Bahçekent market"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          30.3557811,
+          40.7126152
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-02-24T10:12:33Z",
+        "google_maps_url": "http://maps.google.com/?cid=4649341334493385244",
+        "location": {
+          "address": "Fatih, Fatih Cd., 54580 Arifiye/Sakarya, Türkiye",
+          "country_code": "TR",
+          "name": "Yazvuz Market"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.0293488,
+          41.1015628
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-02-14T18:39:02Z",
+        "google_maps_url": "http://maps.google.com/?cid=11408600818960370748",
+        "location": {
+          "address": "Reşitpaşa, İTÜ Maslak Kampüsü, 34467 Sarıyer/İstanbul, Türkiye",
+          "name": "İTÜ Gölet Yurtları"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          36.8606454,
+          37.5986764
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2024-02-14T15:20:11Z",
+        "google_maps_url": "http://maps.google.com/?cid=15062906389606654045",
+        "location": {
+          "address": "Süleymanşah, 1060. Sk., 46050 Onikişubat/Kahramanmaraş, Türkiye",
+          "name": "Hasbahçe Konutları"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.1037249,
+          40.9916610
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2023-10-27T11:18:07Z",
+        "google_maps_url": "http://maps.google.com/?cid=3599406248439748086",
+        "location": {
+          "address": "MEXT Teknoloji Merkezi, Barbaros, Sarkaç Sk. No:3 Kat:-2, 34746 Ataşehir/İstanbul, Türkiye",
+          "name": "MEXT Teknoloji Merkezi"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          28.7063970,
+          41.0758550
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2023-08-18T16:21:17Z",
+        "google_maps_url": "http://maps.google.com/?cid=11930459773752752410",
+        "location": {
+          "address": "Tahtakale, Çuha Çiçeği Sk No:8, 34488 Avcılar/İstanbul, Türkiye",
+          "country_code": "TR",
+          "name": "Yeni Hayat Sitesi"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          28.9385874,
+          41.0908238
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2023-08-18T16:21:07Z",
+        "google_maps_url": "http://maps.google.com/?cid=10616152500497936338",
+        "location": {
+          "address": "5. Levent, 15 Temmuz Şehitler Cd No:26 34060, 34060 Eyüpsultan/İstanbul, Türkiye",
+          "name": "Finanskent Konutları"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          36.8556575,
+          37.5928476
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2023-08-18T07:51:46Z",
+        "google_maps_url": "http://maps.google.com/?cid=17464350036946220011",
+        "location": {
+          "address": "Yamaçtepe, 159. Sk. No:13, 46050 Kahramanmaraş Merkez/Kahramanmaraş, Türkiye",
+          "name": "Caner Apartmanı"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          0,
+          0
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2023-08-18T07:49:25Z",
+        "google_maps_url": "http://maps.google.com/?q=Haydar+Bey,+Ya%C4%9Fmur+Sitesi,+46050+Oniki%C5%9Fubat/Kahramanmara%C5%9F&ftid=0x152ddb894bf45573:0xad5aea8fa8b3fdc9",
+        "Comment": "Kaydedilen bu yer için konum bilgisi yok"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          32.8143858,
+          39.9181780
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2022-03-23T19:08:44Z",
+        "google_maps_url": "http://maps.google.com/?cid=4282487238633515223",
+        "location": {
+          "address": "Emek, 06490 Çankaya/Ankara, Türkiye",
+          "country_code": "TR",
+          "name": "Aşti"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          32.8128425,
+          39.9181077
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2022-03-23T07:42:40Z",
+        "google_maps_url": "http://maps.google.com/?cid=15525881331776671505",
+        "location": {
+          "address": "Beştepe, 06560 Yenimahalle/Ankara, Türkiye",
+          "country_code": "TR",
+          "name": "Şehi̇rler Arasi Otobüs Temi̇nali̇"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          32.8435392,
+          39.9348529
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2022-03-23T07:13:49Z",
+        "google_maps_url": "http://maps.google.com/?cid=6226564235665780100",
+        "location": {
+          "address": "Eti Mahallesi, Celal Bayar Bulvarı No:78, 06930 Çankaya/Altındağ/Ankara, Türkiye",
+          "country_code": "TR",
+          "name": "Ankara"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          29.0128803,
+          41.0767707
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2022-01-09T16:40:12Z",
+        "google_maps_url": "http://maps.google.com/?cid=7110301941466086137",
+        "location": {
+          "address": "Büyükdere Cad. No.175 Kat:14 Ferko Signature, 34494 Şişli, Türkiye",
+          "name": "Türkiye Metal Sanayicileri Sendikası (MESS)"
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          28.7287349,
+          41.2761476
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "date": "2021-08-12T18:58:09Z",
+        "google_maps_url": "http://maps.google.com/?cid=4038849448785536262",
+        "location": {
+          "address": "Tayakadın, Terminal Caddesi No:1, 34283 Arnavutköy/İstanbul, Türkiye",
+          "country_code": "TR",
+          "name": "Istanbul Airport"
+        }
+      },
+      "type": "Feature"
+    }
+  ]
+}
