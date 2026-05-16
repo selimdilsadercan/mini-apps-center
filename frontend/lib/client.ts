@@ -32,6 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
+    public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
@@ -55,6 +56,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
@@ -92,6 +94,130 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+export namespace chocolate_db {
+    export interface AddReviewRequest {
+        "chocolate_id": string
+        rating: number
+        comment?: string
+        "reviewer_name"?: string
+    }
+
+    export interface Chocolate {
+        id: string
+        name: string
+        brand: string
+        description: string | null
+        "image_url": string | null
+        "avg_rating": number
+        "review_count": number
+    }
+
+    export interface ChocolateDetail {
+        reviews: Review[]
+        id: string
+        name: string
+        brand: string
+        description: string | null
+        "image_url": string | null
+        "avg_rating": number
+        "review_count": number
+    }
+
+    export interface ImportProduct {
+        name: string
+        brand: string
+        "image_url": string
+        description?: string
+    }
+
+    export interface ImportProductsRequest {
+        products: ImportProduct[]
+    }
+
+    export interface ListChocolatesResponse {
+        chocolates: Chocolate[]
+    }
+
+    export interface Review {
+        id: string
+        "chocolate_id": string
+        rating: number
+        comment: string | null
+        "reviewer_name": string | null
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addReview = this.addReview.bind(this)
+            this.getChocolate = this.getChocolate.bind(this)
+            this.importProducts = this.importProducts.bind(this)
+            this.listChocolates = this.listChocolates.bind(this)
+            this.seedChocolates = this.seedChocolates.bind(this)
+        }
+
+        /**
+         * Add a review using Supabase RPC
+         */
+        public async addReview(params: AddReviewRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/review`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Get single chocolate details using Supabase RPC
+         */
+        public async getChocolate(id: string): Promise<ChocolateDetail> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/chocolate/${encodeURIComponent(id)}`)
+            return await resp.json() as ChocolateDetail
+        }
+
+        /**
+         * Bulk import chocolates
+         */
+        public async importProducts(params: ImportProductsRequest): Promise<{
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/import`, JSON.stringify(params))
+            return await resp.json() as {
+    count: number
+}
+        }
+
+        /**
+         * List all chocolates using Supabase RPC
+         */
+        public async listChocolates(): Promise<ListChocolatesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/chocolate`)
+            return await resp.json() as ListChocolatesResponse
+        }
+
+        /**
+         * Admin/Utility: Seed initial data (Keep direct SQL for admin tasks if needed, or move to RPC)
+         */
+        public async seedChocolates(): Promise<{
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/seed`)
+            return await resp.json() as {
+    count: number
+}
+        }
+    }
 }
 
 /**
@@ -254,11 +380,6 @@ export namespace kiler {
  * Map Tracker Service
  */
 export namespace map_tracker {
-    export interface GetDataResponse {
-        lists: any[]
-        items: any[]
-    }
-
     export interface ImportRequest {
         listName: string
         items: {
@@ -282,13 +403,16 @@ export namespace map_tracker {
             this.toggleVisited = this.toggleVisited.bind(this)
         }
 
-        /**
-         * Fetch all data
-         */
-        public async getData(): Promise<GetDataResponse> {
+        public async getData(): Promise<{
+    lists: any[]
+    items: any[]
+}> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data`)
-            return await resp.json() as GetDataResponse
+            return await resp.json() as {
+    lists: any[]
+    items: any[]
+}
         }
 
         /**
@@ -298,11 +422,10 @@ export namespace map_tracker {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/import`, JSON.stringify(params))
         }
 
-        /**
-         * Toggle visited status
-         */
-        public async toggleVisited(id: string): Promise<void> {
-            await this.baseClient.callTypedAPI("POST", `/map-tracker/toggle/${encodeURIComponent(id)}`)
+        public async toggleVisited(params: {
+    id: string
+}): Promise<void> {
+            await this.baseClient.callTypedAPI("POST", `/map-tracker/toggle-visited`, JSON.stringify(params))
         }
     }
 }

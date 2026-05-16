@@ -443,4 +443,14 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/map-tracker",
     isImplemented: true,
   },
+  {
+    id: "chocolate-db",
+    name: "ChocolateDB",
+    description: "Çikolataların IMDB'si! Favori çikolatanı bul, puanla ve yorumla.",
+    icon: Basket,
+    category: "Lifestyle",
+    color: "#7B3F00",
+    href: "/apps/chocolate-db",
+    isImplemented: true,
+  },
 ];

@@ -267,20 +267,6 @@ export default function ImportModal({ isOpen, onClose, onImport }: ImportModalPr
                       <h2 className="text-2xl font-black text-[#3D405B] truncate pr-4">{fileName}</h2>
                       <p className="text-sm text-[#8D99AE]">{parsedItems.length} mekan bulundu, aktarılacakları seç.</p>
                     </div>
-                    {parsedItems.some(i => !i.latitude || !i.longitude) && (
-                      <button 
-                        onClick={geocodeMissingItems}
-                        disabled={isGeocoding}
-                        className="shrink-0 px-4 py-2 bg-[#FEFAE0] hover:bg-[#F9F4C6] text-[#D4A373] rounded-xl text-[10px] font-bold border border-[#E9E5D9] transition-all flex items-center gap-2"
-                      >
-                        {isGeocoding ? (
-                          <div className="w-3 h-3 border-2 border-[#D4A373]/30 border-t-[#D4A373] rounded-full animate-spin" />
-                        ) : (
-                          <MapPin weight="bold" size={14} />
-                        )}
-                        {isGeocoding ? "Aranıyor..." : "Konumları Bul (OSM)"}
-                      </button>
-                    )}
                   </div>
 
                   <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-2 mb-6">
