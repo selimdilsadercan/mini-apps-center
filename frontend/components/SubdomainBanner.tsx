@@ -23,7 +23,7 @@ export function SubdomainBanner({ subdomain }: SubdomainBannerProps) {
 
   const app = MINI_APPS.find((a) => a.subdomain === subdomain);
   const rootDomain =
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
 
   // Slight delay so it doesn't flash immediately on page load
   useEffect(() => {
@@ -56,9 +56,9 @@ export function SubdomainBanner({ subdomain }: SubdomainBannerProps) {
             <div className="flex items-center gap-1.5">
               <Sparkle weight="fill" className="text-yellow-400" size={16} />
               <span className="text-white font-semibold text-sm">
-                everything
+                theverything
               </span>
-              <span className="text-white/40 text-xs font-light">.com</span>
+              <span className="text-white/40 text-xs font-light">.site</span>
             </div>
             <span className="text-white/30 text-xs">·</span>
             <span className="text-white/60 text-xs">
@@ -124,7 +124,7 @@ export function SubdomainBannerAuto() {
 
   useEffect(() => {
     const hostname = window.location.hostname;
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
 
     // Localhost: xxx.localhost
     if (hostname.endsWith(".localhost")) {
@@ -133,7 +133,7 @@ export function SubdomainBannerAuto() {
       return;
     }
 
-    // Production: xxx.everything.com
+    // Production: xxx.theverything.site
     if (hostname.endsWith(`.${rootDomain}`) && hostname !== rootDomain) {
       setSubdomain(hostname.replace(`.${rootDomain}`, ""));
     }

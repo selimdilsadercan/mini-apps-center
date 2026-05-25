@@ -79,7 +79,7 @@ export function getAppHref(app: MiniApp): string {
   }
 
   if (app.subdomain) {
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
     return `${protocol}//${app.subdomain}.${rootDomain}`;
   }
 
@@ -88,7 +88,7 @@ export function getAppHref(app: MiniApp): string {
     return `${protocol}//${primary}${app.href}`;
   }
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
   return `${protocol}//${rootDomain}${app.href}`;
 }
 
@@ -111,7 +111,7 @@ export function getRootHomeUrl(): string {
     return `${protocol}//${primary}/home`;
   }
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
   return `${protocol}//${rootDomain}/home`;
 }
 

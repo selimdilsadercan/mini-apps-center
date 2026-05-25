@@ -22,8 +22,8 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
 /**
  * Extracts the subdomain from the request host.
  *   iskambil.localhost:3000  → "iskambil"
- *   iskambil.everything.com  → "iskambil"
- *   everything.com           → null  (root)
+ *   iskambil.theverything.site  → "iskambil"
+ *   theverything.site           → null  (root)
  *   localhost:3000           → null  (root)
  */
 function getSubdomain(host: string): string | null {
@@ -35,9 +35,9 @@ function getSubdomain(host: string): string | null {
     return sub || null;
   }
 
-  // Production: everything.com / xxx.everything.com
+  // Production: theverything.site / xxx.theverything.site
   const ROOT_DOMAIN =
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
 
   if (hostname === ROOT_DOMAIN) return null;
 

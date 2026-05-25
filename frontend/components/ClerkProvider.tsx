@@ -15,7 +15,7 @@ if (!PUBLISHABLE_KEY) {
 const isNative = Capacitor.isNativePlatform();
 
 const ROOT_DOMAIN =
-  process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+  process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
 
 /** Clerk satellite: subdomain host (e.g. iskambil.localhost) vs primary (localhost). */
 function getClerkDomainConfig(): {

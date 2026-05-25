@@ -14,7 +14,7 @@ import { useRouter, usePathname } from "next/navigation";
 function getSubdomainFromHost(): string | null {
   if (typeof window === "undefined") return null;
   const hostname = window.location.hostname;
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "everything.com";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
 
   if (hostname.endsWith(".localhost")) {
     const sub = hostname.replace(".localhost", "");
@@ -90,8 +90,8 @@ export function SuperAppHub({ subdomain }: SuperAppHubProps) {
               </span>
               <div className="min-w-0">
                 <p className="text-white text-sm font-semibold leading-tight truncate">
-                  everything
-                  <span className="text-white/40 font-normal">.com</span>
+                  theverything
+                  <span className="text-white/40 font-normal">.site</span>
                 </p>
                 {app && (
                   <p className="text-white/50 text-[10px] truncate">
