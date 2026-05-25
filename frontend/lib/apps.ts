@@ -107,6 +107,16 @@ export const MINI_APPS: MiniApp[] = [
 
   // Games
   {
+    id: "iskambil",
+    name: "İskambil Rehberi",
+    description: "İskambil oyunlarının kuralları ve detaylı listesi",
+    icon: Cards,
+    category: "Games",
+    color: "#e03131",
+    href: "/apps/iskambil",
+    isImplemented: true,
+  },
+  {
     id: "telifsiz-games",
     name: "Telifsiz Games",
     description: "Vampir Köylü, İsim Şehir...",

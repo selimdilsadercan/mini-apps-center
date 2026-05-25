@@ -1,0 +1,275 @@
+başkan göt
+- tüm kartları herkese dağıt
+- bir kişi istediği sayıda kart atarak başlar diğer insanlar da o miktarda aynı ya da daha büyük değerli kartları atarak turu devam ettirirler
+- turu kazanan diğer tura başlar
+- elini ilk bitiren raundu alır 
+- bitirme sırasına göre sırayla başkan, başkan yardımcısı, insan, göt yardımcısı, göt olunur
+- göt başkana en yüksek iki kartını veirir, başkan göte en düşük iki kartını verir
+- yardımcılar da birbirlerine birer kart verirler
+
+crazy eights (uno)
+- aynı renk ya da aynı sayı atmak zorundasın atılanın
+- eğer yoksa gelene kadar çekersin
+- 8ler joker
+- elinde kalan kadar ceza yiyosun 8ler 50 ceza diğerleri yazan kadar
+
+hımbıl (eşek)
+- 4 tane kişi varsa 4tane rengin 4 tanesini sadece alıyosun
+- herkese 4 tane kart ver
+- herkes atnı anda 3 2 1 diyince sağına bi tane verir
+- ilk yapan hımbıl der
+- diğerleri de ikinci koymaya çalışır
+
+poker
+- 2 kişi de oynanabiliyor
+- herkese 2şer kart veriyosun herkes masa ücreti kadarla başlamak zorunda
+- ortaya 3 açıyosun
+- totalde 2 kart daha açılıyor
+
+blackjack
+herkes önce istediği pot miktarı kadar iddia açar
+banka en son olmak üzere herkese 2 kart verilir, bankaya verilen ilk kart kapalı olur
+kişi double, split, pas, hit yapabilir 
+double yaptıysa iddia 2 katına çıkar, ekstra kart isteyemez
+split yapması için açtığı iki kartın değerlerinin aynı olması lazım, pot sayısı iki katına çıkar
+pas yapıp geçebilir
+devam et derse 21in üstüne çıkaana kadar kart verilebilir
+kişiler bittikten sonra bankadaki eksik kart açılır, 
+
+clubbers
+- kartlar herkese eşit dağıtılır, kapalı şekilde tutulur
+- kartları karşılıklı kapalı şekilde atıyosun, eğer pişti olursa isteyen kartı alabilir
+- vale 1, kız 2, papaz 3, as 4 ceza demek
+
+gin rummy (2 kişilik 101)
+- 10ar kart dağıt, ortaya 1 kağıt aç
+- amaç elde perler oluşturmak
+- yerdeki kartı almak isteyen kartı alır, alan kişi yere başka kart bırakır
+- eğer üstteki kart iki kişi de istemiyorsa ortdan başka kart üste açılır
+- elindeki eşlenmeyen kartlar 10un altıysa açabilirsin (as 1 puan), kişi elini açtığında yere kapalı şekilde bir lart atar, diğer kişi elindeki eşlenmemiş kartlardan birini işler (knock durumu)
+- elin biterse eğer (cin durumu)
+- yüz kartları 10 puan, as 1 puan
+- biri elini açarsa karşısındakinin eşlebmemiş kartları eksi kendi eşlenmemiş kartları kadar puan alır
+- biri eli vurursa karşısındakinin işlenmemiş kartları + 20 puan alır
+- biri elini açtığında diğer taraf elindeki boş kartları işleyip puanı azaltabilir
+- biri elini açtı, diğeri boş kartlarını işledi ve işleyerek bitti diyelim, biten değil işleyip biten adam açan kişinin boş kartları + 10 puan alır
+- 100 puana ulaşan kazanır
+- açmayan oyuncu eşli olmayan taşlara işleyemez (bende 2 as var mesela onun bi asına işleme yapamam)
+- yerde iki kart kalırsa tur berabere biter
+- her tur bir kere yere bakma bir kere de kart çektirme hakkın var
+- Q K A olmuyor
+
+casino (toplamalı pişti)
+- 4er kart dağıt 4 kart ortaya aç
+- sayılrın toplam değerini eşitleyerek almaya çalışıyosun
+- eğer ortadan kart alamıyosan yere bir kart bırakmak zorundasın
+- kartı ya yere boş bırakıcan ya da başka kartın üzerine atıp kartın değerini değiştiricen
+- yerdeki karta istenilen kadar ilave yapılabilir
+- yerde bir 8, elinde iki sekiz varsa yerdeki 8in üzerine 8 koyup öbür el iki sekizi birden tek sekizle alabilirsin, bu durum 7 5+2 7 de olur
+- eldeki kartlar bitince 4er kart daha verilir
+- son el alan yerdeki tüm kartları alır
+- fazla kart 3 puan, karo on 3 puan, sinek iki 2 puan, aslar 1 puan
+- papaz kız ve valeyi birleşimlerde kullanamıyosun
+- yerde bir birleşim yapabilmen için alabiliyo olman lazım
+- ortadaki karta birleştirme yapıyosan yanına, eğer daha fazla konulsun istiyosan üstüne koy
+
+spite and mallice
+- 2 kişi, çift deste
+
+corousel rummy
+- 2-5 kişi, 1 deste, 1 joker
+- 10ar kart dağıt
+- okey mantığıyla oynanır 
+- sırayla bir kart çekilip ortaya kart açılır veya işlenir
+- çekerken 2 kart çekip atılabilir, 3. kart da çekilir ama 3. karttan sonra atılmaz veya işlenilmez tur biter
+- joker her taş yerine kullanılabiliyo, yerdeki joker alınabilir
+- son kısmı anlamadım
+
+pinochle
+- 2 kişi, çift deste
+
+cucumber
+- 2-7 kişi, tek deste
+- herkese 7şer kart ver
+- batak mantığıyla oynanır ama şekillerin bir önemi yok
+- oyunun amacı son turu almamaktır
+- puanlar ceza olarak yazılır, son eli alan kişi hangi sayıyı atıp aldıysa o kadar ceza alır
+- eğer yerdekş kartı yükseltemiyosan elindeki en düşük kartı atman lazım
+- yere aynı büyüklükte iki kart atıldıysa son atan eli alır
+- son turda iki kişi aynı büyük kartı atarsa son atan cezayı yer
+
+crazy eights countdown
+- 2-5 kişi, tek deste
+- 7şer kart dağıt, desteyi ortaya koy, yana üstteki kartı aç
+
+minnesota whist 
+- 4 kişi, tek deste
+- tüm kartları dağıt, takımlı oynanır 
+- batak mantığıyla oynanır 
+
+crash
+- 4 kişi, tek deste
+- tüm kartları dağıt 
+- poker mantığıyla oynanır
+- prial, running flush, run, flush, pair
+
+scopa
+- 2 kişi, 8 9 10 olmayan tek deste 
+- 3er kart dağıt ortaya 4 kart aç
+
+31
+- 4 kişi, tek deste
+- 3er kart dağıt, bir tane ortaya kart aç
+- amaç eldekş kartların total değerine 31 yapmak, üç kart da aynı renkte olmalı
+- herkesin 3 canı var başta 
+- as 11 puan, yüz kartları 10 puan, diğerleri yazan kadar
+- three of kid yapmak 30 puan getiriyor
+- sırası gelen kişi üstteki kartı almayı seçebilir ya da yeni kart alır
+- önce kart çekiyosun sonra atıyosun
+- isteyen kişi ellerinizi açın lan diyebilir, biri bunu dedikten sonra kalan kişiler bir tur daha kart alırlar, sonra eller açılır 31e en uzak kişi 1 can kaybeder
+- biri 31e ulaşırsa herkes elini açar ve herkes 1 can kaybeder
+- eğer biri açın lan derse ama en düşük kart ondaysa 2 can kaybeder
+
+66 (santase)
+- 2 kişiyle oynanır, sadece destedeki 9'dan büyük kartlar kullanılır
+- herkese 6 kart verilir, ortaya bir kart açılır, kalan deste dik şekilde açılan kartın üstüne konur
+- açılan kartın şekli kozu belirler
+- dağıtanın yanındaki oyuna başlar
+- kartların değer sıralaması: as, 10, papaz, kız, vale, 9
+- kartların renk değeri: maça, kupa, sinek, karo
+- 66 puan kazanıyor, as 11 puan, on 10 puan, papaz 4 puan, kız 3 puan, vale 2 puan, dokuz 0 puan elinde papaz kız olursa ve atarken gösterirsen 20 puan, koz renginde papaz kız olursa 40 puan, son eli kazanmak 10 puan
+- evlenme durumu yerde kartlar yokken yapılabilir ve en az bir el almış olmak gerekir 
+- kazanan ilk kartı, kaybeden ikinci kartı çeker, son turda gösterge de çekilir
+- her tura önceki eli alan başlar
+- bir kişi 66ya ulaşırsa 1 tur puanı kazanır, 7 tur alan kazanır
+- kişi rakip 33 olmadan 66 olursa 2 tur puanı, rakip 0ken 66 olursa 3 tur puanı kazanır
+- yerde kart varken aynı renk atmak veya koz vurmak zorunda değilsin
+- 66yı geçtiğini düşünen kişi oyunun bititğini söyler
+- elinde koz dokuz varsa yerdeki kartla değiştirebilirsin ama en az bir el almış olman lazım
+
+21
+
+eş bulmalı speed
+- ortaya 8 kart açıyosun, yanlara 4er kartı ekstra koy, kalan kağıdı iki kişiye dağıt, kapalı şekilde tut
+- kişiler bakmadan ortadaki kartlardan eş olanlar üzerine ikişer kartı koyar
+- elindeki kartı bitiren kazanır
+
+51
+
+speed (+1 -1 oyunu)
+- 2 kişi, trk deste
+- kişilerin elinde 5 kart olucak, ortada 1er açık 5er kapalı kart, kalanını ikiye böl kişilere kapalı olarak ver
+- kişiler elindeki 5 karttan ortadaki 2 açık kartın +1 -1 olacak şekilde kartlarını azaltmaya çalışır
+- elindeki kart 5in altına düştüğünde yerden kartını alabilirsin 
+- elindeki kartları bitiren kazanır
+
+spit
+- 2 kişi, 1 deste
+- desteyi ikiye böl
+- solitaire mantığıyla oynanıyor, amaç eldeki kartları bitirmek
+- kişiler destelerini kullanarak ortaya 5 kart koyar sonra bu kartların üzerine piramit gibi kartlar yerleştirir, en üstte kalan kartlar açılır
+- iki kişi de eldeki en üstteki kartları ortaya koyar
+- ortaya +1 -1 olacak şekilde yerden kağıt koyuyoruz, yerdeki kağıtlarda aynı olanlar üst üste konulabilir
+- yerdeki kağıtlarda boşalan deste olursa istediğin bi taneyi alıp oraya koyabilirsin
+- eğer iki oyuncu da yerden oyanamıyosa ortaya birer kart açılır
+- sonunu anlamadım
+
+blöf
+- kartlar herkese eşit dağıtılır, sinek 2si olan oyuna başlar
+- sırayla oynanmaz
+- eğer kimse o karttan atmazsa son atan yeni seri başlatır 
+- her kart alan bir bardak su içer gibi kurallarla oynayanlar var
+
+dost kazığı (kaptı kaçtı)
+- ortaya 4 kart açılır, herkese 4 kart dağıtılır
+- amaç kartları eşleyip rakiplere girdirmek
+- as kız papaz 10 puan, vale 20 puan, 3 30 puan, kalanı üstünde yazdığı kadar
+
+papaz kaçtı
+- 3 papazı ayır başka yere koy
+- eğer 3 kişiysen bir 4lü çıkart
+- çifleyerek yere kağıtları atıyosun, elinde papaz kalan kaybediyor
+
+pişti 
+- sinek 2 - 2, karo 10 - 3, aslar - 1, valeler - 1
+- en çok kart - 3, pişti - 10, vale pişti - 20
+- pişti sadece ilk atılan 2 kartla oluyo
+- yere 3 kapalı üstüne bir açık kart koyuyosun
+- kişiler 4 4 kart alıyor, eller açık oynanıyor, eli alan bir daha atmıyor
+
+pis yedili
+- sinekle başlanır
+- vale, renk değiştirme. as, +1 ve sıra kişiden geçer. 7, +3 ama sıra kişide kalır. 10, yön değiştirme
+- tek kart kaldığında tek demek gerekiyor
+- oyun sonunda elindeki kart kadar ceza yazılır. 7, 20 puan. vale, 15 puan. papaz kız as, 10 puan. diğerleri üstündeki kadar 
+- 7 üzerine 7 atılabiliyor
+- oyunu valeyle bitirirsen karşı taraf elindekinin 2 katı ceza yer. yediyle oyunu bitirirsen rakipler 3 kat ceza yer
+- genelde 7 el oynanır
+- sadece vale her zaman atılabiliyor
+
+batak (spades)
+- minimum 5
+
+gops (game of pure strategy)
+
+gömmeli batak
+- minimum 8
+
+eşli batak
+- minimum 8
+
+ikili batak (rus batağı)
+- minimum 7
+- 4er kart verilir, kişiler beğenmediği 2 kartı atar
+- bundan sonra kartlar bitene kadar 2 2 kartlar alınacak ama bu ikili alma işleminde önce 1 tane alıyosun, eğer kartı beğenmediysen ikinciyi kesinliklikle alıyosun, eğer kartı beğendiysen ikinciyi bakıp atıyosun
+- elde 13 kart olması lazım
+- kalanı normal batal
+
+whist (ihalesiz iki kişilik batak)
+- 13er kart verilir, üstteki kart açılır, ilk açılan kart kozu belirler 
+- as en büyük kart
+- ilk eli alan açık kozu ya da alltaki kartı alır diğer kişi diğer kartı
+- her tur en üstteki kart açılır ve eller oluşturulur, ilk fazda alınan turlar puan kazandırmaz
+- ikinci kartı göstermez zorunda değilsin
+- ilk aşamada koz atmak zorunda değilsin
+- yerdeki kartlar bitince olay normal batağa döner
+
+authors (bana 2 tane papaz ver)
+
+peanuts (nerts)
+- 2 desteyle oynanır
+
+carousel rummy
+- 1 deste + 1 jokerle oynanır
+
+köşedeki papazlar 
+- herkese 7 kart verilir, kenarlara birer kart açılır
+- her tur turu gelen, yerden 2 kart alır ve elindekileri solitaire mantığıyla yere işler
+- yerdeki en üstteki kart görünür diğerleri kapalı yapılır
+- papaz gelirse köşelere konulabilir
+
+solitaire
+- 1 açık 6 kapalı kart diz, püramit şeklinde hepsinin altındaki açık olacak şekilde kartları altlarına ekle
+- alt tarafta kartlar bi kırmızı bi siyah olmalı ve büyükten küçüğe sıralanır
+-da eğer oynatılacak kart olmazsa desteden tek tek ya da daha zor olsun istersen üç üç kart çekip oynayabilirsin
+- boş alanlara papazlar konulabilir
+- yukarıdaki taşlar tekrar aşağı indirilebilir
+
+freecell
+- tüm desteyi açık şekilde 8 sütüna bölüyosun
+- üstte 4 tane as hücren, 4 tane boş hücren var, elindeki kartları as hücrelerine geçirmeye çalışıyosun, bunu yaparken de boş hücrelerden yardım al
+- ve aşağıdaki kartlar solitiaire gibi yer değiştirebilir
+- aşağıdaki boş yerlere papaz dışındaki kartlar da getirilebilir
+
+spider solitaire
+- 2 desteyi karıştır
+- 54 kartı 10 sütüna dağıtıcaz, her sütünün en altındaki kart açık olucak
+- büyükten küçüğe kartlar oynatılır, bi siyah bi kırmızı zorunluluğu yok
+- hareket edilemediğinde her sütüna birer açık kart koyulur
+- papazdan asa bir seri yapıldığında oyun alanından kaldıralabilir
+- tüm kartlar boş alana taşınabilir
+- desteden sütünlara kart ekleyebilmek için her sütünda en az bir kart olmalı
+- oyunu zorlaştırmak için tek renk ya da tek çeşit kart tipi kuralları getirebilirsin
+
+go
+- siyah başlar

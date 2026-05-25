@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly chocolate_db: chocolate_db.ServiceClient
+    public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
@@ -57,6 +58,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
+        this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
@@ -216,6 +218,101 @@ export namespace chocolate_db {
             return await resp.json() as {
     count: number
 }
+        }
+    }
+}
+
+export namespace iskambil {
+    export interface Game {
+        id: string
+        name: string
+        description: string
+        rules: string[]
+        "min_players": number
+        "max_players": number
+        "deck_count": string
+        category: string
+        "is_favorite": boolean
+        "user_note": string | null
+    }
+
+    export interface GetGamesResponse {
+        games: Game[]
+    }
+
+    export interface SaveNoteRequest {
+        gameId: string
+        userId: string
+        note: string
+    }
+
+    export interface SaveNoteResponse {
+        success: boolean
+        note: string | null
+    }
+
+    export interface ToggleFavoriteRequest {
+        gameId: string
+        userId: string
+    }
+
+    export interface ToggleFavoriteResponse {
+        success: boolean
+        isFavorite: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getGames = this.getGames.bind(this)
+            this.runSeedUpdate = this.runSeedUpdate.bind(this)
+            this.saveNote = this.saveNote.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
+        }
+
+        /**
+         * Kullanıcıya özel favori ve not bilgileriyle birlikte tüm oyunları listeler
+         * GET /iskambil/games/:userId
+         */
+        public async getGames(userId: string): Promise<GetGamesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/iskambil/games/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetGamesResponse
+        }
+
+        /**
+         * Temporary migration/update endpoint
+         */
+        public async runSeedUpdate(): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/dev/update-category`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Bir oyun için kullanıcının özel notlarını kaydeder veya günceller
+         * POST /iskambil/note
+         */
+        public async saveNote(params: SaveNoteRequest): Promise<SaveNoteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/note`, JSON.stringify(params))
+            return await resp.json() as SaveNoteResponse
+        }
+
+        /**
+         * Bir oyunu favorilere ekler veya çıkartır
+         * POST /iskambil/favorite
+         */
+        public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/favorite`, JSON.stringify(params))
+            return await resp.json() as ToggleFavoriteResponse
         }
     }
 }
