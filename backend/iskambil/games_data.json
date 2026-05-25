@@ -1,0 +1,164 @@
+[
+  {
+    "id": "baskan-got",
+    "name_tr": "başkan / göt",
+    "name_en": "President / Asshole",
+    "originalName": "President / Asshole",
+    "description_tr": "Oyuncuların kartlarını herkesten önce bitirmeye çalıştığı, tur sonunda başarı sırasına göre unvan ve kart değişimi yapılan tırmanmalı el bitirme oyunu.",
+    "description_en": "A climbing game where players try to get rid of their cards first to gain higher social status for the next round.",
+    "rules_tr": [
+      "Genellikle 3-8 oyuncuyla, 52 kartlık standart deste ile oynanır; kalabalık oyunlarda joker veya ikinci deste eklenebilir.",
+      "Tüm kartlar oyunculara dağıtılır. Kart sayıları eşit bölünmezse bazı oyuncular bir kart fazla alabilir.",
+      "İlk oyuncu tek kart, çift, üçlü veya dörtlü gibi aynı değerden bir kombinasyon oynar. Sonraki oyuncular aynı sayıda ama daha yüksek değerde kart oynamalıdır.",
+      "Kart atamayan veya atmak istemeyen oyuncu pas geçer. Bir turda herkes pas geçerse masa temizlenir ve son kartı atan oyuncu yeni turu başlatır.",
+      "Kart sıralaması ev kuralına göre değişebilir; yaygın düzende 3 en düşük, 2 en yüksek karttır. Bazı ev kurallarında 2 masayı temizler.",
+      "Elindeki tüm kartları ilk bitiren Başkan, ikinci bitiren Başkan Yardımcısı, son bitiren ise Göt/Scum olur.",
+      "Yeni elde düşük unvanlı oyuncular en iyi kartlarını yüksek unvanlı oyunculara verir; yüksek unvanlı oyuncular karşılığında istemedikleri düşük kartları geri verir. Değiştirilecek kart sayısı oyuncu sayısına ve ev kuralına göre belirlenir.",
+      "Oyun birkaç el üst üste oynanır; amaç üst sıralarda kalmak ve sonraki elde avantajlı başlamaktır."
+    ],
+    "rules_en": [
+      "Commonly played with 3-8 players using a standard 52-card deck; jokers or a second deck can be added for larger groups.",
+      "All cards are distributed equally among players. If not divided evenly, some players might receive one extra card.",
+      "The first player leads a single card, pair, three-of-a-kind, or four-of-a-kind. Subsequent players must play a combination of the same size but higher rank.",
+      "A player who cannot or does not want to play a card passes. When everyone passes, the trick is cleared and the last player to play starts a new trick.",
+      "Card ranking can vary by house rules; usually 3 is the lowest and 2 is the highest. In some house rules, a 2 clears the table.",
+      "The player who finishes their cards first becomes the President, the second becomes the Vice President, and the last becomes the Asshole/Scum.",
+      "At the start of the next round, lower status players must trade their best cards to higher status players, who trade back their unwanted cards.",
+      "The game is played over multiple rounds; the goal is to reach/stay in the President position."
+    ],
+    "minPlayers": 3,
+    "maxPlayers": 8,
+    "deckCount_tr": "1 Deste",
+    "deckCount_en": "1 Deck",
+    "category_tr": "El Bitirme",
+    "category_en": "Climbing"
+  },
+  {
+    "id": "crazy-eights-uno",
+    "name_tr": "crazy eights",
+    "name_en": "Crazy Eights",
+    "originalName": "Crazy Eights",
+    "description_tr": "Uno'ya benzeyen ama standart iskambil destesiyle oynanan, renk veya değer eşleştirerek kart bitirme oyunu.",
+    "description_en": "A popular shedding card game similar to Uno where players match suits or ranks to get rid of all their cards.",
+    "rules_tr": [
+      "2-7 oyuncuyla 52 kartlık standart deste kullanılır. Standart kuralda her oyuncuya 5 kart dağıtılır; ev kurallarında 7 kart da dağıtılabilir.",
+      "Kalan kartlar kapalı çekme destesi olur. En üst kart açılarak atık destesinin ilk kartı yapılır; açılan kart 8 ise desteye karıştırılıp yeni kart açılabilir.",
+      "Sırası gelen oyuncu yerdeki kartın rengine veya değerine uyan bir kart atar.",
+      "8'ler joker karttır. Oyuncu 8 attığında bir sonraki oynanacak rengi belirler.",
+      "Oynanabilir kartı olmayan oyuncu desteden kart çeker. Bazı ev kurallarında oynayabilir hale gelene kadar, bazı kurallarda yalnızca bir kart çekilir.",
+      "Bir oyuncu elindeki tüm kartları bitirince tur sona erer.",
+      "Puanlı oynanırsa elde kartı kalan oyuncular ceza puanı alır: 8 genellikle 50, resimli kartlar 10, As 1 veya 11, sayı kartları kendi değeri kadar sayılır. Hedef puan önceden belirlenir."
+    ],
+    "rules_en": [
+      "Played with 2-7 players using a standard 52-card deck. Usually 5 cards are dealt to each player (or 7 for fewer players).",
+      "The remaining cards form the draw pile. The top card is turned face up to start the discard pile; if an 8 is turned, it is mixed back.",
+      "On their turn, a player must match the suit or rank of the card on top of the discard pile.",
+      "Eights are wild/joker. A player can play an 8 at any time and names the suit to be matched next.",
+      "If a player has no match, they must draw from the stock until a match is found, or just draw one card depending on house rules.",
+      "The round ends when a player successfully discards all their cards.",
+      "Remaining players sum up card values as penalties: 8s are 50, face cards are 10, Aces are 1 or 11, number cards are face value."
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 7,
+    "deckCount_tr": "1 Deste",
+    "deckCount_en": "1 Deck",
+    "category_tr": "El Bitirme",
+    "category_en": "Shedding"
+  },
+  {
+    "id": "himbil-esek",
+    "name_tr": "hımbıl / eşek",
+    "name_en": "Hımbıl / Spoons",
+    "originalName": "Spoons / Donkey",
+    "description_tr": "Oyuncuların aynı değerden dört kartı toplamaya çalıştığı, hız ve refleks içeren eğlenceli grup oyunu.",
+    "description_en": "A fast-paced card game where players pass cards trying to collect four of a kind and grab a target token or touch the table.",
+    "rules_tr": [
+      "En iyi 3-8 kişiyle oynanır. Oyuncu sayısı kadar kart değeri seçilir ve her değerden dört kart alınır. Örneğin 5 oyuncu için 5 farklı değerden toplam 20 kart hazırlanır.",
+      "Her oyuncuya 4 kart dağıtılır. Amaç elde aynı değerden 4 kart toplamaktır.",
+      "Her turda oyuncular istemedikleri bir kartı seçer ve aynı anda yanındaki oyuncuya kapalı şekilde verir.",
+      "Kart değiştirme, bir oyuncu elinde aynı değerden 4 kart toplayana kadar devam eder.",
+      "Dörtlüyü tamamlayan oyuncu elini masaya koyar veya 'Hımbıl!' der. Bunu gören diğer oyuncular da hızlıca ellerini ortaya koyar.",
+      "Elini en son koyan oyuncu ceza alır. E-Ş-E-K harfleriyle oynanıyorsa harfleri tamamlayan oyuncu elenir.",
+      "Oyun son oyuncu kalana kadar veya belirlenen ceza sınırına ulaşılana kadar sürer."
+    ],
+    "rules_en": [
+      "Best played with 3-8 people. Prepare sets of four identical rank cards equal to the number of players (e.g., 20 cards for 5 players).",
+      "Each player is dealt 4 cards. The goal is to collect four cards of the same rank.",
+      "Each round, players simultaneously pass one unwanted card to their neighbor.",
+      "Passing continues rapidly until a player gathers four cards of the same rank.",
+      "The player who completes the set quietly places their hand on the table (or grabs a spoon). Others must immediately do the same.",
+      "The last player to place their hand receives a letter (D-O-N-K-E-Y). The first to spell the full word is eliminated."
+    ],
+    "minPlayers": 3,
+    "maxPlayers": 8,
+    "deckCount_tr": "Oyuncu sayısı kadar dörtlü set",
+    "deckCount_en": "4-of-a-kind sets per player",
+    "category_tr": "Eğlence / Hız",
+    "category_en": "Party / Speed"
+  },
+  {
+    "id": "poker",
+    "name_tr": "texas hold'em poker",
+    "name_en": "Texas Hold'em Poker",
+    "originalName": "Texas Hold'em Poker",
+    "description_tr": "Her oyuncunun iki kapalı kartı ve masadaki beş ortak kartı kullanarak en iyi beşli poker elini oluşturmaya çalıştığı poker türü.",
+    "description_en": "The most popular poker game where players receive two private cards and use five community cards to build the best five-card hand.",
+    "rules_tr": [
+      "2-10 oyuncuyla, jokersiz 52 kartlık standart deste ile oynanır.",
+      "Dağıtıcı pozisyonunun solundaki iki oyuncu küçük kör ve büyük kör bahislerini koyar. Her oyuncuya kapalı 2 kart dağıtılır.",
+      "İlk bahis turundan sonra masaya üç açık ortak kart açar; buna flop denir.",
+      "İkinci bahis turundan sonra dördüncü ortak kart açılır; buna turn denir.",
+      "Üçüncü bahis turundan sonra beşinci ortak kart açılır; buna river denir.",
+      "Son bahis turundan sonra elde kalan oyuncular kartlarını açar. Oyuncular 2 kapalı kartları ve 5 ortak kart arasından en iyi 5 kartlık eli kurar.",
+      "El sıralaması yüksekten düşüğe şöyledir: Royal Flush, Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, Pair, High Card.",
+      "Bir bahis turunda herkes pas/fold yaparsa potu son aktif oyuncu kazanır; showdown'a kalırsa en iyi el potu alır."
+    ],
+    "rules_en": [
+      "Played with 2-10 players using a standard 52-card deck without jokers.",
+      "The two players to the left of the dealer put small blind and big blind bets. Each player is dealt 2 private face-down cards.",
+      "After the first betting round, three community cards are dealt face up (the Flop).",
+      "After the second betting round, a fourth community card is dealt (the Turn).",
+      "After the third betting round, the fifth and final community card is dealt (the River).",
+      "After the final betting round, players showdown. The best 5-card combination using private and community cards wins the pot.",
+      "Hand rankings from highest: Royal Flush, Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, Pair, High Card."
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 10,
+    "deckCount_tr": "1 Deste",
+    "deckCount_en": "1 Deck",
+    "category_tr": "Casino / Bahis",
+    "category_en": "Casino / Betting"
+  },
+  {
+    "id": "blackjack",
+    "name_tr": "blackjack",
+    "name_en": "Blackjack",
+    "originalName": "Blackjack",
+    "description_tr": "Oyuncuların kasaya karşı 21'i geçmeden kasadan daha yüksek toplam yapmaya çalıştığı klasik casino oyunu.",
+    "description_en": "A classic casino card game where players play against the dealer to get a hand value closer to 21 without going over.",
+    "rules_tr": [
+      "1-7 oyuncu ve bir kasa/dağıtıcı ile oynanır. Ev oyunlarında tek deste, casino kurallarında birden çok deste kullanılabilir.",
+      "Her oyuncuya iki açık kart, kasaya bir açık ve bir kapalı kart verilir.",
+      "As 1 veya 11 sayılır; Vale, Kız ve Papaz 10; sayı kartları kendi değeri kadardır.",
+      "Oyuncu sırası geldiğinde kart isteyebilir (hit), durabilir (stand), uygun durumda bahsi ikiye katlayabilir (double down) veya aynı değerde iki kartı iki ele bölebilir (split).",
+      "Toplamı 21'i geçen oyuncu bust olur ve eli kaybeder.",
+      "Oyuncular hamlelerini bitirdikten sonra kasa kapalı kartını açar. Kasa genellikle 16 ve altında kart çeker, 17 ve üzerinde durur.",
+      "Blackjack, ilk iki kartla As ve 10 değerli kart gelmesidir. Beraberlikte push olur ve bahis iade edilir."
+    ],
+    "rules_en": [
+      "Played with 1-7 players against a dealer using one or multiple 52-card decks.",
+      "Players are dealt two face-up cards, and the dealer gets one face-up and one face-down card.",
+      "Aces count as 1 or 11; Jacks, Queens, Kings count as 10; number cards are face value.",
+      "Players can hit (draw cards), stand (keep current total), double down (double bet for one card), or split (make two hands out of a pair).",
+      "If player's total exceeds 21, they bust and immediately lose their bet.",
+      "After players stand, the dealer reveals the face-down card. The dealer must hit on 16 or lower, and stand on 17 or higher.",
+      "A Blackjack is an Ace and a 10-value card on the first two cards, paying 3:2 usually."
+    ],
+    "minPlayers": 1,
+    "maxPlayers": 7,
+    "deckCount_tr": "1-8 Deste",
+    "deckCount_en": "1-8 Decks",
+    "category_tr": "Casino / Bahis",
+    "category_en": "Casino / Betting"
+  }
+]

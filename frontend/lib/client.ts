@@ -225,14 +225,21 @@ export namespace chocolate_db {
 export namespace iskambil {
     export interface Game {
         id: string
-        name: string
-        description: string
-        rules: string[]
+        "name_tr": string
+        "name_en": string
+        "original_name": string | null
+        "description_tr": string
+        "description_en": string
+        "rules_tr": string[]
+        "rules_en": string[]
         "min_players": number
         "max_players": number
-        "deck_count": string
-        category: string
+        "deck_count_tr": string
+        "deck_count_en": string
+        "category_tr": string
+        "category_en": string
         "is_favorite": boolean
+        "is_known": boolean
         "user_note": string | null
     }
 
@@ -261,38 +268,31 @@ export namespace iskambil {
         isFavorite: boolean
     }
 
+    export interface ToggleKnownRequest {
+        gameId: string
+        userId: string
+    }
+
+    export interface ToggleKnownResponse {
+        success: boolean
+        isKnown: boolean
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.getGames = this.getGames.bind(this)
-            this.runSeedUpdate = this.runSeedUpdate.bind(this)
             this.saveNote = this.saveNote.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
+            this.toggleKnown = this.toggleKnown.bind(this)
         }
 
-        /**
-         * Kullanıcıya özel favori ve not bilgileriyle birlikte tüm oyunları listeler
-         * GET /iskambil/games/:userId
-         */
         public async getGames(userId: string): Promise<GetGamesResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/iskambil/games/${encodeURIComponent(userId)}`)
             return await resp.json() as GetGamesResponse
-        }
-
-        /**
-         * Temporary migration/update endpoint
-         */
-        public async runSeedUpdate(): Promise<{
-    success: boolean
-}> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/dev/update-category`)
-            return await resp.json() as {
-    success: boolean
-}
         }
 
         /**
@@ -313,6 +313,16 @@ export namespace iskambil {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/favorite`, JSON.stringify(params))
             return await resp.json() as ToggleFavoriteResponse
+        }
+
+        /**
+         * Bir oyunu bildiğim oyunlar listesine ekler veya çıkartır
+         * POST /iskambil/known
+         */
+        public async toggleKnown(params: ToggleKnownRequest): Promise<ToggleKnownResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/iskambil/known`, JSON.stringify(params))
+            return await resp.json() as ToggleKnownResponse
         }
     }
 }

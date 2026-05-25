@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION iskambil.get_games(clerk_id_param TEXT)
 RETURNS TABLE (
     id TEXT,
     name TEXT,
+    original_name TEXT,
     description TEXT,
     rules JSONB,
     min_players INT,
@@ -13,6 +14,7 @@ RETURNS TABLE (
     deck_count TEXT,
     category TEXT,
     is_favorite BOOLEAN,
+    is_known BOOLEAN,
     user_note TEXT
 ) AS $$
 BEGIN
@@ -20,6 +22,7 @@ BEGIN
     SELECT 
         g.id,
         g.name,
+        g.original_name,
         g.description,
         g.rules,
         g.min_players,
@@ -30,6 +33,10 @@ BEGIN
             SELECT 1 FROM iskambil.favorites f 
             WHERE f.game_id = g.id AND f.clerk_id = clerk_id_param
         ), FALSE) AS is_favorite,
+        COALESCE(EXISTS (
+            SELECT 1 FROM iskambil.known_games k
+            WHERE k.game_id = g.id AND k.clerk_id = clerk_id_param
+        ), FALSE) AS is_known,
         n.note AS user_note
     FROM iskambil.games g
     LEFT JOIN iskambil.notes n ON n.game_id = g.id AND n.clerk_id = clerk_id_param
