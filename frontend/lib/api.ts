@@ -26,12 +26,18 @@ function getBaseURL() {
   // Browser ortamında hostname kontrolü
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    
-    // Kullanıcı Şartı: Sadece localhost VE isNative değilse locale bağlan, yoksa staging
-    if ((hostname === "localhost" || hostname === "127.0.0.1") && !isNative) {
+
+    // Dev: localhost, 127.0.0.1 ve *.localhost (örn. iskambil.localhost) → local Encore
+    const isLocalDev =
+      !isNative &&
+      (hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.endsWith(".localhost"));
+
+    if (isLocalDev) {
       return Local;
     }
-    
+
     return Environment("staging");
   }
 

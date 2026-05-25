@@ -1,27 +1,27 @@
 "use client";
 
 import { useUser } from "@clerk/clerk-react";
-import { MINI_APPS, MiniApp } from "@/lib/apps";
+import { MINI_APPS, MiniApp, getAppHref } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { Sparkle, Plus, Check, ArrowsOutCardinal } from "@phosphor-icons/react";
 import { useState, useEffect, useCallback } from "react";
-import { 
-  DndContext, 
-  closestCenter, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
   useSensors,
   DragEndEvent,
   DragStartEvent,
-  TouchSensor
+  TouchSensor,
 } from "@dnd-kit/core";
-import { 
-  arrayMove, 
-  SortableContext, 
-  sortableKeyboardCoordinates, 
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
   rectSortingStrategy,
-  useSortable
+  useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,7 +32,7 @@ import { toast } from "react-hot-toast";
 export default function Home() {
   const { isLoaded, user } = useUser();
   const router = useRouter();
-  
+
   // State for apps and edit mode
   const [apps, setApps] = useState<MiniApp[]>([]);
   const [isAppsLoading, setIsAppsLoading] = useState(true);
@@ -44,7 +44,7 @@ export default function Home() {
     async function loadOrder() {
       try {
         const implementedApps = MINI_APPS.filter((app) => app.isImplemented);
-        
+
         let orderIds: string[] | null = null;
 
         // Try backend first if user is logged in
@@ -57,7 +57,9 @@ export default function Home() {
 
         // Fallback to localStorage
         if (!orderIds) {
-          const savedOrder = localStorage.getItem(`app_order_${user?.id || 'guest'}`);
+          const savedOrder = localStorage.getItem(
+            `app_order_${user?.id || "guest"}`,
+          );
           if (savedOrder) {
             try {
               orderIds = JSON.parse(savedOrder) as string[];
@@ -67,10 +69,12 @@ export default function Home() {
 
         if (orderIds) {
           const orderedApps = orderIds
-            .map(id => implementedApps.find(app => app.id === id))
+            .map((id) => implementedApps.find((app) => app.id === id))
             .filter((app): app is MiniApp => !!app);
-          
-          const newApps = implementedApps.filter(app => !orderIds!.includes(app.id));
+
+          const newApps = implementedApps.filter(
+            (app) => !orderIds!.includes(app.id),
+          );
           setApps([...orderedApps, ...newApps]);
         } else {
           setApps(implementedApps);
@@ -87,10 +91,13 @@ export default function Home() {
 
   // Save order to localStorage and backend
   const saveOrder = async (newApps: MiniApp[]) => {
-    const orderIds = newApps.map(a => a.id);
-    
+    const orderIds = newApps.map((a) => a.id);
+
     // Save to localStorage (instant)
-    localStorage.setItem(`app_order_${user?.id || 'guest'}`, JSON.stringify(orderIds));
+    localStorage.setItem(
+      `app_order_${user?.id || "guest"}`,
+      JSON.stringify(orderIds),
+    );
 
     // Save to backend (background)
     if (user?.id) {
@@ -116,7 +123,7 @@ export default function Home() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -172,8 +179,8 @@ export default function Home() {
           <button
             onClick={() => setIsEditMode(!isEditMode)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all ${
-              isEditMode 
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
+              isEditMode
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                 : "bg-white text-gray-600 border border-gray-100 shadow-sm"
             }`}
           >
@@ -199,37 +206,19 @@ export default function Home() {
         >
           <section className="mb-12">
             <div className="grid grid-cols-4 gap-y-8 gap-x-4">
-              <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+              <SortableContext
+                items={apps.map((a) => a.id)}
+                strategy={rectSortingStrategy}
+              >
                 {apps.map((app) => (
-                  <SortableAppIcon 
-                    key={app.id} 
-                    app={app} 
+                  <SortableAppIcon
+                    key={app.id}
+                    app={app}
                     isEditMode={isEditMode}
                     isActive={activeId === app.id}
                   />
                 ))}
               </SortableContext>
-
-              {/* "Add More" Button - Always last, not sortable */}
-              {!isEditMode && (
-                <button
-                  onClick={() => router.push("/discover")}
-                  className="flex flex-col items-center group gap-2 cursor-pointer active:scale-95 transition-all duration-200"
-                >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 relative overflow-hidden group-hover:scale-105 transition-all">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]"></div>
-                    <Plus
-                      size={28}
-                      color="white"
-                      weight="bold"
-                      className="transition-all"
-                    />
-                  </div>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 group-hover:text-blue-500">
-                    Explore
-                  </span>
-                </button>
-              )}
             </div>
           </section>
         </DndContext>
@@ -265,14 +254,14 @@ export default function Home() {
 /**
  * Sortable App Icon Component
  */
-function SortableAppIcon({ 
-  app, 
+function SortableAppIcon({
+  app,
   isEditMode,
-  isActive 
-}: { 
-  app: MiniApp, 
-  isEditMode: boolean,
-  isActive: boolean 
+  isActive,
+}: {
+  app: MiniApp;
+  isEditMode: boolean;
+  isActive: boolean;
 }) {
   const router = useRouter();
   const {
@@ -281,7 +270,7 @@ function SortableAppIcon({
     setNodeRef,
     transform,
     transition,
-    isDragging
+    isDragging,
   } = useSortable({ id: app.id });
 
   const style = {
@@ -300,24 +289,33 @@ function SortableAppIcon({
       transition: {
         duration: 0.3,
         repeat: Infinity,
-        ease: "easeInOut"
-      }
+        ease: "easeInOut",
+      },
     },
     idle: {
-      rotate: 0
-    }
+      rotate: 0,
+    },
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col items-center gap-2 touch-none ${isDragging ? 'pointer-events-none' : ''}`}
+      className={`flex flex-col items-center gap-2 touch-none ${isDragging ? "pointer-events-none" : ""}`}
     >
       <motion.button
         variants={wiggleVariants}
         animate={isEditMode && !isDragging ? "wiggle" : "idle"}
-        onClick={() => !isEditMode && router.push(app.href)}
+        onClick={() => {
+          if (!isEditMode) {
+            const href = getAppHref(app);
+            if (href.startsWith("http")) {
+              window.location.href = href;
+            } else {
+              router.push(href);
+            }
+          }
+        }}
         {...attributes}
         {...listeners}
         className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200`}
@@ -325,7 +323,8 @@ function SortableAppIcon({
         {/* OS Icon Container - Squircle */}
         <div
           className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg relative overflow-hidden transition-all duration-300 ${
-            !isEditMode && "group-hover:scale-105 group-hover:shadow-indigo-200/50"
+            !isEditMode &&
+            "group-hover:scale-105 group-hover:shadow-indigo-200/50"
           }`}
           style={{
             backgroundColor: app.color,
@@ -348,9 +347,9 @@ function SortableAppIcon({
 
           {/* Edit Mode Badge (X to remove could be added here) */}
           {isEditMode && (
-             <div className="absolute top-1 right-1 w-5 h-5 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
-               <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-             </div>
+            <div className="absolute top-1 right-1 w-5 h-5 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+            </div>
           )}
         </div>
 

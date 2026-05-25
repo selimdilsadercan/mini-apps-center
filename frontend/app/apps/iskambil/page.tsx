@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   MagnifyingGlass,
   Heart,
   Users,
@@ -111,7 +109,6 @@ const translations = {
 };
 
 export default function IskambilRehberi() {
-  const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,13 +122,10 @@ export default function IskambilRehberi() {
 
   const t = translations[lang];
 
-  const fetchGames = async () => {
-    if (!user?.id) return;
+  const fetchGames = async (userId: string) => {
     try {
       setIsLoading(true);
-      const resp = await client.iskambil.getGames(user.id);
-      // Backend Game interface might have name_tr, rules_tr etc.
-      // We map the response games directly into our Game state
+      const resp = await client.iskambil.getGames(userId);
       setGames(resp.games || []);
     } catch (err) {
       console.error("Failed to load games:", err);
@@ -141,9 +135,10 @@ export default function IskambilRehberi() {
   };
 
   useEffect(() => {
-    if (isUserLoaded && user?.id) {
-      fetchGames();
-    }
+    if (!isUserLoaded) return;
+    // Giriş yoksa da oyun listesini göster (favori/not DB'si boş kalır)
+    const userId = user?.id ?? "guest";
+    fetchGames(userId);
   }, [isUserLoaded, user?.id]);
 
   // Kategoriler
@@ -304,7 +299,7 @@ export default function IskambilRehberi() {
     }
   };
 
-  if (!isUserLoaded || (isLoading && games.length === 0)) {
+  if (!isUserLoaded || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f4f1ea] text-[#0c3122]">
         <div className="flex flex-col items-center gap-4">
@@ -321,14 +316,6 @@ export default function IskambilRehberi() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#ffffff] border-b border-[#e2dec5]">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.back()} 
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] text-[#0c3122] transition-all active:scale-95 cursor-pointer"
-              title={t.back}
-            >
-              <ArrowLeft size={18} weight="bold" />
-            </button>
             <div className="flex flex-col">
               <h1 className="text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-[#0c3122]">
                 <Cards size={24} weight="fill" className="text-[#0c3122] animate-pulse inline-block" />
@@ -336,7 +323,6 @@ export default function IskambilRehberi() {
               </h1>
               <p className="text-[9px] text-emerald-400/80 font-black uppercase tracking-[0.2em] mt-1">{t.archiveSubtitle}</p>
             </div>
-          </div>
 
           <div className="flex items-center gap-4">
             {/* Search Bar */}

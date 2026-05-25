@@ -4,7 +4,7 @@ import { useState, useMemo, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import MiniAppCard from "@/components/MiniAppCard";
-import { MINI_APPS, AppCategory, MiniApp } from "@/lib/apps";
+import { MINI_APPS, AppCategory, MiniApp, getAppHref } from "@/lib/apps";
 import { 
   MagnifyingGlass, 
   Sparkle,
@@ -15,12 +15,13 @@ import {
   TrendUp,
   Fire
 } from "@phosphor-icons/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const CATEGORIES: AppCategory[] = ['Utilities', 'Games', 'Productivity', 'Social', 'Entertainment', 'Lifestyle', 'Dev & Design'];
 
 // App Store style horizontal section with vertical stacks of 3
 function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
+  const router = useRouter();
   if (apps.length === 0) return null;
   
   // Chunk apps into groups of 3 for vertical stacking
@@ -28,6 +29,15 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
   for (let i = 0; i < apps.length; i += 3) {
     chunkedApps.push(apps.slice(i, i + 3));
   }
+
+  const handleAppClick = (app: MiniApp) => {
+    const href = getAppHref(app);
+    if (href.startsWith("http")) {
+      window.location.href = href;
+    } else {
+      router.push(href);
+    }
+  };
   
   return (
     <section className="mt-10 first:mt-4">
@@ -47,10 +57,10 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
         {chunkedApps.map((chunk, chunkIdx) => (
           <div key={chunkIdx} className="flex flex-col gap-5 w-[82vw] max-w-[320px] snap-start shrink-0">
             {chunk.map((app) => (
-              <Link 
+              <button 
                 key={app.id} 
-                href={app.href} 
-                className="group flex items-center gap-4 active:scale-[0.98] transition-all duration-200"
+                onClick={() => handleAppClick(app)}
+                className="group flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200"
               >
                 {/* Icon */}
                 <div 
@@ -84,7 +94,7 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
                     GET
                   </span>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         ))}
@@ -99,6 +109,7 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
 
 export default function Discover() {
   const { isLoaded } = useUser();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +122,15 @@ export default function Discover() {
       app.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
+
+  const handleAppClick = (app: MiniApp) => {
+    const href = getAppHref(app);
+    if (href.startsWith("http")) {
+      window.location.href = href;
+    } else {
+      router.push(href);
+    }
+  };
 
   if (!isLoaded) {
     return (
@@ -178,7 +198,11 @@ export default function Discover() {
             <div className="grid grid-cols-1 gap-3">
               {filteredApps.length > 0 ? (
                 filteredApps.map(app => (
-                  <Link key={app.id} href={app.href} className="flex items-center gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group">
+                  <button 
+                    key={app.id} 
+                    onClick={() => handleAppClick(app)}
+                    className="flex items-center text-left w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
+                  >
                     <div 
                       className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
                       style={{ backgroundColor: app.color }}
@@ -194,7 +218,7 @@ export default function Discover() {
                     <div className="bg-indigo-50 px-4 py-1.5 rounded-full">
                       <span className="text-[12px] font-black text-indigo-600">GET</span>
                     </div>
-                  </Link>
+                  </button>
                 ))
               ) : (
                 <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-200">

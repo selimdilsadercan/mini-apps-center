@@ -55,7 +55,7 @@ export default function MapTrackerPage() {
 
   const handleToggleVisited = async (id: string) => {
     try {
-      await client.map_tracker.toggleVisited(id);
+      await client.map_tracker.toggleVisited({ id });
       setData(prev => ({
         ...prev,
         items: (prev?.items || []).map(item => 

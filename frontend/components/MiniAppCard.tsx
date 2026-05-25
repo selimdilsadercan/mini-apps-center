@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MiniApp } from "@/lib/apps";
+import { MiniApp, getAppHref } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { CaretRight } from "@phosphor-icons/react";
 
@@ -13,9 +13,18 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
   const router = useRouter();
   const Icon = app.icon;
 
+  const handleClick = () => {
+    const href = getAppHref(app);
+    if (href.startsWith("http")) {
+      window.location.href = href;
+    } else {
+      router.push(href);
+    }
+  };
+
   return (
     <button
-      onClick={() => router.push(app.href)}
+      onClick={handleClick}
       className="group relative flex flex-col items-start p-4 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 active:scale-[0.98] text-left overflow-hidden"
     >
       {/* Background Accent */}
