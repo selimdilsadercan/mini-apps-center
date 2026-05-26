@@ -1,0 +1,39 @@
+{
+  "home": {
+    "myApps": "My Apps",
+    "edit": "Edit",
+    "done": "Done",
+    "buildYourOs": "Build your OS",
+    "homeEmptyDescription": "Your home screen is empty. Add modules from the discover section to customize your experience.",
+    "startExploring": "Start Exploring",
+    "removedToast": "App removed from home screen"
+  },
+  "discover": {
+    "title": "Everything Hub",
+    "subtitle": "Discover your next daily essential.",
+    "searchPlaceholder": "Apps, Games and more...",
+    "resultsFor": "Results for \"{query}\"",
+    "noResults": "No results found",
+    "tryDifferent": "Try a different keyword.",
+    "categories": {
+      "Utilities": "Must-Have Tools",
+      "Board Games & Fun": "Board Game Companions & Fun",
+      "Productivity": "Boost Productivity",
+      "Entertainment": "Media & Entertainment",
+      "Simulations": "Simulations & Demos",
+      "Local Services": "Local & Campus Services",
+      "Lifestyle": "Lifestyle & Daily Life"
+    },
+    "addedToast": "{appName} added to My Apps!"
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "selectLanguage": "Select Application Language",
+    "turkish": "Türkçe",
+    "english": "English",
+    "welcome": "Welcome, {name}",
+    "guest": "Guest User",
+    "signOut": "Sign Out"
+  }
+}

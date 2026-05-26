@@ -6,6 +6,8 @@ import { NotificationHandler } from "@/components/notifications/notification-han
 import { Toaster } from "react-hot-toast";
 import { GreetingHandler } from "@/components/GreetingHandler";
 import { SuperAppHubAuto } from "@/components/SuperAppHub";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import trMessages from "@/locales/tr/index";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,17 +30,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="tr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProviderWrapper>
-          <NotificationHandler />
-          <GreetingHandler />
-          <SuperAppHubAuto />
-          {children}
-          <Toaster position="top-center" />
-        </ClerkProviderWrapper>
+        <LanguageProvider messages={trMessages}>
+          <ClerkProviderWrapper>
+            <NotificationHandler />
+            <GreetingHandler />
+            <SuperAppHubAuto />
+            {children}
+            <Toaster position="top-center" />
+          </ClerkProviderWrapper>
+        </LanguageProvider>
       </body>
     </html>
   );

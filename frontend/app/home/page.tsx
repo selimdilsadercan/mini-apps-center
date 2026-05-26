@@ -28,16 +28,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import { getUserPreferencesAction, updateAppOrderAction } from "./actions";
 import { toast } from "react-hot-toast";
+import { useTranslations } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const { isLoaded, user } = useUser();
   const router = useRouter();
+  const t = useTranslations("home");
 
   // State for apps and edit mode
   const [apps, setApps] = useState<MiniApp[]>([]);
   const [isAppsLoading, setIsAppsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+
 
   // Load apps and custom order
   useEffect(() => {
@@ -68,16 +71,22 @@ export default function Home() {
         }
 
         if (orderIds) {
+          // Only show apps that are explicitly in the orderIds list
           const orderedApps = orderIds
             .map((id) => implementedApps.find((app) => app.id === id))
             .filter((app): app is MiniApp => !!app);
-
-          const newApps = implementedApps.filter(
-            (app) => !orderIds!.includes(app.id),
-          );
-          setApps([...orderedApps, ...newApps]);
+          setApps(orderedApps);
         } else {
+          // Default: install all implemented apps on first load
           setApps(implementedApps);
+          const defaultOrder = implementedApps.map((a) => a.id);
+          localStorage.setItem(
+            `app_order_${user?.id || "guest"}`,
+            JSON.stringify(defaultOrder),
+          );
+          if (user?.id) {
+            updateAppOrderAction(user.id, defaultOrder);
+          }
         }
       } finally {
         setIsAppsLoading(false);
@@ -106,6 +115,14 @@ export default function Home() {
         console.error("Backend update failed:", error);
       }
     }
+  };
+
+  // Remove app from home
+  const removeApp = (appId: string) => {
+    const updatedApps = apps.filter((app) => app.id !== appId);
+    setApps(updatedApps);
+    saveOrder(updatedApps);
+    toast.success(t("removedToast"));
   };
 
   // DnD Sensors
@@ -174,7 +191,7 @@ export default function Home() {
         {/* Header / Edit Mode Toggle */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-            My Apps
+            {t("myApps")}
           </h1>
           <button
             onClick={() => setIsEditMode(!isEditMode)}
@@ -187,12 +204,12 @@ export default function Home() {
             {isEditMode ? (
               <>
                 <Check size={18} weight="bold" />
-                Done
+                {t("done")}
               </>
             ) : (
               <>
                 <ArrowsOutCardinal size={18} weight="bold" />
-                Edit
+                {t("edit")}
               </>
             )}
           </button>
@@ -216,6 +233,8 @@ export default function Home() {
                     app={app}
                     isEditMode={isEditMode}
                     isActive={activeId === app.id}
+                    onRemove={removeApp}
+                    onLongPress={() => setIsEditMode(true)}
                   />
                 ))}
               </SortableContext>
@@ -230,17 +249,16 @@ export default function Home() {
               <Sparkle size={32} weight="fill" className="text-indigo-600" />
             </div>
             <h3 className="text-lg font-black text-gray-900 mb-2">
-              Build your OS
+              {t("buildYourOs")}
             </h3>
             <p className="text-gray-500 text-[13px] leading-relaxed mb-8">
-              Your home screen is empty. Add modules from the discover section
-              to customize your experience.
+              {t("homeEmptyDescription")}
             </p>
             <button
               onClick={() => router.push("/discover")}
               className="w-full bg-indigo-600 text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-all"
             >
-              Start Exploring
+              {t("startExploring")}
             </button>
           </div>
         )}
@@ -252,16 +270,20 @@ export default function Home() {
 }
 
 /**
- * Sortable App Icon Component
+ * Sortable App Icon Component with Long Press and Remove Actions
  */
 function SortableAppIcon({
   app,
   isEditMode,
   isActive,
+  onRemove,
+  onLongPress,
 }: {
   app: MiniApp;
   isEditMode: boolean;
   isActive: boolean;
+  onRemove: (id: string) => void;
+  onLongPress: () => void;
 }) {
   const router = useRouter();
   const {
@@ -282,12 +304,30 @@ function SortableAppIcon({
 
   const Icon = app.icon;
 
+  // Long press implementation variables
+  let pressTimer: NodeJS.Timeout;
+
+  const handlePressStart = () => {
+    if (isEditMode) return;
+    pressTimer = setTimeout(() => {
+      onLongPress();
+      // Vibrate if mobile device supports it
+      if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(80);
+      }
+    }, 600);
+  };
+
+  const handlePressEnd = () => {
+    clearTimeout(pressTimer);
+  };
+
   // Wiggle animation for edit mode
   const wiggleVariants: any = {
     wiggle: {
-      rotate: [0, -1, 1, -1, 1, 0],
+      rotate: [0, -1.2, 1.2, -1.2, 1.2, 0],
       transition: {
-        duration: 0.3,
+        duration: 0.28,
         repeat: Infinity,
         ease: "easeInOut",
       },
@@ -301,8 +341,22 @@ function SortableAppIcon({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col items-center gap-2 touch-none ${isDragging ? "pointer-events-none" : ""}`}
+      className={`flex flex-col items-center gap-2 touch-none select-none relative ${isDragging ? "pointer-events-none" : ""}`}
     >
+      {/* Remove Button in Edit Mode */}
+      {isEditMode && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(app.id);
+          }}
+          className="absolute top-0 right-0 sm:right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center border-2 border-white shadow-md z-30 transition-transform active:scale-90 cursor-pointer pointer-events-auto"
+          aria-label={`Remove ${app.name}`}
+        >
+          <span className="text-[14px] leading-[0] font-black">×</span>
+        </button>
+      )}
+
       <motion.button
         variants={wiggleVariants}
         animate={isEditMode && !isDragging ? "wiggle" : "idle"}
@@ -316,6 +370,11 @@ function SortableAppIcon({
             }
           }
         }}
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
         {...attributes}
         {...listeners}
         className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200`}
@@ -344,13 +403,6 @@ function SortableAppIcon({
             color="white"
             className="relative z-10 transition-transform duration-300"
           />
-
-          {/* Edit Mode Badge (X to remove could be added here) */}
-          {isEditMode && (
-            <div className="absolute top-1 right-1 w-5 h-5 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
-              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-            </div>
-          )}
         </div>
 
         {/* App Label */}

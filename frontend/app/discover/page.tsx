@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import MiniAppCard from "@/components/MiniAppCard";
@@ -16,11 +16,26 @@ import {
   Fire
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { getUserPreferencesAction, updateAppOrderAction } from "../home/actions";
+import { useTranslations } from "@/contexts/LanguageContext";
 
-const CATEGORIES: AppCategory[] = ['Utilities', 'Games', 'Productivity', 'Social', 'Entertainment', 'Lifestyle', 'Dev & Design'];
+const CATEGORIES: AppCategory[] = ['Utilities', 'Board Games & Fun', 'Productivity', 'Entertainment', 'Simulations', 'Local Services', 'Lifestyle'];
 
 // App Store style horizontal section with vertical stacks of 3
-function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
+function AppSection({ 
+  title, 
+  apps, 
+  installedIds, 
+  onGetApp, 
+  onOpenApp 
+}: { 
+  title: string; 
+  apps: MiniApp[]; 
+  installedIds: string[]; 
+  onGetApp: (appId: string, e: React.MouseEvent) => void; 
+  onOpenApp: (app: MiniApp) => void; 
+}) {
   const router = useRouter();
   if (apps.length === 0) return null;
   
@@ -29,15 +44,6 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
   for (let i = 0; i < apps.length; i += 3) {
     chunkedApps.push(apps.slice(i, i + 3));
   }
-
-  const handleAppClick = (app: MiniApp) => {
-    const href = getAppHref(app);
-    if (href.startsWith("http")) {
-      window.location.href = href;
-    } else {
-      router.push(href);
-    }
-  };
   
   return (
     <section className="mt-10 first:mt-4">
@@ -56,46 +62,65 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
         
         {chunkedApps.map((chunk, chunkIdx) => (
           <div key={chunkIdx} className="flex flex-col gap-5 w-[82vw] max-w-[320px] snap-start shrink-0">
-            {chunk.map((app) => (
-              <button 
-                key={app.id} 
-                onClick={() => handleAppClick(app)}
-                className="group flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200"
-              >
-                {/* Icon */}
+            {chunk.map((app) => {
+              const isInstalled = installedIds.includes(app.id);
+              return (
                 <div 
-                  className="w-[68px] h-[68px] rounded-[1.4rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
-                  style={{ 
-                    backgroundColor: app.color,
-                    boxShadow: `0 8px 20px -6px ${app.color}50`
-                  }}
+                  key={app.id}
+                  className="group flex items-center justify-between gap-4"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
-                  <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
-                  <app.icon size={32} weight="fill" color="white" className="relative z-10" />
-                </div>
+                  <button 
+                    onClick={() => onOpenApp(app)}
+                    className="flex-1 flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200"
+                  >
+                    {/* Icon */}
+                    <div 
+                      className="w-[68px] h-[68px] rounded-[1.4rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
+                      style={{ 
+                        backgroundColor: app.color,
+                        boxShadow: `0 8px 20px -6px ${app.color}50`
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
+                      <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
+                      <app.icon size={32} weight="fill" color="white" className="relative z-10" />
+                    </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
-                      {app.name}
-                    </h3>
-                  </div>
-                  <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
-                    {app.category} • {app.description}
-                  </p>
-                </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
+                          {app.name}
+                        </h3>
+                      </div>
+                      <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
+                        {app.category} • {app.description}
+                      </p>
+                    </div>
+                  </button>
 
-                {/* Get Button */}
-                <div className="bg-gray-100 group-hover:bg-indigo-600 px-5 py-2 rounded-full transition-all duration-300 shrink-0">
-                  <span className="text-[12px] font-black text-gray-600 group-hover:text-white transition-colors">
-                    GET
-                  </span>
+                  {/* Get / Open Button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isInstalled) {
+                        onOpenApp(app);
+                      } else {
+                        onGetApp(app.id, e);
+                      }
+                    }}
+                    className={`px-5 py-2 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 select-none ${
+                      isInstalled
+                        ? "bg-green-100 text-green-600 hover:bg-green-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-indigo-600 hover:text-white"
+                    }`}
+                  >
+                    {isInstalled ? "OPEN" : "GET"}
+                  </button>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         ))}
 
@@ -108,20 +133,66 @@ function AppSection({ title, apps }: { title: string, apps: MiniApp[] }) {
 
 
 export default function Discover() {
-  const { isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
   const router = useRouter();
+  const t = useTranslations("discover");
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [installedIds, setInstalledIds] = useState<string[]>([]);
+  const [isPrefLoading, setIsPrefLoading] = useState(true);
+
 
   const implementedApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented), []);
+
+  // Load installed apps
+  useEffect(() => {
+    async function loadInstalled() {
+      if (!isLoaded) return;
+      try {
+        let orderIds: string[] | null = null;
+
+        // Try backend first
+        if (user?.id) {
+          const { data } = await getUserPreferencesAction(user.id);
+          if (data && data.length > 0) {
+            orderIds = data;
+          }
+        }
+
+        // Fallback to localStorage
+        if (!orderIds) {
+          const savedOrder = localStorage.getItem(
+            `app_order_${user?.id || "guest"}`,
+          );
+          if (savedOrder) {
+            try {
+              orderIds = JSON.parse(savedOrder) as string[];
+            } catch (e) {}
+          }
+        }
+
+        if (orderIds) {
+          setInstalledIds(orderIds);
+        } else {
+          // If never set, assume all implemented apps are installed by default
+          const defaultOrder = implementedApps.map(a => a.id);
+          setInstalledIds(defaultOrder);
+        }
+      } finally {
+        setIsPrefLoading(false);
+      }
+    }
+
+    loadInstalled();
+  }, [user?.id, isLoaded, implementedApps]);
   
   const filteredApps = useMemo(() => {
     if (!searchQuery) return [];
-    return MINI_APPS.filter(app => 
+    return implementedApps.filter(app => 
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       app.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, implementedApps]);
 
   const handleAppClick = (app: MiniApp) => {
     const href = getAppHref(app);
@@ -132,7 +203,27 @@ export default function Discover() {
     }
   };
 
-  if (!isLoaded) {
+  const handleGetApp = async (appId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newInstalled = [...installedIds, appId];
+    setInstalledIds(newInstalled);
+    
+    // Save to localStorage
+    localStorage.setItem(
+      `app_order_${user?.id || "guest"}`,
+      JSON.stringify(newInstalled),
+    );
+
+    // Save to backend
+    if (user?.id) {
+      await updateAppOrderAction(user.id, newInstalled);
+    }
+
+    const appName = MINI_APPS.find(a => a.id === appId)?.name || "App";
+    toast.success(t("addedToast", { appName }));
+  };
+
+  if (!isLoaded || isPrefLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
@@ -160,9 +251,9 @@ export default function Discover() {
         {/* Header Section */}
         <header className="pt-8 pb-4">
           <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-1.5">
-            Everything Hub
+            {t("title")}
           </h1>
-          <p className="text-gray-500 text-sm font-medium">Discover your next daily essential.</p>
+          <p className="text-gray-500 text-sm font-medium">{t("subtitle")}</p>
         </header>
 
         {/* Search Bar */}
@@ -173,7 +264,7 @@ export default function Discover() {
             </div>
             <input
               type="text"
-              placeholder="Apps, Games and more..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white/80 border border-gray-200/50 rounded-[1.5rem] py-3.5 pl-12 pr-12 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all font-semibold text-base text-gray-900 placeholder:text-gray-400/80"
@@ -193,37 +284,58 @@ export default function Discover() {
           /* Search Results */
           <section className="mt-6">
             <h2 className="text-xl font-extrabold mb-5 px-1 flex items-center gap-2">
-              Results for <span className="text-indigo-600">"{searchQuery}"</span>
+              {t("resultsFor", { query: searchQuery })}
             </h2>
             <div className="grid grid-cols-1 gap-3">
               {filteredApps.length > 0 ? (
-                filteredApps.map(app => (
-                  <button 
-                    key={app.id} 
-                    onClick={() => handleAppClick(app)}
-                    className="flex items-center text-left w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
-                  >
+                filteredApps.map(app => {
+                  const isInstalled = installedIds.includes(app.id);
+                  return (
                     <div 
-                      className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
-                      style={{ backgroundColor: app.color }}
+                      key={app.id} 
+                      className="flex items-center justify-between w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-                      <app.icon size={24} color="white" weight="fill" className="relative z-10" />
+                      <button 
+                        onClick={() => handleAppClick(app)}
+                        className="flex-1 flex items-center text-left gap-4"
+                      >
+                        <div 
+                          className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
+                          style={{ backgroundColor: app.color }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+                          <app.icon size={24} color="white" weight="fill" className="relative z-10" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
+                          <p className="text-gray-500 text-sm truncate">{app.category}</p>
+                        </div>
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isInstalled) {
+                            handleAppClick(app);
+                          } else {
+                            handleGetApp(app.id, e);
+                          }
+                        }}
+                        className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer ${
+                          isInstalled
+                            ? "bg-green-100 text-green-600 hover:bg-green-200"
+                            : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                        }`}
+                      >
+                        {isInstalled ? "OPEN" : "GET"}
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
-                      <p className="text-gray-500 text-sm truncate">{app.category}</p>
-                    </div>
-                    <div className="bg-indigo-50 px-4 py-1.5 rounded-full">
-                      <span className="text-[12px] font-black text-indigo-600">GET</span>
-                    </div>
-                  </button>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-                  <h3 className="text-gray-900 font-bold">No results found</h3>
-                  <p className="text-gray-500 text-sm">Try a different keyword.</p>
+                  <h3 className="text-gray-900 font-bold">{t("noResults")}</h3>
+                  <p className="text-gray-500 text-sm">{t("tryDifferent")}</p>
                 </div>
               )}
             </div>
@@ -232,10 +344,13 @@ export default function Discover() {
           /* Main App Store Layout */
           <>
             {/* Categorized Sections */}
-            <AppSection title="Must-Have Tools" apps={MINI_APPS.filter(a => a.category === 'Utilities').slice(0, 9)} />
-            <AppSection title="Trending Games" apps={MINI_APPS.filter(a => a.category === 'Games').slice(0, 9)} />
-            <AppSection title="Boost Productivity" apps={MINI_APPS.filter(a => a.category === 'Productivity').slice(0, 9)} />
-            <AppSection title="Lifestyle & Fun" apps={MINI_APPS.filter(a => a.category === 'Lifestyle').slice(0, 9)} />
+            <AppSection title={t("categories.Utilities")} apps={implementedApps.filter(a => a.category === 'Utilities').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Board Games & Fun")} apps={implementedApps.filter(a => a.category === 'Board Games & Fun').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Productivity")} apps={implementedApps.filter(a => a.category === 'Productivity').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => a.category === 'Entertainment').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Lifestyle")} apps={implementedApps.filter(a => a.category === 'Lifestyle').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
           </>
         )}
       </main>

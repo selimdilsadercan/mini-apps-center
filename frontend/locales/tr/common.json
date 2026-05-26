@@ -1,0 +1,39 @@
+{
+  "home": {
+    "myApps": "Uygulamalarım",
+    "edit": "Düzenle",
+    "done": "Bitti",
+    "buildYourOs": "Kendi Arayüzünü Oluştur",
+    "homeEmptyDescription": "Ana ekranınız boş. Deneyiminizi özelleştirmek için keşfet bölümünden modüller ekleyin.",
+    "startExploring": "Keşfetmeye Başla",
+    "removedToast": "Uygulama ana ekrandan kaldırıldı"
+  },
+  "discover": {
+    "title": "Uygulama Merkezi",
+    "subtitle": "Bir sonraki günlük yardımcınızı keşfedin.",
+    "searchPlaceholder": "Uygulamalar, oyunlar ve daha fazlası...",
+    "resultsFor": "\"{query}\" için sonuçlar",
+    "noResults": "Sonuç bulunamadı",
+    "tryDifferent": "Farklı bir anahtar kelime deneyin.",
+    "categories": {
+      "Utilities": "Temel Araçlar",
+      "Board Games & Fun": "Masa Oyunları & Eğlence",
+      "Productivity": "Verimliliği Artır",
+      "Entertainment": "Medya & Eğlence",
+      "Simulations": "Simülasyonlar & Algoritmalar",
+      "Local Services": "Lokal & Kampüs Servisleri",
+      "Lifestyle": "Yaşam Tarzı & Günlük Yaşam"
+    },
+    "addedToast": "{appName} uygulaması eklendi!"
+  },
+  "profile": {
+    "title": "Profil",
+    "language": "Dil",
+    "selectLanguage": "Uygulama Dili Seçin",
+    "turkish": "Türkçe",
+    "english": "English",
+    "welcome": "Hoş Geldiniz, {name}",
+    "guest": "Misafir Kullanıcı",
+    "signOut": "Çıkış Yap"
+  }
+}
