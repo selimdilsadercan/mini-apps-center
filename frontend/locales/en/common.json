@@ -35,5 +35,27 @@
     "welcome": "Welcome, {name}",
     "guest": "Guest User",
     "signOut": "Sign Out"
+  },
+  "stopScroll": {
+    "title": "Stop Scrolling, Start Living",
+    "subtitle": "Instead of endless scrolling on social media, try something new and delightful today!",
+    "buttonText": "Suggest Me Something",
+    "cardTitle": "Today's Suggestion",
+    "viewApp": "Go to App",
+    "categories": {
+      "game": "🃏 Play a Card Game",
+      "chocolate": "🍫 Try a New Chocolate",
+      "movie": "🍿 Watch a Great Movie",
+      "activity": "🚶‍♂️ Do an Offline Activity"
+    },
+    "staticActivities": [
+      "Go outside and take a brisk 15-minute walk.",
+      "Read 10 pages of a book.",
+      "Call a friend you haven't talked to in a while.",
+      "Organize your room or desk.",
+      "Open your favorite song and just listen to it (without doing anything else).",
+      "Meditate for 10 minutes or just close your eyes and rest.",
+      "Try a new drink/coffee recipe with ingredients at home."
+    ]
   }
 }

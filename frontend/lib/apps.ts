@@ -13,13 +13,13 @@ import {
   IconProps,
   Basket,
   Trophy,
+  Sparkle,
 } from "@phosphor-icons/react";
 import React from "react";
 
 export type AppCategory =
   | "Utilities"
   | "Board Games & Fun"
-  | "Productivity"
   | "Entertainment"
   | "Simulations"
   | "Local Services"
@@ -35,6 +35,7 @@ export interface MiniApp {
   href: string;
   isImplemented?: boolean;
   subdomain?: string;
+  isLocal?: boolean;
 }
 
 /**
@@ -153,18 +154,6 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "turnuva",
   },
 
-  // Productivity
-  {
-    id: "meal-planner",
-    name: "Meal Planner",
-    description: "Plan your weekly meals",
-    icon: ChefHat,
-    category: "Productivity",
-    color: "#FCC419",
-    href: "/apps/recipe",
-    isImplemented: true,
-  },
-
   // Entertainment
   {
     id: "youtube-series",
@@ -221,6 +210,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/itu-yemekhane",
     isImplemented: true,
     subdomain: "itu",
+    isLocal: true,
   },
   {
     id: "kiler",
@@ -264,5 +254,25 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/chocolate-db",
     isImplemented: true,
     subdomain: "cikolata",
+  },
+  {
+    id: "meal-planner",
+    name: "Meal Planner",
+    description: "Plan your weekly meals",
+    icon: ChefHat,
+    category: "Lifestyle",
+    color: "#FCC419",
+    href: "/apps/recipe",
+    isImplemented: true,
+  },
+  {
+    id: "do-this-instead",
+    name: "Do This Instead",
+    description: "Stop scrolling, start living. Get a quick suggestion on what to do today!",
+    icon: Sparkle,
+    category: "Lifestyle",
+    color: "#FA5252",
+    href: "/apps/stop-scroll",
+    isImplemented: true,
   },
 ];

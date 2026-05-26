@@ -35,5 +35,27 @@
     "welcome": "Hoş Geldiniz, {name}",
     "guest": "Misafir Kullanıcı",
     "signOut": "Çıkış Yap"
+  },
+  "stopScroll": {
+    "title": "Kaydırmayı Bırak, Hayatı Yaşa",
+    "subtitle": "Sosyal medyada sonsuz kaydırma yapmak yerine bugün yeni ve keyifli bir şeyler dene!",
+    "buttonText": "Bana Yeni Bir Şey Öner",
+    "cardTitle": "Günün Önerisi",
+    "viewApp": "Uygulamaya Git",
+    "categories": {
+      "game": "🃏 Bir Kart Oyunu Oyna",
+      "chocolate": "🍫 Yeni Bir Çikolata Dene",
+      "movie": "🍿 Harika Bir Film İzle",
+      "activity": "🚶‍♂️ Çevrimdışı Aktivite Yap"
+    },
+    "staticActivities": [
+      "Dışarı çıkıp 15 dakika tempolu yürü.",
+      "10 sayfa kitap oku.",
+      "En son ne zaman içtiğini unuttuğun arkadaşını ara.",
+      "Odanı veya çalışma masanı düzenle.",
+      "En sevdiğin şarkıyı açıp sadece dinle (başka hiçbir şey yapmadan).",
+      "10 dakika meditasyon yap veya sadece gözlerini kapatıp dinlen.",
+      "Evdeki malzemelerle yeni bir içecek/kahve tarifi dene."
+    ]
   }
 }
