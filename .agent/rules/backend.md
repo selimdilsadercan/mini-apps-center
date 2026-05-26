@@ -1,3 +1,9 @@
+---
+trigger: always_on
+---
+
+backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcut backend klasörlerini inceleyip son yapma şekillerimize bakmanı istiyorum
+
 # Backend & Database Standards
 
 ## 1. Database Architecture (Supabase/PostgreSQL)

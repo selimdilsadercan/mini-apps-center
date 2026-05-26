@@ -14,6 +14,7 @@ import {
   Basket,
   Trophy,
   Sparkle,
+  Compass,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -274,5 +275,16 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FA5252",
     href: "/apps/stop-scroll",
     isImplemented: true,
+  },
+  {
+    id: "hobby-center",
+    name: "Hobby Center",
+    description: "Yeni hobiler keşfet, yol haritalarını takip et ve kaynaklara eriş!",
+    icon: Compass,
+    category: "Lifestyle",
+    color: "#D4AF37",
+    href: "/apps/hobby-center",
+    isImplemented: true,
+    subdomain: "hobby",
   },
 ];

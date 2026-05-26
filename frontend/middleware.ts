@@ -17,6 +17,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   youtube: "/apps/youtube-discover",
   filmgraph: "/apps/film-graph",
   itu: "/apps/itu-yemekhane",
+  hobby: "/apps/hobby-center",
 };
 
 /**

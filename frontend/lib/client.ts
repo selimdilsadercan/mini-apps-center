@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly chocolate_db: chocolate_db.ServiceClient
+    public readonly hobby_center: hobby_center.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
@@ -58,6 +59,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
+        this.hobby_center = new hobby_center.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
@@ -218,6 +220,68 @@ export namespace chocolate_db {
             return await resp.json() as {
     count: number
 }
+        }
+    }
+}
+
+export namespace hobby_center {
+    export interface GetUserHobbiesResponse {
+        tracks: UserHobbyTrack[]
+    }
+
+    export type HobbyStatus = "interested" | "in_progress" | "learned"
+
+    export interface UpdateUserHobbyRequest {
+        userId: string
+        hobbyId: string
+        status: HobbyStatus
+        notes: string
+        completedSteps: number[]
+    }
+
+    export interface UpdateUserHobbyResponse {
+        track: UserHobbyTrack | null
+    }
+
+    export interface UserHobbyTrack {
+        id: string
+        "user_id": string | null
+        "clerk_id": string
+        "hobby_id": string
+        status: HobbyStatus
+        notes: string
+        "completed_steps": number[]
+        "created_at": string
+        "updated_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getUserHobbies = this.getUserHobbies.bind(this)
+            this.updateUserHobby = this.updateUserHobby.bind(this)
+        }
+
+        /**
+         * Kullanıcının takip ettiği tüm hobileri ve durumlarını getirir
+         * GET /hobby-center/user/:userId
+         */
+        public async getUserHobbies(userId: string): Promise<GetUserHobbiesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hobby-center/user/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserHobbiesResponse
+        }
+
+        /**
+         * Kullanıcının bir hobi için kaydını günceller veya oluşturur
+         * POST /hobby-center/update
+         */
+        public async updateUserHobby(params: UpdateUserHobbyRequest): Promise<UpdateUserHobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/hobby-center/update`, JSON.stringify(params))
+            return await resp.json() as UpdateUserHobbyResponse
         }
     }
 }
