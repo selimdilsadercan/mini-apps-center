@@ -5,7 +5,6 @@ import { ClerkProviderWrapper } from "@/components/ClerkProvider";
 import { NotificationHandler } from "@/components/notifications/notification-handler";
 import { Toaster } from "react-hot-toast";
 import { GreetingHandler } from "@/components/GreetingHandler";
-import { SuperAppHubAuto } from "@/components/SuperAppHub";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import trMessages from "@/locales/tr/index";
 
@@ -38,7 +37,6 @@ export default function RootLayout({
           <ClerkProviderWrapper>
             <NotificationHandler />
             <GreetingHandler />
-            <SuperAppHubAuto />
             {children}
             <Toaster position="top-center" />
           </ClerkProviderWrapper>

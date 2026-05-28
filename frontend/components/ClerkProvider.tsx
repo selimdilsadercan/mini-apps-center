@@ -14,52 +14,6 @@ if (!PUBLISHABLE_KEY) {
 
 const isNative = Capacitor.isNativePlatform();
 
-const ROOT_DOMAIN =
-  process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
-
-/** Clerk satellite: subdomain host (e.g. iskambil.localhost) vs primary (localhost). */
-function getClerkDomainConfig(): {
-  isSatellite: boolean;
-  domain?: string;
-  signInUrl?: string;
-} {
-  if (typeof window === "undefined" || isNative) {
-    return { isSatellite: false };
-  }
-
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-  const originWithPort = port ? `${hostname}:${port}` : hostname;
-
-  if (hostname.endsWith(".localhost")) {
-    const primary = port ? `localhost:${port}` : "localhost";
-    if (hostname !== "localhost") {
-      const primaryOrigin = `${window.location.protocol}//${primary}`;
-      return {
-        isSatellite: true,
-        domain: originWithPort,
-        signInUrl: `${primaryOrigin}/sign-in`,
-      };
-    }
-    return { isSatellite: false };
-  }
-
-  if (hostname === ROOT_DOMAIN) {
-    return { isSatellite: false };
-  }
-
-  if (hostname.endsWith(`.${ROOT_DOMAIN}`)) {
-    const primaryOrigin = `${window.location.protocol}//${ROOT_DOMAIN}`;
-    return {
-      isSatellite: true,
-      domain: hostname,
-      signInUrl: `${primaryOrigin}/sign-in`,
-    };
-  }
-
-  return { isSatellite: false };
-}
-
 function DeepLinkHandler({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
@@ -131,25 +85,11 @@ export function ClerkProviderWrapper({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [clerkDomain, setClerkDomain] = useState(getClerkDomainConfig);
-
-  useEffect(() => {
-    setClerkDomain(getClerkDomainConfig());
-  }, []);
-
-  const satelliteProps = clerkDomain.isSatellite
-    ? {
-        isSatellite: true as const,
-        domain: clerkDomain.domain!,
-        signInUrl: clerkDomain.signInUrl!,
-      }
-    : {};
 
   return (
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY || ""}
       afterSignOutUrl="/"
-      {...satelliteProps}
       routerPush={(to) => router.push(to)}
       routerReplace={(to) => router.replace(to)}
     >

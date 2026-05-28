@@ -15,11 +15,14 @@ import {
   XCircle,
   Hash,
   Play,
-  CheckCircle
+  CheckCircle,
+  ArrowLeft
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react"; 
+import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const client = createBrowserClient();
 
@@ -110,6 +113,8 @@ const translations = {
 
 export default function IskambilRehberi() {
   const { user, isLoaded: isUserLoaded } = useUser();
+  const router = useRouter();
+  const { locale: lang } = useLanguage();
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,7 +123,6 @@ export default function IskambilRehberi() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
-  const [lang, setLang] = useState<"tr" | "en">("tr");
 
   const t = translations[lang];
 
@@ -314,8 +318,16 @@ export default function IskambilRehberi() {
     <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#ffffff] border-b border-[#e2dec5]">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-[#ffffff] border-b border-[#e2dec5]">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push("/home")}
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5f2e9] border border-[#e2dcc8] text-[#0c3122] hover:bg-[#eae6df] transition-all cursor-pointer"
+              title={t.back}
+            >
+              <ArrowLeft size={18} weight="bold" />
+            </button>
             <div className="flex flex-col">
               <h1 className="text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-[#0c3122]">
                 <Cards size={24} weight="fill" className="text-[#0c3122] animate-pulse inline-block" />
@@ -323,6 +335,7 @@ export default function IskambilRehberi() {
               </h1>
               <p className="text-[9px] text-emerald-400/80 font-black uppercase tracking-[0.2em] mt-1">{t.archiveSubtitle}</p>
             </div>
+          </div>
 
           <div className="flex items-center gap-4">
             {/* Search Bar */}
@@ -336,36 +349,12 @@ export default function IskambilRehberi() {
               />
               <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             </div>
-
-            {/* Language Switcher Toggle */}
-            <div className="flex bg-[#f5f2e9] border border-[#e2dcc8] rounded-xl p-0.5 relative">
-              <button
-                onClick={() => setLang("tr")}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                  lang === "tr"
-                    ? "bg-[#0c3122] text-white shadow-sm"
-                    : "text-[#0c3122] hover:bg-[#eae6df]"
-                }`}
-              >
-                TR
-              </button>
-              <button
-                onClick={() => setLang("en")}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                  lang === "en"
-                    ? "bg-[#0c3122] text-white shadow-sm"
-                    : "text-[#0c3122] hover:bg-[#eae6df]"
-                }`}
-              >
-                EN
-              </button>
-            </div>
           </div>
         </div>
       </header>
 
       {/* Main Layout */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col gap-6 relative z-10">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-8 flex flex-col gap-6 relative z-10">
 
         {/* Mobile Search */}
         <div className="relative md:hidden w-full">

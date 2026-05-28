@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "recipe-monorepo",
@@ -10,7 +11,7 @@
       "dependencies": {
         "@supabase/supabase-js": "^2.86.2",
         "axios": "^1.13.2",
-        "encore.dev": "^1.56.7",
+        "encore.dev": "^1.57.5",
         "node-html-parser": "^6.1.13",
         "puppeteer": "^24.32.1",
         "puppeteer-extra": "^3.3.6",
@@ -1256,7 +1257,7 @@
 
     "encoding-sniffer": ["encoding-sniffer@0.2.1", "", { "dependencies": { "iconv-lite": "^0.6.3", "whatwg-encoding": "^3.1.1" } }, "sha512-5gvq20T6vfpekVtqrYQsSCFZ1wEg5+wW0/QaZMWkFr6BqD3NfKs0rLCx4rrVlSWJeZb5NBJgVLswK/w2MWU+Gw=="],
 
-    "encore.dev": ["encore.dev@1.56.9", "", {}, "sha512-n/219OJyQwYGACDxcagcjKR7mS276NMuL+FS6THF0+FmMqcylwkEUl1l0O9wgkJR7BG7yN8WjjgNJuRYpD06Gw=="],
+    "encore.dev": ["encore.dev@1.57.5", "", {}, "sha512-CSA1ZXWXzFbA45gbQB0bf0FAaJ6WZgza9Rlw/dmi9sqbwukd9Ro3VNBP0hd7P6NnMiObzfRk0lV32ogEgBcszg=="],
 
     "end-of-stream": ["end-of-stream@1.4.5", "", { "dependencies": { "once": "^1.4.0" } }, "sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg=="],
 
