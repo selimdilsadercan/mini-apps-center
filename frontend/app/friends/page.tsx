@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
@@ -22,7 +22,7 @@ import Client, { Local, friendship } from "@/lib/client";
 
 const client = new Client(Local);
 
-export default function FriendsPage() {
+function FriendsContent() {
   const { user, isLoaded } = useUser();
   const t = useTranslations("friends");
   const { locale } = useLanguage();
@@ -436,5 +436,19 @@ export default function FriendsPage() {
       {/* Bottom App Navigation */}
       <AppBar activePage={ActivePage.FRIENDS} />
     </div>
+  );
+}
+
+export default function FriendsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
+        <main className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </main>
+      </div>
+    }>
+      <FriendsContent />
+    </Suspense>
   );
 }
