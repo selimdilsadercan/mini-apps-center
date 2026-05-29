@@ -15,6 +15,7 @@ import {
   Trophy,
   Sparkle,
   Compass,
+  MusicNotes,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -230,6 +231,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Lifestyle",
     color: "#D4AF37",
     href: "/apps/hobby-center",
+    isImplemented: true,
+  },
+  {
+    id: "concert-list",
+    name: "My Concert List",
+    description: "Gittiğin konserleri tarihleri ve notlarınla takip et",
+    icon: MusicNotes,
+    category: "Lifestyle",
+    color: "#FF1493",
+    href: "/apps/concert-list",
     isImplemented: true,
   },
 ];

@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly chocolate_db: chocolate_db.ServiceClient
+    public readonly concert_list: concert_list.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
@@ -61,6 +62,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
+        this.concert_list = new concert_list.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
@@ -224,6 +226,110 @@ export namespace chocolate_db {
             return await resp.json() as {
     count: number
 }
+        }
+    }
+}
+
+/**
+ * Concert List Service
+ */
+export namespace concert_list {
+    export interface AddConcertRequest {
+        userId: string
+        artist: string
+        date: string
+        venue?: string
+        notes?: string
+        rating?: number
+    }
+
+    export interface AddConcertResponse {
+        concert: Concert | null
+    }
+
+    export interface BulkImportRequest {
+        userId: string
+        concerts: {
+            artist: string
+            date: string
+            venue?: string
+            notes?: string
+            rating?: number
+        }[]
+    }
+
+    export interface BulkImportResponse {
+        importedCount: number
+    }
+
+    export interface Concert {
+        id: string
+        "user_clerk_id": string
+        artist: string
+        date: string
+        venue?: string
+        notes?: string
+        rating?: number
+        "created_at": string
+    }
+
+    export interface DeleteConcertResponse {
+        success: boolean
+    }
+
+    export interface GetConcertsResponse {
+        concerts: Concert[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addConcert = this.addConcert.bind(this)
+            this.bulkImportConcerts = this.bulkImportConcerts.bind(this)
+            this.deleteConcert = this.deleteConcert.bind(this)
+            this.getConcerts = this.getConcerts.bind(this)
+        }
+
+        /**
+         * Add a new concert
+         * POST /concert-list/concerts/add
+         */
+        public async addConcert(params: AddConcertRequest): Promise<AddConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/concert-list/concerts/add`, JSON.stringify(params))
+            return await resp.json() as AddConcertResponse
+        }
+
+        /**
+         * Bulk import concerts
+         * POST /concert-list/concerts/bulk
+         */
+        public async bulkImportConcerts(params: BulkImportRequest): Promise<BulkImportResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/concert-list/concerts/bulk`, JSON.stringify(params))
+            return await resp.json() as BulkImportResponse
+        }
+
+        /**
+         * Delete a concert
+         * DELETE /concert-list/concerts/:id/:userId
+         */
+        public async deleteConcert(id: string, userId: string): Promise<DeleteConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/concert-list/concerts/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as DeleteConcertResponse
+        }
+
+        /**
+         * Get all concerts for a user
+         * GET /concert-list/concerts/:userId
+         */
+        public async getConcerts(userId: string): Promise<GetConcertsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/concerts/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetConcertsResponse
         }
     }
 }
