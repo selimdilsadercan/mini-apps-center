@@ -1,5 +1,6 @@
 -- Drop old function
 DROP FUNCTION IF EXISTS memedex.update_meme(UUID, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS memedex.update_meme(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT[]);
 
 -- RPC: Update a meme
 CREATE OR REPLACE FUNCTION memedex.update_meme(

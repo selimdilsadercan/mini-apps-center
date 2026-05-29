@@ -1,6 +1,6 @@
 -- Drop old function
-DROP FUNCTION IF EXISTS memedex.get_memes(TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS memedex.get_memes(TEXT, TEXT, TEXT, UUID, BOOLEAN);
+DROP FUNCTION IF EXISTS memedex.get_memes(TEXT, TEXT, TEXT, UUID, BOOLEAN, INT, INT);
 
 -- RPC: Get and search memes
 CREATE OR REPLACE FUNCTION memedex.get_memes(
@@ -8,7 +8,9 @@ CREATE OR REPLACE FUNCTION memedex.get_memes(
     tag_param TEXT DEFAULT '',
     trend_param TEXT DEFAULT '',
     parent_id_param UUID DEFAULT NULL,
-    only_parents_param BOOLEAN DEFAULT TRUE
+    only_parents_param BOOLEAN DEFAULT TRUE,
+    limit_param INT DEFAULT 32,
+    offset_param INT DEFAULT 0
 )
 RETURNS SETOF memedex.memes AS $$
 BEGIN
@@ -22,6 +24,8 @@ BEGIN
             (parent_id_param IS NOT NULL AND parent_id = parent_id_param)
             OR (parent_id_param IS NULL AND (NOT only_parents_param OR parent_id IS NULL))
         )
-    ORDER BY likes_count DESC, created_at DESC;
+    ORDER BY likes_count DESC, created_at DESC
+    LIMIT limit_param
+    OFFSET offset_param;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

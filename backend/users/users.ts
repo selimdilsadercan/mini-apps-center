@@ -23,12 +23,20 @@ interface CreateUserRequest {
   clerkId: string;
 }
 
+interface CreateUserRequest {
+  clerkId: string;
+  username?: string;
+  avatarUrl?: string;
+}
+
 interface CreateUserResponse {
   user: User | null;
 }
 
 interface GetOrCreateUserRequest {
   clerkId: string;
+  username?: string;
+  avatarUrl?: string;
 }
 
 interface GetOrCreateUserResponse {
@@ -91,9 +99,11 @@ export const getUserByClerkId = api(
  */
 export const createUser = api(
   { expose: true, method: "POST", path: "/users/user/create" },
-  async ({ clerkId }: CreateUserRequest): Promise<CreateUserResponse> => {
+  async ({ clerkId, username, avatarUrl }: CreateUserRequest): Promise<CreateUserResponse> => {
     const { data, error } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
+      username_param: username || null,
+      avatar_url_param: avatarUrl || null,
     });
 
     if (error) {
@@ -111,7 +121,7 @@ export const createUser = api(
  */
 export const getOrCreateUser = api(
   { expose: true, method: "POST", path: "/users/user/get-or-create" },
-  async ({ clerkId }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
+  async ({ clerkId, username, avatarUrl }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
     // Önce mevcut user'ı ara
     const { data: existingData, error: existingError } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
@@ -124,6 +134,20 @@ export const getOrCreateUser = api(
     const existingUser = existingData?.[0] || null;
 
     if (existingUser) {
+      // Mevcut user'ın username veya avatar'ı eksikse veya değiştiyse güncelle
+      if (
+        (username && existingUser.username !== username) ||
+        (avatarUrl && existingUser.avatar_url !== avatarUrl)
+      ) {
+        const { data: updatedData, error: updateError } = await supabase.rpc("users_create_user", {
+          clerk_id_param: clerkId,
+          username_param: username || existingUser.username,
+          avatar_url_param: avatarUrl || existingUser.avatar_url,
+        });
+        if (!updateError && updatedData?.[0]) {
+          return { user: updatedData[0], isNewUser: false };
+        }
+      }
       return { user: existingUser, isNewUser: false };
     }
 
@@ -132,6 +156,8 @@ export const getOrCreateUser = api(
     
     const { data: newData, error: newError } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
+      username_param: username || null,
+      avatar_url_param: avatarUrl || null,
     });
 
     if (newError) {
@@ -148,6 +174,7 @@ export const getOrCreateUser = api(
     return { user: newUser, isNewUser: true };
   }
 );
+
 
 /**
  * Kullanıcının FCM token'ını kaydeder veya günceller

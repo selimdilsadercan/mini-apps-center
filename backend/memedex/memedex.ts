@@ -33,6 +33,8 @@ interface GetMemesRequest {
   trend?: string;
   parentId?: string;
   onlyParents?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
 interface GetMemesResponse {
@@ -78,6 +80,8 @@ export const getMemes = api(
       trend_param: params.trend || "",
       parent_id_param: params.parentId || null,
       only_parents_param: params.onlyParents !== undefined ? params.onlyParents : true,
+      limit_param: params.limit !== undefined ? params.limit : 32,
+      offset_param: params.offset || 0,
     });
 
     if (error) {

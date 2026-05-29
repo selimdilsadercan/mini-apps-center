@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly chocolate_db: chocolate_db.ServiceClient
+    public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
@@ -60,6 +61,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
+        this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
@@ -222,6 +224,137 @@ export namespace chocolate_db {
             return await resp.json() as {
     count: number
 }
+        }
+    }
+}
+
+/**
+ * Friendship service handles friends list, pending request management, and friend requests.
+ */
+export namespace friendship {
+    export interface ActionParams {
+        userId: string
+        friendId: string
+    }
+
+    export interface ActionParams {
+        userId: string
+        friendId: string
+    }
+
+    export interface ActionParams {
+        userId: string
+        friendId: string
+    }
+
+    export interface ActionResponse {
+        success: boolean
+        message?: string
+    }
+
+    export interface FriendUser {
+        id: string
+        username: string | null
+        avatar: string | null
+        lastPlayedAt?: string | null
+    }
+
+    export interface GetFriendsResponse {
+        friends: FriendUser[]
+    }
+
+    export interface GetPendingRequestsResponse {
+        requests: PendingRequest[]
+    }
+
+    export interface PendingRequest {
+        id: string
+        username: string | null
+        avatar: string | null
+        createdAt: string
+    }
+
+    export interface SendRequestParams {
+        senderId: string
+        receiverId: string
+    }
+
+    export interface SendRequestResponse {
+        success: boolean
+        message: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.acceptRequest = this.acceptRequest.bind(this)
+            this.getFriends = this.getFriends.bind(this)
+            this.getPendingRequests = this.getPendingRequests.bind(this)
+            this.rejectRequest = this.rejectRequest.bind(this)
+            this.removeFriend = this.removeFriend.bind(this)
+            this.sendRequest = this.sendRequest.bind(this)
+        }
+
+        /**
+         * Gelen arkadaşlık isteğini kabul eder
+         * POST /friendship/request/accept
+         */
+        public async acceptRequest(params: ActionParams): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/friendship/request/accept`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        /**
+         * Arkadaş listesini getirir
+         * GET /friendship/friends/:userId
+         */
+        public async getFriends(userId: string): Promise<GetFriendsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/friendship/friends/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetFriendsResponse
+        }
+
+        /**
+         * Bekleyen arkadaşlık isteklerini getirir
+         * GET /friendship/requests/pending/:userId
+         */
+        public async getPendingRequests(userId: string): Promise<GetPendingRequestsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/friendship/requests/pending/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetPendingRequestsResponse
+        }
+
+        /**
+         * Gelen arkadaşlık isteğini reddeder
+         * POST /friendship/request/reject
+         */
+        public async rejectRequest(params: ActionParams): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/friendship/request/reject`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        /**
+         * Arkadaşı siler veya isteği iptal eder
+         * POST /friendship/remove
+         */
+        public async removeFriend(params: ActionParams): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/friendship/remove`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        /**
+         * Arkadaşlık isteği gönderir
+         * POST /friendship/request/send
+         */
+        public async sendRequest(params: SendRequestParams): Promise<SendRequestResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/friendship/request/send`, JSON.stringify(params))
+            return await resp.json() as SendRequestResponse
         }
     }
 }
@@ -630,6 +763,8 @@ export namespace memedex {
         trend?: string
         parentId?: string
         onlyParents?: boolean
+        limit?: number
+        offset?: number
     }
 
     export interface GetMemesResponse {
@@ -704,6 +839,8 @@ export namespace memedex {
         public async getMemes(params: GetMemesRequest): Promise<GetMemesResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
+                limit:       params.limit === undefined ? undefined : String(params.limit),
+                offset:      params.offset === undefined ? undefined : String(params.offset),
                 onlyParents: params.onlyParents === undefined ? undefined : String(params.onlyParents),
                 parentId:    params.parentId,
                 search:      params.search,
@@ -1547,6 +1684,8 @@ export namespace users {
 
     export interface GetOrCreateUserRequest {
         clerkId: string
+        username?: string
+        avatarUrl?: string
     }
 
     export interface GetOrCreateUserResponse {
@@ -1691,6 +1830,8 @@ export namespace lib {
     export interface User {
         id: string
         "clerk_id": string
+        username: string | null
+        "avatar_url": string | null
         "created_at": string
     }
 }

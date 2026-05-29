@@ -6,6 +6,7 @@ import Client, { Local } from "@/lib/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   ArrowLeft,
+  ArrowUp,
   Sparkle,
   Plus,
   MagnifyingGlass,
@@ -78,6 +79,12 @@ export default function MemedexPage() {
   const [memes, setMemes] = useState<Meme[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Scroll to Top State
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Search & Filter State
   const [search, setSearch] = useState("");
@@ -86,6 +93,7 @@ export default function MemedexPage() {
 
   // Detail Modal
   const [selectedMeme, setSelectedMeme] = useState<Meme | null>(null);
+  const [showMoreDetails, setShowMoreDetails] = useState(false);
 
   // Submit Modal
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
@@ -120,24 +128,55 @@ export default function MemedexPage() {
     { tr: "Sarkastik", en: "Sarcastic" }
   ];
 
-  // Fetch memes from backend
+  // Fetch memes from backend (initial load or filter reset)
   const fetchMemes = async () => {
     try {
       setLoading(true);
       setError(null);
+      setPage(0);
       // @ts-ignore - type generated dynamically by Encore
       const response = await client.memedex.getMemes({
         search: search,
         tag: selectedTag,
         trend: selectedTrend,
-        onlyParents: true
+        onlyParents: true,
+        limit: 32,
+        offset: 0
       });
-      setMemes(response.memes || []);
+      const fetched = response.memes || [];
+      setMemes(fetched);
+      setHasMore(fetched.length === 32);
     } catch (err: any) {
       console.error(err);
       setError(locale === "tr" ? "Meme'ler yüklenirken bir hata oluştu." : "Failed to load memes.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load more memes for pagination
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    try {
+      setLoadingMore(true);
+      const nextOffset = (page + 1) * 32;
+      // @ts-ignore
+      const response = await client.memedex.getMemes({
+        search: search,
+        tag: selectedTag,
+        trend: selectedTrend,
+        onlyParents: true,
+        limit: 32,
+        offset: nextOffset
+      });
+      const fetched = response.memes || [];
+      setMemes(prev => [...prev, ...fetched]);
+      setPage(prev => prev + 1);
+      setHasMore(fetched.length === 32);
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -147,6 +186,7 @@ export default function MemedexPage() {
 
   useEffect(() => {
     if (selectedMeme) {
+      setShowMoreDetails(false);
       const loadVariants = async () => {
         try {
           // @ts-ignore
@@ -177,6 +217,23 @@ export default function MemedexPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Scroll to Top Listener
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Prevent white background leakage on scroll by styling html/body
   useEffect(() => {
@@ -530,6 +587,19 @@ export default function MemedexPage() {
             })}
           </div>
         )}
+
+        {/* Load More Pagination Button */}
+        {!loading && memes.length > 0 && hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {loadingMore ? (locale === "tr" ? "Yükleniyor..." : "Loading...") : (locale === "tr" ? "Daha Fazla Göster" : "Show More")}
+            </button>
+          </div>
+        )}
       </main>
 
       {/* Meme Detail Modal */}
@@ -644,7 +714,66 @@ export default function MemedexPage() {
                 </div>
               </div>
 
+              {/* Show More Details Section */}
+              <div className="border-t border-slate-800/60 pt-5">
+                <button
+                  onClick={() => setShowMoreDetails(!showMoreDetails)}
+                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
+                >
+                  <span>{showMoreDetails ? (locale === "tr" ? "Daha Az Göster" : "Show Less") : (locale === "tr" ? "Detayları Göster (Açıklama, Bağlam vb.)" : "Show More Details (Description, Context etc.)")}</span>
+                  <span className="text-xs">{showMoreDetails ? "▲" : "▼"}</span>
+                </button>
 
+                {showMoreDetails && (
+                  <div className="mt-4 space-y-4 bg-slate-950/40 border border-slate-850 p-5 rounded-2xl">
+                    {/* Description */}
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        {locale === "tr" ? "Açıklama" : "Description"}
+                      </h4>
+                      <p className="text-sm text-slate-200 leading-relaxed">
+                        {selectedMeme.description || (locale === "tr" ? "Açıklama eklenmemiş." : "No description provided.")}
+                      </p>
+                    </div>
+
+                    {/* Context */}
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        {locale === "tr" ? "Kullanım Bağlamı" : "Context / Usage"}
+                      </h4>
+                      <p className="text-sm text-slate-300 leading-relaxed">
+                        {selectedMeme.context || (locale === "tr" ? "Kullanım bağlamı eklenmemiş." : "No context provided.")}
+                      </p>
+                    </div>
+
+                    {/* Example */}
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        {locale === "tr" ? "Örnek Kullanım" : "Example"}
+                      </h4>
+                      <p className="text-sm text-slate-350 italic leading-relaxed">
+                        {selectedMeme.example ? `"${selectedMeme.example}"` : (locale === "tr" ? "Örnek eklenmemiş." : "No example provided.")}
+                      </p>
+                    </div>
+
+                    {/* Tags */}
+                    {selectedMeme.tags && selectedMeme.tags.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-slate-800/40">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          {locale === "tr" ? "Etiketler" : "Tags"}
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedMeme.tags.map((tag) => (
+                            <span key={tag} className="text-[11px] bg-slate-900 px-2.5 py-1 border border-slate-800 text-slate-300 rounded-full font-medium">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Variants Section */}
               {variants.length > 0 && (
@@ -797,6 +926,8 @@ export default function MemedexPage() {
                 </select>
               </div>
 
+
+
               {/* Parent Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-400 tracking-wide uppercase">
@@ -938,6 +1069,8 @@ export default function MemedexPage() {
                 </select>
               </div>
 
+
+
               {/* Submit Action */}
               <button
                 type="submit"
@@ -949,6 +1082,15 @@ export default function MemedexPage() {
             </form>
           </div>
         </div>
+      )}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 p-3 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white rounded-full shadow-lg shadow-fuchsia-950/40 border border-fuchsia-500/20 hover:scale-110 active:scale-95 transition-all z-40"
+          title="Scroll to Top"
+        >
+          <ArrowUp size={20} weight="bold" />
+        </button>
       )}
     </div>
   );

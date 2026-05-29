@@ -91,5 +91,35 @@
     "explore": "Explore",
     "toastSaved": "Hobby progress saved successfully!",
     "toastError": "An error occurred while saving."
+  },
+  "friends": {
+    "title": "Friends",
+    "subtitle": "Connect with others and play together",
+    "loading": "Loading...",
+    "pendingRequests": "Pending Requests",
+    "sentFriendRequest": "sent you a friend request",
+    "myFriends": "My Friends",
+    "noFriends": "You don't have any friends yet. Invite them by sharing your ID!",
+    "removeFriend": "Remove Friend",
+    "removeFriendTitle": "Remove Friend?",
+    "removeFriendConfirm": "Are you sure you want to remove {username} from your friends list?",
+    "cancel": "Cancel",
+    "copyLink": "Copy Link",
+    "copied": "Copied!",
+    "profileQR": "Profile QR",
+    "anonymous": "Anonymous User",
+    "addFriend": "Add Friend",
+    "addFriendPlaceholder": "Enter user ID (Clerk ID)...",
+    "inviteSent": "Friend request sent!",
+    "inviteError": "Could not send friend request. Check the ID and try again.",
+    "cannotAddSelf": "You cannot add yourself.",
+    "userNotFound": "User not found.",
+    "alreadyFriends": "You are already friends.",
+    "requestAlreadySent": "Request already sent.",
+    "copyFeedback": "Link copied to clipboard!",
+    "addFriendButton": "Send Request",
+    "yourFriendId": "Your Friend ID",
+    "shareIdDescription": "Share your ID with friends so they can add you."
   }
 }
+

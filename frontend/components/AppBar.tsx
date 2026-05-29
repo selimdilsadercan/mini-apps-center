@@ -4,14 +4,15 @@ import Link from "next/link";
 import { 
   SquaresFour, 
   Compass, 
-  Bell, 
-  User
+  User,
+  Users
 } from "@phosphor-icons/react";
 
 // Aktif sayfa enum'u
 export enum ActivePage {
   HUB = "hub",
   DISCOVER = "discover",
+  FRIENDS = "friends",  
   NOTIFICATIONS = "notifications",
   PROFILE = "profile",
   GROCERIES = "groceries",
@@ -24,7 +25,7 @@ interface AppBarProps {
 
 export default function AppBar({ activePage }: AppBarProps) {
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] px-2 py-3 z-50">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-sm bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] px-2 py-3 z-50">
       <div className="flex items-center justify-around">
         {/* Hub */}
         <Link
@@ -61,20 +62,21 @@ export default function AppBar({ activePage }: AppBarProps) {
             />
           </div>
         </Link>
-        {/* Notifications */}
+
+        {/* Friends */}
         <Link
-          href="/apps/morning"
+          href="/friends"
           className={`flex flex-col items-center group transition-all duration-300 ${
-            activePage === ActivePage.NOTIFICATIONS ? "scale-110" : "opacity-50 hover:opacity-100"
+            activePage === ActivePage.FRIENDS ? "scale-110" : "opacity-50 hover:opacity-100"
           }`}
         >
           <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-            activePage === ActivePage.NOTIFICATIONS ? "bg-amber-500 shadow-lg shadow-amber-100" : "bg-transparent group-hover:bg-amber-50"
+            activePage === ActivePage.FRIENDS ? "bg-blue-600 shadow-lg shadow-blue-100" : "bg-transparent group-hover:bg-blue-50"
           }`}>
-            <Bell 
+            <Users 
               size={24} 
-              weight={activePage === ActivePage.NOTIFICATIONS ? "fill" : "bold"}
-              color={activePage === ActivePage.NOTIFICATIONS ? "white" : "#1F2937"} 
+              weight={activePage === ActivePage.FRIENDS ? "fill" : "bold"}
+              color={activePage === ActivePage.FRIENDS ? "white" : "#1F2937"} 
             />
           </div>
         </Link>
@@ -98,6 +100,5 @@ export default function AppBar({ activePage }: AppBarProps) {
         </Link>
       </div>
     </nav>
-
   );
 }

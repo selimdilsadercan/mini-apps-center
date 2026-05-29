@@ -18,7 +18,12 @@ export function GreetingHandler() {
   useEffect(() => {
     if (isLoaded && user) {
       // Veritabanı ile senkronize et
-      client.users.getOrCreateUser({ clerkId: user.id }).catch(err => {
+      const name = user.username || user.fullName || user.primaryEmailAddress?.emailAddress?.split("@")[0] || "User";
+      client.users.getOrCreateUser({ 
+        clerkId: user.id,
+        username: name,
+        avatarUrl: user.imageUrl
+      }).catch(err => {
         console.error("User sync error:", err);
       });
 
