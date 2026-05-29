@@ -23,6 +23,7 @@ import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react"; 
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import IskambilAppBar from "./components/IskambilAppBar";
 
 const client = createBrowserClient();
 
@@ -120,9 +121,6 @@ export default function IskambilRehberi() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPlayers, setSelectedPlayers] = useState("all");
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const [noteText, setNoteText] = useState("");
-  const [isSavingNote, setIsSavingNote] = useState(false);
 
   const t = translations[lang];
 
@@ -246,9 +244,6 @@ export default function IskambilRehberi() {
         setGames(prev => prev.map(g =>
           g.id === gameId ? { ...g, is_favorite: resp.isFavorite } : g
         ));
-        if (selectedGame?.id === gameId) {
-          setSelectedGame(prev => prev ? { ...prev, is_favorite: resp.isFavorite } : null);
-        }
       }
     } catch (err) {
       console.error("Favorite error:", err);
@@ -267,39 +262,9 @@ export default function IskambilRehberi() {
         setGames(prev => prev.map(g =>
           g.id === gameId ? { ...g, is_known: resp.isKnown } : g
         ));
-        if (selectedGame?.id === gameId) {
-          setSelectedGame(prev => prev ? { ...prev, is_known: resp.isKnown } : null);
-        }
       }
     } catch (err) {
       console.error("Known toggle error:", err);
-    }
-  };
-
-  const handleOpenDetail = (game: Game) => {
-    setSelectedGame(game);
-    setNoteText(game.user_note || "");
-  };
-
-  const handleSaveNote = async () => {
-    if (!user?.id || !selectedGame) return;
-    try {
-      setIsSavingNote(true);
-      const resp = await client.iskambil.saveNote({
-        gameId: selectedGame.id,
-        userId: user.id,
-        note: noteText
-      });
-      if (resp.success) {
-        setGames(prev => prev.map(g =>
-          g.id === selectedGame.id ? { ...g, user_note: resp.note } : g
-        ));
-        setSelectedGame(prev => prev ? { ...prev, user_note: resp.note } : null);
-      }
-    } catch (err) {
-      console.error("Save note error:", err);
-    } finally {
-      setIsSavingNote(false);
     }
   };
 
@@ -318,46 +283,13 @@ export default function IskambilRehberi() {
     <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#ffffff] border-b border-[#e2dec5]">
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/home")}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5f2e9] border border-[#e2dcc8] text-[#0c3122] hover:bg-[#eae6df] transition-all cursor-pointer"
-              title={t.back}
-            >
-              <ArrowLeft size={18} weight="bold" />
-            </button>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-[#0c3122]">
-                <Cards size={24} weight="fill" className="text-[#0c3122] animate-pulse inline-block" />
-                {t.archiveTitle}
-              </h1>
-              <p className="text-[9px] text-emerald-400/80 font-black uppercase tracking-[0.2em] mt-1">{t.archiveSubtitle}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Search Bar */}
-            <div className="relative hidden md:block w-72">
-              <input 
-                type="text" 
-                placeholder={t.searchPlaceholder} 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#ffffff] border border-[#e2dec5] rounded-xl py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-[#fbf9f3] transition-all text-slate-800 placeholder-slate-400"
-              />
-              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            </div>
-          </div>
-        </div>
-      </header>
+      <IskambilAppBar activeTab="discover" />
 
       {/* Main Layout */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-8 flex flex-col gap-6 relative z-10">
 
-        {/* Mobile Search */}
-        <div className="relative md:hidden w-full">
+        {/* Unified Search */}
+        <div className="relative w-full">
           <input 
             type="text" 
             placeholder={t.searchPlaceholder} 
@@ -463,7 +395,7 @@ export default function IskambilRehberi() {
                           layout
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          onClick={() => handleOpenDetail(game)}
+                          onClick={() => router.push(`/apps/iskambil/game?gameId=${game.id}`)}
                           className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-[#1a2d22]"
                         >
                           {/* Decorative suit symbol inside background of card */}
@@ -546,156 +478,6 @@ export default function IskambilRehberi() {
         </div>
 
       </main>
-
-      {/* Rules Details & Notes Modal */}
-      <AnimatePresence>
-        {selectedGame && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedGame(null)}
-              className="fixed inset-0 bg-[#0c3122] z-50 cursor-pointer"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-              className="fixed inset-x-4 md:inset-x-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[95%] md:max-w-5xl max-h-[90vh] bg-[#fdfcf7] border border-[#e2dec5] rounded-3xl shadow-2xl z-50 overflow-y-auto text-[#1a2d22] scrollbar-thin scrollbar-track-[#f4f1ea] scrollbar-thumb-[#e2dec5]"
-            >
-              <div className="p-6 md:p-8 space-y-6">
-                
-                {/* Modal Header */}
-                <div className="flex justify-between items-start border-b border-[#e2dec5] pb-4">
-                  <div>
-                    <span className="text-[10px] font-black text-white bg-[#0c3122] px-3 py-1 rounded-full tracking-widest">
-                      {(lang === "tr" ? selectedGame.category_tr : selectedGame.category_en).toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US")}
-                    </span>
-                    <h2 className="text-2xl font-black text-[#0c3122] tracking-tight mt-2 flex items-center gap-3">
-                      {(lang === "tr" ? selectedGame.name_tr : selectedGame.name_en).toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US")}
-                      {selectedGame.original_name && selectedGame.original_name.toLowerCase() !== (lang === "tr" ? selectedGame.name_tr : selectedGame.name_en).toLowerCase() && (
-                        <span className="text-sm font-semibold text-slate-400 normal-case font-sans">
-                          ({selectedGame.original_name})
-                        </span>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => handleToggleKnown(selectedGame.id, e)}
-                          className="text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
-                          title={t.known}
-                        >
-                          <CheckCircle size={20} weight={selectedGame.is_known ? "fill" : "bold"} className={selectedGame.is_known ? "text-emerald-600" : ""} />
-                        </button>
-                        <button
-                          onClick={(e) => handleToggleFavorite(selectedGame.id, e)}
-                          className="text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
-                          title={t.favorite}
-                        >
-                          <Heart size={20} weight={selectedGame.is_favorite ? "fill" : "bold"} className={selectedGame.is_favorite ? "text-red-500" : ""} />
-                        </button>
-                      </div>
-                    </h2>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedGame(null)} 
-                    className="w-10 h-10 flex items-center justify-center bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] rounded-xl text-[#0c3122] transition-all cursor-pointer active:scale-95"
-                  >
-                    <X size={18} weight="bold" />
-                  </button>
-                </div>
-
-                 {/* Tabular Layout / Scrollable Content */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
-                  {/* Rules Column */}
-                  <div className="md:col-span-2 space-y-4">
-                    <h3 className="text-xs font-black uppercase text-[#0c3122] tracking-[0.2em]">
-                      {t.rulesHeader}
-                    </h3>
-                    
-                    <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-6 max-h-[580px] overflow-y-auto space-y-4 font-sans text-base text-slate-700 leading-relaxed shadow-sm scrollbar-thin scrollbar-thumb-[#e2dec5]">
-                      {(lang === "tr" ? selectedGame.rules_tr : selectedGame.rules_en).length > 0 ? (
-                        <ol className="space-y-4 list-decimal list-inside">
-                          {(lang === "tr" ? selectedGame.rules_tr : selectedGame.rules_en).map((rule, idx) => (
-                            <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-2 border-b border-[#f4f1ea] last:border-0 pl-1">
-                              <span className="inline-block md:inline leading-loose text-slate-700">{rule}</span>
-                            </li>
-                          ))}
-                        </ol>
-                      ) : (
-                        <div className="text-center text-slate-400 py-8 flex flex-col items-center gap-2">
-                          <XCircle size={32} className="opacity-55" />
-                          <span>{t.noRules}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Info Tags & Notes Column (Right) */}
-                  <div className="md:col-span-1 space-y-6 flex flex-col pt-8">
-                    
-                    {/* Game Quick Info Tags */}
-                    <div className="flex flex-col gap-3">
-                      <div className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-3 flex flex-col gap-1 shadow-sm">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t.playerCapacity}</span>
-                        <span className="text-xs font-bold text-[#0c3122] flex items-center gap-2">
-                          <Users size={14} className="text-[#0c3122]/70" />
-                          {selectedGame.min_players === selectedGame.max_players 
-                            ? `${selectedGame.min_players} ${t.players}` 
-                            : `${selectedGame.min_players}-${selectedGame.max_players} ${t.players}`}
-                        </span>
-                      </div>
-                      <div className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-3 flex flex-col gap-1 shadow-sm">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t.deckRequirement}</span>
-                        <span className="text-xs font-bold text-[#0c3122] flex items-center gap-2">
-                          <Cards size={14} className="text-[#0c3122]/70" />
-                          {lang === "tr" ? selectedGame.deck_count_tr : selectedGame.deck_count_en}
-                        </span>
-                      </div>
-                      <div className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-3 flex flex-col gap-1 shadow-sm">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t.gameType}</span>
-                        <span className="text-xs font-bold text-[#0c3122] flex items-center gap-2">
-                          <Tag size={14} className="text-[#0c3122]/70" />
-                          {lang === "tr" ? selectedGame.category_tr : selectedGame.category_en}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Notes Area */}
-                    <div className="space-y-3 flex-1 flex flex-col">
-                      <h3 className="text-xs font-black uppercase text-[#0c3122] tracking-[0.2em] flex items-center gap-2">
-                        <Note size={18} />
-                        {t.personalNotes}
-                      </h3>
-                      
-                      <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-5 flex flex-col gap-4 flex-1 shadow-sm">
-                        <textarea
-                          value={noteText}
-                          onChange={(e) => setNoteText(e.target.value)}
-                          placeholder={t.notesPlaceholder}
-                          className="w-full bg-[#fdfcf7] border border-[#e2dec5] rounded-2xl p-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white transition-all text-slate-800 placeholder-slate-400 resize-none min-h-[160px] flex-1"
-                        />
-                        
-                        <button
-                          onClick={handleSaveNote}
-                          disabled={isSavingNote}
-                          className="w-full bg-[#0c3122] hover:bg-[#12422f] text-white font-black py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px] cursor-pointer disabled:opacity-50"
-                        >
-                          <FloppyDisk size={16} />
-                          <span>{isSavingNote ? t.saving : t.save}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
     </div>
   );

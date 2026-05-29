@@ -6,6 +6,8 @@ import { GraphData, GraphNode, GraphLink } from "./types";
 import FilmList from "./components/FilmList";
 import AddFilmModal from "./components/AddFilmModal";
 import NodeDetailPanel from "./components/NodeDetailPanel";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
 // Force graph'ı client-side only yükle (SSR desteği yok)
 const FilmGraph = dynamic(() => import("./components/FilmGraph"), {
@@ -45,6 +47,7 @@ interface FilmData {
 const STORAGE_KEY = "film-graph-data";
 
 export default function Home() {
+  const router = useRouter();
   const [films, setFilms] = useState<Film[]>([]);
   const [persons, setPersons] = useState<Map<string, Person>>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -384,20 +387,29 @@ export default function Home() {
       {/* Ana Alan - Graph */}
       <div className="flex-1 relative">
         {/* Header */}
-        <div className="absolute top-8 left-8 z-10 pointer-events-none">
-          <h1 className="text-3xl font-bold text-white mb-2 leading-none">
-            Film Graph
-          </h1>
-          <p className="text-sm text-zinc-500 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 inline-block">
-            <span className="text-white font-medium">
-              {graphData.nodes.length}
-            </span>{" "}
-            nodes •{" "}
-            <span className="text-white font-medium">
-              {graphData.links.length}
-            </span>{" "}
-            links
-          </p>
+        <div className="absolute top-8 left-8 z-10 flex flex-col gap-4">
+          <button
+            onClick={() => router.push("/home")}
+            className="pointer-events-auto group flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-850 hover:border-zinc-700 transition-all cursor-pointer shadow-lg active:scale-95"
+            title="Geri Dön"
+          >
+            <ArrowLeft size={18} weight="bold" />
+          </button>
+          <div className="pointer-events-none">
+            <h1 className="text-3xl font-bold text-white mb-2 leading-none">
+              Film Graph
+            </h1>
+            <p className="text-sm text-zinc-500 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 inline-block">
+              <span className="text-white font-medium">
+                {graphData.nodes.length}
+              </span>{" "}
+              nodes •{" "}
+              <span className="text-white font-medium">
+                {graphData.links.length}
+              </span>{" "}
+              links
+            </p>
+          </div>
         </div>
 
         {/* Graph Container */}

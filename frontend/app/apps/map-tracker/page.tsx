@@ -9,8 +9,10 @@ import {
   CheckCircle, 
   Circle, 
   MapPin,
-  CaretRight
+  CaretRight,
+  ArrowLeft
 } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +30,7 @@ const MapComponent = dynamic(
 const client = new Client(Local);
 
 export default function MapTrackerPage() {
+  const router = useRouter();
   const [view, setView] = useState<"map" | "list">("map");
   const [data, setData] = useState<{ lists: any[]; items: any[] }>({ lists: [], items: [] });
   const [selectedListId, setSelectedListId] = useState<string | "all">("all");
@@ -94,9 +97,18 @@ export default function MapTrackerPage() {
       <div className="min-h-screen bg-[#FDFCF8] text-[#4A4A4A] font-sans">
         {/* Header */}
         <header className="sticky top-0 z-30 bg-[#FDFCF8]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-[#E9E5D9]">
-          <div>
-            <h1 className="text-xl font-semibold text-[#3D405B]">Harita Takip</h1>
-            <p className="text-xs text-[#8D99AE]">Kezbanın chill gezi rehberi</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/home")}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#F1EDE2] text-[#3D405B] hover:bg-[#E9E5D9] transition-all cursor-pointer"
+              title="Geri Dön"
+            >
+              <ArrowLeft size={16} weight="bold" />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold text-[#3D405B] leading-none">Harita Takip</h1>
+              <p className="text-xs text-[#8D99AE] mt-1">Kezbanın chill gezi rehberi</p>
+            </div>
           </div>
           
           <div className="flex bg-[#F1EDE2] rounded-full p-1 shadow-inner">

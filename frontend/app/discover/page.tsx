@@ -10,7 +10,6 @@ import {
   Sparkle,
   CirclesFour,
   X,
-  CaretRight,
   Star,
   TrendUp,
   Fire
@@ -51,9 +50,6 @@ function AppSection({
         <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight">
           {title}
         </h2>
-        <button className="w-8 h-8 flex items-center justify-center bg-white rounded-full border border-gray-100 shadow-sm text-gray-400 hover:text-indigo-600 transition-all">
-          <CaretRight size={18} weight="bold" />
-        </button>
       </div>
 
       <div className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 snap-x snap-mandatory scroll-pl-5">

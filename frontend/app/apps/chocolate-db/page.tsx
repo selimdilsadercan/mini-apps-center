@@ -8,12 +8,15 @@ import {
   TrendUp, 
   MagnifyingGlass,
   CaretRight,
-  X
+  X,
+  ArrowLeft
 } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
 const client = new Client(Local);
 
 export default function ChocolateDBPage() {
+  const router = useRouter();
   const [chocolates, setChocolates] = useState<chocolate_db.Chocolate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,6 +58,14 @@ export default function ChocolateDBPage() {
     <div className="min-h-screen bg-[#FDF5E6] dark:bg-[#1A0F0A] text-[#4A2C2A] dark:text-[#F3E5D8] font-sans">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-[#4A2C2A] py-16 px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push("/home")}
+          className="absolute top-6 left-6 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-[#F3E5D8]/10 hover:bg-[#F3E5D8]/20 border border-[#F3E5D8]/20 text-[#F3E5D8] transition-all cursor-pointer shadow-lg"
+          title="Geri Dön"
+        >
+          <ArrowLeft size={20} weight="bold" />
+        </button>
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]"></div>
         <div className="relative max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-black text-[#D4AF37] mb-4 tracking-tight drop-shadow-lg uppercase">

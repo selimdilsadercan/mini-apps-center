@@ -16,8 +16,10 @@ import {
   MusicNotes, 
   Smiley, 
   Cpu,
-  Microphone
+  Microphone,
+  ArrowLeft
 } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import SeriesCard from "./components/SeriesCard";
 import { CATEGORY_LABELS, type Category, type Series } from "./lib/types";
@@ -50,6 +52,7 @@ const categoryGradients: Record<Category, string> = {
 };
 
 export default function YouTubeDiscoverPage() {
+  const router = useRouter();
   const [allSeries, setAllSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,7 +76,16 @@ export default function YouTubeDiscoverPage() {
   const ongoing = allSeries.filter(s => s.status === "devam-ediyor");
 
   return (
-    <div className="flex flex-col gap-12 pb-32 overflow-x-hidden">
+    <div className="flex flex-col gap-12 pb-32 overflow-x-hidden relative">
+      {/* Floating Back Button */}
+      <button
+        onClick={() => router.push("/home")}
+        className="absolute top-6 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white backdrop-blur-md transition-all cursor-pointer shadow-2xl active:scale-95"
+        title="Geri Dön"
+      >
+        <ArrowLeft size={18} weight="bold" />
+      </button>
+
       {/* --- HERO SECTION --- */}
       {featured && (
         <section className="relative w-full h-[85vh] min-h-[600px] flex items-end">
