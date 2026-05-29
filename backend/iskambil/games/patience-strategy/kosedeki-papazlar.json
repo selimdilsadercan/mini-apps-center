@@ -1,0 +1,34 @@
+{
+  "id": "kosedeki-papazlar",
+  "name_tr": "köşedeki papazlar",
+  "name_en": "Kings in the Corner",
+  "originalName": "Kings in the Corner",
+  "description_tr": "Oyuncuların kartlarını azalan ve alternatif renkli sıralara yerleştirerek bitirmeye çalıştığı solitaire tarzı çok oyunculu oyun.",
+  "description_en": "A multiplayer solitaire-style shedding game where players build descending alternating-color sequences and place Kings in the corners.",
+  "rules_tr": [
+    "2-4 oyuncuyla 52 kartlık standart deste kullanılır.",
+    "Her oyuncuya 7 kart dağıtılır. Kalan kartlar kapalı deste olur.",
+    "Masaya artı şeklinde 4 açık kart konur; bunlar başlangıç oyun desteleridir.",
+    "Oyuncular sırası geldiğinde önce bir kart çeker, sonra mümkün olan hamleleri yapar.",
+    "Kartlar masadaki açık kartların üzerine bir düşük değer ve zıt renk kuralıyla oynanır. Örneğin kırmızı 8 üzerine siyah 7 oynanabilir.",
+    "Papazlar köşelere yerleştirilebilir ve yeni sıra başlatır.",
+    "Oyuncu isterse uygun kart dizilerini bir desteden başka desteye taşıyabilir.",
+    "Elindeki tüm kartları ilk bitiren oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Played with 2-4 players using a standard 52-card deck.",
+    "Each player is dealt 7 cards. The rest forms the stock pile.",
+    "Four face-up cards are placed in a cross shape on the table as starting piles.",
+    "On a turn, a player draws one card, then makes any legal moves available.",
+    "Cards are played onto table piles in descending order and alternating color, such as a black 7 on a red 8.",
+    "Kings may be placed in the corners to start new rows.",
+    "A player may move suitable card sequences from one pile to another.",
+    "The first player to empty their hand wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "minnesota-whist",
+  "name_tr": "minnesota whist",
+  "name_en": "Minnesota Whist",
+  "originalName": "Minnesota Whist",
+  "description_tr": "Dört kişiyle, ikişerli takımlar halinde oynanan kozsuz whist varyantı.",
+  "description_en": "A no-trump Whist variant for four players in two partnerships.",
+  "rules_tr": [
+    "4 oyuncu karşılıklı oturan iki takım halinde oynar. 52 kartlık deste tamamen dağıtılır ve herkes 13 kart alır.",
+    "Oyunda koz yoktur. As en yüksek, 2 en düşük karttır.",
+    "Oyuncular oynanan renge uymak zorundadır. O renkten kartı olmayan oyuncu istediği kartı atabilir.",
+    "Oynanan renkteki en yüksek kart eli alır ve sonraki eli başlatır.",
+    "Her el yüksek veya düşük hedefle oynanabilir. Yüksek elde takım 7 veya daha fazla el almaya çalışır.",
+    "Düşük elde takım mümkün olduğunca az el almaya çalışır; genellikle 6 veya daha az el almak avantajlıdır.",
+    "Puanlama high/low kararına ve alınan el sayısına göre yapılır. Belirlenen hedef puana ilk ulaşan takım kazanır."
+  ],
+  "rules_en": [
+    "Four players play in two partnerships sitting opposite each other. The full 52-card deck is dealt so each player receives 13 cards.",
+    "There is no trump suit. Aces are high and 2s are low.",
+    "Players must follow the led suit if possible. A player with no card in the led suit may play any card.",
+    "The highest card in the led suit wins the trick and leads the next trick.",
+    "Each hand may be played with a high or low objective. In a high hand, a partnership tries to win 7 or more tricks.",
+    "In a low hand, a partnership tries to win as few tricks as possible; usually 6 or fewer tricks is favorable.",
+    "Scoring depends on the high/low decision and the number of tricks won. The first partnership to reach the target score wins."
+  ],
+  "minPlayers": 4,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

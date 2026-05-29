@@ -1,0 +1,34 @@
+{
+  "id": "blof",
+  "name_tr": "blöf",
+  "name_en": "Cheat / I Doubt It",
+  "originalName": "Cheat / I Doubt It",
+  "description_tr": "Oyuncuların kapalı kart atıp doğru veya yalan beyan vererek kartlarını bitirmeye çalıştığı blöf oyunu.",
+  "description_en": "A bluffing game where players play face-down cards and may truthfully or falsely claim their rank to get rid of cards.",
+  "rules_tr": [
+    "En iyi 3-6 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Kartlar oyunculara mümkün olduğunca eşit dağıtılır.",
+    "Oyuncular sırayla ortaya kapalı kart veya kartlar atar ve hangi değeri attığını söyler.",
+    "Oyunun varyantına göre beyan edilen değerler sırayla ilerleyebilir veya oyuncu turu başlatırken istediği değeri seçebilir.",
+    "Diğer oyuncular beyanın yalan olduğunu düşünürse 'Blöf!' ya da 'İnanmıyorum!' diyerek itiraz eder.",
+    "İtiraz edilirse son atılan kartlar açılır. Beyan yalan ise kartları atan oyuncu ortadaki tüm desteyi alır.",
+    "Beyan doğruysa itiraz eden oyuncu ortadaki tüm desteyi alır.",
+    "Elindeki tüm kartları ilk bitiren oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Best played with 3-6 players using a standard 52-card deck.",
+    "Cards are dealt to players as evenly as possible.",
+    "Players take turns placing one or more cards face down and declaring what rank they played.",
+    "Depending on the variant, declared ranks may advance in order, or the starting player may choose any rank.",
+    "If another player thinks the claim is false, they may challenge by saying 'Cheat!' or 'I doubt it!'",
+    "When challenged, the last played cards are revealed. If the claim was false, the player who played them takes the whole center pile.",
+    "If the claim was true, the challenger takes the whole center pile.",
+    "The first player to get rid of all cards wins."
+  ],
+  "minPlayers": 3,
+  "maxPlayers": 6,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

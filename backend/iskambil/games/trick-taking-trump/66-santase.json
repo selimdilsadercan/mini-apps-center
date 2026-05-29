@@ -1,0 +1,32 @@
+{
+  "id": "66-santase",
+  "name_tr": "66 / santase",
+  "name_en": "Sixty-Six / Santase",
+  "originalName": "Sixty-Six / Santase",
+  "description_tr": "24 kartlık desteyle oynanan, kozlu el alma ve evlilik puanlarını içeren iki kişilik strateji oyunu.",
+  "description_en": "A two-player strategy game using a 24-card deck, combining trump trick-taking with marriage bonuses.",
+  "rules_tr": [
+    "Standart 66 iki kişiyle oynanır ve 9, 10, Vale, Kız, Papaz, As kartlarından oluşan 24 kartlık deste kullanılır.",
+    "Her oyuncuya 6 kart dağıtılır. Kalan deste talon olur; bir kart açılarak koz rengi belirlenir.",
+    "Kart değerleri: As 11, 10'lu 10, Papaz 4, Kız 3, Vale 2, 9'lu 0 puandır.",
+    "Oyuncular el alarak puan toplar. Oyunun erken aşamasında renge uyma zorunluluğu yoktur; talon bittikten veya kapatıldıktan sonra renge uyma ve kozlama kuralları sıkılaşır.",
+    "Aynı renkten Papaz ve Kız eldeyken evlilik ilan edilebilir. Koz evliliği 40, diğer renk evlilikleri 20 puan getirir.",
+    "Bir oyuncu kart ve evlilik puanlarıyla 66'ya ulaştığını ilan ederse el biter.",
+    "Eli kazanan oyuncu rakibin aldığı puana göre 1, 2 veya 3 oyun puanı alır. Genellikle 7 oyun puanına ilk ulaşan kazanır."
+  ],
+  "rules_en": [
+    "Standard Sixty-Six is played by 2 players using a 24-card deck made of 9, 10, Jack, Queen, King, and Ace.",
+    "Each player is dealt 6 cards. The rest becomes the talon; one card is turned face up to determine trump.",
+    "Card values are: Ace 11, Ten 10, King 4, Queen 3, Jack 2, Nine 0.",
+    "Players score by winning tricks. Early in the hand, following suit is not required; after the talon is exhausted or closed, following suit and trumping rules become stricter.",
+    "A King and Queen of the same suit may be declared as a marriage. A trump marriage is worth 40; other marriages are worth 20.",
+    "When a player believes they have reached 66 card and marriage points, they may declare it and end the hand.",
+    "The winner receives 1, 2, or 3 game points depending on the opponent's score. The game is often played to 7 game points."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "24 Kartlık Deste",
+  "deckCount_en": "24-card deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

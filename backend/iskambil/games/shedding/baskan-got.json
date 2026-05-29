@@ -1,0 +1,34 @@
+{
+  "id": "baskan-got",
+  "name_tr": "başkan / göt",
+  "name_en": "President / Asshole",
+  "originalName": "President / Asshole",
+  "description_tr": "Oyuncuların kartlarını herkesten önce bitirmeye çalıştığı, tur sonunda başarı sırasına göre unvan ve kart değişimi yapılan tırmanmalı el bitirme oyunu.",
+  "description_en": "A climbing game where players try to get rid of their cards first to gain higher social status for the next round.",
+  "rules_tr": [
+    "Genellikle 3-8 oyuncuyla, 52 kartlık standart deste ile oynanır; kalabalık oyunlarda joker veya ikinci deste eklenebilir.",
+    "Tüm kartlar oyunculara dağıtılır. Kart sayıları eşit bölünmezse bazı oyuncular bir kart fazla alabilir.",
+    "İlk oyuncu tek kart, çift, üçlü veya dörtlü gibi aynı değerden bir kombinasyon oynar. Sonraki oyuncular aynı sayıda ama daha yüksek değerde kart oynamalıdır.",
+    "Kart atamayan veya atmak istemeyen oyuncu pas geçer. Bir turda herkes pas geçerse masa temizlenir ve son kartı atan oyuncu yeni turu başlatır.",
+    "Kart sıralaması ev kuralına göre değişebilir; yaygın düzende 3 en düşük, 2 en yüksek karttır. Bazı ev kurallarında 2 masayı temizler.",
+    "Elindeki tüm kartları ilk bitiren Başkan, ikinci bitiren Başkan Yardımcısı, son bitiren ise Göt/Scum olur.",
+    "Yeni elde düşük unvanlı oyuncular en iyi kartlarını yüksek unvanlı oyunculara verir; yüksek unvanlı oyuncular karşılığında istemedikleri düşük kartları geri verir. Değiştirilecek kart sayısı oyuncu sayısına ve ev kuralına göre belirlenir.",
+    "Oyun birkaç el üst üste oynanır; amaç üst sıralarda kalmak ve sonraki elde avantajlı başlamaktır."
+  ],
+  "rules_en": [
+    "Commonly played with 3-8 players using a standard 52-card deck; jokers or a second deck can be added for larger groups.",
+    "All cards are distributed equally among players. If not divided evenly, some players might receive one extra card.",
+    "The first player leads a single card, pair, three-of-a-kind, or four-of-a-kind. Subsequent players must play a combination of the same size but higher rank.",
+    "A player who cannot or does not want to play a card passes. When everyone passes, the trick is cleared and the last player to play starts a new trick.",
+    "Card ranking can vary by house rules; usually 3 is the lowest and 2 is the highest. In some house rules, a 2 clears the table.",
+    "The player who finishes their cards first becomes the President, the second becomes the Vice President, and the last becomes the Asshole/Scum.",
+    "At the start of the next round, lower status players must trade their best cards to higher status players, who trade back their unwanted cards.",
+    "The game is played over multiple rounds; the goal is to reach/stay in the President position."
+  ],
+  "minPlayers": 3,
+  "maxPlayers": 8,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Bitirme",
+  "category_en": "Shedding"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "spider-solitaire",
+  "name_tr": "spider solitaire",
+  "name_en": "Spider Solitaire",
+  "originalName": "Spider Solitaire",
+  "description_tr": "İki deste ile oynanan, aynı renkten Papaz'dan As'a eksiksiz diziler oluşturup temizlemeye dayalı solitaire oyunu.",
+  "description_en": "A solitaire game using two decks, where complete same-suit King-to-Ace sequences are built and cleared.",
+  "rules_tr": [
+    "1 kişiyle ve toplam 104 karttan oluşan iki standart deste ile oynanır.",
+    "Masaya 10 sütun halinde kart dağıtılır; bazı kartlar kapalı, en üst kartlar açık olur.",
+    "Amaç aynı renkten Papaz'dan As'a kadar tam diziler oluşturmaktır.",
+    "Sütunlarda herhangi bir renkten bir düşük değerde kart üst üste konabilir; ancak yalnızca aynı renkten sıralı diziler birlikte taşınabilir.",
+    "Tamamlanan aynı renk Papaz-As dizisi masadan kaldırılır.",
+    "Hamle kalmadığında stoktan her sütuna birer kart dağıtılır.",
+    "Boş sütunlar stratejik olarak kullanılabilir; ancak stoktan kart dağıtmak için genellikle tüm sütunlarda en az bir kart bulunması gerekir.",
+    "Tüm tam diziler temizlenirse oyun kazanılır."
+  ],
+  "rules_en": [
+    "Played by 1 player with two standard decks, for 104 cards total.",
+    "Cards are dealt into 10 tableau columns; some cards are face down and the top cards are face up.",
+    "The goal is to build complete same-suit sequences from King down to Ace.",
+    "In the tableau, cards may be placed on cards one rank higher regardless of suit, but only same-suit sequences can be moved together.",
+    "A completed same-suit King-to-Ace sequence is removed from the table.",
+    "When no move is available, one card from the stock is dealt to each column.",
+    "Empty columns can be used strategically; usually all columns must contain at least one card before dealing from the stock.",
+    "The game is won when all complete sequences are removed."
+  ],
+  "minPlayers": 1,
+  "maxPlayers": 1,
+  "deckCount_tr": "2 Deste",
+  "deckCount_en": "2 Decks",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

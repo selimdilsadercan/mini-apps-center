@@ -1,0 +1,34 @@
+{
+  "id": "clubbers",
+  "name_tr": "clubbers / slap",
+  "name_en": "Egyptian Rat Screw",
+  "originalName": "Egyptian Rat Screw",
+  "description_tr": "Dosyada clubbers adıyla yer alan kayıt, kuralları bakımından Egyptian Rat Screw/Slap tarzı hızlı refleks oyununa karşılık gelecek şekilde düzeltilmiştir.",
+  "description_en": "The record named Clubbers has been standardized as an Egyptian Rat Screw/Slap-style reflex card game.",
+  "rules_tr": [
+    "2-6 oyuncuyla 52 kartlık standart deste kullanılır; istenirse jokerler de eklenebilir.",
+    "Tüm kartlar oyunculara kapalı şekilde eşit dağıtılır. Oyuncular kendi destelerine bakmaz.",
+    "Oyuncular sırayla kendi destelerinin en üst kartını ortaya açık şekilde koyar.",
+    "Sayı kartı gelirse sıra bir sonraki oyuncuya geçer. Vale, Kız, Papaz veya As gibi yüz/özel kart geldiğinde sonraki oyuncuya karşılık verme hakkı doğar.",
+    "Yaygın kuralda Vale için 1, Kız için 2, Papaz için 3, As için 4 kartlık karşılık hakkı verilir. Bu hak içinde yeni bir yüz/özel kart gelmezse ortadaki desteyi yüz/özel kartı atan oyuncu alır.",
+    "Oyuncular belirli durumlarda desteye hızlıca vurabilir: aynı değerden iki kart üst üste gelmesi, araya bir kart girerek aynı değer gelmesi veya ev kuralıyla belirlenen başka kombinasyonlar.",
+    "Doğru zamanda ilk vuran oyuncu ortadaki tüm kartları alır. Yanlış vuran oyuncu ceza olarak kart verebilir.",
+    "Amaç oyundaki tüm kartları toplamaktır."
+  ],
+  "rules_en": [
+    "Played with 2-6 players using a standard 52-card deck; jokers may be added by house rule.",
+    "All cards are dealt face down as evenly as possible. Players do not look at their own stacks.",
+    "Players take turns flipping the top card of their stack face up into the center.",
+    "If a number card appears, play simply passes to the next player. If a face/special card appears, the next player gets a limited chance to respond.",
+    "A common rule gives 1 chance for a Jack, 2 for a Queen, 3 for a King, and 4 for an Ace. If no new face/special card appears during those chances, the player who played the face/special card wins the center pile.",
+    "Players may slap the pile in special patterns such as doubles, sandwiches, or other house-rule combinations.",
+    "The first player to slap correctly wins the whole center pile. A false slap may be penalized by giving cards away.",
+    "The goal is to collect all cards in the game."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

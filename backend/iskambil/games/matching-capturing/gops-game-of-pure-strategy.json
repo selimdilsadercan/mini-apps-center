@@ -1,0 +1,34 @@
+{
+  "id": "gops-game-of-pure-strategy",
+  "name_tr": "gops",
+  "name_en": "Game of Pure Strategy",
+  "originalName": "Game of Pure Strategy",
+  "description_tr": "Şans unsurunun çok az olduğu, oyuncuların ödül kartları için kapalı teklif verdiği iki kişilik strateji oyunu.",
+  "description_en": "A two-player strategy game with very little chance, where players make hidden bids for prize cards.",
+  "rules_tr": [
+    "GOPS 2 kişiyle oynanır ve standart desteden üç renk kullanılır.",
+    "Karo kartları ödül kartları olarak ayrılır ve ortada kapalı karıştırılır.",
+    "Her oyuncu kalan iki farklı renkten birini el olarak alır; örneğin biri Kupa, diğeri Maça kartlarını kullanır.",
+    "Her tur bir ödül kartı açılır.",
+    "İki oyuncu bu ödül için elinden bir kartı kapalı seçer ve aynı anda açar.",
+    "Daha yüksek kartı oynayan oyuncu ortadaki ödül kartını kazanır.",
+    "Eşitlik olursa ödül kartı ortada kalır ve sonraki ödülle birlikte kazanılır.",
+    "Tüm ödüller dağıtıldığında oyuncular kazandıkları ödül kartlarının değerlerini toplar; toplamı yüksek olan kazanır."
+  ],
+  "rules_en": [
+    "GOPS is played by 2 players using three suits from a standard deck.",
+    "Diamond cards are separated as prize cards and shuffled face down in the center.",
+    "Each player takes one of the remaining suits as their hand, such as Hearts for one player and Spades for the other.",
+    "Each round, one prize card is revealed.",
+    "Both players secretly choose one card from their hand as a bid for that prize, then reveal simultaneously.",
+    "The higher bid wins the revealed prize card.",
+    "If the bids tie, the prize remains in the center and is awarded together with the next prize.",
+    "After all prizes are awarded, players total the values of the prize cards they won; the higher total wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Eşleştirme / Toplama",
+  "category_en": "Matching / Capturing"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "51",
+  "name_tr": "51",
+  "name_en": "51 Rummy",
+  "originalName": "51 Rummy",
+  "description_tr": "Türkiye'de yaygın oynanan, çift deste ve jokerlerle oynanan barajlı rummy/okey mantıklı kart oyunu.",
+  "description_en": "A popular Turkish rummy/Okey-style game played with two decks and jokers, using a minimum opening threshold of 51 points.",
+  "rules_tr": [
+    "Genellikle 2-5 oyuncuyla, iki standart deste ve jokerler dahil 106 kartla oynanır.",
+    "Her oyuncuya 14 kart, başlayacak oyuncuya 15 kart dağıtılır.",
+    "Amaç eldeki kartları setlere ve serilere ayırıp masaya açmak ve eldeki kartları bitirmektir.",
+    "Oyuncunun ilk kez yere açabilmesi için açtığı perlerin toplam değeri en az 51 olmalıdır.",
+    "Açıldıktan sonra oyuncu masadaki kendi veya diğer oyuncuların perlerine uygun kart işleyebilir.",
+    "Sırası gelen oyuncu kapalı desteden veya atık destesinden kart alır ve elinden bir kart atar.",
+    "Elindeki kartları bitiren oyuncu eli kazanır.",
+    "Diğer oyuncular elde kalan kartlarının değerine göre ceza puanı alır; joker ve özel bitiş kuralları ev kuralına göre değişebilir."
+  ],
+  "rules_en": [
+    "Usually played with 2-5 players using two standard decks including jokers, for 106 cards total.",
+    "Each player receives 14 cards, and the starting player receives 15 cards.",
+    "The goal is to arrange cards into sets and runs, lay them on the table, and eventually empty the hand.",
+    "To make the first meld, a player's opened melds must total at least 51 points.",
+    "After opening, a player may add suitable cards to their own melds or to other players' melds on the table.",
+    "On each turn, a player draws from the stock or discard pile and discards one card.",
+    "The player who gets rid of all cards wins the hand.",
+    "Other players receive penalty points based on cards left in hand; joker and special going-out rules vary by house rule."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 5,
+  "deckCount_tr": "2 Deste + Jokerler",
+  "deckCount_en": "2 Decks + Jokers",
+  "category_tr": "Rumi / Per Yapma",
+  "category_en": "Rummy / Meld-building"
+}

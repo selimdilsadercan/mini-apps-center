@@ -1,0 +1,32 @@
+{
+  "id": "21",
+  "name_tr": "21",
+  "name_en": "Twenty-One",
+  "originalName": "Twenty-One",
+  "description_tr": "21'i geçmeden en yüksek toplamı yapmaya çalışılan, Blackjack'e benzeyen basit ev oyunu.",
+  "description_en": "A simple home-game version similar to Blackjack where players try to make the highest total without exceeding 21.",
+  "rules_tr": [
+    "2-7 oyuncuyla 52 kartlık standart deste kullanılır. Bir oyuncu dağıtıcı/kasa olabilir veya herkes sırayla dağıtıcı olur.",
+    "Amaç kart toplamını 21'e mümkün olduğunca yaklaştırmak, ancak 21'i geçmemektir.",
+    "As 1 veya 11 sayılabilir; resimli kartlar 10, sayı kartları kendi değeri kadardır.",
+    "Oyuncular sırayla kart ister veya durur.",
+    "Toplamı 21'i geçen oyuncu yanar ve eli kaybeder.",
+    "Tüm oyuncular durduğunda 21'i geçmeden en yüksek toplamı yapan oyuncu eli kazanır.",
+    "Beraberlik ve kasa üstünlüğü gibi ayrıntılar ev kuralına göre belirlenir."
+  ],
+  "rules_en": [
+    "Played with 2-7 players using a standard 52-card deck. One player may act as dealer/banker, or the role may rotate.",
+    "The goal is to get as close as possible to 21 without going over.",
+    "Aces may count as 1 or 11; face cards count 10; number cards count face value.",
+    "Players take turns choosing to draw cards or stand.",
+    "A player whose total exceeds 21 busts and loses the hand.",
+    "When all players stand, the highest total not exceeding 21 wins the hand.",
+    "Ties and dealer advantage rules are decided by house rule."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Casino / Bahis",
+  "category_en": "Casino / Betting"
+}

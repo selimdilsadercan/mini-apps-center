@@ -1,0 +1,34 @@
+{
+  "id": "esli-batak",
+  "name_tr": "eşli batak",
+  "name_en": "Eşli Batak",
+  "originalName": "Eşli Batak",
+  "description_tr": "Dört kişinin karşılıklı iki takım halinde oynadığı ortaklı Batak varyantı.",
+  "description_en": "A partnership Batak variant for four players sitting in two opposing teams.",
+  "rules_tr": [
+    "4 kişiyle, karşılıklı oturan oyuncular takım olacak şekilde oynanır.",
+    "52 kartlık standart deste tamamen dağıtılır ve her oyuncu 13 kart alır.",
+    "Oyuncular veya takımlar alabilecekleri el sayısı için ihale/deklarasyon yapar.",
+    "İhaleyi alan taraf koz rengini belirler.",
+    "Her oyuncu kendi elini oynar; ortakların kartları açık değildir.",
+    "Oyuncular oynanan renge uymak zorundadır. O renkten kartı olmayan oyuncu koz atabilir veya ev kuralına göre koz atmak zorunda olabilir.",
+    "Takımın aldığı toplam el sayısı ihale hedefiyle karşılaştırılır.",
+    "Hedefe ulaşamayan takım batar; hedefe ulaşan takım puan kazanır. Belirlenen hedef puana ilk ulaşan takım kazanır."
+  ],
+  "rules_en": [
+    "Played by 4 players, with opposite players forming partnerships.",
+    "The full 52-card deck is dealt, so each player receives 13 cards.",
+    "Players or teams bid/declare how many tricks they expect to win.",
+    "The bidding side names the trump suit.",
+    "Each player plays their own hand; partners' cards are not exposed.",
+    "Players must follow suit if possible. If void in the led suit, a player may trump or may be required to trump depending on house rule.",
+    "The team's total tricks are compared against the bid target.",
+    "A team that fails the target goes set; a team that succeeds scores points. The first team to reach the target score wins."
+  ],
+  "minPlayers": 4,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

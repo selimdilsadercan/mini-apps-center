@@ -1,0 +1,34 @@
+{
+  "id": "31",
+  "name_tr": "31",
+  "name_en": "Thirty-One / Scat",
+  "originalName": "Thirty-One / Scat",
+  "description_tr": "Oyuncuların aynı renkten üç kartla 31'e veya 31'e en yakın değere ulaşmaya çalıştığı çek-at oyunu.",
+  "description_en": "A draw-and-discard game where players try to reach 31, or the closest possible score, using three cards of the same suit.",
+  "rules_tr": [
+    "2-7 oyuncuyla 52 kartlık standart deste kullanılır.",
+    "Her oyuncuya 3 kart dağıtılır. Kalan deste kapalı bırakılır ve en üst kart açılarak atık destesini başlatır.",
+    "Amaç aynı renkten kartların toplamını 31'e mümkün olduğunca yaklaştırmaktır.",
+    "As 11, resimli kartlar 10, sayı kartları kendi değeri kadardır.",
+    "Sırası gelen oyuncu kapalı desteden veya açık atık destesinden bir kart alır, sonra elinden bir kart atar.",
+    "Elinin yeterince iyi olduğunu düşünen oyuncu knock/açın diyebilir. Bu durumda diğer oyuncular genellikle son bir tur oynar ve eller karşılaştırılır.",
+    "Tam 31 yapan oyuncu eli hemen bitirebilir. En düşük skora sahip oyuncu can veya ceza puanı kaybeder.",
+    "Can sistemiyle oynanıyorsa tüm canlarını kaybeden elenir; sona kalan oyuncu kazanır."
+  ],
+  "rules_en": [
+    "Played with 2-7 players using a standard 52-card deck.",
+    "Each player is dealt 3 cards. The rest forms the stock pile, and the top card starts the discard pile.",
+    "The goal is to make the value of one suit as close to 31 as possible.",
+    "Aces count 11, face cards count 10, and number cards count face value.",
+    "On their turn, a player draws from the stock or discard pile, then discards one card.",
+    "A player who thinks their hand is strong enough may knock. Other players usually get one final turn before hands are compared.",
+    "A player who makes exactly 31 may end the hand immediately. The lowest-scoring player loses a life or penalty point.",
+    "If playing with lives, players who lose all lives are eliminated; the last player remaining wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Casino / Bahis",
+  "category_en": "Casino / Betting"
+}

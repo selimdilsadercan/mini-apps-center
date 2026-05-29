@@ -546,6 +546,20 @@ export namespace iskambil {
         "is_favorite": boolean
         "is_known": boolean
         "user_note": string | null
+        "quick_rules_tr": string[] | null
+        "quick_rules_en": string[] | null
+        "setup_tr": string[] | null
+        "setup_en": string[] | null
+        "objective_tr": string | null
+        "objective_en": string | null
+        "gameplay_tr": string[] | null
+        "gameplay_en": string[] | null
+        "scoring_tr": string[] | null
+        "scoring_en": string[] | null
+        "ending_tr": string[] | null
+        "ending_en": string[] | null
+        "notes_tr": string[] | null
+        "notes_en": string[] | null
     }
 
     export interface GetGamesResponse {

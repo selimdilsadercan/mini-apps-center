@@ -1,0 +1,34 @@
+{
+  "id": "freecell",
+  "name_tr": "freecell",
+  "name_en": "FreeCell",
+  "originalName": "FreeCell",
+  "description_tr": "Tüm kartların açık dağıtıldığı, geçici boş hücrelerin stratejik kullanıldığı solitaire varyantı.",
+  "description_en": "A solitaire variant where all cards are dealt face up and four temporary free cells are used strategically.",
+  "rules_tr": [
+    "1 kişiyle, 52 kartlık standart deste ile oynanır.",
+    "Tüm kartlar baştan açık şekilde 8 sütuna dağıtılır.",
+    "Amaç her renkten As'tan Papaz'a kadar yükselen dört foundation destesi oluşturmaktır.",
+    "Sütunlarda kartlar azalan sıra ve alternatif renk kuralıyla dizilebilir.",
+    "Üstteki 4 free cell geçici kart saklama alanıdır; her hücrede yalnızca bir kart tutulabilir.",
+    "Boş sütunlar kart veya geçerli kart dizisi taşımak için kullanılabilir.",
+    "Aynı anda taşınabilecek kart sayısı boş hücre ve boş sütun sayısına bağlıdır.",
+    "Tüm kartlar foundation alanlarına taşındığında oyun kazanılır."
+  ],
+  "rules_en": [
+    "Played by 1 player with a standard 52-card deck.",
+    "All cards are dealt face up into 8 columns.",
+    "The goal is to build four foundation piles from Ace to King by suit.",
+    "Columns may be built downward in alternating colors.",
+    "The 4 free cells at the top are temporary storage spaces; each can hold only one card.",
+    "Empty columns may be used to move cards or valid card sequences.",
+    "The number of cards that can be moved at once depends on the number of empty cells and empty columns.",
+    "The game is won when all cards are moved to the foundations."
+  ],
+  "minPlayers": 1,
+  "maxPlayers": 1,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

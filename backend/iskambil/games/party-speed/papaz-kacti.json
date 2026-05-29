@@ -1,0 +1,34 @@
+{
+  "id": "papaz-kacti",
+  "name_tr": "papaz kaçtı",
+  "name_en": "Old Maid",
+  "originalName": "Old Maid",
+  "description_tr": "Oyuncuların çiftleri eleyip elde tek kalan papazdan kaçmaya çalıştığı klasik aile oyunu.",
+  "description_en": "A classic family game where players discard pairs and try not to be left with the lone King.",
+  "rules_tr": [
+    "2 veya daha fazla oyuncuyla oynanabilir; pratikte 3-6 kişi idealdir.",
+    "Türkçe Papaz Kaçtı varyantında desteden üç Papaz çıkarılır ve tek Papaz destede bırakılır.",
+    "Kartlar oyunculara dağıtılır. Oyuncular ellerindeki aynı değerden çiftleri yere bırakır.",
+    "Sonra oyuncular sırayla yanındaki oyuncudan kapalı bir kart çeker.",
+    "Çekilen kart eldeki bir kartla çift oluşturursa bu çift de yere bırakılır.",
+    "Oyun, tüm çiftler elenene kadar devam eder.",
+    "En sonunda elinde tek Papaz kalan oyuncu oyunu kaybeder.",
+    "Bazı uluslararası kurallarda Papaz yerine tek bırakılan Kız veya özel Old Maid kartı kullanılır."
+  ],
+  "rules_en": [
+    "Playable with 2 or more players; 3-6 players is practical and common.",
+    "In the Turkish Papaz Kaçtı variant, three Kings are removed from the deck so only one King remains.",
+    "Cards are dealt to the players. Players lay down pairs of the same rank from their hands.",
+    "Then players take turns drawing one face-down card from a neighboring player.",
+    "If the drawn card forms a pair with a card in hand, that pair is also discarded.",
+    "Play continues until all possible pairs are discarded.",
+    "The player left holding the single King at the end loses.",
+    "International Old Maid variants may use a single Queen or a special Old Maid card instead of the King."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 8,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

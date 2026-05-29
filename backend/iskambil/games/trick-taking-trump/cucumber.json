@@ -1,0 +1,32 @@
+{
+  "id": "cucumber",
+  "name_tr": "salatalık",
+  "name_en": "Cucumber",
+  "originalName": "Cucumber",
+  "description_tr": "Son eli almamaya çalışılan, el alma ve kaçınma mantığını birleştiren İskandinav kökenli kart oyunu.",
+  "description_en": "A Scandinavian avoidance trick-taking game where players try not to win the final trick.",
+  "rules_tr": [
+    "2-7 oyuncuyla 52 kartlık standart deste kullanılır. Her oyuncuya genellikle 7 kart dağıtılır.",
+    "Amaç son eli almaktan kaçınmaktır; çünkü son eli alan oyuncu ceza puanı alır.",
+    "Her elde ilk oyuncu bir kart oynar. Sonraki oyuncular mümkünse yerdeki en yüksek karta eşit veya daha yüksek bir kart oynar.",
+    "Eşit veya daha yüksek kart oynayamayan oyuncu elindeki en düşük kartı oynamak zorundadır.",
+    "Elin en yüksek kartını oynayan oyuncu eli alır ve bir sonraki eli başlatır.",
+    "Son eli alan oyuncu, son elde aldığı kartın değerine göre ceza puanı alır.",
+    "Belirlenen ceza sınırını aşan oyuncu elenir; sona kalan oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Played with 2-7 players using a standard 52-card deck. Each player is usually dealt 7 cards.",
+    "The goal is to avoid winning the last trick, because the winner of the last trick receives penalty points.",
+    "The first player leads a card. Later players must play a card equal to or higher than the highest card in the trick if possible.",
+    "If a player cannot play an equal or higher card, they must play their lowest card.",
+    "The highest card in the trick wins it and leads the next trick.",
+    "The player who wins the last trick receives penalty points based on the value of the card that won it.",
+    "Players who pass the penalty limit are eliminated; the last remaining player wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

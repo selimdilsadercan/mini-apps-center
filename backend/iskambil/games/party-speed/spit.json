@@ -1,0 +1,34 @@
+{
+  "id": "spit",
+  "name_tr": "spit",
+  "name_en": "Spit",
+  "originalName": "Spit",
+  "description_tr": "Speed'e benzeyen ama solitaire düzeniyle oynanan, iki kişilik çok hızlı kart bitirme oyunu.",
+  "description_en": "A very fast two-player shedding game similar to Speed, but played with a solitaire-style layout.",
+  "rules_tr": [
+    "2 kişiyle ve 52 kartlık standart deste ile oynanır.",
+    "Kartlar iki oyuncu arasında bölünür. Her oyuncu önüne beş sütundan oluşan kendi düzenini kurar.",
+    "Ortada iki ortak oyun destesi bulunur ve oyuncular aynı anda bu destelerin üzerine kart oynar.",
+    "Ortadaki kartın bir üstü veya bir altı değerde kart oynanabilir.",
+    "Oyuncular kendi önlerindeki açık kartları kullanır; boşalan sütunlar uygun kartlarla doldurulur.",
+    "Hamle kalmadığında iki oyuncu aynı anda 'spit' kartlarını açarak ortadaki desteleri yeniler.",
+    "Bir turda kendi düzenindeki kartları önce bitiren oyuncu daha küç  ük desteyi seçerek avantaj kazanır.",
+    "Birkaç tur sonunda tüm kartlarından kurtulan oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Played by 2 players with a standard 52-card deck.",
+    "The deck is split between the two players. Each player builds a personal layout of five piles in front of them.",
+    "Two shared center piles are used, and both players play cards onto them simultaneously.",
+    "A card one rank above or below the center card may be played.",
+    "Players use face-up cards from their own layout; empty piles are filled with available cards.",
+    "When no moves remain, both players simultaneously flip their spit cards to refresh the center piles.",
+    "The player who empties their layout first in a round chooses the smaller pile, gaining an advantage.",
+    "After several rounds, the first player to get rid of all cards wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

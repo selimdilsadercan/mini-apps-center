@@ -1,0 +1,32 @@
+{
+  "id": "crazy-eights-countdown",
+  "name_tr": "crazy eights countdown",
+  "name_en": "Crazy Eights Countdown",
+  "originalName": "Crazy Eights Countdown",
+  "description_tr": "Crazy Eights'in aşamalı varyantı; oyuncular kendi sayaçlarını 8'den 0'a indirmeye çalışır.",
+  "description_en": "A staged Crazy Eights variant where players try to reduce their personal countdown from 8 to 0.",
+  "rules_tr": [
+    "2-5 oyuncuyla 52 kartlık standart deste kullanılır.",
+    "Her oyuncu oyuna 8 seviyesinden başlar. İlk elde oyunculara genellikle 8'er kart dağıtılır ve 8'ler joker kabul edilir.",
+    "Oyuncular Crazy Eights mantığıyla, yerdeki kartın rengine veya değerine uyan kart oynar.",
+    "Bir oyuncu elini bitirdiğinde kendi seviyesi bir azalır. Örneğin 8'den 7'ye düşen oyuncu için sonraki ellerde 7'ler joker olur.",
+    "Her oyuncunun joker değeri kendi seviyesine bağlıdır; bu yüzden aynı elde farklı oyuncular için farklı değerler joker olabilir.",
+    "Oyuncunun eline dağıtılan kart sayısı da çoğu kuralda kendi seviyesine eşittir.",
+    "Seviyesini 0'a ilk indiren oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Played with 2-5 players using a standard 52-card deck.",
+    "Each player starts at level 8. In the first hand, players are usually dealt 8 cards and 8s are wild.",
+    "Players follow Crazy Eights rules by matching the suit or rank of the top discard card.",
+    "When a player goes out, their level decreases by one. For example, after moving from 8 to 7, 7s become wild for that player.",
+    "Each player's wild rank depends on their own countdown level, so different players may have different wild cards in the same hand.",
+    "In many rule sets, the number of cards dealt to a player also equals that player's current level.",
+    "The first player to reduce their level to 0 wins the game."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 5,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Bitirme",
+  "category_en": "Shedding"
+}

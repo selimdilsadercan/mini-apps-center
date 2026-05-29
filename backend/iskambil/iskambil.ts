@@ -1,7 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
-import gamesData from "./games_data.json";
+import { gamesData } from "./games";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -29,6 +29,20 @@ export interface Game {
   is_favorite: boolean;
   is_known: boolean;
   user_note: string | null;
+  quick_rules_tr: string[] | null;
+  quick_rules_en: string[] | null;
+  setup_tr: string[] | null;
+  setup_en: string[] | null;
+  objective_tr: string | null;
+  objective_en: string | null;
+  gameplay_tr: string[] | null;
+  gameplay_en: string[] | null;
+  scoring_tr: string[] | null;
+  scoring_en: string[] | null;
+  ending_tr: string[] | null;
+  ending_en: string[] | null;
+  notes_tr: string[] | null;
+  notes_en: string[] | null;
 }
 
 // ==================== REQUEST/RESPONSE TYPES ====================
@@ -106,8 +120,8 @@ export const getGames = api(
       original_name: g.originalName || null,
       description_tr: g.description_tr,
       description_en: g.description_en,
-      rules_tr: g.rules_tr,
-      rules_en: g.rules_en,
+      rules_tr: g.rules_tr || g.quickRules_tr || [],
+      rules_en: g.rules_en || g.quickRules_en || [],
       min_players: g.minPlayers,
       max_players: g.maxPlayers,
       deck_count_tr: g.deckCount_tr,
@@ -116,7 +130,21 @@ export const getGames = api(
       category_en: g.category_en,
       is_favorite: favoritesSet.has(g.id),
       is_known: knownSet.has(g.id),
-      user_note: notesMap.get(g.id) || null
+      user_note: notesMap.get(g.id) || null,
+      quick_rules_tr: g.quickRules_tr || null,
+      quick_rules_en: g.quickRules_en || null,
+      setup_tr: g.setup_tr || null,
+      setup_en: g.setup_en || null,
+      objective_tr: g.objective_tr || null,
+      objective_en: g.objective_en || null,
+      gameplay_tr: g.gameplay_tr || null,
+      gameplay_en: g.gameplay_en || null,
+      scoring_tr: g.scoring_tr || null,
+      scoring_en: g.scoring_en || null,
+      ending_tr: g.ending_tr || null,
+      ending_en: g.ending_en || null,
+      notes_tr: g.notes_tr || null,
+      notes_en: g.notes_en || null,
     }));
 
     // 4. Sort alphabetically by game name

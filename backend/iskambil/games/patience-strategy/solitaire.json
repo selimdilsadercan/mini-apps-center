@@ -1,0 +1,34 @@
+{
+  "id": "solitaire",
+  "name_tr": "solitaire",
+  "name_en": "Klondike",
+  "originalName": "Klondike",
+  "description_tr": "Tek kişilik klasik kart dizme oyunu; amaç tüm kartları As'tan Papaz'a kadar foundation alanlarına taşımaktır.",
+  "description_en": "The classic single-player Klondike card game where the goal is to move all cards to foundation piles from Ace to King.",
+  "rules_tr": [
+    "1 kişiyle, 52 kartlık standart deste ile oynanır.",
+    "Masaya 7 sütun kurulur; ilk sütunda 1 kart, ikinci sütunda 2 kart olacak şekilde yedinci sütuna kadar artarak kart dizilir. Her sütunun yalnızca en üst kartı açık olur.",
+    "Amaç her renkten As ile başlayıp Papaz'a kadar yükselen dört foundation destesi oluşturmaktır.",
+    "Tableau sütunlarında kartlar azalan sıra ve alternatif renk kuralıyla dizilir.",
+    "Kapalı kartlar, üzerlerindeki açık kartlar taşındığında açılır.",
+    "Boşalan sütuna yalnızca Papaz veya Papaz ile başlayan geçerli bir dizi konabilir.",
+    "Hamle kalmadığında kapalı desteden kart açılır.",
+    "Tüm kartlar foundation alanlarına taşınırsa oyun kazanılır."
+  ],
+  "rules_en": [
+    "Played by 1 player with a standard 52-card deck.",
+    "Seven tableau columns are dealt: 1 card in the first column, 2 in the second, increasing up to 7 in the seventh. Only the top card of each column is face up.",
+    "The goal is to build four foundation piles, one for each suit, from Ace up to King.",
+    "Tableau columns are built downward in alternating colors.",
+    "Face-down cards are turned over when the face-up cards above them are moved.",
+    "An empty column may be filled only by a King or a valid sequence starting with a King.",
+    "When no move is available, cards are turned from the stock.",
+    "The game is won when all cards are moved to the foundations."
+  ],
+  "minPlayers": 1,
+  "maxPlayers": 1,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

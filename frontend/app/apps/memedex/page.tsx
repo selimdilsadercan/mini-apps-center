@@ -511,78 +511,71 @@ export default function MemedexPage() {
 
         {/* Meme Grid */}
         {!loading && memes.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-6">
             {memes.map((meme) => {
-              const embedUrl = getGiphyEmbedUrl(meme.media_url);
-              const isEmbed = isEmbeddable(embedUrl);
-
-              return (
-                <div
-                  key={meme.id}
-                  onClick={() => setSelectedMeme(meme)}
-                  className="group bg-slate-900/30 hover:bg-slate-900/60 border border-slate-900 hover:border-purple-900/40 rounded-3xl overflow-hidden flex flex-col shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-                >
-                  {/* Media Wrapper */}
-                  <div className="aspect-[4/3] bg-slate-950 border-b border-slate-900/60 relative overflow-hidden pointer-events-none">
-                    {isEmbed ? (
-                      <iframe
-                        src={embedUrl}
-                        width="100%"
-                        height="100%"
-                        className="absolute inset-0 w-full h-full border-none pointer-events-none"
-                        allowFullScreen
-                        loading="lazy"
-                      />
-                    ) : (
-                      <img
-                        src={meme.media_url}
-                        alt={meme.title}
-                        className="w-full h-full object-contain object-center"
-                        loading="lazy"
-                      />
-                    )}
-                    {/* Status badge */}
-                    <span className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full border backdrop-blur-md ${getTrendBadgeStyle(meme.trend_status)}`}>
-                      {meme.trend_status}
-                    </span>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-                    <div className="space-y-1.5">
-                      <h3 className="font-bold text-base text-slate-100 group-hover:text-fuchsia-400 transition-colors">
-                        {meme.title}
-                      </h3>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-900/40">
-                      <div className="text-[11px] text-slate-500 font-medium">
-                        {meme.trend_status}
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {/* Copy button */}
-                        <button
-                          onClick={(e) => handleCopy(e, meme.id, meme.media_url)}
-                          className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all cursor-pointer"
-                          title="Copy template link"
-                        >
-                          {copiedId === meme.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                        </button>
-                        
-                        {/* Like button */}
-                        <button
-                          onClick={(e) => handleLike(e, meme.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 hover:bg-slate-850 text-slate-400 hover:text-slate-100 border border-transparent hover:border-slate-800 rounded-xl transition-all cursor-pointer"
-                        >
-                          <ThumbsUp size={13} className="text-pink-500" />
-                          <span className="text-xs font-semibold">{meme.likes_count}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+               const embedUrl = getGiphyEmbedUrl(meme.media_url);
+               const isEmbed = isEmbeddable(embedUrl);
+ 
+               return (
+                 <div
+                   key={meme.id}
+                   onClick={() => setSelectedMeme(meme)}
+                   className="group bg-slate-900/30 hover:bg-slate-900/60 border border-slate-900 hover:border-purple-900/40 rounded-3xl overflow-hidden flex flex-col shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                 >
+                   {/* Media Wrapper */}
+                   <div className="aspect-[4/3] bg-slate-950 border-b border-slate-900/60 relative overflow-hidden pointer-events-none">
+                     {isEmbed ? (
+                       <iframe
+                         src={embedUrl}
+                         width="100%"
+                         height="100%"
+                         className="absolute inset-0 w-full h-full border-none pointer-events-none"
+                         allowFullScreen
+                         loading="lazy"
+                       />
+                     ) : (
+                       <img
+                         src={meme.media_url}
+                         alt={meme.title}
+                         className="w-full h-full object-contain object-center"
+                         loading="lazy"
+                       />
+                     )}
+                   </div>
+ 
+                   {/* Card Content */}
+                   <div className="p-3 md:p-5 flex-1 flex flex-col justify-between gap-2 md:gap-4">
+                     <div className="space-y-1">
+                       <h3 className="font-bold text-sm md:text-base text-slate-100 group-hover:text-fuchsia-400 transition-colors">
+                         {meme.title}
+                       </h3>
+                     </div>
+ 
+                     {/* Footer Actions */}
+                     <div className="flex items-center justify-end pt-2 border-t border-slate-900/40">
+                       <div className="flex items-center gap-1.5">
+                         {/* Copy button */}
+                         <button
+                           onClick={(e) => handleCopy(e, meme.id, meme.media_url)}
+                           className="flex items-center gap-1 px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border border-slate-700/50"
+                           title="Copy template link"
+                         >
+                           {copiedId === meme.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                           <span>{copiedId === meme.id ? (locale === "tr" ? "Kopyalandı" : "Copied") : (locale === "tr" ? "Kullan" : "Use")}</span>
+                         </button>
+                         
+                         {/* Like button */}
+                         <button
+                           onClick={(e) => handleLike(e, meme.id)}
+                           className="flex items-center gap-1 px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border border-slate-700/50"
+                         >
+                           <ThumbsUp size={12} className="text-pink-500" />
+                           <span className="text-[11px] md:text-xs font-semibold">{meme.likes_count}</span>
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
               );
             })}
           </div>

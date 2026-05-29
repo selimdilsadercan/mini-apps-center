@@ -1,0 +1,32 @@
+{
+  "id": "crash",
+  "name_tr": "crash",
+  "name_en": "Crash / 13-card Brag",
+  "originalName": "Crash / 13-card Brag",
+  "description_tr": "Oyuncuların 13 kartlık ellerini dört ayrı üçlü poker/brag eline bölerek karşılaştırdığı İngiliz kökenli oyun.",
+  "description_en": "An English game where players divide a 13-card hand into four separate three-card poker/brag-style hands for comparison.",
+  "rules_tr": [
+    "2-4 oyuncuyla oynanabilir; klasik oyun 4 kişilik ve 52 kartlık desteyle oynanır.",
+    "Dört kişilik oyunda herkese 13 kart dağıtılır.",
+    "Her oyuncu elindeki kartları dört adet 3 kartlık kombinasyona ayırır; bir kart elde dışarıda kalır.",
+    "Kombinasyonlar en güçlüden en zayıfa doğru sıralanır.",
+    "Karşılıklı aynı sıradaki kombinasyonlar karşılaştırılır ve en güçlü kombinasyon puan alır.",
+    "Üçlü, sıralı renk, sıralı, renk, çift ve yüksek kart gibi brag/poker benzeri el sıralamaları kullanılır.",
+    "Belirlenen toplam puana ilk ulaşan oyuncu oyunu kazanır."
+  ],
+  "rules_en": [
+    "Playable with 2-4 players; the classic game uses 4 players and a 52-card deck.",
+    "In the four-player game, each player receives 13 cards.",
+    "Each player divides their cards into four 3-card combinations; one card remains unused.",
+    "The combinations are ordered from strongest to weakest.",
+    "Combinations in the same position are compared against one another, and the strongest combination scores.",
+    "Brag/poker-like hand rankings are used, such as three of a kind, running flush, run, flush, pair, and high card.",
+    "The first player to reach the agreed total score wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

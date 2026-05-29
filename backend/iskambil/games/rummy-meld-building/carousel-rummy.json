@@ -1,0 +1,34 @@
+{
+  "id": "carousel-rummy",
+  "name_tr": "carousel rummy",
+  "name_en": "Carousel / Manipulation Rummy",
+  "originalName": "Carousel / Manipulation Rummy",
+  "description_tr": "Masadaki perlerin bozulup yeniden düzenlenebildiği, Rummikub benzeri manipülasyon rummy oyunu.",
+  "description_en": "A manipulation rummy game similar to Rummikub, where melds on the table can be rearranged into new valid combinations.",
+  "rules_tr": [
+    "2 kişiyle 53 kartlık deste ve 1 joker; 3-5 kişiyle iki deste ve 2 joker kullanılır.",
+    "Her oyuncuya 10 kart dağıtılır.",
+    "Meldler aynı değerden farklı renklerde en az 3 kartlık setler veya aynı renkten ardışık en az 3 kartlık serilerdir.",
+    "Sırası gelen oyuncu önce desteden kart çeker. Bir veya iki kart çektikten sonra meld yapabilir; üç kart çekerse o tur meld yapamaz.",
+    "Oyuncu masaya yeni set/seri açabilir, mevcut setlere kart ekleyebilir veya masadaki kartları tamamen yeniden düzenleyebilir.",
+    "Manipülasyon sonunda masadaki tüm kartlar geçerli ve birbirinden bağımsız meldler halinde kalmalıdır.",
+    "Oyuncu masadan kartı eline alamaz; sadece kendi elinden en az bir kart ekleyerek masayı yeniden düzenleyebilir.",
+    "Eldeki kartları bitiren oyuncu eli kazanır. Puanlı oynanırsa diğer oyuncuların elde kalan kart değerleri kazanan lehine yazılır."
+  ],
+  "rules_en": [
+    "Use one 53-card deck with 1 joker for 2 players; use two decks with 2 jokers for 3-5 players.",
+    "Each player is dealt 10 cards.",
+    "Melds are sets of at least 3 cards of the same rank in different suits, or runs of at least 3 consecutive cards in the same suit.",
+    "On a turn, a player draws first. After drawing one or two cards they may meld; after drawing a third card they may not meld that turn.",
+    "A player may lay down new sets/runs, add cards to existing melds, or completely rearrange the table.",
+    "After manipulation, all table cards must remain in valid, separate melds.",
+    "A player may not take cards from the table into hand; they may rearrange only by adding at least one card from their own hand.",
+    "The player who empties their hand wins. If scoring is used, the values of opponents' remaining cards are credited to the winner."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 5,
+  "deckCount_tr": "1-2 Deste + Joker",
+  "deckCount_en": "1-2 Decks + Jokers",
+  "category_tr": "Rumi / Per Yapma",
+  "category_en": "Rummy / Meld-building"
+}

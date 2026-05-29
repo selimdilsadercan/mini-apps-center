@@ -1,0 +1,34 @@
+{
+  "id": "peanuts-nerts",
+  "name_tr": "peanuts / nerts",
+  "name_en": "Nerts / Peanuts",
+  "originalName": "Nerts / Peanuts",
+  "description_tr": "Her oyuncunun kendi destesiyle aynı anda oynadığı, çok oyunculu hızlı solitaire oyunu.",
+  "description_en": "A multiplayer fast solitaire game where each player uses a personal deck and everyone plays at the same time.",
+  "rules_tr": [
+    "2 veya daha fazla oyuncuyla oynanır. Her oyuncu veya takım farklı sırt desenine sahip ayrı bir 52 kartlık deste kullanır.",
+    "Her oyuncu 13 kartlık Nerts/Peanuts destesini hazırlar; en üst kart açık, altındakiler kapalıdır.",
+    "Oyuncular ayrıca kendi önlerinde dört açık çalışma destesi kurar.",
+    "Ortadaki ortak alana As ile başlayan ve aynı renkten yükselen ortak foundation desteleri yapılır.",
+    "Oyun sıra beklemeden aynı anda oynanır. Oyuncular kendi çalışma alanlarından ve Nerts destesinden ortak alana kart taşımaya çalışır.",
+    "Çalışma destelerinde kartlar genellikle azalan sıra ve alternatif renk mantığıyla dizilir.",
+    "Nerts destesini bitiren oyuncu 'Nerts!' der ve el sona erer.",
+    "Puanlama genellikle ortak alana oynanan kartlardan puan kazanma ve Nerts destesindeki kalan kartlardan ceza alma şeklindedir."
+  ],
+  "rules_en": [
+    "Played with 2 or more players. Each player or team uses a separate 52-card deck with a distinct back design.",
+    "Each player prepares a 13-card Nerts/Peanuts pile, with the top card face up and the rest face down.",
+    "Players also build four face-up work piles in front of themselves.",
+    "In the shared center area, foundation piles start with Aces and build upward in the same suit.",
+    "There are no turns; all players play simultaneously, trying to move cards from their own layout and Nerts pile to the shared center.",
+    "Work piles are usually built downward in alternating colors.",
+    "When a player empties their Nerts pile, they call 'Nerts!' and the hand ends.",
+    "Scoring usually awards points for cards played to the center and subtracts points for cards left in the Nerts pile."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 8,
+  "deckCount_tr": "Oyuncu başına 1 Deste",
+  "deckCount_en": "1 Deck per player",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

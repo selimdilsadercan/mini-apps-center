@@ -1,0 +1,32 @@
+{
+  "id": "crazy-eights-uno",
+  "name_tr": "crazy eights",
+  "name_en": "Crazy Eights",
+  "originalName": "Crazy Eights",
+  "description_tr": "Uno'ya benzeyen ama standart iskambil destesiyle oynanan, renk veya değer eşleştirerek kart bitirme oyunu.",
+  "description_en": "A popular shedding card game similar to Uno where players match suits or ranks to get rid of all their cards.",
+  "rules_tr": [
+    "2-7 oyuncuyla 52 kartlık standart deste kullanılır. Standart kuralda her oyuncuya 5 kart dağıtılır; ev kurallarında 7 kart da dağıtılabilir.",
+    "Kalan kartlar kapalı çekme destesi olur. En üst kart açılarak atık destesinin ilk kartı yapılır; açılan kart 8 ise desteye karıştırılıp yeni kart açılabilir.",
+    "Sırası gelen oyuncu yerdeki kartın rengine veya değerine uyan bir kart atar.",
+    "8'ler joker karttır. Oyuncu 8 attığında bir sonraki oynanacak rengi belirler.",
+    "Oynanabilir kartı olmayan oyuncu desteden kart çeker. Bazı ev kurallarında oynayabilir hale gelene kadar, bazı kurallarda yalnızca bir kart çekilir.",
+    "Bir oyuncu elindeki tüm kartları bitirince tur sona erer.",
+    "Puanlı oynanırsa elde kartı kalan oyuncular ceza puanı alır: 8 genellikle 50, resimli kartlar 10, As 1 veya 11, sayı kartları kendi değeri kadar sayılır. Hedef puan önceden belirlenir."
+  ],
+  "rules_en": [
+    "Played with 2-7 players using a standard 52-card deck. Usually 5 cards are dealt to each player (or 7 for fewer players).",
+    "The remaining cards form the draw pile. The top card is turned face up to start the discard pile; if an 8 is turned, it is mixed back.",
+    "On their turn, a player must match the suit or rank of the card on top of the discard pile.",
+    "Eights are wild/joker. A player can play an 8 at any time and names the suit to be matched next.",
+    "If a player has no match, they must draw from the stock until a match is found, or just draw one card depending on house rules.",
+    "The round ends when a player successfully discards all their cards.",
+    "Remaining players sum up card values as penalties: 8s are 50, face cards are 10, Aces are 1 or 11, number cards are face value."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Bitirme",
+  "category_en": "Shedding"
+}

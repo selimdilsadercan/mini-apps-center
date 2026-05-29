@@ -1,0 +1,83 @@
+import game21 from "./casino-betting/21.json";
+import poker from "./casino-betting/poker.json";
+import game31 from "./casino-betting/31.json";
+import blackjack from "./casino-betting/blackjack.json";
+import spiteAndMallice from "./patience-strategy/spite-and-mallice.json";
+import kosedekiPapazlar from "./patience-strategy/kosedeki-papazlar.json";
+import solitaire from "./patience-strategy/solitaire.json";
+import spiderSolitaire from "./patience-strategy/spider-solitaire.json";
+import freecell from "./patience-strategy/freecell.json";
+import himbilEsek from "./party-speed/himbil-esek.json";
+import spit from "./party-speed/spit.json";
+import esBulmaliSpeed from "./party-speed/es-bulmali-speed.json";
+import clubbers from "./party-speed/clubbers.json";
+import papazKacti from "./party-speed/papaz-kacti.json";
+import blof from "./party-speed/blof.json";
+import speed11Oyunu from "./party-speed/speed-1-1-oyunu.json";
+import peanutsNerts from "./party-speed/peanuts-nerts.json";
+import carouselRummy from "./rummy-meld-building/carousel-rummy.json";
+import game51 from "./rummy-meld-building/51.json";
+import ginRummy2Kisilik101 from "./rummy-meld-building/gin-rummy-2-kisilik-101.json";
+import authorsBana2TanePapazVer from "./matching-capturing/authors-bana-2-tane-papaz-ver.json";
+import casinoToplamaliPisti from "./matching-capturing/casino-toplamali-pisti.json";
+import dostKazigiKaptiKacti from "./matching-capturing/dost-kazigi-kapti-kacti.json";
+import scopa from "./matching-capturing/scopa.json";
+import gopsGameOfPureStrategy from "./matching-capturing/gops-game-of-pure-strategy.json";
+import pisti from "./matching-capturing/pisti.json";
+import esliBatak from "./trick-taking-trump/esli-batak.json";
+import game66Santase from "./trick-taking-trump/66-santase.json";
+import minnesotaWhist from "./trick-taking-trump/minnesota-whist.json";
+import crash from "./trick-taking-trump/crash.json";
+import gommeliBatak from "./trick-taking-trump/gommeli-batak.json";
+import batakSpades from "./trick-taking-trump/batak-spades.json";
+import whistIhalesizIkiKisilikBatak from "./trick-taking-trump/whist-ihalesiz-iki-kisilik-batak.json";
+import ikiliBatakRusBatagi from "./trick-taking-trump/ikili-batak-rus-batagi.json";
+import cucumber from "./trick-taking-trump/cucumber.json";
+import pinochle from "./trick-taking-trump/pinochle.json";
+import pisYedili from "./shedding/pis-yedili.json";
+import crazyEightsUno from "./shedding/crazy-eights-uno.json";
+import crazyEightsCountdown from "./shedding/crazy-eights-countdown.json";
+import baskanGot from "./shedding/baskan-got.json";
+
+export const gamesData = [
+  game21,
+  poker,
+  game31,
+  blackjack,
+  spiteAndMallice,
+  kosedekiPapazlar,
+  solitaire,
+  spiderSolitaire,
+  freecell,
+  himbilEsek,
+  spit,
+  esBulmaliSpeed,
+  clubbers,
+  papazKacti,
+  blof,
+  speed11Oyunu,
+  peanutsNerts,
+  carouselRummy,
+  game51,
+  ginRummy2Kisilik101,
+  authorsBana2TanePapazVer,
+  casinoToplamaliPisti,
+  dostKazigiKaptiKacti,
+  scopa,
+  gopsGameOfPureStrategy,
+  pisti,
+  esliBatak,
+  game66Santase,
+  minnesotaWhist,
+  crash,
+  gommeliBatak,
+  batakSpades,
+  whistIhalesizIkiKisilikBatak,
+  ikiliBatakRusBatagi,
+  cucumber,
+  pinochle,
+  pisYedili,
+  crazyEightsUno,
+  crazyEightsCountdown,
+  baskanGot
+];
