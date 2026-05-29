@@ -383,7 +383,7 @@ export default function MemedexPage() {
       <header className="w-full border-b border-slate-900 bg-slate-950 sticky top-0 z-40 px-6 py-4">
         <div className="max-w-6xl mx-auto grid grid-cols-3 items-center">
           <div className="flex justify-start">
-            <Link href="/home" className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors">
+            <Link href="/home" className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors cursor-pointer">
               <ArrowLeft size={18} />
               <span className="text-sm font-medium">{locale === "tr" ? "Geri Dön" : "Back"}</span>
             </Link>
@@ -399,10 +399,10 @@ export default function MemedexPage() {
           <div className="flex justify-end">
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white rounded-xl shadow-lg shadow-fuchsia-950/40 hover:shadow-fuchsia-950/70 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="fixed bottom-6 right-6 md:static z-40 md:z-auto p-4 md:px-3 md:py-1.5 rounded-full md:rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white shadow-2xl md:shadow-lg hover:shadow-fuchsia-950/70 hover:scale-[1.05] active:scale-[0.95] transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Plus size={16} weight="bold" />
-              <span>{locale === "tr" ? "Meme Ekle" : "Add Meme"}</span>
+              <Plus className="w-6 h-6 md:w-4 md:h-4" weight="bold" />
+              <span className="hidden md:inline text-sm font-semibold">{locale === "tr" ? "Meme Ekle" : "Add Meme"}</span>
             </button>
           </div>
         </div>
@@ -445,7 +445,7 @@ export default function MemedexPage() {
           <div className="md:col-span-4 flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             <button
               onClick={() => setSelectedTag("")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full border cursor-pointer transition-all ${
                 selectedTag === ""
                   ? "bg-fuchsia-600/20 border-fuchsia-500 text-fuchsia-400"
                   : "bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
@@ -460,7 +460,7 @@ export default function MemedexPage() {
                 <button
                   key={tagValue}
                   onClick={() => setSelectedTag(tagValue)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border whitespace-nowrap cursor-pointer transition-all ${
                     selectedTag === tagValue
                       ? "bg-fuchsia-600/20 border-fuchsia-500 text-fuchsia-400"
                       : "bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
@@ -502,7 +502,7 @@ export default function MemedexPage() {
             </div>
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="mt-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-850 hover:border-slate-750 text-slate-300 rounded-xl text-xs font-semibold transition-all"
+              className="mt-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-850 hover:border-slate-750 text-slate-300 rounded-xl text-xs font-semibold transition-all cursor-pointer"
             >
               {locale === "tr" ? "Hemen Meme Ekle" : "Add a Meme Now"}
             </button>
@@ -565,7 +565,7 @@ export default function MemedexPage() {
                         {/* Copy button */}
                         <button
                           onClick={(e) => handleCopy(e, meme.id, meme.media_url)}
-                          className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all"
+                          className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all cursor-pointer"
                           title="Copy template link"
                         >
                           {copiedId === meme.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
@@ -574,7 +574,7 @@ export default function MemedexPage() {
                         {/* Like button */}
                         <button
                           onClick={(e) => handleLike(e, meme.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 hover:bg-slate-850 text-slate-400 hover:text-slate-100 border border-transparent hover:border-slate-800 rounded-xl transition-all"
+                          className="flex items-center gap-1 px-2.5 py-1 hover:bg-slate-850 text-slate-400 hover:text-slate-100 border border-transparent hover:border-slate-800 rounded-xl transition-all cursor-pointer"
                         >
                           <ThumbsUp size={13} className="text-pink-500" />
                           <span className="text-xs font-semibold">{meme.likes_count}</span>
@@ -594,7 +594,7 @@ export default function MemedexPage() {
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-6 py-2.5 text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
             >
               {loadingMore ? (locale === "tr" ? "Yükleniyor..." : "Loading...") : (locale === "tr" ? "Daha Fazla Göster" : "Show More")}
             </button>
@@ -616,7 +616,7 @@ export default function MemedexPage() {
             {/* Close Button */}
             <button
               onClick={() => setSelectedMeme(null)}
-              className="absolute top-4 right-4 p-2 bg-slate-950/60 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-full z-10 transition-all"
+              className="absolute top-4 right-4 p-2 bg-slate-950/60 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-full z-10 transition-all cursor-pointer"
             >
               <X size={16} weight="bold" />
             </button>
@@ -672,7 +672,7 @@ export default function MemedexPage() {
                       setEditMediaUrl(selectedMeme.media_url);
                       setIsEditOpen(true);
                     }}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-350 hover:text-slate-100 transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-350 hover:text-slate-100 transition-all cursor-pointer"
                   >
                     <PencilSimple size={14} />
                     <span>{locale === "tr" ? "Düzenle" : "Edit"}</span>
@@ -680,7 +680,7 @@ export default function MemedexPage() {
 
                   <button
                     onClick={() => handleDeleteMeme(selectedMeme.id)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-950/20 hover:bg-rose-900/30 border border-rose-900/30 rounded-2xl text-xs font-semibold text-rose-400 hover:text-rose-350 transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-950/20 hover:bg-rose-900/30 border border-rose-900/30 rounded-2xl text-xs font-semibold text-rose-400 hover:text-rose-350 transition-all cursor-pointer"
                     disabled={deleting}
                   >
                     <Trash size={14} />
@@ -689,7 +689,7 @@ export default function MemedexPage() {
 
                   <button
                     onClick={(e) => handleCopy(e, selectedMeme.id, selectedMeme.media_url)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-300 hover:text-slate-100 transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-300 hover:text-slate-100 transition-all cursor-pointer"
                   >
                     {copiedId === selectedMeme.id ? (
                       <>
@@ -706,7 +706,7 @@ export default function MemedexPage() {
 
                   <button
                     onClick={(e) => handleLike(e, selectedMeme.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-950/20 hover:shadow-pink-950/40 transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-950/20 hover:shadow-pink-950/40 transition-all cursor-pointer"
                   >
                     <ThumbsUp size={14} weight="fill" />
                     <span>{selectedMeme.likes_count}</span>
@@ -718,7 +718,7 @@ export default function MemedexPage() {
               <div className="border-t border-slate-800/60 pt-5">
                 <button
                   onClick={() => setShowMoreDetails(!showMoreDetails)}
-                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
+                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-fuchsia-400 hover:text-fuchsia-300 transition-colors cursor-pointer"
                 >
                   <span>{showMoreDetails ? (locale === "tr" ? "Daha Az Göster" : "Show Less") : (locale === "tr" ? "Detayları Göster (Açıklama, Bağlam vb.)" : "Show More Details (Description, Context etc.)")}</span>
                   <span className="text-xs">{showMoreDetails ? "▲" : "▼"}</span>
@@ -835,7 +835,7 @@ export default function MemedexPage() {
               </h2>
               <button
                 onClick={() => setIsSubmitOpen(false)}
-                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all"
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all cursor-pointer"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -951,7 +951,7 @@ export default function MemedexPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-lg shadow-fuchsia-950/30 hover:scale-[1.01] active:scale-[0.99] mt-6"
+                className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-lg shadow-fuchsia-950/30 hover:scale-[1.01] active:scale-[0.99] mt-6 cursor-pointer"
               >
                 {submitting ? (locale === "tr" ? "Ekleniyor..." : "Adding...") : (locale === "tr" ? "Meme Ekle" : "Add Meme")}
               </button>
@@ -978,7 +978,7 @@ export default function MemedexPage() {
               </h2>
               <button
                 onClick={() => setIsEditOpen(false)}
-                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all"
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded-lg transition-all cursor-pointer"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1075,7 +1075,7 @@ export default function MemedexPage() {
               <button
                 type="submit"
                 disabled={editing}
-                className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-lg shadow-fuchsia-950/30 hover:scale-[1.01] active:scale-[0.99] mt-6"
+                className="w-full bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-2xl text-sm transition-all duration-200 shadow-lg shadow-fuchsia-950/30 hover:scale-[1.01] active:scale-[0.99] mt-6 cursor-pointer"
               >
                 {editing ? (locale === "tr" ? "Güncelleniyor..." : "Updating...") : (locale === "tr" ? "Kaydet" : "Save Changes")}
               </button>
@@ -1086,7 +1086,7 @@ export default function MemedexPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 p-3 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white rounded-full shadow-lg shadow-fuchsia-950/40 border border-fuchsia-500/20 hover:scale-110 active:scale-95 transition-all z-40"
+          className="fixed bottom-24 md:bottom-6 right-6 p-3 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white rounded-full shadow-lg shadow-fuchsia-950/40 border border-fuchsia-500/20 hover:scale-110 active:scale-95 transition-all z-40 cursor-pointer"
           title="Scroll to Top"
         >
           <ArrowUp size={20} weight="bold" />
