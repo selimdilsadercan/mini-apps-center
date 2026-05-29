@@ -38,6 +38,7 @@ export default class Client {
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
+    public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
@@ -64,6 +65,7 @@ export default class Client {
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
+        this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
@@ -597,6 +599,141 @@ export namespace map_tracker {
     id: string
 }): Promise<void> {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/toggle-visited`, JSON.stringify(params))
+        }
+    }
+}
+
+export namespace memedex {
+    export interface CreateMemeRequest {
+        title: string
+        description?: string
+        context?: string
+        example?: string
+        trendStatus: string
+        mediaUrl: string
+        tags?: string[]
+        createdBy?: string
+        parentId?: string
+    }
+
+    export interface CreateMemeResponse {
+        meme: Meme | null
+    }
+
+    export interface DeleteMemeResponse {
+        success: boolean
+    }
+
+    export interface GetMemesRequest {
+        search?: string
+        tag?: string
+        trend?: string
+        parentId?: string
+        onlyParents?: boolean
+    }
+
+    export interface GetMemesResponse {
+        memes: Meme[]
+    }
+
+    export interface LikeMemeResponse {
+        likesCount: number
+    }
+
+    export interface Meme {
+        id: string
+        title: string
+        description: string
+        context: string
+        example: string
+        "trend_status": string
+        "media_url": string
+        tags: string[]
+        "likes_count": number
+        "created_by": string
+        "created_at": string
+        "parent_id"?: string
+    }
+
+    export interface UpdateMemeRequest {
+        title: string
+        trendStatus: string
+        mediaUrl: string
+    }
+
+    export interface UpdateMemeResponse {
+        meme: Meme | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createMeme = this.createMeme.bind(this)
+            this.deleteMeme = this.deleteMeme.bind(this)
+            this.getMemes = this.getMemes.bind(this)
+            this.likeMeme = this.likeMeme.bind(this)
+            this.updateMeme = this.updateMeme.bind(this)
+        }
+
+        /**
+         * Create a new meme entry
+         * POST /memes
+         */
+        public async createMeme(params: CreateMemeRequest): Promise<CreateMemeResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes`, JSON.stringify(params))
+            return await resp.json() as CreateMemeResponse
+        }
+
+        /**
+         * Delete a meme
+         * DELETE /memedex/memes/:id
+         */
+        public async deleteMeme(id: string): Promise<DeleteMemeResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/memedex/memes/${encodeURIComponent(id)}`)
+            return await resp.json() as DeleteMemeResponse
+        }
+
+        /**
+         * Get memes with search, tag, and trend filtering
+         * GET /memes
+         */
+        public async getMemes(params: GetMemesRequest): Promise<GetMemesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                onlyParents: params.onlyParents === undefined ? undefined : String(params.onlyParents),
+                parentId:    params.parentId,
+                search:      params.search,
+                tag:         params.tag,
+                trend:       params.trend,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/memedex/memes`, undefined, {query})
+            return await resp.json() as GetMemesResponse
+        }
+
+        /**
+         * Like/Upvote a meme
+         * POST /memes/:id/like
+         */
+        public async likeMeme(id: string): Promise<LikeMemeResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes/${encodeURIComponent(id)}/like`)
+            return await resp.json() as LikeMemeResponse
+        }
+
+        /**
+         * Update an existing meme
+         * PUT /memedex/memes/:id
+         */
+        public async updateMeme(id: string, params: UpdateMemeRequest): Promise<UpdateMemeResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/memedex/memes/${encodeURIComponent(id)}`, JSON.stringify(params))
+            return await resp.json() as UpdateMemeResponse
         }
     }
 }

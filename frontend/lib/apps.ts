@@ -130,6 +130,16 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/movies-this-year",
     isImplemented: true,
   },
+  {
+    id: "memedex",
+    name: "Memedex",
+    description: "Trend meme'ler, doğru kullanım bağlamları ve hazır Giphy template'leri!",
+    icon: MaskHappy,
+    category: "Entertainment",
+    color: "#d946ef",
+    href: "/apps/memedex",
+    isImplemented: true,
+  },
 
   // Dev & Design
   {

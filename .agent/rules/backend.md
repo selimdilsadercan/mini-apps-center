@@ -13,6 +13,18 @@ backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcu
 - The `public` schema should only contain global tables like `users` or shared metadata.
 - **KRİTİK**: Supabase Dashboard üzerinde yeni bir şema oluşturulduğunda, Encore veya API üzerinden erişilebilmesi için **Settings > API > Exposed schemas** listesine manuel olarak eklenmelidir. 
   - [API Settings Link](https://supabase.com/dashboard/project/nxtmjrmimcpudskzzqcr/integrations/data_api/settings)
+- **Schema & Table Permissions (Grants)**: Yeni şema ve tablolar oluşturulurken schema kullanım yetkisi (`USAGE`), tüm tablolar, sekanslar ve fonksiyonlar için tüm yetkiler (`ALL`) `anon`, `authenticated`, `service_role` rollerine atanmalı ve varsayılan yetkiler (`ALTER DEFAULT PRIVILEGES`) yapılandırılmalıdır.
+  - Örnek:
+    ```sql
+    GRANT USAGE ON SCHEMA şema_adı TO anon, authenticated, service_role;
+    GRANT ALL ON ALL TABLES IN SCHEMA şema_adı TO anon, authenticated, service_role;
+    GRANT ALL ON ALL SEQUENCES IN SCHEMA şema_adı TO anon, authenticated, service_role;
+    GRANT ALL ON ALL FUNCTIONS IN SCHEMA şema_adı TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA şema_adı GRANT ALL ON TABLES TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA şema_adı GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA şema_adı GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+    ```
+
 
 ### 1.2. Table Management
 - **Root Table Definition**: Each service directory must contain a `table.sql` file that represents the **ideal/latest state** of the database structure for that service.
