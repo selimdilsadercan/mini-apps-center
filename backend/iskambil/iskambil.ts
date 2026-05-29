@@ -43,6 +43,14 @@ export interface Game {
   ending_en: string[] | null;
   notes_tr: string[] | null;
   notes_en: string[] | null;
+  custom_sections: GameSection[] | null;
+}
+
+export interface GameSection {
+  title_tr: string;
+  title_en: string;
+  content_tr: string[];
+  content_en: string[];
 }
 
 // ==================== REQUEST/RESPONSE TYPES ====================
@@ -145,6 +153,12 @@ export const getGames = api(
       ending_en: g.ending_en || null,
       notes_tr: g.notes_tr || null,
       notes_en: g.notes_en || null,
+      custom_sections: g.customSections ? g.customSections.map((s: any) => ({
+        title_tr: s.title_tr,
+        title_en: s.title_en,
+        content_tr: s.content_tr,
+        content_en: s.content_en
+      })) : null,
     }));
 
     // 4. Sort alphabetically by game name

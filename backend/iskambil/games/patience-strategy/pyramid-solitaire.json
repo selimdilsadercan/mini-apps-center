@@ -1,0 +1,210 @@
+{
+    "id": "pyramid-solitaire",
+    "name_tr": "Pyramid Solitaire",
+    "name_en": "Pyramid Solitaire",
+    "originalName": "Pyramid",
+    "description_tr": "Tek kişilik, toplamı 13 yapan kartları eşleştirerek piramidi temizlemeye dayalı bir solitaire oyunudur.",
+    "description_en": "A single-player solitaire game where the goal is to clear the pyramid by pairing cards that add up to 13.",
+    "quickRules_tr": [
+        "1 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+        "Masaya 28 karttan oluşan açık bir piramit kurulur.",
+        "Amaç, toplamı 13 yapan açık kartları eşleştirerek piramidi temizlemektir.",
+        "Papaz 13 değerinde olduğu için tek başına kaldırılabilir.",
+        "Sadece üzeri kapanmamış, açıkta kalan kartlar oynanabilir.",
+        "Hamle kalmadığında stock destesinden kart açılır.",
+        "Tüm piramit kartları kaldırılırsa oyun kazanılır."
+    ],
+    "quickRules_en": [
+        "Played by 1 player with a standard 52-card deck without jokers.",
+        "A face-up pyramid of 28 cards is dealt on the table.",
+        "The goal is to clear the pyramid by pairing exposed cards that add up to 13.",
+        "Kings are worth 13 and may be removed on their own.",
+        "Only uncovered, exposed cards may be played.",
+        "When no move is available, cards are drawn from the stock.",
+        "The game is won when all pyramid cards are removed."
+    ],
+    "setup_tr": [
+        "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+        "Masaya piramit şeklinde 7 sıra kart dağıtılır.",
+        "İlk sıraya 1 kart, ikinci sıraya 2 kart, üçüncü sıraya 3 kart olacak şekilde yedinci sıraya kadar devam edilir.",
+        "Yedinci sırada 7 kart bulunur ve toplamda 28 kartlık bir piramit oluşur.",
+        "Kartlar açık şekilde yerleştirilir; alt sıradaki kartlar üst sıradaki kartların bir kısmını kapatır.",
+        "Kalan 24 kart kapalı şekilde stock destesini oluşturur.",
+        "Waste ve foundation alanları başlangıçta boştur."
+    ],
+    "setup_en": [
+        "Remove the jokers and shuffle a standard 52-card deck.",
+        "Deal 7 rows of cards in a pyramid shape.",
+        "Deal 1 card in the first row, 2 cards in the second row, 3 cards in the third row, and continue up to the seventh row.",
+        "The seventh row contains 7 cards, creating a pyramid of 28 cards in total.",
+        "Cards are placed face up, with lower-row cards partially covering the cards above them.",
+        "The remaining 24 cards form the face-down stock pile.",
+        "The waste and foundation areas start empty."
+    ],
+    "objective_tr": "Amaç, toplamı 13 yapan kartları eşleştirerek piramitteki kartları kaldırmak ve mümkünse tüm kartları foundation alanına taşımaktır.",
+    "objective_en": "The objective is to remove cards from the pyramid by matching cards that add up to 13 and, if possible, move all cards to the foundation.",
+    "gameplay_tr": [
+        "Oyuncu yalnızca üzeri başka kartlarla kapatılmamış açık kartları oynayabilir.",
+        "İki açık kartın değerleri toplamı 13 ediyorsa bu kartlar kaldırılır.",
+        "Papaz 13 değerinde olduğu için başka karta ihtiyaç duymadan tek başına kaldırılır.",
+        "Kaldırılan kartlar foundation alanına gönderilir ve oyundan çıkarılır.",
+        "Bir kartın üzerini kapatan iki alt kart kaldırıldığında, o kart oynanabilir hale gelir.",
+        "Piramitte uygun eşleşme yoksa stock destesinden bir kart açılır.",
+        "Stock'tan açılan kart waste alanına konur.",
+        "Waste alanındaki en üst kart, piramitteki açık bir kartla toplam 13 yapıyorsa eşleştirilip kaldırılabilir.",
+        "Bazı kurallarda waste kartı, stock'tan yeni açılan kartla da eşleştirilebilir.",
+        "Stock destesinin kaç kez çevrilebileceği oynanan varyanta göre değişir."
+    ],
+    "gameplay_en": [
+        "The player may only play cards that are exposed and not covered by other cards.",
+        "Two exposed cards may be removed if their values add up to 13.",
+        "Kings are worth 13, so they may be removed on their own.",
+        "Removed cards are placed in the foundation and leave the game.",
+        "When the two lower cards covering a card are removed, that card becomes playable.",
+        "If there is no available match in the pyramid, a card is drawn from the stock.",
+        "A drawn stock card is placed onto the waste pile.",
+        "The top card of the waste pile may be matched with an exposed pyramid card if they add up to 13.",
+        "In some rulesets, the waste card may also be matched with the next card drawn from the stock.",
+        "The number of times the stock may be recycled depends on the variant being played."
+    ],
+    "customSections": [
+        {
+            "title_tr": "Kart Değerleri",
+            "title_en": "Card Values",
+            "content_tr": [
+                "As 1 puandır.",
+                "2-10 arası kartlar kendi değerindedir.",
+                "Vale 11 puandır.",
+                "Kız 12 puandır.",
+                "Papaz 13 puandır ve tek başına kaldırılabilir."
+            ],
+            "content_en": [
+                "Ace is worth 1.",
+                "Cards from 2 to 10 are worth their face value.",
+                "Jack is worth 11.",
+                "Queen is worth 12.",
+                "King is worth 13 and may be removed alone."
+            ]
+        },
+        {
+            "title_tr": "Geçerli Eşleşmeler",
+            "title_en": "Valid Pairs",
+            "content_tr": [
+                "Papaz tek başına kaldırılır.",
+                "Kız + As toplam 13 yapar.",
+                "Vale + 2 toplam 13 yapar.",
+                "10 + 3 toplam 13 yapar.",
+                "9 + 4 toplam 13 yapar.",
+                "8 + 5 toplam 13 yapar.",
+                "7 + 6 toplam 13 yapar."
+            ],
+            "content_en": [
+                "King is removed by itself.",
+                "Queen + Ace adds up to 13.",
+                "Jack + 2 adds up to 13.",
+                "10 + 3 adds up to 13.",
+                "9 + 4 adds up to 13.",
+                "8 + 5 adds up to 13.",
+                "7 + 6 adds up to 13."
+            ]
+        },
+        {
+            "title_tr": "Oyun Alanları",
+            "title_en": "Play Areas",
+            "content_tr": [
+                "Pyramid: Oyunun ana alanıdır. 28 karttan oluşur ve kartlar üst üste kapatmalı şekilde dizilir.",
+                "Stock: Piramit kurulduktan sonra kalan 24 kapalı kartın oluşturduğu destedir.",
+                "Waste: Stock'tan açılan kartların konduğu açık kart alanıdır.",
+                "Foundation: Kaldırılan eşleşmelerin ve Papazların gönderildiği alandır."
+            ],
+            "content_en": [
+                "Pyramid: The main play area. It contains 28 cards arranged in overlapping rows.",
+                "Stock: The face-down pile of 24 cards left after the pyramid is dealt.",
+                "Waste: The face-up pile where cards drawn from the stock are placed.",
+                "Foundation: The area where removed pairs and Kings are placed."
+            ]
+        },
+        {
+            "title_tr": "Varyantlar",
+            "title_en": "Variants",
+            "content_tr": [
+                "Relaxed Pyramid: Kazanmak için yalnızca piramitteki kartların temizlenmesi yeterlidir.",
+                "Strict Pyramid: Tüm kartların, yani piramit, stock ve waste kartlarının foundation'a taşınması gerekir.",
+                "Redeal'li Pyramid: Stock bittikten sonra waste destesi tekrar çevrilerek sınırlı sayıda yeniden kullanılabilir.",
+                "Turn One: Stock destesinden her seferinde 1 kart açılır.",
+                "Turn Three: Stock destesinden her seferinde 3 kart açılır; daha zor bir varyanttır."
+            ],
+            "content_en": [
+                "Relaxed Pyramid: Only the pyramid cards need to be cleared to win.",
+                "Strict Pyramid: All cards, including pyramid, stock, and waste cards, must be moved to the foundation.",
+                "Redeal Pyramid: After the stock runs out, the waste pile may be turned over and reused a limited number of times.",
+                "Turn One: One card is drawn from the stock at a time.",
+                "Turn Three: Three cards are drawn from the stock at a time; this is a harder variant."
+            ]
+        },
+        {
+            "title_tr": "Tıkanma Durumu",
+            "title_en": "Blocked Game",
+            "content_tr": [
+                "Pyramid Solitaire'de her dağılım kazanılabilir değildir.",
+                "Oyuncunun kaldırması gereken kartın eşi piramitte kapalı veya erişilemez durumda kalabilir.",
+                "Örneğin açıkta kalan 4'ü kaldırmak için 9 gerekir; ancak oynanabilir 9 yoksa hamle yapılamaz.",
+                "Stock destesinde veya waste alanında uygun kart kalmadıysa ve redeal hakkı bittiyse oyun kaybedilmiş sayılır.",
+                "Bu nedenle oyuncu yalnızca mevcut eşleşmeyi değil, hangi kartların açılacağını da düşünmelidir."
+            ],
+            "content_en": [
+                "Not every Pyramid Solitaire deal is winnable.",
+                "The matching card needed by the player may remain covered or unreachable inside the pyramid.",
+                "For example, an exposed 4 needs a 9 to be removed; if no playable 9 is available, no move can be made.",
+                "If there is no suitable card left in the stock or waste pile and the redeal limit has been reached, the game is lost.",
+                "For this reason, players should think not only about the current match, but also about which cards will become available."
+            ]
+        }
+    ],
+    "scoring_tr": [
+        "Klasik Pyramid Solitaire'de puanlama zorunlu değildir; temel amaç piramidi temizlemektir.",
+        "Basit skorlamada piramitte kalan kart sayısı ceza puanı olarak sayılabilir.",
+        "Mükemmel sonuç, piramitte hiç kart kalmamasıdır.",
+        "Dijital sürümlerde süre, hamle sayısı, kalan stock kartı veya temizlenen kart sayısına göre puanlama yapılabilir."
+    ],
+    "scoring_en": [
+        "Classic Pyramid Solitaire does not require scoring; the main goal is to clear the pyramid.",
+        "In a simple scoring system, the number of cards left in the pyramid may count as penalty points.",
+        "A perfect result leaves no cards in the pyramid.",
+        "Digital versions may score based on time, number of moves, remaining stock cards, or number of cleared cards."
+    ],
+    "ending_tr": [
+        "Piramitteki tüm kartlar kaldırılırsa oyun kazanılır.",
+        "Klasik katı kurallarda oyunu tamamen kazanmak için stock ve waste kartlarının da foundation'a taşınması gerekebilir.",
+        "Daha rahat varyantlarda yalnızca piramidin temizlenmesi kazanmak için yeterlidir.",
+        "Stock bittiyse ve artık toplam 13 yapan geçerli eşleşme kalmadıysa oyun sona erer."
+    ],
+    "ending_en": [
+        "The game is won when all cards in the pyramid are removed.",
+        "Under stricter rules, all stock and waste cards may also need to be moved to the foundation for a full win.",
+        "In relaxed variants, clearing only the pyramid is enough to win.",
+        "If the stock is exhausted and no valid pair adding to 13 remains, the game ends."
+    ],
+    "notes_tr": [
+        "Pyramid Solitaire, dizme oyunundan çok eşleştirme ve basit toplama mantığına dayanır.",
+        "Renk ve kart türü önemli değildir; yalnızca kart değerlerinin toplamı önemlidir.",
+        "Papazlar mümkün olduğunda hemen kaldırılabilir çünkü tek başlarına 13 ederler.",
+        "Oyuncu hamle yaparken sadece mevcut eşleşmeyi değil, hangi kartların açılacağını da düşünmelidir.",
+        "Başlangıç dostu uygulama kuralı olarak Relaxed Pyramid ve Turn One kullanılabilir."
+    ],
+    "notes_en": [
+        "Pyramid Solitaire is based more on matching and simple addition than on building sequences.",
+        "Suit and color do not matter; only the total card value matters.",
+        "Kings can usually be removed immediately because they are worth 13 by themselves.",
+        "Players should consider not only the current match but also which cards will become available.",
+        "For a beginner-friendly app version, Relaxed Pyramid with Turn One draw is a good default."
+    ],
+    "minPlayers": 1,
+    "maxPlayers": 1,
+    "deckCount_tr": "1 deste",
+    "deckCount_en": "1 deck",
+    "category_tr": "Solitaire / Sabır",
+    "category_en": "Solitaire / Patience",
+    "subCategory_tr": "Eşleştirme / Toplam 13",
+    "subCategory_en": "Pairing / Sum 13"
+}

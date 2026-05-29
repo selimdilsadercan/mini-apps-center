@@ -1,34 +1,128 @@
 {
-  "id": "solitaire",
-  "name_tr": "solitaire",
-  "name_en": "Klondike",
+  "id": "klondike-solitaire",
+  "name_tr": "Solitaire / Klondike",
+  "name_en": "Klondike Solitaire",
   "originalName": "Klondike",
-  "description_tr": "Tek kişilik klasik kart dizme oyunu; amaç tüm kartları As'tan Papaz'a kadar foundation alanlarına taşımaktır.",
-  "description_en": "The classic single-player Klondike card game where the goal is to move all cards to foundation piles from Ace to King.",
-  "rules_tr": [
-    "1 kişiyle, 52 kartlık standart deste ile oynanır.",
-    "Masaya 7 sütun kurulur; ilk sütunda 1 kart, ikinci sütunda 2 kart olacak şekilde yedinci sütuna kadar artarak kart dizilir. Her sütunun yalnızca en üst kartı açık olur.",
-    "Amaç her renkten As ile başlayıp Papaz'a kadar yükselen dört foundation destesi oluşturmaktır.",
+  "description_tr": "Tek kişilik klasik sabır oyunu; amaç tüm kartları türlerine göre As'tan Papaz'a kadar foundation alanlarına taşımaktır.",
+  "description_en": "A classic single-player patience game where the goal is to move all cards to the foundation piles by suit from Ace to King.",
+  "quickRules_tr": [
+    "1 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Masada 7 tableau sütunu kurulur.",
+    "Amaç her kart türü için As'tan Papaz'a doğru dört foundation destesi oluşturmaktır.",
     "Tableau sütunlarında kartlar azalan sıra ve alternatif renk kuralıyla dizilir.",
-    "Kapalı kartlar, üzerlerindeki açık kartlar taşındığında açılır.",
-    "Boşalan sütuna yalnızca Papaz veya Papaz ile başlayan geçerli bir dizi konabilir.",
-    "Hamle kalmadığında kapalı desteden kart açılır.",
+    "Boş tableau sütununa yalnızca Papaz veya Papaz ile başlayan geçerli bir dizi konabilir.",
+    "Hamle kalmadığında stock destesinden kart açılır.",
     "Tüm kartlar foundation alanlarına taşınırsa oyun kazanılır."
   ],
-  "rules_en": [
-    "Played by 1 player with a standard 52-card deck.",
-    "Seven tableau columns are dealt: 1 card in the first column, 2 in the second, increasing up to 7 in the seventh. Only the top card of each column is face up.",
-    "The goal is to build four foundation piles, one for each suit, from Ace up to King.",
+  "quickRules_en": [
+    "Played by 1 player with a standard 52-card deck without jokers.",
+    "Seven tableau columns are set up on the table.",
+    "The goal is to build four foundation piles by suit from Ace to King.",
     "Tableau columns are built downward in alternating colors.",
-    "Face-down cards are turned over when the face-up cards above them are moved.",
-    "An empty column may be filled only by a King or a valid sequence starting with a King.",
-    "When no move is available, cards are turned from the stock.",
+    "An empty tableau column may only be filled by a King or a valid sequence starting with a King.",
+    "When no move is available, cards are drawn from the stock.",
     "The game is won when all cards are moved to the foundations."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Masaya 7 tableau sütunu kurulur.",
+    "Birinci sütuna 1 kart, ikinci sütuna 2 kart, üçüncü sütuna 3 kart olacak şekilde yedinci sütuna kadar artarak kart dağıtılır.",
+    "Her tableau sütununun yalnızca en üst kartı açık bırakılır; diğer kartlar kapalı kalır.",
+    "Dağıtılmayan kartlar kapalı şekilde stock destesini oluşturur.",
+    "Foundation alanları başlangıçta boştur."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Set up seven tableau columns.",
+    "Deal 1 card to the first column, 2 cards to the second, 3 cards to the third, and so on up to 7 cards in the seventh column.",
+    "Only the top card of each tableau column is face up; the remaining cards are face down.",
+    "The undealt cards form the face-down stock pile.",
+    "The foundation piles start empty."
+  ],
+  "objective_tr": "Amaç, dört foundation destesini kart türlerine göre As'tan başlayıp Papaz'a kadar tamamlamak ve tüm kartları bu alanlara taşımaktır.",
+  "objective_en": "The objective is to complete the four foundation piles by suit from Ace to King and move all cards into those piles.",
+  "gameplay_tr": [
+    "Tableau sütunlarında kartlar azalan sırayla ve alternatif renklerle dizilir.",
+    "Örneğin kırmızı 7'nin üzerine siyah 6, siyah Vale'nin üzerine kırmızı 10 konabilir.",
+    "Foundation alanları aynı türden kartlarla As'tan Papaz'a doğru yükselen sırayla kurulur.",
+    "Açık bir kart veya geçerli bir kart dizisi, tableau içinde başka bir uygun sütuna taşınabilir.",
+    "Bir tableau sütunundaki açık kartlar taşındığında altta kapalı kart varsa bu kart açılır.",
+    "Boşalan tableau sütununa yalnızca Papaz veya Papaz ile başlayan geçerli bir dizi yerleştirilebilir.",
+    "Tableau'da uygun hamle yoksa stock destesinden kart açılır ve waste alanına konur.",
+    "Waste alanındaki oynanabilir üst kart tableau'ya veya foundation'a taşınabilir.",
+    "Stock destesindeki kartların nasıl açılacağı oynanan varyanta göre değişir: bazı oyunlarda tek tek, bazı oyunlarda üçer üçer kart açılır."
+  ],
+  "gameplay_en": [
+    "Tableau columns are built downward in alternating colors.",
+    "For example, a black 6 may be placed on a red 7, and a red 10 may be placed on a black Jack.",
+    "Foundation piles are built upward by suit from Ace to King.",
+    "A face-up card or a valid sequence of cards may be moved to another suitable tableau column.",
+    "When face-up cards are moved away from a tableau column, the next face-down card underneath is turned face up.",
+    "An empty tableau column may only be filled with a King or a valid sequence starting with a King.",
+    "If there is no useful move in the tableau, cards are drawn from the stock and placed in the waste pile.",
+    "The playable top card of the waste pile may be moved to the tableau or to a foundation pile.",
+    "The way cards are drawn from the stock depends on the variant: some games use turn-one draw, while others use turn-three draw."
+  ],
+  "areas_tr": [
+    "Tableau: Oyunun ana alanıdır. Kartlar burada azalan sıra ve alternatif renk kuralıyla dizilir.",
+    "Foundation: Kartların türlerine göre As'tan Papaz'a kadar toplandığı dört hedef destesidir.",
+    "Stock: Dağıtılmayan kapalı kartların bulunduğu destedir.",
+    "Waste: Stock destesinden açılan kartların konduğu açık kart alanıdır."
+  ],
+  "areas_en": [
+    "Tableau: The main play area where cards are built downward in alternating colors.",
+    "Foundation: The four target piles where cards are built by suit from Ace to King.",
+    "Stock: The face-down pile of undealt cards.",
+    "Waste: The face-up pile where cards drawn from the stock are placed."
+  ],
+  "scoring_tr": [
+    "Klasik Klondike Solitaire'de puanlama zorunlu değildir; temel amaç oyunu tamamlamaktır.",
+    "Dijital versiyonlarda foundation'a kart taşıma, tableau'da kapalı kart açma veya oyunu hızlı bitirme gibi hamleler puanlandırılabilir.",
+    "Microsoft Solitaire gibi bazı dijital sürümlerde hamlelere göre artı ve eksi puan sistemi bulunur."
+  ],
+  "scoring_en": [
+    "Classic Klondike Solitaire does not require scoring; the main goal is to complete the game.",
+    "Digital versions may award points for moving cards to foundations, revealing face-down tableau cards, or finishing quickly.",
+    "Some digital versions, such as Microsoft Solitaire, use positive and negative points for different moves."
+  ],
+  "ending_tr": [
+    "Tüm kartlar dört foundation destesine taşındığında oyun kazanılır.",
+    "Oyuncu artık anlamlı bir hamle yapamıyorsa oyun kaybedilmiş kabul edilebilir.",
+    "Bazı dijital sürümlerde geri alma, sınırsız stock çevirme veya ipucu gibi yardımcı özellikler bulunabilir."
+  ],
+  "ending_en": [
+    "The game is won when all cards are moved to the four foundation piles.",
+    "If the player can no longer make any meaningful move, the game may be considered lost.",
+    "Some digital versions include helper features such as undo, unlimited stock redeals, or hints."
+  ],
+  "variants_tr": [
+    "Turn One: Stock destesinden her seferinde 1 kart açılır. Daha kolay kabul edilir.",
+    "Turn Three: Stock destesinden her seferinde 3 kart açılır. Genellikle daha zordur çünkü sadece en üstteki waste kartı oynanabilir.",
+    "Sınırsız çevirme: Stock destesinin bitince tekrar çevrilmesine izin verilir.",
+    "Sınırlı çevirme: Stock destesinin kaç kez tekrar çevrilebileceği sınırlandırılır."
+  ],
+  "variants_en": [
+    "Turn One: One card is drawn from the stock at a time. This is usually easier.",
+    "Turn Three: Three cards are drawn from the stock at a time. This is usually harder because only the top waste card is playable.",
+    "Unlimited redeals: The stock may be recycled when it runs out.",
+    "Limited redeals: The number of times the stock may be recycled is limited."
+  ],
+  "notes_tr": [
+    "Solitaire aslında tek kişilik kart oyunlarının genel adıdır; bu oyunun özel adı Klondike'tır.",
+    "Türkiye'de ve dijital oyunlarda bu varyant çoğu zaman sadece Solitaire adıyla bilinir.",
+    "Uygulamada arama kolaylığı için görünen ad 'Solitaire / Klondike' kullanılabilir.",
+    "Varsayılan kural olarak Turn One daha başlangıç dostudur; daha klasik/zorlu seçenek için Turn Three eklenebilir."
+  ],
+  "notes_en": [
+    "Solitaire is a general name for single-player card games; this specific game is called Klondike.",
+    "In many digital games, Klondike is simply called Solitaire.",
+    "For easier search and recognition, the display name can be 'Solitaire / Klondike'.",
+    "Turn One is more beginner-friendly as a default rule; Turn Three can be added as a more classic or harder option."
   ],
   "minPlayers": 1,
   "maxPlayers": 1,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
   "category_tr": "Sabır / Strateji",
   "category_en": "Patience / Strategy"
 }

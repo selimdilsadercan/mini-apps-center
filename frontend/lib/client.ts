@@ -560,6 +560,14 @@ export namespace iskambil {
         "ending_en": string[] | null
         "notes_tr": string[] | null
         "notes_en": string[] | null
+        "custom_sections": GameSection[] | null
+    }
+
+    export interface GameSection {
+        "title_tr": string
+        "title_en": string
+        "content_tr": string[]
+        "content_en": string[]
     }
 
     export interface GetGamesResponse {

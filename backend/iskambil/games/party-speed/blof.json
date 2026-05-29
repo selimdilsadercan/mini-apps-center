@@ -1,34 +1,194 @@
 {
   "id": "blof",
-  "name_tr": "blöf",
+  "name_tr": "Blöf",
   "name_en": "Cheat / I Doubt It",
   "originalName": "Cheat / I Doubt It",
-  "description_tr": "Oyuncuların kapalı kart atıp doğru veya yalan beyan vererek kartlarını bitirmeye çalıştığı blöf oyunu.",
-  "description_en": "A bluffing game where players play face-down cards and may truthfully or falsely claim their rank to get rid of cards.",
-  "rules_tr": [
-    "En iyi 3-6 oyuncuyla, 52 kartlık standart deste ile oynanır.",
-    "Kartlar oyunculara mümkün olduğunca eşit dağıtılır.",
-    "Oyuncular sırayla ortaya kapalı kart veya kartlar atar ve hangi değeri attığını söyler.",
-    "Oyunun varyantına göre beyan edilen değerler sırayla ilerleyebilir veya oyuncu turu başlatırken istediği değeri seçebilir.",
-    "Diğer oyuncular beyanın yalan olduğunu düşünürse 'Blöf!' ya da 'İnanmıyorum!' diyerek itiraz eder.",
-    "İtiraz edilirse son atılan kartlar açılır. Beyan yalan ise kartları atan oyuncu ortadaki tüm desteyi alır.",
-    "Beyan doğruysa itiraz eden oyuncu ortadaki tüm desteyi alır.",
-    "Elindeki tüm kartları ilk bitiren oyuncu oyunu kazanır."
+  "description_tr": "Oyuncuların kapalı kart atıp doğru veya yalan beyan vererek kartlarını bitirmeye çalıştığı eğlenceli bir blöf oyunudur.",
+  "description_en": "A fun bluffing card game where players play cards face down and may truthfully or falsely claim their rank to get rid of cards.",
+  "quickRules_tr": [
+    "Genellikle 3-6 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Tüm kartlar oyunculara mümkün olduğunca eşit dağıtılır.",
+    "Oyuncular sırayla ortaya kapalı kart veya kartlar atar.",
+    "Kart atan oyuncu hangi değerden kaç kart attığını söyler.",
+    "Oyuncu doğru söyleyebilir veya blöf yapabilir.",
+    "Bir oyuncu beyanın yalan olduğunu düşünürse 'Blöf!' ya da 'İnanmıyorum!' diyerek itiraz eder.",
+    "İtiraz doğruysa kart atan oyuncu ortadaki tüm desteyi alır.",
+    "İtiraz yanlışsa itiraz eden oyuncu ortadaki tüm desteyi alır.",
+    "Elindeki tüm kartları ilk bitiren oyuncu kazanır."
   ],
-  "rules_en": [
-    "Best played with 3-6 players using a standard 52-card deck.",
-    "Cards are dealt to players as evenly as possible.",
-    "Players take turns placing one or more cards face down and declaring what rank they played.",
-    "Depending on the variant, declared ranks may advance in order, or the starting player may choose any rank.",
+  "quickRules_en": [
+    "Usually played with 3-6 players using a standard 52-card deck.",
+    "All cards are dealt to the players as evenly as possible.",
+    "Players take turns placing one or more cards face down in the center.",
+    "The player declares how many cards of a certain rank they played.",
+    "The player may be telling the truth or bluffing.",
     "If another player thinks the claim is false, they may challenge by saying 'Cheat!' or 'I doubt it!'",
-    "When challenged, the last played cards are revealed. If the claim was false, the player who played them takes the whole center pile.",
-    "If the claim was true, the challenger takes the whole center pile.",
-    "The first player to get rid of all cards wins."
+    "If the challenge is correct, the player who made the claim takes the whole center pile.",
+    "If the challenge is wrong, the challenger takes the whole center pile.",
+    "The first player to get rid of all their cards wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Kartlar oyunculara mümkün olduğunca eşit dağıtılır.",
+    "Bazı oyuncuların elinde bir kart fazla olabilir.",
+    "Oyuncular kendi kartlarına bakabilir.",
+    "Ortadaki atık destesi başlangıçta boştur.",
+    "İlk başlayacak oyuncu kura, dağıtanın solu veya ev kuralıyla belirlenir."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal all cards to the players as evenly as possible.",
+    "Some players may receive one extra card.",
+    "Players may look at their own cards.",
+    "The center discard pile starts empty.",
+    "The starting player may be chosen randomly, by the player to the dealer's left, or by house rule."
+  ],
+  "objective_tr": "Amaç, doğru beyanlar ve blöfler kullanarak eldeki tüm kartları diğer oyunculardan önce bitirmektir.",
+  "objective_en": "The objective is to get rid of all your cards before the other players by using truthful claims and bluffs.",
+  "gameplay_tr": [
+    "Oyuncu sırası geldiğinde ortaya bir veya daha fazla kartı kapalı şekilde koyar.",
+    "Kartları koyarken kaç kart attığını ve hangi değerden attığını söyler.",
+    "Örneğin 'iki 7'li' veya 'üç Papaz' diyebilir.",
+    "Oyuncu gerçekten söylediği kartları atabilir veya farklı kartlar atarak blöf yapabilir.",
+    "Sıradaki oyuncu, oynanan varyanta göre ya sıradaki değeri beyan eder ya da serbest şekilde bir değer seçer.",
+    "Diğer oyuncular, son beyanın yalan olduğunu düşünürse itiraz edebilir.",
+    "İtiraz edilmezse oyun sıradaki oyuncuya geçer ve kapalı kartlar ortadaki destede kalır.",
+    "İtiraz edilirse son atılan kartlar açılır ve beyanın doğru olup olmadığı kontrol edilir.",
+    "İtiraz çözüldükten sonra oyun normal sırayla devam eder.",
+    "Oyuncu son kartlarını attığında ve bu hamle başarılı olursa oyunu kazanır."
+  ],
+  "gameplay_en": [
+    "On a turn, the player places one or more cards face down in the center.",
+    "While playing the cards, the player announces how many cards they played and what rank they are claiming.",
+    "For example, they may say 'two 7s' or 'three Kings'.",
+    "The player may actually play the claimed cards or bluff by playing different cards.",
+    "Depending on the variant, the next player either declares the next rank in sequence or freely chooses a rank.",
+    "Other players may challenge the latest claim if they think it is false.",
+    "If nobody challenges, play continues to the next player and the face-down cards stay in the center pile.",
+    "If a challenge is made, the last played cards are revealed and the claim is checked.",
+    "After the challenge is resolved, play continues in normal turn order.",
+    "A player wins when they successfully gets rid of their last cards."
+  ],
+  "customSections": [
+    {
+      "title_tr": "İtiraz ve Blöf Çağırma",
+      "title_en": "Challenges and Calling Cheat",
+      "content_tr": [
+        "Bir oyuncu son beyanın yalan olduğunu düşünürse 'Blöf!' veya 'İnanmıyorum!' diyerek itiraz edebilir.",
+        "İtiraz yalnızca son oynanan kapalı kartlara yapılır.",
+        "İtiraz edildiğinde son atılan kartlar açılır.",
+        "Eğer kart atan oyuncu yalan söylemişse, ortadaki tüm desteyi kart atan oyuncu alır.",
+        "Eğer kart atan oyuncu doğru söylemişse, ortadaki tüm desteyi itiraz eden oyuncu alır.",
+        "Bir sonraki oyuncu hamlesini yaptıktan sonra önceki hamleye itiraz edilemez."
+      ],
+      "content_en": [
+        "If a player thinks the latest claim is false, they may challenge by saying 'Cheat!' or 'I doubt it!'",
+        "A challenge only applies to the most recent face-down play.",
+        "When challenged, the last played cards are revealed.",
+        "If the player who made the claim was lying, that player takes the whole center pile.",
+        "If the player who made the claim was telling the truth, the challenger takes the whole center pile.",
+        "Once the next player has made their play, the previous play can no longer be challenged."
+      ]
+    },
+    {
+      "title_tr": "Beyan Sırası",
+      "title_en": "Rank Sequence",
+      "content_tr": [
+        "Yaygın kuralda beyan edilen kart değerleri sırayla ilerler.",
+        "Örneğin ilk oyuncu As derse, sonraki oyuncu 2, sonra 3, sonra 4 diye devam eder.",
+        "Papazdan sonra sıra tekrar As'a döner.",
+        "Oyuncular sıradaki değeri söylemek zorundadır; ancak gerçekten o değerde kart atmak zorunda değildir.",
+        "Bu yüzden oyuncu elinde gerekli kart yoksa blöf yapmak zorunda kalabilir.",
+        "Bazı ev kurallarında turu başlatan oyuncu istediği değeri seçebilir ve oyun o değerden devam eder."
+      ],
+      "content_en": [
+        "In the common rule, declared ranks advance in sequence.",
+        "For example, if the first player declares Aces, the next player declares 2s, then 3s, then 4s, and so on.",
+        "After Kings, the sequence returns to Aces.",
+        "Players must announce the required rank, but they do not have to actually play cards of that rank.",
+        "This means a player may be forced to bluff if they do not have the required cards.",
+        "In some house rules, the player who starts a round may choose any rank, and the sequence continues from there."
+      ]
+    },
+    {
+      "title_tr": "Kart Sayısı ve Beyan",
+      "title_en": "Number of Cards and Claims",
+      "content_tr": [
+        "Oyuncu aynı değerden bir veya daha fazla kart attığını söyleyebilir.",
+        "Örneğin 'bir 5'li', 'iki 5'li' veya 'üç 5'li' diyebilir.",
+        "Söylenen kart sayısı, kapalı şekilde ortaya atılan kart sayısıyla aynı olmalıdır.",
+        "Oyuncu kartların değerinde yalan söyleyebilir, fakat kaç kart attığı konusunda açıkça aynı sayıda kart koymalıdır.",
+        "Çok kart atmak eli hızlı bitirmeyi sağlar ama yakalanırsa daha risklidir."
+      ],
+      "content_en": [
+        "A player may claim to play one or more cards of the same rank.",
+        "For example, they may say 'one 5', 'two 5s', or 'three 5s'.",
+        "The number of cards declared must match the number of cards placed face down.",
+        "The player may lie about the rank of the cards, but the number of cards placed should match the claim.",
+        "Playing many cards can help empty the hand faster, but it is riskier if challenged."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Sıralı Blöf: Kart değerleri As, 2, 3, 4 şeklinde sırayla ilerler. En yaygın ve anlaşılır versiyondur.",
+        "Serbest Blöf: Oyuncular sırayla istedikleri değeri beyan edebilir. Daha kaotik ve parti oyununa daha uygundur.",
+        "Pas Geçmeli Varyant: Oyuncu kart atmak istemezse pas geçebilir. Daha yumuşak bir oyundur.",
+        "Passız Varyant: Sırası gelen oyuncu mutlaka kart atmalıdır. Bu versiyonda blöf daha sık görülür.",
+        "Çok Desteli Varyant: Oyuncu sayısı fazlaysa iki deste kullanılabilir."
+      ],
+      "content_en": [
+        "Sequential Cheat: Ranks advance in order, such as Ace, 2, 3, 4. This is the most common and easiest version to follow.",
+        "Free Claim Cheat: Players may declare any rank on their turn. This version is more chaotic and party-like.",
+        "Pass Allowed Variant: A player may pass instead of playing cards. This creates a gentler game.",
+        "No-Pass Variant: A player must play cards on their turn. This version creates more bluffing.",
+        "Multiple-Deck Variant: For larger groups, two decks may be used."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Blöf oyununda klasik anlamda puanlama yoktur.",
+    "Elindeki tüm kartları ilk bitiren oyuncu oyunu kazanır.",
+    "İstenirse her elde kazanan oyuncuya 1 puan verilerek birkaç el üzerinden oynanabilir.",
+    "Daha uzun oyunlarda belirlenen puana ilk ulaşan oyuncu genel kazanan olur."
+  ],
+  "scoring_en": [
+    "Cheat usually has no formal scoring.",
+    "The first player to get rid of all their cards wins the game.",
+    "Optionally, the winner of each round may receive 1 point.",
+    "In longer sessions, the first player to reach a chosen score becomes the overall winner."
+  ],
+  "ending_tr": [
+    "Bir oyuncu tüm kartlarını başarıyla bitirdiğinde oyun sona erer.",
+    "Son kartlar atıldığında diğer oyuncular hâlâ itiraz edebilir.",
+    "Eğer son hamleye itiraz edilir ve oyuncu yalan söylemişse, oyuncu ortadaki desteyi alır ve oyun devam eder.",
+    "Eğer son hamleye itiraz edilmezse veya itiraz yanlış çıkarsa, kartlarını bitiren oyuncu kazanır."
+  ],
+  "ending_en": [
+    "The game ends when a player successfully gets rid of all their cards.",
+    "Other players may still challenge the final play.",
+    "If the final play is challenged and the player was lying, that player takes the center pile and the game continues.",
+    "If the final play is not challenged or the challenge is wrong, the player who emptied their hand wins."
+  ],
+  "notes_tr": [
+    "Bu oyun Cheat, I Doubt It, Bullshit ve Blöf gibi farklı adlarla bilinir.",
+    "Oyunun en eğlenceli kısmı karttan çok oyuncu davranışlarını okumaktır.",
+    "Yeni başlayanlar için Sıralı Blöf ve Passız Varyant daha net bir varsayılan kural oluşturur.",
+    "Daha rahat bir parti oyunu için Serbest Blöf ve Pas Geçmeli Varyant tercih edilebilir.",
+    "Oyuncu sayısı 6'yı geçerse iki deste kullanmak oyunu daha dengeli hale getirebilir."
+  ],
+  "notes_en": [
+    "This game is known by several names, including Cheat, I Doubt It, Bullshit, and Bluff.",
+    "The most entertaining part of the game is reading player behavior rather than just reading the cards.",
+    "For beginners, Sequential Cheat with no passing creates a clear default ruleset.",
+    "For a looser party game, Free Claim Cheat with passing may be preferred.",
+    "If there are more than 6 players, using two decks can make the game more balanced."
   ],
   "minPlayers": 3,
   "maxPlayers": 6,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "Hız / Parti",
-  "category_en": "Party / Speed"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Blöf / Parti",
+  "category_en": "Bluffing / Party"
 }

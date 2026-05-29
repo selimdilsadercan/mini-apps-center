@@ -38,6 +38,28 @@ interface Game {
   is_favorite: boolean;
   is_known: boolean;
   user_note: string | null;
+  quick_rules_tr: string[] | null;
+  quick_rules_en: string[] | null;
+  setup_tr: string[] | null;
+  setup_en: string[] | null;
+  objective_tr: string | null;
+  objective_en: string | null;
+  gameplay_tr: string[] | null;
+  gameplay_en: string[] | null;
+  scoring_tr: string[] | null;
+  scoring_en: string[] | null;
+  ending_tr: string[] | null;
+  ending_en: string[] | null;
+  notes_tr: string[] | null;
+  notes_en: string[] | null;
+  custom_sections: GameSection[] | null;
+}
+
+interface GameSection {
+  title_tr: string;
+  title_en: string;
+  content_tr: string[];
+  content_en: string[];
 }
 
 const translations = {
@@ -255,27 +277,156 @@ function GameDetailContent() {
         >
           {/* Rules Column */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-6 bg-[#0c3122] rounded-full" />
-              <h2 className="text-sm font-black text-[#0c3122] tracking-[0.2em] uppercase">
-                {t.rulesHeader}
-              </h2>
-            </div>
             
-            <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-6 md:p-8 space-y-4 font-sans text-base text-slate-700 leading-relaxed shadow-sm">
-              {gameRules.length > 0 ? (
-                <ol className="space-y-4 list-decimal list-inside">
-                  {gameRules.map((rule, idx) => (
-                    <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-4 border-b border-[#f4f1ea] last:border-0 last:pb-0 pl-1">
-                      <span className="inline-block md:inline leading-loose text-slate-700">{rule}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <div className="text-center text-slate-400 py-12 flex flex-col items-center gap-2">
-                  <XCircle size={48} className="opacity-55" />
-                  <span>{t.noRules}</span>
+            <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-6 md:p-8 space-y-6 font-sans text-base text-slate-700 leading-relaxed shadow-sm">
+              {/* Check if we have the new detailed layout */}
+              {(lang === "tr" ? game.quick_rules_tr : game.quick_rules_en) ? (
+                <div className="space-y-6">
+                  
+                  {/* Quick Summary */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                      {lang === "tr" ? "Hızlı Özet" : "Quick Summary"}
+                    </h4>
+                    <ol className="space-y-2 list-decimal list-inside pl-1">
+                      {(lang === "tr" ? game.quick_rules_tr : game.quick_rules_en)?.map((rule, idx) => (
+                        <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                          <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {/* Setup */}
+                  {(lang === "tr" ? game.setup_tr : game.setup_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Kurulum" : "Setup"}
+                      </h4>
+                      <ol className="space-y-2 list-decimal list-inside pl-1">
+                        {(lang === "tr" ? game.setup_tr : game.setup_en)?.map((step, idx) => (
+                          <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                            <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {/* Objective */}
+                  {(lang === "tr" ? game.objective_tr : game.objective_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Amaç" : "Objective"}
+                      </h4>
+                      <div className="p-4 bg-[#fbf9f3] border border-[#e2dec5] rounded-xl text-slate-700 text-sm leading-relaxed">
+                        {lang === "tr" ? game.objective_tr : game.objective_en}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Gameplay */}
+                  {(lang === "tr" ? game.gameplay_tr : game.gameplay_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Oynanış" : "Gameplay"}
+                      </h4>
+                      <ol className="space-y-2 list-decimal list-inside pl-1">
+                        {(lang === "tr" ? game.gameplay_tr : game.gameplay_en)?.map((step, idx) => (
+                          <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                            <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {/* Scoring */}
+                  {(lang === "tr" ? game.scoring_tr : game.scoring_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Puanlama" : "Scoring"}
+                      </h4>
+                      <ol className="space-y-2 list-decimal list-inside pl-1">
+                        {(lang === "tr" ? game.scoring_tr : game.scoring_en)?.map((rule, idx) => (
+                          <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                            <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {/* Custom Sections */}
+                  {game.custom_sections?.map((section, sIdx) => {
+                    const title = lang === "tr" ? section.title_tr : section.title_en;
+                    const content = lang === "tr" ? section.content_tr : section.content_en;
+                    if (!title || !content || content.length === 0) return null;
+                    return (
+                      <div key={sIdx} className="space-y-2">
+                        <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                          {title}
+                        </h4>
+                        <ol className="space-y-2 list-decimal list-inside pl-1">
+                          {content.map((rule, idx) => (
+                            <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                              <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    );
+                  })}
+
+                  {/* Ending */}
+                  {(lang === "tr" ? game.ending_tr : game.ending_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Oyun Sonu" : "Ending"}
+                      </h4>
+                      <ol className="space-y-2 list-decimal list-inside pl-1">
+                        {(lang === "tr" ? game.ending_tr : game.ending_en)?.map((rule, idx) => (
+                          <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                            <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  {(lang === "tr" ? game.notes_tr : game.notes_en) && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
+                        {lang === "tr" ? "Özel Notlar" : "Notes"}
+                      </h4>
+                      <ol className="space-y-2 list-decimal list-inside pl-1">
+                        {(lang === "tr" ? game.notes_tr : game.notes_en)?.map((note, idx) => (
+                          <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
+                            <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{note}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
                 </div>
+              ) : (
+                /* Legacy Layout */
+                gameRules.length > 0 ? (
+                  <ol className="space-y-4 list-decimal list-inside">
+                    {gameRules.map((rule, idx) => (
+                      <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-4 border-b border-[#f4f1ea] last:border-0 last:pb-0 pl-1">
+                        <span className="inline-block md:inline leading-loose text-slate-700">{rule}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="text-center text-slate-400 py-12 flex flex-col items-center gap-2">
+                    <XCircle size={48} className="opacity-55" />
+                    <span>{t.noRules}</span>
+                  </div>
+                )
               )}
             </div>
           </div>

@@ -1,34 +1,156 @@
 {
   "id": "baskan-got",
-  "name_tr": "başkan / göt",
+  "name_tr": "Başkan / Göt",
   "name_en": "President / Asshole",
   "originalName": "President / Asshole",
-  "description_tr": "Oyuncuların kartlarını herkesten önce bitirmeye çalıştığı, tur sonunda başarı sırasına göre unvan ve kart değişimi yapılan tırmanmalı el bitirme oyunu.",
-  "description_en": "A climbing game where players try to get rid of their cards first to gain higher social status for the next round.",
-  "rules_tr": [
-    "Genellikle 3-8 oyuncuyla, 52 kartlık standart deste ile oynanır; kalabalık oyunlarda joker veya ikinci deste eklenebilir.",
-    "Tüm kartlar oyunculara dağıtılır. Kart sayıları eşit bölünmezse bazı oyuncular bir kart fazla alabilir.",
-    "İlk oyuncu tek kart, çift, üçlü veya dörtlü gibi aynı değerden bir kombinasyon oynar. Sonraki oyuncular aynı sayıda ama daha yüksek değerde kart oynamalıdır.",
-    "Kart atamayan veya atmak istemeyen oyuncu pas geçer. Bir turda herkes pas geçerse masa temizlenir ve son kartı atan oyuncu yeni turu başlatır.",
-    "Kart sıralaması ev kuralına göre değişebilir; yaygın düzende 3 en düşük, 2 en yüksek karttır. Bazı ev kurallarında 2 masayı temizler.",
-    "Elindeki tüm kartları ilk bitiren Başkan, ikinci bitiren Başkan Yardımcısı, son bitiren ise Göt/Scum olur.",
-    "Yeni elde düşük unvanlı oyuncular en iyi kartlarını yüksek unvanlı oyunculara verir; yüksek unvanlı oyuncular karşılığında istemedikleri düşük kartları geri verir. Değiştirilecek kart sayısı oyuncu sayısına ve ev kuralına göre belirlenir.",
-    "Oyun birkaç el üst üste oynanır; amaç üst sıralarda kalmak ve sonraki elde avantajlı başlamaktır."
+  "description_tr": "Oyuncuların kartlarını herkesten önce bitirmeye çalıştığı, her elin sonunda başarı sırasına göre unvanların değiştiği tırmanmalı bir el bitirme oyunudur.",
+  "description_en": "A climbing and shedding card game where players try to get rid of all their cards first and receive social ranks based on the finishing order.",
+  "quickRules_tr": [
+    "Genellikle 3-8 oyuncuyla oynanır.",
+    "Standart 52 kartlık deste kullanılır; kalabalık oyunlarda joker veya ikinci deste eklenebilir.",
+    "Tüm kartlar oyunculara dağıtılır.",
+    "Oyuncular sırayla aynı sayıda ama daha yüksek değerde kart oynar veya pas geçer.",
+    "Herkes pas geçerse masa temizlenir ve son kartı atan oyuncu yeni eli başlatır.",
+    "Kartlarını ilk bitiren Başkan, son bitiren Göt/Scum olur.",
+    "Sonraki elde düşük unvanlı oyuncular en iyi kartlarını yüksek unvanlı oyunculara verir."
   ],
-  "rules_en": [
-    "Commonly played with 3-8 players using a standard 52-card deck; jokers or a second deck can be added for larger groups.",
-    "All cards are distributed equally among players. If not divided evenly, some players might receive one extra card.",
-    "The first player leads a single card, pair, three-of-a-kind, or four-of-a-kind. Subsequent players must play a combination of the same size but higher rank.",
-    "A player who cannot or does not want to play a card passes. When everyone passes, the trick is cleared and the last player to play starts a new trick.",
-    "Card ranking can vary by house rules; usually 3 is the lowest and 2 is the highest. In some house rules, a 2 clears the table.",
-    "The player who finishes their cards first becomes the President, the second becomes the Vice President, and the last becomes the Asshole/Scum.",
-    "At the start of the next round, lower status players must trade their best cards to higher status players, who trade back their unwanted cards.",
-    "The game is played over multiple rounds; the goal is to reach/stay in the President position."
+  "quickRules_en": [
+    "Usually played with 3-8 players.",
+    "A standard 52-card deck is used; jokers or a second deck may be added for larger groups.",
+    "All cards are dealt to the players.",
+    "Players must play the same number of cards as the previous play, but with a higher rank, or pass.",
+    "If everyone passes, the pile is cleared and the last player who played starts a new trick.",
+    "The first player to run out of cards becomes the President, and the last player becomes the Asshole/Scum.",
+    "In the next round, lower-ranked players give their best cards to higher-ranked players."
+  ],
+  "setup_tr": [
+    "Joker kullanılmayacaksa 52 kartlık standart deste hazırlanır.",
+    "Oyuncu sayısı fazlaysa ikinci deste veya jokerler ev kuralı olarak eklenebilir.",
+    "Tüm kartlar oyunculara dağıtılır.",
+    "Kart sayısı oyunculara tam eşit bölünmezse bazı oyuncular bir kart fazla alabilir.",
+    "İlk elde oyuna kimin başlayacağı ev kuralıyla belirlenir; yaygın seçeneklerden biri en düşük karta sahip oyuncunun başlamasıdır.",
+    "Sonraki ellerde oyuna genellikle en düşük unvanlı oyuncu ya da önceki elin kazananı başlatılır; bu da ev kuralına göre değişebilir."
+  ],
+  "setup_en": [
+    "Prepare a standard 52-card deck if jokers are not used.",
+    "For larger groups, a second deck or jokers may be added as a house rule.",
+    "All cards are dealt to the players.",
+    "If the cards cannot be divided evenly, some players may receive one extra card.",
+    "In the first round, the starting player is decided by house rule; a common option is that the player with the lowest card starts.",
+    "In later rounds, the starting player is usually either the lowest-ranked player or the previous round's winner, depending on house rules."
+  ],
+  "objective_tr": "Amaç, eldeki tüm kartları diğer oyunculardan önce bitirmek ve sonraki el için daha yüksek bir unvan kazanmaktır.",
+  "objective_en": "The goal is to get rid of all your cards before the other players and earn a higher rank for the next round.",
+  "gameplay_tr": [
+    "Bir oyuncu ortaya tek kart, çift, üçlü veya dörtlü gibi aynı değerden bir kombinasyon oynayarak eli başlatır.",
+    "Sıradaki oyuncu aynı sayıda kart oynamalıdır. Örneğin ortaya çift atıldıysa sonraki oyuncu da çift atmalıdır.",
+    "Oynanan kartlar önceki kombinasyonla aynı değerde veya daha yüksek değerde olmalıdır.",
+    "Oyuncu kart atamıyorsa veya atmak istemiyorsa pas geçebilir.",
+    "Bir oyuncu pas geçtikten sonra, bazı ev kurallarında aynı tur içinde tekrar oynayamaz; bazı ev kurallarında sıra yeniden gelirse oynayabilir.",
+    "Tüm oyuncular pas geçerse ortadaki kartlar kapatılır ve masa temizlenir.",
+    "Masaya son geçerli kartı atan oyuncu yeni eli başlatır.",
+    "Bir oyuncu elindeki tüm kartları bitirdiğinde o el için sıralamaya girer ve oyun diğer oyuncular arasında devam eder.",
+    "Tüm oyuncuların sıralaması belli olana kadar el devam eder."
+  ],
+  "gameplay_en": [
+    "A player starts a trick by playing a single card, a pair, three-of-a-kind, or four-of-a-kind of the same rank.",
+    "The next player must play the same number of cards. For example, if a pair was played, only a pair of the same or higher rank may be played.",
+    "The played cards must have the same or higher rank than the previous combination.",
+    "A player may pass if they cannot or do not want to play.",
+    "After passing, some house rules prevent the player from playing again in the same trick, while others allow the player to play if the turn comes back around.",
+    "If all players pass, the pile is cleared.",
+    "The player who made the last valid play starts the next trick.",
+    "When a player gets rid of all their cards, they receive a finishing position for that round.",
+    "The round continues until the remaining players' positions are determined."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kart Değerleri",
+      "title_en": "Card Ranks",
+      "content_tr": [
+        "Yaygın sıralamada 3 en düşük karttır.",
+        "Sıralama genellikle 3, 4, 5, 6, 7, 8, 9, 10, Vale, Kız, Papaz, As, 2 şeklindedir.",
+        "Bu düzende 2 en güçlü karttır. Ancak ev kuralına bağlı olarak As da en yüksek kart olarak kabul edilebilir.",
+        "Joker kullanılıyorsa genellikle en güçlü karttan da üstün kabul edilir, ancak bu tamamen ev kuralıdır.",
+        "Bazı ev kurallarında 2 atıldığında yerdeki tüm kartlar hemen temizlenir (masa sıfırlanır) ve 2'yi atan oyuncu yeni eli başlatma hakkı kazanır."
+      ],
+      "content_en": [
+        "In a common ranking, 3 is the lowest card.",
+        "The usual order is 3, 4, 5, 6, 7, 8, 9, 10, Jack, Queen, King, Ace, 2.",
+        "In this ranking, 2 is the highest card. However, depending on house rules, the Ace can also be treated as the highest card.",
+        "If jokers are used, they are often considered higher than the highest normal card, but this is a house rule.",
+        "In some house rules, playing a 2 immediately clears the pile (resets the table), and the player who played the 2 starts the next trick."
+      ]
+    },
+    {
+      "title_tr": "Kart Değişimi",
+      "title_en": "Card Exchange",
+      "content_tr": [
+        "İlk elden sonra yeni el başlamadan önce unvanlara göre kart değişimi yapılır.",
+        "En düşük unvanlı oyuncu genellikle en iyi kartlarını Başkan'a verir.",
+        "Başkan karşılığında istemediği aynı sayıda kartı geri verir.",
+        "Başkan Yardımcısı ile sondan ikinci oyuncu arasında da daha az sayıda kart değişimi yapılabilir.",
+        "Yaygın bir düzende Göt, Başkan'a 2 en iyi kartını verir; Başkan 2 kart geri verir.",
+        "Başkan Yardımcısı ile Göt Yardımcısı arasında 1 kart değişimi yapılabilir.",
+        "Kart değişim sayısı oyuncu sayısına ve ev kuralına göre değişebilir."
+      ],
+      "content_en": [
+        "After the first round, cards are exchanged according to the players' ranks before the next round begins.",
+        "The lowest-ranked player usually gives their best cards to the President.",
+        "The President gives back the same number of unwanted cards.",
+        "A smaller exchange may also happen between the Vice President and the second-lowest player.",
+        "A common setup is that the Asshole/Scum gives their 2 best cards to the President, and the President gives 2 cards back.",
+        "The Vice President and Vice-Scum may exchange 1 card.",
+        "The number of exchanged cards depends on the number of players and the house rules."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Bu oyunda klasik anlamda puanlama yoktur; oyuncular el bitirme sırasına göre unvan alır.",
+    "Kartlarını ilk bitiren oyuncu Başkan olur.",
+    "İkinci bitiren oyuncu Başkan Yardımcısı olur.",
+    "Ortada kalan oyuncular Nötr, Halk, Vatandaş veya benzeri ara unvanlarla adlandırılabilir.",
+    "Sondan bir önceki oyuncu bazı oyunlarda Göt Yardımcısı veya Vice-Scum olur.",
+    "Son kalan oyuncu Göt, Scum veya Asshole olur.",
+    "Oyun birkaç el üst üste oynanır; amaç Başkan olmak veya yüksek unvanı korumaktır."
+  ],
+  "scoring_en": [
+    "There is usually no numerical scoring; players receive ranks based on the order in which they go out.",
+    "The first player to get rid of all cards becomes the President.",
+    "The second player becomes the Vice President.",
+    "Middle players may be called Neutral, Citizen, Person, or similar names.",
+    "The second-to-last player may be called Vice-Scum in some versions.",
+    "The last player becomes the Asshole, Scum, or a similar lowest rank.",
+    "The game is played over multiple rounds; the goal is to become President or keep a high rank."
+  ],
+  "ending_tr": [
+    "Bir el, oyuncular kartlarını bitirdikçe sıralama oluşana kadar devam eder.",
+    "Son oyuncu elinde kartla kaldığında el sona erer.",
+    "Yeni elde unvanlara göre kart değişimi yapılarak oyun devam eder.",
+    "Oyunun kesin bir bitiş puanı yoktur; oyuncular istedikleri kadar el oynayabilir."
+  ],
+  "ending_en": [
+    "A round continues as players run out of cards and receive their ranks.",
+    "The round ends when the last remaining player is determined.",
+    "Before the next round, cards are exchanged according to the ranks.",
+    "There is no fixed final score; players may continue for as many rounds as they want."
+  ],
+  "notes_tr": [
+    "Bu oyun birçok farklı isimle bilinir: Başkan, President, Asshole, Scum, Capitalism gibi.",
+    "Oyunun çok fazla ev kuralı vardır; bu yüzden kart sıralaması, joker kullanımı, 2'nin özel etkisi ve kart değişim sayısı masadan masaya değişebilir.",
+    "Daha temiz bir uygulama deneyimi için varsayılan kural olarak 3 en düşük, 2 en yüksek kabul edilebilir.",
+    "İsterseniz oyun ayarlarında jokerli/jokersiz, 2 masayı temizler/temizlemez ve kart değişim sayısı gibi seçenekler sunulabilir."
+  ],
+  "notes_en": [
+    "This game is known by many names, including President, Asshole, Scum, and Capitalism.",
+    "The game has many house rules, so card ranking, jokers, special effects of 2s, and card exchange rules may vary between groups.",
+    "For a clean default version, 3 can be treated as the lowest card and 2 as the highest card.",
+    "Optional settings may include jokers, whether 2 clears the pile, and how many cards are exchanged between ranks."
   ],
   "minPlayers": 3,
   "maxPlayers": 8,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "El Bitirme",
-  "category_en": "Shedding"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "El Bitirme / Tırmanma",
+  "category_en": "Shedding / Climbing"
 }

@@ -38,6 +38,7 @@ import pisYedili from "./shedding/pis-yedili.json";
 import crazyEightsUno from "./shedding/crazy-eights-uno.json";
 import crazyEightsCountdown from "./shedding/crazy-eights-countdown.json";
 import baskanGot from "./shedding/baskan-got.json";
+import pyramidSolitaire from "./patience-strategy/pyramid-solitaire.json";
 
 export const gamesData = [
   game21,
@@ -49,6 +50,7 @@ export const gamesData = [
   solitaire,
   spiderSolitaire,
   freecell,
+  pyramidSolitaire,
   himbilEsek,
   spit,
   esBulmaliSpeed,
