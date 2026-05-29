@@ -2,19 +2,21 @@
   "name": "recipe-monorepo",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "bun@1.1.38",
   "workspaces": [
     "frontend",
     "backend"
   ],
   "scripts": {
-    "dev": "bun x concurrently -n frontend,encore,generate -c blue,green,yellow \"npm:frontend\" \"npm:encore\" \"npm:generate:watch\"",
-    "frontend": "cd frontend && npm run dev",
-    "generate": "cd backend && npm run generate",
-    "generate:watch": "cd backend && npm run generate:watch",
+    "dev": "bunx concurrently -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run generate:watch\"",
+    "frontend": "cd frontend && bun run dev",
+    "generate": "cd backend && bun run generate",
+    "generate:watch": "cd backend && bun run generate:watch",
     "encore": "cd backend && encore run",
-    "clean": "cd frontend && npm run clean",
-    "mobile": "cd frontend && npm run mobile",
-    "store": "cd frontend && npm run store"
+    "clean": "cd frontend && bun run clean",
+    "mobile": "cd frontend && bun run mobile",
+    "store": "cd frontend && bun run store"
+  },
+  "dependencies": {
+    "encore": "^0.0.30-beta"
   }
 }

@@ -9,7 +9,7 @@
     "dev": "encore run",
     "test": "vitest",
     "generate": "encore gen client mini-apps-center-8u7i -e local --output=../frontend/lib/client.ts",
-    "generate:watch": "nodemon --watch . --ext ts --ignore node_modules --exec \"npm run generate\"",
+    "generate:watch": "nodemon --watch . --ext ts --ignore node_modules --exec \"bun run generate\"",
     "clean": "rimraf node_modules .encore"
   },
   "devDependencies": {
