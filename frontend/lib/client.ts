@@ -36,6 +36,7 @@ export default class Client {
     public readonly concert_list: concert_list.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
+    public readonly icon_set_guide: icon_set_guide.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
@@ -65,6 +66,7 @@ export default class Client {
         this.concert_list = new concert_list.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
+        this.icon_set_guide = new icon_set_guide.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
@@ -523,6 +525,95 @@ export namespace hobby_center {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/hobby-center/update`, JSON.stringify(params))
             return await resp.json() as UpdateUserHobbyResponse
+        }
+    }
+}
+
+export namespace icon_set_guide {
+    export interface GetIconSetsResponse {
+        "icon_sets": IconSet[]
+    }
+
+    export interface IconSet {
+        id: string
+        name: string
+        description: string
+        license: string
+        frameworks: string[]
+        styles: string[]
+        "best_for": string[]
+        vibes: string[]
+        "website_url": string
+        "github_url"?: string
+        "npm_command"?: string
+        "detailed_description"?: string
+        "is_favorited"?: boolean
+    }
+
+    export interface ToggleFavoriteRequest {
+        userId: string
+        iconSetId: string
+    }
+
+    export interface ToggleFavoriteResponse {
+        "is_favorited": boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getIconSetDetail = this.getIconSetDetail.bind(this)
+            this.getIconSets = this.getIconSets.bind(this)
+            this.seedIconSets = this.seedIconSets.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
+        }
+
+        /**
+         * Gets details for a specific icon set
+         * GET /icon-set-guide/detail/:id/:userId
+         */
+        public async getIconSetDetail(id: string, userId: string): Promise<IconSet> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/icon-set-guide/detail/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as IconSet
+        }
+
+        /**
+         * Lists all icon sets with favorite info for the user
+         * GET /icon-set-guide/list/:userId
+         */
+        public async getIconSets(userId: string): Promise<GetIconSetsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/icon-set-guide/list/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetIconSetsResponse
+        }
+
+        /**
+         * Seeds the database with the initial 20 icon sets
+         * POST /icon-set-guide/seed
+         */
+        public async seedIconSets(): Promise<{
+    count: number
+    errors: string[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/icon-set-guide/seed`)
+            return await resp.json() as {
+    count: number
+    errors: string[]
+}
+        }
+
+        /**
+         * Toggles the favorite status of an icon set for the user
+         * POST /icon-set-guide/favorite
+         */
+        public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/icon-set-guide/favorite`, JSON.stringify(params))
+            return await resp.json() as ToggleFavoriteResponse
         }
     }
 }

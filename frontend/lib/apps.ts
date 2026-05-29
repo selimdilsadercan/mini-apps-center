@@ -16,6 +16,7 @@ import {
   Sparkle,
   Compass,
   MusicNotes,
+  Palette,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -47,6 +48,16 @@ export function getAppHref(app: MiniApp): string {
 
 export const MINI_APPS: MiniApp[] = [
   // Utilities
+  {
+    id: "icon-set-guide",
+    name: "Icon Set Guide",
+    description: "Compare open-source icon sets in real UI previews",
+    icon: Palette,
+    category: "Utilities",
+    color: "#4C6EF5",
+    href: "/apps/icon-set-guide",
+    isImplemented: true,
+  },
   {
     id: "subcenter",
     name: "Subscription Center",
