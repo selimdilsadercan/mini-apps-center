@@ -1417,6 +1417,16 @@ export namespace subcenter {
         categories: SubscriptionCategory[]
     }
 
+    export interface GetExchangeRateResponse {
+        from: "USD"
+        to: "TRY"
+        rate: number
+        source: "tcmb"
+        rateType: "forex_selling"
+        date: string
+        fetchedAt: string
+    }
+
     export interface SubscriptionCategory {
         id: string
         name: string
@@ -1486,6 +1496,7 @@ export namespace subcenter {
             this.deleteSubscription = this.deleteSubscription.bind(this)
             this.getGlobalPresets = this.getGlobalPresets.bind(this)
             this.getCategories = this.getCategories.bind(this)
+            this.getExchangeRate = this.getExchangeRate.bind(this)
             this.getUserSubscriptions = this.getUserSubscriptions.bind(this)
             this.updateSubscription = this.updateSubscription.bind(this)
         }
@@ -1532,6 +1543,15 @@ export namespace subcenter {
         public async getCategories(): Promise<GetCategoriesResponse> {
             const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/categories`)
             return await resp.json() as GetCategoriesResponse
+        }
+
+        /**
+         * Get USD/TRY exchange rate from TCMB
+         * GET /subcenter/exchange-rate
+         */
+        public async getExchangeRate(): Promise<GetExchangeRateResponse> {
+            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/exchange-rate`)
+            return await resp.json() as GetExchangeRateResponse
         }
 
         /**

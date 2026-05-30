@@ -9,6 +9,7 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 import { getPresetsData } from "./data";
+import { getUsdTryRateFromTcmb, type TcmbExchangeRate } from "./tcmb";
 
 // ==================== TYPES ====================
 
@@ -102,6 +103,8 @@ interface GetCategoriesResponse {
   categories: SubscriptionCategory[];
 }
 
+type GetExchangeRateResponse = TcmbExchangeRate;
+
 interface DeleteSubscriptionRequest {
   id: string;
   userId: string;
@@ -158,6 +161,17 @@ export const getCategories = api(
     }
 
     return { categories: data || [] };
+  }
+);
+
+/**
+ * Get USD/TRY exchange rate from TCMB (forex selling)
+ * GET /subcenter/exchange-rate
+ */
+export const getExchangeRate = api(
+  { expose: true, method: "GET", path: "/subcenter/exchange-rate" },
+  async (): Promise<GetExchangeRateResponse> => {
+    return getUsdTryRateFromTcmb();
   }
 );
 

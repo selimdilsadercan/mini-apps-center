@@ -356,10 +356,10 @@ export default function SubscriptionCenter() {
   };
 
   useEffect(() => {
-    fetch("https://api.frankfurter.app/latest?from=USD&to=TRY")
-      .then((r) => r.json())
-      .then((d) => {
-        if (typeof d.rates?.TRY === "number") setUsdTryRate(d.rates.TRY);
+    client.subcenter
+      .getExchangeRate()
+      .then((data) => {
+        if (typeof data.rate === "number" && data.rate > 0) setUsdTryRate(data.rate);
       })
       .catch(() => {});
   }, []);
