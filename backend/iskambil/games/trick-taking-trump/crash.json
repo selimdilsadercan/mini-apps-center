@@ -1,32 +1,336 @@
 {
   "id": "crash",
-  "name_tr": "crash",
+  "name_tr": "Crash / 13 Kart Brag",
   "name_en": "Crash / 13-card Brag",
   "originalName": "Crash / 13-card Brag",
-  "description_tr": "Oyuncuların 13 kartlık ellerini dört ayrı üçlü poker/brag eline bölerek karşılaştırdığı İngiliz kökenli oyun.",
-  "description_en": "An English game where players divide a 13-card hand into four separate three-card poker/brag-style hands for comparison.",
-  "rules_tr": [
-    "2-4 oyuncuyla oynanabilir; klasik oyun 4 kişilik ve 52 kartlık desteyle oynanır.",
-    "Dört kişilik oyunda herkese 13 kart dağıtılır.",
-    "Her oyuncu elindeki kartları dört adet 3 kartlık kombinasyona ayırır; bir kart elde dışarıda kalır.",
-    "Kombinasyonlar en güçlüden en zayıfa doğru sıralanır.",
-    "Karşılıklı aynı sıradaki kombinasyonlar karşılaştırılır ve en güçlü kombinasyon puan alır.",
-    "Üçlü, sıralı renk, sıralı, renk, çift ve yüksek kart gibi brag/poker benzeri el sıralamaları kullanılır.",
-    "Belirlenen toplam puana ilk ulaşan oyuncu oyunu kazanır."
+  "description_tr": "Oyuncuların 13 kartlık ellerini dört ayrı üç kartlık Brag eline bölerek karşılaştırdığı İngiliz kökenli el düzenleme oyunudur.",
+  "description_en": "An English hand-building game where players divide a 13-card hand into four separate three-card Brag hands for comparison.",
+  "quickRules_tr": [
+    "Crash genellikle 2-4 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Klasik oyun en çok 4 kişiyle oynanır.",
+    "Dört kişilik oyunda herkese 13 kart dağıtılır ve deste tamamen biter.",
+    "Her oyuncu 13 kartını dört adet 3 kartlık Brag eline ayırır.",
+    "Bir kart kullanılmaz ve kenara ayrılır.",
+    "Oyuncular oluşturdukları dört eli en güçlüden en zayıfa doğru sıralar.",
+    "Aynı sıradaki eller oyuncular arasında karşılaştırılır.",
+    "Her sırada en güçlü eli yapan oyuncu 1 puan alır.",
+    "Bir oyuncu dört karşılaştırmanın tamamını kazanırsa buna Crash denir ve bonus alabilir.",
+    "Oyun genellikle bir oyuncu 15 puana ulaşana kadar devam eder."
   ],
-  "rules_en": [
-    "Playable with 2-4 players; the classic game uses 4 players and a 52-card deck.",
-    "In the four-player game, each player receives 13 cards.",
-    "Each player divides their cards into four 3-card combinations; one card remains unused.",
-    "The combinations are ordered from strongest to weakest.",
-    "Combinations in the same position are compared against one another, and the strongest combination scores.",
-    "Brag/poker-like hand rankings are used, such as three of a kind, running flush, run, flush, pair, and high card.",
-    "The first player to reach the agreed total score wins."
+  "quickRules_en": [
+    "Crash is usually played with 2-4 players using a standard 52-card deck.",
+    "The classic game is most commonly played with 4 players.",
+    "In the four-player game, each player receives 13 cards and the whole deck is dealt.",
+    "Each player divides their 13 cards into four 3-card Brag hands.",
+    "One card is unused and set aside.",
+    "Players arrange their four hands from strongest to weakest.",
+    "Hands in the same position are compared between players.",
+    "The strongest hand in each position scores 1 point.",
+    "If one player wins all four comparisons, this is called a Crash and may award a bonus.",
+    "The game is usually played until one player reaches 15 points."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "2-4 oyuncuyla oynanabilir.",
+    "Dört kişilik oyunda her oyuncuya 13 kart dağıtılır.",
+    "Üç kişilik oyunda her oyuncuya 13 kart dağıtılır ve 13 kart artar; bu artan kartlar bazı varyantlarda el değiştirme seçeneği için kullanılabilir.",
+    "İki kişilik oyunda her oyuncuya 13 kart dağıtılır; kalan kartlar bazı varyantlarda el değiştirme veya yedek el olarak kullanılabilir.",
+    "Oyuncular kendi kartlarına bakar ve kartlarını diğer oyunculara göstermez.",
+    "Her oyuncu kartlarını dört adet 3 kartlık Brag eline ayırır.",
+    "Her oyuncunun 13 kartından 12'si kullanılır, 1 kartı dışarıda kalır."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "The game may be played with 2-4 players.",
+    "In a four-player game, each player receives 13 cards.",
+    "In a three-player game, each player receives 13 cards and 13 cards remain; in some variants, these remaining cards may be used as an exchange option.",
+    "In a two-player game, each player receives 13 cards; the remaining cards may be used in some variants as exchange or spare hands.",
+    "Players look at their own cards and keep them hidden from the others.",
+    "Each player divides their cards into four 3-card Brag hands.",
+    "Each player uses 12 of their 13 cards, leaving 1 card unused."
+  ],
+  "objective_tr": "Amaç, 13 kartlık eli en iyi şekilde dört ayrı Brag eline bölmek, aynı sıradaki karşılaştırmalardan puan kazanmak ve hedef puana ilk ulaşmaktır.",
+  "objective_en": "The objective is to divide a 13-card hand into the strongest possible four Brag hands, win positional comparisons, and be the first to reach the target score.",
+  "gameplay_tr": [
+    "Her oyuncu kendisine dağıtılan 13 kartı inceler.",
+    "Oyuncu bu kartlardan dört adet 3 kartlık kombinasyon oluşturur.",
+    "Kalan 1 kart kullanılmaz ve kenara ayrılır.",
+    "Oluşturulan eller en güçlüden en zayıfa doğru sıralanır.",
+    "Oyuncular ellerini aynı anda veya sırayla açar.",
+    "Birinci sıradaki eller kendi aralarında karşılaştırılır.",
+    "İkinci sıradaki eller kendi aralarında karşılaştırılır.",
+    "Üçüncü sıradaki eller kendi aralarında karşılaştırılır.",
+    "Dördüncü sıradaki eller kendi aralarında karşılaştırılır.",
+    "Her sırada en güçlü eli yapan oyuncu 1 puan alır.",
+    "Eşitlik durumunda o sıra için puan verilmeyebilir veya ev kuralına göre beraberlik çözümü uygulanabilir.",
+    "Bir oyuncu aynı elde dört sıranın tamamını kazanırsa Crash yapmış olur.",
+    "Puanlar yazıldıktan sonra yeni el dağıtılır."
+  ],
+  "gameplay_en": [
+    "Each player looks at their 13-card hand.",
+    "The player forms four separate 3-card combinations from those cards.",
+    "The remaining 1 card is unused and set aside.",
+    "The four hands are ordered from strongest to weakest.",
+    "Players reveal their hands either simultaneously or in order.",
+    "The first-position hands are compared with each other.",
+    "The second-position hands are compared with each other.",
+    "The third-position hands are compared with each other.",
+    "The fourth-position hands are compared with each other.",
+    "In each position, the strongest hand scores 1 point.",
+    "If there is a tie, no point may be awarded for that position, or a house-rule tie-break may be used.",
+    "If a player wins all four positions in the same deal, they score a Crash.",
+    "After scores are recorded, a new hand is dealt."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Brag El Sıralaması",
+      "title_en": "Brag Hand Ranking",
+      "content_tr": [
+        "Crash'te üç kartlık Brag el sıralaması kullanılır.",
+        "En güçlü el üçlüdür; aynı değerden üç karttan oluşur.",
+        "Üçlüden sonra sıralı renk gelir; aynı renkten ardışık üç karttır.",
+        "Sonra sıralı gelir; farklı renklerde de olabilir, ardışık üç karttır.",
+        "Sonra renk gelir; aynı renkten üç karttır ancak ardışık olmak zorunda değildir.",
+        "Sonra çift gelir; aynı değerden iki kart ve üçüncü farklı karttır.",
+        "En zayıf el yüksek karttır.",
+        "Brag sıralamasında sıralı el, renkten daha güçlüdür; bu pokerden farklıdır."
+      ],
+      "content_en": [
+        "Crash uses three-card Brag hand rankings.",
+        "The strongest hand is three of a kind, made of three cards of the same rank.",
+        "Next is a running flush, three consecutive cards of the same suit.",
+        "Next is a run, three consecutive cards that may be of mixed suits.",
+        "Next is a flush, three cards of the same suit that do not need to be consecutive.",
+        "Next is a pair, two cards of the same rank plus one unrelated card.",
+        "The weakest hand is high card.",
+        "In Brag rankings, a run beats a flush; this is different from poker."
+      ]
+    },
+    {
+      "title_tr": "Geçerli El Oluşturma",
+      "title_en": "Forming Valid Hands",
+      "content_tr": [
+        "Normalde oyuncu 13 kartını dört adet 3 kartlık geçerli ele ayırmaya çalışır.",
+        "Kalan 1 kart kullanılmaz.",
+        "Üç ilgisiz kart, yani ne çift, ne sıralı, ne renk, ne de üçlü oluşturmayan kartlar bazı klasik Crash kurallarında geçerli el sayılmayabilir.",
+        "Oyuncu dört geçerli el oluşturamıyorsa bazı kurallarda yalnızca oluşturabildiği kadar el yapar ve kalan kartları atar.",
+        "Uygulamada daha kolay bir kural için yüksek kart elleri de geçerli kabul edilebilir.",
+        "Oyuna başlamadan önce yüksek kartın geçerli el sayılıp sayılmadığı belirlenmelidir."
+      ],
+      "content_en": [
+        "Normally, a player tries to divide their 13 cards into four valid 3-card hands.",
+        "The remaining 1 card is unused.",
+        "Three unrelated cards, meaning cards that make no pair, run, flush, or three of a kind, may not count as a valid hand in some classic Crash rules.",
+        "If a player cannot make four valid hands, some rules allow them to make only as many hands as they can and discard the rest.",
+        "For an easier app rule, high-card hands may be treated as valid.",
+        "Players should agree before the game whether high-card hands count as valid hands."
+      ]
+    },
+    {
+      "title_tr": "El Sıralama Düzeni",
+      "title_en": "Ordering the Hands",
+      "content_tr": [
+        "Oyuncu oluşturduğu dört eli en güçlüden en zayıfa doğru dizer.",
+        "En güçlü el birinci sıraya konur.",
+        "İkinci en güçlü el ikinci sıraya konur.",
+        "Üçüncü el üçüncü sıraya, en zayıf el dördüncü sıraya konur.",
+        "Karşılaştırmalar yalnızca aynı sıradaki eller arasında yapılır.",
+        "Bir oyuncunun dördüncü eli, başka bir oyuncunun birinci eliyle karşılaştırılmaz.",
+        "Bu yüzden sadece iyi eller yapmak değil, elleri doğru sıraya koymak da stratejinin önemli parçasıdır."
+      ],
+      "content_en": [
+        "The player orders their four hands from strongest to weakest.",
+        "The strongest hand goes in the first position.",
+        "The second-strongest hand goes in the second position.",
+        "The third hand goes in the third position, and the weakest hand goes in the fourth position.",
+        "Comparisons are made only between hands in the same position.",
+        "A player's fourth hand is not compared with another player's first hand.",
+        "Therefore, the strategy is not only making strong hands, but also ordering them correctly."
+      ]
+    },
+    {
+      "title_tr": "Karşılaştırma ve Puan",
+      "title_en": "Comparison and Scoring",
+      "content_tr": [
+        "Oyuncular ellerini açtıktan sonra aynı sıradaki eller karşılaştırılır.",
+        "Birinci sıradaki eller arasında en güçlü olan 1 puan alır.",
+        "İkinci sıradaki eller arasında en güçlü olan 1 puan alır.",
+        "Üçüncü sıradaki eller arasında en güçlü olan 1 puan alır.",
+        "Dördüncü sıradaki eller arasında en güçlü olan 1 puan alır.",
+        "Bir elde toplam en fazla 4 normal puan kazanılabilir.",
+        "Eşitliklerde puan verilmemesi basit ve temiz bir uygulama kuralıdır.",
+        "Oyuncuların toplam puanları eller boyunca birikir."
+      ],
+      "content_en": [
+        "After players reveal their hands, hands in the same position are compared.",
+        "The strongest first-position hand scores 1 point.",
+        "The strongest second-position hand scores 1 point.",
+        "The strongest third-position hand scores 1 point.",
+        "The strongest fourth-position hand scores 1 point.",
+        "A maximum of 4 normal points can be won in one deal.",
+        "Awarding no point for tied positions is a simple and clean app rule.",
+        "Players' total scores accumulate over multiple deals."
+      ]
+    },
+    {
+      "title_tr": "Crash Bonusu",
+      "title_en": "Crash Bonus",
+      "content_tr": [
+        "Bir oyuncu aynı elde dört karşılaştırmanın tamamını kazanırsa buna Crash denir.",
+        "Crash yapan oyuncu normalde 4 puanı zaten kazanır.",
+        "Bazı kurallarda Crash yapan oyuncuya ekstra bonus puan verilir.",
+        "Bonus miktarı oyuna başlamadan belirlenmelidir.",
+        "Yaygın uygulamalardan biri Crash için ekstra 1 bonus puan vermektir.",
+        "Bazı ev kurallarında Crash doğrudan oyunu kazandırabilir.",
+        "Uygulama için varsayılan olarak Crash = 4 normal puan + 1 bonus puan yapılabilir."
+      ],
+      "content_en": [
+        "If one player wins all four comparisons in the same deal, this is called a Crash.",
+        "The crashing player already wins the normal 4 points.",
+        "Some rules give the player an extra bonus for a Crash.",
+        "The bonus amount should be agreed before the game begins.",
+        "A common app-friendly option is to give 1 extra bonus point for a Crash.",
+        "In some house rules, a Crash may immediately win the whole game.",
+        "For an app default, Crash can be treated as 4 normal points plus 1 bonus point."
+      ]
+    },
+    {
+      "title_tr": "Kart Değerleri ve Eşitlik",
+      "title_en": "Card Values and Ties",
+      "content_tr": [
+        "Kart sıralaması genellikle As en yüksek, 2 en düşük olacak şekildedir.",
+        "Üçlülerde en yüksek üçlü kazanır; üç As, üç Papazdan güçlüdür.",
+        "Sıralı ellerde en yüksek kartı daha büyük olan sıra kazanır.",
+        "Renklerde ve yüksek kart ellerinde önce en yüksek kart, sonra ikinci, sonra üçüncü kart karşılaştırılır.",
+        "Çiftlerde önce çiftin değeri, sonra yan kart karşılaştırılır.",
+        "Tam eşitlik olursa o sıra için puan verilmemesi basit bir kuraldır."
+      ],
+      "content_en": [
+        "The card ranking is usually Ace high and 2 low.",
+        "For three of a kind, the higher rank wins; three Aces beat three Kings.",
+        "For runs, the run with the higher top card wins.",
+        "For flushes and high-card hands, compare the highest card first, then the second, then the third.",
+        "For pairs, compare the rank of the pair first, then the side card.",
+        "If hands are exactly tied, awarding no point for that position is a simple rule."
+      ]
+    },
+    {
+      "title_tr": "Oyuncu Sayısına Göre Dağıtım",
+      "title_en": "Deal by Player Count",
+      "content_tr": [
+        "4 oyuncuyla oynanıyorsa 52 kartın tamamı dağıtılır ve herkes 13 kart alır.",
+        "3 oyuncuyla oynanıyorsa herkes 13 kart alır ve 13 kart artar.",
+        "3 oyunculu bazı varyantlarda oyuncular sırayla artan 13 kartlık eli kendi elleriyle değiştirme seçeneğine sahip olabilir.",
+        "2 oyuncuyla oynanıyorsa herkes 13 kart alır ve 26 kart artar.",
+        "2 oyunculu bazı varyantlarda oyunculara ellerini değiştirme veya yedek el kullanma seçeneği verilebilir.",
+        "En sade uygulama için 4 oyunculu klasik dağıtım önerilir."
+      ],
+      "content_en": [
+        "With 4 players, the entire 52-card deck is dealt and each player receives 13 cards.",
+        "With 3 players, each player receives 13 cards and 13 cards remain.",
+        "In some 3-player variants, players may have the option in turn order to exchange their hand for the remaining 13-card hand.",
+        "With 2 players, each player receives 13 cards and 26 cards remain.",
+        "In some 2-player variants, players may be given options to exchange hands or use spare hands.",
+        "For the simplest app version, the classic 4-player deal is recommended."
+      ]
+    },
+    {
+      "title_tr": "Strateji İpuçları",
+      "title_en": "Strategy Tips",
+      "content_tr": [
+        "Crash'te amaç tek bir çok güçlü el yapmak değil, dört karşılaştırmadan mümkün olduğunca çoğunu kazanmaktır.",
+        "Bazen en güçlü kartları tek elde toplamak yerine birkaç orta güçlü el yapmak daha iyi olabilir.",
+        "Ellerin sıralaması önemlidir; güçlü eli yanlış sıraya koymak puan kaybettirebilir.",
+        "Bir eli feda edip diğer üç eli güçlendirmek iyi bir strateji olabilir.",
+        "Crash bonusu varsa dört eli de kazanma ihtimali ayrıca değerlendirilmelidir.",
+        "Kullanılmayacak tek kartı doğru seçmek el düzenlemenin önemli parçasıdır."
+      ],
+      "content_en": [
+        "In Crash, the goal is not just to make one very strong hand, but to win as many of the four comparisons as possible.",
+        "Sometimes it is better to spread strong cards across several medium-strength hands instead of stacking them into one hand.",
+        "Hand order matters; placing a strong hand in the wrong position can lose points.",
+        "Sacrificing one hand to strengthen the other three can be a good strategy.",
+        "If a Crash bonus is used, the chance of winning all four hands should also be considered.",
+        "Choosing the unused card correctly is an important part of arranging the hand."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Klasik Crash: 4 oyuncu, 13'er kart ve hedef 15 puanla oynanır.",
+        "Crash Bonusu: Dört sıranın tamamını kazanan oyuncuya ekstra 1 veya daha fazla bonus puan verilir.",
+        "Crash Oyunu Bitirir: Bazı ev kurallarında Crash yapan oyuncu doğrudan oyunu kazanır.",
+        "Yüksek Kart Geçerli: Yeni başlayanlar için yüksek kart elleri geçerli el sayılır.",
+        "Katı Geçerli El: Üç ilgisiz kart geçerli el sayılmaz; oyuncu yalnızca oluşturabildiği geçerli elleri oynar.",
+        "El Değiştirme Varyantı: 2 veya 3 oyunculu oyunlarda artan kartlar yedek el olarak kullanılabilir."
+      ],
+      "content_en": [
+        "Classic Crash: Played with 4 players, 13 cards each, and a target of 15 points.",
+        "Crash Bonus: A player who wins all four positions receives 1 or more extra bonus points.",
+        "Crash Wins the Game: In some house rules, a player who scores a Crash wins the game immediately.",
+        "High Card Valid: For beginners, high-card hands count as valid hands.",
+        "Strict Valid Hand: Three unrelated cards do not count as a valid hand; a player only plays as many valid hands as they can form.",
+        "Exchange Variant: In 2- or 3-player games, unused cards may be used as spare or exchange hands."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Her elde dört pozisyon karşılaştırılır.",
+    "Her pozisyonda en güçlü eli yapan oyuncu 1 puan alır.",
+    "Bir oyuncu dört pozisyonun tamamını kazanırsa Crash yapar.",
+    "Crash için ev kuralına göre ekstra bonus puan verilebilir.",
+    "Varsayılan uygulama kuralı olarak Crash, 4 normal puan + 1 bonus puan sayılabilir.",
+    "Eşitlik durumunda o pozisyon için puan verilmemesi basit bir kuraldır.",
+    "Oyuncuların puanları eller boyunca birikir.",
+    "Genellikle 15 puana ilk ulaşan oyuncu oyunu kazanır."
+  ],
+  "scoring_en": [
+    "Each deal has four positional comparisons.",
+    "The strongest hand in each position scores 1 point.",
+    "If one player wins all four positions, they score a Crash.",
+    "A Crash may award extra bonus points by house rule.",
+    "For a default app rule, a Crash can count as 4 normal points plus 1 bonus point.",
+    "If there is a tie, awarding no point for that position is a simple rule.",
+    "Players' scores accumulate over multiple deals.",
+    "The first player to reach 15 points usually wins the game."
+  ],
+  "ending_tr": [
+    "Bir el, dört sıradaki eller karşılaştırılıp puanlar yazıldıktan sonra sona erer.",
+    "Sonra kartlar yeniden karıştırılır ve yeni el dağıtılır.",
+    "Oyuncuların toplam puanı eller boyunca birikir.",
+    "Bir oyuncu hedef puana ulaştığında oyun sona erer.",
+    "Yaygın hedef puan 15'tir.",
+    "Birden fazla oyuncu aynı elde hedef puana ulaşırsa en yüksek toplam puana sahip oyuncu kazanır veya ek el oynanır."
+  ],
+  "ending_en": [
+    "A deal ends after all four positions are compared and scores are recorded.",
+    "The cards are then shuffled and a new deal is made.",
+    "Players' total scores accumulate over multiple deals.",
+    "The game ends when a player reaches the target score.",
+    "A common target score is 15.",
+    "If multiple players reach the target in the same deal, the player with the highest total score wins, or an additional deal may be played."
+  ],
+  "notes_tr": [
+    "Crash, 13-card Brag veya Thirteen Card Brag olarak da bilinir.",
+    "Oyun Brag ailesindendir ama bahisli klasik Brag gibi oynanmaz; burada amaç puan toplamaktır.",
+    "Oyunda koz veya el alma yoktur; bu yüzden kategori 'El Düzenleme / Brag' olmalıdır.",
+    "Brag sıralamasında sıralı el, renkten daha güçlüdür; bu pokerden farklıdır.",
+    "Yeni başlayanlar için yüksek kart ellerini geçerli saymak oyunu daha anlaşılır yapar.",
+    "Daha klasik ve katı oyun için üç ilgisiz kartın geçerli el sayılmadığı varyant kullanılabilir."
+  ],
+  "notes_en": [
+    "Crash is also known as 13-card Brag or Thirteen Card Brag.",
+    "The game belongs to the Brag family, but it is not played like betting-based classic Brag; the goal here is to score points.",
+    "There is no trump or trick-taking in this game, so the category should be 'Hand-building / Brag'.",
+    "In Brag rankings, a run beats a flush; this is different from poker.",
+    "For beginners, treating high-card hands as valid makes the game easier to understand.",
+    "For a stricter classic game, the variant where three unrelated cards are not valid may be used."
   ],
   "minPlayers": 2,
   "maxPlayers": 4,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "El Alma / Koz",
-  "category_en": "Trick-taking / Trump"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "El Düzenleme / Brag",
+  "category_en": "Hand-building / Brag"
 }

@@ -1,7 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
-import { gamesData } from "./games";
+import { getGamesData } from "./games";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -121,7 +121,7 @@ export const getGames = api(
     const notesMap = new Map((notesResult.data || []).map(n => [n.game_id, n.note]));
 
     // 3. Map local games JSON data and merge user states
-    const games: Game[] = gamesData.map((g: any) => ({
+    const games: Game[] = getGamesData().map((g: any) => ({
       id: g.id,
       name_tr: g.name_tr,
       name_en: g.name_en,

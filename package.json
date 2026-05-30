@@ -2,16 +2,16 @@
   "name": "recipe-monorepo",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
-  "scripts": {
-    "dev": "bunx concurrently -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run generate:watch\"",
-    "frontend": "cd frontend && bun run dev",
-    "generate": "cd backend && bun run generate",
-    "generate:watch": "cd backend && bun run generate:watch",
-    "encore": "cd backend && encore run",
+    "workspaces": [
+      "frontend",
+      "backend"
+    ],
+    "scripts": {
+      "dev": "bunx concurrently -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"sleep 3 && bun run generate:watch\"",
+      "frontend": "cd frontend && bun run dev",
+      "generate": "cd backend && bun run generate",
+      "generate:watch": "cd backend && bun run generate:watch",
+      "encore": "cd backend && encore run",
     "clean": "cd frontend && bun run clean",
     "mobile": "cd frontend && bun run mobile",
     "store": "cd frontend && bun run store"

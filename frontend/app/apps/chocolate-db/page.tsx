@@ -66,10 +66,71 @@ export default function ChocolateDBPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const slugify = (text: string): string => {
+    const trMap: { [key: string]: string } = {
+      'ç': 'c', 'g': 'g', 'ğ': 'g', 'ı': 'i', 'i': 'i', 'o': 'o', 'ö': 'o',
+      's': 's', 'ş': 's', 'u': 'u', 'ü': 'u', 'Ç': 'C', 'Ğ': 'G', 'İ': 'I',
+      'Ö': 'O', 'Ş': 'S', 'Ü': 'U'
+    };
+    let slug = text;
+    for (const key in trMap) {
+      slug = slug.replace(new RegExp(key, 'g'), trMap[key]);
+    }
+    return slug
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  };
+
   const fetchChocolates = async () => {
     try {
       const resp = await client.chocolate_db.listChocolates({ userId: user?.id || "" });
-      setChocolates(resp.chocolates);
+      
+      if (process.env.NODE_ENV === "development") {
+        const localProducts = require("../../../../backend/chocolate-db/data/products.json");
+        const statsMap = new Map(resp.chocolates.map(c => [c.id, c]));
+        
+        const merged = localProducts.map((p: any) => {
+          const id = slugify(p.name);
+          const stat = statsMap.get(id);
+          
+          let brand = "Diğer";
+          const nameLower = p.name.toLowerCase();
+          if (nameLower.startsWith("ülker")) brand = "Ülker";
+          else if (nameLower.startsWith("eti")) brand = "Eti";
+          else if (nameLower.startsWith("nestle") || nameLower.startsWith("nestlé")) brand = "Nestlé";
+          else if (nameLower.startsWith("kahve dünyası")) brand = "Kahve Dünyası";
+          else if (nameLower.startsWith("milka")) brand = "Milka";
+          else if (nameLower.startsWith("sarelle")) brand = "Sarelle";
+          else if (nameLower.startsWith("kinder")) brand = "Kinder";
+          else if (nameLower.startsWith("schar")) brand = "Schär";
+          else if (nameLower.startsWith("dido")) brand = "Ülker";
+          else {
+            const firstWord = p.name.split(" ")[0];
+            if (firstWord) brand = firstWord;
+          }
+          
+          return {
+            id,
+            name: p.name,
+            brand,
+            description_tr: `${p.weight || ""} ${p.price || ""}`.trim() || "Lezzetli çikolata atıştırmalığı.",
+            description_en: `${p.weight || ""} Chocolate Snack`.trim() || "Delicious chocolate snack.",
+            image_url: p.image_url,
+            category: p.category || null,
+            avg_rating: stat ? stat.avg_rating : 0,
+            review_count: stat ? stat.review_count : 0,
+            user_state: stat ? stat.user_state : null,
+            user_rating: stat ? stat.user_rating : null
+          };
+        });
+        
+        setChocolates(merged);
+      } else {
+        setChocolates(resp.chocolates);
+      }
     } catch (err) {
       console.error("Failed to fetch chocolates:", err);
     } finally {

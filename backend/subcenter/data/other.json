@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Medium",
+    "plan_name": "Member",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Other",
+    "color": "#000000",
+    "icon": "✍️",
+    "domain": "medium.com"
+  },
+  {
+    "name": "X Premium",
+    "plan_name": "Individual",
+    "region": "TR",
+    "price": 150.0,
+    "currency": "TRY",
+    "category": "Other",
+    "color": "#000000",
+    "icon": "𝕏",
+    "domain": "x.com"
+  }
+]

@@ -2,35 +2,24 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Trash, 
-  CreditCard, 
-  Wallet,
+import {
+  ArrowLeft,
+  Plus,
+  Trash,
   CheckCircle,
-  CaretRight,
-  ChartPieSlice,
-  Clock,
-  CurrencyCircleDollar,
   X,
   Receipt,
-  Scan,
-  Barcode,
   Stack,
   PencilSimple,
-  MagnifyingGlass
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 
-import { SERVICE_CATALOG, ServicePreset } from "./data/presets";
-
 const client = createBrowserClient();
 
-// Backend Types
 interface Subscription {
   id: string;
   user_id: string;
@@ -45,6 +34,20 @@ interface Subscription {
   icon: string;
   start_date: string;
   created_at: string;
+}
+
+interface GlobalPreset {
+  id: string;
+  name: string;
+  plan_name: string;
+  region: string;
+  avg_price: number;
+  currency: string;
+  category: string;
+  color: string;
+  icon: string;
+  usage_count: number;
+  domain?: string;
 }
 
 function getRenewalDisplayDate(startDate: string, cycle: string): Date {
@@ -77,8 +80,75 @@ type CatalogBrand = {
   icon: string;
   color: string;
   category: string;
-  plans: ServicePreset[];
+  plans: GlobalPreset[];
 };
+
+const getDomainForService = (name: string, presetList: GlobalPreset[]) => {
+  const cleanName = name
+    .toLowerCase()
+    .trim()
+    .replace(/ı/g, "i")
+    .replace(/i̇/g, "i")
+    .replace(/ş/g, "s")
+    .replace(/ç/g, "c")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ö/g, "o");
+
+  const preset = presetList.find((p) => {
+    const cleanPresetName = p.name
+      .toLowerCase()
+      .trim()
+      .replace(/ı/g, "i")
+      .replace(/i̇/g, "i")
+      .replace(/ş/g, "s")
+      .replace(/ç/g, "c")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ö/g, "o");
+    return cleanPresetName === cleanName || cleanName.includes(cleanPresetName) || cleanPresetName.includes(cleanName);
+  });
+  return preset?.domain ?? null;
+};
+
+function BrandIcon({
+  name,
+  icon,
+  size = 24,
+  presets,
+}: {
+  name: string;
+  icon: string;
+  size?: number;
+  presets: GlobalPreset[];
+}) {
+  const [attempt, setAttempt] = useState(0);
+  const domain = getDomainForService(name, presets);
+  const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
+
+  let logoUrl: string | null = null;
+  if (domain) {
+    if (attempt === 0) {
+      logoUrl = token ? `https://img.logo.dev/${domain}?token=${token}` : `https://unavatar.io/${domain}?fallback=false`;
+    } else if (attempt === 1) {
+      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    }
+  }
+
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name}
+        className="object-contain rounded-lg"
+        style={{ width: size, height: size }}
+        onError={() => setAttempt((prev) => prev + 1)}
+      />
+    );
+  }
+
+  return <span className="relative z-10" style={{ fontSize: size - 8 }}>{icon || "💳"}</span>;
+}
 
 export default function SubscriptionCenter() {
   const router = useRouter();
@@ -92,7 +162,9 @@ export default function SubscriptionCenter() {
 
   const formatMoney = (price: number, fractionDigits = 2) =>
     price.toLocaleString(dateLocale, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
+
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [presets, setPresets] = useState<GlobalPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalStep, setAddModalStep] = useState<AddModalStep>("templates");
@@ -104,8 +176,8 @@ export default function SubscriptionCenter() {
   const [newSub, setNewSub] = useState<Partial<Subscription>>({ ...EMPTY_SUB_FORM });
 
   const catalogBrands = useMemo<CatalogBrand[]>(() => {
-    const byName = new Map<string, ServicePreset[]>();
-    for (const preset of SERVICE_CATALOG) {
+    const byName = new Map<string, GlobalPreset[]>();
+    for (const preset of presets) {
       const list = byName.get(preset.name) ?? [];
       list.push(preset);
       byName.set(preset.name, list);
@@ -117,7 +189,7 @@ export default function SubscriptionCenter() {
       category: plans[0].category,
       plans,
     }));
-  }, []);
+  }, [presets]);
 
   const filteredBrands = useMemo(() => {
     const q = templateSearch.trim().toLowerCase();
@@ -131,9 +203,47 @@ export default function SubscriptionCenter() {
   }, [catalogBrands, templateSearch]);
 
   const plansForSelectedBrand = useMemo(
-    () => (selectedBrandName ? SERVICE_CATALOG.filter((p) => p.name === selectedBrandName) : []),
-    [selectedBrandName]
+    () => (selectedBrandName ? presets.filter((p) => p.name === selectedBrandName) : []),
+    [selectedBrandName, presets]
   );
+
+  const fetchPresets = async () => {
+    if (process.env.NODE_ENV === "development") {
+      try {
+        const localPresets = [
+          ...require("../../../../backend/subcenter/data/entertainment.json"),
+          ...require("../../../../backend/subcenter/data/music.json"),
+          ...require("../../../../backend/subcenter/data/ai.json"),
+          ...require("../../../../backend/subcenter/data/software.json"),
+          ...require("../../../../backend/subcenter/data/other.json"),
+          ...require("../../../../backend/subcenter/data/design.json"),
+          ...require("../../../../backend/subcenter/data/social.json"),
+        ].map((p: { name: string; plan_name: string; region: string; price: number; currency: string; category: string; color: string; icon: string; domain?: string }) => ({
+          id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
+          name: p.name,
+          plan_name: p.plan_name,
+          region: p.region,
+          avg_price: p.price,
+          currency: p.currency,
+          category: p.category,
+          color: p.color,
+          icon: p.icon,
+          usage_count: 1,
+          domain: p.domain,
+        }));
+        setPresets(localPresets);
+      } catch (err) {
+        console.error("Failed to load local presets:", err);
+      }
+    } else {
+      try {
+        const resp = await client.subcenter.getGlobalPresets();
+        setPresets(resp.presets);
+      } catch (err) {
+        console.error("Failed to load presets:", err);
+      }
+    }
+  };
 
   const fetchData = async () => {
     if (!user?.id) return;
@@ -149,17 +259,21 @@ export default function SubscriptionCenter() {
   };
 
   useEffect(() => {
+    fetchPresets();
+  }, []);
+
+  useEffect(() => {
     if (isUserLoaded && user?.id) {
       fetchData();
     }
   }, [isUserLoaded, user?.id]);
 
-  const applyPreset = (preset: ServicePreset) => {
+  const applyPreset = (preset: GlobalPreset) => {
     setNewSub({
       name: preset.name,
       plan_name: preset.plan_name,
       region: preset.region,
-      price: preset.price,
+      price: preset.avg_price,
       currency: preset.currency,
       cycle: "monthly",
       category: preset.category,
@@ -200,7 +314,7 @@ export default function SubscriptionCenter() {
     setAddModalStep(brand.plans.length > 1 ? "plan" : "form");
   };
 
-  const selectPlan = (preset: ServicePreset) => {
+  const selectPlan = (preset: GlobalPreset) => {
     applyPreset(preset);
     setAddModalStep("form");
   };
@@ -244,7 +358,7 @@ export default function SubscriptionCenter() {
 
   const handleSaveSubscription = async () => {
     if (!user?.id || !newSub.name || !newSub.price) return;
-    
+
     try {
       if (editingId) {
         const resp = await client.subcenter.updateSubscription(editingId, {
@@ -258,11 +372,11 @@ export default function SubscriptionCenter() {
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
-          startDate: newSub.start_date || new Date().toISOString().split('T')[0]
+          startDate: newSub.start_date || new Date().toISOString().split("T")[0],
         });
-        
+
         if (resp.subscription) {
-          setSubscriptions(subscriptions.map(s => s.id === editingId ? resp.subscription! : s));
+          setSubscriptions(subscriptions.map((s) => (s.id === editingId ? resp.subscription! : s)));
         }
       } else {
         const resp = await client.subcenter.createSubscription({
@@ -276,7 +390,7 @@ export default function SubscriptionCenter() {
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
-          startDate: newSub.start_date || new Date().toISOString().split('T')[0]
+          startDate: newSub.start_date || new Date().toISOString().split("T")[0],
         });
 
         if (resp.subscription) {
@@ -296,7 +410,7 @@ export default function SubscriptionCenter() {
       setIsDeleting(true);
       const resp = await client.subcenter.deleteSubscription(id, { userId: user.id });
       if (resp.success) {
-        setSubscriptions(subscriptions.filter(s => s.id !== id));
+        setSubscriptions(subscriptions.filter((s) => s.id !== id));
         setShowDeleteConfirm(null);
       }
     } catch (err) {
@@ -307,22 +421,22 @@ export default function SubscriptionCenter() {
   };
 
   const monthlyTotal = useMemo(() => {
-    return subscriptions.reduce((acc, sub) => acc + (sub.cycle === 'monthly' ? sub.price : sub.price / 12), 0);
+    return subscriptions.reduce((acc, sub) => acc + (sub.cycle === "monthly" ? sub.price : sub.price / 12), 0);
   }, [subscriptions]);
 
   if (!isUserLoaded) return null;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F3F4F6] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
-      
-      {/* Top Printer Bar */}
       <div className="h-3 bg-slate-300 border-b border-slate-400 w-full" />
 
-      {/* Main Container */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm px-6">
         <div className="max-w-5xl mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 transition-all active:scale-95 shadow-sm cursor-pointer">
+            <button
+              onClick={() => router.back()}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 transition-all active:scale-95 shadow-sm cursor-pointer"
+            >
               <ArrowLeft size={18} weight="bold" />
             </button>
             <div className="flex flex-col">
@@ -333,8 +447,11 @@ export default function SubscriptionCenter() {
               <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{t("subtitle")}</p>
             </div>
           </div>
-          
-          <button onClick={openIssueBill} className="flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer">
+
+          <button
+            onClick={openIssueBill}
+            className="flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer"
+          >
             <Plus size={16} weight="bold" />
             <span>{t("issueBill")}</span>
           </button>
@@ -343,94 +460,101 @@ export default function SubscriptionCenter() {
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
         <section className="space-y-8">
-           <div className="flex items-center justify-between px-1">
-              <div className="flex flex-col">
-                <h3 className="text-sm font-black text-slate-800 uppercase">{t("activeInvoices")}</h3>
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">{t("recordsActive", { count: subscriptions.length })}</span>
-              </div>
-              <div className="text-right">
-                 <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">{t("runningTotalMo")}</span>
-                 <span className="text-2xl font-black text-indigo-600 tracking-tighter leading-none">₺ {formatMoney(monthlyTotal)}</span>
-              </div>
-           </div>
+          <div className="flex items-center justify-between px-1">
+            <div className="flex flex-col">
+              <h3 className="text-sm font-black text-slate-800 uppercase">{t("activeInvoices")}</h3>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
+                {t("recordsActive", { count: subscriptions.length })}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">{t("runningTotalMo")}</span>
+              <span className="text-2xl font-black text-indigo-600 tracking-tighter leading-none">₺ {formatMoney(monthlyTotal)}</span>
+            </div>
+          </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-             <AnimatePresence mode="popLayout">
-                {subscriptions.map((sub) => (
-                  <motion.div
-                    key={sub.id}
-                    layoutId={sub.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative group"
-                  >
-                    {/* Receipt card */}
-                    <div className="bg-[#FAFAF8] shadow-sm flex flex-col overflow-hidden group-hover:shadow-md transition-shadow duration-300 border-y border-dashed border-slate-300">
-                       <div className="border-x border-dashed border-slate-300 px-3 py-1.5">
-                          <div className="border-b border-dashed border-slate-200 pb-1.5 mb-1.5">
-                             <div className="flex gap-3 items-stretch">
-                                <div className="shrink-0 flex flex-col items-center gap-1.5 text-center">
-                                   <h4 className="text-sm font-bold text-slate-800 leading-snug line-clamp-2 max-w-[7rem]">{sub.name}</h4>
-                                   <div className="w-16 h-16 flex items-center justify-center bg-white border border-dashed border-slate-200">
-                                      <span className="text-4xl leading-none">{sub.icon}</span>
-                                   </div>
-                                </div>
-
-                                <div className="flex-1 min-w-0 flex flex-col items-end justify-between text-right">
-                                   <div>
-                                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide leading-none">
-                                         {t("renewalDate")}
-                                      </p>
-                                      <p className="text-sm text-slate-700 font-mono tabular-nums leading-tight mt-0.5">
-                                         {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
-                                      </p>
-                                   </div>
-                                   <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">
-                                      ₺{formatMoney(sub.price)}
-                                   </p>
-                                </div>
-                             </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <AnimatePresence mode="popLayout">
+              {subscriptions.map((sub) => (
+                <motion.div
+                  key={sub.id}
+                  layoutId={sub.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="relative group"
+                >
+                  <div className="bg-[#FAFAF8] shadow-sm flex flex-col overflow-hidden group-hover:shadow-md transition-shadow duration-300 border-y border-dashed border-slate-300">
+                    <div className="border-x border-dashed border-slate-300 px-3 py-1.5">
+                      <div className="border-b border-dashed border-slate-200 pb-1.5 mb-1.5">
+                        <div className="flex gap-3 items-stretch">
+                          <div className="shrink-0 flex flex-col items-center gap-1.5 text-center">
+                            <h4 className="text-sm font-bold text-slate-800 leading-snug line-clamp-2 max-w-[7rem]">{sub.name}</h4>
+                            <div className="w-16 h-16 flex items-center justify-center bg-white border border-dashed border-slate-200 overflow-hidden p-1">
+                              <BrandIcon name={sub.name} icon={sub.icon} size={40} presets={presets} />
+                            </div>
                           </div>
 
-                          <div className="flex items-center justify-end gap-0.5 -mx-0.5">
-                          <button
-                            onClick={() => handleEdit(sub)}
-                            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
-                          >
-                            <PencilSimple size={17} weight="bold" />
-                          </button>
-                          <button
-                            onClick={() => setShowDeleteConfirm(sub.id)}
-                            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
-                          >
-                            <Trash size={17} weight="bold" />
-                          </button>
+                          <div className="flex-1 min-w-0 flex flex-col items-end justify-between text-right">
+                            <div>
+                              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide leading-none">{t("renewalDate")}</p>
+                              <p className="text-sm text-slate-700 font-mono tabular-nums leading-tight mt-0.5">
+                                {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
+                              </p>
+                            </div>
+                            <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">₺{formatMoney(sub.price)}</p>
                           </div>
-                       </div>
+                        </div>
+                      </div>
 
-                       <div
-                         className="h-1.5 w-full border-x border-dashed border-slate-300"
-                         style={{
-                           background: `linear-gradient(135deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px,
-                                      linear-gradient(225deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px`,
-                           backgroundColor: "#FAFAF8",
-                         }}
-                       />
+                      <div className="flex items-center justify-end gap-0.5 -mx-0.5">
+                        <button
+                          onClick={() => handleEdit(sub)}
+                          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                        >
+                          <PencilSimple size={17} weight="bold" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(sub.id)}
+                          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                        >
+                          <Trash size={17} weight="bold" />
+                        </button>
+                      </div>
                     </div>
-                  </motion.div>
-                ))}
-             </AnimatePresence>
-           </div>
+
+                    <div
+                      className="h-1.5 w-full border-x border-dashed border-slate-300"
+                      style={{
+                        background: `linear-gradient(135deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px,
+                                      linear-gradient(225deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px`,
+                        backgroundColor: "#FAFAF8",
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </section>
       </main>
 
-      {/* Issue Bill: templates → form */}
       <AnimatePresence>
         {showAddModal && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeAddModal} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "templates" && !editingId ? "max-w-xl" : "max-w-md"}`}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeAddModal}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "templates" && !editingId ? "max-w-xl" : "max-w-md"}`}
+            >
               <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100">
                 <div className="flex items-center gap-3 min-w-0">
                   {((addModalStep === "form" && !editingId) || addModalStep === "plan") && (
@@ -477,21 +601,23 @@ export default function SubscriptionCenter() {
                     {filteredBrands.length === 0 ? (
                       <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noTemplatesFound")}</p>
                     ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {filteredBrands.map((brand) => (
-                        <button
-                          key={brand.name}
-                          onClick={() => selectBrand(brand)}
-                          className="flex flex-col items-center justify-center gap-2 p-4 min-h-[7.5rem] rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all text-center cursor-pointer"
-                        >
-                          <span className="text-4xl leading-none">{brand.icon}</span>
-                          <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-                            {t("planCount", { count: brand.plans.length })}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {filteredBrands.map((brand) => (
+                          <button
+                            key={brand.name}
+                            onClick={() => selectBrand(brand)}
+                            className="flex flex-col items-center justify-center gap-2 p-4 min-h-[7.5rem] rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all text-center cursor-pointer"
+                          >
+                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
+                              <BrandIcon name={brand.name} icon={brand.icon} size={36} presets={presets} />
+                            </div>
+                            <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
+                              {t("planCount", { count: brand.plans.length })}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <div className="shrink-0 p-4 pt-2 border-t border-slate-100 bg-white">
@@ -528,7 +654,7 @@ export default function SubscriptionCenter() {
                         </div>
                         <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-700"}`}>
                           {preset.currency === "TRY" ? "₺" : "$"}
-                          {formatMoney(preset.price, preset.price % 1 === 0 ? 0 : 2)}
+                          {formatMoney(preset.avg_price, preset.avg_price % 1 === 0 ? 0 : 2)}
                         </span>
                       </button>
                     ))}
@@ -536,69 +662,102 @@ export default function SubscriptionCenter() {
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 min-h-0">
-                  {SERVICE_CATALOG.some((p) => p.name === newSub.name) && (
+                  {presets.some((p) => p.name === newSub.name) && (
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("quickPlan")}</label>
                       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        {SERVICE_CATALOG.filter((p) => p.name === newSub.name).map((p, i) => (
-                          <button
-                            key={i}
-                            onClick={() =>
-                              setNewSub({
-                                ...newSub,
-                                plan_name: p.plan_name,
-                                price: p.price,
-                                region: p.region,
-                                currency: p.currency,
-                                category: p.category,
-                                color: p.color,
-                                icon: p.icon,
-                              })
-                            }
-                            className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
-                              newSub.plan_name === p.plan_name
-                                ? "bg-slate-900 text-white border-slate-900"
-                                : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
-                            }`}
-                          >
-                            {p.plan_name}
-                          </button>
-                        ))}
+                        {presets
+                          .filter((p) => p.name === newSub.name)
+                          .map((p, i) => (
+                            <button
+                              key={i}
+                              onClick={() =>
+                                setNewSub({
+                                  ...newSub,
+                                  plan_name: p.plan_name,
+                                  price: p.avg_price,
+                                  region: p.region,
+                                  currency: p.currency,
+                                  category: p.category,
+                                  color: p.color,
+                                  icon: p.icon,
+                                })
+                              }
+                              className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
+                                newSub.plan_name === p.plan_name
+                                  ? "bg-slate-900 text-white border-slate-900"
+                                  : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
+                              }`}
+                            >
+                              {p.plan_name}
+                            </button>
+                          ))}
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("service")}</label>
-                    <input type="text" placeholder={t("servicePlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all" value={newSub.name} onChange={(e) => setNewSub({ ...newSub, name: e.target.value })} />
+                    <input
+                      type="text"
+                      placeholder={t("servicePlaceholder")}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                      value={newSub.name}
+                      onChange={(e) => setNewSub({ ...newSub, name: e.target.value })}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("planLevel")}</label>
-                      <input type="text" placeholder={t("planPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all" value={newSub.plan_name} onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })} />
+                      <input
+                        type="text"
+                        placeholder={t("planPlaceholder")}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                        value={newSub.plan_name}
+                        onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("region")}</label>
-                      <input type="text" placeholder={t("regionPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase" value={newSub.region} onChange={(e) => setNewSub({ ...newSub, region: e.target.value })} />
+                      <input
+                        type="text"
+                        placeholder={t("regionPlaceholder")}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase"
+                        value={newSub.region}
+                        onChange={(e) => setNewSub({ ...newSub, region: e.target.value })}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("amount")}</label>
-                      <input type="number" placeholder={t("amountPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all" value={newSub.price || ""} onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })} />
+                      <input
+                        type="number"
+                        placeholder={t("amountPlaceholder")}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all"
+                        value={newSub.price || ""}
+                        onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("cycle")}</label>
-                      <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer" value={newSub.cycle} onChange={(e) => setNewSub({ ...newSub, cycle: e.target.value })}>
+                      <select
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                        value={newSub.cycle}
+                        onChange={(e) => setNewSub({ ...newSub, cycle: e.target.value })}
+                      >
                         <option value="monthly">{t("monthly")}</option>
                         <option value="yearly">{t("yearly")}</option>
                       </select>
                     </div>
                   </div>
 
-                  <button onClick={handleSaveSubscription} className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[11px]">
+                  <button
+                    onClick={handleSaveSubscription}
+                    className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[11px]"
+                  >
                     <CheckCircle size={22} weight="fill" />
                     {editingId ? t("update") : t("saveBill")}
                   </button>
@@ -609,44 +768,49 @@ export default function SubscriptionCenter() {
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowDeleteConfirm(null)} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110]" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2.5rem] shadow-2xl z-[111] overflow-hidden p-8 text-center" >
-               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mx-auto mb-6 shadow-sm border border-red-100">
-                  <Trash size={32} weight="fill" />
-               </div>
-               <h3 className="text-xl font-black text-slate-800 uppercase mb-2">{t("voidReceiptTitle")}</h3>
-               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-loose">
-                  {t("voidReceiptDescription")}
-               </p>
-               
-               <div className="grid grid-cols-2 gap-4 mt-10">
-                  <button 
-                    disabled={isDeleting}
-                    onClick={() => setShowDeleteConfirm(null)} 
-                    className="py-4 rounded-2xl bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {t("keepIt")}
-                  </button>
-                  <button 
-                    disabled={isDeleting}
-                    onClick={() => removeSub(showDeleteConfirm!)} 
-                    className="py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 shadow-lg shadow-red-200 transition-all cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
-                  >
-                    {isDeleting && (
-                       <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    )}
-                    {isDeleting ? t("processing") : t("voidDelete")}
-                  </button>
-               </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDeleteConfirm(null)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110]"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2.5rem] shadow-2xl z-[111] overflow-hidden p-8 text-center"
+            >
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mx-auto mb-6 shadow-sm border border-red-100">
+                <Trash size={32} weight="fill" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 uppercase mb-2">{t("voidReceiptTitle")}</h3>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-loose">{t("voidReceiptDescription")}</p>
+
+              <div className="grid grid-cols-2 gap-4 mt-10">
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="py-4 rounded-2xl bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {t("keepIt")}
+                </button>
+                <button
+                  disabled={isDeleting}
+                  onClick={() => removeSub(showDeleteConfirm!)}
+                  className="py-4 rounded-2xl bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 shadow-lg shadow-red-200 transition-all cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {isDeleting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {isDeleting ? t("processing") : t("voidDelete")}
+                </button>
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

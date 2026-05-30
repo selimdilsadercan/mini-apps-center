@@ -8,6 +8,8 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
+import { getPresetsData } from "./data";
+
 // ==================== TYPES ====================
 
 export interface Subscription {
@@ -37,6 +39,23 @@ export interface GlobalPreset {
   color: string;
   icon: string;
   usage_count: number;
+  domain?: string;
+}
+
+function loadPresets(): GlobalPreset[] {
+  return (getPresetsData() as any[]).map((p, idx) => ({
+    id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
+    name: p.name,
+    plan_name: p.plan_name,
+    region: p.region,
+    avg_price: p.price,
+    currency: p.currency,
+    category: p.category,
+    color: p.color,
+    icon: p.icon,
+    usage_count: 1,
+    domain: p.domain
+  }));
 }
 
 // ==================== REQUEST/RESPONSE TYPES ====================
@@ -108,16 +127,7 @@ interface UpdateSubscriptionResponse {
 export const getGlobalPresets = api(
   { expose: true, method: "GET", path: "/subcenter/presets" },
   async (): Promise<GetGlobalPresetsResponse> => {
-    const { data, error } = await supabase.schema("subcenter").rpc("get_global_presets", {
-      limit_param: 15,
-    });
-
-    if (error) {
-      console.error("getGlobalPresets error:", error);
-      return { presets: [] }; // Fallback to empty
-    }
-
-    return { presets: data || [] };
+    return { presets: loadPresets() };
   }
 );
 
@@ -170,19 +180,6 @@ export const createSubscription = api(
       console.error("createSubscription error:", error);
       throw APIError.internal(`Failed to create subscription: ${error.message}`);
     }
-
-    // 2. Intelligence: Contribution to Global Community Presets
-    supabase.schema("subcenter").rpc("upsert_global_preset", {
-      name_param: name,
-      plan_name_param: finalPlanName,
-      region_param: finalRegion,
-      price_param: price,
-      category_param: category,
-      color_param: color,
-      icon_param: icon,
-    }).then(({ error: globalError }) => {
-      if (globalError) console.error("Global Preset Upsert Error:", globalError);
-    });
 
     return { subscription: data?.[0] || null };
   }

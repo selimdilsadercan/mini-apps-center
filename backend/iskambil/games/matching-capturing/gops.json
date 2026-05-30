@@ -3,32 +3,266 @@
   "name_tr": "Game of Pure Strategy (GOPS)",
   "name_en": "Game of Pure Strategy (GOPS)",
   "originalName": "Game of Pure Strategy",
-  "description_tr": "Şans unsurunun çok az olduğu, oyuncuların ödül kartları için kapalı teklif verdiği iki kişilik strateji oyunu.",
-  "description_en": "A two-player strategy game with very little chance, where players make hidden bids for prize cards.",
-  "rules_tr": [
-    "GOPS 2 kişiyle oynanır ve standart desteden üç renk kullanılır.",
-    "Karo kartları ödül kartları olarak ayrılır ve ortada kapalı karıştırılır.",
+  "description_tr": "Oyuncuların aynı kart değerlerine sahip ellerle başlayıp ödül kartları için kapalı teklif verdiği, şans unsurunun çok az olduğu iki kişilik strateji oyunudur.",
+  "description_en": "A two-player strategy game with very little chance, where players start with equal-value hands and make hidden bids for prize cards.",
+  "quickRules_tr": [
+    "GOPS 2 kişiyle, 52 kartlık standart destenin üç rengi kullanılarak oynanır.",
+    "Karo kartları ödül kartları olarak ayrılır ve kapalı şekilde karıştırılır.",
     "Her oyuncu kalan iki farklı renkten birini el olarak alır; örneğin biri Kupa, diğeri Maça kartlarını kullanır.",
+    "Oyunda dördüncü renk genellikle kullanılmaz.",
     "Her tur bir ödül kartı açılır.",
-    "İki oyuncu bu ödül için elinden bir kartı kapalı seçer ve aynı anda açar.",
-    "Daha yüksek kartı oynayan oyuncu ortadaki ödül kartını kazanır.",
+    "İki oyuncu bu ödül için elinden bir kartı kapalı teklif olarak seçer.",
+    "Teklif kartları aynı anda açılır.",
+    "Daha yüksek teklif kartını oynayan oyuncu ortadaki ödül kartını kazanır.",
+    "Teklif kartları tur sonunda oyundan çıkarılır ve tekrar kullanılmaz.",
     "Eşitlik olursa ödül kartı ortada kalır ve sonraki ödülle birlikte kazanılır.",
-    "Tüm ödüller dağıtıldığında oyuncular kazandıkları ödül kartlarının değerlerini toplar; toplamı yüksek olan kazanır."
+    "Tüm teklif kartları oynandığında oyuncular kazandıkları ödül kartlarının değerlerini toplar; toplamı yüksek olan kazanır."
   ],
-  "rules_en": [
-    "GOPS is played by 2 players using three suits from a standard deck.",
-    "Diamond cards are separated as prize cards and shuffled face down in the center.",
+  "quickRules_en": [
+    "GOPS is played by 2 players using three suits from a standard 52-card deck.",
+    "Diamond cards are separated as prize cards and shuffled face down.",
     "Each player takes one of the remaining suits as their hand, such as Hearts for one player and Spades for the other.",
+    "The fourth suit is usually not used.",
     "Each round, one prize card is revealed.",
-    "Both players secretly choose one card from their hand as a bid for that prize, then reveal simultaneously.",
-    "The higher bid wins the revealed prize card.",
-    "If the bids tie, the prize remains in the center and is awarded together with the next prize.",
-    "After all prizes are awarded, players total the values of the prize cards they won; the higher total wins."
+    "Both players secretly choose one card from their hand as a bid for that prize.",
+    "The bid cards are revealed simultaneously.",
+    "The player who played the higher bid card wins the revealed prize card.",
+    "Bid cards are discarded after the round and cannot be used again.",
+    "If the bids tie, the prize card stays in the center and is awarded together with the next prize.",
+    "When all bid cards have been played, players total the values of the prize cards they won; the higher total wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste renklere ayrılır.",
+    "Karo kartları ödül kartları olarak ayrılır.",
+    "Karo ödül kartları kapalı şekilde karıştırılır ve masanın ortasına konur.",
+    "Bir oyuncu Kupa kartlarını, diğer oyuncu Maça kartlarını el olarak alabilir.",
+    "Oyuncuların elleri aynı değer setinden oluşur: As, 2, 3, 4, 5, 6, 7, 8, 9, 10, Vale, Kız, Papaz.",
+    "Sinek kartları klasik iki kişilik düzende genellikle kullanılmaz.",
+    "Kart değerleri As 1, 2-10 kendi değeri, Vale 11, Kız 12, Papaz 13 şeklindedir.",
+    "Oyuncular ellerindeki 13 teklif kartını açıkça görebilir."
+  ],
+  "setup_en": [
+    "Remove the jokers and separate a standard 52-card deck by suits.",
+    "Set aside the Diamond cards as the prize cards.",
+    "Shuffle the Diamond prize cards face down and place them in the center.",
+    "One player may take all Hearts as their hand, and the other player may take all Spades.",
+    "Both players' hands contain the same set of ranks: Ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, Jack, Queen, King.",
+    "The Clubs are usually not used in the classic two-player setup.",
+    "Card values are Ace = 1, 2-10 = face value, Jack = 11, Queen = 12, King = 13.",
+    "Players may look at all 13 bid cards in their hand."
+  ],
+  "objective_tr": "Amaç, sınırlı teklif kartlarını doğru zamanda kullanarak en değerli ödül kartlarını kazanmak ve oyun sonunda rakipten daha yüksek toplam puana ulaşmaktır.",
+  "objective_en": "The objective is to use limited bid cards at the right time to win the most valuable prize cards and finish with a higher total score than the opponent.",
+  "gameplay_tr": [
+    "Her turun başında ödül destesinin en üst kartı açılır.",
+    "Açılan ödül kartı, o tur oyuncuların teklif vereceği karttır.",
+    "İki oyuncu ellerinden birer teklif kartı seçer ve kapalı şekilde masaya koyar.",
+    "İki oyuncu hazır olduğunda teklif kartları aynı anda açılır.",
+    "Daha yüksek teklif kartını oynayan oyuncu açık ödül kartını kazanır.",
+    "Kazanılan ödül kartı oyuncunun puan destesine konur.",
+    "İki oyuncunun oynadığı teklif kartları tur sonunda oyundan çıkarılır.",
+    "Teklif kartları bir daha kullanılamaz.",
+    "Eşit teklif verilirse ödül kartı ortada kalır.",
+    "Eşitlikten sonra yeni bir ödül kartı açılır ve sonraki teklif, ortada biriken tüm ödül kartları için yapılır.",
+    "Tekrar eşitlik olursa ödüller birikmeye devam eder.",
+    "Son turda eşitlik olursa ve ortada ödül kartı kalırsa, bu kartlar genellikle kimseye verilmez.",
+    "Oyun tüm teklif kartları oynanana kadar devam eder."
+  ],
+  "gameplay_en": [
+    "At the start of each round, the top card of the prize pile is turned face up.",
+    "The revealed prize card is the card players are bidding for that round.",
+    "Both players choose one bid card from their hand and place it face down.",
+    "When both players are ready, the bid cards are revealed simultaneously.",
+    "The player who played the higher bid card wins the face-up prize card.",
+    "The won prize card is placed in that player's scoring pile.",
+    "Both bid cards played that round are discarded.",
+    "Bid cards cannot be used again.",
+    "If both players bid the same value, the prize card remains in the center.",
+    "After a tie, a new prize card is revealed, and the next bid is for all accumulated prize cards in the center.",
+    "If there is another tie, the prize cards continue to accumulate.",
+    "If the final round is tied and prize cards remain in the center, those cards are usually not awarded to either player.",
+    "The game continues until all bid cards have been played."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kartların Rolü",
+      "title_en": "Card Roles",
+      "content_tr": [
+        "Karo kartları ödül kartlarıdır.",
+        "Oyuncular Karo kartlarını kazanarak puan toplar.",
+        "Kupa ve Maça gibi iki farklı renk, oyuncuların teklif elleri olarak kullanılabilir.",
+        "Her oyuncunun teklif eli aynı değerlerden oluştuğu için başlangıç koşulları eşittir.",
+        "Dördüncü renk, klasik iki kişilik oyunda genellikle kullanılmaz.",
+        "İstenirse renkler değiştirilebilir; önemli olan ödül renginin ayrı, oyuncu teklif renklerinin eşit değer setlerine sahip olmasıdır."
+      ],
+      "content_en": [
+        "Diamonds are the prize cards.",
+        "Players score points by winning Diamond cards.",
+        "Two other suits, such as Hearts and Spades, may be used as the players' bidding hands.",
+        "Both players' bidding hands contain the same ranks, so the starting conditions are equal.",
+        "The fourth suit is usually not used in the classic two-player game.",
+        "The suits may be changed if desired; what matters is that one suit is the prize suit and both players have equal-value bidding suits."
+      ]
+    },
+    {
+      "title_tr": "Teklif Kartları",
+      "title_en": "Bid Cards",
+      "content_tr": [
+        "Her oyuncu oyuna 13 teklif kartıyla başlar.",
+        "Her tur oyuncu elinden bir teklif kartı seçer.",
+        "Teklif kartı kapalı oynanır ve rakip seçim yapana kadar gizli kalır.",
+        "Teklif kartları aynı anda açılır.",
+        "Yüksek teklif ödül kartını kazanır.",
+        "Oynanan teklif kartları tur sonunda oyundan çıkarılır.",
+        "Bir teklif kartı yalnızca bir kez kullanılabilir.",
+        "Bu yüzden yüksek kartları erken harcamak sonraki değerli ödüller için risk oluşturabilir."
+      ],
+      "content_en": [
+        "Each player starts with 13 bid cards.",
+        "Each round, a player chooses one bid card from their hand.",
+        "The bid card is played face down and remains hidden until the opponent has also chosen.",
+        "Bid cards are revealed at the same time.",
+        "The higher bid wins the prize card.",
+        "Played bid cards are discarded at the end of the round.",
+        "A bid card can be used only once.",
+        "For this reason, spending high cards too early can be risky for later valuable prizes."
+      ]
+    },
+    {
+      "title_tr": "Eşitlik Durumu",
+      "title_en": "Tie Bids",
+      "content_tr": [
+        "İki oyuncu aynı değerde teklif kartı oynarsa o tur eşitlik olur.",
+        "Eşitlikte teklif kartları yine oyundan çıkarılır.",
+        "Yaygın kuralda ödül kartı ortada kalır.",
+        "Sonraki tur yeni bir ödül kartı daha açılır.",
+        "Oyuncular sonraki teklifi ortada biriken tüm ödül kartları için verir.",
+        "Eşitlikler üst üste gelirse ödül kartları birikmeye devam eder.",
+        "Son turda eşitlik olursa ve ortada ödül kartları kalırsa, bu ödüller genellikle kimseye verilmez.",
+        "Bazı varyantlarda eşitlikte ödül kartı da atılır ve birikme olmaz."
+      ],
+      "content_en": [
+        "If both players play bid cards of the same value, the round is tied.",
+        "The bid cards are still discarded.",
+        "In the common rule, the prize card remains in the center.",
+        "On the next round, another prize card is revealed.",
+        "Players then bid for all accumulated prize cards in the center.",
+        "If ties happen repeatedly, prize cards continue to accumulate.",
+        "If the final round is tied and prize cards remain in the center, those prizes are usually not awarded to either player.",
+        "In some variants, the prize card is also discarded after a tie and does not carry over."
+      ]
+    },
+    {
+      "title_tr": "Kart Değerleri",
+      "title_en": "Card Values",
+      "content_tr": [
+        "As 1 puandır.",
+        "2-10 arası kartlar kendi değerindedir.",
+        "Vale 11 puandır.",
+        "Kız 12 puandır.",
+        "Papaz 13 puandır.",
+        "Teklif karşılaştırmasında yüksek değer kazanır.",
+        "Oyun sonunda yalnızca kazanılan ödül kartlarının değerleri puana eklenir."
+      ],
+      "content_en": [
+        "Ace is worth 1 point.",
+        "Cards from 2 to 10 are worth their face value.",
+        "Jack is worth 11.",
+        "Queen is worth 12.",
+        "King is worth 13.",
+        "The higher value wins when comparing bids.",
+        "At the end of the game, only won prize cards count toward the score."
+      ]
+    },
+    {
+      "title_tr": "Strateji İpuçları",
+      "title_en": "Strategy Tips",
+      "content_tr": [
+        "GOPS'ta şans azdır çünkü iki oyuncu da aynı değerlerde teklif kartlarına sahiptir.",
+        "Önemli karar, hangi ödül için hangi teklif kartının harcanacağıdır.",
+        "Düşük değerli ödüller için çok yüksek teklif vermek sonraki turlarda dezavantaj yaratabilir.",
+        "Rakibin hangi teklif kartlarını kullandığını takip etmek önemlidir.",
+        "Eşitlik durumlarında ortada biriken ödüller daha değerli hale gelir.",
+        "Bazen düşük ödülleri bilerek bırakıp yüksek ödüller için güçlü kart saklamak daha iyi olabilir."
+      ],
+      "content_en": [
+        "GOPS has little chance because both players have the same bid-card values.",
+        "The key decision is which bid card to spend on which prize.",
+        "Using a very high bid for a low-value prize can create a disadvantage later.",
+        "It is important to track which bid cards the opponent has already used.",
+        "When ties occur, accumulated prizes become more valuable.",
+        "Sometimes it is better to give up low-value prizes and save strong cards for higher-value prizes."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Standart GOPS: Eşitlikte ödül kartı ortada kalır ve sonraki ödülle birlikte kazanılır.",
+        "Eşitlikte Atma: Eşitlik olursa ödül kartı da teklif kartlarıyla birlikte atılır ve sonraki tur tek ödülle devam eder.",
+        "Açık Ödül Sırası: Ödül kartları karıştırılmaz, As'tan Papaz'a veya Papaz'dan As'a sırayla açılır.",
+        "Üç Oyunculu GOPS: Dördüncü renk üçüncü oyuncunun teklif eli olarak kullanılabilir; eşitlik ve ödül kazanma kuralları ev kuralıyla belirlenir.",
+        "Hedef Seri: Birden fazla oyun oynanır ve toplam galibiyet veya toplam puan üzerinden kazanan belirlenir."
+      ],
+      "content_en": [
+        "Standard GOPS: On a tie, the prize card stays in the center and is won together with the next prize.",
+        "Discard-on-Tie: If there is a tie, the prize card is discarded along with the bid cards, and the next round has only one prize.",
+        "Open Prize Order: Prize cards are not shuffled and are revealed in order from Ace to King or King to Ace.",
+        "Three-player GOPS: The fourth suit may be used as a third player's bidding hand; tie and prize rules are set by house rule.",
+        "Match Play: Several games are played, and the winner is determined by total wins or total points."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Oyun sonunda oyuncular kazandıkları ödül kartlarının değerlerini toplar.",
+    "As 1, 2-10 kendi değeri, Vale 11, Kız 12, Papaz 13 puandır.",
+    "En yüksek toplam puana sahip oyuncu oyunu kazanır.",
+    "Eşitlik durumunda oyun berabere bitebilir veya ek oyun oynanabilir.",
+    "Standart 13 ödül kartının toplam değeri 91'dir.",
+    "Bu nedenle 46 veya daha fazla puan alan oyuncu genellikle oyunu kazanır."
+  ],
+  "scoring_en": [
+    "At the end of the game, players total the values of the prize cards they won.",
+    "Ace is worth 1, cards 2-10 are worth face value, Jack is worth 11, Queen is worth 12, and King is worth 13.",
+    "The player with the higher total score wins.",
+    "If the total scores are tied, the game may end in a draw or an additional game may be played.",
+    "The total value of the 13 prize cards is 91.",
+    "Therefore, a player who scores 46 or more points usually wins."
+  ],
+  "ending_tr": [
+    "Oyun, iki oyuncu da tüm teklif kartlarını oynadığında sona erer.",
+    "Kazanılmamış ve ortada kalmış ödül kartları varsa, standart kuralda kimseye verilmez.",
+    "Oyuncular kazandıkları ödül kartlarının değerlerini toplar.",
+    "Toplam puanı yüksek olan oyuncu kazanır.",
+    "Puanlar eşitse oyun berabere kabul edilebilir.",
+    "Seri oynanıyorsa kartlar yeniden ayrılır ve yeni oyun başlar."
+  ],
+  "ending_en": [
+    "The game ends when both players have played all their bid cards.",
+    "If any prize cards remain unclaimed in the center, they are usually not awarded under the standard rule.",
+    "Players total the values of the prize cards they won.",
+    "The player with the higher total score wins.",
+    "If the scores are equal, the game may be considered a draw.",
+    "If playing a match, the suits are separated again and a new game begins."
+  ],
+  "notes_tr": [
+    "GOPS, Goofspiel ve Psychological Jujitsu adlarıyla da bilinir.",
+    "Oyun 'Game of Pure Strategy' adını alır çünkü oyuncular eşit kart setleriyle başlar ve kararlar kapalı tekliflere dayanır.",
+    "Ödül kartları karıştırıldığında az miktarda belirsizlik vardır; ancak oyuncuların teklif elleri eşittir.",
+    "Tamamen deterministik bir deneyim için ödül kartları sıralı açılabilir.",
+    "Kategori olarak 'Strateji / Kapalı Teklif' kullanmak, oyunun yapısını daha doğru anlatır."
+  ],
+  "notes_en": [
+    "GOPS is also known as Goofspiel and Psychological Jujitsu.",
+    "The game is called Game of Pure Strategy because players start with equal card sets and decisions are based on hidden bids.",
+    "When prize cards are shuffled, there is a small amount of uncertainty, but the players' bidding hands are equal.",
+    "For a fully deterministic experience, prize cards may be revealed in a fixed order.",
+    "The category 'Strategy / Hidden Bidding' better represents the structure of the game."
   ],
   "minPlayers": 2,
   "maxPlayers": 2,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "Eşleştirme / Toplama",
-  "category_en": "Matching / Capturing"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Strateji / Kapalı Teklif",
+  "category_en": "Strategy / Hidden Bidding"
 }
