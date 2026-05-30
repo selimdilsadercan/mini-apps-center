@@ -216,7 +216,7 @@ function GameDetailContent() {
   const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-[#ffffff] border-b border-[#e2dec5]">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -432,7 +432,7 @@ function GameDetailContent() {
           </div>
 
           {/* Quick Info & Notes Column */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 h-fit">
             {/* Quick Info Tags */}
             <div className="flex flex-col gap-3">
               <div className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-4 flex flex-col gap-1 shadow-sm">

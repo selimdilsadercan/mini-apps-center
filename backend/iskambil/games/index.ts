@@ -13,7 +13,7 @@ import esBulmaliSpeed from "./party-speed/es-bulmali-speed.json";
 import clubbers from "./party-speed/clubbers.json";
 import papazKacti from "./party-speed/papaz-kacti.json";
 import blof from "./party-speed/blof.json";
-import speed11Oyunu from "./party-speed/speed-1-1-oyunu.json";
+import speed from "./party-speed/speed.json";
 import peanutsNerts from "./party-speed/peanuts-nerts.json";
 import carouselRummy from "./rummy-meld-building/carousel-rummy.json";
 import game51 from "./rummy-meld-building/51.json";
@@ -57,7 +57,7 @@ export const gamesData = [
   clubbers,
   papazKacti,
   blof,
-  speed11Oyunu,
+  speed,
   peanutsNerts,
   carouselRummy,
   game51,

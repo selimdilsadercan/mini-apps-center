@@ -1,19 +1,8 @@
 CREATE SCHEMA IF NOT EXISTS chocolate_db;
 
-CREATE TABLE chocolate_db.chocolates (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE,
-    brand TEXT NOT NULL,
-    description TEXT,
-    image_url TEXT,
-    avg_rating DECIMAL(3, 2) DEFAULT 0,
-    review_count INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 CREATE TABLE chocolate_db.reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    chocolate_id UUID REFERENCES chocolate_db.chocolates(id) ON DELETE CASCADE,
+    chocolate_id TEXT NOT NULL,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     reviewer_name TEXT,

@@ -33,18 +33,22 @@ async function scrapeGetir(url: string) {
     await page.evaluate(async () => {
       await new Promise((resolve) => {
         let totalHeight = 0;
-        let distance = 400;
+        let distance = 300;
         let timer = setInterval(() => {
           let scrollHeight = document.body.scrollHeight;
           window.scrollBy(0, distance);
           totalHeight += distance;
-          if (totalHeight >= scrollHeight || totalHeight > 4000) {
+          if (totalHeight >= scrollHeight || totalHeight > 25000) {
             clearInterval(timer);
             resolve(true);
           }
-        }, 100);
+        }, 150); // Slower scrolling
       });
     });
+
+    // Wait 3 seconds for all lazy-loaded images to load fully
+    console.log("⏳ Görsellerin yüklenmesi bekleniyor...");
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     console.log("🔍 Ürünler taranıyor...");
     const products = await page.evaluate(() => {
@@ -85,15 +89,17 @@ async function scrapeGetir(url: string) {
         // RESIM SECIMI: Badge olmayan, asıl ürün resmini bul
         const allImages = Array.from(article.querySelectorAll('img'));
         const productImg = allImages.find(img => {
-          const src = img.getAttribute('src') || img.src || "";
-          // Getir'de asıl ürünler /product/ klasöründedir, /badge/ klasöründekiler logodur.
-          return src.includes("/product/") && !src.includes("/badge/");
+          const src = img.getAttribute('src') || img.getAttribute('data-src') || img.src || "";
+          return src && !src.includes("/badge/") && !src.includes("badge");
         });
 
-        const finalImg = productImg || allImages[0];
+        const finalImg = productImg || allImages.find(img => {
+          const src = img.getAttribute('src') || img.getAttribute('data-src') || img.src || "";
+          return src && !src.includes("/badge/") && !src.includes("badge") && src.length > 0;
+        });
         
         if (name && finalImg) {
-          const imgSrc = finalImg.getAttribute('src') || finalImg.src || "";
+          const imgSrc = finalImg.getAttribute('src') || finalImg.getAttribute('data-src') || finalImg.src || "";
           
           // Isme gore tekillestir (Map kullanarak)
           if (!itemsMap.has(name)) {
@@ -114,7 +120,7 @@ async function scrapeGetir(url: string) {
 
     // 1. Dosyaya kaydet (Yeni konuma: data/ klasörü)
     // Script chocolate-db/scrape/ içinde olduğu için .. ile bir üst klasöre çıkıp data'ya giriyoruz
-    const outputPath = path.join(process.cwd(), "chocolate-db", "data", "getir_products.json");
+    const outputPath = path.join(process.cwd(), "chocolate-db", "data", "products.json");
     
     // Klasör yoksa oluştur
     const dir = path.dirname(outputPath);

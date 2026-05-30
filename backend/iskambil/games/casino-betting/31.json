@@ -3,32 +3,240 @@
   "name_tr": "31",
   "name_en": "Thirty-One / Scat",
   "originalName": "Thirty-One / Scat",
-  "description_tr": "Oyuncuların aynı renkten üç kartla 31'e veya 31'e en yakın değere ulaşmaya çalıştığı çek-at oyunu.",
-  "description_en": "A draw-and-discard game where players try to reach 31, or the closest possible score, using three cards of the same suit.",
-  "rules_tr": [
-    "2-7 oyuncuyla 52 kartlık standart deste kullanılır.",
-    "Her oyuncuya 3 kart dağıtılır. Kalan deste kapalı bırakılır ve en üst kart açılarak atık destesini başlatır.",
+  "description_tr": "Oyuncuların üç kartlık elde aynı renkten 31'e veya 31'e en yakın değere ulaşmaya çalıştığı çek-at tarzı bir kart oyunudur.",
+  "description_en": "A draw-and-discard card game where players try to reach 31, or the closest possible score, using three cards of the same suit.",
+  "quickRules_tr": [
+    "Genellikle 2-7 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya 3 kart dağıtılır.",
+    "Kalan kartlar kapalı stock destesini oluşturur ve en üst kart açılarak atık destesini başlatır.",
     "Amaç aynı renkten kartların toplamını 31'e mümkün olduğunca yaklaştırmaktır.",
     "As 11, resimli kartlar 10, sayı kartları kendi değeri kadardır.",
-    "Sırası gelen oyuncu kapalı desteden veya açık atık destesinden bir kart alır, sonra elinden bir kart atar.",
-    "Elinin yeterince iyi olduğunu düşünen oyuncu knock/açın diyebilir. Bu durumda diğer oyuncular genellikle son bir tur oynar ve eller karşılaştırılır.",
-    "Tam 31 yapan oyuncu eli hemen bitirebilir. En düşük skora sahip oyuncu can veya ceza puanı kaybeder.",
-    "Can sistemiyle oynanıyorsa tüm canlarını kaybeden elenir; sona kalan oyuncu kazanır."
+    "Sırası gelen oyuncu stock destesinden veya atık destesinden bir kart alır, sonra elinden bir kart atar.",
+    "Elinin yeterince güçlü olduğunu düşünen oyuncu knock/açın diyebilir.",
+    "Tam 31 yapan oyuncu eli hemen bitirebilir.",
+    "En düşük skora sahip oyuncu can veya ceza puanı kaybeder."
   ],
-  "rules_en": [
-    "Played with 2-7 players using a standard 52-card deck.",
-    "Each player is dealt 3 cards. The rest forms the stock pile, and the top card starts the discard pile.",
+  "quickRules_en": [
+    "Usually played with 2-7 players using a standard 52-card deck.",
+    "Each player is dealt 3 cards.",
+    "The remaining cards form the face-down stock pile, and the top card starts the discard pile.",
     "The goal is to make the value of one suit as close to 31 as possible.",
     "Aces count 11, face cards count 10, and number cards count face value.",
-    "On their turn, a player draws from the stock or discard pile, then discards one card.",
-    "A player who thinks their hand is strong enough may knock. Other players usually get one final turn before hands are compared.",
-    "A player who makes exactly 31 may end the hand immediately. The lowest-scoring player loses a life or penalty point.",
-    "If playing with lives, players who lose all lives are eliminated; the last player remaining wins."
+    "On their turn, a player draws from the stock pile or discard pile, then discards one card.",
+    "A player who thinks their hand is strong enough may knock.",
+    "A player who makes exactly 31 may end the hand immediately.",
+    "The lowest-scoring player loses a life or receives a penalty point."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Her oyuncuya 3 kart kapalı şekilde dağıtılır.",
+    "Kalan kartlar kapalı şekilde ortaya konur ve stock destesini oluşturur.",
+    "Stock destesinin en üst kartı açılır ve yanına konarak atık destesini başlatır.",
+    "Oyuncular kendi kartlarına bakabilir, ancak diğer oyunculara göstermez.",
+    "Can sistemiyle oynanıyorsa her oyuncuya başlangıçta 3 can verilebilir.",
+    "İlk oyuncu dağıtanın solundaki oyuncu veya ev kuralıyla belirlenen oyuncudur."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal 3 cards face down to each player.",
+    "Place the remaining cards face down in the center as the stock pile.",
+    "Turn the top card of the stock face up beside it to start the discard pile.",
+    "Players may look at their own cards, but they do not show them to others.",
+    "If playing with lives, each player may start with 3 lives.",
+    "The first player is usually the player to the dealer's left or chosen by house rule."
+  ],
+  "objective_tr": "Amaç, eldeki üç karttan aynı renkte olanların toplamını 31'e mümkün olduğunca yaklaştırmak ve el sonunda en düşük skora sahip oyuncu olmamaktır.",
+  "objective_en": "The objective is to make the best possible total up to 31 using cards of the same suit in your three-card hand and avoid having the lowest score at the end of the round.",
+  "gameplay_tr": [
+    "Sırası gelen oyuncu önce bir kart çeker.",
+    "Oyuncu ister kapalı stock destesinin en üst kartını, ister açık atık destesinin en üst kartını alabilir.",
+    "Kart aldıktan sonra oyuncunun elinde geçici olarak 4 kart olur.",
+    "Oyuncu elinden bir kartı atık destesinin üstüne açık şekilde atar ve yeniden 3 karta döner.",
+    "Oyuncular ellerindeki en iyi aynı renk toplamını oluşturmaya çalışır.",
+    "Farklı renkteki kartlar aynı toplamda birlikte sayılmaz.",
+    "Bir oyuncu elinin yeterince güçlü olduğunu düşünürse kendi sırasında knock/açın diyebilir.",
+    "Knock yapıldığında diğer oyuncular genellikle birer son tur oynar.",
+    "Son turdan sonra tüm oyuncular ellerini açar ve skorlar karşılaştırılır.",
+    "Tam 31 yapan oyuncu genellikle eli hemen bitirir ve diğer oyuncular son tur hakkı kullanamaz."
+  ],
+  "gameplay_en": [
+    "On a turn, the player first draws one card.",
+    "The player may draw either the top card of the face-down stock pile or the top card of the face-up discard pile.",
+    "After drawing, the player temporarily has 4 cards.",
+    "The player then discards one card face up onto the discard pile, returning to 3 cards.",
+    "Players try to build the best same-suit total in their hand.",
+    "Cards of different suits are not added together for the same score.",
+    "A player who thinks their hand is strong enough may knock on their turn.",
+    "After a knock, the other players usually get one final turn.",
+    "After the final turn, all players reveal their hands and compare scores.",
+    "A player who makes exactly 31 usually ends the round immediately, and the other players do not receive a final turn."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kart Değerleri",
+      "title_en": "Card Values",
+      "content_tr": [
+        "As 11 puandır.",
+        "Papaz, Kız ve Vale 10 puandır.",
+        "2-10 arası sayı kartları kendi değerindedir.",
+        "Skor hesaplanırken yalnızca aynı renkten kartlar birlikte toplanır.",
+        "Farklı renkteki kartlar ayrı ayrı değerlendirilir; oyuncunun skoru en yüksek aynı renk toplamıdır."
+      ],
+      "content_en": [
+        "Ace is worth 11 points.",
+        "King, Queen, and Jack are worth 10 points.",
+        "Number cards from 2 to 10 are worth their face value.",
+        "Only cards of the same suit are added together for scoring.",
+        "Cards of different suits are evaluated separately; the player's score is the highest same-suit total."
+      ]
+    },
+    {
+      "title_tr": "Skor Örnekleri",
+      "title_en": "Scoring Examples",
+      "content_tr": [
+        "Kupa As + Kupa Papaz + Kupa Vale = 31 puan.",
+        "Maça 10 + Maça 8 + Maça 7 = 25 puan.",
+        "Karo As + Karo 9 + Sinek Papaz eldeyse skor 20'dir, çünkü Karo As ve Karo 9 birlikte sayılır.",
+        "Üç farklı renkten As, Papaz ve 9 eldeyse skor 11'dir, çünkü yalnızca en yüksek tek renk toplamı sayılır.",
+        "Aynı değerden üç kart bazı ev kurallarında 30.5 puan sayılabilir."
+      ],
+      "content_en": [
+        "Ace of Hearts + King of Hearts + Jack of Hearts = 31 points.",
+        "10 of Spades + 8 of Spades + 7 of Spades = 25 points.",
+        "Ace of Diamonds + 9 of Diamonds + King of Clubs scores 20, because only the Diamond cards are added.",
+        "Ace, King, and 9 in three different suits scores 11, because only the highest single-suit total counts.",
+        "Three cards of the same rank may count as 30.5 points in some house rules."
+      ]
+    },
+    {
+      "title_tr": "Knock / Açın",
+      "title_en": "Knocking",
+      "content_tr": [
+        "Oyuncu elinin en düşük skor olmayacak kadar güçlü olduğunu düşünürse kendi sırasında knock/açın diyebilir.",
+        "Knock yapan oyuncu genellikle o tur kart çekip atmaz; bazı ev kurallarında önce çek-at yapıp sonra knock diyebilir.",
+        "Knock sonrasında diğer oyuncular sırayla birer son tur oynar.",
+        "Son turda oyuncular son kez kart çekip atabilir.",
+        "Son tur tamamlandığında herkes elini açar ve skorlar karşılaştırılır.",
+        "Knock yapan oyuncu en düşük skora sahipse bazı ev kurallarında ekstra ceza alabilir."
+      ],
+      "content_en": [
+        "A player may knock on their turn if they believe their hand is strong enough not to be the lowest score.",
+        "The knocking player usually does not draw and discard on that turn; in some house rules, they may draw-discard first and then knock.",
+        "After a knock, the other players each get one final turn in order.",
+        "During the final turn, players may draw and discard one last time.",
+        "After the final turn is complete, everyone reveals their hand and scores are compared.",
+        "If the knocking player has the lowest score, some house rules give them an extra penalty."
+      ]
+    },
+    {
+      "title_tr": "Tam 31",
+      "title_en": "Exact 31",
+      "content_tr": [
+        "Bir oyuncu aynı renkten toplam 31 yaparsa bunu hemen ilan edebilir.",
+        "Tam 31 genellikle turun hemen bitmesine neden olur.",
+        "Tam 31 yapan oyuncu güvenli sayılır.",
+        "Diğer oyuncular ellerini açar ve en düşük skor belirlenir.",
+        "Bazı ev kurallarında tam 31 yapan oyuncu ekstra ödül alabilir veya diğer tüm oyuncular can kaybedebilir."
+      ],
+      "content_en": [
+        "If a player makes exactly 31 in one suit, they may declare it immediately.",
+        "An exact 31 usually ends the round immediately.",
+        "The player with 31 is safe.",
+        "The other players reveal their hands and the lowest score is determined.",
+        "In some house rules, the player with 31 may receive an extra reward or all other players may lose a life."
+      ]
+    },
+    {
+      "title_tr": "Can Sistemi",
+      "title_en": "Lives System",
+      "content_tr": [
+        "Oyuncular oyuna genellikle 3 canla başlayabilir.",
+        "Her elin sonunda en düşük skora sahip oyuncu 1 can kaybeder.",
+        "En düşük skor eşitse, eşit oyuncuların tamamı can kaybedebilir veya beraberlik ev kuralıyla çözülebilir.",
+        "Canı sıfıra düşen oyuncu elenir.",
+        "Sona kalan oyuncu oyunu kazanır.",
+        "Can yerine ceza puanı da kullanılabilir; bu durumda belirli ceza puanına ulaşan oyuncu elenir."
+      ],
+      "content_en": [
+        "Players may start the game with 3 lives.",
+        "At the end of each round, the player with the lowest score loses 1 life.",
+        "If there is a tie for lowest score, all tied players may lose a life, or the tie may be resolved by house rule.",
+        "A player who reaches zero lives is eliminated.",
+        "The last player remaining wins the game.",
+        "Penalty points may be used instead of lives; in that case, a player is eliminated after reaching a chosen penalty limit."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Canlı 31: Oyuncular belirli sayıda canla başlar; en düşük skor can kaybeder.",
+        "Ceza Puanlı 31: En düşük skor alan oyuncuya ceza puanı yazılır.",
+        "Üçlü 30.5: Aynı değerden üç kart, renkleri farklı olsa bile 30.5 puan sayılır.",
+        "Anında 31: Tam 31 yapan oyuncu eli hemen bitirir.",
+        "Son Tur 31: Tam 31 olsa bile diğer oyunculara son bir tur hakkı verilir.",
+        "Bahisli Scat: Oyuncular can yerine jeton veya bahisle oynayabilir."
+      ],
+      "content_en": [
+        "Lives Thirty-One: Players start with a set number of lives; the lowest score loses a life.",
+        "Penalty Point Thirty-One: The lowest-scoring player receives penalty points.",
+        "Three-of-a-Kind 30.5: Three cards of the same rank count as 30.5, even if they are not the same suit.",
+        "Instant 31: A player with exactly 31 ends the round immediately.",
+        "Final-Turn 31: Even after an exact 31, other players may receive one final turn.",
+        "Betting Scat: Players may use chips or bets instead of lives."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Oyuncunun skoru, elindeki aynı renkten kartların en yüksek toplamıdır.",
+    "As 11, resimli kartlar 10, sayı kartları kendi değeriyle sayılır.",
+    "Maksimum skor 31'dir.",
+    "El sonunda en düşük skora sahip oyuncu can kaybeder veya ceza puanı alır.",
+    "Tam 31 yapan oyuncu genellikle güvenli olur ve eli hemen bitirebilir.",
+    "Bazı ev kurallarında üç aynı değerden kart 30.5 puan sayılır."
+  ],
+  "scoring_en": [
+    "A player's score is the highest total of cards in one suit in their hand.",
+    "Aces count 11, face cards count 10, and number cards count face value.",
+    "The maximum score is 31.",
+    "At the end of the round, the lowest-scoring player loses a life or receives a penalty point.",
+    "A player with exactly 31 is usually safe and may end the round immediately.",
+    "In some house rules, three cards of the same rank count as 30.5 points."
+  ],
+  "ending_tr": [
+    "Bir el, oyuncu knock yaptığında ve son turlar tamamlandığında sona erer.",
+    "Bir oyuncu tam 31 yaptığında el genellikle hemen sona erer.",
+    "El sonunda en düşük skora sahip oyuncu can veya ceza puanı kaybeder.",
+    "Can sistemiyle oynanıyorsa tüm canlarını kaybeden oyuncu elenir.",
+    "Sona kalan oyuncu genel oyunu kazanır.",
+    "Tek el oynanıyorsa en yüksek skora sahip oyuncu kazanan kabul edilebilir."
+  ],
+  "ending_en": [
+    "A round ends when a player knocks and the final turns are completed.",
+    "If a player makes exactly 31, the round usually ends immediately.",
+    "At the end of the round, the lowest-scoring player loses a life or receives a penalty point.",
+    "If playing with lives, a player who loses all lives is eliminated.",
+    "The last player remaining wins the overall game.",
+    "If playing a single round, the player with the highest score may be considered the winner."
+  ],
+  "notes_tr": [
+    "Thirty-One, Scat, Blitz, Cadillac ve Ride the Bus gibi farklı adlarla bilinir.",
+    "Oyun 31'e ulaşmaya çalışsa da Blackjack değildir; skor yalnızca aynı renkten kartlarla hesaplanır.",
+    "Oyuncu her zaman 31 yapmak zorunda değildir; amaç çoğu zaman en düşük skor olmamaktır.",
+    "Atık destesinden alınan kartlar diğer oyunculara hangi renge oynadığınız hakkında ipucu verebilir.",
+    "Başlangıç için 3 canlı, anında 31 ve üçlü 30.5 kuralı açık bir varsayılan set oluşturur."
+  ],
+  "notes_en": [
+    "Thirty-One is also known as Scat, Blitz, Cadillac, and Ride the Bus.",
+    "Although the game is about reaching 31, it is not Blackjack; scoring only counts cards of the same suit.",
+    "A player does not always need to reach 31; often the goal is simply not to have the lowest score.",
+    "Taking cards from the discard pile may reveal clues about which suit you are collecting.",
+    "For beginners, 3 lives, instant 31, and the three-of-a-kind 30.5 rule create a clear default ruleset."
   ],
   "minPlayers": 2,
   "maxPlayers": 7,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "Casino / Bahis",
-  "category_en": "Casino / Betting"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Çek-At / Puan Toplama",
+  "category_en": "Draw-and-Discard / Point Collecting"
 }

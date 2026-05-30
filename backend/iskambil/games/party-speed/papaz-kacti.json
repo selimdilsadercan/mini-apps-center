@@ -1,34 +1,210 @@
 {
   "id": "papaz-kacti",
-  "name_tr": "papaz kaçtı",
+  "name_tr": "Papaz Kaçtı",
   "name_en": "Old Maid",
   "originalName": "Old Maid",
-  "description_tr": "Oyuncuların çiftleri eleyip elde tek kalan papazdan kaçmaya çalıştığı klasik aile oyunu.",
-  "description_en": "A classic family game where players discard pairs and try not to be left with the lone King.",
-  "rules_tr": [
+  "description_tr": "Oyuncuların çiftleri eleyip elde tek kalan Papaz'dan kaçmaya çalıştığı klasik ve basit bir aile kart oyunudur.",
+  "description_en": "A classic and simple family card game where players discard pairs and try not to be left holding the lone odd card.",
+  "quickRules_tr": [
     "2 veya daha fazla oyuncuyla oynanabilir; pratikte 3-6 kişi idealdir.",
-    "Türkçe Papaz Kaçtı varyantında desteden üç Papaz çıkarılır ve tek Papaz destede bırakılır.",
-    "Kartlar oyunculara dağıtılır. Oyuncular ellerindeki aynı değerden çiftleri yere bırakır.",
+    "Türkçe Papaz Kaçtı varyantında desteden üç Papaz çıkarılır ve destede yalnızca bir Papaz bırakılır.",
+    "Kartlar oyunculara kapalı şekilde mümkün olduğunca eşit dağıtılır.",
+    "Oyuncular ellerindeki aynı değerden çiftleri yere bırakır.",
     "Sonra oyuncular sırayla yanındaki oyuncudan kapalı bir kart çeker.",
     "Çekilen kart eldeki bir kartla çift oluşturursa bu çift de yere bırakılır.",
     "Oyun, tüm çiftler elenene kadar devam eder.",
-    "En sonunda elinde tek Papaz kalan oyuncu oyunu kaybeder.",
-    "Bazı uluslararası kurallarda Papaz yerine tek bırakılan Kız veya özel Old Maid kartı kullanılır."
+    "En sonunda elinde tek Papaz kalan oyuncu oyunu kaybeder."
   ],
-  "rules_en": [
+  "quickRules_en": [
     "Playable with 2 or more players; 3-6 players is practical and common.",
-    "In the Turkish Papaz Kaçtı variant, three Kings are removed from the deck so only one King remains.",
-    "Cards are dealt to the players. Players lay down pairs of the same rank from their hands.",
+    "In the Turkish Papaz Kaçtı variant, three Kings are removed so only one King remains in the deck.",
+    "Cards are dealt face down to the players as evenly as possible.",
+    "Players discard pairs of the same rank from their hands.",
     "Then players take turns drawing one face-down card from a neighboring player.",
     "If the drawn card forms a pair with a card in hand, that pair is also discarded.",
     "Play continues until all possible pairs are discarded.",
-    "The player left holding the single King at the end loses.",
-    "International Old Maid variants may use a single Queen or a special Old Maid card instead of the King."
+    "The player left holding the single King at the end loses."
+  ],
+  "setup_tr": [
+    "52 kartlık standart deste kullanılır.",
+    "Türkçe Papaz Kaçtı için desteden üç Papaz çıkarılır ve yalnızca bir Papaz destede bırakılır.",
+    "Kalan kartlar karıştırılır.",
+    "Tüm kartlar oyunculara kapalı şekilde mümkün olduğunca eşit dağıtılır.",
+    "Bazı oyuncuların elinde bir kart fazla olabilir.",
+    "Oyuncular kendi kartlarına bakabilir, ancak diğer oyunculara göstermez.",
+    "Dağıtımdan sonra herkes elindeki çiftleri ayırarak ortaya veya kendi önüne kapalı/açık şekilde bırakır."
+  ],
+  "setup_en": [
+    "Use a standard 52-card deck.",
+    "For the Turkish Papaz Kaçtı variant, remove three Kings and leave only one King in the deck.",
+    "Shuffle the remaining cards.",
+    "Deal all cards face down to the players as evenly as possible.",
+    "Some players may receive one extra card.",
+    "Players may look at their own cards, but they do not show them to others.",
+    "After the deal, each player removes pairs from their hand and places them aside."
+  ],
+  "objective_tr": "Amaç, eldeki kartları çiftler halinde eleyerek bitirmek ve oyunun sonunda tek kalan Papaz'ı elinde tutan oyuncu olmamaktır.",
+  "objective_en": "The objective is to discard cards in pairs and avoid being the player left holding the lone odd card at the end.",
+  "gameplay_tr": [
+    "Dağıtımdan sonra tüm oyuncular ellerindeki aynı değerden çiftleri çıkarır.",
+    "Çiftler oyundan çıkarılır ve tekrar ele alınmaz.",
+    "İlk oyuncu, yanındaki oyuncunun elinden rastgele bir kapalı kart çeker.",
+    "Çekilen kart, oyuncunun elindeki başka bir kartla aynı değerdeyse bu iki kart çift olarak yere bırakılır.",
+    "Çekilen kart çift oluşturmuyorsa oyuncunun elinde kalır.",
+    "Sonra sıra bir sonraki oyuncuya geçer.",
+    "Oyuncular sırayla yanındaki oyuncudan kart çekmeye devam eder.",
+    "Elindeki tüm kartları bitiren oyuncu güvenli şekilde oyundan çıkar.",
+    "Oyun, tüm çiftler elenip yalnızca tek Papaz kalana kadar devam eder.",
+    "En sonunda elinde tek Papaz kalan oyuncu oyunu kaybeder."
+  ],
+  "gameplay_en": [
+    "After the deal, all players remove pairs of the same rank from their hands.",
+    "Discarded pairs leave the game and are not used again.",
+    "The first player randomly draws one face-down card from a neighboring player's hand.",
+    "If the drawn card matches the rank of a card in the player's hand, the two cards are discarded as a pair.",
+    "If the drawn card does not form a pair, it stays in the player's hand.",
+    "Play then passes to the next player.",
+    "Players continue drawing cards from a neighboring player in turn.",
+    "A player who gets rid of all their cards is safe and leaves the round.",
+    "The game continues until all pairs are discarded and only the lone King remains.",
+    "The player left holding the lone King loses the game."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Papaz Kaçtı Varyantı",
+      "title_en": "Papaz Kaçtı Variant",
+      "content_tr": [
+        "Türkçe Papaz Kaçtı varyantında desteden üç Papaz çıkarılır.",
+        "Destede yalnızca bir Papaz bırakılır.",
+        "Bu tek Papaz eşleşemediği için oyunun sonunda bir oyuncunun elinde kalır.",
+        "Elinde Papaz kalan oyuncu oyunu kaybeder.",
+        "Bu yüzden oyunun temel amacı Papaz'ı başka oyunculara geçirmek ve elde tutmamaktır."
+      ],
+      "content_en": [
+        "In the Turkish Papaz Kaçtı variant, three Kings are removed from the deck.",
+        "Only one King remains in the deck.",
+        "This lone King cannot be paired, so it will remain in one player's hand at the end.",
+        "The player left holding the King loses the game.",
+        "For this reason, the main goal is to pass the King to other players and avoid keeping it."
+      ]
+    },
+    {
+      "title_tr": "Old Maid Varyantı",
+      "title_en": "Old Maid Variant",
+      "content_tr": [
+        "Uluslararası Old Maid oyununda genellikle Papaz yerine tek bir Kız veya özel Old Maid kartı kullanılır.",
+        "Bazı kurallarda desteden bir Kız çıkarılır ve kalan eşsiz Kız kaybettiren kart olur.",
+        "Bazı özel Old Maid destelerinde kaybettiren kart ayrıca tasarlanmış özel bir karttır.",
+        "Mantık Papaz Kaçtı ile aynıdır: çiftler elenir ve tek kalan özel kartı tutan oyuncu kaybeder."
+      ],
+      "content_en": [
+        "In international Old Maid, a single Queen or a special Old Maid card is often used instead of a King.",
+        "In some rules, one Queen is removed and the remaining unpaired Queen becomes the losing card.",
+        "In some dedicated Old Maid decks, the losing card is a specially designed card.",
+        "The logic is the same as Papaz Kaçtı: pairs are discarded and the player holding the lone special card loses."
+      ]
+    },
+    {
+      "title_tr": "Çift Oluşturma",
+      "title_en": "Forming Pairs",
+      "content_tr": [
+        "Çift, aynı değerden iki karttan oluşur.",
+        "Örneğin iki 7'li, iki As veya iki Vale çift sayılır.",
+        "Renk veya kart türü çoğu basit kuralda önemli değildir.",
+        "Üç aynı değerden kart varsa yalnızca ikisi çift olarak çıkarılır, üçüncü kart elde kalır.",
+        "Dört aynı değerden kart varsa iki ayrı çift olarak çıkarılabilir.",
+        "Papaz Kaçtı varyantında tek kalan Papaz çift oluşturamaz."
+      ],
+      "content_en": [
+        "A pair consists of two cards of the same rank.",
+        "For example, two 7s, two Aces, or two Jacks count as a pair.",
+        "Suit and color usually do not matter in the simple rules.",
+        "If a player has three cards of the same rank, only two are discarded as a pair and the third remains in hand.",
+        "If a player has four cards of the same rank, they may discard them as two separate pairs.",
+        "In the Papaz Kaçtı variant, the lone King cannot form a pair."
+      ]
+    },
+    {
+      "title_tr": "Kart Çekme Sırası",
+      "title_en": "Drawing Order",
+      "content_tr": [
+        "Oyuncular sırayla yanındaki oyuncunun elinden rastgele bir kart çeker.",
+        "Kartlar kapalı tutulur; çeken oyuncu hangi kartı aldığını önceden bilmez.",
+        "Yaygın düzende oyuncu sağındaki veya solundaki oyuncudan kart çeker; yön oyuna başlamadan belirlenmelidir.",
+        "Bir oyuncunun kartı biterse oyundan çıkar ve sıra sonraki kartı olan oyuncuya geçer.",
+        "Oyun yalnızca bir oyuncunun elinde tek kart kalana kadar devam eder."
+      ],
+      "content_en": [
+        "Players take turns drawing one random card from a neighboring player's hand.",
+        "Cards are held face down; the drawing player does not know which card they will take.",
+        "Commonly, players draw from the player on their right or left; the direction should be agreed before the game starts.",
+        "If a player runs out of cards, they leave the round and the turn passes to the next player who still has cards.",
+        "The game continues until only one player is left holding the lone card."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Papaz Kaçtı: Üç Papaz çıkarılır, tek Papaz destede kalır ve oyunun kaybettiren kartı olur.",
+        "Kız Kaçtı / Old Maid: Papaz yerine tek Kız veya özel Old Maid kartı kullanılır.",
+        "Renkli Çift Kuralı: Bazı oyuncular çiftlerin aynı renk veya aynı türden olmasını isteyebilir.",
+        "Rastgele Eksik Kart: Desteden rastgele bir kart çıkarılır; bu durumda hangi kartın eşsiz kaldığı baştan bilinmez.",
+        "Ceza Oyunu: Elinde Papaz kalan oyuncuya küçük bir ceza, görev veya şaka uygulanabilir."
+      ],
+      "content_en": [
+        "Papaz Kaçtı: Three Kings are removed, leaving one King as the losing card.",
+        "Queen / Old Maid: A single Queen or special Old Maid card is used instead of a King.",
+        "Color-Matched Pairs: Some players require pairs to match by color or suit.",
+        "Random Missing Card: A random card is removed from the deck, so the unpaired card is unknown at the start.",
+        "Penalty Version: The player left with the King may receive a small penalty, challenge, or joke task."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Papaz Kaçtı oyununda klasik anlamda puanlama yoktur.",
+    "Oyunun sonunda elinde tek Papaz kalan oyuncu kaybeder.",
+    "Elindeki kartları daha önce bitiren oyuncular güvenli sayılır.",
+    "İstenirse her elde kaybeden oyuncuya 1 ceza puanı yazılabilir.",
+    "Birkaç el sonunda en az ceza puanı olan oyuncu genel kazanan sayılabilir."
+  ],
+  "scoring_en": [
+    "Papaz Kaçtı usually has no formal scoring.",
+    "The player left holding the lone King at the end loses.",
+    "Players who get rid of all their cards earlier are safe.",
+    "Optionally, the loser of each round may receive 1 penalty point.",
+    "After several rounds, the player with the fewest penalty points may be considered the overall winner."
+  ],
+  "ending_tr": [
+    "Elindeki tüm kartları bitiren oyuncular oyundan güvenli şekilde çıkar.",
+    "Oyun, tüm çiftler elenene ve yalnızca tek Papaz kalana kadar devam eder.",
+    "En sonunda elinde Papaz kalan oyuncu kaybeder.",
+    "Yeni el oynanacaksa kartlar yeniden hazırlanır ve tekrar dağıtılır."
+  ],
+  "ending_en": [
+    "Players who get rid of all their cards safely leave the round.",
+    "The game continues until all pairs have been discarded and only the lone King remains.",
+    "The player left holding the King loses.",
+    "If another round will be played, the deck is prepared and dealt again."
+  ],
+  "notes_tr": [
+    "Papaz Kaçtı, Old Maid oyununun Türkiye'de bilinen yaygın varyantlarından biridir.",
+    "Oyun çocuklar ve aileler için uygundur çünkü kuralları çok basittir.",
+    "Strateji azdır; oyunun eğlencesi Papaz'ın kimde olduğunu tahmin etmeye ve yüz ifadelerini okumaya dayanır.",
+    "Oyuna başlamadan önce kartların sağdan mı soldan mı çekileceği belirlenmelidir.",
+    "Aile dostu anlatım için cezalar yerine sadece 'kaybeden oyuncu' ifadesi kullanılabilir."
+  ],
+  "notes_en": [
+    "Papaz Kaçtı is a common Turkish variant of Old Maid.",
+    "The game is suitable for children and families because the rules are very simple.",
+    "There is little strategy; much of the fun comes from guessing who has the King and reading facial expressions.",
+    "Players should agree before the game whether cards are drawn from the left or right.",
+    "For a family-friendly explanation, it is better to say 'the losing player' instead of using penalties."
   ],
   "minPlayers": 2,
   "maxPlayers": 8,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "Hız / Parti",
-  "category_en": "Party / Speed"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Eşleştirme / Aile Oyunu",
+  "category_en": "Matching / Family"
 }

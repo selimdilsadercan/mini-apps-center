@@ -120,7 +120,8 @@ export namespace chocolate_db {
         id: string
         name: string
         brand: string
-        description: string | null
+        "description_tr": string | null
+        "description_en": string | null
         "image_url": string | null
         "avg_rating": number
         "review_count": number
@@ -131,21 +132,11 @@ export namespace chocolate_db {
         id: string
         name: string
         brand: string
-        description: string | null
+        "description_tr": string | null
+        "description_en": string | null
         "image_url": string | null
         "avg_rating": number
         "review_count": number
-    }
-
-    export interface ImportProduct {
-        name: string
-        brand: string
-        "image_url": string
-        description?: string
-    }
-
-    export interface ImportProductsRequest {
-        products: ImportProduct[]
     }
 
     export interface ListChocolatesResponse {
@@ -174,7 +165,7 @@ export namespace chocolate_db {
         }
 
         /**
-         * Add a review using Supabase RPC
+         * Add a review using Supabase RPC (stores review linked to slug chocolate_id)
          */
         public async addReview(params: AddReviewRequest): Promise<{
     success: boolean
@@ -187,7 +178,7 @@ export namespace chocolate_db {
         }
 
         /**
-         * Get single chocolate details using Supabase RPC
+         * Get single chocolate details (loaded from local list + full reviews from DB)
          */
         public async getChocolate(id: string): Promise<ChocolateDetail> {
             // Now make the actual call to the API
@@ -196,20 +187,20 @@ export namespace chocolate_db {
         }
 
         /**
-         * Bulk import chocolates
+         * Bulk import (legacy compatibility / dummy)
          */
-        public async importProducts(params: ImportProductsRequest): Promise<{
+        public async importProducts(): Promise<{
     count: number
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/import`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/import`)
             return await resp.json() as {
     count: number
 }
         }
 
         /**
-         * List all chocolates using Supabase RPC
+         * List all chocolates (loaded from file + rating/reviews statistics from DB)
          */
         public async listChocolates(): Promise<ListChocolatesResponse> {
             // Now make the actual call to the API
@@ -218,7 +209,7 @@ export namespace chocolate_db {
         }
 
         /**
-         * Admin/Utility: Seed initial data (Keep direct SQL for admin tasks if needed, or move to RPC)
+         * Seed (legacy compatibility / dummy)
          */
         public async seedChocolates(): Promise<{
     count: number

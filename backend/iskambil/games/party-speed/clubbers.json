@@ -1,34 +1,236 @@
 {
   "id": "clubbers",
-  "name_tr": "clubbers / slap",
+  "name_tr": "Clubbers / Slap",
   "name_en": "Egyptian Rat Screw",
   "originalName": "Egyptian Rat Screw",
-  "description_tr": "Dosyada clubbers adıyla yer alan kayıt, kuralları bakımından Egyptian Rat Screw/Slap tarzı hızlı refleks oyununa karşılık gelecek şekilde düzeltilmiştir.",
-  "description_en": "The record named Clubbers has been standardized as an Egyptian Rat Screw/Slap-style reflex card game.",
-  "rules_tr": [
-    "2-6 oyuncuyla 52 kartlık standart deste kullanılır; istenirse jokerler de eklenebilir.",
-    "Tüm kartlar oyunculara kapalı şekilde eşit dağıtılır. Oyuncular kendi destelerine bakmaz.",
+  "description_tr": "Oyuncuların sırayla ortaya kart açtığı, belirli kombinasyonlarda desteye hızlıca vurarak kartları toplamaya çalıştığı refleks ve dikkat odaklı bir kart oyunudur.",
+  "description_en": "A fast reflex and attention-based card game where players take turns flipping cards into the center and slap the pile when certain combinations appear.",
+  "quickRules_tr": [
+    "Genellikle 2-6 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Kartlar oyunculara kapalı şekilde mümkün olduğunca eşit dağıtılır.",
+    "Oyuncular kendi destelerine bakmaz.",
     "Oyuncular sırayla kendi destelerinin en üst kartını ortaya açık şekilde koyar.",
-    "Sayı kartı gelirse sıra bir sonraki oyuncuya geçer. Vale, Kız, Papaz veya As gibi yüz/özel kart geldiğinde sonraki oyuncuya karşılık verme hakkı doğar.",
-    "Yaygın kuralda Vale için 1, Kız için 2, Papaz için 3, As için 4 kartlık karşılık hakkı verilir. Bu hak içinde yeni bir yüz/özel kart gelmezse ortadaki desteyi yüz/özel kartı atan oyuncu alır.",
-    "Oyuncular belirli durumlarda desteye hızlıca vurabilir: aynı değerden iki kart üst üste gelmesi, araya bir kart girerek aynı değer gelmesi veya ev kuralıyla belirlenen başka kombinasyonlar.",
-    "Doğru zamanda ilk vuran oyuncu ortadaki tüm kartları alır. Yanlış vuran oyuncu ceza olarak kart verebilir.",
+    "Sayı kartı gelirse sıra bir sonraki oyuncuya geçer.",
+    "Vale, Kız, Papaz veya As gelirse sonraki oyuncunun karşılık verme hakkı başlar.",
+    "Belirli kombinasyonlar oluştuğunda oyuncular ortaya hızlıca vurabilir.",
+    "Doğru zamanda ilk vuran oyuncu ortadaki tüm kartları alır.",
     "Amaç oyundaki tüm kartları toplamaktır."
   ],
-  "rules_en": [
-    "Played with 2-6 players using a standard 52-card deck; jokers may be added by house rule.",
-    "All cards are dealt face down as evenly as possible. Players do not look at their own stacks.",
+  "quickRules_en": [
+    "Usually played with 2-6 players using a standard 52-card deck.",
+    "Cards are dealt face down to the players as evenly as possible.",
+    "Players do not look at their own stacks.",
     "Players take turns flipping the top card of their stack face up into the center.",
-    "If a number card appears, play simply passes to the next player. If a face/special card appears, the next player gets a limited chance to respond.",
-    "A common rule gives 1 chance for a Jack, 2 for a Queen, 3 for a King, and 4 for an Ace. If no new face/special card appears during those chances, the player who played the face/special card wins the center pile.",
-    "Players may slap the pile in special patterns such as doubles, sandwiches, or other house-rule combinations.",
-    "The first player to slap correctly wins the whole center pile. A false slap may be penalized by giving cards away.",
+    "If a number card appears, play passes to the next player.",
+    "If a Jack, Queen, King, or Ace appears, the next player's response chances begin.",
+    "When certain combinations appear, players may quickly slap the center pile.",
+    "The first player to slap correctly wins the whole center pile.",
     "The goal is to collect all cards in the game."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "İstenirse jokerler ev kuralı olarak oyuna eklenebilir.",
+    "Tüm kartlar oyunculara kapalı şekilde mümkün olduğunca eşit dağıtılır.",
+    "Bazı oyuncuların elinde bir kart fazla olabilir.",
+    "Oyuncular kendilerine verilen kartlara bakmaz.",
+    "Her oyuncu kartlarını kapalı bir kişisel deste olarak önünde tutar.",
+    "Ortadaki oyun destesi başlangıçta boştur.",
+    "İlk oyuncu kura, dağıtanın solu veya ev kuralıyla belirlenir."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Jokers may be added by house rule if desired.",
+    "Deal all cards face down to the players as evenly as possible.",
+    "Some players may receive one extra card.",
+    "Players do not look at their cards.",
+    "Each player keeps their cards as a face-down personal stack in front of them.",
+    "The center play pile starts empty.",
+    "The starting player may be chosen randomly, by the player to the dealer's left, or by house rule."
+  ],
+  "objective_tr": "Amaç, yüz kartı mücadelelerini ve doğru slap anlarını kazanarak ortadaki kartları toplamak ve sonunda oyundaki tüm kartlara sahip olmaktır.",
+  "objective_en": "The objective is to win face-card challenges and correct slap opportunities, collect the center pile, and eventually own all cards in the game.",
+  "gameplay_tr": [
+    "Oyuncular sırayla kendi kapalı destelerinin en üst kartını ortaya açık şekilde koyar.",
+    "Kart çeviren oyuncu kartı kendisine doğru değil, diğer oyunculara doğru çevirerek haksız avantaj elde etmemelidir.",
+    "Sayı kartı gelirse özel bir durum oluşmaz ve sıra bir sonraki oyuncuya geçer.",
+    "Vale, Kız, Papaz veya As gelirse yüz kartı mücadelesi başlar.",
+    "Yüz kartını atan oyuncudan sonraki oyuncu belirli sayıda kart açarak karşılık vermeye çalışır.",
+    "Bu karşılık hakkı içinde yeni bir yüz kartı veya As gelirse mücadele o kart üzerinden devam eder.",
+    "Karşılık hakkı içinde yeni yüz/özel kart gelmezse, son yüz/özel kartı atan oyuncu ortadaki tüm desteyi kazanır.",
+    "Ortadaki desteyi kazanan oyuncu kartları kendi destesinin altına koyar.",
+    "Desteyi kazanan oyuncu yeni turu başlatır.",
+    "Oyun, bir oyuncu tüm kartları toplayana kadar devam eder."
+  ],
+  "gameplay_en": [
+    "Players take turns flipping the top card of their face-down stack into the center pile.",
+    "The player should flip the card away from themselves so they do not gain an unfair early view of the card.",
+    "If a number card appears, nothing special happens and play passes to the next player.",
+    "If a Jack, Queen, King, or Ace appears, a face-card challenge begins.",
+    "The next player receives a limited number of chances to respond by revealing cards.",
+    "If another face card or Ace appears during those chances, the challenge continues from that new card.",
+    "If no new face/special card appears during the allowed chances, the player who played the last face/special card wins the center pile.",
+    "The winner of the center pile places those cards at the bottom of their own stack.",
+    "The player who wins the pile starts the next round.",
+    "The game continues until one player collects all the cards."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Yüz Kartı Mücadelesi",
+      "title_en": "Face-Card Challenge",
+      "content_tr": [
+        "Vale, Kız, Papaz ve As özel kart kabul edilir.",
+        "Bir oyuncu özel kart açtığında sonraki oyuncuya karşılık verme hakkı doğar.",
+        "Yaygın kuralda Vale için 1 kart, Kız için 2 kart, Papaz için 3 kart, As için 4 kartlık karşılık hakkı verilir.",
+        "Karşılık hakkı içinde yeni bir özel kart gelirse sıra ve mücadele yeni özel kart üzerinden devam eder.",
+        "Karşılık hakkı içinde yeni özel kart gelmezse, son özel kartı açan oyuncu ortadaki tüm desteyi alır.",
+        "Ortadaki desteyi alan oyuncu bu kartları kendi destesinin altına koyar ve yeni turu başlatır."
+      ],
+      "content_en": [
+        "Jacks, Queens, Kings, and Aces are treated as special cards.",
+        "When a player reveals a special card, the next player gets a chance to respond.",
+        "A common rule gives 1 chance for a Jack, 2 chances for a Queen, 3 chances for a King, and 4 chances for an Ace.",
+        "If a new special card appears during those chances, the challenge continues from that new special card.",
+        "If no new special card appears during the allowed chances, the player who revealed the last special card wins the whole center pile.",
+        "The player who wins the center pile places those cards at the bottom of their own stack and starts the next round."
+      ]
+    },
+    {
+      "title_tr": "Slap Kombinasyonları",
+      "title_en": "Slap Combinations",
+      "content_tr": [
+        "Double: Aynı değerden iki kart üst üste gelirse desteye vurulabilir. Örneğin 8, 8.",
+        "Sandwich: Aynı değerden iki kartın arasına farklı bir kart girerse desteye vurulabilir. Örneğin 5, 9, 5.",
+        "Top-Bottom: Ortadaki destenin en üst kartı, destenin ilk kartıyla aynı değerdeyse desteye vurulabilir.",
+        "Tens: Üst üste gelen iki sayı kartının toplamı 10 ediyorsa desteye vurulabilir. Bu kuralda As 1 kabul edilir.",
+        "Bazı gruplar yalnızca Double ve Sandwich kurallarını kullanır.",
+        "Oyuna başlamadan önce hangi slap kombinasyonlarının geçerli olduğu netleştirilmelidir."
+      ],
+      "content_en": [
+        "Double: The pile may be slapped when two cards of the same rank appear consecutively. For example, 8, 8.",
+        "Sandwich: The pile may be slapped when two cards of the same rank appear with one different card between them. For example, 5, 9, 5.",
+        "Top-Bottom: The pile may be slapped when the top card of the center pile matches the first card of that pile.",
+        "Tens: The pile may be slapped when two consecutive number cards add up to 10. In this rule, Ace counts as 1.",
+        "Some groups use only the Double and Sandwich rules.",
+        "Players should agree before the game which slap combinations are valid."
+      ]
+    },
+    {
+      "title_tr": "Doğru ve Yanlış Slap",
+      "title_en": "Correct and False Slaps",
+      "content_tr": [
+        "Geçerli bir slap kombinasyonu oluştuğunda ortadaki desteye ilk vuran oyuncu tüm desteyi kazanır.",
+        "Birden fazla oyuncu aynı anda vurursa, eli en altta olan veya desteye en önce temas eden oyuncu kazanır.",
+        "Geçerli kombinasyon yokken desteye vuran oyuncu yanlış slap yapmış olur.",
+        "Yanlış slap yapan oyuncu ceza olarak kendi destesinden bir veya birkaç kartı ortadaki destenin altına koyabilir.",
+        "Ceza miktarı ev kuralına göre değişebilir.",
+        "Oyuncuların ellerini destenin üzerinde bekletmesi veya sürekli sahte slap yapması haksız avantaj sayılabilir."
+      ],
+      "content_en": [
+        "When a valid slap combination appears, the first player to slap the center pile wins the whole pile.",
+        "If multiple players slap at the same time, the player whose hand is lowest or who touched the pile first wins.",
+        "A player who slaps when there is no valid combination makes a false slap.",
+        "As a penalty, a false slapper may place one or more cards from their own stack under the center pile.",
+        "The size of the penalty depends on house rules.",
+        "Hovering hands over the pile or repeatedly fake-slapping may be considered unfair."
+      ]
+    },
+    {
+      "title_tr": "Kartları Çevirme Adabı",
+      "title_en": "Flipping Etiquette",
+      "content_tr": [
+        "Kart çeviren oyuncu kartı kendisine doğru çevirmemelidir.",
+        "Kart, herkesin aynı anda görebileceği şekilde dışa doğru çevrilmelidir.",
+        "Oyuncular desteye çok yakın şekilde el bekletmemelidir.",
+        "Kart tamamen ortaya bırakılmadan slap yapılması bazı ev kurallarında geçersiz sayılabilir.",
+        "Hızlı oynandığı için oyundan önce güvenli ve adil slap kuralları belirlenmelidir."
+      ],
+      "content_en": [
+        "The player flipping a card should not flip it toward themselves.",
+        "The card should be flipped outward so everyone can see it at the same time.",
+        "Players should not hover their hands too close to the pile.",
+        "In some house rules, slapping before the card fully lands in the center may be considered invalid.",
+        "Because the game is fast, players should agree on safe and fair slap rules before starting."
+      ]
+    },
+    {
+      "title_tr": "Oyuncu Elenmesi",
+      "title_en": "Player Elimination",
+      "content_tr": [
+        "Bir oyuncunun kartı biterse genellikle oyundan elenir.",
+        "Bazı ev kurallarında kartı biten oyuncu, slap yaparak oyuna geri dönebilir.",
+        "Kartı biten oyuncu doğru slap yaparsa ortadaki desteyi alır ve oyuna devam eder.",
+        "Yanlış slap yaparsa oyundan tamamen çıkarılabilir.",
+        "Daha basit bir kural için kartı biten oyuncunun direkt elenmesi tercih edilebilir."
+      ],
+      "content_en": [
+        "When a player runs out of cards, they are usually eliminated.",
+        "In some house rules, a player with no cards may slap back into the game.",
+        "If the cardless player makes a correct slap, they win the center pile and continue playing.",
+        "If they make a false slap, they may be fully eliminated.",
+        "For a simpler ruleset, players who run out of cards can simply be eliminated."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Basit Slap: Sadece Double ve Sandwich kombinasyonları geçerlidir. Yeni oyuncular için en anlaşılır versiyondur.",
+        "Geniş Slap: Double, Sandwich, Top-Bottom, Tens ve ev kuralı kombinasyonları geçerlidir.",
+        "Jokerli Oyun: Jokerler özel slap kartı veya en güçlü kart olarak eklenebilir.",
+        "Geri Dönüşlü Oyun: Kartı biten oyuncu doğru slap yaparsa oyuna geri dönebilir.",
+        "Katı Oyun: Yanlış slap yapan oyuncu ceza kartı verir ve kartı biten oyuncu oyundan elenir."
+      ],
+      "content_en": [
+        "Simple Slap: Only Double and Sandwich combinations are valid. This is the easiest version for new players.",
+        "Expanded Slap: Double, Sandwich, Top-Bottom, Tens, and house-rule combinations are valid.",
+        "Joker Variant: Jokers may be added as special slap cards or as the strongest cards.",
+        "Comeback Variant: A player with no cards may re-enter the game by making a correct slap.",
+        "Strict Variant: A false slapper pays penalty cards, and players with no cards are eliminated."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Egyptian Rat Screw oyununda klasik anlamda puanlama yoktur.",
+    "Oyuncular ortadaki desteyi kazanarak kart sayılarını artırır.",
+    "Amaç puan toplamak değil, tüm kartları toplamaktır.",
+    "İstenirse her oyunun kazananına 1 puan verilerek birkaç oyunluk seri yapılabilir."
+  ],
+  "scoring_en": [
+    "Egyptian Rat Screw usually has no formal scoring.",
+    "Players increase their card count by winning the center pile.",
+    "The goal is not to score points, but to collect all cards.",
+    "Optionally, the winner of each game may receive 1 point in a multi-game series."
+  ],
+  "ending_tr": [
+    "Bir oyuncu tüm kartları topladığında oyun sona erer.",
+    "Kartı biten oyuncular basit kuralda oyundan elenir.",
+    "Geri dönüşlü varyantta kartı biten oyuncular doğru slap yaparak oyuna dönebilir.",
+    "Son kartları da toplayan oyuncu genel kazanan olur."
+  ],
+  "ending_en": [
+    "The game ends when one player collects all the cards.",
+    "Under simple rules, players with no cards are eliminated.",
+    "In the comeback variant, players with no cards may re-enter the game by making a correct slap.",
+    "The player who eventually collects the final cards is the overall winner."
+  ],
+  "notes_tr": [
+    "Bu oyun Egyptian Rat Screw, Egyptian Ratscrew, ERS, Slap ve Ratslap gibi farklı adlarla bilinir.",
+    "Clubbers adı dosya içinde kalabilir, ancak standart oyun adı Egyptian Rat Screw olarak gösterilebilir.",
+    "Oyun çok hızlı ve fiziksel temaslı olduğu için masanın sabit olması ve oyuncuların dikkatli slap yapması önemlidir.",
+    "Yeni başlayanlar için sadece Double ve Sandwich kurallarıyla başlamak daha iyi olur.",
+    "Daha eğlenceli ve kaotik oyun için Top-Bottom, Tens ve jokerli varyantlar eklenebilir."
+  ],
+  "notes_en": [
+    "This game is known by several names, including Egyptian Rat Screw, Egyptian Ratscrew, ERS, Slap, and Ratslap.",
+    "The Clubbers name may remain as an internal record name, but the standard game name can be shown as Egyptian Rat Screw.",
+    "Because the game is very fast and physical, the table should be stable and players should slap carefully.",
+    "For beginners, it is better to start with only the Double and Sandwich slap rules.",
+    "For a more chaotic and exciting game, Top-Bottom, Tens, and joker variants may be added."
   ],
   "minPlayers": 2,
   "maxPlayers": 6,
-  "deckCount_tr": "1 Deste",
-  "deckCount_en": "1 Deck",
-  "category_tr": "Hız / Parti",
-  "category_en": "Party / Speed"
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Hız / Refleks",
+  "category_en": "Speed / Reflex"
 }
