@@ -177,6 +177,17 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "saveBill": "Save Subscription",
+    "trialDuration": "Free Trial",
+    "startDate": "Start Date",
+    "trialOptions": {
+      "none": "None",
+      "1week": "1 Week",
+      "2weeks": "2 Weeks",
+      "1month": "1 Month",
+      "3months": "3 Months",
+      "6months": "6 Months",
+      "1year": "1 Year"
+    },
     "update": "Update",
     "voidReceiptTitle": "Delete subscription?",
     "voidReceiptDescription": "This record will be permanently removed from your subscription list.",

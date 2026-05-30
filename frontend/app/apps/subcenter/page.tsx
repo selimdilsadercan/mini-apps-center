@@ -52,6 +52,7 @@ interface Subscription {
   color: string;
   icon: string;
   start_date: string;
+  trial_duration: string | null;
   created_at: string;
 }
 
@@ -91,7 +92,18 @@ const EMPTY_SUB_FORM: Partial<Subscription> = {
   icon: "💳",
   currency: "TRY",
   start_date: new Date().toISOString().split("T")[0],
+  trial_duration: null,
 };
+
+const TRIAL_OPTIONS = [
+  { value: null, label: "none" },
+  { value: "1_week", label: "1week" },
+  { value: "2_weeks", label: "2weeks" },
+  { value: "1_month", label: "1month" },
+  { value: "3_months", label: "3months" },
+  { value: "6_months", label: "6months" },
+  { value: "1_year", label: "1year" },
+] as const;
 
 const USD_TRY_FALLBACK = 39;
 
@@ -595,6 +607,7 @@ export default function SubscriptionCenter() {
       icon: sub.icon,
       currency: sub.currency,
       start_date: new Date(sub.start_date).toISOString().split("T")[0],
+      trial_duration: sub.trial_duration,
     });
     setAddModalStep("form");
     setShowAddModal(true);
@@ -617,6 +630,7 @@ export default function SubscriptionCenter() {
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
           startDate: newSub.start_date || new Date().toISOString().split("T")[0],
+          trialDuration: newSub.trial_duration || null,
         });
 
         if (resp.subscription) {
@@ -635,6 +649,7 @@ export default function SubscriptionCenter() {
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
           startDate: newSub.start_date || new Date().toISOString().split("T")[0],
+          trialDuration: newSub.trial_duration || null,
         });
 
         if (resp.subscription) {
@@ -897,7 +912,7 @@ export default function SubscriptionCenter() {
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
               className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "categories" ? "max-w-xl" : "max-w-md"}`}
             >
-              <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100">
+              <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100 bg-white z-10 relative">
                 <div className="flex items-center gap-3 min-w-0">
                   {((addModalStep === "form" && !editingId) || addModalStep === "plan") && (
                     <button
@@ -924,12 +939,12 @@ export default function SubscriptionCenter() {
                   <X size={18} weight="bold" />
                 </button>
               </div>
-
+                      
               {addModalStep === "categories" && !editingId ? (
                 <>
-                  <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0 space-y-4">
+                  <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
                     {/* 1. Search Input (non-fixed) */}
-                    <div className="relative">
+                    <div className="relative mb-4">
                       <MagnifyingGlass size={18} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                       <input
                         type="search"
@@ -943,7 +958,7 @@ export default function SubscriptionCenter() {
                     {/* 2. Add Custom Subscription Button (non-fixed) */}
                     <button
                       onClick={startCustomSubscription}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 font-bold text-sm transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 font-bold text-sm transition-all cursor-pointer mb-6"
                     >
                       <Plus size={18} weight="bold" />
                       {t("addCustomSubscription")}
@@ -966,7 +981,7 @@ export default function SubscriptionCenter() {
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <CategoryIcon categoryId={category.id} color={category.color} size={20} />
-                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.id)}</span>
+                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
                                   <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
                                 </div>
                                 <CaretDown
@@ -1111,27 +1126,15 @@ export default function SubscriptionCenter() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("planLevel")}</label>
-                      <input
-                        type="text"
-                        placeholder={t("planPlaceholder")}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
-                        value={newSub.plan_name}
-                        onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("region")}</label>
-                      <input
-                        type="text"
-                        placeholder={t("regionPlaceholder")}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase"
-                        value={newSub.region}
-                        onChange={(e) => setNewSub({ ...newSub, region: e.target.value })}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("planLevel")}</label>
+                    <input
+                      type="text"
+                      placeholder={t("planPlaceholder")}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                      value={newSub.plan_name}
+                      onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -1156,6 +1159,36 @@ export default function SubscriptionCenter() {
                         <option value="monthly">{t("monthly")}</option>
                         <option value="yearly">{t("yearly")}</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("startDate")}</label>
+                    <input
+                      type="date"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
+                      value={newSub.start_date}
+                      onChange={(e) => setNewSub({ ...newSub, start_date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("trialDuration")}</label>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {TRIAL_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          onClick={() => setNewSub({ ...newSub, trial_duration: opt.value })}
+                          className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                            (newSub.trial_duration || null) === opt.value
+                              ? "bg-slate-900 text-white border-slate-900"
+                              : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          {t(`trialOptions.${opt.label}`)}
+                        </button>
+                      ))}
                     </div>
                   </div>
 

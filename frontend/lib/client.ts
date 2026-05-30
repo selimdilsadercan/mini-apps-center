@@ -1395,6 +1395,7 @@ export namespace subcenter {
         color: string
         icon: string
         startDate: string
+        trialDuration?: string | null
     }
 
     export interface CreateSubscriptionResponse {
@@ -1413,15 +1414,7 @@ export namespace subcenter {
         categories: SubscriptionCategory[]
     }
 
-    export interface GetExchangeRateResponse {
-        from: "USD"
-        to: "TRY"
-        rate: number
-        source: "tcmb"
-        rateType: "forex_selling"
-        date: string
-        fetchedAt: string
-    }
+    export type GetExchangeRateResponse = TcmbExchangeRate
 
     export interface GetGlobalPresetsResponse {
         presets: GlobalPreset[]
@@ -1458,6 +1451,7 @@ export namespace subcenter {
         color: string
         icon: string
         "start_date": string
+        "trial_duration": string | null
         "created_at": string
     }
 
@@ -1467,6 +1461,16 @@ export namespace subcenter {
         icon: string
         color: string
         "sort_order": number
+    }
+
+    export interface TcmbExchangeRate {
+        from: "USD"
+        to: "TRY"
+        rate: number
+        source: "tcmb"
+        rateType: "forex_selling"
+        date: string
+        fetchedAt: string
     }
 
     export interface UpdateSubscriptionRequest {
@@ -1481,6 +1485,7 @@ export namespace subcenter {
         color: string
         icon: string
         startDate: string
+        trialDuration?: string | null
     }
 
     export interface UpdateSubscriptionResponse {
@@ -1533,6 +1538,16 @@ export namespace subcenter {
         }
 
         /**
+         * Get USD/TRY exchange rate from TCMB (forex selling)
+         * GET /subcenter/exchange-rate
+         */
+        public async getExchangeRate(): Promise<GetExchangeRateResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/exchange-rate`)
+            return await resp.json() as GetExchangeRateResponse
+        }
+
+        /**
          * Get top community-driven subscription presets
          * GET /subcenter/presets
          */
@@ -1540,15 +1555,6 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/presets`)
             return await resp.json() as GetGlobalPresetsResponse
-        }
-
-        /**
-         * Get USD/TRY exchange rate from TCMB
-         * GET /subcenter/exchange-rate
-         */
-        public async getExchangeRate(): Promise<GetExchangeRateResponse> {
-            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/exchange-rate`)
-            return await resp.json() as GetExchangeRateResponse
         }
 
         /**

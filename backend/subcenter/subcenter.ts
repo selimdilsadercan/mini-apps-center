@@ -26,6 +26,7 @@ export interface Subscription {
   color: string;
   icon: string;
   start_date: string;
+  trial_duration: string | null;
   created_at: string;
 }
 
@@ -89,6 +90,7 @@ interface CreateSubscriptionRequest {
   color: string;
   icon: string;
   startDate: string;
+  trialDuration?: string | null;
 }
 
 interface CreateSubscriptionResponse {
@@ -127,6 +129,7 @@ interface UpdateSubscriptionRequest {
   color: string;
   icon: string;
   startDate: string;
+  trialDuration?: string | null;
 }
 
 interface UpdateSubscriptionResponse {
@@ -219,7 +222,7 @@ export const getUserSubscriptions = api(
  */
 export const createSubscription = api(
   { expose: true, method: "POST", path: "/subcenter/create" },
-  async ({ userId, name, planName, region, price, currency, cycle, category, color, icon, startDate }: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
+  async ({ userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration }: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
     const finalPlanName = planName || "Standard";
     const finalRegion = region || "TR";
 
@@ -236,6 +239,7 @@ export const createSubscription = api(
       color_param: color,
       icon_param: icon,
       start_date_param: startDate,
+      trial_duration_param: trialDuration || null,
     });
 
     if (error) {
@@ -274,7 +278,7 @@ export const deleteSubscription = api(
  */
 export const updateSubscription = api(
   { expose: true, method: "PUT", path: "/subcenter/:id" },
-  async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
+  async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
     const { data, error } = await supabase.schema("subcenter").rpc("update_item", {
       item_id_param: id,
       clerk_id_param: userId,
@@ -288,6 +292,7 @@ export const updateSubscription = api(
       color_param: color,
       icon_param: icon,
       start_date_param: startDate,
+      trial_duration_param: trialDuration || null,
     });
 
     if (error) {

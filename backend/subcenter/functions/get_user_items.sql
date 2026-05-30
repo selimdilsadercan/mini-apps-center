@@ -1,4 +1,5 @@
 -- Drop old function
+DROP FUNCTION IF EXISTS subcenter.get_user_items(TEXT);
 DROP FUNCTION IF EXISTS public.subcenter_get_user_items(TEXT);
 
 -- Create new function
@@ -16,6 +17,7 @@ RETURNS TABLE (
   color TEXT,
   icon TEXT,
   start_date DATE,
+  trial_duration TEXT,
   created_at TIMESTAMPTZ
 )
 LANGUAGE sql
@@ -34,6 +36,7 @@ AS $$
     color,
     icon,
     start_date,
+    trial_duration,
     created_at
   FROM subcenter.items
   WHERE user_id = clerk_id_param
