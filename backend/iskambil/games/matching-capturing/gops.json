@@ -1,7 +1,7 @@
 {
-  "id": "gops-game-of-pure-strategy",
-  "name_tr": "gops",
-  "name_en": "Game of Pure Strategy",
+  "id": "gops",
+  "name_tr": "Game of Pure Strategy (GOPS)",
+  "name_en": "Game of Pure Strategy (GOPS)",
   "originalName": "Game of Pure Strategy",
   "description_tr": "Şans unsurunun çok az olduğu, oyuncuların ödül kartları için kapalı teklif verdiği iki kişilik strateji oyunu.",
   "description_en": "A two-player strategy game with very little chance, where players make hidden bids for prize cards.",

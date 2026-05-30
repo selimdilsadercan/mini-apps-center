@@ -1,5 +1,5 @@
 {
-  "id": "gin-rummy-2-kisilik-101",
+  "id": "gin-rummy",
   "name_tr": "Gin Rummy",
   "name_en": "Gin Rummy",
   "originalName": "Gin Rummy",
@@ -73,6 +73,7 @@
     "If a knock is successful, the knocker scores the difference between the two players' deadwood totals.",
     "If the opponent has deadwood equal to or lower than the knocker's deadwood, this is an undercut; the opponent scores the difference plus an undercut bonus.",
     "A player who goes Gin scores the opponent's deadwood total plus a Gin bonus.",
+    "If the player has no deadwood, they go Gin. When a player goes Gin, the opponent may not lay off cards.",
     "Gin and undercut bonuses vary by ruleset; common variants use 20 or 25 points for Gin and 10 or 25 points for undercut."
   ],
   "ending_tr": [

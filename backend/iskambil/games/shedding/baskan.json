@@ -1,8 +1,8 @@
 {
-  "id": "baskan-got",
-  "name_tr": "Başkan / Göt",
-  "name_en": "President / Asshole",
-  "originalName": "President / Asshole",
+  "id": "baskan",
+  "name_tr": "Başkan",
+  "name_en": "President",
+  "originalName": "President",
   "description_tr": "Oyuncuların kartlarını herkesten önce bitirmeye çalıştığı, her elin sonunda başarı sırasına göre unvanların değiştiği tırmanmalı bir el bitirme oyunudur.",
   "description_en": "A climbing and shedding card game where players try to get rid of all their cards first and receive social ranks based on the finishing order.",
   "quickRules_tr": [
@@ -70,7 +70,7 @@
       "content_tr": [
         "Yaygın sıralamada 3 en düşük karttır.",
         "Sıralama genellikle 3, 4, 5, 6, 7, 8, 9, 10, Vale, Kız, Papaz, As, 2 şeklindedir.",
-        "Bu düzende 2 en güçlü karttır. Ancak ev kuralına bağlı olarak As da en yüksek kart olarak kabul edilebilir.",
+        "Bu düzenende 2 en güçlü karttır. Ancak ev kuralına bağlı olarak As da en yüksek kart olarak kabul edilebilir.",
         "Joker kullanılıyorsa genellikle en güçlü karttan da üstün kabul edilir, ancak bu tamamen ev kuralıdır.",
         "Bazı ev kurallarında 2 atıldığında yerdeki tüm kartlar hemen temizlenir (masa sıfırlanır) ve 2'yi atan oyuncu yeni eli başlatma hakkı kazanır."
       ],
@@ -90,7 +90,7 @@
         "En düşük unvanlı oyuncu genellikle en iyi kartlarını Başkan'a verir.",
         "Başkan karşılığında istemediği aynı sayıda kartı geri verir.",
         "Başkan Yardımcısı ile sondan ikinci oyuncu arasında da daha az sayıda kart değişimi yapılabilir.",
-        "Yaygın bir düzende Göt, Başkan'a 2 en iyi kartını verir; Başkan 2 kart geri verir.",
+        "Yaygın bir düzenende Göt, Başkan'a 2 en iyi kartını verir; Başkan 2 kart geri verir.",
         "Başkan Yardımcısı ile Göt Yardımcısı arasında 1 kart değişimi yapılabilir.",
         "Kart değişim sayısı oyuncu sayısına ve ev kuralına göre değişebilir."
       ],
@@ -114,7 +114,7 @@
     "Son kalan oyuncu Göt, Scum veya Asshole olur.",
     "Oyun birkaç el üst üste oynanır; amaç Başkan olmak veya yüksek unvanı korumaktır."
   ],
-  "scoring_en": [
+  "ending_en": [
     "There is usually no numerical scoring; players receive ranks based on the order in which they go out.",
     "The first player to get rid of all cards becomes the President.",
     "The second player becomes the Vice President.",
@@ -129,11 +129,14 @@
     "Yeni elde unvanlara göre kart değişimi yapılarak oyun devam eder.",
     "Oyunun kesin bir bitiş puanı yoktur; oyuncular istedikleri kadar el oynayabilir."
   ],
-  "ending_en": [
-    "A round continues as players run out of cards and receive their ranks.",
-    "The round ends when the last remaining player is determined.",
-    "Before the next round, cards are exchanged according to the ranks.",
-    "There is no fixed final score; players may continue for as many rounds as they want."
+  "scoring_en": [
+    "There is usually no numerical scoring; players receive ranks based on the order in which they go out.",
+    "The first player to get rid of all cards becomes the President.",
+    "The second player becomes the Vice President.",
+    "Middle players may be called Neutral, Citizen, Person, or similar names.",
+    "The second-to-last player may be called Vice-Scum in some versions.",
+    "The last player becomes the Asshole, Scum, or a similar lowest rank.",
+    "The game is played over multiple rounds; the goal is to become President or keep a high rank."
   ],
   "notes_tr": [
     "Bu oyun birçok farklı isimle bilinir: Başkan, President, Asshole, Scum, Capitalism gibi.",

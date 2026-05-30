@@ -1,8 +1,8 @@
 {
-  "id": "ikili-batak-rus-batagi",
-  "name_tr": "ikili batak",
-  "name_en": "Russian Whist / Two-player Batak",
-  "originalName": "Russian Whist / Two-player Batak",
+  "id": "ikili-batak",
+  "name_tr": "İkili Batak",
+  "name_en": "Two-player Batak",
+  "originalName": "Two-player Batak",
   "description_tr": "İki kişiyle oynanan, Batak/Whist mantığını iki oyuncuya uyarlayan kozlu el alma oyunu.",
   "description_en": "A two-player trump trick-taking adaptation of Batak/Whist.",
   "rules_tr": [

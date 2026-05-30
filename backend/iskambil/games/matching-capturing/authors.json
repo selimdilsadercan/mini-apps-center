@@ -1,0 +1,264 @@
+{
+  "id": "authors",
+  "name_tr": "Authors",
+  "name_en": "Authors",
+  "originalName": "Authors",
+  "description_tr": "Oyuncuların birbirlerinden kart isteyerek aynı değerden dörtlü setler toplamaya çalıştığı hafıza ve set toplama oyunudur.",
+  "description_en": "A memory and set-collection card game where players ask each other for cards to complete four-of-a-kind sets.",
+  "quickRules_tr": [
+    "Authors genellikle 2-6 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Oyuncu sayısına göre herkese 5 veya 7 kart dağıtılır.",
+    "Kalan kartlar kapalı çekme destesi olur.",
+    "Amaç aynı değerden dört karttan oluşan kitap/set toplamaktır.",
+    "Sırası gelen oyuncu, elinde en az bir kartı bulunan bir değeri başka bir oyuncudan ister.",
+    "Örneğin elinde Papaz varsa başka bir oyuncuya 'Papaz var mı?' diye sorabilir.",
+    "Sorulan oyuncuda istenen değerden kart varsa vermek zorundadır.",
+    "Soran oyuncu kart alırsa sormaya devam eder.",
+    "Sorulan oyuncuda istenen kart yoksa 'Yok' veya 'Go Fish' denir ve soran oyuncu desteden kart çeker.",
+    "Bir oyuncu aynı değerden dört kartı tamamlayınca seti masaya açar.",
+    "Oyun sonunda en çok set toplayan oyuncu kazanır."
+  ],
+  "quickRules_en": [
+    "Authors is usually played with 2-6 players using a standard 52-card deck.",
+    "Depending on the number of players, each player receives 5 or 7 cards.",
+    "The remaining cards form the face-down draw pile.",
+    "The goal is to collect books/sets of four cards of the same rank.",
+    "On their turn, a player asks another player for a rank they already have at least one card of.",
+    "For example, if they have a King, they may ask another player, 'Do you have any Kings?'",
+    "If the asked player has cards of that rank, they must give them.",
+    "If the asking player receives cards, they continue asking.",
+    "If the asked player has none, they say 'No' or 'Go Fish', and the asking player draws from the deck.",
+    "When a player completes all four cards of a rank, they place that set on the table.",
+    "At the end of the game, the player with the most sets wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "2-3 oyuncuyla oynanıyorsa her oyuncuya genellikle 7 kart dağıtılır.",
+    "4 veya daha fazla oyuncuyla oynanıyorsa her oyuncuya genellikle 5 kart dağıtılır.",
+    "Kalan kartlar kapalı şekilde ortaya konur ve çekme destesini oluşturur.",
+    "Oyuncular kendi kartlarına bakabilir, ancak diğer oyunculara göstermez.",
+    "İlk oyuncu kura, dağıtanın solu veya ev kuralıyla belirlenir."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "With 2-3 players, each player is usually dealt 7 cards.",
+    "With 4 or more players, each player is usually dealt 5 cards.",
+    "The remaining cards are placed face down in the center as the draw pile.",
+    "Players may look at their own cards, but they do not show them to others.",
+    "The starting player may be chosen randomly, by the player to the dealer's left, or by house rule."
+  ],
+  "objective_tr": "Amaç, aynı değerden dört kartı bir araya getirerek mümkün olduğunca çok kitap/set tamamlamaktır.",
+  "objective_en": "The objective is to collect all four cards of the same rank and complete as many books/sets as possible.",
+  "gameplay_tr": [
+    "Sırası gelen oyuncu, başka bir oyuncuya belirli bir kart değeri sorar.",
+    "Oyuncu yalnızca kendi elinde en az bir kartı bulunan bir değeri isteyebilir.",
+    "Örneğin elinde 8 varsa başka bir oyuncuya '8 var mı?' diye sorabilir.",
+    "Sorulan oyuncunun elinde o değerden bir veya daha fazla kart varsa hepsini soran oyuncuya vermek zorundadır.",
+    "Soran oyuncu kart alırsa aynı oyuncuya veya başka bir oyuncuya tekrar soru sorarak devam eder.",
+    "Sorulan oyuncuda istenen değerden kart yoksa 'Yok' veya 'Go Fish' der.",
+    "Bu durumda soran oyuncu kapalı çekme destesinden bir kart çeker.",
+    "Çekilen kart istenen değerle aynıysa bazı kurallarda oyuncu sormaya devam eder.",
+    "Çekilen kart istenen değerle aynı değilse sıra bir sonraki oyuncuya geçer.",
+    "Bir oyuncu aynı değerden dört kartı tamamladığında bu seti masaya açar.",
+    "Açılan set oyundan çıkarılır ve artık istenemez.",
+    "Oyun, çekme destesi ve oyuncuların elleri bitene kadar devam eder."
+  ],
+  "gameplay_en": [
+    "On their turn, a player asks another player for a specific rank.",
+    "A player may only ask for a rank if they already have at least one card of that rank in hand.",
+    "For example, if they have an 8, they may ask another player, 'Do you have any 8s?'",
+    "If the asked player has one or more cards of that rank, they must give all of them to the asking player.",
+    "If the asking player receives cards, they continue asking the same player or another player.",
+    "If the asked player has none of the requested rank, they say 'No' or 'Go Fish'.",
+    "The asking player then draws one card from the face-down draw pile.",
+    "If the drawn card matches the requested rank, some rules allow the player to continue asking.",
+    "If the drawn card does not match the requested rank, the turn passes to the next player.",
+    "When a player collects all four cards of the same rank, they place that set on the table.",
+    "Completed sets leave the game and may no longer be requested.",
+    "The game continues until the draw pile and players' hands are empty."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kitap / Set Nedir?",
+      "title_en": "What Is a Book / Set?",
+      "content_tr": [
+        "Kitap veya set, aynı değerden dört kartın tamamıdır.",
+        "Örneğin dört Papaz, dört 8 veya dört As birer settir.",
+        "Kart türü fark etmez; aynı değerden dört farklı tür tamamlanmalıdır.",
+        "Bir oyuncu dörtlüyü tamamladığında seti masaya açar.",
+        "Açılan set artık oyuncunun elinde sayılmaz ve oyun sonunda puan olarak değerlendirilir."
+      ],
+      "content_en": [
+        "A book or set is all four cards of the same rank.",
+        "For example, four Kings, four 8s, or four Aces each form a set.",
+        "Suit does not matter; the player must collect all four suits of the same rank.",
+        "When a player completes a four-of-a-kind set, they place it on the table.",
+        "A completed set is no longer part of the player's hand and counts toward scoring at the end."
+      ]
+    },
+    {
+      "title_tr": "Kart İsteme Kuralı",
+      "title_en": "Asking for Cards",
+      "content_tr": [
+        "Oyuncu yalnızca elinde en az bir kartı bulunan bir değeri isteyebilir.",
+        "Örneğin elinde hiç Kız yoksa başka bir oyuncudan Kız isteyemez.",
+        "Oyuncu bir değeri sorduğunda, sorulan oyuncu elindeki o değerden tüm kartları vermek zorundadır.",
+        "Sorulan oyuncu kart saklayamaz veya yalan söyleyemez.",
+        "Oyuncu kart almayı başarırsa sormaya devam eder.",
+        "Oyuncu kart alamazsa çekme destesinden kart çeker ve sıra genellikle bir sonraki oyuncuya geçer."
+      ],
+      "content_en": [
+        "A player may only ask for a rank if they already have at least one card of that rank.",
+        "For example, if a player has no Queens, they may not ask another player for Queens.",
+        "When a rank is requested, the asked player must give all cards of that rank from their hand.",
+        "The asked player may not hide cards or lie.",
+        "If the asking player receives cards, they continue asking.",
+        "If the asking player receives no cards, they draw from the draw pile and the turn usually passes to the next player."
+      ]
+    },
+    {
+      "title_tr": "Belirli Kart İsteme Varyantı",
+      "title_en": "Specific Card Request Variant",
+      "content_tr": [
+        "Bazı Authors varyantlarında oyuncu yalnızca değer değil, belirli bir kart ister.",
+        "Örneğin 'Kupa Papaz sende mi?' diye sorabilir.",
+        "Bu varyantta oyuncunun istediği kartla aynı değerden en az bir karta sahip olması gerekir.",
+        "Sorulan oyuncuda istenen özel kart varsa vermek zorundadır.",
+        "Bu varyant daha fazla hafıza gerektirir çünkü oyuncular hangi kartların kimde olduğunu takip etmeye çalışır.",
+        "Yeni başlayanlar için değer isteme kuralı daha kolaydır."
+      ],
+      "content_en": [
+        "In some Authors variants, a player asks for a specific card instead of only a rank.",
+        "For example, they may ask, 'Do you have the King of Hearts?'",
+        "In this variant, the player must already hold at least one card of the same rank as the card requested.",
+        "If the asked player has the specific card, they must give it.",
+        "This variant requires more memory because players try to track who has which exact cards.",
+        "For beginners, asking by rank is easier."
+      ]
+    },
+    {
+      "title_tr": "Go Fish ile Farkı",
+      "title_en": "Difference from Go Fish",
+      "content_tr": [
+        "Authors ve Go Fish birbirine çok benzeyen oyunlardır.",
+        "Go Fish'te oyuncular genellikle bir değeri sorar ve sorulan oyuncu o değerden tüm kartları verir.",
+        "Authors'ın bazı klasik varyantlarında oyuncular belirli bir kartı, örneğin 'Maça As'ı isteyebilir.",
+        "Authors daha hafıza odaklı oynanabilir çünkü oyuncular hangi kartların kimde olduğunu takip etmeye çalışır.",
+        "Uygulamada basit anlatım için Authors, Go Fish tarzı değer isteme kuralıyla açıklanabilir.",
+        "Daha detaylı modda belirli kart isteme varyantı ayrıca gösterilebilir."
+      ],
+      "content_en": [
+        "Authors and Go Fish are very similar games.",
+        "In Go Fish, players usually ask for a rank, and the asked player gives all cards of that rank.",
+        "In some classic Authors variants, players may ask for a specific card, such as the Ace of Spades.",
+        "Authors can be more memory-focused because players try to track who has which exact cards.",
+        "For a simple app explanation, Authors can be taught with Go Fish-style rank requests.",
+        "A more detailed mode may include the specific-card request variant separately."
+      ]
+    },
+    {
+      "title_tr": "Çekme Destesi",
+      "title_en": "Draw Pile",
+      "content_tr": [
+        "Sorulan oyuncuda istenen kart yoksa soran oyuncu çekme destesinden bir kart çeker.",
+        "Çekme destesi bittiyse oyuncu kart çekemez ve sıra geçer.",
+        "Oyuncunun elinde hiç kart kalmazsa ama çekme destesinde kart varsa, bazı kurallarda oyuncu yeni kart çekerek oyuna devam eder.",
+        "Çekme destesi ve oyuncuların elleri tamamen bittiğinde oyun sona erer.",
+        "Çekilen kart bir seti tamamlıyorsa oyuncu seti hemen masaya açabilir."
+      ],
+      "content_en": [
+        "If the asked player does not have the requested rank, the asking player draws one card from the draw pile.",
+        "If the draw pile is empty, the player cannot draw and the turn passes.",
+        "If a player has no cards but the draw pile still has cards, some rules allow the player to draw a new card and continue playing.",
+        "The game ends when the draw pile and all players' hands are empty.",
+        "If a drawn card completes a set, the player may immediately place that set on the table."
+      ]
+    },
+    {
+      "title_tr": "Hafıza ve Strateji",
+      "title_en": "Memory and Strategy",
+      "content_tr": [
+        "Oyuncular diğer oyuncuların hangi değerleri istediğini hatırlamaya çalışmalıdır.",
+        "Bir oyuncu belirli bir değeri istediyse, elinde o değerden en az bir kart olduğu anlaşılır.",
+        "Bir oyuncu bir değeri veremediyse, o anda elinde o değerden kart olmadığı bilinir.",
+        "Bu bilgiler sonraki sorularda avantaj sağlar.",
+        "Sık istenen değerler, tamamlanmaya yakın setler hakkında ipucu verebilir."
+      ],
+      "content_en": [
+        "Players should try to remember which ranks other players have asked for.",
+        "If a player asks for a rank, it means they have at least one card of that rank.",
+        "If a player cannot give a requested rank, everyone knows they did not have that rank at that moment.",
+        "This information gives an advantage in later turns.",
+        "Frequently requested ranks may reveal which sets are close to being completed."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Basit Authors: Oyuncular yalnızca kart değeri ister. Örneğin '8 var mı?' diye sorulur.",
+        "Klasik Authors: Oyuncular belirli bir kart isteyebilir. Örneğin 'Kupa 8 sende mi?' diye sorulur.",
+        "Go Fish Tarzı: İstenen kart yoksa oyuncu çekme destesinden kart çeker ve sıra geçer.",
+        "Devamlı Çekme: Oyuncu istediği kartı desteden çekerse sormaya devam eder.",
+        "Takımlı Oyun: Kalabalık gruplarda oyuncular takım halinde set toplamaya çalışabilir."
+      ],
+      "content_en": [
+        "Simple Authors: Players ask only for ranks. For example, 'Do you have any 8s?'",
+        "Classic Authors: Players may ask for a specific card. For example, 'Do you have the 8 of Hearts?'",
+        "Go Fish Style: If the requested card is not available, the player draws from the pile and the turn passes.",
+        "Continue on Draw: If the player draws the requested card, they continue asking.",
+        "Team Play: In larger groups, players may play in teams and collect sets together."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Authors oyununda puanlama tamamlanan set sayısına göre yapılır.",
+    "Aynı değerden dört kartı tamamlayan oyuncu 1 set kazanır.",
+    "Oyun sonunda en çok set toplayan oyuncu kazanır.",
+    "Eşitlik durumunda oyuncular berabere kabul edilebilir veya ek el oynanabilir.",
+    "Takımlı oyunda takımın topladığı toplam set sayısı sayılır."
+  ],
+  "scoring_en": [
+    "Authors is scored by the number of completed sets.",
+    "A player who completes all four cards of the same rank scores 1 set.",
+    "At the end of the game, the player with the most sets wins.",
+    "If there is a tie, players may share the win or play an additional hand.",
+    "In team play, the total number of sets collected by the team is counted."
+  ],
+  "ending_tr": [
+    "Oyun, çekme destesi bittiğinde ve oyuncuların ellerinde kart kalmadığında sona erer.",
+    "Tüm mümkün setler tamamlanmış olur.",
+    "Oyuncular masaya açtıkları setleri sayar.",
+    "En çok set toplayan oyuncu oyunu kazanır.",
+    "Yeni oyun oynanacaksa kartlar yeniden karıştırılır ve tekrar dağıtılır."
+  ],
+  "ending_en": [
+    "The game ends when the draw pile is empty and players have no cards left in hand.",
+    "All possible sets have been completed.",
+    "Players count the sets they placed on the table.",
+    "The player with the most sets wins the game.",
+    "If another game will be played, the cards are shuffled and dealt again."
+  ],
+  "notes_tr": [
+    "Authors, Go Fish ailesine çok benzeyen bir set toplama oyunudur.",
+    "Oyun özellikle çocuklar ve aileler için uygundur.",
+    "Oyunun temel becerisi sadece şans değil, diğer oyuncuların istediği kartları hatırlamaktır.",
+    "Yeni başlayanlar için değer isteme kuralı en anlaşılır seçenektir.",
+    "Daha hafıza odaklı bir oyun için belirli kart isteme varyantı kullanılabilir.",
+    "Kategori olarak eşleştirme/toplama yerine hafıza/set toplama da kullanılabilir."
+  ],
+  "notes_en": [
+    "Authors is a set-collection game very similar to the Go Fish family.",
+    "The game is especially suitable for children and families.",
+    "The main skill is not only luck, but remembering which cards other players have asked for.",
+    "For beginners, asking by rank is the easiest rule.",
+    "For a more memory-focused game, the specific-card request variant may be used.",
+    "As a category, Memory / Set Collection may also be used instead of Matching / Capturing."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Hafıza / Set Toplama",
+  "category_en": "Memory / Set Collection"
+}

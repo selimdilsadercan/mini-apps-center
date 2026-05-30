@@ -1,13 +1,13 @@
 {
-  "id": "66-santase",
-  "name_tr": "66 / santase",
-  "name_en": "Sixty-Six / Santase",
-  "originalName": "Sixty-Six / Santase",
+  "id": "sixty-six",
+  "name_tr": "Altmışaltı (66)",
+  "name_en": "Sixty-Six",
+  "originalName": "Sixty-Six",
   "description_tr": "24 kartlık desteyle oynanan, kozlu el alma ve evlilik puanlarını içeren iki kişilik strateji oyunu.",
   "description_en": "A two-player strategy game using a 24-card deck, combining trump trick-taking with marriage bonuses.",
   "rules_tr": [
     "Standart 66 iki kişiyle oynanır ve 9, 10, Vale, Kız, Papaz, As kartlarından oluşan 24 kartlık deste kullanılır.",
-    "Her oyuncuya 6 kart dağıtılır. Kalan deste talon olur; bir kart açılarak koz rengi belirlenir.",
+    "Her oyuncuya 6 kart dağıtılır. Kalan deste talon olur; bir kart açılarak koz rengini belirler.",
     "Kart değerleri: As 11, 10'lu 10, Papaz 4, Kız 3, Vale 2, 9'lu 0 puandır.",
     "Oyuncular el alarak puan toplar. Oyunun erken aşamasında renge uyma zorunluluğu yoktur; talon bittikten veya kapatıldıktan sonra renge uyma ve kozlama kuralları sıkılaşır.",
     "Aynı renkten Papaz ve Kız eldeyken evlilik ilan edilebilir. Koz evliliği 40, diğer renk evlilikleri 20 puan getirir.",

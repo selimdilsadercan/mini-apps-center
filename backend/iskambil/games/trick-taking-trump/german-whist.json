@@ -1,7 +1,7 @@
 {
-  "id": "whist-ihalesiz-iki-kisilik-batak",
-  "name_tr": "İki Kişilik Whist",
-  "name_en": "German Whist / Two-player Whist",
+  "id": "german-whist",
+  "name_tr": "Alman Whisti",
+  "name_en": "German Whist",
   "originalName": "German Whist",
   "description_tr": "İki oyunculu, ihalesiz ve kozlu bir Whist varyantıdır; oyuncular önce açık kartları kazanarak ellerini geliştirir, sonra gerçek el alma aşamasına geçer.",
   "description_en": "A two-player, no-bid, trump Whist variant where players first improve their hands by winning exposed cards, then play a final trick-taking phase.",
@@ -45,7 +45,7 @@
     "Card ranking in each suit is Ace, King, Queen, Jack, 10, 9, 8, 7, 6, 5, 4, 3, 2 from high to low.",
     "The non-dealer usually leads the first trick."
   ],
-  "objective_tr": "Amaç, ilk aşamada güçlü kartları toplayarak son aşama için iyi bir el oluşturmak ve son el alma aşamasında rakipten daha fazla el kazanmaktır.",
+  "objective_tr": "Amaç, ilk aşamada güçlü kartları toplayarak son aşama için iyi bir el oluşturmak ve son el kazanma aşamasında rakipten daha fazla el kazanmaktır.",
   "objective_en": "The objective is to build a strong hand during the first phase and then win more tricks than the opponent in the final trick-taking phase.",
   "gameplay_tr": [
     "Oyun kart toplama aşamasıyla başlar.",

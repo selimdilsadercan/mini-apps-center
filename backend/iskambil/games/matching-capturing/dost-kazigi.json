@@ -1,8 +1,8 @@
 {
-  "id": "dost-kazigi-kapti-kacti",
-  "name_tr": "kaptı kaçtı / dost kazığı",
-  "name_en": "Kaptı Kaçtı / Dost Kazığı",
-  "originalName": "Kaptı Kaçtı / Dost Kazığı",
+  "id": "dost-kazigi",
+  "name_tr": "Dost Kazığı",
+  "name_en": "Dost Kazığı",
+  "originalName": "Dost Kazığı",
   "description_tr": "Türkiye'de oynanan, masadaki ve bazen rakiplerin topladığı kartları eşleştirerek alma üzerine kurulu fishing/toplama oyunu ailesi.",
   "description_en": "A Turkish fishing/capturing game family based on matching table cards and, in some variants, stealing piles collected by opponents.",
   "rules_tr": [
