@@ -7,25 +7,24 @@ import {
   Plus, 
   Trash, 
   CreditCard, 
-  Calendar,
   Wallet,
   CheckCircle,
   CaretRight,
   ChartPieSlice,
-  Info,
   Clock,
   CurrencyCircleDollar,
   X,
   Receipt,
   Scan,
   Barcode,
-  Globe,
   Stack,
-  PencilSimple
+  PencilSimple,
+  MagnifyingGlass
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
+import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 
 import { SERVICE_CATALOG, ServicePreset } from "./data/presets";
 
@@ -48,28 +47,93 @@ interface Subscription {
   created_at: string;
 }
 
+function getRenewalDisplayDate(startDate: string, cycle: string): Date {
+  const start = new Date(`${startDate}T12:00:00`);
+  const renewalDay = start.getDate();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = cycle === "yearly" ? start.getMonth() : now.getMonth();
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(renewalDay, lastDayOfMonth);
+  return new Date(year, month, day, 12, 0, 0);
+}
+
+const EMPTY_SUB_FORM: Partial<Subscription> = {
+  name: "",
+  plan_name: "Standard",
+  region: "TR",
+  price: 0,
+  cycle: "monthly",
+  category: "Entertainment",
+  color: "#6366F1",
+  icon: "💳",
+  start_date: new Date().toISOString().split("T")[0],
+};
+
+type AddModalStep = "templates" | "plan" | "form";
+
+type CatalogBrand = {
+  name: string;
+  icon: string;
+  color: string;
+  category: string;
+  plans: ServicePreset[];
+};
+
 export default function SubscriptionCenter() {
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
+  const { locale } = useLanguage();
+  const t = useTranslations("subcenter");
+  const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
+
+  const formatRenewalDate = (date: Date) =>
+    date.toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" });
+
+  const formatMoney = (price: number, fractionDigits = 2) =>
+    price.toLocaleString(dateLocale, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalStep, setAddModalStep] = useState<AddModalStep>("templates");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  // UI States for Form
-  const [newSub, setNewSub] = useState<Partial<Subscription>>({
-    name: "",
-    plan_name: "Standard",
-    region: "TR",
-    price: 0,
-    cycle: "monthly",
-    category: "Entertainment",
-    color: "#6366F1",
-    icon: "💳",
-    start_date: new Date().toISOString().split('T')[0]
-  });
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
+  const [newSub, setNewSub] = useState<Partial<Subscription>>({ ...EMPTY_SUB_FORM });
+
+  const catalogBrands = useMemo<CatalogBrand[]>(() => {
+    const byName = new Map<string, ServicePreset[]>();
+    for (const preset of SERVICE_CATALOG) {
+      const list = byName.get(preset.name) ?? [];
+      list.push(preset);
+      byName.set(preset.name, list);
+    }
+    return Array.from(byName.entries()).map(([name, plans]) => ({
+      name,
+      icon: plans[0].icon,
+      color: plans[0].color,
+      category: plans[0].category,
+      plans,
+    }));
+  }, []);
+
+  const filteredBrands = useMemo(() => {
+    const q = templateSearch.trim().toLowerCase();
+    if (!q) return catalogBrands;
+    return catalogBrands.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q) ||
+        b.plans.some((p) => p.plan_name.toLowerCase().includes(q))
+    );
+  }, [catalogBrands, templateSearch]);
+
+  const plansForSelectedBrand = useMemo(
+    () => (selectedBrandName ? SERVICE_CATALOG.filter((p) => p.name === selectedBrandName) : []),
+    [selectedBrandName]
+  );
 
   const fetchData = async () => {
     if (!user?.id) return;
@@ -90,8 +154,7 @@ export default function SubscriptionCenter() {
     }
   }, [isUserLoaded, user?.id]);
 
-  const addPreset = (preset: ServicePreset) => {
-    setEditingId(null);
+  const applyPreset = (preset: ServicePreset) => {
     setNewSub({
       name: preset.name,
       plan_name: preset.plan_name,
@@ -102,9 +165,64 @@ export default function SubscriptionCenter() {
       category: preset.category,
       color: preset.color,
       icon: preset.icon,
-      start_date: new Date().toISOString().split('T')[0]
+      start_date: new Date().toISOString().split("T")[0],
     });
+  };
+
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setEditingId(null);
+    setAddModalStep("templates");
+    setTemplateSearch("");
+    setSelectedBrandName(null);
+    setNewSub({ ...EMPTY_SUB_FORM });
+  };
+
+  useEffect(() => {
+    if (!showAddModal) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeAddModal();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showAddModal]);
+
+  const openIssueBill = () => {
+    setEditingId(null);
+    setNewSub({ ...EMPTY_SUB_FORM });
+    setAddModalStep("templates");
     setShowAddModal(true);
+  };
+
+  const selectBrand = (brand: CatalogBrand) => {
+    setSelectedBrandName(brand.name);
+    applyPreset(brand.plans[0]);
+    setAddModalStep(brand.plans.length > 1 ? "plan" : "form");
+  };
+
+  const selectPlan = (preset: ServicePreset) => {
+    applyPreset(preset);
+    setAddModalStep("form");
+  };
+
+  const goBackFromForm = () => {
+    if (selectedBrandName && plansForSelectedBrand.length > 1) {
+      setAddModalStep("plan");
+      return;
+    }
+    setSelectedBrandName(null);
+    setAddModalStep("templates");
+  };
+
+  const goBackFromPlan = () => {
+    setSelectedBrandName(null);
+    setAddModalStep("templates");
+  };
+
+  const startCustomSubscription = () => {
+    setSelectedBrandName(null);
+    setNewSub({ ...EMPTY_SUB_FORM });
+    setAddModalStep("form");
   };
 
   const handleEdit = (sub: Subscription) => {
@@ -118,8 +236,9 @@ export default function SubscriptionCenter() {
       category: sub.category,
       color: sub.color,
       icon: sub.icon,
-      start_date: new Date(sub.start_date).toISOString().split('T')[0]
+      start_date: new Date(sub.start_date).toISOString().split("T")[0],
     });
+    setAddModalStep("form");
     setShowAddModal(true);
   };
 
@@ -165,9 +284,7 @@ export default function SubscriptionCenter() {
         }
       }
 
-      setShowAddModal(false);
-      setEditingId(null);
-      setNewSub({ name: "", plan_name: "Standard", region: "TR", price: 0, cycle: "monthly", category: "Entertainment", color: "#6366F1", icon: "💳" });
+      closeAddModal();
     } catch (err) {
       console.error("Save error:", err);
     }
@@ -213,63 +330,27 @@ export default function SubscriptionCenter() {
                 <Receipt size={24} weight="fill" className="text-indigo-600" />
                 SubCenter
               </h1>
-              <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Global Billing Hub</p>
+              <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{t("subtitle")}</p>
             </div>
           </div>
           
-          <button onClick={() => { setEditingId(null); setShowAddModal(true); }} className="flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer">
+          <button onClick={openIssueBill} className="flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer">
             <Plus size={16} weight="bold" />
-            <span>Issue Bill</span>
+            <span>{t("issueBill")}</span>
           </button>
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10 space-y-12">
-        
-        {/* Service Catalog Section */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-4">
-             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
-               <Globe size={18} weight="bold" />
-             </div>
-             <h3 className="text-[11px] font-black uppercase text-slate-400 tracking-[0.2em]">Service Catalog (v2026)</h3>
-             <div className="h-px bg-slate-200 flex-1" />
-          </div>
-          
-          <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide px-1">
-            {Array.from(new Set(SERVICE_CATALOG.map(s => s.name))).map((serviceName, idx) => {
-              const preset = SERVICE_CATALOG.find(p => p.name === serviceName)!;
-              return (
-                <motion.button
-                  key={idx}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => addPreset(preset)}
-                  className="flex-shrink-0 flex flex-col items-center justify-center gap-4 bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 transition-all w-[130px] group text-center cursor-pointer"
-                >
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl bg-slate-50 border border-slate-100">
-                    {preset.icon || "💳"}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[11px] font-black text-slate-800 uppercase tracking-tighter leading-tight break-words">{preset.name}</span>
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{SERVICE_CATALOG.filter(p => p.name === serviceName).length} Plans</span>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* User Invoices Feed */}
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
         <section className="space-y-8">
            <div className="flex items-center justify-between px-1">
               <div className="flex flex-col">
-                <h3 className="text-sm font-black text-slate-800 uppercase">Active Invoices</h3>
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">{subscriptions.length} records active</span>
+                <h3 className="text-sm font-black text-slate-800 uppercase">{t("activeInvoices")}</h3>
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">{t("recordsActive", { count: subscriptions.length })}</span>
               </div>
               <div className="text-right">
-                 <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">Running Total/mo</span>
-                 <span className="text-2xl font-black text-indigo-600 tracking-tighter leading-none">₺ {monthlyTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+                 <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">{t("runningTotalMo")}</span>
+                 <span className="text-2xl font-black text-indigo-600 tracking-tighter leading-none">₺ {formatMoney(monthlyTotal)}</span>
               </div>
            </div>
 
@@ -284,113 +365,58 @@ export default function SubscriptionCenter() {
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
                     className="relative group"
                   >
-                    {/* PAPER RECEIPT CARD */}
-                    <div className="bg-[#FCFBF9] min-h-[380px] shadow-2xl shadow-indigo-200/20 flex flex-col border border-slate-200/60 relative group-hover:-translate-y-2 transition-transform duration-500">
-                       
-                       {/* Header Section */}
-                       <div className="px-6 py-6 border-b border-dashed border-slate-300">
-                          <div className="flex justify-between items-start mb-4">
-                             <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-white border border-slate-100 shadow-sm relative">
-                                <span className="relative z-10">{sub.icon}</span>
-                                <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-white" />
-                             </div>
-                             <div className="text-right">
-                                <span className="block text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Doc Code</span>
-                                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">#{sub.id.substring(0, 8).toUpperCase()}</span>
-                             </div>
-                          </div>
-                          <div>
-                             <h4 className="text-lg font-black text-slate-800 uppercase tracking-tighter leading-none">{sub.name}</h4>
-                             <div className="flex items-center gap-2 mt-2">
-                                <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded uppercase">
-                                   {sub.plan_name}
-                                </span>
-                                <span className="text-[9px] font-black text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded uppercase">
-                                   {sub.region}
-                                </span>
-                             </div>
-                          </div>
-                       </div>
-
-                       {/* Receipt Items (Realistic Breakdown) */}
-                       <div className="flex-1 px-6 py-8 flex flex-col relative overflow-hidden">
-                          <div className="space-y-4 font-mono">
-                             <div className="space-y-2 border-b border-slate-100 pb-4 opacity-70">
-                                <div className="flex justify-between items-baseline">
-                                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Base Subscription</span>
-                                   <span className="text-[10px] font-bold text-slate-600">₺ {(sub.price * 0.8333).toFixed(2)}</span>
+                    {/* Receipt card */}
+                    <div className="bg-[#FAFAF8] shadow-sm flex flex-col overflow-hidden group-hover:shadow-md transition-shadow duration-300 border-y border-dashed border-slate-300">
+                       <div className="border-x border-dashed border-slate-300 px-3 py-1.5">
+                          <div className="border-b border-dashed border-slate-200 pb-1.5 mb-1.5">
+                             <div className="flex gap-3 items-stretch">
+                                <div className="shrink-0 flex flex-col items-center gap-1.5 text-center">
+                                   <h4 className="text-sm font-bold text-slate-800 leading-snug line-clamp-2 max-w-[7rem]">{sub.name}</h4>
+                                   <div className="w-16 h-16 flex items-center justify-center bg-white border border-dashed border-slate-200">
+                                      <span className="text-4xl leading-none">{sub.icon}</span>
+                                   </div>
                                 </div>
-                                <div className="flex justify-between items-baseline">
-                                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">VAT / KDV (20%)</span>
-                                   <span className="text-[10px] font-bold text-slate-600">₺ {(sub.price * 0.1667).toFixed(2)}</span>
+
+                                <div className="flex-1 min-w-0 flex flex-col items-end justify-between text-right">
+                                   <div>
+                                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide leading-none">
+                                         {t("renewalDate")}
+                                      </p>
+                                      <p className="text-sm text-slate-700 font-mono tabular-nums leading-tight mt-0.5">
+                                         {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
+                                      </p>
+                                   </div>
+                                   <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">
+                                      ₺{formatMoney(sub.price)}
+                                   </p>
                                 </div>
                              </div>
-                             
-                             <div className="flex justify-between items-baseline pt-2">
-                                <span className="text-[12px] font-black text-slate-900 uppercase">Grand Total</span>
-                                <span className="text-xl font-black text-indigo-600 tracking-tighter">₺ {sub.price.toFixed(2)}</span>
-                             </div>
                           </div>
 
-                          <div className="mt-8 pt-4 border-t-2 border-slate-50 space-y-2">
-                              <div className="flex items-center gap-2">
-                                 <Calendar size={12} weight="bold" className="text-slate-400" />
-                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Next Renewal</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                 <span className="text-xs font-black text-slate-800 uppercase">
-                                    {new Date(sub.start_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                 </span>
-                                 {(() => {
-                                    const diff = new Date(sub.start_date).getTime() - new Date().getTime();
-                                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                                    return (
-                                       <span className={`text-[10px] font-bold uppercase tracking-widest ${days <= 3 ? 'text-red-500 font-black' : 'text-slate-400 opacity-60'}`}>
-                                          {days > 0 ? `(in ${days} days)` : days === 0 ? "(today)" : `(${Math.abs(days)} days ago)`}
-                                       </span>
-                                    );
-                                 })()}
-                              </div>
+                          <div className="flex items-center justify-end gap-0.5 -mx-0.5">
+                          <button
+                            onClick={() => handleEdit(sub)}
+                            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                          >
+                            <PencilSimple size={17} weight="bold" />
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(sub.id)}
+                            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                          >
+                            <Trash size={17} weight="bold" />
+                          </button>
                           </div>
-
                        </div>
 
-                       {/* Action Footer */}
-                       <div className="px-6 py-5 bg-slate-50/50 border-t border-slate-200/50 flex items-center justify-between mt-auto">
-                            <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                              <Info size={14} weight="bold" />
-                              Report
-                           </div>
-                           
-                           <div className="flex items-center gap-2">
-                              <button 
-                                onClick={() => handleEdit(sub)}
-                                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
-                              >
-                                <PencilSimple size={18} weight="bold" />
-                              </button>
-                              <button 
-                                onClick={() => setShowDeleteConfirm(sub.id)} 
-                                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-white border border-transparent hover:border-slate-100 rounded-full transition-all active:scale-90 cursor-pointer"
-                              >
-                                <Trash size={18} weight="bold" />
-                              </button>
-                           </div>
-                       </div>
-
-                       {/* Zigzag Scissors Bottom */}
-                       <div className="absolute left-0 bottom-0 w-full flex pointer-events-none">
-                          {Array.from({ length: 40 }).map((_, i) => (
-                             <div key={i} className="flex-shrink-0 w-4 h-4 bg-[#F3F4F6] rotate-45 transform translate-y-2 -translate-x-1" />
-                          ))}
-                       </div>
-                    </div>
-
-                    {/* Stamp Effect on Hover */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 scale-150 opacity-0 group-hover:opacity-20 group-hover:scale-95 -rotate-12">
-                       <div className="border-[8px] border-emerald-600 text-emerald-600 px-8 py-3 rounded-2xl font-black text-5xl uppercase tracking-[0.3em]">
-                         Paid
-                       </div>
+                       <div
+                         className="h-1.5 w-full border-x border-dashed border-slate-300"
+                         style={{
+                           background: `linear-gradient(135deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px,
+                                      linear-gradient(225deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px`,
+                           backgroundColor: "#FAFAF8",
+                         }}
+                       />
                     </div>
                   </motion.div>
                 ))}
@@ -399,99 +425,185 @@ export default function SubscriptionCenter() {
         </section>
       </main>
 
-      {/* Manual Add / Edit Modal */}
+      {/* Issue Bill: templates → form */}
       <AnimatePresence>
         {showAddModal && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden" >
-              <div className="p-8 space-y-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100 font-bold">
-                        {editingId ? <PencilSimple size={24} weight="bold" /> : <Stack size={24} weight="bold" />}
-                     </div>
-                     <h2 className="text-xl font-black text-slate-800 uppercase">
-                        {editingId ? "Correct Bill" : "Issue New Bill"}
-                     </h2>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeAddModal} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "templates" && !editingId ? "max-w-xl" : "max-w-md"}`}>
+              <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100">
+                <div className="flex items-center gap-3 min-w-0">
+                  {((addModalStep === "form" && !editingId) || addModalStep === "plan") && (
+                    <button
+                      onClick={addModalStep === "plan" ? goBackFromPlan : goBackFromForm}
+                      className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 transition-all cursor-pointer"
+                    >
+                      <ArrowLeft size={16} weight="bold" />
+                    </button>
+                  )}
+                  <div className="w-10 h-10 shrink-0 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                    {editingId ? <PencilSimple size={20} weight="bold" /> : <Stack size={20} weight="bold" />}
                   </div>
-                  <button onClick={() => setShowAddModal(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-50 rounded-full text-slate-300 cursor-pointer">
-                    <X size={20} weight="bold" />
-                  </button>
+                  <h2 className="text-base font-black text-slate-800 uppercase truncate">
+                    {editingId
+                      ? t("editBill")
+                      : addModalStep === "templates"
+                        ? t("selectTemplate")
+                        : addModalStep === "plan"
+                          ? t("selectPlan")
+                          : t("billDetails")}
+                  </h2>
                 </div>
+                <button onClick={closeAddModal} className="w-9 h-9 shrink-0 flex items-center justify-center hover:bg-slate-50 rounded-full text-slate-300 cursor-pointer">
+                  <X size={18} weight="bold" />
+                </button>
+              </div>
 
-                <div className="space-y-6">
-                  {/* Plan Picker from Catalog */}
-                  {SERVICE_CATALOG.some(p => p.name === newSub.name) && (
+              {addModalStep === "templates" && !editingId ? (
+                <>
+                  <div className="shrink-0 px-4 pt-3 pb-1">
+                    <div className="relative">
+                      <MagnifyingGlass size={18} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input
+                        type="search"
+                        value={templateSearch}
+                        onChange={(e) => setTemplateSearch(e.target.value)}
+                        placeholder={t("templateSearchPlaceholder")}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+                    {filteredBrands.length === 0 ? (
+                      <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noTemplatesFound")}</p>
+                    ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {filteredBrands.map((brand) => (
+                        <button
+                          key={brand.name}
+                          onClick={() => selectBrand(brand)}
+                          className="flex flex-col items-center justify-center gap-2 p-4 min-h-[7.5rem] rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all text-center cursor-pointer"
+                        >
+                          <span className="text-4xl leading-none">{brand.icon}</span>
+                          <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
+                            {t("planCount", { count: brand.plans.length })}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    )}
+                  </div>
+                  <div className="shrink-0 p-4 pt-2 border-t border-slate-100 bg-white">
+                    <button
+                      onClick={startCustomSubscription}
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 font-bold text-sm transition-all cursor-pointer"
+                    >
+                      <Plus size={18} weight="bold" />
+                      {t("addCustomSubscription")}
+                    </button>
+                  </div>
+                </>
+              ) : addModalStep === "plan" && !editingId ? (
+                <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
+                  <p className="text-center text-sm font-bold text-slate-600 mb-4">{selectedBrandName}</p>
+                  <div className="space-y-2">
+                    {plansForSelectedBrand.map((preset, i) => (
+                      <button
+                        key={`${preset.plan_name}-${i}`}
+                        onClick={() => selectPlan(preset)}
+                        className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer text-left ${
+                          newSub.plan_name === preset.plan_name
+                            ? "bg-slate-900 border-slate-900 text-white"
+                            : "bg-slate-50/50 border-slate-100 hover:bg-white hover:border-slate-200"
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className={`text-sm font-bold truncate ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-800"}`}>
+                            {preset.plan_name}
+                          </p>
+                          <p className={`text-[10px] font-medium uppercase tracking-wide ${newSub.plan_name === preset.plan_name ? "text-slate-300" : "text-slate-400"}`}>
+                            {preset.region}
+                          </p>
+                        </div>
+                        <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-700"}`}>
+                          {preset.currency === "TRY" ? "₺" : "$"}
+                          {formatMoney(preset.price, preset.price % 1 === 0 ? 0 : 2)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 min-h-0">
+                  {SERVICE_CATALOG.some((p) => p.name === newSub.name) && (
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Quick Select Plan</label>
-                       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide font-bold italic">
-                          {SERVICE_CATALOG.filter(p => p.name === newSub.name).map((p, i) => (
-                             <button
-                                key={i}
-                                onClick={() => {
-                                  setNewSub({
-                                    ...newSub,
-                                    plan_name: p.plan_name,
-                                    price: p.price,
-                                    region: p.region,
-                                    currency: p.currency,
-                                    category: p.category,
-                                    color: p.color
-                                  });
-                                }}
-                                className={`flex-shrink-0 px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                                  newSub.plan_name === p.plan_name 
-                                    ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                                    : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
-                                }`}
-                             >
-                               {p.plan_name} - ₺{p.price}
-                             </button>
-                          ))}
-                       </div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("quickPlan")}</label>
+                      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        {SERVICE_CATALOG.filter((p) => p.name === newSub.name).map((p, i) => (
+                          <button
+                            key={i}
+                            onClick={() =>
+                              setNewSub({
+                                ...newSub,
+                                plan_name: p.plan_name,
+                                price: p.price,
+                                region: p.region,
+                                currency: p.currency,
+                                category: p.category,
+                                color: p.color,
+                                icon: p.icon,
+                              })
+                            }
+                            className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
+                              newSub.plan_name === p.plan_name
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
+                            }`}
+                          >
+                            {p.plan_name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Vendor / Service</label>
-                    <input type="text" placeholder="e.g. Netflix, YouTube" className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase" value={newSub.name} onChange={(e) => setNewSub({...newSub, name: e.target.value})} />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("service")}</label>
+                    <input type="text" placeholder={t("servicePlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all" value={newSub.name} onChange={(e) => setNewSub({ ...newSub, name: e.target.value })} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Plan Level</label>
-                      <input type="text" placeholder="Family, Basic..." className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-indigo-600 focus:bg-white transition-all uppercase" value={newSub.plan_name} onChange={(e) => setNewSub({...newSub, plan_name: e.target.value})} />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("planLevel")}</label>
+                      <input type="text" placeholder={t("planPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all" value={newSub.plan_name} onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Region</label>
-                      <input type="text" placeholder="TR, US..." className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-indigo-600 focus:bg-white transition-all uppercase" value={newSub.region} onChange={(e) => setNewSub({...newSub, region: e.target.value})} />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("region")}</label>
+                      <input type="text" placeholder={t("regionPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase" value={newSub.region} onChange={(e) => setNewSub({ ...newSub, region: e.target.value })} />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Amount (₺)</label>
-                      <input type="number" placeholder="0.00" className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all" value={newSub.price || ""} onChange={(e) => setNewSub({...newSub, price: parseFloat(e.target.value)})} />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("amount")}</label>
+                      <input type="number" placeholder={t("amountPlaceholder")} className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all" value={newSub.price || ""} onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">Cycle</label>
-                      <div className="relative">
-                        <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer uppercase" value={newSub.cycle} onChange={(e) => setNewSub({...newSub, cycle: e.target.value})} >
-                          <option value="monthly">Monthly</option>
-                          <option value="yearly">Yearly</option>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 font-bold uppercase tracking-tighter text-[10px]">v</div>
-                      </div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("cycle")}</label>
+                      <select className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer" value={newSub.cycle} onChange={(e) => setNewSub({ ...newSub, cycle: e.target.value })}>
+                        <option value="monthly">{t("monthly")}</option>
+                        <option value="yearly">{t("yearly")}</option>
+                      </select>
                     </div>
                   </div>
+
+                  <button onClick={handleSaveSubscription} className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[11px]">
+                    <CheckCircle size={22} weight="fill" />
+                    {editingId ? t("update") : t("saveBill")}
+                  </button>
                 </div>
-
-                <button onClick={handleSaveSubscription} className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-5 rounded-[1.5rem] shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-[0.4em] text-[12px] mt-4" >
-                  <CheckCircle size={24} weight="fill" />
-                  {editingId ? "Update Bill" : "Finalize Invoice"}
-                </button>
-              </div>
+              )}
             </motion.div>
           </>
         )}
@@ -506,9 +618,9 @@ export default function SubscriptionCenter() {
                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mx-auto mb-6 shadow-sm border border-red-100">
                   <Trash size={32} weight="fill" />
                </div>
-               <h3 className="text-xl font-black text-slate-800 uppercase mb-2">Void Receipt?</h3>
+               <h3 className="text-xl font-black text-slate-800 uppercase mb-2">{t("voidReceiptTitle")}</h3>
                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-loose">
-                  This transaction will be permanently removed from your billing history.
+                  {t("voidReceiptDescription")}
                </p>
                
                <div className="grid grid-cols-2 gap-4 mt-10">
@@ -517,7 +629,7 @@ export default function SubscriptionCenter() {
                     onClick={() => setShowDeleteConfirm(null)} 
                     className="py-4 rounded-2xl bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    Keep It
+                    {t("keepIt")}
                   </button>
                   <button 
                     disabled={isDeleting}
@@ -527,7 +639,7 @@ export default function SubscriptionCenter() {
                     {isDeleting && (
                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     )}
-                    {isDeleting ? "Processing..." : "void & delete"}
+                    {isDeleting ? t("processing") : t("voidDelete")}
                   </button>
                </div>
             </motion.div>
