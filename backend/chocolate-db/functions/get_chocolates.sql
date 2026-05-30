@@ -5,7 +5,8 @@ RETURNS TABLE (
     id TEXT,
     avg_rating DECIMAL(3, 2),
     review_count INTEGER,
-    user_state TEXT
+    user_state TEXT,
+    user_rating INTEGER
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -32,7 +33,8 @@ BEGIN
         cid.chocolate_id AS id,
         COALESCE(rs.avg_rating, 0::DECIMAL(3, 2)) AS avg_rating,
         COALESCE(rs.review_count, 0) AS review_count,
-        us.state AS user_state
+        us.state AS user_state,
+        (SELECT r.rating FROM chocolate_db.reviews r WHERE r.chocolate_id = cid.chocolate_id AND r.clerk_id = p_clerk_id LIMIT 1)::INTEGER AS user_rating
     FROM chocolate_ids cid
     LEFT JOIN review_stats rs ON rs.chocolate_id = cid.chocolate_id
     LEFT JOIN chocolate_db.user_states us

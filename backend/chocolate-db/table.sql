@@ -9,7 +9,9 @@ CREATE TABLE chocolate_db.reviews (
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     reviewer_name TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
+    clerk_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (clerk_id, chocolate_id)
 );
 
 CREATE TABLE chocolate_db.user_states (

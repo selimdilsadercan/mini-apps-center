@@ -19,6 +19,8 @@ export interface Chocolate {
     avg_rating: number;
     review_count: number;
     user_state?: string | null;
+    category: string | null;
+    user_rating?: number | null;
 }
 
 export interface ListChocolatesResponse {
@@ -43,6 +45,7 @@ interface RawProduct {
     price?: string;
     weight?: string;
     image_url: string;
+    category?: string;
 }
 
 // Slugify function to generate stable slug IDs from product names
@@ -102,7 +105,8 @@ function loadProducts(): Chocolate[] {
             description_en: descEn || "Delicious chocolate snack.",
             image_url: p.image_url,
             avg_rating: 0,
-            review_count: 0
+            review_count: 0,
+            category: p.category || null
         });
     }
     
@@ -124,13 +128,14 @@ export const listChocolates = api(
             return { chocolates };
         }
 
-        const statsMap = new Map<string, { avg_rating: number, review_count: number, user_state: string | null }>();
+        const statsMap = new Map<string, { avg_rating: number, review_count: number, user_state: string | null, user_rating: number | null }>();
         if (data) {
             for (const row of data) {
                 statsMap.set(row.id, {
                     avg_rating: Number(row.avg_rating),
                     review_count: Number(row.review_count),
-                    user_state: row.user_state || null
+                    user_state: row.user_state || null,
+                    user_rating: row.user_rating ? Number(row.user_rating) : null
                 });
             }
         }
@@ -141,7 +146,8 @@ export const listChocolates = api(
                 ...choco,
                 avg_rating: stats ? stats.avg_rating : 0,
                 review_count: stats ? stats.review_count : 0,
-                user_state: stats ? stats.user_state : null
+                user_state: stats ? stats.user_state : null,
+                user_rating: stats ? stats.user_rating : null
             };
         });
 
@@ -202,6 +208,7 @@ export interface AddReviewRequest {
     rating: number;
     comment?: string;
     reviewer_name?: string;
+    userId?: string;
 }
 
 export interface ImportProduct {
@@ -234,11 +241,36 @@ export const addReview = api(
                 p_chocolate_id: params.chocolate_id,
                 p_rating: params.rating,
                 p_comment: params.comment || null,
-                p_reviewer_name: params.reviewer_name || "Anonim"
+                p_reviewer_name: params.reviewer_name || "Anonim",
+                p_clerk_id: params.userId || null
             });
 
         if (error) {
             throw APIError.internal(`Failed to add review: ${error.message}`);
+        }
+
+        return { success: true };
+    }
+);
+
+export interface DeleteReviewRequest {
+    chocolate_id: string;
+    userId: string;
+}
+
+// Delete a user review using Supabase RPC
+export const deleteReview = api(
+    { expose: true, method: "POST", path: "/chocolate/review/delete" },
+    async (params: DeleteReviewRequest): Promise<{ success: boolean }> => {
+        const { error } = await supabase
+            .schema("chocolate_db")
+            .rpc("delete_review", {
+                p_chocolate_id: params.chocolate_id,
+                p_clerk_id: params.userId
+            });
+
+        if (error) {
+            throw APIError.internal(`Failed to delete review: ${error.message}`);
         }
 
         return { success: true };

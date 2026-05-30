@@ -114,6 +114,7 @@ export namespace chocolate_db {
         rating: number
         comment?: string
         "reviewer_name"?: string
+        userId?: string
     }
 
     export interface Chocolate {
@@ -126,6 +127,8 @@ export namespace chocolate_db {
         "avg_rating": number
         "review_count": number
         "user_state"?: string | null
+        category: string | null
+        "user_rating"?: number | null
     }
 
     export interface ChocolateDetail {
@@ -139,6 +142,13 @@ export namespace chocolate_db {
         "avg_rating": number
         "review_count": number
         "user_state"?: string | null
+        category: string | null
+        "user_rating"?: number | null
+    }
+
+    export interface DeleteReviewRequest {
+        "chocolate_id": string
+        userId: string
     }
 
     export interface ListChocolatesResponse {
@@ -166,6 +176,7 @@ export namespace chocolate_db {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addReview = this.addReview.bind(this)
+            this.deleteReview = this.deleteReview.bind(this)
             this.getChocolate = this.getChocolate.bind(this)
             this.importProducts = this.importProducts.bind(this)
             this.listChocolates = this.listChocolates.bind(this)
@@ -181,6 +192,19 @@ export namespace chocolate_db {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/review`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Delete a user review using Supabase RPC
+         */
+        public async deleteReview(params: DeleteReviewRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/review/delete`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }
