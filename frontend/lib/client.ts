@@ -125,6 +125,7 @@ export namespace chocolate_db {
         "image_url": string | null
         "avg_rating": number
         "review_count": number
+        "user_state"?: string | null
     }
 
     export interface ChocolateDetail {
@@ -137,6 +138,7 @@ export namespace chocolate_db {
         "image_url": string | null
         "avg_rating": number
         "review_count": number
+        "user_state"?: string | null
     }
 
     export interface ListChocolatesResponse {
@@ -152,6 +154,12 @@ export namespace chocolate_db {
         "created_at": string
     }
 
+    export interface SetUserStateRequest {
+        userId: string
+        chocolateId: string
+        state: "tried" | "wishlist" | "dislike" | ""
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -162,6 +170,7 @@ export namespace chocolate_db {
             this.importProducts = this.importProducts.bind(this)
             this.listChocolates = this.listChocolates.bind(this)
             this.seedChocolates = this.seedChocolates.bind(this)
+            this.setUserState = this.setUserState.bind(this)
         }
 
         /**
@@ -202,9 +211,16 @@ export namespace chocolate_db {
         /**
          * List all chocolates (loaded from file + rating/reviews statistics from DB)
          */
-        public async listChocolates(): Promise<ListChocolatesResponse> {
+        public async listChocolates(params: {
+    userId?: string
+}): Promise<ListChocolatesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/chocolate`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/chocolate`, undefined, {query})
             return await resp.json() as ListChocolatesResponse
         }
 
@@ -218,6 +234,19 @@ export namespace chocolate_db {
             const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/seed`)
             return await resp.json() as {
     count: number
+}
+        }
+
+        /**
+         * Set user interaction state (tried, wishlist, dislike)
+         */
+        public async setUserState(params: SetUserStateRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/chocolate/state`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
 }
         }
     }

@@ -18,6 +18,7 @@ export interface Chocolate {
     image_url: string | null;
     avg_rating: number;
     review_count: number;
+    user_state?: string | null;
 }
 
 export interface ListChocolatesResponse {
@@ -111,24 +112,25 @@ function loadProducts(): Chocolate[] {
 // List all chocolates (loaded from file + rating/reviews statistics from DB)
 export const listChocolates = api(
     { expose: true, method: "GET", path: "/chocolate" },
-    async (): Promise<ListChocolatesResponse> => {
+    async (params: { userId?: string }): Promise<ListChocolatesResponse> => {
         const chocolates = loadProducts();
         
         const { data, error } = await supabase
             .schema("chocolate_db")
-            .rpc("get_chocolates");
+            .rpc("get_chocolates", { p_clerk_id: params.userId || "" });
             
         if (error) {
             console.error("Failed to fetch reviews summary:", error.message);
             return { chocolates };
         }
 
-        const statsMap = new Map<string, { avg_rating: number, review_count: number }>();
+        const statsMap = new Map<string, { avg_rating: number, review_count: number, user_state: string | null }>();
         if (data) {
             for (const row of data) {
-                statsMap.set(row.chocolate_id, {
+                statsMap.set(row.id, {
                     avg_rating: Number(row.avg_rating),
-                    review_count: Number(row.review_count)
+                    review_count: Number(row.review_count),
+                    user_state: row.user_state || null
                 });
             }
         }
@@ -138,7 +140,8 @@ export const listChocolates = api(
             return {
                 ...choco,
                 avg_rating: stats ? stats.avg_rating : 0,
-                review_count: stats ? stats.review_count : 0
+                review_count: stats ? stats.review_count : 0,
+                user_state: stats ? stats.user_state : null
             };
         });
 
@@ -247,5 +250,31 @@ export const seedChocolates = api(
     { expose: true, method: "POST", path: "/chocolate/seed" },
     async (): Promise<{ count: number }> => {
         return { count: 0 };
+    }
+);
+
+export interface SetUserStateRequest {
+    userId: string;
+    chocolateId: string;
+    state: "tried" | "wishlist" | "dislike" | "";
+}
+
+// Set user interaction state (tried, wishlist, dislike)
+export const setUserState = api(
+    { expose: true, method: "POST", path: "/chocolate/state" },
+    async (params: SetUserStateRequest): Promise<{ success: boolean }> => {
+        const { error } = await supabase
+            .schema("chocolate_db")
+            .rpc("set_user_state", {
+                p_clerk_id: params.userId,
+                p_chocolate_id: params.chocolateId,
+                p_state: params.state || null
+            });
+
+        if (error) {
+            throw APIError.internal(`Failed to set user state: ${error.message}`);
+        }
+
+        return { success: true };
     }
 );
