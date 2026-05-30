@@ -1428,6 +1428,7 @@ export namespace subcenter {
         color: string
         icon: string
         "usage_count": number
+        domain?: string
     }
 
     export interface Subscription {

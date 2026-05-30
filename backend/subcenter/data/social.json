@@ -1,0 +1,156 @@
+[
+  {
+    "name": "X",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 8.0,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#000000",
+    "icon": "𝕏",
+    "domain": "x.com"
+  },
+  {
+    "name": "X",
+    "plan_name": "Premium+",
+    "region": "US",
+    "price": 40.0,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#000000",
+    "icon": "𝕏",
+    "domain": "x.com"
+  },
+  {
+    "name": "LinkedIn",
+    "plan_name": "Premium Career",
+    "region": "US",
+    "price": 39.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#0A66C2",
+    "icon": "💼",
+    "domain": "linkedin.com"
+  },
+  {
+    "name": "LinkedIn",
+    "plan_name": "Premium Business",
+    "region": "US",
+    "price": 69.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#0A66C2",
+    "icon": "💼",
+    "domain": "linkedin.com"
+  },
+  {
+    "name": "Discord",
+    "plan_name": "Nitro Basic",
+    "region": "US",
+    "price": 2.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#5865F2",
+    "icon": "💬",
+    "domain": "discord.com"
+  },
+  {
+    "name": "Discord",
+    "plan_name": "Nitro",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#5865F2",
+    "icon": "💬",
+    "domain": "discord.com"
+  },
+  {
+    "name": "Snapchat",
+    "plan_name": "Snapchat+",
+    "region": "US",
+    "price": 3.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#FFFC00",
+    "icon": "👻",
+    "domain": "snapchat.com"
+  },
+  {
+    "name": "Reddit",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 5.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#FF4500",
+    "icon": "👽",
+    "domain": "reddit.com"
+  },
+  {
+    "name": "Telegram",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 4.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#26A5E4",
+    "icon": "✈️",
+    "domain": "telegram.org"
+  },
+  {
+    "name": "Patreon",
+    "plan_name": "Membership",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#FF424D",
+    "icon": "🧡",
+    "domain": "patreon.com"
+  },
+  {
+    "name": "Substack",
+    "plan_name": "Paid Subscription",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#FF6719",
+    "icon": "✉️",
+    "domain": "substack.com"
+  },
+  {
+    "name": "Medium",
+    "plan_name": "Member",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#000000",
+    "icon": "✍️",
+    "domain": "medium.com"
+  },
+  {
+    "name": "Twitch",
+    "plan_name": "Tier 1 Subscription",
+    "region": "US",
+    "price": 4.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#9146FF",
+    "icon": "🎮",
+    "domain": "twitch.tv"
+  },
+  {
+    "name": "Kick",
+    "plan_name": "Channel Subscription",
+    "region": "US",
+    "price": 4.99,
+    "currency": "USD",
+    "category": "Social",
+    "color": "#53FC18",
+    "icon": "🎥",
+    "domain": "kick.com"
+  }
+]

@@ -1,0 +1,200 @@
+[
+  {
+    "name": "Figma",
+    "plan_name": "Professional",
+    "region": "US",
+    "price": 15.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#A259FF",
+    "icon": "🎨",
+    "domain": "figma.com"
+  },
+  {
+    "name": "FigJam",
+    "plan_name": "Professional",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#A259FF",
+    "icon": "🧩",
+    "domain": "figma.com"
+  },
+  {
+    "name": "Canva",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 15.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#00C4CC",
+    "icon": "🖼️",
+    "domain": "canva.com"
+  },
+  {
+    "name": "Adobe Creative Cloud",
+    "plan_name": "All Apps",
+    "region": "US",
+    "price": 59.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#FF0000",
+    "icon": "🅰️",
+    "domain": "adobe.com"
+  },
+  {
+    "name": "Adobe Photoshop",
+    "plan_name": "Single App",
+    "region": "US",
+    "price": 22.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#31A8FF",
+    "icon": "🖌️",
+    "domain": "adobe.com"
+  },
+  {
+    "name": "Adobe Illustrator",
+    "plan_name": "Single App",
+    "region": "US",
+    "price": 22.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#FF9A00",
+    "icon": "✏️",
+    "domain": "adobe.com"
+  },
+  {
+    "name": "Adobe Lightroom",
+    "plan_name": "Single App",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#31A8FF",
+    "icon": "📷",
+    "domain": "adobe.com"
+  },
+  {
+    "name": "Sketch",
+    "plan_name": "Standard",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#F7B500",
+    "icon": "💎",
+    "domain": "sketch.com"
+  },
+  {
+    "name": "Framer",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 30.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#0055FF",
+    "icon": "🧱",
+    "domain": "framer.com"
+  },
+  {
+    "name": "Spline",
+    "plan_name": "Super",
+    "region": "US",
+    "price": 12.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#7057FF",
+    "icon": "🧊",
+    "domain": "spline.design"
+  },
+  {
+    "name": "Webflow",
+    "plan_name": "Basic Site",
+    "region": "US",
+    "price": 18.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#146EF5",
+    "icon": "🌐",
+    "domain": "webflow.com"
+  },
+  {
+    "name": "ProtoPie",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 25.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#FF6B00",
+    "icon": "🧪",
+    "domain": "protopie.io"
+  },
+  {
+    "name": "Principle",
+    "plan_name": "License",
+    "region": "US",
+    "price": 129.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#6C63FF",
+    "icon": "🎛️",
+    "domain": "principleformac.com"
+  },
+  {
+    "name": "Affinity Designer",
+    "plan_name": "Universal License",
+    "region": "US",
+    "price": 164.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#1B72BE",
+    "icon": "✒️",
+    "domain": "affinity.serif.com"
+  },
+  {
+    "name": "IconJar",
+    "plan_name": "License",
+    "region": "US",
+    "price": 34.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#F7B500",
+    "icon": "🗂️",
+    "domain": "geticonjar.com"
+  },
+  {
+    "name": "LottieFiles",
+    "plan_name": "Individual",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#00DDB3",
+    "icon": "✨",
+    "domain": "lottiefiles.com"
+  },
+  {
+    "name": "Mobbin",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 12.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#000000",
+    "icon": "📱",
+    "domain": "mobbin.com"
+  },
+  {
+    "name": "Coolors",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Design",
+    "color": "#0066FF",
+    "icon": "🎨",
+    "domain": "coolors.co"
+  }
+]

@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Exxen",
+    "plan_name": "Aylık Reklamlı",
+    "region": "TR",
+    "price": 219.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#FFCB05",
+    "icon": "📺",
+    "domain": "exxen.com"
+  },
+  {
+    "name": "Exxen",
+    "plan_name": "Aylık Reklamsız",
+    "region": "TR",
+    "price": 309.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#FFCB05",
+    "icon": "📺",
+    "domain": "exxen.com"
+  },
+  {
+    "name": "MUBI",
+    "plan_name": "Aylık",
+    "region": "TR",
+    "price": 229.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#001489",
+    "icon": "🎞️",
+    "domain": "mubi.com"
+  },
+  {
+    "name": "TOD",
+    "plan_name": "Eğlence Paketi",
+    "region": "TR",
+    "price": 9.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#111827",
+    "icon": "📡",
+    "domain": "todtv.com.tr"
+  },
+  {
+    "name": "YouTube Premium",
+    "plan_name": "Bireysel",
+    "region": "TR",
+    "price": 79.99,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#FF0000",
+    "icon": "▶️",
+    "domain": "youtube.com"
+  },
+  {
+    "name": "tabii",
+    "plan_name": "Premium",
+    "region": "TR",
+    "price": 99.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#00AEEF",
+    "icon": "📺",
+    "domain": "tabii.com"
+  },
+  {
+    "name": "TV+",
+    "plan_name": "Aylık",
+    "region": "TR",
+    "price": 169.99,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#00AEEF",
+    "icon": "📺",
+    "domain": "tvplus.com.tr"
+  },
+  {
+    "name": "Tivibu",
+    "plan_name": "Aylık",
+    "region": "TR",
+    "price": 79.9,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#E30613",
+    "icon": "📺",
+    "domain": "tivibu.com.tr"
+  },
+  {
+    "name": "S Sport Plus",
+    "plan_name": "Aylık",
+    "region": "TR",
+    "price": 99.99,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#111111",
+    "icon": "🏟️",
+    "domain": "ssportplus.com"
+  },
+  {
+    "name": "PuhuTV",
+    "plan_name": "Ücretsiz",
+    "region": "TR",
+    "price": 0.0,
+    "currency": "TRY",
+    "category": "Entertainment",
+    "color": "#7B1FA2",
+    "icon": "📺",
+    "domain": "puhutv.com"
+  }
+]

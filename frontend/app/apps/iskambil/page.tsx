@@ -142,7 +142,54 @@ export default function IskambilRehberi() {
     try {
       setIsLoading(true);
       const resp = await client.iskambil.getGames(userId);
-      setGames(resp.games || []);
+      
+      if (process.env.NODE_ENV === "development") {
+        const webpackRequire = require as any;
+        const context = webpackRequire.context("../../../../backend/iskambil/games", true, /\.json$/);
+        const localGamesData = context.keys().map((key: string) => context(key));
+        
+        // Merge user states from backend response
+        const stateMap = new Map(resp.games.map(g => [g.id, g]));
+        
+        const merged = localGamesData.map((g: any) => {
+          const dbState = stateMap.get(g.id);
+          return {
+            id: g.id,
+            name_tr: g.name_tr,
+            name_en: g.name_en,
+            original_name: g.originalName || null,
+            description_tr: g.description_tr,
+            description_en: g.description_en,
+            rules_tr: g.rules_tr || g.quickRules_tr || [],
+            rules_en: g.rules_en || g.quickRules_en || [],
+            min_players: g.minPlayers,
+            max_players: g.maxPlayers,
+            deck_count_tr: g.deckCount_tr,
+            deck_count_en: g.deckCount_en,
+            category_tr: g.category_tr,
+            category_en: g.category_en,
+            is_favorite: dbState ? dbState.is_favorite : false,
+            is_known: dbState ? dbState.is_known : false,
+            user_note: dbState ? dbState.user_note : null,
+            quick_rules_tr: g.quickRules_tr || null,
+            quick_rules_en: g.quickRules_en || null,
+            setup_tr: g.setup_tr || null,
+            setup_en: g.setup_en || null,
+            objective_tr: g.objective_tr || null,
+            objective_en: g.objective_en || null,
+            gameplay_tr: g.gameplay_tr || null,
+            gameplay_en: g.gameplay_en || null,
+            scoring_tr: g.scoring_tr || null,
+            scoring_en: g.scoring_en || null,
+            ending_tr: g.ending_tr || null,
+            ending_en: g.ending_en || null,
+          };
+        });
+        
+        setGames(merged);
+      } else {
+        setGames(resp.games || []);
+      }
     } catch (err) {
       console.error("Failed to load games:", err);
     } finally {

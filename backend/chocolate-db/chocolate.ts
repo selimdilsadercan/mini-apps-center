@@ -1,7 +1,21 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import fs from "fs";
+import path from "path";
 import productsData from "./data/products.json";
+
+function getProductsData(): RawProduct[] {
+  try {
+    const filePath = path.join(__dirname, "data", "products.json");
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    }
+  } catch (err) {
+    // fallback
+  }
+  return productsData as RawProduct[];
+}
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -71,7 +85,7 @@ function loadProducts(): Chocolate[] {
     const seen = new Set<string>();
     const list: Chocolate[] = [];
     
-    for (const p of productsData as RawProduct[]) {
+    for (const p of getProductsData()) {
         const id = slugify(p.name);
         if (seen.has(id)) {
             continue;

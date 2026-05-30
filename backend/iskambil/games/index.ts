@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 import game21 from "./casino-betting/21.json";
 import poker from "./casino-betting/poker.json";
 import game31 from "./casino-betting/31.json";
@@ -40,7 +43,7 @@ import crazyEightsCountdown from "./shedding/crazy-eights-countdown.json";
 import baskan from "./shedding/baskan.json";
 import pyramidSolitaire from "./patience-strategy/pyramid-solitaire.json";
 
-export const gamesData = [
+const staticGames = [
   game21,
   poker,
   game31,
@@ -83,3 +86,32 @@ export const gamesData = [
   crazyEightsCountdown,
   baskan
 ];
+
+export function getGamesData(): any[] {
+  try {
+    const gamesDir = __dirname;
+    const loadedGames: any[] = [];
+    
+    const scanDir = (dirPath: string) => {
+      const files = fs.readdirSync(dirPath);
+      for (const file of files) {
+        const fullPath = path.join(dirPath, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          scanDir(fullPath);
+        } else if (file.endsWith(".json")) {
+          const content = fs.readFileSync(fullPath, "utf-8");
+          loadedGames.push(JSON.parse(content));
+        }
+      }
+    };
+    
+    scanDir(gamesDir);
+    if (loadedGames.length > 0) {
+      return loadedGames;
+    }
+  } catch (err) {
+    // fallback
+  }
+  return staticGames;
+}

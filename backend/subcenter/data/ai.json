@@ -1,0 +1,167 @@
+[
+  {
+    "name": "ChatGPT Plus",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#10A37F",
+    "icon": "🤖",
+    "domain": "openai.com"
+  },
+  {
+    "name": "Claude Pro",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#D97757",
+    "icon": "🧠",
+    "domain": "claude.ai"
+  },
+  {
+    "name": "Midjourney",
+    "plan_name": "Basic",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#FFFFFF",
+    "icon": "🎨",
+    "domain": "midjourney.com"
+  },
+  {
+    "name": "Perplexity Pro",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#20B8CD",
+    "icon": "🔎",
+    "domain": "perplexity.ai"
+  },
+  {
+    "name": "Gemini Advanced",
+    "plan_name": "Google One AI Premium",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#4285F4",
+    "icon": "✨",
+    "domain": "gemini.google.com"
+  },
+  {
+    "name": "Grok",
+    "plan_name": "SuperGrok",
+    "region": "US",
+    "price": 30.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#000000",
+    "icon": "⚡",
+    "domain": "grok.com"
+  },
+  {
+    "name": "Cursor",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#000000",
+    "icon": "💻",
+    "domain": "cursor.com"
+  },
+  {
+    "name": "GitHub Copilot",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#24292F",
+    "icon": "👨‍💻",
+    "domain": "github.com"
+  },
+  {
+    "name": "Runway",
+    "plan_name": "Standard",
+    "region": "US",
+    "price": 15.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#000000",
+    "icon": "🎞️",
+    "domain": "runwayml.com"
+  },
+  {
+    "name": "ElevenLabs",
+    "plan_name": "Starter",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#111111",
+    "icon": "🎙️",
+    "domain": "elevenlabs.io"
+  },
+  {
+    "name": "Leonardo AI",
+    "plan_name": "Apprentice",
+    "region": "US",
+    "price": 12.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#7C3AED",
+    "icon": "🖌️",
+    "domain": "leonardo.ai"
+  },
+  {
+    "name": "Ideogram",
+    "plan_name": "Basic",
+    "region": "US",
+    "price": 8.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#FF6B6B",
+    "icon": "🖼️",
+    "domain": "ideogram.ai"
+  },
+  {
+    "name": "Replit",
+    "plan_name": "Core",
+    "region": "US",
+    "price": 25.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#F26207",
+    "icon": "🧑‍💻",
+    "domain": "replit.com"
+  },
+  {
+    "name": "v0",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#000000",
+    "icon": "🧩",
+    "domain": "v0.dev"
+  },
+  {
+    "name": "Poe",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "AI",
+    "color": "#5E5CE6",
+    "icon": "💬",
+    "domain": "poe.com"
+  }
+]
