@@ -1,0 +1,200 @@
+[
+  {
+    "name": "Duolingo",
+    "plan_name": "Super Duolingo",
+    "region": "US",
+    "price": 12.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#58CC02",
+    "icon": "🦉",
+    "domain": "duolingo.com"
+  },
+  {
+    "name": "Duolingo",
+    "plan_name": "Family Plan",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#58CC02",
+    "icon": "🦉",
+    "domain": "duolingo.com"
+  },
+  {
+    "name": "Coursera",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 59.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#0056D2",
+    "icon": "🎓",
+    "domain": "coursera.org"
+  },
+  {
+    "name": "Skillshare",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 29.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#00FF84",
+    "icon": "🎨",
+    "domain": "skillshare.com"
+  },
+  {
+    "name": "Brilliant",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 24.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#F5A623",
+    "icon": "🧠",
+    "domain": "brilliant.org"
+  },
+  {
+    "name": "Codecademy",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 29.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#10162F",
+    "icon": "💻",
+    "domain": "codecademy.com"
+  },
+  {
+    "name": "DataCamp",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 25.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#03EF62",
+    "icon": "📊",
+    "domain": "datacamp.com"
+  },
+  {
+    "name": "Udemy",
+    "plan_name": "Personal Plan",
+    "region": "US",
+    "price": 20.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#A435F0",
+    "icon": "📚",
+    "domain": "udemy.com"
+  },
+  {
+    "name": "MasterClass",
+    "plan_name": "Individual",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#000000",
+    "icon": "🎬",
+    "domain": "masterclass.com"
+  },
+  {
+    "name": "Khan Academy",
+    "plan_name": "Free",
+    "region": "Global",
+    "price": 0.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#14BF96",
+    "icon": "🏫",
+    "domain": "khanacademy.org"
+  },
+  {
+    "name": "LinkedIn Learning",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 39.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#0A66C2",
+    "icon": "💼",
+    "domain": "linkedin.com"
+  },
+  {
+    "name": "Babbel",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 17.95,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#FF5A5F",
+    "icon": "🗣️",
+    "domain": "babbel.com"
+  },
+  {
+    "name": "Cambly",
+    "plan_name": "Weekly Plan",
+    "region": "TR",
+    "price": 799.0,
+    "currency": "TRY",
+    "category": "Education",
+    "color": "#00AEEF",
+    "icon": "🌍",
+    "domain": "cambly.com"
+  },
+  {
+    "name": "Busuu",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 13.95,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#1D5CFF",
+    "icon": "🗣️",
+    "domain": "busuu.com"
+  },
+  {
+    "name": "Quizlet",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 7.99,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#4257B2",
+    "icon": "🃏",
+    "domain": "quizlet.com"
+  },
+  {
+    "name": "Grammarly",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 30.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#15C39A",
+    "icon": "✍️",
+    "domain": "grammarly.com"
+  },
+  {
+    "name": "Chegg",
+    "plan_name": "Study",
+    "region": "US",
+    "price": 19.95,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#EB7100",
+    "icon": "📖",
+    "domain": "chegg.com"
+  },
+  {
+    "name": "edX",
+    "plan_name": "Verified Track",
+    "region": "US",
+    "price": 50.0,
+    "currency": "USD",
+    "category": "Education",
+    "color": "#02262B",
+    "icon": "🎓",
+    "domain": "edx.org"
+  }
+]

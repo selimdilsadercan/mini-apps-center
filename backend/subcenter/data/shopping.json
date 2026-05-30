@@ -1,0 +1,156 @@
+[
+    {
+        "name": "Amazon Prime",
+        "plan_name": "Prime Üyelik",
+        "region": "TR",
+        "price": 69.9,
+        "currency": "TRY",
+        "category": "Shopping",
+        "color": "#00A8E1",
+        "icon": "📦",
+        "domain": "amazon.com.tr"
+    },
+    {
+        "name": "Trendyol",
+        "plan_name": "Trendyol Plus",
+        "region": "TR",
+        "price": 0.0,
+        "currency": "TRY",
+        "category": "Shopping",
+        "color": "#F27A1A",
+        "icon": "🛍️",
+        "domain": "trendyol.com"
+    },
+    {
+        "name": "Hepsiburada",
+        "plan_name": "Premium",
+        "region": "TR",
+        "price": 39.9,
+        "currency": "TRY",
+        "category": "Shopping",
+        "color": "#FF6000",
+        "icon": "🛒",
+        "domain": "hepsiburada.com"
+    },
+    {
+        "name": "Walmart+",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 12.95,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#0071CE",
+        "icon": "🛒",
+        "domain": "walmart.com"
+    },
+    {
+        "name": "Costco",
+        "plan_name": "Gold Star",
+        "region": "US",
+        "price": 5.42,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#E31837",
+        "icon": "🏬",
+        "domain": "costco.com"
+    },
+    {
+        "name": "Sam's Club",
+        "plan_name": "Club",
+        "region": "US",
+        "price": 4.17,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#0067A0",
+        "icon": "🏬",
+        "domain": "samsclub.com"
+    },
+    {
+        "name": "AliExpress",
+        "plan_name": "Choice",
+        "region": "Global",
+        "price": 0.0,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#E62E04",
+        "icon": "🛍️",
+        "domain": "aliexpress.com"
+    },
+    {
+        "name": "Temu",
+        "plan_name": "Free",
+        "region": "Global",
+        "price": 0.0,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#FF6A00",
+        "icon": "🛒",
+        "domain": "temu.com"
+    },
+    {
+        "name": "Shopify",
+        "plan_name": "Basic",
+        "region": "US",
+        "price": 39.0,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#95BF47",
+        "icon": "🏪",
+        "domain": "shopify.com"
+    },
+    {
+        "name": "Etsy",
+        "plan_name": "Plus",
+        "region": "US",
+        "price": 10.0,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#F1641E",
+        "icon": "🧶",
+        "domain": "etsy.com"
+    },
+    {
+        "name": "eBay",
+        "plan_name": "Store Starter",
+        "region": "US",
+        "price": 7.95,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#E53238",
+        "icon": "🏷️",
+        "domain": "ebay.com"
+    },
+    {
+        "name": "Instacart",
+        "plan_name": "Instacart+",
+        "region": "US",
+        "price": 9.99,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#43B02A",
+        "icon": "🥦",
+        "domain": "instacart.com"
+    },
+    {
+        "name": "Target",
+        "plan_name": "Circle 360",
+        "region": "US",
+        "price": 10.99,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#CC0000",
+        "icon": "🎯",
+        "domain": "target.com"
+    },
+    {
+        "name": "Best Buy",
+        "plan_name": "My Best Buy Plus",
+        "region": "US",
+        "price": 4.17,
+        "currency": "USD",
+        "category": "Shopping",
+        "color": "#0046BE",
+        "icon": "💻",
+        "domain": "bestbuy.com"
+    }
+]

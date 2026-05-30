@@ -1,0 +1,189 @@
+[
+    {
+        "name": "1Password",
+        "plan_name": "Individual",
+        "region": "US",
+        "price": 2.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#3B66BC",
+        "icon": "🔑",
+        "domain": "1password.com"
+    },
+    {
+        "name": "1Password",
+        "plan_name": "Families",
+        "region": "US",
+        "price": 4.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#3B66BC",
+        "icon": "🔑",
+        "domain": "1password.com"
+    },
+    {
+        "name": "Bitwarden",
+        "plan_name": "Premium",
+        "region": "US",
+        "price": 1.0,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#175DDC",
+        "icon": "🛡️",
+        "domain": "bitwarden.com"
+    },
+    {
+        "name": "Bitwarden",
+        "plan_name": "Families",
+        "region": "US",
+        "price": 3.33,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#175DDC",
+        "icon": "🛡️",
+        "domain": "bitwarden.com"
+    },
+    {
+        "name": "Dashlane",
+        "plan_name": "Premium",
+        "region": "US",
+        "price": 4.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#0E353D",
+        "icon": "🔐",
+        "domain": "dashlane.com"
+    },
+    {
+        "name": "NordVPN",
+        "plan_name": "Standard",
+        "region": "US",
+        "price": 12.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#4687FF",
+        "icon": "🔒",
+        "domain": "nordvpn.com"
+    },
+    {
+        "name": "Surfshark",
+        "plan_name": "Starter",
+        "region": "US",
+        "price": 15.45,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#1DBF73",
+        "icon": "🦈",
+        "domain": "surfshark.com"
+    },
+    {
+        "name": "ExpressVPN",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 12.95,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#DA3940",
+        "icon": "🚀",
+        "domain": "expressvpn.com"
+    },
+    {
+        "name": "Proton VPN",
+        "plan_name": "VPN Plus",
+        "region": "US",
+        "price": 9.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#6D4AFF",
+        "icon": "🔒",
+        "domain": "protonvpn.com"
+    },
+    {
+        "name": "Proton",
+        "plan_name": "Unlimited",
+        "region": "US",
+        "price": 12.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#6D4AFF",
+        "icon": "🛡️",
+        "domain": "proton.me"
+    },
+    {
+        "name": "Malwarebytes",
+        "plan_name": "Premium",
+        "region": "US",
+        "price": 5.0,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#1E6AFF",
+        "icon": "🦠",
+        "domain": "malwarebytes.com"
+    },
+    {
+        "name": "Norton 360",
+        "plan_name": "Standard",
+        "region": "US",
+        "price": 8.33,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#FDB511",
+        "icon": "🛡️",
+        "domain": "norton.com"
+    },
+    {
+        "name": "McAfee",
+        "plan_name": "Total Protection",
+        "region": "US",
+        "price": 7.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#C01818",
+        "icon": "🛡️",
+        "domain": "mcafee.com"
+    },
+    {
+        "name": "Kaspersky",
+        "plan_name": "Standard",
+        "region": "US",
+        "price": 4.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#00A88E",
+        "icon": "🧬",
+        "domain": "kaspersky.com"
+    },
+    {
+        "name": "ESET",
+        "plan_name": "Essential Security",
+        "region": "US",
+        "price": 4.99,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#00A88E",
+        "icon": "🧱",
+        "domain": "eset.com"
+    },
+    {
+        "name": "AdGuard",
+        "plan_name": "Personal",
+        "region": "US",
+        "price": 2.49,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#68BC71",
+        "icon": "🚫",
+        "domain": "adguard.com"
+    },
+    {
+        "name": "Privacy.com",
+        "plan_name": "Pro",
+        "region": "US",
+        "price": 10.0,
+        "currency": "USD",
+        "category": "Security",
+        "color": "#111827",
+        "icon": "💳",
+        "domain": "privacy.com"
+    }
+]

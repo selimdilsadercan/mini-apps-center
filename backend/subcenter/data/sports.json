@@ -1,0 +1,167 @@
+[
+    {
+        "name": "beIN Sports",
+        "plan_name": "Spor Paketi",
+        "region": "TR",
+        "price": 399.0,
+        "currency": "TRY",
+        "category": "Sports",
+        "color": "#7B2CBF",
+        "icon": "⚽",
+        "domain": "beinsports.com.tr"
+    },
+    {
+        "name": "S Sport Plus",
+        "plan_name": "Aylık",
+        "region": "TR",
+        "price": 99.99,
+        "currency": "TRY",
+        "category": "Sports",
+        "color": "#111111",
+        "icon": "🏟️",
+        "domain": "ssportplus.com"
+    },
+    {
+        "name": "TOD",
+        "plan_name": "Spor Paketi",
+        "region": "TR",
+        "price": 349.0,
+        "currency": "TRY",
+        "category": "Sports",
+        "color": "#111827",
+        "icon": "📡",
+        "domain": "todtv.com.tr"
+    },
+    {
+        "name": "Formula 1 TV",
+        "plan_name": "Pro",
+        "region": "TR",
+        "price": 99.99,
+        "currency": "TRY",
+        "category": "Sports",
+        "color": "#E10600",
+        "icon": "🏎️",
+        "domain": "formula1.com"
+    },
+    {
+        "name": "NBA League Pass",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 16.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#1D428A",
+        "icon": "🏀",
+        "domain": "nba.com"
+    },
+    {
+        "name": "NFL+",
+        "plan_name": "Premium",
+        "region": "US",
+        "price": 14.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#013369",
+        "icon": "🏈",
+        "domain": "nfl.com"
+    },
+    {
+        "name": "UFC Fight Pass",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 9.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#D20A0A",
+        "icon": "🥊",
+        "domain": "ufcfightpass.com"
+    },
+    {
+        "name": "DAZN",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 29.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#F8FF13",
+        "icon": "🏟️",
+        "domain": "dazn.com"
+    },
+    {
+        "name": "Eurosport",
+        "plan_name": "Monthly",
+        "region": "EU",
+        "price": 6.99,
+        "currency": "EUR",
+        "category": "Sports",
+        "color": "#0057B8",
+        "icon": "🚴",
+        "domain": "eurosport.com"
+    },
+    {
+        "name": "Tennis TV",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 14.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#00AEEF",
+        "icon": "🎾",
+        "domain": "tennistv.com"
+    },
+    {
+        "name": "WWE Network",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 9.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#D7182A",
+        "icon": "🤼",
+        "domain": "wwe.com"
+    },
+    {
+        "name": "Strava",
+        "plan_name": "Subscription",
+        "region": "US",
+        "price": 11.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#FC4C02",
+        "icon": "🚴",
+        "domain": "strava.com"
+    },
+    {
+        "name": "Zwift",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 19.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#FC6719",
+        "icon": "🚲",
+        "domain": "zwift.com"
+    },
+    {
+        "name": "FloSports",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 29.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#00A3E0",
+        "icon": "🏆",
+        "domain": "flosports.tv"
+    },
+    {
+        "name": "MLB.TV",
+        "plan_name": "Monthly",
+        "region": "US",
+        "price": 29.99,
+        "currency": "USD",
+        "category": "Sports",
+        "color": "#002D72",
+        "icon": "⚾",
+        "domain": "mlb.com"
+    }
+]
