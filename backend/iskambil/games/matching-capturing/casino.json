@@ -1,0 +1,366 @@
+{
+  "id": "casino",
+  "name_tr": "Casino",
+  "name_en": "Casino",
+  "originalName": "Casino",
+  "description_tr": "Yerdeki kartları aynı değerle veya toplam değer eşleştirmesiyle toplamaya dayalı klasik bir fishing/toplama kart oyunudur.",
+  "description_en": "A classic fishing/capturing card game where table cards are captured by matching rank or matching a total value.",
+  "quickRules_tr": [
+    "Casino genellikle 2-4 oyuncuyla, 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya 4 kart, masaya da 4 açık kart dağıtılır.",
+    "Sırası gelen oyuncu elinden bir kart oynar.",
+    "Oyuncu yerdeki aynı değerdeki kartı veya toplamı oynadığı karta eşit olan birden fazla sayı kartını alabilir.",
+    "Örneğin yerde 1, 2 ve 4 varsa, eldeki 7 ile bu üç kart birlikte alınabilir.",
+    "Oyuncu kart alamıyorsa veya almak istemiyorsa elinden bir kartı masadaki açık kartların yanına açık şekilde bırakır.",
+    "Vale, Kız ve Papaz toplam hesabına katılmaz; yalnızca aynı değerdeki resimli kartla alınır.",
+    "Build hamlesiyle yerdeki kartlar belirli bir toplam için gruplanabilir.",
+    "Build yapan oyuncunun elinde o build'i alabilecek kart bulunmalıdır.",
+    "Eldeki kartlar bitince oyunculara yeniden 4'er kart dağıtılır.",
+    "Son elde masada kalan kartlar, son kart alan oyuncuya gider.",
+    "Puanlama; en çok kart, en çok maça, Aslar, Karo 10 ve Maça 2 gibi özel kartlara göre yapılır."
+  ],
+  "quickRules_en": [
+    "Casino is usually played with 2-4 players using a standard 52-card deck.",
+    "Each player receives 4 cards, and 4 cards are dealt face up to the table.",
+    "On their turn, a player plays one card from their hand.",
+    "The player may capture a table card of the same rank or several number cards whose total equals the played card.",
+    "For example, if 1, 2, and 4 are on the table, a 7 from hand can capture all three cards together.",
+    "If a player cannot or does not want to capture, they place one card from their hand face up beside the other face-up cards on the table.",
+    "Jacks, Queens, and Kings do not count in sum captures; they are captured only by matching the same face card rank.",
+    "A build may be made by grouping table cards toward a specific total.",
+    "A player who makes a build must have a card that can capture that build.",
+    "When players run out of cards, 4 more cards are dealt to each player.",
+    "At the end of the hand, remaining table cards go to the last player who made a capture.",
+    "Scoring is based on most cards, most spades, Aces, the 10 of Diamonds, and the 2 of Spades."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Her oyuncuya 4 kart kapalı şekilde dağıtılır.",
+    "Masaya 4 kart açık şekilde konur.",
+    "Kalan kartlar kapalı deste olarak kenarda tutulur.",
+    "Oyuncular kendi kartlarına bakabilir, ancak diğer oyunculara göstermez.",
+    "İlk oyuncu genellikle dağıtanın solundaki oyuncudur.",
+    "Eldeki 4 kartlar oynandıktan sonra, deste bitene kadar oyunculara yeniden 4'er kart dağıtılır.",
+    "İlk dağıtımdan sonra masaya yeniden açık kart dağıtılmaz; masadaki kartlar oyun içinde oluşur."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal 4 cards face down to each player.",
+    "Deal 4 cards face up to the table.",
+    "Keep the remaining cards aside as the face-down stock.",
+    "Players may look at their own cards, but they do not show them to others.",
+    "The first player is usually the player to the dealer's left.",
+    "After each set of 4 hand cards is played, deal 4 more cards to each player until the stock runs out.",
+    "After the initial deal, no new face-up cards are dealt to the table; the table cards develop through play."
+  ],
+  "objective_tr": "Amaç, elindeki kartlarla masadaki açık kartları yakalayarak puan getiren kartları ve çoğunluk bonuslarını toplamaktır.",
+  "objective_en": "The objective is to capture face-up table cards with cards from your hand and collect scoring cards and majority bonuses.",
+  "gameplay_tr": [
+    "Sırası gelen oyuncu elinden bir kart oynar.",
+    "Oyuncu oynadığı kartla masadaki aynı değerdeki kartı alabilir.",
+    "Oyuncu ayrıca masadaki sayı kartlarının toplamı oynadığı kartın değerine eşitse bu kartları birlikte alabilir.",
+    "Örneğin eldeki 9 ile masadaki 4 ve 5 birlikte alınabilir.",
+    "Masada 1, 2 ve 4 varsa, eldeki 7 ile bu üç kart birlikte alınabilir.",
+    "Bir hamlede aynı kartla birden fazla farklı yakalama yapılabilir, yeter ki her grup oynanan kartın değerine eşit olsun.",
+    "Oyuncu kart yakalarsa, oynadığı kartı ve yakaladığı masa kartlarını kendi kazandığı kartlar destesine koyar.",
+    "Oyuncu kart yakalayamıyorsa veya yakalamak istemiyorsa, elinden bir kartı masadaki açık kartların yanına açık şekilde bırakır.",
+    "Masaya bırakılan bu kart daha sonra diğer oyuncular tarafından yakalanabilir veya toplam yakalamalarında kullanılabilir.",
+    "Resimli kartlar toplam hesabına katılmaz ve yalnızca aynı değerdeki resimli kartla yakalanır.",
+    "Vale yalnızca Vale ile, Kız yalnızca Kız ile, Papaz yalnızca Papaz ile alınabilir.",
+    "Eldeki kartlar bittiğinde ve stock destesinden kart kaldıysa her oyuncuya yeniden 4 kart dağıtılır.",
+    "Deste tamamen bittiğinde ve tüm oyuncular son kartlarını oynadığında el sona erer.",
+    "El sonunda masada kalan kartlar, son yakalama yapan oyuncuya verilir."
+  ],
+  "gameplay_en": [
+    "On their turn, a player plays one card from their hand.",
+    "The player may capture a table card of the same rank as the played card.",
+    "The player may also capture number cards from the table if their total equals the value of the played card.",
+    "For example, a 9 from hand may capture a 4 and a 5 from the table.",
+    "If 1, 2, and 4 are on the table, a 7 from hand may capture all three cards together.",
+    "A single played card may capture multiple separate groups if each group equals the value of the played card.",
+    "If the player captures cards, they place the played card and captured table cards into their captured pile.",
+    "If the player cannot or does not want to capture, they place one card from their hand face up beside the other face-up cards on the table.",
+    "This trailed card remains on the table and may later be captured or used in sum captures by other players.",
+    "Face cards do not count in sum captures and are captured only by matching face cards of the same rank.",
+    "A Jack is captured only by a Jack, a Queen only by a Queen, and a King only by a King.",
+    "When all players have played their hand cards and cards remain in the stock, deal 4 more cards to each player.",
+    "When the stock is exhausted and all players have played their final cards, the hand ends.",
+    "At the end of the hand, remaining table cards are given to the last player who made a capture."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kart Değerleri",
+      "title_en": "Card Values",
+      "content_tr": [
+        "As genellikle 1 değerindedir ve aynı zamanda puan getiren özel karttır.",
+        "2-10 arası sayı kartları kendi değerindedir.",
+        "Vale, Kız ve Papaz toplam yakalamalarında kullanılmaz.",
+        "Resimli kartlar yalnızca aynı değerdeki resimli kartla yakalanır.",
+        "Vale yalnızca Vale ile alınır.",
+        "Kız yalnızca Kız ile alınır.",
+        "Papaz yalnızca Papaz ile alınır.",
+        "Karo 10 özel puan kartıdır ve Big Casino olarak bilinir.",
+        "Maça 2 özel puan kartıdır ve Little Casino olarak bilinir."
+      ],
+      "content_en": [
+        "Ace usually has a value of 1 and is also a scoring card.",
+        "Number cards from 2 to 10 are worth their face value.",
+        "Jacks, Queens, and Kings are not used in sum captures.",
+        "Face cards are captured only by matching face cards of the same rank.",
+        "A Jack is captured only by a Jack.",
+        "A Queen is captured only by a Queen.",
+        "A King is captured only by a King.",
+        "The 10 of Diamonds is a special scoring card known as Big Casino.",
+        "The 2 of Spades is a special scoring card known as Little Casino."
+      ]
+    },
+    {
+      "title_tr": "Yakalama Türleri",
+      "title_en": "Types of Captures",
+      "content_tr": [
+        "Eş Değer Yakalama: Oyuncu elindeki kartla masadaki aynı değerdeki kartı alır. Örneğin eldeki 6 ile yerdeki 6 alınır.",
+        "Toplam Yakalama: Masadaki birden fazla sayı kartının toplamı eldeki karta eşitse bu kartlar birlikte alınır. Örneğin eldeki 8 ile yerdeki 3 ve 5 alınır.",
+        "Çok Kartlı Toplam Yakalama: Toplam yakalama ikiden fazla kartla da yapılabilir. Örneğin masada 1, 2 ve 4 varsa, eldeki 7 ile üçü birlikte alınabilir.",
+        "Çoklu Yakalama: Aynı kartla birden fazla grup alınabilir. Örneğin eldeki 8 ile yerdeki 8 ve ayrıca 3+5 birlikte alınabilir.",
+        "Resimli Kart Yakalama: Vale, Kız ve Papaz yalnızca kendi aynı değeriyle alınır.",
+        "Oyuncu yakalama yaparsa oynadığı kart da kazandığı kartların arasına eklenir."
+      ],
+      "content_en": [
+        "Rank Capture: A player captures a table card of the same rank as the card played. For example, a 6 from hand captures a 6 on the table.",
+        "Sum Capture: Several number cards on the table may be captured if their total equals the played card. For example, an 8 from hand captures 3 and 5.",
+        "Multi-card Sum Capture: Sum captures may use more than two cards. For example, if 1, 2, and 4 are on the table, a 7 from hand captures all three together.",
+        "Multiple Capture: The same played card may capture more than one group. For example, an 8 may capture an 8 and also 3+5.",
+        "Face Card Capture: Jacks, Queens, and Kings are captured only by matching the same rank.",
+        "When a player captures, the played card is also added to their captured cards."
+      ]
+    },
+    {
+      "title_tr": "Kart Alamama / Trail",
+      "title_en": "No Capture / Trail",
+      "content_tr": [
+        "Oyuncu kart yakalayamıyorsa veya yakalamak istemiyorsa elinden bir kartı masadaki açık kartların yanına açık şekilde bırakır.",
+        "Bu hamleye trail denir.",
+        "Masaya bırakılan kart yerde kalır ve sonraki oyuncular tarafından alınabilir.",
+        "Masaya bırakılan kart, ilerleyen hamlelerde toplam yakalamalarında da kullanılabilir.",
+        "Örneğin masada 3 ve 5 varken oyuncu elindeki 7 ile kart alamıyorsa 7'yi masadaki açık kartların yanına bırakabilir.",
+        "Sonraki oyuncu elindeki 10 ile 3 ve 7'yi birlikte alabilir."
+      ],
+      "content_en": [
+        "If a player cannot or does not want to capture, they place one card from their hand face up beside the other face-up cards on the table.",
+        "This move is called trailing.",
+        "The trailed card remains on the table and may be captured by later players.",
+        "The trailed card may also be used in sum captures on later turns.",
+        "For example, if 3 and 5 are on the table and a player cannot capture with a 7, they may place the 7 beside the other face-up cards.",
+        "A later player may capture 3 and 7 together with a 10 from hand."
+      ]
+    },
+    {
+      "title_tr": "Build Hamlesi",
+      "title_en": "Building",
+      "content_tr": [
+        "Build, masadaki kartları ileride yakalamak için belirli bir toplam altında gruplama hamlesidir.",
+        "Oyuncu build yaparken elinde o build toplamını yakalayabilecek bir kart bulunmalıdır.",
+        "Örneğin elde 8 varsa, oyuncu masadaki 3'ün üzerine 5 koyarak 8'lik build oluşturabilir.",
+        "Build oluşturulduğunda oyuncu genellikle build değerini açıkça söyler.",
+        "Build yapan oyuncu, build hâlâ masadaysa sonraki uygun turunda bu build'i almak zorundadır.",
+        "Ancak başka bir oyuncu uygun kartla build'i önce yakalayabilir.",
+        "Build yapan oyuncuya sıra tekrar gelmeden önce build alınırsa, build yapan oyuncunun alma zorunluluğu ortadan kalkar.",
+        "Build kuralları evden eve değişebildiği için oyuna başlamadan önce basit build mi, gelişmiş build mi oynanacağı belirlenmelidir."
+      ],
+      "content_en": [
+        "A build is a move that groups table cards under a specific total so they can be captured later.",
+        "A player who makes a build must have a card in hand that can capture that build total.",
+        "For example, if the player has an 8, they may place a 5 on a table 3 to create a build of 8.",
+        "When making a build, the player usually announces the build value clearly.",
+        "If the build is still on the table when the builder's next legal turn comes, the builder must capture it.",
+        "However, another player may capture the build first with the proper card.",
+        "If the build is captured before the builder's turn comes back, the builder is no longer obligated to capture it.",
+        "Because build rules vary by house rule, players should agree before the game whether simple building or advanced building is allowed."
+      ]
+    },
+    {
+      "title_tr": "Build'e Ekleme",
+      "title_en": "Adding to a Build",
+      "content_tr": [
+        "Build'e ekleme yapmak, mevcut build'in değerini değiştirmeden aynı toplamı sağlayan başka kart veya kart gruplarını build'e dahil etmektir.",
+        "Örneğin masada 3+5 şeklinde 8'lik bir build varsa ve yerde ayrıca tek başına 8 varsa, oyuncu bu 8'i build'e ekleyebilir.",
+        "Bu durumda build hâlâ 8 değerindedir; çünkü 3+5 de 8 eder, tek 8 de 8 eder.",
+        "Başka bir örnek: Masada A+4 şeklinde 5'lik build varsa ve yerde 2+3 varsa, 2+3 grubu da aynı 5'lik build'e eklenebilir.",
+        "Oyuncu sonraki uygun turunda elindeki 8 veya 5 gibi uygun kartla tüm build'i alabilir.",
+        "Başlangıç kurallarında build değerini değiştirmeyen eklemeler daha anlaşılırdır."
+      ],
+      "content_en": [
+        "Adding to a build means adding another card or group of cards that matches the same build value without changing the build's value.",
+        "For example, if there is an 8-build made of 3+5 and there is also a single 8 on the table, a player may add that 8 to the build.",
+        "The build is still worth 8, because 3+5 equals 8 and the single 8 also equals 8.",
+        "Another example: if there is a 5-build made of A+4 and there is also 2+3 on the table, the 2+3 group may be added to the same 5-build.",
+        "On a later legal turn, the player may capture the entire build with a matching card such as an 8 or 5.",
+        "For beginner rules, additions that do not change the build value are easier to understand."
+      ]
+    },
+    {
+      "title_tr": "Build'i Yükseltme",
+      "title_en": "Increasing a Build",
+      "content_tr": [
+        "Bazı gelişmiş Casino kurallarında mevcut build'in değeri yükseltilebilir.",
+        "Örneğin masada 3+5 şeklinde 8'lik build varsa, oyuncu 2 ekleyerek bunu 10'luk build'e yükseltebilir.",
+        "Bu durumda yeni build değeri artık 8 değil, 10 olur.",
+        "Build'i 10'a yükselten oyuncunun elinde bu build'i alabilecek bir 10 bulunmalıdır.",
+        "Elinde 10 yoksa oyuncu 8'lik build'e 2 ekleyip 10'luk build oluşturamaz.",
+        "Build yükseltme kuralı yeni başlayanlar için karışık olabilir.",
+        "Daha basit oyun için build değerinin değiştirilemediği basit build kuralı tercih edilebilir."
+      ],
+      "content_en": [
+        "In some advanced Casino rules, the value of an existing build may be increased.",
+        "For example, if there is an 8-build made of 3+5, a player may add a 2 to increase it to a 10-build.",
+        "In this case, the build value is no longer 8; it becomes 10.",
+        "The player who increases the build to 10 must have a 10 in hand that can capture the build.",
+        "If the player does not have a 10, they may not add 2 to an 8-build to create a 10-build.",
+        "Increasing builds can be confusing for beginners.",
+        "For a simpler game, use the simple build rule where build values cannot be changed."
+      ]
+    },
+    {
+      "title_tr": "Sweep",
+      "title_en": "Sweep",
+      "content_tr": [
+        "Sweep, bir oyuncunun hamlesiyle masadaki tüm açık kartları toplamasıdır.",
+        "Örneğin masada yalnızca 4 ve 5 varsa, eldeki 9 ile ikisi de alınır ve masa tamamen boşalır.",
+        "Bazı puanlama sistemlerinde her sweep 1 puan değerindedir.",
+        "Sweep yapan oyuncu bunu hatırlamak için kazandığı kartların arasından bir kartı açık şekilde ayırabilir.",
+        "Son elde masada kalan kartların son yakalayan oyuncuya verilmesi genellikle sweep sayılmaz."
+      ],
+      "content_en": [
+        "A sweep happens when a player captures all face-up cards from the table in one move.",
+        "For example, if the table has only a 4 and a 5, a 9 from hand captures both and clears the table.",
+        "In some scoring systems, each sweep is worth 1 point.",
+        "A player who makes a sweep may keep one captured card face up as a reminder.",
+        "Receiving the leftover table cards at the end of the hand usually does not count as a sweep."
+      ]
+    },
+    {
+      "title_tr": "Puan Kartları",
+      "title_en": "Scoring Cards",
+      "content_tr": [
+        "Karo 10, Big Casino olarak bilinir ve genellikle 2 puandır.",
+        "Maça 2, Little Casino olarak bilinir ve genellikle 1 puandır.",
+        "Her As genellikle 1 puandır.",
+        "En çok kartı toplayan oyuncu genellikle 3 puan alır.",
+        "En çok maça toplayan oyuncu genellikle 1 puan alır.",
+        "Eşitlik durumunda en çok kart veya en çok maça puanı verilmeyebilir.",
+        "Bazı ev kurallarında sweep başına 1 puan da verilir."
+      ],
+      "content_en": [
+        "The 10 of Diamonds is known as Big Casino and is usually worth 2 points.",
+        "The 2 of Spades is known as Little Casino and is usually worth 1 point.",
+        "Each Ace is usually worth 1 point.",
+        "The player with the most captured cards usually scores 3 points.",
+        "The player with the most captured spades usually scores 1 point.",
+        "If tied for most cards or most spades, that bonus may not be awarded.",
+        "Some house rules also award 1 point for each sweep."
+      ]
+    },
+    {
+      "title_tr": "Dağıtım Döngüsü",
+      "title_en": "Deal Cycle",
+      "content_tr": [
+        "İlk dağıtımda her oyuncuya 4 kart, masaya 4 açık kart verilir.",
+        "Oyuncular ellerindeki 4 kartı sırayla oynar.",
+        "Herkesin eli bitince, stock destesinden her oyuncuya yeniden 4 kart dağıtılır.",
+        "Sonraki dağıtımlarda masaya yeni açık kart verilmez.",
+        "Bu döngü stock destesi bitene kadar devam eder.",
+        "Son kartlar oynandıktan sonra masada kalan kartlar son yakalama yapan oyuncuya verilir."
+      ],
+      "content_en": [
+        "In the initial deal, each player receives 4 cards and 4 cards are dealt face up to the table.",
+        "Players take turns playing the 4 cards in their hands.",
+        "When all players have emptied their hands, 4 more cards are dealt to each player from the stock.",
+        "No new face-up cards are dealt to the table after the initial deal.",
+        "This cycle continues until the stock is exhausted.",
+        "After the final cards are played, any cards left on the table go to the last player who made a capture."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Basit Casino: Build yükseltme kullanılmaz; build değeri oluşturulduktan sonra değiştirilemez.",
+        "Klasik Casino: Capture, build, multiple capture ve sweep kuralları birlikte kullanılır.",
+        "Gelişmiş Build: Mevcut build'in değeri uygun kart eklenerek yükseltilebilir; oyuncunun yeni build değerini alabilecek kartı olmalıdır.",
+        "Sweep Puanlı Casino: Her sweep için ekstra 1 puan verilir.",
+        "Hedef 21: Oyun birkaç el boyunca sürer ve 21 puana ilk ulaşan oyuncu kazanır.",
+        "Eşli Casino: 4 oyuncuyla iki takıma ayrılarak oynanabilir.",
+        "Royal Casino: Resimli kartlara farklı toplam değerleri verilebilen bir ev kuralı varyantıdır."
+      ],
+      "content_en": [
+        "Simple Casino: Build increasing is not used; once a build value is made, it cannot be changed.",
+        "Classic Casino: Capture, build, multiple capture, and sweep rules are all used.",
+        "Advanced Building: An existing build may be increased by adding a suitable card; the player must have a card that can capture the new build value.",
+        "Sweep-Scoring Casino: Each sweep gives an extra 1 point.",
+        "Target 21: The game continues over several hands until one player reaches 21 points.",
+        "Partnership Casino: With 4 players, the game may be played in two teams.",
+        "Royal Casino: A house-rule variant where face cards may be given different numerical values."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "El sonunda oyuncular topladıkları kartları sayarak puanlarını hesaplar.",
+    "Karo 10 genellikle 2 puandır.",
+    "Maça 2 genellikle 1 puandır.",
+    "Her As genellikle 1 puandır.",
+    "En çok kartı toplayan oyuncu genellikle 3 puan alır.",
+    "En çok maça toplayan oyuncu genellikle 1 puan alır.",
+    "Bazı kurallarda her sweep 1 puandır.",
+    "Klasik puanlamada bir elde toplam 11 temel puan bulunur; sweep puanları varsa bu toplam artabilir."
+  ],
+  "scoring_en": [
+    "At the end of the hand, players count the cards they captured and calculate their score.",
+    "The 10 of Diamonds is usually worth 2 points.",
+    "The 2 of Spades is usually worth 1 point.",
+    "Each Ace is usually worth 1 point.",
+    "The player with the most captured cards usually scores 3 points.",
+    "The player with the most captured spades usually scores 1 point.",
+    "In some rules, each sweep is worth 1 point.",
+    "In classic scoring, there are 11 basic points in a hand; sweep points may increase this total."
+  ],
+  "ending_tr": [
+    "Stock destesi bittiğinde ve oyuncular son 4 kartlarını oynadığında el sona erer.",
+    "Masada kalan kartlar, son yakalama yapan oyuncuya verilir.",
+    "Oyuncular topladıkları kartlara göre puanlarını hesaplar.",
+    "Tek el oynanıyorsa en yüksek puanı alan oyuncu kazanır.",
+    "Seri oynanıyorsa eller devam eder ve belirlenen hedef puana ilk ulaşan oyuncu veya takım kazanır.",
+    "Yaygın hedef puan 21'dir."
+  ],
+  "ending_en": [
+    "The hand ends when the stock is exhausted and players have played their final 4 cards.",
+    "Cards left on the table are given to the last player who made a capture.",
+    "Players calculate their scores based on the cards they captured.",
+    "If playing a single hand, the player with the highest score wins.",
+    "If playing a series, hands continue until a player or team reaches the chosen target score.",
+    "A common target score is 21."
+  ],
+  "notes_tr": [
+    "Casino, Cassino adıyla da bilinir.",
+    "Oyun adı kumarhane anlamına gelse de bu oyun bahisli olmak zorunda değildir.",
+    "Oyunun temel mantığı yerdeki açık kartları yakalamak ve puan kartlarını toplamaktır.",
+    "Build kuralları yeni başlayanlar için karışık olabilir; ilk oyunlarda sadece basit yakalama ve toplam yakalama ile başlanabilir.",
+    "Başlangıç dostu kural olarak build yükseltme kapalı tutulabilir.",
+    "Karo 10 ve Maça 2 özel puan kartları olduğu için stratejik olarak önemlidir.",
+    "En çok kart ve en çok maça bonusları nedeniyle bazen küçük görünen yakalamalar bile oyun sonunda değerli olabilir."
+  ],
+  "notes_en": [
+    "Casino is also spelled Cassino.",
+    "Although the name resembles gambling casinos, this card game does not have to involve betting.",
+    "The main idea is to capture face-up table cards and collect scoring cards.",
+    "Build rules can be confusing for beginners, so early games may start with only simple rank and sum captures.",
+    "For a beginner-friendly ruleset, build increasing may be turned off.",
+    "The 10 of Diamonds and 2 of Spades are strategically important scoring cards.",
+    "Because of the most-cards and most-spades bonuses, even small captures can matter at the end of the hand."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Eşleştirme / Toplama",
+  "category_en": "Matching / Capturing"
+}
