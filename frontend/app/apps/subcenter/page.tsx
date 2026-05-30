@@ -20,6 +20,7 @@ import {
   Palette,
   ChatCircle,
   Package,
+  Calendar,
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -230,6 +231,22 @@ function BrandIcon({
   return <span className="relative z-10" style={{ fontSize: size - 8 }}>{icon || "💳"}</span>;
 }
 
+const categoryTranslations: { [key: string]: string } = {
+  "Entertainment": "Eğlence",
+  "Music": "Müzik",
+  "AI": "Yapay Zeka",
+  "Software": "Yazılım",
+  "Productivity": "Üretkenlik",
+  "Gaming": "Oyun",
+  "Cloud Storage": "Bulut Depolama",
+  "Dating": "Flört",
+  "Security": "Güvenlik",
+  "Finance": "Finans",
+  "Shopping": "Alışveriş",
+  "Sports": "Spor",
+  "Other": "Diğer"
+};
+
 export default function SubscriptionCenter() {
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -265,6 +282,16 @@ export default function SubscriptionCenter() {
   const [brandSearch, setBrandSearch] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<SubscriptionCategory[]>([]);
+
+  const uniquePresets = useMemo(() => {
+    const seen = new Set<string>();
+    return presets.filter(p => {
+      if (seen.has(p.name)) return false;
+      seen.add(p.name);
+      return true;
+    });
+  }, [presets]);
+
   const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
   const [newSub, setNewSub] = useState<Partial<Subscription>>({ ...EMPTY_SUB_FORM });
 
@@ -361,7 +388,7 @@ export default function SubscriptionCenter() {
       .then((data) => {
         if (typeof data.rate === "number" && data.rate > 0) setUsdTryRate(data.rate);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -609,20 +636,56 @@ export default function SubscriptionCenter() {
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
-        <section className="space-y-8">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex flex-col">
-              <h3 className="text-sm font-black text-slate-800 uppercase">{t("activeInvoices")}</h3>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-                {t("recordsActive", { count: subscriptions.length })}
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">{t("runningTotalMo")}</span>
-              <span className="text-2xl font-black text-indigo-600 tracking-tighter leading-none">₺ {formatMoney(monthlyTotal)}</span>
-            </div>
-          </div>
+        {/* Discover Presets Banner */}
+        <div className="w-full rounded-[2.5rem] py-12 px-8 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800/30 shadow-2xl mb-10 flex flex-col items-center justify-center text-center">
+          {/* Background Gradients */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[150px] rounded-full bg-slate-800/10 blur-3xl pointer-events-none" />
 
+          {/* Scattered / Floating Icons (Non-clickable decoration) */}
+          {uniquePresets.slice(0, 8).map((preset, idx) => {
+            const styles = [
+              { top: '12%', left: '4%', rotate: '-12deg', scale: '0.9', opacity: 'opacity-35' },
+              { bottom: '15%', left: '10%', rotate: '15deg', scale: '0.8', opacity: 'opacity-20' },
+              { top: '22%', right: '8%', rotate: '12deg', scale: '1.05', opacity: 'opacity-40' },
+              { bottom: '12%', right: '3%', rotate: '-10deg', scale: '0.9', opacity: 'opacity-25' },
+              { top: '15%', left: '18%', rotate: '-6deg', scale: '0.75', opacity: 'opacity-15' },
+              { bottom: '22%', right: '16%', rotate: '8deg', scale: '0.8', opacity: 'opacity-20' },
+              { top: '42%', left: '8%', rotate: '18deg', scale: '0.75', opacity: 'opacity-20' },
+              { bottom: '38%', right: '10%', rotate: '-15deg', scale: '0.85', opacity: 'opacity-25' },
+            ][idx] || { top: '50%', left: '50%', rotate: '0deg', scale: '1', opacity: 'opacity-10' };
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  position: 'absolute',
+                  top: styles.top,
+                  left: styles.left,
+                  right: styles.right,
+                  bottom: styles.bottom,
+                  transform: `rotate(${styles.rotate}) scale(${styles.scale})`,
+                }}
+                className={`hidden md:flex w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.06] items-center justify-center pointer-events-none select-none shadow-md transition-transform ${styles.opacity}`}
+              >
+                <BrandIcon name={preset.name} icon={preset.icon} size={28} presets={presets} />
+              </div>
+            );
+          })}
+
+          {/* Centered Heading and Info */}
+          <div className="relative z-10 max-w-xl">
+            <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white mb-3">
+              {locale === "tr" ? "Aboneliklerini Kolayca Takip Et" : "Track Your Subscriptions Easily"}
+            </h2>
+            <p className="text-xs sm:text-sm font-medium text-slate-400 leading-relaxed">
+              {locale === "tr"
+                ? "Tüm aktif üyeliklerini ekleyerek aylık ödemelerini ve yenilenme tarihlerini tek bir yerden kontrol altında tut."
+                : "Add all your active memberships to monitor monthly payments and renewal dates in one single hub."}
+            </p>
+          </div>
+        </div>
+
+        <section className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <AnimatePresence mode="popLayout">
               {subscriptions.map((sub) => (
@@ -634,62 +697,81 @@ export default function SubscriptionCenter() {
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   className="relative group"
                 >
-                  <div className="bg-[#FAFAF8] shadow-sm flex flex-col overflow-hidden group-hover:shadow-md transition-shadow duration-300 border-y border-dashed border-slate-300">
-                    <div className="border-x border-dashed border-slate-300 px-3 py-1.5">
-                      <div className="border-b border-dashed border-slate-200 pb-1.5 mb-1.5">
-                        <div className="flex gap-3 items-stretch">
-                          <div className="shrink-0 flex flex-col items-center gap-1.5 text-center">
-                            <h4 className="text-sm font-bold text-slate-800 leading-snug line-clamp-2 max-w-[7rem]">{sub.name}</h4>
-                            <div className="w-16 h-16 flex items-center justify-center bg-white border border-dashed border-slate-200 overflow-hidden p-1">
-                              <BrandIcon name={sub.name} icon={sub.icon} size={40} presets={presets} />
-                            </div>
-                          </div>
+                  <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col h-[180px]">
+                    {/* Top Accent Strip based on service color */}
+                    <div className="h-1.5 w-full" style={{ backgroundColor: sub.color || '#6366F1' }} />
 
-                          <div className="flex-1 min-w-0 flex flex-col items-end justify-between text-right">
-                            <div>
-                              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide leading-none">{t("renewalDate")}</p>
-                              <p className="text-sm text-slate-700 font-mono tabular-nums leading-tight mt-0.5">
-                                {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
-                              </p>
-                            </div>
-                            <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">
-                              {formatPriceDisplay(sub.price, sub.currency || "TRY")}
-                            </p>
+                    <div className="p-5 flex-1 flex flex-col justify-between">
+                      {/* Top Row: Brand & Price */}
+                      <div className="flex gap-4 items-start justify-between">
+                        {/* Logo & Brand Info */}
+                        <div className="flex gap-4 items-start min-w-0">
+                          {/* Logo Circle */}
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
+                            <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} />
                           </div>
+                          
+                          {/* Title & Category */}
+                          <div className="min-w-0 flex flex-col justify-center h-12">
+                            <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
+                              {locale === "tr" ? (categoryTranslations[sub.category] || sub.category) : sub.category}
+                              {sub.region !== "TR" && ` • ${sub.region}`}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Price & Cycle */}
+                        <div className="text-right shrink-0">
+                          <span className="text-lg font-black text-slate-800 tracking-tighter">
+                            {formatPriceDisplay(sub.price, sub.currency)}
+                          </span>
+                          <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                            /{sub.cycle === "monthly" ? (locale === "tr" ? "aylık" : "mo") : (locale === "tr" ? "yıllık" : "yr")}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-0.5 -mx-0.5">
-                        <button
-                          onClick={() => handleEdit(sub)}
-                          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
-                        >
-                          <PencilSimple size={17} weight="bold" />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(sub.id)}
-                          className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
-                        >
-                          <Trash size={17} weight="bold" />
-                        </button>
+                      {/* Middle Line */}
+                      <div className="h-px bg-slate-100 w-full my-1" />
+
+                      {/* Bottom Row: Renewal Info & Actions */}
+                      <div className="flex items-center justify-between">
+                        {/* Renewal Date */}
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <Calendar size={14} className="text-slate-400" />
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{t("renewalDate")}</span>
+                            <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none mt-1">
+                              {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleEdit(sub)}
+                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-indigo-100"
+                          >
+                            <PencilSimple size={15} weight="bold" />
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(sub.id)}
+                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-100"
+                          >
+                            <Trash size={15} weight="bold" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <div
-                      className="h-1.5 w-full border-x border-dashed border-slate-300"
-                      style={{
-                        background: `linear-gradient(135deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px,
-                                      linear-gradient(225deg, #F3F4F6 25%, transparent 25%) -3px 0 / 6px 6px`,
-                        backgroundColor: "#FAFAF8",
-                      }}
-                    />
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
-        </section>
-      </main>
+    </div>
+        </section >
+      </main >
 
       <AnimatePresence>
         {showAddModal && (
@@ -1043,6 +1125,6 @@ export default function SubscriptionCenter() {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 }

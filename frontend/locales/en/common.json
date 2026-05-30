@@ -123,13 +123,14 @@
   },
   "subcenter": {
     "subtitle": "Global Billing Hub",
-    "issueBill": "Issue Bill",
-    "activeInvoices": "Active Invoices",
+    "issueBill": "Add Subscription",
+    "activeInvoices": "Active Subscriptions",
     "recordsActive": "{count} active records",
     "runningTotalMo": "Monthly Total",
-    "renewalDate": "Invoice renewal date",
-    "editBill": "Edit Bill",
+    "renewalDate": "Renewal date",
+    "editBill": "Edit Subscription",
     "selectCategory": "Choose Category",
+    "selectTemplate": "Choose Brand",
     "selectPlan": "Select plan type",
     "category": "Category",
     "brandSearchPlaceholder": "Search service...",
@@ -146,7 +147,7 @@
       "Social": "Social",
       "Other": "Other"
     },
-    "billDetails": "Bill Details",
+    "billDetails": "Subscription Details",
     "addCustomSubscription": "Add custom subscription",
     "quickPlan": "Plan",
     "service": "Service",
@@ -165,13 +166,12 @@
     "cycle": "Billing cycle",
     "monthly": "Monthly",
     "yearly": "Yearly",
-    "saveBill": "Save Bill",
+    "saveBill": "Save Subscription",
     "update": "Update",
-    "voidReceiptTitle": "Void this receipt?",
-    "voidReceiptDescription": "This record will be permanently removed from your billing history.",
+    "voidReceiptTitle": "Delete subscription?",
+    "voidReceiptDescription": "This record will be permanently removed from your subscription list.",
     "keepIt": "Keep it",
-    "voidDelete": "Void & delete",
+    "voidDelete": "Delete",
     "processing": "Processing..."
   }
 }
-
