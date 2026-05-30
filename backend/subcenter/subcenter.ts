@@ -146,21 +146,39 @@ export const getGlobalPresets = api(
   }
 );
 
-/**
- * Get subscription categories
- * GET /subcenter/categories
- */
 export const getCategories = api(
   { expose: true, method: "GET", path: "/subcenter/categories" },
   async (): Promise<GetCategoriesResponse> => {
-    const { data, error } = await supabase.schema("subcenter").rpc("get_categories");
+    const presets = loadPresets();
+    const names = Array.from(new Set(presets.map((p) => p.category)));
+    const categories = names.map((name) => {
+      const meta: { icon: string; color: string; sort_order: number } = {
+        "Entertainment": { icon: "🎬", color: "#E50914", sort_order: 1 },
+        "Music": { icon: "🎵", color: "#1DB954", sort_order: 2 },
+        "AI": { icon: "🤖", color: "#10A37F", sort_order: 3 },
+        "Software": { icon: "💻", color: "#6366F1", sort_order: 4 },
+        "Design": { icon: "✨", color: "#00C4CC", sort_order: 5 },
+        "Social": { icon: "💬", color: "#1877F2", sort_order: 6 },
+        "Cloud Storage": { icon: "☁️", color: "#0284C7", sort_order: 7 },
+        "Dating": { icon: "❤️", color: "#EC4899", sort_order: 8 },
+        "Education": { icon: "🎓", color: "#F59E0B", sort_order: 9 },
+        "Finance": { icon: "💵", color: "#10B981", sort_order: 10 },
+        "Gaming": { icon: "🎮", color: "#8B5CF6", sort_order: 11 },
+        "Productivity": { icon: "⚡", color: "#3B82F6", sort_order: 12 },
+        "Security": { icon: "🛡️", color: "#14B8A6", sort_order: 13 },
+        "Shopping": { icon: "🛍️", color: "#EF4444", sort_order: 14 },
+        "Sports": { icon: "⚽", color: "#22C55E", sort_order: 15 },
+      }[name] || { icon: "📦", color: "#64748B", sort_order: 99 };
+      return {
+        id: name.toLowerCase().replace(/\s+/g, "-"),
+        name,
+        icon: meta.icon,
+        color: meta.color,
+        sort_order: meta.sort_order,
+      };
+    }).sort((a, b) => a.sort_order - b.sort_order);
 
-    if (error) {
-      console.error("getCategories error:", error);
-      throw APIError.internal(`Failed to load categories: ${error.message}`);
-    }
-
-    return { categories: data || [] };
+    return { categories };
   }
 );
 

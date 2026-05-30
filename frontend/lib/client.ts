@@ -1526,10 +1526,6 @@ export namespace subcenter {
             return await resp.json() as DeleteSubscriptionResponse
         }
 
-        /**
-         * Get subscription categories
-         * GET /subcenter/categories
-         */
         public async getCategories(): Promise<GetCategoriesResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/categories`)

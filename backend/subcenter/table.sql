@@ -34,7 +34,16 @@ INSERT INTO subcenter.categories (id, name, icon, color, sort_order) VALUES
   ('software', 'Software', '💻', '#6366F1', 4),
   ('design', 'Design', '✨', '#00C4CC', 5),
   ('social', 'Social', '💬', '#1877F2', 6),
-  ('other', 'Other', '📦', '#64748B', 7)
+  ('cloud', 'Cloud Storage', '☁️', '#0284C7', 7),
+  ('dating', 'Dating', '❤️', '#EC4899', 8),
+  ('education', 'Education', '🎓', '#F59E0B', 9),
+  ('finance', 'Finance', '💵', '#10B981', 10),
+  ('gaming', 'Gaming', '🎮', '#8B5CF6', 11),
+  ('productivity', 'Productivity', '⚡', '#3B82F6', 12),
+  ('security', 'Security', '🛡️', '#14B8A6', 13),
+  ('shopping', 'Shopping', '🛍️', '#EF4444', 14),
+  ('sports', 'Sports', '⚽', '#22C55E', 15),
+  ('other', 'Other', '📦', '#64748B', 16)
 ON CONFLICT (id) DO NOTHING;
 
 -- Indexes

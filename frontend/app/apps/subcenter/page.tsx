@@ -21,6 +21,15 @@ import {
   ChatCircle,
   Package,
   Calendar,
+  Cloud,
+  Heart,
+  GraduationCap,
+  Coins,
+  GameController,
+  Lightning,
+  Shield,
+  ShoppingCart,
+  SoccerBall,
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -139,15 +148,24 @@ interface SubscriptionCategory {
   sort_order: number;
 }
 
-const FALLBACK_CATEGORIES: SubscriptionCategory[] = [
-  { id: "entertainment", name: "Entertainment", icon: "🎬", color: "#E50914", sort_order: 1 },
-  { id: "music", name: "Music", icon: "🎵", color: "#1DB954", sort_order: 2 },
-  { id: "ai", name: "AI", icon: "🤖", color: "#10A37F", sort_order: 3 },
-  { id: "software", name: "Software", icon: "💻", color: "#6366F1", sort_order: 4 },
-  { id: "design", name: "Design", icon: "✨", color: "#00C4CC", sort_order: 5 },
-  { id: "social", name: "Social", icon: "💬", color: "#1877F2", sort_order: 6 },
-  { id: "other", name: "Other", icon: "📦", color: "#64748B", sort_order: 7 },
-];
+const CATEGORY_META: Record<string, { icon: string; color: string; sort_order: number }> = {
+  "Entertainment": { icon: "🎬", color: "#E50914", sort_order: 1 },
+  "Music": { icon: "🎵", color: "#1DB954", sort_order: 2 },
+  "AI": { icon: "🤖", color: "#10A37F", sort_order: 3 },
+  "Software": { icon: "💻", color: "#6366F1", sort_order: 4 },
+  "Design": { icon: "✨", color: "#00C4CC", sort_order: 5 },
+  "Social": { icon: "💬", color: "#1877F2", sort_order: 6 },
+  "Cloud Storage": { icon: "☁️", color: "#0284C7", sort_order: 7 },
+  "Dating": { icon: "❤️", color: "#EC4899", sort_order: 8 },
+  "Education": { icon: "🎓", color: "#F59E0B", sort_order: 9 },
+  "Finance": { icon: "💵", color: "#10B981", sort_order: 10 },
+  "Gaming": { icon: "🎮", color: "#8B5CF6", sort_order: 11 },
+  "Productivity": { icon: "⚡", color: "#3B82F6", sort_order: 12 },
+  "Security": { icon: "🛡️", color: "#14B8A6", sort_order: 13 },
+  "Shopping": { icon: "🛍️", color: "#EF4444", sort_order: 14 },
+  "Sports": { icon: "⚽", color: "#22C55E", sort_order: 15 },
+  "Other": { icon: "📦", color: "#64748B", sort_order: 16 },
+};
 
 const CATEGORY_ICON_MAP: Record<string, PhosphorIcon> = {
   entertainment: FilmStrip,
@@ -156,11 +174,20 @@ const CATEGORY_ICON_MAP: Record<string, PhosphorIcon> = {
   software: Code,
   design: Palette,
   social: ChatCircle,
+  cloud_storage: Cloud,
+  dating: Heart,
+  education: GraduationCap,
+  finance: Coins,
+  gaming: GameController,
+  productivity: Lightning,
+  security: Shield,
+  shopping: ShoppingCart,
+  sports: SoccerBall,
   other: Package,
 };
 
 function CategoryIcon({ categoryId, color, size = 20 }: { categoryId: string; color: string; size?: number }) {
-  const IconComponent = CATEGORY_ICON_MAP[categoryId] ?? Package;
+  const IconComponent = CATEGORY_ICON_MAP[categoryId.replace(/-/g, "_")] ?? Package;
   return <IconComponent size={size} weight="duotone" style={{ color }} className="shrink-0" />;
 }
 
@@ -281,7 +308,20 @@ export default function SubscriptionCenter() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [brandSearch, setBrandSearch] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [categories, setCategories] = useState<SubscriptionCategory[]>([]);
+
+  const categories = useMemo<SubscriptionCategory[]>(() => {
+    const names = Array.from(new Set(presets.map(p => p.category)));
+    return names.map(name => {
+      const meta = CATEGORY_META[name] ?? { icon: "📦", color: "#64748B", sort_order: 99 };
+      return {
+        id: name.toLowerCase().replace(/\s+/g, "-"),
+        name,
+        icon: meta.icon,
+        color: meta.color,
+        sort_order: meta.sort_order,
+      };
+    }).sort((a, b) => a.sort_order - b.sort_order);
+  }, [presets]);
 
   const uniquePresets = useMemo(() => {
     const seen = new Set<string>();
@@ -319,30 +359,17 @@ export default function SubscriptionCenter() {
     [selectedBrandName, presets]
   );
 
-  const fetchCategories = async () => {
-    try {
-      const resp = await client.subcenter.getCategories();
-      if (Array.isArray(resp.categories)) {
-        setCategories(resp.categories);
-      }
-    } catch (err) {
-      console.error("Failed to load categories:", err);
-      setCategories(FALLBACK_CATEGORIES);
-    }
-  };
-
   const fetchPresets = async () => {
     if (process.env.NODE_ENV === "development") {
       try {
-        const localPresets = [
-          ...require("../../../../backend/subcenter/data/entertainment.json"),
-          ...require("../../../../backend/subcenter/data/music.json"),
-          ...require("../../../../backend/subcenter/data/ai.json"),
-          ...require("../../../../backend/subcenter/data/software.json"),
-          ...require("../../../../backend/subcenter/data/other.json"),
-          ...require("../../../../backend/subcenter/data/design.json"),
-          ...require("../../../../backend/subcenter/data/social.json"),
-        ].map((p: { name: string; plan_name: string; region: string; price: number; currency: string; category: string; color: string; icon: string; domain?: string }) => ({
+        const context = (require as any).context(
+          "../../../../backend/subcenter/data",
+          false,
+          /\.json$/
+        );
+        const localPresets = context.keys().reduce((acc: any[], key: string) => {
+          return acc.concat(context(key));
+        }, []).map((p: any) => ({
           id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
           name: p.name,
           plan_name: p.plan_name,
@@ -392,7 +419,6 @@ export default function SubscriptionCenter() {
   }, []);
 
   useEffect(() => {
-    fetchCategories();
     fetchPresets();
   }, []);
 
@@ -710,7 +736,7 @@ export default function SubscriptionCenter() {
                           <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
                             <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} />
                           </div>
-                          
+
                           {/* Title & Category */}
                           <div className="min-w-0 flex flex-col justify-center h-12">
                             <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
@@ -769,7 +795,7 @@ export default function SubscriptionCenter() {
                 </motion.div>
               ))}
             </AnimatePresence>
-    </div>
+          </div>
         </section >
       </main >
 
@@ -819,7 +845,8 @@ export default function SubscriptionCenter() {
 
               {addModalStep === "categories" && !editingId ? (
                 <>
-                  <div className="shrink-0 px-4 pt-3 pb-2">
+                  <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0 space-y-4">
+                    {/* 1. Search Input (non-fixed) */}
                     <div className="relative">
                       <MagnifyingGlass size={18} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                       <input
@@ -830,77 +857,79 @@ export default function SubscriptionCenter() {
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
                       />
                     </div>
-                  </div>
-                  <div className="flex-1 overflow-y-auto px-4 pb-3 min-h-0 space-y-2">
-                    {visibleSections.length === 0 ? (
-                      <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noBrandsFound")}</p>
-                    ) : (
-                      visibleSections.map(({ category, brands }) => {
-                        const expanded = expandedCategories.has(category.name);
-                        return (
-                          <div key={category.id} className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
-                            <button
-                              type="button"
-                              onClick={() => toggleCategoryExpanded(category.name)}
-                              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 hover:bg-slate-100/80 transition-colors cursor-pointer text-left"
-                              style={{ borderLeft: `3px solid ${category.color}` }}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <CategoryIcon categoryId={category.id} color={category.color} size={20} />
-                                <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
-                                <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
-                              </div>
-                              <CaretDown
-                                size={16}
-                                weight="bold"
-                                className={`shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                              />
-                            </button>
-                            <AnimatePresence initial={false}>
-                              {expanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="p-3 pt-2 border-t border-slate-100">
-                                    {brands.length === 0 ? (
-                                      <p className="text-center text-xs font-bold text-slate-400 py-4">{t("noBrandsFound")}</p>
-                                    ) : (
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {brands.map((brand) => (
-                                          <button
-                                            key={brand.name}
-                                            onClick={() => selectBrand(brand)}
-                                            className="flex flex-col items-center justify-center gap-1.5 p-3 min-h-[6.5rem] rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all text-center cursor-pointer"
-                                          >
-                                            <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
-                                              <BrandIcon name={brand.name} icon={brand.icon} size={32} presets={presets} />
-                                            </div>
-                                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                  <div className="shrink-0 p-4 pt-2 border-t border-slate-100 bg-white">
+
+                    {/* 2. Add Custom Subscription Button (non-fixed) */}
                     <button
                       onClick={startCustomSubscription}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 font-bold text-sm transition-all cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 font-bold text-sm transition-all cursor-pointer"
                     >
                       <Plus size={18} weight="bold" />
                       {t("addCustomSubscription")}
                     </button>
+
+                    {/* 3. Categories List */}
+                    <div className="space-y-2">
+                      {visibleSections.length === 0 ? (
+                        <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noBrandsFound")}</p>
+                      ) : (
+                        visibleSections.map(({ category, brands }) => {
+                          const expanded = expandedCategories.has(category.name);
+                          return (
+                            <div key={category.id} className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
+                              <button
+                                type="button"
+                                onClick={() => toggleCategoryExpanded(category.name)}
+                                className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/90 hover:bg-slate-100/90 transition-colors cursor-pointer text-left sticky top-0 z-10 backdrop-blur-md"
+                                style={{ borderLeft: `3px solid ${category.color}` }}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <CategoryIcon categoryId={category.id} color={category.color} size={20} />
+                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
+                                </div>
+                                <CaretDown
+                                  size={16}
+                                  weight="bold"
+                                  className={`shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+                                />
+                              </button>
+                              <AnimatePresence initial={false}>
+                                {expanded && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <div className="p-3 pt-2 border-t border-slate-100">
+                                      {brands.length === 0 ? (
+                                        <p className="text-center text-xs font-bold text-slate-400 py-4">{t("noBrandsFound")}</p>
+                                      ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                          {brands.map((brand) => (
+                                            <button
+                                              key={brand.name}
+                                              onClick={() => selectBrand(brand)}
+                                              className="flex flex-col items-center justify-center gap-1.5 p-3 min-h-[6.5rem] rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all text-center cursor-pointer"
+                                            >
+                                              <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+                                                <BrandIcon name={brand.name} icon={brand.icon} size={32} presets={presets} />
+                                              </div>
+                                              <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </>
               ) : addModalStep === "plan" && !editingId ? (
@@ -911,11 +940,10 @@ export default function SubscriptionCenter() {
                       <button
                         key={`${preset.plan_name}-${i}`}
                         onClick={() => selectPlan(preset)}
-                        className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer text-left ${
-                          newSub.plan_name === preset.plan_name
-                            ? "bg-slate-900 border-slate-900 text-white"
-                            : "bg-slate-50/50 border-slate-100 hover:bg-white hover:border-slate-200"
-                        }`}
+                        className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer text-left ${newSub.plan_name === preset.plan_name
+                          ? "bg-slate-900 border-slate-900 text-white"
+                          : "bg-slate-50/50 border-slate-100 hover:bg-white hover:border-slate-200"
+                          }`}
                       >
                         <div className="min-w-0">
                           <p className={`text-sm font-bold truncate ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-800"}`}>
@@ -955,11 +983,10 @@ export default function SubscriptionCenter() {
                                   icon: p.icon,
                                 })
                               }
-                              className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
-                                newSub.plan_name === p.plan_name
-                                  ? "bg-slate-900 text-white border-slate-900"
-                                  : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
-                              }`}
+                              className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${newSub.plan_name === p.plan_name
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
+                                }`}
                             >
                               {p.plan_name}
                             </button>
