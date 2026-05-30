@@ -64,7 +64,16 @@ function slugify(text: string): string {
 
 // Load products list directly from the local JSON file
 function loadProducts(): Chocolate[] {
-    return (productsData as RawProduct[]).map((p) => {
+    const seen = new Set<string>();
+    const list: Chocolate[] = [];
+    
+    for (const p of productsData as RawProduct[]) {
+        const id = slugify(p.name);
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        
         let brand = "Diğer";
         const nameLower = p.name.toLowerCase();
         if (nameLower.startsWith("ülker")) brand = "Ülker";
@@ -84,8 +93,8 @@ function loadProducts(): Chocolate[] {
         const descTr = `${p.weight || ""} ${p.price || ""}`.trim();
         const descEn = `${p.weight || ""} Chocolate Snack`.trim();
         
-        return {
-            id: slugify(p.name),
+        list.push({
+            id: id,
             name: p.name,
             brand: brand,
             description_tr: descTr || "Lezzetli çikolata atıştırmalığı.",
@@ -93,8 +102,10 @@ function loadProducts(): Chocolate[] {
             image_url: p.image_url,
             avg_rating: 0,
             review_count: 0
-        };
-    });
+        });
+    }
+    
+    return list;
 }
 
 // List all chocolates (loaded from file + rating/reviews statistics from DB)

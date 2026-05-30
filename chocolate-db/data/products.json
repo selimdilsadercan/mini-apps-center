@@ -1,0 +1,415 @@
+[
+  {
+    "name": "Ülker Çikolatalı Gofret",
+    "price": "17,99 TL",
+    "weight": "36 g",
+    "image_url": "https://cdn-image.getir.com/market/product/f35ecb54-e65a-4511-9fb4-b5175845ffe7.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Eti Karam Gurme Bitter Çikolatalı",
+    "price": "33,99 TL",
+    "weight": "50 g",
+    "image_url": "https://cdn-image.getir.com/market/product/dad59b98-cf4f-49c1-bc33-0facfbf852f6.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Kahve Dünyası Fıstıklı Gofrik",
+    "price": "55,50 TL",
+    "weight": "33 g",
+    "image_url": "https://cdn-image.getir.com/market/product/dcdd1052-5e71-4e9b-9fe4-9abbc86de9c9.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido",
+    "price": "30,99 TL",
+    "weight": "35 g",
+    "image_url": "https://cdn-image.getir.com/market/product/d9353a0f-476c-4f71-9a54-d132f7e2fa25.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Çokonat",
+    "price": "27,99 TL",
+    "weight": "33 g",
+    "image_url": "https://cdn-image.getir.com/market/product/f65f8cfb-535b-48a0-a535-46b8126ce348.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Kinder Bueno",
+    "price": "50,50 TL",
+    "weight": "43 g",
+    "image_url": "https://cdn-image.getir.com/market/product/0cec7a60-a970-4725-abd4-e01753309f81.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Sarelle Beyaz Çikolata Kaplı Antep Fıstıklı Gofret",
+    "price": "45,99 TL",
+    "weight": "33g",
+    "image_url": "https://cdn-image.getir.com/market/product/3dbd0b23-7378-4b4e-bc5b-1622f7f307dd.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Eti Karam Gurme Antep Fıstıklı",
+    "price": "67,50 TL",
+    "weight": "36 g",
+    "image_url": "https://cdn-image.getir.com/market/product/c6a157eb-d9bb-4e69-a49d-55260e6810cf.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestlé Sütlü Çikolatalı Gofret",
+    "price": "20,99 TL",
+    "weight": "27 g",
+    "image_url": "https://cdn-image.getir.com/market/product/45289d06-1540-4f8b-94db-afecbc810a79.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestle Damak Ala  Mini Antep Fıstıklı Sütlü Gofret 144 g",
+    "price": "199,99 TL",
+    "weight": "144 g",
+    "image_url": "https://cdn-image.getir.com/market/product/e25085f0-4c23-4da5-b7d1-33843b829dde.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Hohe Stroop Waffle",
+    "price": "29,99 TL",
+    "weight": "32 g",
+    "image_url": "https://cdn-image.getir.com/market/product/8edb12da-100a-4f24-9e8f-df4a2dd8a37e.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker McVitie's Gofret",
+    "price": "6,70 TL",
+    "weight": "30 g",
+    "image_url": "https://cdn-image.getir.com/market/product/9c53f5c5-6587-468e-a368-6111eac1e678.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Maxi Çikolatalı",
+    "price": "22,50 TL",
+    "weight": "47 g",
+    "image_url": "https://cdn-image.getir.com/market/product/bd20fe28-61c5-42e1-b0e5-2d71c702433f.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Çikolatalı Extra Sütlü",
+    "price": "16,99 TL",
+    "weight": "45 g",
+    "image_url": "https://cdn.getir.com/product/602107113413915b6d04986d_tr_1612878024154.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Çikolatalı Extra Bitter",
+    "price": "16,99 TL",
+    "weight": "45 g",
+    "image_url": "https://cdn.getir.com/product/60210725c8f7ec0d59ede13d_tr_1612878481993.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Beyaz Çikolatalı",
+    "price": "18,50 TL",
+    "weight": "35 g",
+    "image_url": "https://cdn-image.getir.com/market/product/3f21b7de-2042-4067-80fe-edea8367a840.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Çikolatalı Mini",
+    "price": "64,50 TL",
+    "weight": "82 g",
+    "image_url": "https://cdn-image.getir.com/market/product/39ebe30f-fbb9-4a86-9299-13215bd97f61.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Mini All Star",
+    "price": "64,50 TL",
+    "weight": "91 g",
+    "image_url": "https://cdn.getir.com/product/5f44aca74c91e3ba14167d09_tr_1598438921658.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Kahve Dünyası Gofrik Mini",
+    "price": "196,50 TL",
+    "weight": "125 g",
+    "image_url": "https://cdn-image.getir.com/market/product/05c2b5ab-b49a-4d29-b21a-588e4de7963e.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Dido Nut Fındıklı Gofret",
+    "price": "39,50 TL",
+    "weight": "35 g",
+    "image_url": "https://cdn-image.getir.com/market/product/45963fe9-31f0-415d-894f-df51ce269cfc.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Gold",
+    "price": "31,99 TL",
+    "weight": "36 g",
+    "image_url": "https://cdn.getir.com/product/619b51939ced92471b00b462_tr_1637852801832.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Trio",
+    "price": "33,99 TL",
+    "weight": "36,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/69b2d1b8-859a-485b-88da-8b424d459701.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Eti Petito Çilekli Kremalı Gofret",
+    "price": "21,99 TL",
+    "weight": "29 g",
+    "image_url": "https://cdn-image.getir.com/market/product/7661a367-edb3-4ba0-98c4-20968fcd4068.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Çilekli",
+    "price": "24,50 TL",
+    "weight": "36,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/1c8e48b4-60f1-46c5-9724-413aec46e2dc.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Limonlu",
+    "price": "13,99 TL",
+    "weight": "36,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/ed98d0e6-9c39-4080-8da8-347d573ae86a.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Kare",
+    "price": "53,50 TL",
+    "weight": "55 g",
+    "image_url": "https://cdn-image.getir.com/market/product/fed033aa-92b0-4232-91bd-06dcd41e7606.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Dido Gold Latte",
+    "price": "22,50 TL",
+    "weight": "59 g",
+    "image_url": "https://cdn-image.getir.com/market/product/201ac69f-9087-47ee-b5c8-f3eff8239fed.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nutymax Antep Fıstıklı",
+    "price": "44,99 TL",
+    "weight": "44 g",
+    "image_url": "https://cdn-image.getir.com/market/product/dee6f6dc-938f-4ea7-97e9-8923df8eefe2.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nutymax Fındıklı",
+    "price": "44,99 TL",
+    "weight": "44 g",
+    "image_url": "https://cdn-image.getir.com/market/product/6e2382e8-c58e-412e-9209-64ed785826d2.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nutymax Ekstra Fındıklı",
+    "price": "27,99 TL",
+    "weight": "40 g",
+    "image_url": "https://cdn.getir.com/product/602110a5d0b1803bf0752a8a_tr_1614165266255.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Damak Ala Bitter Çikolatalı",
+    "price": "55,50 TL",
+    "weight": "30 g",
+    "image_url": "https://cdn-image.getir.com/market/product/00e94a0b-bfaf-426e-a631-f1b692582a3a.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestlé 1927 Fındıklı",
+    "price": "33,50 TL",
+    "weight": "31 g",
+    "image_url": "https://cdn-image.getir.com/market/product/877db3b1-7fd9-4770-8601-a118829987d4.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Ülker Çikolatalı Gofret Çok Çıtırtı",
+    "price": "83,99 TL",
+    "weight": "100g",
+    "image_url": "https://cdn-image.getir.com/market/product/35874693-d596-4400-85ff-a6c8885f0703.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Çokonat Antep Fıstıklı",
+    "price": "35,99 TL",
+    "weight": "30 g",
+    "image_url": "https://cdn-image.getir.com/market/product/3b4a810f-55f7-484f-a913-46dbd9af5214.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Çokonat Baklava",
+    "price": "27,99 TL",
+    "weight": "30 g",
+    "image_url": "https://cdn-image.getir.com/market/product/84b1de45-658b-4c16-af0d-9c9d994158e2.png",
+    "category": "Gofret"
+  },
+  {
+    "name": "Eti Ahenk Gurme",
+    "price": "33,99 TL",
+    "weight": "50 g",
+    "image_url": "https://cdn-image.getir.com/market/product/f893b345-b6c5-4610-a2b6-3f1308ce9a1c.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Eti Sütlü Çikolatalı Gofret",
+    "price": "20,50 TL",
+    "weight": "34 g",
+    "image_url": "https://cdn-image.getir.com/market/product/6d3f8494-7b4e-4bf2-a8ec-7a75b54cabe3.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestlé Classic Çıtır",
+    "price": "19,99 TL",
+    "weight": "27 g",
+    "image_url": "https://cdn.getir.com/product/5c608dfc8daabb0001cf3f07_tr_1579274096142.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestlé KitKat Chunky",
+    "price": "36,99 TL",
+    "weight": "38 g",
+    "image_url": "https://cdn-image.getir.com/market/product/b904f7c4-34e3-4336-897d-64d9c681bd82.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestle Kitkat Chunky Duo",
+    "price": "36,99 TL",
+    "weight": "38 g",
+    "image_url": "https://cdn-image.getir.com/market/product/1e5a991f-fa39-4731-ad46-41b31992022d.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Tadelle Maxinut",
+    "price": "27,99 TL",
+    "weight": "30 g",
+    "image_url": "https://cdn-image.getir.com/market/product/b7d5f2a1-875d-4cc0-88d7-449f8cd15241.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Tadelle Sütlü Çikolata Fındık Gofret",
+    "price": "17,99 TL",
+    "weight": "28 g",
+    "image_url": "https://cdn-image.getir.com/market/product/798c437e-ca03-4199-abcb-5959c117dcdb.jpeg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Biscolata Veni Fındıklı",
+    "price": "50,50 TL",
+    "weight": "110g",
+    "image_url": "https://cdn-image.getir.com/market/product/d6ae50dd-3360-4802-aed0-84718a78132f.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Biscolata Minis Sütlü Gofret",
+    "price": "17,99 TL",
+    "weight": "32,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/6dd9cea3-e789-4ff2-8808-1e9889a1d760.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Biscolata Minis Bitter Gofret",
+    "price": "17,99 TL",
+    "weight": "32,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/17b3cf15-71b3-4a63-9a51-21c15736cb5b.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Kinder Bueno Dark",
+    "price": "48,99 TL",
+    "weight": "44 g",
+    "image_url": "https://cdn-image.getir.com/market/product/6021e292-8e47-44a4-b7b7-6a1b6bbad6a3.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Crunch Patt Gofret",
+    "price": "33,99 TL",
+    "weight": "27 g",
+    "image_url": "https://cdn-image.getir.com/market/product/5b294dc8-4ddc-4e7c-85bd-2d5117c6e3e8.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Laviva Selection Sütlü Gofret",
+    "price": "33,99 TL",
+    "weight": "45 g",
+    "image_url": "https://cdn-image.getir.com/market/product/1ef854da-77a3-47f2-8533-dee6c755448e.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Laviva Selection Antep Fıstıklı",
+    "price": "57,50 TL",
+    "weight": "45 g",
+    "image_url": "https://cdn-image.getir.com/market/product/f9063ea5-f013-499a-9e09-30c779ab14a5.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Laviva Selection Bitter Gofret",
+    "price": "22,50 TL",
+    "weight": "45 g",
+    "image_url": "https://cdn-image.getir.com/market/product/fcc49e3b-ea2e-41cc-a06e-0d10909caaff.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Biscolata Nirvana",
+    "price": "12,50 TL",
+    "weight": "26 g",
+    "image_url": "https://cdn-image.getir.com/market/product/bac4c8d1-590b-4e25-a104-ee725bbdf4fa.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nestlé Nesquik Çikolatalı Gofret",
+    "price": "21,99 TL",
+    "weight": "26,7 g",
+    "image_url": "https://cdn-image.getir.com/market/product/1675d327-33b2-4fe0-8a46-7014a523070e.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Nesquik Beyaz Çikolatalı Gofret",
+    "price": "18,50 TL",
+    "weight": "26 g",
+    "image_url": "https://cdn-image.getir.com/market/product/8a654e7e-e87b-43e6-8d5e-b47755d7b796.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Alpella 3Gen Gofret",
+    "price": "17,99 TL",
+    "weight": "28 g",
+    "image_url": "https://cdn-image.getir.com/market/product/31a70952-8a5e-4766-8a71-6023a81fa711.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Milka Gofree Çikolatalı",
+    "price": "39,50 TL",
+    "weight": "28,5 g",
+    "image_url": "https://cdn-image.getir.com/market/product/56ce64c6-b3ff-44ef-b3c5-09ed2734e95a.webp",
+    "category": "Gofret"
+  },
+  {
+    "name": "Milka Choco Gofret",
+    "price": "188,60 TL",
+    "weight": "150 g",
+    "image_url": "https://cdn-image.getir.com/market/product/6b6b27ff-1b7b-4066-a44a-646d2272c1cb.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Milka Choco Beyaz Gofret",
+    "price": "132,30 TL",
+    "weight": "150 g",
+    "image_url": "https://cdn-image.getir.com/market/product/8cb7cc2b-3406-408e-82cc-52a60862aae0.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Loacker Tortina Caramel",
+    "price": "44,50 TL",
+    "weight": "21 g",
+    "image_url": "https://cdn-image.getir.com/market/product/c3bb90fe-e514-4bfc-b176-e2e7583effec.jpg",
+    "category": "Gofret"
+  },
+  {
+    "name": "Loacker Tortina Gofret",
+    "price": "44,50 TL",
+    "weight": "21 g",
+    "image_url": "https://cdn-image.getir.com/market/product/09912535-c13a-408b-9121-3300d972b6f3.jpg",
+    "category": "Gofret"
+  }
+]
