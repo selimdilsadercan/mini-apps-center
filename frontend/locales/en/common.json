@@ -139,13 +139,23 @@
     "templateSearchPlaceholder": "Search service or plan...",
     "noTemplatesFound": "No templates found",
     "categories": {
-      "Entertainment": "Entertainment",
-      "Music": "Music",
-      "AI": "AI",
-      "Software": "Software",
-      "Design": "Design",
-      "Social": "Social",
-      "Other": "Other"
+      "entertainment": "Entertainment",
+      "music": "Music",
+      "ai": "AI",
+      "software": "Software",
+      "design": "Design",
+      "social": "Social",
+      "cloud": "Cloud Storage",
+      "cloud-storage": "Cloud Storage",
+      "dating": "Dating",
+      "education": "Education",
+      "finance": "Finance",
+      "gaming": "Gaming",
+      "productivity": "Productivity",
+      "security": "Security",
+      "shopping": "Shopping",
+      "sports": "Sports",
+      "other": "Other"
     },
     "billDetails": "Subscription Details",
     "addCustomSubscription": "Add custom subscription",
@@ -172,6 +182,9 @@
     "voidReceiptDescription": "This record will be permanently removed from your subscription list.",
     "keepIt": "Keep it",
     "voidDelete": "Delete",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "emptyTitle": "Add your first subscription",
+    "emptyDescription": "Add Netflix, Spotify, and your other memberships to track monthly spending and renewal dates in one place.",
+    "emptyAction": "Add Subscription"
   }
 }

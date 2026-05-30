@@ -139,13 +139,24 @@
     "templateSearchPlaceholder": "Hizmet veya plan ara...",
     "noTemplatesFound": "Şablon bulunamadı",
     "categories": {
-      "Entertainment": "Eğlence",
-      "Music": "Müzik",
-      "AI": "Yapay Zeka",
-      "Software": "Yazılım",
-      "Design": "Tasarım",
-      "Social": "Sosyal",
-      "Other": "Diğer"
+      "entertainment": "Eğlence",
+      "music": "Müzik",
+      "ai": "Yapay Zeka",
+      "software": "Yazılım",
+      "design": "Tasarım",
+      "social": "Sosyal",
+      "cloud": "Bulut Depolama",
+      "cloud-storage": "Bulut Depolama",
+      "dating": "Buluşma",
+      "education": "Eğitim",
+      "finance": "Finans",
+      "gaming": "Oyun",
+      "productivity": "Verimlilik",
+      "security": "Güvenlik",
+      "shopping": "Alışveriş",
+      "sports": "Spor",
+      "other": "Diğer",
+      "Cloud Storage": "Bulut Depolama"
     },
     "billDetails": "Abonelik Detayları",
     "addCustomSubscription": "Özel üyelik ekle",
@@ -172,6 +183,9 @@
     "voidReceiptDescription": "Bu kayıt abonelik listesinden kalıcı olarak silinecek.",
     "keepIt": "Vazgeç",
     "voidDelete": "Sil",
-    "processing": "İşleniyor..."
+    "processing": "İşleniyor...",
+    "emptyTitle": "İlk aboneliğini ekle",
+    "emptyDescription": "Netflix, Spotify ve diğer üyeliklerini ekleyerek aylık harcamanı ve yenilenme tarihlerini tek yerden takip et.",
+    "emptyAction": "Abonelik Ekle"
   }
 }

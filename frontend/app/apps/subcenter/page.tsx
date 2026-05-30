@@ -133,11 +133,18 @@ function brandsForCategory(presets: GlobalPreset[], categoryName: string, search
 function categoryMatchesSearch(
   cat: SubscriptionCategory,
   presets: GlobalPreset[],
-  search: string
+  search: string,
+  labelForCategory?: (idOrName: string) => string
 ): boolean {
   const q = search.trim().toLowerCase();
   if (!q) return true;
-  return cat.name.toLowerCase().includes(q) || brandsForCategory(presets, cat.name, search).length > 0;
+  const label = labelForCategory?.(cat.id)?.toLowerCase() ?? "";
+  return (
+    cat.name.toLowerCase().includes(q) ||
+    cat.id.toLowerCase().includes(q) ||
+    label.includes(q) ||
+    brandsForCategory(presets, cat.name, search).length > 0
+  );
 }
 
 interface SubscriptionCategory {
@@ -167,6 +174,25 @@ const CATEGORY_META: Record<string, { icon: string; color: string; sort_order: n
   "Other": { icon: "📦", color: "#64748B", sort_order: 16 },
 };
 
+const CATEGORY_NAME_TO_ID: Record<string, string> = {
+  Entertainment: "entertainment",
+  Music: "music",
+  AI: "ai",
+  Software: "software",
+  Design: "design",
+  Social: "social",
+  "Cloud Storage": "cloud",
+  Dating: "dating",
+  Education: "education",
+  Finance: "finance",
+  Gaming: "gaming",
+  Productivity: "productivity",
+  Security: "security",
+  Shopping: "shopping",
+  Sports: "sports",
+  Other: "other",
+};
+
 const CATEGORY_ICON_MAP: Record<string, PhosphorIcon> = {
   entertainment: FilmStrip,
   music: MusicNotes,
@@ -174,6 +200,7 @@ const CATEGORY_ICON_MAP: Record<string, PhosphorIcon> = {
   software: Code,
   design: Palette,
   social: ChatCircle,
+  cloud: Cloud,
   cloud_storage: Cloud,
   dating: Heart,
   education: GraduationCap,
@@ -258,22 +285,6 @@ function BrandIcon({
   return <span className="relative z-10" style={{ fontSize: size - 8 }}>{icon || "💳"}</span>;
 }
 
-const categoryTranslations: { [key: string]: string } = {
-  "Entertainment": "Eğlence",
-  "Music": "Müzik",
-  "AI": "Yapay Zeka",
-  "Software": "Yazılım",
-  "Productivity": "Üretkenlik",
-  "Gaming": "Oyun",
-  "Cloud Storage": "Bulut Depolama",
-  "Dating": "Flört",
-  "Security": "Güvenlik",
-  "Finance": "Finans",
-  "Shopping": "Alışveriş",
-  "Sports": "Spor",
-  "Other": "Diğer"
-};
-
 export default function SubscriptionCenter() {
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -314,7 +325,7 @@ export default function SubscriptionCenter() {
     return names.map(name => {
       const meta = CATEGORY_META[name] ?? { icon: "📦", color: "#64748B", sort_order: 99 };
       return {
-        id: name.toLowerCase().replace(/\s+/g, "-"),
+        id: CATEGORY_NAME_TO_ID[name] ?? name.toLowerCase().replace(/\s+/g, "-"),
         name,
         icon: meta.icon,
         color: meta.color,
@@ -332,8 +343,43 @@ export default function SubscriptionCenter() {
     });
   }, [presets]);
 
+  const EMPTY_SAMPLE_CATEGORIES = ["Entertainment", "Music", "AI", "Gaming", "Cloud Storage"];
+
+  const EMPTY_STATE_BRAND_PRIORITY: Record<string, string[]> = {
+    Entertainment: ["YouTube Premium", "MUBI", "Exxen"],
+    Music: ["Apple Music", "Amazon Music", "Deezer"],
+    AI: ["ChatGPT Plus", "Gemini Advanced", "Claude Pro"],
+    Gaming: ["Xbox Game Pass", "PlayStation Plus", "Nintendo Switch Online"],
+    "Cloud Storage": ["Google One", "iCloud+", "Microsoft OneDrive", "Dropbox"],
+  };
+
+  const emptyStateSamples = useMemo(() => {
+    const result: GlobalPreset[] = [];
+    for (const category of EMPTY_SAMPLE_CATEGORIES) {
+      const priorities = EMPTY_STATE_BRAND_PRIORITY[category] ?? [];
+      let preset =
+        priorities
+          .map((brand) => presets.find((p) => p.category === category && p.name === brand))
+          .find(Boolean) ?? presets.find((p) => p.category === category);
+      if (preset) result.push(preset);
+    }
+    return result.slice(0, 5);
+  }, [presets]);
+
   const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
   const [newSub, setNewSub] = useState<Partial<Subscription>>({ ...EMPTY_SUB_FORM });
+
+  const resolveCategoryKey = (idOrName: string): string => {
+    const fromList = categories.find((c) => c.id === idOrName || c.name === idOrName);
+    if (fromList) return CATEGORY_NAME_TO_ID[fromList.name] ?? fromList.id;
+    return CATEGORY_NAME_TO_ID[idOrName] ?? idOrName;
+  };
+
+  const categoryLabel = (idOrName: string) => {
+    const key = resolveCategoryKey(idOrName);
+    const label = t(`categories.${key}`);
+    return label.startsWith("subcenter.") ? idOrName : label;
+  };
 
   const categorySections = useMemo(
     () =>
@@ -345,8 +391,8 @@ export default function SubscriptionCenter() {
   );
 
   const visibleSections = useMemo(
-    () => categorySections.filter((s) => categoryMatchesSearch(s.category, presets, brandSearch)),
-    [categorySections, presets, brandSearch]
+    () => categorySections.filter((s) => categoryMatchesSearch(s.category, presets, brandSearch, categoryLabel)),
+    [categorySections, presets, brandSearch, categories, locale]
   );
 
   const categoryNamesKey = useMemo(
@@ -453,7 +499,7 @@ export default function SubscriptionCenter() {
     setExpandedCategories(
       new Set(
         categories
-          .filter((cat) => categoryMatchesSearch(cat, presets, value))
+          .filter((cat) => categoryMatchesSearch(cat, presets, value, categoryLabel))
           .map((c) => c.name)
       )
     );
@@ -471,11 +517,6 @@ export default function SubscriptionCenter() {
       else next.add(name);
       return next;
     });
-  };
-
-  const categoryLabel = (name: string) => {
-    const label = t(`categories.${name}`);
-    return label.startsWith("subcenter.") ? name : label;
   };
 
   const closeAddModal = () => {
@@ -653,7 +694,7 @@ export default function SubscriptionCenter() {
 
           <button
             onClick={openIssueBill}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer"
+            className="hidden md:flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all active:scale-95 font-black text-[11px] uppercase tracking-widest cursor-pointer"
           >
             <Plus size={16} weight="bold" />
             <span>{t("issueBill")}</span>
@@ -661,9 +702,10 @@ export default function SubscriptionCenter() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-10">
-        {/* Discover Presets Banner */}
-        <div className="w-full rounded-[2.5rem] py-12 px-8 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800/30 shadow-2xl mb-10 flex flex-col items-center justify-center text-center">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-6 pb-24 md:py-10 md:pb-10">
+        {/* Discover Presets Banner — desktop only, hidden when empty */}
+        {subscriptions.length > 0 && (
+        <div className="hidden md:flex w-full rounded-[2.5rem] py-12 px-8 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800/30 shadow-2xl mb-10 flex-col items-center justify-center text-center">
           {/* Background Gradients */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[150px] rounded-full bg-slate-800/10 blur-3xl pointer-events-none" />
 
@@ -710,8 +752,47 @@ export default function SubscriptionCenter() {
             </p>
           </div>
         </div>
+        )}
 
         <section className="space-y-8">
+          {isLoading ? (
+            <div className="flex justify-center py-24">
+              <div className="w-9 h-9 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+            </div>
+          ) : subscriptions.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="relative mx-auto max-w-lg py-8 md:py-12"
+            >
+              <div className="relative bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 px-8 py-10 text-center overflow-hidden">
+                <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-indigo-100/60 blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-center gap-2.5 mb-6 flex-wrap">
+                  {emptyStateSamples.map((preset) => (
+                    <div
+                      key={`${preset.name}-${preset.category}`}
+                      className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm"
+                    >
+                      <BrandIcon name={preset.name} icon={preset.icon} size={24} presets={presets} />
+                    </div>
+                  ))}
+                </div>
+
+                <h2 className="relative text-xl font-black text-slate-800 tracking-tight mb-2">{t("emptyTitle")}</h2>
+                <p className="relative text-sm font-medium text-slate-500 leading-relaxed max-w-sm mx-auto">
+                  {t("emptyDescription")}
+                </p>
+              </div>
+
+              <div className="mt-6 flex items-center justify-center gap-3 text-slate-400">
+                <div className="h-px w-12 bg-slate-200" />
+                <Receipt size={18} weight="duotone" className="text-slate-300" />
+                <div className="h-px w-12 bg-slate-200" />
+              </div>
+            </motion.div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <AnimatePresence mode="popLayout">
               {subscriptions.map((sub) => (
@@ -741,7 +822,7 @@ export default function SubscriptionCenter() {
                           <div className="min-w-0 flex flex-col justify-center h-12">
                             <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
                             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
-                              {locale === "tr" ? (categoryTranslations[sub.category] || sub.category) : sub.category}
+                              {categoryLabel(sub.category)}
                               {sub.region !== "TR" && ` • ${sub.region}`}
                             </span>
                           </div>
@@ -796,6 +877,7 @@ export default function SubscriptionCenter() {
               ))}
             </AnimatePresence>
           </div>
+          )}
         </section >
       </main >
 
@@ -813,7 +895,7 @@ export default function SubscriptionCenter() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "categories" ? "max-w-xl" : "max-w-md"}`}
+              className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "categories" ? "max-w-xl" : "max-w-md"}`}
             >
               <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100">
                 <div className="flex items-center gap-3 min-w-0">
@@ -884,7 +966,7 @@ export default function SubscriptionCenter() {
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <CategoryIcon categoryId={category.id} color={category.color} size={20} />
-                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
+                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.id)}</span>
                                   <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
                                 </div>
                                 <CaretDown
@@ -1012,7 +1094,7 @@ export default function SubscriptionCenter() {
                     >
                       {categories.map((cat) => (
                         <option key={cat.id} value={cat.name}>
-                          {categoryLabel(cat.name)}
+                          {categoryLabel(cat.id)}
                         </option>
                       ))}
                     </select>
@@ -1123,7 +1205,7 @@ export default function SubscriptionCenter() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2.5rem] shadow-2xl z-[111] overflow-hidden p-8 text-center"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-3xl shadow-2xl z-[111] overflow-hidden p-8 text-center"
             >
               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mx-auto mb-6 shadow-sm border border-red-100">
                 <Trash size={32} weight="fill" />
@@ -1152,6 +1234,17 @@ export default function SubscriptionCenter() {
           </>
         )}
       </AnimatePresence>
+
+      {!showAddModal && (
+        <button
+          type="button"
+          onClick={openIssueBill}
+          aria-label={t("issueBill")}
+          className="md:hidden fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-[max(1.5rem,env(safe-area-inset-right))] z-40 w-14 h-14 flex items-center justify-center rounded-full bg-slate-900 hover:bg-indigo-600 text-white shadow-xl shadow-slate-900/25 transition-all active:scale-95 cursor-pointer"
+        >
+          <Plus size={26} weight="bold" />
+        </button>
+      )}
     </div >
   );
 }
