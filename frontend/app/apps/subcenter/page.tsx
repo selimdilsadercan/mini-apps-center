@@ -53,6 +53,7 @@ interface Subscription {
   icon: string;
   start_date: string;
   trial_duration: string | null;
+  website: string | null;
   created_at: string;
 }
 
@@ -72,13 +73,65 @@ interface GlobalPreset {
 
 function getRenewalDisplayDate(startDate: string, cycle: string): Date {
   const start = new Date(`${startDate}T12:00:00`);
-  const renewalDay = start.getDate();
   const now = new Date();
-  const year = now.getFullYear();
-  const month = cycle === "yearly" ? start.getMonth() : now.getMonth();
-  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-  const day = Math.min(renewalDay, lastDayOfMonth);
-  return new Date(year, month, day, 12, 0, 0);
+  
+  // If the subscription start date is in the future, the next renewal is the start date itself
+  if (start > now) {
+    return start;
+  }
+
+  let nextRenewal = new Date(start);
+  while (nextRenewal <= now) {
+    if (cycle === "yearly") {
+      nextRenewal.setFullYear(nextRenewal.getFullYear() + 1);
+    } else {
+      nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+    }
+  }
+  return nextRenewal;
+}
+
+function getTrialInfo(startDateStr: string, trialDuration: string | null, locale: string) {
+  if (!trialDuration) return null;
+  const start = new Date(`${startDateStr}T12:00:00`);
+  const trialEnd = new Date(start);
+
+  if (trialDuration === "1_week") {
+    trialEnd.setDate(trialEnd.getDate() + 7);
+  } else if (trialDuration === "1_month") {
+    trialEnd.setMonth(trialEnd.getMonth() + 1);
+  } else if (trialDuration === "3_months") {
+    trialEnd.setMonth(trialEnd.getMonth() + 3);
+  } else if (trialDuration === "6_months") {
+    trialEnd.setMonth(trialEnd.getMonth() + 6);
+  } else if (trialDuration === "1_year") {
+    trialEnd.setFullYear(trialEnd.getFullYear() + 1);
+  } else {
+    return null;
+  }
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(trialEnd.getFullYear(), trialEnd.getMonth(), trialEnd.getDate());
+
+  const diffTime = end.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays > 0) {
+    return {
+      isActive: true,
+      daysLeft: diffDays,
+      endDate: trialEnd,
+      label: locale === "tr" ? `${diffDays} gün kaldı` : `${diffDays} days left`,
+    };
+  } else {
+    return {
+      isActive: false,
+      daysLeft: 0,
+      endDate: trialEnd,
+      label: locale === "tr" ? "Bitti" : "Ended",
+    };
+  }
 }
 
 const EMPTY_SUB_FORM: Partial<Subscription> = {
@@ -93,12 +146,12 @@ const EMPTY_SUB_FORM: Partial<Subscription> = {
   currency: "TRY",
   start_date: new Date().toISOString().split("T")[0],
   trial_duration: null,
+  website: "",
 };
 
 const TRIAL_OPTIONS = [
   { value: null, label: "none" },
   { value: "1_week", label: "1week" },
-  { value: "2_weeks", label: "2weeks" },
   { value: "1_month", label: "1month" },
   { value: "3_months", label: "3months" },
   { value: "6_months", label: "6months" },
@@ -231,9 +284,20 @@ function CategoryIcon({ categoryId, color, size = 20 }: { categoryId: string; co
 }
 
 const getDomainForService = (name: string, presetList: GlobalPreset[]) => {
-  const cleanName = name
-    .toLowerCase()
-    .trim()
+  let cleanName = name.trim().toLowerCase();
+  
+  // Remove protocols and www.
+  cleanName = cleanName
+    .replace(/^(https?:\/\/)?(www\.)?/, "")
+    .split("/")[0]; // get only host part
+
+  // If it looks like a domain name (contains a dot and no spaces)
+  if (cleanName.includes(".") && !cleanName.includes(" ")) {
+    return cleanName;
+  }
+
+  // Otherwise normalize Turkish characters and search in presets
+  const normalName = cleanName
     .replace(/ı/g, "i")
     .replace(/i̇/g, "i")
     .replace(/ş/g, "s")
@@ -253,7 +317,7 @@ const getDomainForService = (name: string, presetList: GlobalPreset[]) => {
       .replace(/ğ/g, "g")
       .replace(/ü/g, "u")
       .replace(/ö/g, "o");
-    return cleanPresetName === cleanName || cleanName.includes(cleanPresetName) || cleanPresetName.includes(cleanName);
+    return cleanPresetName === normalName || normalName.includes(cleanPresetName) || cleanPresetName.includes(normalName);
   });
   return preset?.domain ?? null;
 };
@@ -263,14 +327,16 @@ function BrandIcon({
   icon,
   size = 24,
   presets,
+  website,
 }: {
   name: string;
   icon: string;
   size?: number;
   presets: GlobalPreset[];
+  website?: string | null;
 }) {
   const [attempt, setAttempt] = useState(0);
-  const domain = getDomainForService(name, presets);
+  const domain = website || getDomainForService(name, presets);
   const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
 
   let logoUrl: string | null = null;
@@ -498,6 +564,7 @@ export default function SubscriptionCenter() {
       color: preset.color,
       icon: preset.icon,
       start_date: new Date().toISOString().split("T")[0],
+      website: preset.domain || "",
     });
   };
 
@@ -608,6 +675,7 @@ export default function SubscriptionCenter() {
       currency: sub.currency,
       start_date: new Date(sub.start_date).toISOString().split("T")[0],
       trial_duration: sub.trial_duration,
+      website: sub.website,
     });
     setAddModalStep("form");
     setShowAddModal(true);
@@ -631,6 +699,7 @@ export default function SubscriptionCenter() {
           icon: newSub.icon || "💳",
           startDate: newSub.start_date || new Date().toISOString().split("T")[0],
           trialDuration: newSub.trial_duration || null,
+          website: newSub.website || null,
         });
 
         if (resp.subscription) {
@@ -650,6 +719,7 @@ export default function SubscriptionCenter() {
           icon: newSub.icon || "💳",
           startDate: newSub.start_date || new Date().toISOString().split("T")[0],
           trialDuration: newSub.trial_duration || null,
+          website: newSub.website || null,
         });
 
         if (resp.subscription) {
@@ -682,6 +752,140 @@ export default function SubscriptionCenter() {
   const monthlyTotal = useMemo(() => {
     return subscriptions.reduce((acc, sub) => acc + (sub.cycle === "monthly" ? sub.price : sub.price / 12), 0);
   }, [subscriptions]);
+
+  const groupedSubs = useMemo(() => {
+    const trials: Subscription[] = [];
+    const activeSubs: Subscription[] = [];
+    for (const sub of subscriptions) {
+      const trialInfo = getTrialInfo(sub.start_date, sub.trial_duration, locale);
+      if (trialInfo?.isActive) {
+        trials.push(sub);
+      } else {
+        activeSubs.push(sub);
+      }
+    }
+    // Sort trials: closest to ending first
+    trials.sort((a, b) => {
+      const aInfo = getTrialInfo(a.start_date, a.trial_duration, locale);
+      const bInfo = getTrialInfo(b.start_date, b.trial_duration, locale);
+      return (aInfo?.daysLeft ?? 0) - (bInfo?.daysLeft ?? 0);
+    });
+    // Sort active subs: closest renewal date first
+    activeSubs.sort((a, b) => {
+      const aRenewal = getRenewalDisplayDate(a.start_date, a.cycle).getTime();
+      const bRenewal = getRenewalDisplayDate(b.start_date, b.cycle).getTime();
+      return aRenewal - bRenewal;
+    });
+    return { trials, activeSubs };
+  }, [subscriptions, locale]);
+
+  const renderSubscriptionCard = (sub: Subscription) => {
+    const trialInfo = getTrialInfo(sub.start_date, sub.trial_duration, locale);
+    const renewalDate = getRenewalDisplayDate(sub.start_date, sub.cycle);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(renewalDate.getFullYear(), renewalDate.getMonth(), renewalDate.getDate());
+    const diffTime = end.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return (
+      <motion.div
+        key={sub.id}
+        layoutId={sub.id}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative group"
+      >
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col h-[180px]">
+          {/* Top Accent Strip based on service color */}
+          <div className="h-1.5 w-full" style={{ backgroundColor: sub.color || '#6366F1' }} />
+
+          <div className="p-5 flex-1 flex flex-col justify-between">
+            {/* Top Row: Brand & Price */}
+            <div className="flex gap-4 items-start justify-between">
+              {/* Logo & Brand Info */}
+              <div className="flex gap-2.5 items-start min-w-0">
+                {/* Logo Circle */}
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
+                  <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} website={sub.website} />
+                </div>
+
+                {/* Title & Category */}
+                <div className="min-w-0 flex flex-col justify-center h-12">
+                  <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 leading-none truncate block max-w-full">
+                    {categoryLabel(sub.category)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Price & Cycle */}
+              <div className="text-right shrink-0">
+                <span className="text-lg font-black text-slate-800 tracking-tighter">
+                  {formatPriceDisplay(sub.price, sub.currency)}
+                </span>
+                <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                  /{sub.cycle === "monthly" ? (locale === "tr" ? "aylık" : "mo") : (locale === "tr" ? "yıllık" : "yr")}
+                </span>
+              </div>
+            </div>
+
+            {/* Middle Line */}
+            <div className="h-px bg-slate-100 w-full my-1" />
+
+            {/* Bottom Row: Renewal Info & Actions */}
+            <div className="flex items-center justify-between">
+              {/* Renewal Date / Trial Info */}
+              <div className="flex items-center gap-2 text-slate-500">
+                <Calendar size={14} className="text-slate-400" />
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    {trialInfo?.isActive 
+                      ? (locale === "tr" ? "DENEME BİTİŞİ" : "TRIAL ENDS")
+                      : t("renewalDate")}
+                  </span>
+                  <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none mt-1 flex items-center gap-1.5">
+                    {trialInfo?.isActive ? (
+                      <>
+                        {formatRenewalDate(trialInfo.endDate)}
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                          {trialInfo.label}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {formatRenewalDate(renewalDate)}
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                          {locale === "tr" ? `${diffDays} GÜN KALDI` : `${diffDays} DAYS LEFT`}
+                        </span>
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleEdit(sub)}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-indigo-100"
+                >
+                  <PencilSimple size={15} weight="bold" />
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(sub.id)}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-100"
+                >
+                  <Trash size={15} weight="bold" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
 
   if (!isUserLoaded) return null;
 
@@ -801,97 +1005,43 @@ export default function SubscriptionCenter() {
                 </p>
               </div>
 
-              <div className="mt-6 flex items-center justify-center gap-3 text-slate-400">
-                <div className="h-px w-12 bg-slate-200" />
-                <Receipt size={18} weight="duotone" className="text-slate-300" />
-                <div className="h-px w-12 bg-slate-200" />
-              </div>
             </motion.div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            <AnimatePresence mode="popLayout">
-              {subscriptions.map((sub) => (
-                <motion.div
-                  key={sub.id}
-                  layoutId={sub.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  className="relative group"
-                >
-                  <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col h-[180px]">
-                    {/* Top Accent Strip based on service color */}
-                    <div className="h-1.5 w-full" style={{ backgroundColor: sub.color || '#6366F1' }} />
-
-                    <div className="p-5 flex-1 flex flex-col justify-between">
-                      {/* Top Row: Brand & Price */}
-                      <div className="flex gap-4 items-start justify-between">
-                        {/* Logo & Brand Info */}
-                        <div className="flex gap-4 items-start min-w-0">
-                          {/* Logo Circle */}
-                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
-                            <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} />
-                          </div>
-
-                          {/* Title & Category */}
-                          <div className="min-w-0 flex flex-col justify-center h-12">
-                            <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
-                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
-                              {categoryLabel(sub.category)}
-                              {sub.region !== "TR" && ` • ${sub.region}`}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Price & Cycle */}
-                        <div className="text-right shrink-0">
-                          <span className="text-lg font-black text-slate-800 tracking-tighter">
-                            {formatPriceDisplay(sub.price, sub.currency)}
-                          </span>
-                          <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
-                            /{sub.cycle === "monthly" ? (locale === "tr" ? "aylık" : "mo") : (locale === "tr" ? "yıllık" : "yr")}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Middle Line */}
-                      <div className="h-px bg-slate-100 w-full my-1" />
-
-                      {/* Bottom Row: Renewal Info & Actions */}
-                      <div className="flex items-center justify-between">
-                        {/* Renewal Date */}
-                        <div className="flex items-center gap-2 text-slate-500">
-                          <Calendar size={14} className="text-slate-400" />
-                          <div className="flex flex-col">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{t("renewalDate")}</span>
-                            <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none mt-1">
-                              {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleEdit(sub)}
-                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-indigo-100"
-                          >
-                            <PencilSimple size={15} weight="bold" />
-                          </button>
-                          <button
-                            onClick={() => setShowDeleteConfirm(sub.id)}
-                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-100"
-                          >
-                            <Trash size={15} weight="bold" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+            <div className="space-y-12">
+              {groupedSubs.trials.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">
+                      {locale === "tr" ? "Ücretsiz Denemeler" : "Free Trials"} ({groupedSubs.trials.length})
+                    </h3>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <AnimatePresence mode="popLayout">
+                      {groupedSubs.trials.map(renderSubscriptionCard)}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {groupedSubs.activeSubs.length > 0 && (
+                <div className="space-y-4">
+                  {groupedSubs.trials.length > 0 && (
+                    <div className="flex items-center gap-2 pt-4">
+                      <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">
+                        {locale === "tr" ? "Aktif Abonelikler" : "Active Subscriptions"} ({groupedSubs.activeSubs.length})
+                      </h3>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <AnimatePresence mode="popLayout">
+                      {groupedSubs.activeSubs.map(renderSubscriptionCard)}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </section >
       </main >
@@ -965,68 +1115,66 @@ export default function SubscriptionCenter() {
                     </button>
 
                     {/* 3. Categories List */}
-                    <div className="space-y-2">
-                      {visibleSections.length === 0 ? (
-                        <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noBrandsFound")}</p>
-                      ) : (
-                        visibleSections.map(({ category, brands }) => {
-                          const expanded = expandedCategories.has(category.name);
-                          return (
-                            <div key={category.id} className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
-                              <button
-                                type="button"
-                                onClick={() => toggleCategoryExpanded(category.name)}
-                                className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/90 hover:bg-slate-100/90 transition-colors cursor-pointer text-left sticky top-0 z-10 backdrop-blur-md"
-                                style={{ borderLeft: `3px solid ${category.color}` }}
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <CategoryIcon categoryId={category.id} color={category.color} size={20} />
-                                  <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
-                                </div>
-                                <CaretDown
-                                  size={16}
-                                  weight="bold"
-                                  className={`shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-                                />
-                              </button>
-                              <AnimatePresence initial={false}>
-                                {expanded && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                  >
-                                    <div className="p-3 pt-2 border-t border-slate-100">
-                                      {brands.length === 0 ? (
-                                        <p className="text-center text-xs font-bold text-slate-400 py-4">{t("noBrandsFound")}</p>
-                                      ) : (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                          {brands.map((brand) => (
-                                            <button
-                                              key={brand.name}
-                                              onClick={() => selectBrand(brand)}
-                                              className="flex flex-col items-center justify-center gap-1.5 p-3 min-h-[6.5rem] rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all text-center cursor-pointer"
-                                            >
-                                              <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
-                                                <BrandIcon name={brand.name} icon={brand.icon} size={32} presets={presets} />
-                                              </div>
-                                              <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
-                                            </button>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
+                    {visibleSections.length === 0 ? (
+                      <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noBrandsFound")}</p>
+                    ) : (
+                      visibleSections.map(({ category, brands }) => {
+                        const expanded = expandedCategories.has(category.name);
+                        return (
+                          <div key={category.id}>
+                            <button
+                              type="button"
+                              onClick={() => toggleCategoryExpanded(category.name)}
+                              className={`w-full flex items-center justify-between gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors cursor-pointer text-left sticky top-0 z-20 border border-slate-100 shadow-[0_-20px_0_0_white] ${expanded ? "rounded-t-2xl border-b-0" : "rounded-2xl mb-2"}`}
+                              style={{ borderLeft: `3px solid ${category.color}` }}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <CategoryIcon categoryId={category.id} color={category.color} size={20} />
+                                <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
+                                <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
+                              </div>
+                              <CaretDown
+                                size={16}
+                                weight="bold"
+                                className={`shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+                              />
+                            </button>
+                            <AnimatePresence initial={false}>
+                              {expanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden border border-t-0 border-slate-100 rounded-b-2xl mb-2 bg-white"
+                                >
+                                  <div className="p-3 pt-2">
+                                    {brands.length === 0 ? (
+                                      <p className="text-center text-xs font-bold text-slate-400 py-4">{t("noBrandsFound")}</p>
+                                    ) : (
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {brands.map((brand) => (
+                                          <button
+                                            key={brand.name}
+                                            onClick={() => selectBrand(brand)}
+                                            className="flex flex-col items-center justify-center gap-1.5 p-3 min-h-[6.5rem] rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all text-center cursor-pointer"
+                                          >
+                                            <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+                                              <BrandIcon name={brand.name} icon={brand.icon} size={32} presets={presets} />
+                                            </div>
+                                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </>
               ) : addModalStep === "plan" && !editingId ? (
@@ -1059,7 +1207,7 @@ export default function SubscriptionCenter() {
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 min-h-0">
-                  {presets.some((p) => p.name === newSub.name) && (
+                  {presets.filter((p) => p.name === newSub.name).length > 1 && (
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("quickPlan")}</label>
                       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -1078,6 +1226,7 @@ export default function SubscriptionCenter() {
                                   category: p.category,
                                   color: p.color,
                                   icon: p.icon,
+                                  website: p.domain || "",
                                 })
                               }
                               className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${newSub.plan_name === p.plan_name
@@ -1127,6 +1276,20 @@ export default function SubscriptionCenter() {
                   </div>
 
                   <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("website")}</label>
+                    <input
+                      type="text"
+                      placeholder={t("websitePlaceholder")}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                      value={newSub.website || ""}
+                      onChange={(e) => setNewSub({ ...newSub, website: e.target.value })}
+                    />
+                    <p className="text-[10px] font-bold text-indigo-500/80 px-1 mt-1">
+                      {t("websiteHelp")}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("planLevel")}</label>
                     <input
                       type="text"
@@ -1139,17 +1302,6 @@ export default function SubscriptionCenter() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("currency")}</label>
-                      <select
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
-                        value={newSub.currency || "TRY"}
-                        onChange={(e) => setNewSub({ ...newSub, currency: e.target.value })}
-                      >
-                        <option value="TRY">{t("currencyTry")}</option>
-                        <option value="USD">{t("currencyUsd")}</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("cycle")}</label>
                       <select
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
@@ -1160,16 +1312,15 @@ export default function SubscriptionCenter() {
                         <option value="yearly">{t("yearly")}</option>
                       </select>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("startDate")}</label>
-                    <input
-                      type="date"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
-                      value={newSub.start_date}
-                      onChange={(e) => setNewSub({ ...newSub, start_date: e.target.value })}
-                    />
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("startDate")}</label>
+                      <input
+                        type="date"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
+                        value={newSub.start_date}
+                        onChange={(e) => setNewSub({ ...newSub, start_date: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -1192,22 +1343,35 @@ export default function SubscriptionCenter() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">
-                      {newSub.currency === "USD" ? t("amountUsd") : t("amount")}
-                    </label>
-                    <input
-                      type="number"
-                      placeholder={newSub.currency === "USD" ? t("amountUsdPlaceholder") : t("amountPlaceholder")}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all"
-                      value={newSub.price || ""}
-                      onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })}
-                    />
-                    {!!newSub.price && newSub.price > 0 && newSub.currency === "USD" && (
-                      <p className="text-xs font-bold font-mono text-slate-500 px-1 tabular-nums">
-                        {formatPriceDisplay(newSub.price, "USD")}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("currency")}</label>
+                      <select
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                        value={newSub.currency || "TRY"}
+                        onChange={(e) => setNewSub({ ...newSub, currency: e.target.value })}
+                      >
+                        <option value="TRY">{t("currencyTry")}</option>
+                        <option value="USD">{t("currencyUsd")}</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">
+                        {newSub.currency === "USD" ? t("amountUsd") : t("amount")}
+                      </label>
+                      <input
+                        type="number"
+                        placeholder={newSub.currency === "USD" ? t("amountUsdPlaceholder") : t("amountPlaceholder")}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all"
+                        value={newSub.price || ""}
+                        onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })}
+                      />
+                      {!!newSub.price && newSub.price > 0 && newSub.currency === "USD" && (
+                        <p className="text-xs font-bold font-mono text-slate-500 px-1 tabular-nums mt-1">
+                          {formatPriceDisplay(newSub.price, "USD")}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <button

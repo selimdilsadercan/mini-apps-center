@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS subcenter.items (
   icon TEXT NOT NULL DEFAULT '📦',
   start_date DATE NOT NULL DEFAULT CURRENT_DATE,
   trial_duration TEXT DEFAULT NULL,
+  website TEXT DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

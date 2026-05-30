@@ -18,6 +18,7 @@ RETURNS TABLE (
   icon TEXT,
   start_date DATE,
   trial_duration TEXT,
+  website TEXT,
   created_at TIMESTAMPTZ
 )
 LANGUAGE sql
@@ -37,6 +38,7 @@ AS $$
     icon,
     start_date,
     trial_duration,
+    website,
     created_at
   FROM subcenter.items
   WHERE user_id = clerk_id_param

@@ -27,6 +27,7 @@ export interface Subscription {
   icon: string;
   start_date: string;
   trial_duration: string | null;
+  website: string | null;
   created_at: string;
 }
 
@@ -91,6 +92,7 @@ interface CreateSubscriptionRequest {
   icon: string;
   startDate: string;
   trialDuration?: string | null;
+  website?: string | null;
 }
 
 interface CreateSubscriptionResponse {
@@ -130,6 +132,7 @@ interface UpdateSubscriptionRequest {
   icon: string;
   startDate: string;
   trialDuration?: string | null;
+  website?: string | null;
 }
 
 interface UpdateSubscriptionResponse {
@@ -222,7 +225,7 @@ export const getUserSubscriptions = api(
  */
 export const createSubscription = api(
   { expose: true, method: "POST", path: "/subcenter/create" },
-  async ({ userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration }: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
+  async ({ userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration, website }: CreateSubscriptionRequest): Promise<CreateSubscriptionResponse> => {
     const finalPlanName = planName || "Standard";
     const finalRegion = region || "TR";
 
@@ -240,6 +243,7 @@ export const createSubscription = api(
       icon_param: icon,
       start_date_param: startDate,
       trial_duration_param: trialDuration || null,
+      website_param: website || null,
     });
 
     if (error) {
@@ -278,7 +282,7 @@ export const deleteSubscription = api(
  */
 export const updateSubscription = api(
   { expose: true, method: "PUT", path: "/subcenter/:id" },
-  async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
+  async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration, website }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
     const { data, error } = await supabase.schema("subcenter").rpc("update_item", {
       item_id_param: id,
       clerk_id_param: userId,
@@ -293,6 +297,7 @@ export const updateSubscription = api(
       icon_param: icon,
       start_date_param: startDate,
       trial_duration_param: trialDuration || null,
+      website_param: website || null,
     });
 
     if (error) {

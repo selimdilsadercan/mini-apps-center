@@ -1,6 +1,7 @@
 -- Drop old function
-DROP FUNCTION IF EXISTS subcenter.create_item(TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, DATE);
-DROP FUNCTION IF EXISTS public.subcenter_create_item(TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, DATE);
+DROP FUNCTION IF EXISTS subcenter.create_item(TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, TEXT);
+DROP FUNCTION IF EXISTS subcenter.create_item(TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.subcenter_create_item(TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, TEXT);
 
 -- Create new function
 CREATE OR REPLACE FUNCTION subcenter.create_item(
@@ -12,10 +13,11 @@ CREATE OR REPLACE FUNCTION subcenter.create_item(
   currency_param TEXT,
   cycle_param TEXT,
   category_param TEXT,
-  color_param TEXT,a
+  color_param TEXT,
   icon_param TEXT,
   start_date_param DATE,
-  trial_duration_param TEXT DEFAULT NULL
+  trial_duration_param TEXT DEFAULT NULL,
+  website_param TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -31,6 +33,7 @@ RETURNS TABLE (
   icon TEXT,
   start_date DATE,
   trial_duration TEXT,
+  website TEXT,
   created_at TIMESTAMPTZ
 )
 LANGUAGE sql
@@ -48,7 +51,8 @@ AS $$
     color,
     icon,
     start_date,
-    trial_duration
+    trial_duration,
+    website
   )
   VALUES (
     clerk_id_param,
@@ -62,7 +66,8 @@ AS $$
     color_param,
     icon_param,
     start_date_param,
-    trial_duration_param
+    trial_duration_param,
+    website_param
   )
-  RETURNING id, user_id, name, plan_name, region, price, currency, cycle, category, color, icon, start_date, trial_duration, created_at;
+  RETURNING id, user_id, name, plan_name, region, price, currency, cycle, category, color, icon, start_date, trial_duration, website, created_at;
 $$;
