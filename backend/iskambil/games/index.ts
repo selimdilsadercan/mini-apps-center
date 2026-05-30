@@ -19,7 +19,7 @@ import carouselRummy from "./rummy-meld-building/carousel-rummy.json";
 import game51 from "./rummy-meld-building/51.json";
 import ginRummy2Kisilik101 from "./rummy-meld-building/gin-rummy-2-kisilik-101.json";
 import authorsBana2TanePapazVer from "./matching-capturing/authors-bana-2-tane-papaz-ver.json";
-import casinoToplamaliPisti from "./matching-capturing/casino-toplamali-pisti.json";
+import casino from "./matching-capturing/casino.json";
 import dostKazigiKaptiKacti from "./matching-capturing/dost-kazigi-kapti-kacti.json";
 import scopa from "./matching-capturing/scopa.json";
 import gopsGameOfPureStrategy from "./matching-capturing/gops-game-of-pure-strategy.json";
@@ -63,7 +63,7 @@ export const gamesData = [
   game51,
   ginRummy2Kisilik101,
   authorsBana2TanePapazVer,
-  casinoToplamaliPisti,
+  casino,
   dostKazigiKaptiKacti,
   scopa,
   gopsGameOfPureStrategy,

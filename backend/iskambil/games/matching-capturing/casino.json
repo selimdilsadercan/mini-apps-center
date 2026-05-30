@@ -1,0 +1,34 @@
+  {
+    "id": "casino",
+    "name_tr": "Casino",
+    "name_en": "Casino",
+    "originalName": "Casino",
+    "description_tr": "Yerdeki kartları aynı değerle veya toplam değer eşleştirmesiyle toplamaya dayalı klasik fishing/toplama oyunu.",
+    "description_en": "A classic fishing/capturing game where table cards are captured by matching rank or matching a total value.",
+    "rules_tr": [
+      "2-4 oyuncuyla 52 kartlık standart deste kullanılır. Her oyuncuya 4 kart, masaya 4 açık kart dağıtılır.",
+      "Sırası gelen oyuncu elindeki bir kartla yerdeki aynı değerdeki kartı veya toplamı kendi kartına eşit olan birden fazla kartı alabilir.",
+      "Örneğin yerde 3 ve 5 varsa eldeki 8 ile bu iki kart birlikte alınabilir.",
+      "Oyuncu kart alamıyorsa elinden bir kartı masaya bırakır.",
+      "Build denilen hamleyle oyuncu yerdeki kartları belirli bir toplam için gruplayabilir; sonraki turda uygun kartla bu grubu almak zorundadır.",
+      "Resimli kartlar genellikle toplam hesabına katılmaz; kendi değerindeki resimli kartla alınır.",
+      "Eldeki kartlar bitince oyunculara yeniden 4'er kart dağıtılır. Son elde yerde kalan kartları son kart alan oyuncu toplar.",
+      "Yaygın puanlamada Karo 10, Sinek 2, Aslar, en çok kart ve en çok maça/karo gibi özel kartlar puan getirir; puanlama ev kuralına göre değişebilir."
+    ],
+    "rules_en": [
+      "Played with 2-4 players using a standard 52-card deck. Each player receives 4 cards and 4 cards are dealt face up to the table.",
+      "On their turn, a player may capture a table card of the same rank or several cards whose total equals the played card.",
+      "For example, if 3 and 5 are on the table, an 8 from hand can capture both cards.",
+      "If a player cannot capture, they must place one card from hand onto the table.",
+      "A player may make a build by grouping table cards toward a specific total, but must be able to capture that build on a later turn.",
+      "Face cards usually do not count in sum captures; they are captured only by matching face cards.",
+      "When players run out of cards, 4 more cards are dealt to each player. At the end, remaining table cards usually go to the last player who made a capture.",
+      "Common scoring awards points for cards such as the 10 of Diamonds, 2 of Clubs, Aces, most cards, and most spades/diamonds, but exact scoring can vary by house rule."
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "deckCount_tr": "1 Deste",
+    "deckCount_en": "1 Deck",
+    "category_tr": "Eşleştirme / Toplama",
+    "category_en": "Matching / Capturing"
+  }
