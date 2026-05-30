@@ -12,7 +12,16 @@ import {
   Stack,
   PencilSimple,
   MagnifyingGlass,
+  CaretDown,
+  FilmStrip,
+  MusicNotes,
+  Robot,
+  Code,
+  Palette,
+  ChatCircle,
+  Package,
 } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
@@ -70,10 +79,13 @@ const EMPTY_SUB_FORM: Partial<Subscription> = {
   category: "Entertainment",
   color: "#6366F1",
   icon: "💳",
+  currency: "TRY",
   start_date: new Date().toISOString().split("T")[0],
 };
 
-type AddModalStep = "templates" | "plan" | "form";
+const USD_TRY_FALLBACK = 39;
+
+type AddModalStep = "categories" | "brands" | "plan" | "form";
 
 type CatalogBrand = {
   name: string;
@@ -82,6 +94,74 @@ type CatalogBrand = {
   category: string;
   plans: GlobalPreset[];
 };
+
+function brandsForCategory(presets: GlobalPreset[], categoryName: string, search: string): CatalogBrand[] {
+  const byName = new Map<string, GlobalPreset[]>();
+  for (const preset of presets.filter((p) => p.category === categoryName)) {
+    const list = byName.get(preset.name) ?? [];
+    list.push(preset);
+    byName.set(preset.name, list);
+  }
+  let brands = Array.from(byName.entries()).map(([name, plans]) => ({
+    name,
+    icon: plans[0].icon,
+    color: plans[0].color,
+    category: plans[0].category,
+    plans,
+  }));
+  const q = search.trim().toLowerCase();
+  if (q) {
+    brands = brands.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.plans.some((p) => p.plan_name.toLowerCase().includes(q))
+    );
+  }
+  return brands;
+}
+
+function categoryMatchesSearch(
+  cat: SubscriptionCategory,
+  presets: GlobalPreset[],
+  search: string
+): boolean {
+  const q = search.trim().toLowerCase();
+  if (!q) return true;
+  return cat.name.toLowerCase().includes(q) || brandsForCategory(presets, cat.name, search).length > 0;
+}
+
+interface SubscriptionCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  sort_order: number;
+}
+
+const FALLBACK_CATEGORIES: SubscriptionCategory[] = [
+  { id: "entertainment", name: "Entertainment", icon: "🎬", color: "#E50914", sort_order: 1 },
+  { id: "music", name: "Music", icon: "🎵", color: "#1DB954", sort_order: 2 },
+  { id: "ai", name: "AI", icon: "🤖", color: "#10A37F", sort_order: 3 },
+  { id: "software", name: "Software", icon: "💻", color: "#6366F1", sort_order: 4 },
+  { id: "design", name: "Design", icon: "✨", color: "#00C4CC", sort_order: 5 },
+  { id: "social", name: "Social", icon: "💬", color: "#1877F2", sort_order: 6 },
+  { id: "other", name: "Other", icon: "📦", color: "#64748B", sort_order: 7 },
+];
+
+const CATEGORY_ICON_MAP: Record<string, PhosphorIcon> = {
+  entertainment: FilmStrip,
+  music: MusicNotes,
+  ai: Robot,
+  software: Code,
+  design: Palette,
+  social: ChatCircle,
+  other: Package,
+};
+
+function CategoryIcon({ categoryId, color, size = 20 }: { categoryId: string; color: string; size?: number }) {
+  const IconComponent = CATEGORY_ICON_MAP[categoryId] ?? Package;
+  return <IconComponent size={size} weight="duotone" style={{ color }} className="shrink-0" />;
+}
 
 const getDomainForService = (name: string, presetList: GlobalPreset[]) => {
   const cleanName = name
@@ -163,49 +243,66 @@ export default function SubscriptionCenter() {
   const formatMoney = (price: number, fractionDigits = 2) =>
     price.toLocaleString(dateLocale, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
 
+  const formatPriceDisplay = (price: number, currency = "TRY") => {
+    const frac = price % 1 === 0 ? 0 : 2;
+    if (currency === "USD") {
+      const tryAmount = price * (usdTryRate ?? USD_TRY_FALLBACK);
+      return `$${formatMoney(price, frac)} (₺${formatMoney(tryAmount, frac)})`;
+    }
+    return `₺${formatMoney(price, frac)}`;
+  };
+
+  const [usdTryRate, setUsdTryRate] = useState<number | null>(null);
+
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [presets, setPresets] = useState<GlobalPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addModalStep, setAddModalStep] = useState<AddModalStep>("templates");
+  const [addModalStep, setAddModalStep] = useState<AddModalStep>("categories");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [templateSearch, setTemplateSearch] = useState("");
+  const [brandSearch, setBrandSearch] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<SubscriptionCategory[]>([]);
   const [selectedBrandName, setSelectedBrandName] = useState<string | null>(null);
   const [newSub, setNewSub] = useState<Partial<Subscription>>({ ...EMPTY_SUB_FORM });
 
-  const catalogBrands = useMemo<CatalogBrand[]>(() => {
-    const byName = new Map<string, GlobalPreset[]>();
-    for (const preset of presets) {
-      const list = byName.get(preset.name) ?? [];
-      list.push(preset);
-      byName.set(preset.name, list);
-    }
-    return Array.from(byName.entries()).map(([name, plans]) => ({
-      name,
-      icon: plans[0].icon,
-      color: plans[0].color,
-      category: plans[0].category,
-      plans,
-    }));
-  }, [presets]);
+  const categorySections = useMemo(
+    () =>
+      categories.map((cat) => ({
+        category: cat,
+        brands: brandsForCategory(presets, cat.name, brandSearch),
+      })),
+    [categories, presets, brandSearch]
+  );
 
-  const filteredBrands = useMemo(() => {
-    const q = templateSearch.trim().toLowerCase();
-    if (!q) return catalogBrands;
-    return catalogBrands.filter(
-      (b) =>
-        b.name.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q) ||
-        b.plans.some((p) => p.plan_name.toLowerCase().includes(q))
-    );
-  }, [catalogBrands, templateSearch]);
+  const visibleSections = useMemo(
+    () => categorySections.filter((s) => categoryMatchesSearch(s.category, presets, brandSearch)),
+    [categorySections, presets, brandSearch]
+  );
+
+  const categoryNamesKey = useMemo(
+    () => categories.map((c) => c.name).join("\0"),
+    [categories]
+  );
 
   const plansForSelectedBrand = useMemo(
     () => (selectedBrandName ? presets.filter((p) => p.name === selectedBrandName) : []),
     [selectedBrandName, presets]
   );
+
+  const fetchCategories = async () => {
+    try {
+      const resp = await client.subcenter.getCategories();
+      if (Array.isArray(resp.categories)) {
+        setCategories(resp.categories);
+      }
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+      setCategories(FALLBACK_CATEGORIES);
+    }
+  };
 
   const fetchPresets = async () => {
     if (process.env.NODE_ENV === "development") {
@@ -259,6 +356,16 @@ export default function SubscriptionCenter() {
   };
 
   useEffect(() => {
+    fetch("https://api.frankfurter.app/latest?from=USD&to=TRY")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.rates?.TRY === "number") setUsdTryRate(d.rates.TRY);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
     fetchPresets();
   }, []);
 
@@ -283,11 +390,47 @@ export default function SubscriptionCenter() {
     });
   };
 
+  const handleBrandSearchChange = (value: string) => {
+    setBrandSearch(value);
+    const q = value.trim();
+    if (!q) {
+      setExpandedCategories(new Set(categories.map((c) => c.name)));
+      return;
+    }
+    setExpandedCategories(
+      new Set(
+        categories
+          .filter((cat) => categoryMatchesSearch(cat, presets, value))
+          .map((c) => c.name)
+      )
+    );
+  };
+
+  useEffect(() => {
+    if (!showAddModal || addModalStep !== "categories" || brandSearch.trim()) return;
+    setExpandedCategories(new Set(categories.map((c) => c.name)));
+  }, [showAddModal, addModalStep, categoryNamesKey, brandSearch]);
+
+  const toggleCategoryExpanded = (name: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const categoryLabel = (name: string) => {
+    const label = t(`categories.${name}`);
+    return label.startsWith("subcenter.") ? name : label;
+  };
+
   const closeAddModal = () => {
     setShowAddModal(false);
     setEditingId(null);
-    setAddModalStep("templates");
-    setTemplateSearch("");
+    setAddModalStep("categories");
+    setBrandSearch("");
+    setExpandedCategories(new Set());
     setSelectedBrandName(null);
     setNewSub({ ...EMPTY_SUB_FORM });
   };
@@ -304,7 +447,9 @@ export default function SubscriptionCenter() {
   const openIssueBill = () => {
     setEditingId(null);
     setNewSub({ ...EMPTY_SUB_FORM });
-    setAddModalStep("templates");
+    setBrandSearch("");
+    setExpandedCategories(new Set(categories.map((c) => c.name)));
+    setAddModalStep("categories");
     setShowAddModal(true);
   };
 
@@ -324,13 +469,17 @@ export default function SubscriptionCenter() {
       setAddModalStep("plan");
       return;
     }
-    setSelectedBrandName(null);
-    setAddModalStep("templates");
+    if (selectedBrandName) {
+      setSelectedBrandName(null);
+      setAddModalStep("categories");
+      return;
+    }
+    setAddModalStep("categories");
   };
 
   const goBackFromPlan = () => {
     setSelectedBrandName(null);
-    setAddModalStep("templates");
+    setAddModalStep("categories");
   };
 
   const startCustomSubscription = () => {
@@ -350,6 +499,7 @@ export default function SubscriptionCenter() {
       category: sub.category,
       color: sub.color,
       icon: sub.icon,
+      currency: sub.currency,
       start_date: new Date(sub.start_date).toISOString().split("T")[0],
     });
     setAddModalStep("form");
@@ -367,7 +517,7 @@ export default function SubscriptionCenter() {
           planName: newSub.plan_name || "Standard",
           region: newSub.region || "TR",
           price: newSub.price,
-          currency: "TRY",
+          currency: newSub.currency || "TRY",
           cycle: newSub.cycle || "monthly",
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
@@ -385,7 +535,7 @@ export default function SubscriptionCenter() {
           planName: newSub.plan_name,
           region: newSub.region,
           price: newSub.price,
-          currency: "TRY",
+          currency: newSub.currency || "TRY",
           cycle: newSub.cycle || "monthly",
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
@@ -502,7 +652,9 @@ export default function SubscriptionCenter() {
                                 {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
                               </p>
                             </div>
-                            <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">₺{formatMoney(sub.price)}</p>
+                            <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">
+                              {formatPriceDisplay(sub.price, sub.currency || "TRY")}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -553,7 +705,7 @@ export default function SubscriptionCenter() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "templates" && !editingId ? "max-w-xl" : "max-w-md"}`}
+              className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-h-[85vh] bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden flex flex-col ${addModalStep === "categories" ? "max-w-xl" : "max-w-md"}`}
             >
               <div className="p-6 pb-4 flex items-center justify-between shrink-0 border-b border-slate-100">
                 <div className="flex items-center gap-3 min-w-0">
@@ -571,8 +723,8 @@ export default function SubscriptionCenter() {
                   <h2 className="text-base font-black text-slate-800 uppercase truncate">
                     {editingId
                       ? t("editBill")
-                      : addModalStep === "templates"
-                        ? t("selectTemplate")
+                      : addModalStep === "categories"
+                        ? t("selectCategory")
                         : addModalStep === "plan"
                           ? t("selectPlan")
                           : t("billDetails")}
@@ -583,41 +735,80 @@ export default function SubscriptionCenter() {
                 </button>
               </div>
 
-              {addModalStep === "templates" && !editingId ? (
+              {addModalStep === "categories" && !editingId ? (
                 <>
-                  <div className="shrink-0 px-4 pt-3 pb-1">
+                  <div className="shrink-0 px-4 pt-3 pb-2">
                     <div className="relative">
                       <MagnifyingGlass size={18} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                       <input
                         type="search"
-                        value={templateSearch}
-                        onChange={(e) => setTemplateSearch(e.target.value)}
-                        placeholder={t("templateSearchPlaceholder")}
+                        value={brandSearch}
+                        onChange={(e) => handleBrandSearchChange(e.target.value)}
+                        placeholder={t("brandSearchPlaceholder")}
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
                       />
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
-                    {filteredBrands.length === 0 ? (
-                      <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noTemplatesFound")}</p>
+                  <div className="flex-1 overflow-y-auto px-4 pb-3 min-h-0 space-y-2">
+                    {visibleSections.length === 0 ? (
+                      <p className="text-center text-sm font-bold text-slate-400 py-8">{t("noBrandsFound")}</p>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {filteredBrands.map((brand) => (
-                          <button
-                            key={brand.name}
-                            onClick={() => selectBrand(brand)}
-                            className="flex flex-col items-center justify-center gap-2 p-4 min-h-[7.5rem] rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all text-center cursor-pointer"
-                          >
-                            <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
-                              <BrandIcon name={brand.name} icon={brand.icon} size={36} presets={presets} />
-                            </div>
-                            <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
-                              {t("planCount", { count: brand.plans.length })}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                      visibleSections.map(({ category, brands }) => {
+                        const expanded = expandedCategories.has(category.name);
+                        return (
+                          <div key={category.id} className="rounded-2xl border border-slate-100 overflow-hidden bg-white">
+                            <button
+                              type="button"
+                              onClick={() => toggleCategoryExpanded(category.name)}
+                              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 hover:bg-slate-100/80 transition-colors cursor-pointer text-left"
+                              style={{ borderLeft: `3px solid ${category.color}` }}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <CategoryIcon categoryId={category.id} color={category.color} size={20} />
+                                <span className="text-sm font-bold text-slate-800 truncate">{categoryLabel(category.name)}</span>
+                                <span className="text-[10px] font-bold text-slate-400 shrink-0">({brands.length})</span>
+                              </div>
+                              <CaretDown
+                                size={16}
+                                weight="bold"
+                                className={`shrink-0 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+                              />
+                            </button>
+                            <AnimatePresence initial={false}>
+                              {expanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="p-3 pt-2 border-t border-slate-100">
+                                    {brands.length === 0 ? (
+                                      <p className="text-center text-xs font-bold text-slate-400 py-4">{t("noBrandsFound")}</p>
+                                    ) : (
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {brands.map((brand) => (
+                                          <button
+                                            key={brand.name}
+                                            onClick={() => selectBrand(brand)}
+                                            className="flex flex-col items-center justify-center gap-1.5 p-3 min-h-[6.5rem] rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all text-center cursor-pointer"
+                                          >
+                                            <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+                                              <BrandIcon name={brand.name} icon={brand.icon} size={32} presets={presets} />
+                                            </div>
+                                            <p className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2">{brand.name}</p>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                   <div className="shrink-0 p-4 pt-2 border-t border-slate-100 bg-white">
@@ -653,8 +844,7 @@ export default function SubscriptionCenter() {
                           </p>
                         </div>
                         <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-700"}`}>
-                          {preset.currency === "TRY" ? "₺" : "$"}
-                          {formatMoney(preset.avg_price, preset.avg_price % 1 === 0 ? 0 : 2)}
+                          {formatPriceDisplay(preset.avg_price, preset.currency)}
                         </span>
                       </button>
                     ))}
@@ -697,6 +887,29 @@ export default function SubscriptionCenter() {
                   )}
 
                   <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("category")}</label>
+                    <select
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                      value={newSub.category || "Other"}
+                      onChange={(e) => {
+                        const cat = categories.find((c) => c.name === e.target.value);
+                        setNewSub({
+                          ...newSub,
+                          category: e.target.value,
+                          color: cat?.color || newSub.color,
+                          icon: cat?.icon || newSub.icon,
+                        });
+                      }}
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>
+                          {categoryLabel(cat.name)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("service")}</label>
                     <input
                       type="text"
@@ -732,14 +945,15 @@ export default function SubscriptionCenter() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("amount")}</label>
-                      <input
-                        type="number"
-                        placeholder={t("amountPlaceholder")}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all"
-                        value={newSub.price || ""}
-                        onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })}
-                      />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("currency")}</label>
+                      <select
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                        value={newSub.currency || "TRY"}
+                        onChange={(e) => setNewSub({ ...newSub, currency: e.target.value })}
+                      >
+                        <option value="TRY">{t("currencyTry")}</option>
+                        <option value="USD">{t("currencyUsd")}</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">{t("cycle")}</label>
@@ -752,6 +966,24 @@ export default function SubscriptionCenter() {
                         <option value="yearly">{t("yearly")}</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-1">
+                      {newSub.currency === "USD" ? t("amountUsd") : t("amount")}
+                    </label>
+                    <input
+                      type="number"
+                      placeholder={newSub.currency === "USD" ? t("amountUsdPlaceholder") : t("amountPlaceholder")}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-black font-mono focus:outline-none focus:border-indigo-500 transition-all"
+                      value={newSub.price || ""}
+                      onChange={(e) => setNewSub({ ...newSub, price: parseFloat(e.target.value) })}
+                    />
+                    {!!newSub.price && newSub.price > 0 && newSub.currency === "USD" && (
+                      <p className="text-xs font-bold font-mono text-slate-500 px-1 tabular-nums">
+                        {formatPriceDisplay(newSub.price, "USD")}
+                      </p>
+                    )}
                   </div>
 
                   <button

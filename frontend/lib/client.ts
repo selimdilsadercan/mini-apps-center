@@ -1413,6 +1413,18 @@ export namespace subcenter {
         presets: GlobalPreset[]
     }
 
+    export interface GetCategoriesResponse {
+        categories: SubscriptionCategory[]
+    }
+
+    export interface SubscriptionCategory {
+        id: string
+        name: string
+        icon: string
+        color: string
+        sort_order: number
+    }
+
     export interface GetUserSubscriptionsResponse {
         subscriptions: Subscription[]
     }
@@ -1473,6 +1485,7 @@ export namespace subcenter {
             this.createSubscription = this.createSubscription.bind(this)
             this.deleteSubscription = this.deleteSubscription.bind(this)
             this.getGlobalPresets = this.getGlobalPresets.bind(this)
+            this.getCategories = this.getCategories.bind(this)
             this.getUserSubscriptions = this.getUserSubscriptions.bind(this)
             this.updateSubscription = this.updateSubscription.bind(this)
         }
@@ -1510,6 +1523,15 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/presets`)
             return await resp.json() as GetGlobalPresetsResponse
+        }
+
+        /**
+         * Get subscription categories
+         * GET /subcenter/categories
+         */
+        public async getCategories(): Promise<GetCategoriesResponse> {
+            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/categories`)
+            return await resp.json() as GetCategoriesResponse
         }
 
         /**

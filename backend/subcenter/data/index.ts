@@ -6,6 +6,8 @@ import entertainmentPresets from "./entertainment.json";
 import musicPresets from "./music.json";
 import aiPresets from "./ai.json";
 import softwarePresets from "./software.json";
+import designPresets from "./design.json";
+import socialPresets from "./social.json";
 import otherPresets from "./other.json";
 
 const staticPresets = [
@@ -13,12 +15,14 @@ const staticPresets = [
   ...musicPresets,
   ...aiPresets,
   ...softwarePresets,
+  ...designPresets,
+  ...socialPresets,
   ...otherPresets
 ];
 
 export function getPresetsData() {
   try {
-    const files = ["entertainment.json", "music.json", "ai.json", "software.json", "other.json"];
+    const files = ["entertainment.json", "music.json", "ai.json", "software.json", "design.json", "social.json", "other.json"];
     const merged: any[] = [];
     
     for (const file of files) {

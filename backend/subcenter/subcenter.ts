@@ -42,6 +42,14 @@ export interface GlobalPreset {
   domain?: string;
 }
 
+export interface SubscriptionCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  sort_order: number;
+}
+
 function loadPresets(): GlobalPreset[] {
   return (getPresetsData() as any[]).map((p, idx) => ({
     id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
@@ -90,6 +98,10 @@ interface GetGlobalPresetsResponse {
   presets: GlobalPreset[];
 }
 
+interface GetCategoriesResponse {
+  categories: SubscriptionCategory[];
+}
+
 interface DeleteSubscriptionRequest {
   id: string;
   userId: string;
@@ -128,6 +140,24 @@ export const getGlobalPresets = api(
   { expose: true, method: "GET", path: "/subcenter/presets" },
   async (): Promise<GetGlobalPresetsResponse> => {
     return { presets: loadPresets() };
+  }
+);
+
+/**
+ * Get subscription categories
+ * GET /subcenter/categories
+ */
+export const getCategories = api(
+  { expose: true, method: "GET", path: "/subcenter/categories" },
+  async (): Promise<GetCategoriesResponse> => {
+    const { data, error } = await supabase.schema("subcenter").rpc("get_categories");
+
+    if (error) {
+      console.error("getCategories error:", error);
+      throw APIError.internal(`Failed to load categories: ${error.message}`);
+    }
+
+    return { categories: data || [] };
   }
 );
 
