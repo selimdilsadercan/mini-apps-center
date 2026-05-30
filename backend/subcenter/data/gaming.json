@@ -1,0 +1,167 @@
+[
+  {
+    "name": "Xbox Game Pass",
+    "plan_name": "PC Game Pass",
+    "region": "TR",
+    "price": 159.99,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#107C10",
+    "icon": "🎮",
+    "domain": "xbox.com"
+  },
+  {
+    "name": "Xbox Game Pass",
+    "plan_name": "Ultimate",
+    "region": "TR",
+    "price": 309.99,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#107C10",
+    "icon": "🎮",
+    "domain": "xbox.com"
+  },
+  {
+    "name": "PlayStation Plus",
+    "plan_name": "Essential",
+    "region": "TR",
+    "price": 175.0,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#003791",
+    "icon": "🕹️",
+    "domain": "playstation.com"
+  },
+  {
+    "name": "PlayStation Plus",
+    "plan_name": "Extra",
+    "region": "TR",
+    "price": 260.0,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#003791",
+    "icon": "🕹️",
+    "domain": "playstation.com"
+  },
+  {
+    "name": "PlayStation Plus",
+    "plan_name": "Premium",
+    "region": "TR",
+    "price": 300.0,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#003791",
+    "icon": "🕹️",
+    "domain": "playstation.com"
+  },
+  {
+    "name": "Nintendo Switch Online",
+    "plan_name": "Individual",
+    "region": "US",
+    "price": 3.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#E60012",
+    "icon": "🍄",
+    "domain": "nintendo.com"
+  },
+  {
+    "name": "Nintendo Switch Online",
+    "plan_name": "Family",
+    "region": "US",
+    "price": 34.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#E60012",
+    "icon": "🍄",
+    "domain": "nintendo.com"
+  },
+  {
+    "name": "GeForce NOW",
+    "plan_name": "Performance",
+    "region": "TR",
+    "price": 340.0,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#76B900",
+    "icon": "☁️",
+    "domain": "gameplus.com.tr"
+  },
+  {
+    "name": "GeForce NOW",
+    "plan_name": "Ultimate",
+    "region": "TR",
+    "price": 800.0,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#76B900",
+    "icon": "☁️",
+    "domain": "gameplus.com.tr"
+  },
+  {
+    "name": "EA Play",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 5.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#FF4747",
+    "icon": "⚽",
+    "domain": "ea.com"
+  },
+  {
+    "name": "EA Play Pro",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 16.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#FF4747",
+    "icon": "⚽",
+    "domain": "ea.com"
+  },
+  {
+    "name": "Ubisoft+",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 17.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#000000",
+    "icon": "🌀",
+    "domain": "ubisoft.com"
+  },
+  {
+    "name": "Apple Arcade",
+    "plan_name": "Monthly",
+    "region": "TR",
+    "price": 69.99,
+    "currency": "TRY",
+    "category": "Gaming",
+    "color": "#000000",
+    "icon": "🍎",
+    "domain": "apple.com"
+  },
+  {
+    "name": "Roblox Premium",
+    "plan_name": "450 Robux",
+    "region": "US",
+    "price": 4.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#393B3D",
+    "icon": "🧱",
+    "domain": "roblox.com"
+  },
+  {
+    "name": "Fortnite Crew",
+    "plan_name": "Monthly",
+    "region": "US",
+    "price": 11.99,
+    "currency": "USD",
+    "category": "Gaming",
+    "color": "#7B2FF7",
+    "icon": "🪂",
+    "domain": "fortnite.com"
+  }
+]

@@ -1,0 +1,189 @@
+[
+  {
+    "name": "Tinder",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 7.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF4458",
+    "icon": "🔥",
+    "domain": "tinder.com"
+  },
+  {
+    "name": "Tinder",
+    "plan_name": "Gold",
+    "region": "US",
+    "price": 24.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF4458",
+    "icon": "🔥",
+    "domain": "tinder.com"
+  },
+  {
+    "name": "Tinder",
+    "plan_name": "Platinum",
+    "region": "US",
+    "price": 29.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF4458",
+    "icon": "🔥",
+    "domain": "tinder.com"
+  },
+  {
+    "name": "Bumble",
+    "plan_name": "Boost",
+    "region": "US",
+    "price": 16.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FFCB37",
+    "icon": "🐝",
+    "domain": "bumble.com"
+  },
+  {
+    "name": "Bumble",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 39.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FFCB37",
+    "icon": "🐝",
+    "domain": "bumble.com"
+  },
+  {
+    "name": "Hinge",
+    "plan_name": "Hinge+",
+    "region": "US",
+    "price": 29.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#8000FF",
+    "icon": "💜",
+    "domain": "hinge.co"
+  },
+  {
+    "name": "Hinge",
+    "plan_name": "HingeX",
+    "region": "US",
+    "price": 49.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#8000FF",
+    "icon": "💜",
+    "domain": "hinge.co"
+  },
+  {
+    "name": "OkCupid",
+    "plan_name": "Basic",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF4F64",
+    "icon": "💘",
+    "domain": "okcupid.com"
+  },
+  {
+    "name": "OkCupid",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 34.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF4F64",
+    "icon": "💘",
+    "domain": "okcupid.com"
+  },
+  {
+    "name": "Happn",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 24.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#0087B4",
+    "icon": "📍",
+    "domain": "happn.com"
+  },
+  {
+    "name": "Badoo",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#783BF9",
+    "icon": "💬",
+    "domain": "badoo.com"
+  },
+  {
+    "name": "Coffee Meets Bagel",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 34.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#C47A3C",
+    "icon": "☕",
+    "domain": "coffeemeetsbagel.com"
+  },
+  {
+    "name": "Boo",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 14.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#6C63FF",
+    "icon": "👻",
+    "domain": "boo.world"
+  },
+  {
+    "name": "Feeld",
+    "plan_name": "Majestic",
+    "region": "US",
+    "price": 14.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#000000",
+    "icon": "🖤",
+    "domain": "feeld.co"
+  },
+  {
+    "name": "Grindr",
+    "plan_name": "XTRA",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FFDD00",
+    "icon": "💛",
+    "domain": "grindr.com"
+  },
+  {
+    "name": "Grindr",
+    "plan_name": "Unlimited",
+    "region": "US",
+    "price": 39.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FFDD00",
+    "icon": "💛",
+    "domain": "grindr.com"
+  },
+  {
+    "name": "HER",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 24.99,
+    "currency": "USD",
+    "category": "Dating",
+    "color": "#FF5A8A",
+    "icon": "🌈",
+    "domain": "weareher.com"
+  }
+]

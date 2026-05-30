@@ -1,0 +1,167 @@
+[
+  {
+    "name": "iCloud+",
+    "plan_name": "50 GB",
+    "region": "TR",
+    "price": 24.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#007AFF",
+    "icon": "☁️",
+    "domain": "icloud.com"
+  },
+  {
+    "name": "iCloud+",
+    "plan_name": "200 GB",
+    "region": "TR",
+    "price": 79.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#007AFF",
+    "icon": "☁️",
+    "domain": "icloud.com"
+  },
+  {
+    "name": "iCloud+",
+    "plan_name": "2 TB",
+    "region": "TR",
+    "price": 249.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#007AFF",
+    "icon": "☁️",
+    "domain": "icloud.com"
+  },
+  {
+    "name": "Google One",
+    "plan_name": "Basic 100 GB",
+    "region": "TR",
+    "price": 57.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#4285F4",
+    "icon": "☁️",
+    "domain": "one.google.com"
+  },
+  {
+    "name": "Google One",
+    "plan_name": "Standard 200 GB",
+    "region": "TR",
+    "price": 89.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#4285F4",
+    "icon": "☁️",
+    "domain": "one.google.com"
+  },
+  {
+    "name": "Google One",
+    "plan_name": "Premium 2 TB",
+    "region": "TR",
+    "price": 289.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#4285F4",
+    "icon": "☁️",
+    "domain": "one.google.com"
+  },
+  {
+    "name": "Dropbox",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 11.99,
+    "currency": "USD",
+    "category": "Cloud Storage",
+    "color": "#0061FF",
+    "icon": "📦",
+    "domain": "dropbox.com"
+  },
+  {
+    "name": "Dropbox",
+    "plan_name": "Professional",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "Cloud Storage",
+    "color": "#0061FF",
+    "icon": "📦",
+    "domain": "dropbox.com"
+  },
+  {
+    "name": "Microsoft OneDrive",
+    "plan_name": "Microsoft 365 Basic",
+    "region": "TR",
+    "price": 59.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#0078D4",
+    "icon": "🗂️",
+    "domain": "onedrive.live.com"
+  },
+  {
+    "name": "Microsoft OneDrive",
+    "plan_name": "Microsoft 365 Personal",
+    "region": "TR",
+    "price": 229.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#0078D4",
+    "icon": "🗂️",
+    "domain": "microsoft.com"
+  },
+  {
+    "name": "Microsoft OneDrive",
+    "plan_name": "Microsoft 365 Family",
+    "region": "TR",
+    "price": 299.99,
+    "currency": "TRY",
+    "category": "Cloud Storage",
+    "color": "#0078D4",
+    "icon": "🗂️",
+    "domain": "microsoft.com"
+  },
+  {
+    "name": "pCloud",
+    "plan_name": "Premium 500 GB",
+    "region": "US",
+    "price": 4.99,
+    "currency": "USD",
+    "category": "Cloud Storage",
+    "color": "#17A2FF",
+    "icon": "☁️",
+    "domain": "pcloud.com"
+  },
+  {
+    "name": "pCloud",
+    "plan_name": "Premium Plus 2 TB",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Cloud Storage",
+    "color": "#17A2FF",
+    "icon": "☁️",
+    "domain": "pcloud.com"
+  },
+  {
+    "name": "MEGA",
+    "plan_name": "Pro Lite",
+    "region": "EU",
+    "price": 4.99,
+    "currency": "EUR",
+    "category": "Cloud Storage",
+    "color": "#D9272E",
+    "icon": "🔒",
+    "domain": "mega.io"
+  },
+  {
+    "name": "MEGA",
+    "plan_name": "Pro I",
+    "region": "EU",
+    "price": 9.99,
+    "currency": "EUR",
+    "category": "Cloud Storage",
+    "color": "#D9272E",
+    "icon": "🔒",
+    "domain": "mega.io"
+  }
+]

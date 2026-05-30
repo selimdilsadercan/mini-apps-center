@@ -1,0 +1,222 @@
+[
+  {
+    "name": "Notion",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#000000",
+    "icon": "📝",
+    "domain": "notion.so"
+  },
+  {
+    "name": "Notion",
+    "plan_name": "Business",
+    "region": "US",
+    "price": 18.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#000000",
+    "icon": "📝",
+    "domain": "notion.so"
+  },
+  {
+    "name": "Todoist",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#E44332",
+    "icon": "✅",
+    "domain": "todoist.com"
+  },
+  {
+    "name": "Todoist",
+    "plan_name": "Business",
+    "region": "US",
+    "price": 8.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#E44332",
+    "icon": "✅",
+    "domain": "todoist.com"
+  },
+  {
+    "name": "TickTick",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 3.99,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#4772FA",
+    "icon": "☑️",
+    "domain": "ticktick.com"
+  },
+  {
+    "name": "Evernote",
+    "plan_name": "Personal",
+    "region": "US",
+    "price": 14.99,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#00A82D",
+    "icon": "🐘",
+    "domain": "evernote.com"
+  },
+  {
+    "name": "Evernote",
+    "plan_name": "Professional",
+    "region": "US",
+    "price": 17.99,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#00A82D",
+    "icon": "🐘",
+    "domain": "evernote.com"
+  },
+  {
+    "name": "Microsoft 365",
+    "plan_name": "Personal",
+    "region": "TR",
+    "price": 229.99,
+    "currency": "TRY",
+    "category": "Productivity",
+    "color": "#D83B01",
+    "icon": "📄",
+    "domain": "microsoft.com"
+  },
+  {
+    "name": "Microsoft 365",
+    "plan_name": "Family",
+    "region": "TR",
+    "price": 299.99,
+    "currency": "TRY",
+    "category": "Productivity",
+    "color": "#D83B01",
+    "icon": "📄",
+    "domain": "microsoft.com"
+  },
+  {
+    "name": "Google Workspace",
+    "plan_name": "Business Starter",
+    "region": "US",
+    "price": 7.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#4285F4",
+    "icon": "📁",
+    "domain": "workspace.google.com"
+  },
+  {
+    "name": "Google Workspace",
+    "plan_name": "Business Standard",
+    "region": "US",
+    "price": 14.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#4285F4",
+    "icon": "📁",
+    "domain": "workspace.google.com"
+  },
+  {
+    "name": "Slack",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 8.75,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#4A154B",
+    "icon": "💬",
+    "domain": "slack.com"
+  },
+  {
+    "name": "Slack",
+    "plan_name": "Business+",
+    "region": "US",
+    "price": 15.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#4A154B",
+    "icon": "💬",
+    "domain": "slack.com"
+  },
+  {
+    "name": "Trello",
+    "plan_name": "Standard",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#0052CC",
+    "icon": "📌",
+    "domain": "trello.com"
+  },
+  {
+    "name": "Trello",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#0052CC",
+    "icon": "📌",
+    "domain": "trello.com"
+  },
+  {
+    "name": "Asana",
+    "plan_name": "Starter",
+    "region": "US",
+    "price": 13.49,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#F06A6A",
+    "icon": "📋",
+    "domain": "asana.com"
+  },
+  {
+    "name": "ClickUp",
+    "plan_name": "Unlimited",
+    "region": "US",
+    "price": 10.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#7B68EE",
+    "icon": "🚀",
+    "domain": "clickup.com"
+  },
+  {
+    "name": "Calendly",
+    "plan_name": "Standard",
+    "region": "US",
+    "price": 12.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#006BFF",
+    "icon": "📅",
+    "domain": "calendly.com"
+  },
+  {
+    "name": "Grammarly",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 30.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#15C39A",
+    "icon": "✍️",
+    "domain": "grammarly.com"
+  },
+  {
+    "name": "Obsidian",
+    "plan_name": "Sync",
+    "region": "US",
+    "price": 5.0,
+    "currency": "USD",
+    "category": "Productivity",
+    "color": "#7C3AED",
+    "icon": "🧠",
+    "domain": "obsidian.md"
+  }
+]

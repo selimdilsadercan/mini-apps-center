@@ -1,0 +1,167 @@
+[
+  {
+    "name": "TradingView",
+    "plan_name": "Essential",
+    "region": "US",
+    "price": 14.95,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#2962FF",
+    "icon": "📈",
+    "domain": "tradingview.com"
+  },
+  {
+    "name": "TradingView",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 29.95,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#2962FF",
+    "icon": "📈",
+    "domain": "tradingview.com"
+  },
+  {
+    "name": "TradingView",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 59.95,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#2962FF",
+    "icon": "📈",
+    "domain": "tradingview.com"
+  },
+  {
+    "name": "Midas",
+    "plan_name": "Midas Premium",
+    "region": "TR",
+    "price": 99.99,
+    "currency": "TRY",
+    "category": "Finance",
+    "color": "#00B386",
+    "icon": "💸",
+    "domain": "midasmenkul.com"
+  },
+  {
+    "name": "Investing.com",
+    "plan_name": "Pro",
+    "region": "US",
+    "price": 13.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#F5A623",
+    "icon": "📊",
+    "domain": "investing.com"
+  },
+  {
+    "name": "Investing.com",
+    "plan_name": "Pro+",
+    "region": "US",
+    "price": 29.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#F5A623",
+    "icon": "📊",
+    "domain": "investing.com"
+  },
+  {
+    "name": "Finimize",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#7C3AED",
+    "icon": "📰",
+    "domain": "finimize.com"
+  },
+  {
+    "name": "Seeking Alpha",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 19.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#111827",
+    "icon": "🔍",
+    "domain": "seekingalpha.com"
+  },
+  {
+    "name": "Morningstar",
+    "plan_name": "Investor",
+    "region": "US",
+    "price": 34.95,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#E60000",
+    "icon": "⭐",
+    "domain": "morningstar.com"
+  },
+  {
+    "name": "Yahoo Finance",
+    "plan_name": "Plus",
+    "region": "US",
+    "price": 24.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#6001D2",
+    "icon": "💹",
+    "domain": "finance.yahoo.com"
+  },
+  {
+    "name": "Bloomberg",
+    "plan_name": "Digital",
+    "region": "US",
+    "price": 34.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#000000",
+    "icon": "🗞️",
+    "domain": "bloomberg.com"
+  },
+  {
+    "name": "The Wall Street Journal",
+    "plan_name": "Digital",
+    "region": "US",
+    "price": 38.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#0274B6",
+    "icon": "📰",
+    "domain": "wsj.com"
+  },
+  {
+    "name": "MarketWatch",
+    "plan_name": "Digital",
+    "region": "US",
+    "price": 9.99,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#00AEEF",
+    "icon": "📉",
+    "domain": "marketwatch.com"
+  },
+  {
+    "name": "CoinMarketCap",
+    "plan_name": "Free",
+    "region": "Global",
+    "price": 0.0,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#3861FB",
+    "icon": "🪙",
+    "domain": "coinmarketcap.com"
+  },
+  {
+    "name": "CoinGecko",
+    "plan_name": "Premium",
+    "region": "US",
+    "price": 8.32,
+    "currency": "USD",
+    "category": "Finance",
+    "color": "#8DC647",
+    "icon": "🦎",
+    "domain": "coingecko.com"
+  }
+]
