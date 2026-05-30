@@ -703,47 +703,67 @@ export default function SubscriptionCenter() {
 
                     <div className="p-5 flex-1 flex flex-col justify-between">
                       {/* Top Row: Brand & Price */}
-                      <div className="flex gap-4 items-start">
-                        {/* Logo Circle */}
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
-                          <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} />
+                      <div className="flex gap-4 items-start justify-between">
+                        {/* Logo & Brand Info */}
+                        <div className="flex gap-4 items-start min-w-0">
+                          {/* Logo Circle */}
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100/60 overflow-hidden shadow-inner shrink-0">
+                            <BrandIcon name={sub.name} icon={sub.icon} size={28} presets={presets} />
+                          </div>
+                          
+                          {/* Title & Category */}
+                          <div className="min-w-0 flex flex-col justify-center h-12">
+                            <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
+                              {locale === "tr" ? (categoryTranslations[sub.category] || sub.category) : sub.category}
+                              {sub.region !== "TR" && ` • ${sub.region}`}
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Title & Plan */}
-                        <div className="flex-1 min-w-0 flex flex-col justify-center h-12">
-                          <h4 className="text-sm font-black text-slate-800 tracking-tight truncate leading-tight">{sub.name}</h4>
-                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
-                            {locale === "tr" ? (categoryTranslations[sub.category] || sub.category) : sub.category}
-                            {sub.region !== "TR" && ` • ${sub.region}`}
+                        {/* Price & Cycle */}
+                        <div className="text-right shrink-0">
+                          <span className="text-lg font-black text-slate-800 tracking-tighter">
+                            {formatPriceDisplay(sub.price, sub.currency)}
+                          </span>
+                          <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                            /{sub.cycle === "monthly" ? (locale === "tr" ? "aylık" : "mo") : (locale === "tr" ? "yıllık" : "yr")}
                           </span>
                         </div>
+                      </div>
 
-                        <div className="flex-1 min-w-0 flex flex-col items-end justify-between text-right">
-                          <div>
-                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide leading-none">{t("renewalDate")}</p>
-                            <p className="text-sm text-slate-700 font-mono tabular-nums leading-tight mt-0.5">
+                      {/* Middle Line */}
+                      <div className="h-px bg-slate-100 w-full my-1" />
+
+                      {/* Bottom Row: Renewal Info & Actions */}
+                      <div className="flex items-center justify-between">
+                        {/* Renewal Date */}
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <Calendar size={14} className="text-slate-400" />
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{t("renewalDate")}</span>
+                            <span className="text-[10px] font-extrabold text-slate-700 tracking-tight leading-none mt-1">
                               {formatRenewalDate(getRenewalDisplayDate(sub.start_date, sub.cycle))}
-                            </p>
+                            </span>
                           </div>
-                          <p className="text-lg font-bold text-slate-900 font-mono tabular-nums leading-none">₺{formatMoney(sub.price)}</p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleEdit(sub)}
+                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-indigo-100"
+                          >
+                            <PencilSimple size={15} weight="bold" />
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(sub.id)}
+                            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-100"
+                          >
+                            <Trash size={15} weight="bold" />
+                          </button>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleEdit(sub)}
-                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-indigo-100"
-                      >
-                        <PencilSimple size={15} weight="bold" />
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(sub.id)}
-                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95 cursor-pointer border border-transparent hover:border-red-100"
-                      >
-                        <Trash size={15} weight="bold" />
-                      </button>
                     </div>
                   </div>
                 </motion.div>
