@@ -1,8 +1,9 @@
-DROP FUNCTION IF EXISTS chocolate_db.set_user_state;
+DROP FUNCTION IF EXISTS chocolate_db.set_user_state(TEXT, UUID, TEXT);
+DROP FUNCTION IF EXISTS chocolate_db.set_user_state(TEXT, TEXT, TEXT);
 
 CREATE OR REPLACE FUNCTION chocolate_db.set_user_state(
     p_clerk_id TEXT,
-    p_chocolate_id UUID,
+    p_chocolate_id TEXT,
     p_state TEXT
 )
 RETURNS VOID

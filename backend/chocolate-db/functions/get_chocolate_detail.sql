@@ -1,13 +1,10 @@
-DROP FUNCTION IF EXISTS chocolate_db.get_chocolate_detail;
+DROP FUNCTION IF EXISTS chocolate_db.get_chocolate_detail(UUID);
+DROP FUNCTION IF EXISTS chocolate_db.get_chocolate_detail(TEXT);
 
-CREATE OR REPLACE FUNCTION chocolate_db.get_chocolate_detail(p_id UUID)
+-- Legacy RPC: product metadata is served from products.json; this returns review stats only.
+CREATE OR REPLACE FUNCTION chocolate_db.get_chocolate_detail(p_id TEXT)
 RETURNS TABLE (
-    id UUID,
-    name TEXT,
-    brand TEXT,
-    description_tr TEXT,
-    description_en TEXT,
-    image_url TEXT,
+    id TEXT,
     avg_rating DECIMAL,
     review_count INTEGER,
     reviews JSONB
@@ -17,22 +14,23 @@ SECURITY DEFINER
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        c.id, 
-        c.name, 
-        c.brand, 
-        c.description_tr, 
-        c.description_en, 
-        c.image_url, 
-        c.avg_rating, 
-        c.review_count,
+    SELECT
+        p_id AS id,
+        COALESCE(ROUND(AVG(r.rating)::numeric, 2), 0) AS avg_rating,
+        COUNT(r.id)::INTEGER AS review_count,
         COALESCE(
-            (SELECT jsonb_agg(r ORDER BY r.created_at DESC) 
-             FROM chocolate_db.reviews r 
-             WHERE r.chocolate_id = c.id),
+            jsonb_agg(
+                jsonb_build_object(
+                    'id', r.id,
+                    'rating', r.rating,
+                    'comment', r.comment,
+                    'reviewer_name', r.reviewer_name,
+                    'created_at', r.created_at
+                ) ORDER BY r.created_at DESC
+            ),
             '[]'::jsonb
-        ) as reviews
-    FROM chocolate_db.chocolates c
-    WHERE c.id = p_id;
+        ) AS reviews
+    FROM chocolate_db.reviews r
+    WHERE r.chocolate_id = p_id;
 END;
 $$;

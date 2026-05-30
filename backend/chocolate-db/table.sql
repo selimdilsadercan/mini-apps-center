@@ -1,19 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS chocolate_db;
 
-CREATE TABLE chocolate_db.chocolates (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE,
-    brand TEXT NOT NULL,
-    description TEXT,
-    image_url TEXT,
-    avg_rating DECIMAL(3, 2) DEFAULT 0,
-    review_count INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
+-- Product catalog lives in backend/chocolate-db/data/products.json (slug IDs).
+-- DB stores reviews and per-user state only.
 
 CREATE TABLE chocolate_db.reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    chocolate_id UUID REFERENCES chocolate_db.chocolates(id) ON DELETE CASCADE,
+    chocolate_id TEXT NOT NULL,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     reviewer_name TEXT,
@@ -23,7 +15,7 @@ CREATE TABLE chocolate_db.reviews (
 CREATE TABLE chocolate_db.user_states (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     clerk_id TEXT NOT NULL,
-    chocolate_id UUID REFERENCES chocolate_db.chocolates(id) ON DELETE CASCADE,
+    chocolate_id TEXT NOT NULL,
     state TEXT CHECK (state IN ('tried', 'wishlist', 'dislike')),
     updated_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE (clerk_id, chocolate_id)
