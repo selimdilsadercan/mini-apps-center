@@ -83,30 +83,30 @@ export default function ChocolateDBPage() {
   return (
     <div className="min-h-screen bg-[#FDF5E6] dark:bg-[#1A0F0A] text-[#4A2C2A] dark:text-[#F3E5D8] font-sans">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-[#4A2C2A] py-16 px-6 lg:px-8">
+      <div className="relative overflow-hidden bg-[#4A2C2A] pt-20 pb-12 px-4 sm:px-6 md:py-16 lg:px-8">
         {/* Back Button */}
         <button
           onClick={() => router.push("/home")}
-          className="absolute top-6 left-6 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-[#F3E5D8]/10 hover:bg-[#F3E5D8]/20 border border-[#F3E5D8]/20 text-[#F3E5D8] transition-all cursor-pointer shadow-lg"
+          className="absolute top-4 left-4 md:top-6 md:left-6 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-[#F3E5D8]/10 hover:bg-[#F3E5D8]/20 border border-[#F3E5D8]/20 text-[#F3E5D8] transition-all cursor-pointer shadow-lg"
           title={lang === "tr" ? "Geri Dön" : "Go Back"}
         >
           <ArrowLeft size={20} weight="bold" />
         </button>
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]"></div>
         <div className="relative max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-black text-[#D4AF37] mb-4 tracking-tight drop-shadow-lg uppercase">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-[#D4AF37] mb-3 tracking-tight drop-shadow-lg uppercase">
             ChocolateDB
           </h1>
-          <p className="text-xl md:text-2xl text-[#F3E5D8] opacity-90 max-w-2xl mx-auto font-medium">
+          <p className="text-base sm:text-xl md:text-2xl text-[#F3E5D8] opacity-90 max-w-2xl mx-auto font-medium px-4">
             {t.subtitle}
           </p>
           
-          <div className="mt-10 max-w-xl mx-auto relative">
-            <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A2C2A] size-6" />
+          <div className="mt-6 md:mt-10 max-w-xl mx-auto relative px-2">
+            <MagnifyingGlass className="absolute left-6 top-1/2 -translate-y-1/2 text-[#4A2C2A] size-5 sm:size-6" />
             <input 
               type="text"
               placeholder={t.searchPlaceholder}
-              className="w-full pl-12 pr-4 py-4 rounded-full border-none bg-[#F3E5D8] text-[#4A2C2A] placeholder:text-[#4A2C2A]/50 text-lg shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#D4AF37] transition-all"
+              className="w-full pl-12 pr-4 py-3 sm:py-4 rounded-full border-none bg-[#F3E5D8] text-[#4A2C2A] placeholder:text-[#4A2C2A]/50 text-base sm:text-lg shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#D4AF37] transition-all"
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             />
@@ -115,14 +115,6 @@ export default function ChocolateDBPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#D4AF37] rounded-2xl shadow-lg rotate-3">
-              <TrendUp weight="bold" className="size-6 text-[#4A2C2A]" />
-            </div>
-            <h2 className="text-3xl font-black uppercase tracking-wider">{t.popularFlavors}</h2>
-          </div>
-        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
@@ -189,12 +181,6 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#4A2C2A] via-transparent to-transparent opacity-80"></div>
-          
-          <div className="absolute top-5 left-5">
-            <span className="bg-[#D4AF37] text-[#4A2C2A] font-black text-xs px-4 py-1.5 rounded-full shadow-lg uppercase tracking-widest">
-              {choco.brand}
-            </span>
-          </div>
 
           <div className="absolute bottom-6 left-6 right-6 text-white">
             <h3 className="text-3xl font-black mb-2 drop-shadow-2xl tracking-tighter uppercase leading-none">{choco.name}</h3>
