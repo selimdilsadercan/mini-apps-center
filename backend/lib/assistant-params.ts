@@ -43,3 +43,15 @@ export function optionalNumber(
   }
   return value;
 }
+
+export function optionalBoolean(
+  args: Record<string, unknown>,
+  key: string,
+): boolean | null {
+  const value = args[key];
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "boolean") {
+    throw new Error(`Invalid parameter: ${key}`);
+  }
+  return value;
+}

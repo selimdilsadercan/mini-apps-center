@@ -48,6 +48,7 @@ export function mapSubcenterCards(data: unknown): AssistantCard[] {
       icon: str(r.icon, "💳"),
       startDate: str(r.start_date, ""),
       planName: str(r.plan_name, "Standard"),
+      website: str(r.website ?? r.domain, ""),
     },
   }));
 }

@@ -17,6 +17,7 @@ import {
   Compass,
   MusicNotes,
   Palette,
+  ListChecks,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -262,6 +263,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Utilities",
     color: "#8B5CF6",
     href: "/ai-chat",
+    isImplemented: true,
+  },
+  {
+    id: "tasket",
+    name: "Tasket",
+    description: "Notlarını ve görevlerini sepetinde topla, listelerle organize et",
+    icon: ListChecks,
+    category: "Utilities",
+    color: "#20c997",
+    href: "/apps/tasket",
     isImplemented: true,
   },
 ];

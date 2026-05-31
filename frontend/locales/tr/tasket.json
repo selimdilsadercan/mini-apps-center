@@ -1,0 +1,42 @@
+{
+  "title": "Tasket",
+  "description": "Notlarını ve görevlerini sepetinde topla, listelerle organize et",
+  "myPages": "Sayfalarım",
+  "newPage": "Yeni Sayfa",
+  "pageName": "Sayfa Adı",
+  "pageNamePlaceholder": "Örn: Proje Notları",
+  "color": "Renk",
+  "createPage": "Sayfa Oluştur",
+  "untitled": "Başlıksız",
+  "placeholder": "Bir şeyler yazmaya başla veya '/' ile komutları gör...",
+  "welcomeTitle": "Hoş Geldin!",
+  "welcomeDescription": "Sol taraftan bir sayfa seç veya yeni bir tane oluşturarak not almaya başla.",
+  "backToHome": "Geri Dön",
+  "deleteConfirm": "Bu sayfayı silmek istediğine emin misin?",
+  "noResults": "Sonuç bulunamadı",
+  "slashCommands": {
+    "h1": "Başlık 1",
+    "h2": "Başlık 2",
+    "h3": "Başlık 3",
+    "taskList": "Görev Listesi",
+    "bulletList": "Madde İşaretli Liste",
+    "orderedList": "Numaralı Liste",
+    "quote": "Alıntı"
+  },
+  "task": {
+    "date": "Tarih",
+    "person": "Kişi",
+    "selectDate": "Tarih Seç",
+    "assignPerson": "Kişi Ata",
+    "clear": "Temizle",
+    "placeholder": "İsim yazın..."
+  },
+  "toolbar": {
+    "h1": "Başlık 1",
+    "h2": "Başlık 2",
+    "h3": "Başlık 3",
+    "list": "Liste",
+    "task": "Görev",
+    "ai": "AI ile Yaz"
+  }
+}

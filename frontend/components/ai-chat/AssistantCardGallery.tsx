@@ -32,6 +32,50 @@ function num(data: Record<string, unknown>, key: string, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function CardBrandIcon({
+  name,
+  icon,
+  size = 24,
+  website,
+}: {
+  name: string;
+  icon: string;
+  size?: number;
+  website?: string;
+}) {
+  const [attempt, setAttempt] = useState(0);
+  const token = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN;
+
+  // Try to derive a domain from the name if no website provided
+  const domain = website || null;
+
+  let logoUrl: string | null = null;
+  if (domain) {
+    if (attempt === 0) {
+      logoUrl = token
+        ? `https://img.logo.dev/${domain}?token=${token}`
+        : `https://unavatar.io/${domain}?fallback=false`;
+    } else if (attempt === 1) {
+      logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    }
+  }
+
+  if (logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={logoUrl}
+        alt={name}
+        className="object-contain rounded-lg"
+        style={{ width: size, height: size }}
+        onError={() => setAttempt((prev) => prev + 1)}
+      />
+    );
+  }
+
+  return <span style={{ fontSize: size - 8 }}>{icon || "💳"}</span>;
+}
+
 function SubcenterCard({ data }: { data: Record<string, unknown> }) {
   const color = str(data, "color", "#6366F1");
   const cycle = str(data, "cycle", "monthly");
@@ -46,8 +90,13 @@ function SubcenterCard({ data }: { data: Record<string, unknown> }) {
       <div className="p-4 flex flex-col gap-3 min-h-[140px]">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl shrink-0">
-              {str(data, "icon", "💳")}
+            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+              <CardBrandIcon
+                name={str(data, "name", "?")}
+                icon={str(data, "icon", "💳")}
+                size={28}
+                website={str(data, "website", "")}
+              />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-black text-slate-800 truncate">{str(data, "name", "?")}</p>

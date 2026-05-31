@@ -47,6 +47,7 @@ export default class Client {
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
+    public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
     public readonly users: users.ServiceClient
     private readonly options: ClientOptions
@@ -78,6 +79,7 @@ export default class Client {
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
+        this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
         this.users = new users.ServiceClient(base)
     }
@@ -1702,6 +1704,119 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/subcenter/${encodeURIComponent(id)}`, JSON.stringify(params))
             return await resp.json() as UpdateSubscriptionResponse
+        }
+    }
+}
+
+export namespace tasket {
+    export interface DeleteItemResponse {
+        success: boolean
+    }
+
+    export interface DeleteListResponse {
+        success: boolean
+    }
+
+    export interface GetDataResponse {
+        lists: TasketList[]
+        items: TasketItem[]
+    }
+
+    export interface TasketItem {
+        id: string
+        clerkId: string
+        listId: string | null
+        title: string | null
+        content: string | null
+        isCompleted: boolean
+        itemType: "note" | "task"
+        color: string | null
+        reminderAt: string | null
+        assignee: string | null
+        dueDate: string | null
+        createdAt: string
+        updatedAt: string
+    }
+
+    export interface TasketList {
+        id: string
+        clerkId: string
+        name: string
+        content: any
+        color: string | null
+        icon: string | null
+        createdAt: string
+    }
+
+    export interface UpsertItemRequest {
+        id?: string
+        userId: string
+        listId?: string
+        title?: string
+        content?: string
+        isCompleted?: boolean
+        itemType?: "note" | "task"
+        color?: string
+        reminderAt?: string
+    }
+
+    export interface UpsertItemResponse {
+        item: TasketItem
+    }
+
+    export interface UpsertListRequest {
+        id?: string
+        userId: string
+        name: string
+        content?: any
+        color?: string
+        icon?: string
+    }
+
+    export interface UpsertListResponse {
+        list: TasketList
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteItem = this.deleteItem.bind(this)
+            this.deleteList = this.deleteList.bind(this)
+            this.getData = this.getData.bind(this)
+            this.upsertItem = this.upsertItem.bind(this)
+            this.upsertList = this.upsertList.bind(this)
+        }
+
+        public async deleteItem(id: string, userId: string): Promise<DeleteItemResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/tasket/items/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as DeleteItemResponse
+        }
+
+        public async deleteList(id: string, userId: string): Promise<DeleteListResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/tasket/lists/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as DeleteListResponse
+        }
+
+        public async getData(userId: string): Promise<GetDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tasket/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetDataResponse
+        }
+
+        public async upsertItem(params: UpsertItemRequest): Promise<UpsertItemResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tasket/items`, JSON.stringify(params))
+            return await resp.json() as UpsertItemResponse
+        }
+
+        public async upsertList(params: UpsertListRequest): Promise<UpsertListResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tasket/lists`, JSON.stringify(params))
+            return await resp.json() as UpsertListResponse
         }
     }
 }
