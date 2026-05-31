@@ -5,7 +5,8 @@ import {
   SquaresFour, 
   Compass, 
   User,
-  Users
+  Users,
+  Sparkle
 } from "@phosphor-icons/react";
 
 // Aktif sayfa enum'u
@@ -13,6 +14,7 @@ export enum ActivePage {
   HUB = "hub",
   DISCOVER = "discover",
   FRIENDS = "friends",  
+  AI_CHAT = "ai-chat",
   NOTIFICATIONS = "notifications",
   PROFILE = "profile",
   GROCERIES = "groceries",
@@ -41,6 +43,24 @@ export default function AppBar({ activePage }: AppBarProps) {
               size={24} 
               weight={activePage === ActivePage.HUB ? "fill" : "bold"}
               color={activePage === ActivePage.HUB ? "white" : "#1F2937"} 
+            />
+          </div>
+        </Link>
+
+        {/* AI Chat */}
+        <Link
+          href="/ai-chat"
+          className={`flex flex-col items-center group transition-all duration-300 ${
+            activePage === ActivePage.AI_CHAT ? "scale-110" : "opacity-50 hover:opacity-100"
+          }`}
+        >
+          <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
+            activePage === ActivePage.AI_CHAT ? "bg-violet-600 shadow-lg shadow-violet-100" : "bg-transparent group-hover:bg-violet-50"
+          }`}>
+            <Sparkle 
+              size={24} 
+              weight={activePage === ActivePage.AI_CHAT ? "fill" : "bold"}
+              color={activePage === ActivePage.AI_CHAT ? "white" : "#1F2937"} 
             />
           </div>
         </Link>

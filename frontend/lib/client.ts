@@ -32,6 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
+    public readonly ai_assistant: ai_assistant.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly friendship: friendship.ServiceClient
@@ -62,6 +63,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.ai_assistant = new ai_assistant.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
@@ -106,6 +108,72 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+export namespace ai_assistant {
+    export interface Conversation {
+        id: string
+        title: string
+        messages: StoredChatMessage[]
+        createdAt: string
+        updatedAt: string
+    }
+
+    export interface DeleteConversationResponse {
+        success: boolean
+    }
+
+    export interface GetConversationsResponse {
+        conversations: Conversation[]
+    }
+
+    export interface StoredChatMessage {
+        id: string
+        role: "user" | "assistant"
+        content: string
+        timestamp: string
+    }
+
+    export interface UpsertConversationRequest {
+        userId: string
+        id: string
+        title: string
+        messages: StoredChatMessage[]
+        createdAt?: string
+    }
+
+    export interface UpsertConversationResponse {
+        conversation: Conversation
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteConversation = this.deleteConversation.bind(this)
+            this.getConversations = this.getConversations.bind(this)
+            this.upsertConversation = this.upsertConversation.bind(this)
+        }
+
+        public async deleteConversation(id: string, userId: string): Promise<DeleteConversationResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/ai-assistant/conversations/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as DeleteConversationResponse
+        }
+
+        public async getConversations(userId: string): Promise<GetConversationsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ai-assistant/conversations/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetConversationsResponse
+        }
+
+        public async upsertConversation(params: UpsertConversationRequest): Promise<UpsertConversationResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/conversations/upsert`, JSON.stringify(params))
+            return await resp.json() as UpsertConversationResponse
+        }
+    }
 }
 
 export namespace chocolate_db {
@@ -1413,15 +1481,7 @@ export namespace subcenter {
         categories: SubscriptionCategory[]
     }
 
-    export interface GetExchangeRateResponse {
-        from: "USD"
-        to: "TRY"
-        rate: number
-        source: "tcmb"
-        rateType: "forex_selling"
-        date: string
-        fetchedAt: string
-    }
+    export type GetExchangeRateResponse = TcmbExchangeRate
 
     export interface GetGlobalPresetsResponse {
         presets: GlobalPreset[]
@@ -1467,6 +1527,16 @@ export namespace subcenter {
         icon: string
         color: string
         "sort_order": number
+    }
+
+    export interface TcmbExchangeRate {
+        from: "USD"
+        to: "TRY"
+        rate: number
+        source: "tcmb"
+        rateType: "forex_selling"
+        date: string
+        fetchedAt: string
     }
 
     export interface UpdateSubscriptionRequest {
@@ -1533,6 +1603,16 @@ export namespace subcenter {
         }
 
         /**
+         * Get USD/TRY exchange rate from TCMB (forex selling)
+         * GET /subcenter/exchange-rate
+         */
+        public async getExchangeRate(): Promise<GetExchangeRateResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/exchange-rate`)
+            return await resp.json() as GetExchangeRateResponse
+        }
+
+        /**
          * Get top community-driven subscription presets
          * GET /subcenter/presets
          */
@@ -1540,15 +1620,6 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/presets`)
             return await resp.json() as GetGlobalPresetsResponse
-        }
-
-        /**
-         * Get USD/TRY exchange rate from TCMB
-         * GET /subcenter/exchange-rate
-         */
-        public async getExchangeRate(): Promise<GetExchangeRateResponse> {
-            const resp = await this.baseClient.callTypedAPI("GET", `/subcenter/exchange-rate`)
-            return await resp.json() as GetExchangeRateResponse
         }
 
         /**
