@@ -2,10 +2,6 @@
   "name": "recipe-monorepo",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
     "dev": "bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"sleep 3 && bun run generate:watch\"",
     "frontend": "cd frontend && bun run dev",
@@ -16,9 +12,5 @@
     "mobile": "cd frontend && bun run mobile",
     "store": "cd frontend && bun run store"
   },
-  "dependencies": {
-    "@tiptap/extension-heading": "3.24.0",
-    "@tiptap/extension-paragraph": "3.24.0",
-    "encore": "^0.0.30-beta"
-  }
+  "dependencies": {}
 }
