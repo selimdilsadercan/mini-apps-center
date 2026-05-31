@@ -1463,6 +1463,8 @@ export namespace subcenter {
         color: string
         icon: string
         startDate: string
+        trialDuration?: string | null
+        website?: string | null
     }
 
     export interface CreateSubscriptionResponse {
@@ -1518,6 +1520,8 @@ export namespace subcenter {
         color: string
         icon: string
         "start_date": string
+        "trial_duration": string | null
+        website: string | null
         "created_at": string
     }
 
@@ -1551,6 +1555,8 @@ export namespace subcenter {
         color: string
         icon: string
         startDate: string
+        trialDuration?: string | null
+        website?: string | null
     }
 
     export interface UpdateSubscriptionResponse {

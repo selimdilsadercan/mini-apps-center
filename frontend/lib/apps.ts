@@ -60,7 +60,7 @@ export const MINI_APPS: MiniApp[] = [
   },
   {
     id: "subcenter",
-    name: "Subscription Center",
+    name: "Subcenter",
     description: "Track all your subscriptions & spending",
     icon: CreditCard,
     category: "Utilities",

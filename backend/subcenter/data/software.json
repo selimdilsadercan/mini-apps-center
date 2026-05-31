@@ -1,5 +1,16 @@
 [
   {
+    "name": "Apple Developer",
+    "plan_name": "Developer Program",
+    "region": "US",
+    "price": 99.0,
+    "currency": "USD",
+    "category": "Software",
+    "color": "#000000",
+    "icon": "🍎",
+    "domain": "developer.apple.com"
+  },
+  {
     "name": "JetBrains",
     "plan_name": "All Products Pack",
     "region": "US",

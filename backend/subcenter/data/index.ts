@@ -8,7 +8,6 @@ import aiPresets from "./ai.json";
 import softwarePresets from "./software.json";
 import designPresets from "./design.json";
 import socialPresets from "./social.json";
-import otherPresets from "./other.json";
 import cloudPresets from "./cloud.json";
 import datingPresets from "./dating.json";
 import educationPresets from "./education.json";
@@ -26,7 +25,6 @@ const staticPresets = [
   ...softwarePresets,
   ...designPresets,
   ...socialPresets,
-  ...otherPresets,
   ...cloudPresets,
   ...datingPresets,
   ...educationPresets,
