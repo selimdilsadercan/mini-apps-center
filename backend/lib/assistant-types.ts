@@ -21,18 +21,11 @@ export interface AppAssistantDefinition {
   tools: AssistantToolDefinition[];
 }
 
-export interface AssistantExecuteContext {
-  userId: string;
-  toolName: string;
-  args: Record<string, unknown>;
-}
-
-export type AssistantExecutor = (
-  ctx: AssistantExecuteContext,
-) => Promise<unknown>;
-
 export interface AppAssistantModule extends AppAssistantDefinition {
-  execute: AssistantExecutor;
+  executors: Record<
+    string,
+    (ctx: { userId: string; args: Record<string, any> }) => Promise<any>
+  >;
 }
 
 export interface AssistantAppCapabilities {

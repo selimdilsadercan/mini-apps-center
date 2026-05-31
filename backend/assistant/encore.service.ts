@@ -1,3 +1,3 @@
 import { Service } from "encore.dev/service";
 
-export default new Service("ai-assistant");
+export default new Service("assistant");

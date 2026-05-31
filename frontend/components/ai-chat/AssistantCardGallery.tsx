@@ -246,6 +246,54 @@ function ChocolateCard({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+function HelpCard({ data }: { data: Record<string, unknown> }) {
+  const items = (data.items as Array<{ title: string; icon: string; color: string; examples: string[] }>) || [];
+
+  const handleExampleClick = (val: string) => {
+    window.dispatchEvent(new CustomEvent("insert-chat-input", { detail: val }));
+  };
+
+  return (
+    <div className="flex-shrink-0 w-full max-w-[28rem] bg-white rounded-3xl border border-slate-100 shadow-lg p-5 flex flex-col gap-4">
+      <div className="flex items-center gap-2 border-b border-slate-50 pb-3">
+        <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center text-lg shrink-0">
+          💡
+        </div>
+        <div>
+          <h3 className="text-sm font-black text-slate-800">Mini Uygulamalar Rehberi</h3>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Neler Yapabilirim?</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+        {items.map((item, idx) => (
+          <div
+            key={idx}
+            className="p-3 rounded-2xl bg-slate-50/50 hover:bg-slate-50 border border-slate-100/50 flex flex-col gap-2 transition-all"
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-base shrink-0">{item.icon}</span>
+              <span className="text-xs font-extrabold text-slate-700 truncate">{item.title}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {item.examples.map((ex, exIdx) => (
+                <button
+                  key={exIdx}
+                  type="button"
+                  onClick={() => handleExampleClick(ex)}
+                  className="text-left text-[11px] font-semibold text-slate-500 hover:text-violet-600 hover:bg-violet-50/50 px-2.5 py-1.5 rounded-xl border border-slate-200/40 hover:border-violet-200/50 truncate transition-all duration-200 active:scale-95"
+                  title={`Tıkla ve dene: "${ex}"`}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CardByType({
   card,
   onIskambilOpen,
@@ -279,6 +327,8 @@ function CardByType({
       return <MemedexCard data={data} />;
     case "chocolate":
       return <ChocolateCard data={data} />;
+    case "help":
+      return <HelpCard data={data} />;
     default:
       return (
         <div className="flex-shrink-0 w-[140px] rounded-xl bg-gray-100 p-3 text-xs">

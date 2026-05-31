@@ -1,6 +1,15 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import {
+  requireString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
+import {
+  getUserRecipes,
+  createRecipe,
+  updateRecipe,
+  deleteRecipe,
+} from "./recipe";
 
-export const recipeAssistantDefinition: AppAssistantDefinition = {
+export const recipeAssistant: AppAssistantModule = {
   appId: "recipe",
   name: "Meal Planner",
   description: "Tarifleri oluşturur ve düzenler.",
@@ -42,4 +51,36 @@ export const recipeAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    list_recipes: async ({ userId }) => {
+      const res = await getUserRecipes({ userId });
+      return res.recipes;
+    },
+    create_recipe: async ({ userId, args }) => {
+      const res = await createRecipe({
+        userId,
+        title: requireString(args, "title"),
+        ingredients: (args.ingredients as any) ?? undefined,
+        instructions: (args.instructions as any) ?? undefined,
+      });
+      return res.recipe ? [res.recipe] : [];
+    },
+    update_recipe: async ({ userId, args }) => {
+      const res = await updateRecipe({
+        recipeId: requireString(args, "id"),
+        userId,
+        title: requireString(args, "title"),
+        ingredients: (args.ingredients as any) ?? null,
+        instructions: (args.instructions as any) ?? null,
+      });
+      return res.recipe ? [res.recipe] : [];
+    },
+    delete_recipe: async ({ userId, args }) => {
+      const res = await deleteRecipe({
+        recipeId: requireString(args, "id"),
+        userId,
+      });
+      return res;
+    },
+  },
 };

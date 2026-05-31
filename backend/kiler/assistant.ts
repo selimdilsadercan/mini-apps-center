@@ -1,6 +1,12 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import {
+  requireNumber,
+  requireString,
+  optionalString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
+import { kiler } from "~encore/clients";
 
-export const kilerAssistantDefinition: AppAssistantDefinition = {
+export const kilerAssistant: AppAssistantModule = {
   appId: "kiler",
   name: "Kiler",
   description: "Evdeki stokları yönetir.",
@@ -38,4 +44,29 @@ export const kilerAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    list_items: async ({ userId }) => {
+      const res = await kiler.getItems({ userId });
+      return res.items;
+    },
+    add_item: async ({ userId, args }) => {
+      const res = await kiler.addItem({
+        userId,
+        name: requireString(args, "name"),
+        amount: requireNumber(args, "amount"),
+        unit: requireString(args, "unit"),
+        storageType: requireString(args, "storageType") as any,
+        purchaseDate: requireString(args, "purchaseDate"),
+        expiryDate: optionalString(args, "expiryDate") ?? undefined,
+      });
+      return res.item ? [res.item] : [];
+    },
+    delete_item: async ({ userId, args }) => {
+      const res = await kiler.deleteItem({
+        id: requireString(args, "id"),
+        userId,
+      });
+      return res;
+    },
+  },
 };

@@ -1,6 +1,19 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import { secret } from "encore.dev/config";
+import { createSupabaseClient } from "../lib/supabase";
+import { runRpc } from "../lib/assistant-tool-error";
+import {
+  optionalNumber,
+  optionalString,
+  requireString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
 
-export const concertListAssistantDefinition: AppAssistantDefinition = {
+const supabaseUrl = secret("SupabaseUrl");
+const supabaseAnonKey = secret("SupabaseAnonKey");
+const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+const db = supabase.schema("concert_list");
+
+export const concertListAssistant: AppAssistantModule = {
   appId: "concert-list",
   name: "My Concert List",
   description: "Konser kayıtlarını yönetir.",
@@ -33,4 +46,31 @@ export const concertListAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    list_concerts: async ({ userId }) => {
+      return runRpc("list_concerts", async () =>
+        await db.rpc("get_concerts", { clerk_id_param: userId }),
+      );
+    },
+    add_concert: async ({ userId, args }) => {
+      return runRpc("add_concert", async () =>
+        await db.rpc("add_concert", {
+          clerk_id_param: userId,
+          artist_param: requireString(args, "artist"),
+          date_param: requireString(args, "date"),
+          venue_param: optionalString(args, "venue"),
+          notes_param: optionalString(args, "notes"),
+          rating_param: optionalNumber(args, "rating"),
+        }),
+      );
+    },
+    delete_concert: async ({ userId, args }) => {
+      return runRpc("delete_concert", async () =>
+        await db.rpc("delete_concert", {
+          clerk_id_param: userId,
+          concert_id_param: requireString(args, "id"),
+        }),
+      );
+    },
+  },
 };

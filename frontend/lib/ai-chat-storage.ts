@@ -117,7 +117,7 @@ export function deserializeMessages(
 async function loadConversationsFromApi(
   userId: string,
 ): Promise<SavedConversation[]> {
-  const { conversations } = await client.ai_assistant.getConversations(userId);
+  const { conversations } = await client.assistant.getConversations(userId);
   return sortByCreatedAt(
     conversations.map((c) => ({
       id: c.id,
@@ -177,7 +177,7 @@ export async function upsertConversation(
 
   if (userId) {
     try {
-      await client.ai_assistant.upsertConversation({
+      await client.assistant.upsertConversation({
         userId,
         id: entry.id,
         title: entry.title,
@@ -221,7 +221,7 @@ export async function deleteConversation(
   }
 
   if (userId) {
-    await client.ai_assistant.deleteConversation(id, userId);
+    await client.assistant.deleteConversation(id, userId);
     return await loadConversationsFromApi(userId);
   }
 

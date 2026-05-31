@@ -32,7 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
-    public readonly ai_assistant: ai_assistant.ServiceClient
+    public readonly assistant: assistant.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly friendship: friendship.ServiceClient
@@ -63,7 +63,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
-        this.ai_assistant = new ai_assistant.ServiceClient(base)
+        this.assistant = new assistant.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
@@ -110,7 +110,7 @@ export interface ClientOptions {
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
 }
 
-export namespace ai_assistant {
+export namespace assistant {
     export interface AssistantCardPayload {
         type: string
         data: { [key: string]: any }
@@ -196,37 +196,37 @@ export namespace ai_assistant {
 
         public async chat(params: ChatRequest): Promise<ChatResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/chat`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/assistant/chat`, JSON.stringify(params))
             return await resp.json() as ChatResponse
         }
 
         public async deleteConversation(id: string, userId: string): Promise<DeleteConversationResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("DELETE", `/ai-assistant/conversations/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/assistant/conversations/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
             return await resp.json() as DeleteConversationResponse
         }
 
         public async executeTool(params: ExecuteToolRequest): Promise<ExecuteToolResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/tools/execute`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/assistant/tools/execute`, JSON.stringify(params))
             return await resp.json() as ExecuteToolResponse
         }
 
         public async getCapabilities(): Promise<GetCapabilitiesResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/ai-assistant/capabilities`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/assistant/capabilities`)
             return await resp.json() as GetCapabilitiesResponse
         }
 
         public async getConversations(userId: string): Promise<GetConversationsResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/ai-assistant/conversations/${encodeURIComponent(userId)}`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/assistant/conversations/${encodeURIComponent(userId)}`)
             return await resp.json() as GetConversationsResponse
         }
 
         public async upsertConversation(params: UpsertConversationRequest): Promise<UpsertConversationResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/conversations/upsert`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/assistant/conversations/upsert`, JSON.stringify(params))
             return await resp.json() as UpsertConversationResponse
         }
     }
@@ -1016,7 +1016,7 @@ export namespace kiler {
         unit: string
         "storage_type": StorageType
         "purchase_date": string
-        "expiry_date"?: string
+        "expiry_date"?: string | null
         "created_at": string
     }
 

@@ -215,22 +215,33 @@ const RULES: ChatRule[] = [
     id: "help",
     test: (c) =>
       /\b(yardım|help|ne yapabil|komutlar|neler yap)\b/.test(c.normalized),
-    run: async () => reply(`Şunları yazabilirsin:
-
-• Kiler: «kilerim», «kilere süt ekle»
-• Abonelikler: «aboneliklerim», «netflix aboneliği ekle 199 tl aylık»
-• Tarifler: «tariflerim»
-• Konserler: «konserlerim»
-• Hobiler: «hobilerim»
-• Harita: «harita listelerim»
-• Çikolata: «çikolatalarım»
-• Meme: «memeler»
-• Turnuva: «turnuvalar»
-• Kart oyunları: «kart oyunlarım», «rastgele kart oyunu», «bana bir kart oyunu öner»
-• İkon setleri: «ikon setleri»
-• Yemekhane: «menü», «beğenmediğim yemekler»
-• Filmler: «filmler», «yaklaşan filmler», «en iyi filmler»
-• Arkadaşlar: «arkadaşlarım», «bekleyen istekler»`),
+    run: async () =>
+      reply(
+        "Sana yardımcı olabileceğimiz bazı konular ve örnek komutlar aşağıda listelenmiştir. Örnek komutlara tıklayarak doğrudan yazma alanına aktarabilirsin:",
+        [
+          {
+            type: "help",
+            data: {
+              items: [
+                { title: "Kiler", icon: "🍎", color: "#F97316", examples: ["kilerim", "kilere süt ekle"] },
+                { title: "Abonelikler", icon: "💳", color: "#6366F1", examples: ["aboneliklerim", "netflix aboneliği ekle 199 tl aylık"] },
+                { title: "Tarifler", icon: "🍲", color: "#EC4899", examples: ["tariflerim"] },
+                { title: "Konserler", icon: "🎵", color: "#8B5CF6", examples: ["konserlerim"] },
+                { title: "Hobiler", icon: "🎨", color: "#10B981", examples: ["hobilerim"] },
+                { title: "Harita", icon: "📍", color: "#EF4444", examples: ["harita listelerim"] },
+                { title: "Çikolata", icon: "🍫", color: "#78350F", examples: ["çikolatalarım"] },
+                { title: "Meme", icon: "🤪", color: "#F59E0B", examples: ["memeler"] },
+                { title: "Turnuva", icon: "🏆", color: "#3B82F6", examples: ["turnuvalar"] },
+                { title: "Kart Oyunları", icon: "🃏", color: "#059669", examples: ["kart oyunlarım", "rastgele kart oyunu", "bana bir kart oyunu öner"] },
+                { title: "İkon Setleri", icon: "🎭", color: "#8B5CF6", examples: ["ikon setleri"] },
+                { title: "Yemekhane", icon: "🍽️", color: "#14B8A6", examples: ["menü", "beğenmediğim yemekler"] },
+                { title: "Filmler", icon: "🎬", color: "#E11D48", examples: ["filmler", "yaklaşan filmler", "en iyi filmler"] },
+                { title: "Arkadaşlar", icon: "👥", color: "#6366F1", examples: ["arkadaşlarım", "bekleyen istekler"] },
+              ],
+            },
+          },
+        ],
+      ),
   },
   {
     id: "kiler-list",

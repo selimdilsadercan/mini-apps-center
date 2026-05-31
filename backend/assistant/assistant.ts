@@ -77,9 +77,9 @@ interface DeleteConversationResponse {
 }
 
 export const getConversations = api(
-  { expose: true, method: "GET", path: "/ai-assistant/conversations/:userId" },
+  { expose: true, method: "GET", path: "/assistant/conversations/:userId" },
   async ({ userId }: GetConversationsRequest): Promise<GetConversationsResponse> => {
-    const { data, error } = await supabase.schema("ai_assistant").rpc("get_conversations", {
+    const { data, error } = await supabase.schema("assistant").rpc("get_conversations", {
       clerk_id_param: userId,
     });
 
@@ -94,7 +94,7 @@ export const getConversations = api(
 );
 
 export const upsertConversation = api(
-  { expose: true, method: "POST", path: "/ai-assistant/conversations/upsert" },
+  { expose: true, method: "POST", path: "/assistant/conversations/upsert" },
   async ({
     userId,
     id,
@@ -102,7 +102,7 @@ export const upsertConversation = api(
     messages,
     createdAt,
   }: UpsertConversationRequest): Promise<UpsertConversationResponse> => {
-    const { data, error } = await supabase.schema("ai_assistant").rpc("upsert_conversation", {
+    const { data, error } = await supabase.schema("assistant").rpc("upsert_conversation", {
       clerk_id_param: userId,
       conversation_id_param: id,
       title_param: title,
@@ -124,10 +124,10 @@ export const upsertConversation = api(
 );
 
 export const deleteConversation = api(
-  { expose: true, method: "DELETE", path: "/ai-assistant/conversations/:id/:userId" },
+  { expose: true, method: "DELETE", path: "/assistant/conversations/:id/:userId" },
   async ({ id, userId }: DeleteConversationRequest): Promise<DeleteConversationResponse> => {
     const { data: rpcDeleted, error: rpcError } = await supabase
-      .schema("ai_assistant")
+      .schema("assistant")
       .rpc("delete_conversation", {
         clerk_id_param: userId,
         conversation_id_param: id,
@@ -146,7 +146,7 @@ export const deleteConversation = api(
     }
 
     const { data: deletedRows, error: deleteError } = await supabase
-      .schema("ai_assistant")
+      .schema("assistant")
       .from("conversations")
       .delete()
       .eq("id", id)
@@ -172,7 +172,7 @@ interface GetCapabilitiesResponse {
 }
 
 export const getCapabilities = api(
-  { expose: true, method: "GET", path: "/ai-assistant/capabilities" },
+  { expose: true, method: "GET", path: "/assistant/capabilities" },
   async (): Promise<GetCapabilitiesResponse> => {
     return { apps: listAssistantCapabilities() };
   },
@@ -190,7 +190,7 @@ interface ExecuteToolResponse {
 }
 
 export const executeTool = api(
-  { expose: true, method: "POST", path: "/ai-assistant/tools/execute" },
+  { expose: true, method: "POST", path: "/assistant/tools/execute" },
   async ({
     userId,
     appId,
@@ -235,7 +235,7 @@ interface ChatResponse {
 }
 
 export const chat = api(
-  { expose: true, method: "POST", path: "/ai-assistant/chat" },
+  { expose: true, method: "POST", path: "/assistant/chat" },
   async ({ userId, messages }: ChatRequest): Promise<ChatResponse> => {
     if (!messages?.length) {
       throw APIError.invalidArgument("En az bir mesaj gerekli");

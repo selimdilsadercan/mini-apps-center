@@ -1,6 +1,20 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import { secret } from "encore.dev/config";
+import { createSupabaseClient } from "../lib/supabase";
+import { runRpc } from "../lib/assistant-tool-error";
+import {
+  optionalNumber,
+  optionalString,
+  requireNumber,
+  requireString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
 
-export const tournamentAssistantDefinition: AppAssistantDefinition = {
+const supabaseUrl = secret("SupabaseUrl");
+const supabaseAnonKey = secret("SupabaseAnonKey");
+const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+const db = supabase.schema("tournament");
+
+export const tournamentAssistant: AppAssistantModule = {
   appId: "tournament",
   name: "Turnuva Merkezi",
   description: "Turnuva oluşturur ve skorları günceller.",
@@ -64,4 +78,51 @@ export const tournamentAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    list_tournaments: async () => {
+      return runRpc("list_tournaments", async () => await db.rpc("get_tournaments"));
+    },
+    create_tournament: async ({ userId, args }) => {
+      return runRpc("create_tournament", async () =>
+        await db.rpc("create_tournament", {
+          name_param: requireString(args, "name"),
+          slug_param: requireString(args, "slug"),
+          icon_param: optionalString(args, "icon") ?? "🏆",
+          capacity_param: requireNumber(args, "capacity"),
+          format_param: requireString(args, "format"),
+          league_match_count_param: optionalNumber(args, "leagueMatchCount") ?? 3,
+          advance_count_param: optionalNumber(args, "advanceCount") ?? 4,
+          players_per_match_param: optionalNumber(args, "playersPerMatch") ?? 2,
+          admin_clerk_id: userId,
+        }),
+      );
+    },
+    join_tournament: async ({ userId, args }) => {
+      return runRpc("join_tournament", async () =>
+        await db.rpc("join_tournament", {
+          slug_param: requireString(args, "slug"),
+          clerk_id_param: userId,
+          username_param: requireString(args, "username"),
+          avatar_param: optionalString(args, "avatar"),
+          avoid_list_param: args.avoidList ?? [],
+        }),
+      );
+    },
+    update_match_score: async ({ args }) => {
+      return runRpc("update_match_score", async () =>
+        await db.rpc("update_match_score", {
+          match_id: requireString(args, "matchId"),
+          scores_param: args.scores,
+        }),
+      );
+    },
+    delete_tournament: async ({ userId, args }) => {
+      return runRpc("delete_tournament", async () =>
+        await db.rpc("delete_tournament", {
+          slug_param: requireString(args, "slug"),
+          admin_clerk_id: userId,
+        }),
+      );
+    },
+  },
 };

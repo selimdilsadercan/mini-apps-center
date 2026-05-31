@@ -1,6 +1,17 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import { secret } from "encore.dev/config";
+import { createSupabaseClient } from "../lib/supabase";
+import { runRpc } from "../lib/assistant-tool-error";
+import {
+  requireString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
 
-export const mapTrackerAssistantDefinition: AppAssistantDefinition = {
+const supabaseUrl = secret("SupabaseUrl");
+const supabaseAnonKey = secret("SupabaseAnonKey");
+const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+const db = supabase.schema("map_tracker");
+
+export const mapTrackerAssistant: AppAssistantModule = {
   appId: "map-tracker",
   name: "Harita Takip",
   description: "Harita listelerini ve ziyaret durumunu yönetir.",
@@ -30,4 +41,22 @@ export const mapTrackerAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    get_data: async () => {
+      return runRpc("get_data", async () => await db.rpc("get_data"));
+    },
+    import_items: async ({ args }) => {
+      return runRpc("import_items", async () =>
+        await db.rpc("import_items", {
+          p_list_name: requireString(args, "listName"),
+          p_items: args.items,
+        }),
+      );
+    },
+    toggle_visited: async ({ args }) => {
+      return runRpc("toggle_visited", async () =>
+        await db.rpc("toggle_visited", { p_id: requireString(args, "id") }),
+      );
+    },
+  },
 };

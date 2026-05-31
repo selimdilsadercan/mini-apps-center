@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS ai_assistant.delete_conversation(TEXT, TEXT);
+DROP FUNCTION IF EXISTS assistant.delete_conversation(TEXT, TEXT);
 
-CREATE OR REPLACE FUNCTION ai_assistant.delete_conversation(
+CREATE OR REPLACE FUNCTION assistant.delete_conversation(
     clerk_id_param TEXT,
     conversation_id_param TEXT
 )
@@ -8,7 +8,7 @@ RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
 BEGIN
-    DELETE FROM ai_assistant.conversations
+    DELETE FROM assistant.conversations
     WHERE id = conversation_id_param
       AND user_clerk_id = clerk_id_param;
 
@@ -17,5 +17,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION ai_assistant.delete_conversation(TEXT, TEXT)
+GRANT EXECUTE ON FUNCTION assistant.delete_conversation(TEXT, TEXT)
     TO anon, authenticated, service_role;

@@ -1,17 +1,17 @@
-DROP FUNCTION IF EXISTS ai_assistant.upsert_conversation(TEXT, TEXT, TEXT, JSONB, TIMESTAMPTZ);
+DROP FUNCTION IF EXISTS assistant.upsert_conversation(TEXT, TEXT, TEXT, JSONB, TIMESTAMPTZ);
 
-CREATE OR REPLACE FUNCTION ai_assistant.upsert_conversation(
+CREATE OR REPLACE FUNCTION assistant.upsert_conversation(
     clerk_id_param TEXT,
     conversation_id_param TEXT,
     title_param TEXT,
     messages_param JSONB,
     created_at_param TIMESTAMPTZ DEFAULT NULL
 )
-RETURNS ai_assistant.conversations AS $$
+RETURNS assistant.conversations AS $$
 DECLARE
-    result ai_assistant.conversations;
+    result assistant.conversations;
 BEGIN
-    INSERT INTO ai_assistant.conversations (
+    INSERT INTO assistant.conversations (
         id,
         user_clerk_id,
         title,
@@ -31,7 +31,7 @@ BEGIN
         title = EXCLUDED.title,
         messages = EXCLUDED.messages,
         updated_at = NOW()
-    WHERE ai_assistant.conversations.user_clerk_id = clerk_id_param
+    WHERE assistant.conversations.user_clerk_id = clerk_id_param
     RETURNING * INTO result;
 
     RETURN result;

@@ -10,7 +10,8 @@ export type AssistantCardType =
   | "iskambil"
   | "itu-dish"
   | "movie"
-  | "friend";
+  | "friend"
+  | "help";
 
 export interface AssistantCard {
   type: AssistantCardType;

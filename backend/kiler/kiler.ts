@@ -20,7 +20,7 @@ export interface PantryItem {
   unit: string;
   storage_type: StorageType;
   purchase_date: string;
-  expiry_date?: string;
+  expiry_date?: string | null;
   created_at: string;
 }
 

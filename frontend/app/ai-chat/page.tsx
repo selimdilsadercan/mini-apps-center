@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Sparkle,
   PaperPlaneRight,
-  DotsThree,
+  ClockCounterClockwise,
   User,
   X,
   Plus,
@@ -27,7 +27,7 @@ import {
   hasUserMessages,
   deleteConversation,
 } from "@/lib/ai-chat-storage";
-import { sendAssistantChat } from "@/lib/ai-assistant-chat";
+import { sendAssistantChat } from "@/lib/assistant-chat";
 import AssistantCardGallery from "@/components/ai-chat/AssistantCardGallery";
 import ChatMessageContent from "@/components/ai-chat/ChatMessageContent";
 import toast from "react-hot-toast";
@@ -114,6 +114,22 @@ export default function AIChatPage() {
       }
     };
   }, [userId]);
+
+  useEffect(() => {
+    const handleInsert = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (typeof detail === "string") {
+        setInput(detail);
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 50);
+      }
+    };
+    window.addEventListener("insert-chat-input", handleInsert);
+    return () => {
+      window.removeEventListener("insert-chat-input", handleInsert);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -327,10 +343,18 @@ export default function AIChatPage() {
       </div>
 
       <header className="relative z-30 shrink-0 bg-[#FAF9F7]">
-        <div className="mx-auto w-full max-w-lg px-6 pt-10 pb-5">
+        <div className="mx-auto w-full max-w-lg px-6 pt-5 pb-3 flex items-center justify-between">
           <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none">
             AI Assistant
           </h1>
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            className="p-2.5 rounded-2xl text-gray-500 hover:text-gray-800 hover:bg-white border border-transparent hover:border-slate-100 hover:shadow-sm active:scale-95 transition-all duration-200"
+            aria-label="Sohbet geçmişi"
+          >
+            <ClockCounterClockwise size={22} weight="bold" />
+          </button>
         </div>
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-4 translate-y-full bg-gradient-to-b from-[#FAF9F7] to-transparent"
@@ -351,14 +375,6 @@ export default function AIChatPage() {
               Hazır olduğunda buradayım.
             </p>
             {renderChatInput("empty")}
-            <button
-              type="button"
-              onClick={() => setHistoryOpen(true)}
-              className="p-2.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-white/80 transition-colors"
-              aria-label="Sohbet geçmişi"
-            >
-              <DotsThree size={28} weight="bold" />
-            </button>
           </div>
         )}
         <div
@@ -457,17 +473,9 @@ export default function AIChatPage() {
       </main>
 
       {!isEmptyChat && (
-        <footer className="relative z-40 shrink-0 w-full px-6 pb-[5.25rem] pt-2">
+        <footer className="relative z-40 shrink-0 w-full px-6 pb-28 pt-2">
           <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-1.5">
             {renderChatInput("compact")}
-            <button
-              type="button"
-              onClick={() => setHistoryOpen(true)}
-              className="p-2.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-white/80 transition-colors"
-              aria-label="Sohbet geçmişi"
-            >
-              <DotsThree size={28} weight="bold" />
-            </button>
           </div>
         </footer>
       )}

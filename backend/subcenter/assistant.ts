@@ -1,6 +1,13 @@
-import type { AppAssistantDefinition } from "../lib/assistant-types";
+import {
+  optionalNumber,
+  optionalString,
+  requireNumber,
+  requireString,
+} from "../lib/assistant-params";
+import type { AppAssistantModule } from "../lib/assistant-types";
+import { subcenter } from "~encore/clients";
 
-export const subcenterAssistantDefinition: AppAssistantDefinition = {
+export const subcenterAssistant: AppAssistantModule = {
   appId: "subcenter",
   name: "Subscription Center",
   description: "Abonelikleri yönetir.",
@@ -60,4 +67,56 @@ export const subcenterAssistantDefinition: AppAssistantDefinition = {
       },
     },
   ],
+  executors: {
+    list_subscriptions: async ({ userId }) => {
+      const res = await subcenter.getUserSubscriptions({ userId });
+      return res.subscriptions;
+    },
+    create_subscription: async ({ userId, args }) => {
+      const trialDuration = optionalNumber(args, "trialDuration");
+      const res = await subcenter.createSubscription({
+        userId,
+        name: requireString(args, "name"),
+        planName: optionalString(args, "planName") ?? undefined,
+        region: optionalString(args, "region") ?? undefined,
+        price: requireNumber(args, "price"),
+        currency: requireString(args, "currency"),
+        cycle: requireString(args, "cycle"),
+        category: requireString(args, "category"),
+        color: requireString(args, "color"),
+        icon: requireString(args, "icon"),
+        startDate: requireString(args, "startDate"),
+        trialDuration: trialDuration !== null ? String(trialDuration) : undefined,
+        website: optionalString(args, "website") ?? undefined,
+      });
+      return res.subscription ? [res.subscription] : [];
+    },
+    update_subscription: async ({ userId, args }) => {
+      const trialDuration = optionalNumber(args, "trialDuration");
+      const res = await subcenter.updateSubscription({
+        id: requireString(args, "id"),
+        userId,
+        name: requireString(args, "name"),
+        planName: requireString(args, "planName"),
+        region: requireString(args, "region"),
+        price: requireNumber(args, "price"),
+        currency: requireString(args, "currency"),
+        cycle: requireString(args, "cycle"),
+        category: requireString(args, "category"),
+        color: requireString(args, "color"),
+        icon: requireString(args, "icon"),
+        startDate: requireString(args, "startDate"),
+        trialDuration: trialDuration !== null ? String(trialDuration) : undefined,
+        website: optionalString(args, "website") ?? undefined,
+      });
+      return res.subscription ? [res.subscription] : [];
+    },
+    delete_subscription: async ({ userId, args }) => {
+      const res = await subcenter.deleteSubscription({
+        id: requireString(args, "id"),
+        userId,
+      });
+      return res;
+    },
+  },
 };

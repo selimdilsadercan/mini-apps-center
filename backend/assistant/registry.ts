@@ -1,54 +1,41 @@
 import type {
-  AppAssistantDefinition,
   AppAssistantModule,
   AssistantAppCapabilities,
 } from "../lib/assistant-types";
 import { AssistantToolError } from "../lib/assistant-tool-error";
-import { chocolateDbAssistantDefinition } from "../chocolate-db/assistant";
-import { concertListAssistantDefinition } from "../concert-list/assistant";
-import { friendshipAssistantDefinition } from "../friendship/assistant";
-import { hobbyCenterAssistantDefinition } from "../hobby-center/assistant";
-import { iconSetGuideAssistantDefinition } from "../icon-set-guide/assistant";
-import { iskambilAssistantDefinition } from "../iskambil/assistant";
-import { ituYemekhaneAssistantDefinition } from "../itu-yemekhane/assistant";
-import { kilerAssistantDefinition } from "../kiler/assistant";
-import { mapTrackerAssistantDefinition } from "../map-tracker/assistant";
-import { memedexAssistantDefinition } from "../memedex/assistant";
-import { moviesThisYearAssistantDefinition } from "../movies-this-year/assistant";
-import { recipeAssistantDefinition } from "../recipe/assistant";
-import { subcenterAssistantDefinition } from "../subcenter/assistant";
-import { tournamentAssistantDefinition } from "../tournament/assistant";
-import { usersAssistantDefinition } from "../users/assistant";
-import { ASSISTANT_EXECUTORS } from "./executors";
+import { chocolateDbAssistant } from "../chocolate-db/assistant";
+import { concertListAssistant } from "../concert-list/assistant";
+import { friendshipAssistant } from "../friendship/assistant";
+import { hobbyCenterAssistant } from "../hobby-center/assistant";
+import { iconSetGuideAssistant } from "../icon-set-guide/assistant";
+import { iskambilAssistant } from "../iskambil/assistant";
+import { ituYemekhaneAssistant } from "../itu-yemekhane/assistant";
+import { kilerAssistant } from "../kiler/assistant";
+import { mapTrackerAssistant } from "../map-tracker/assistant";
+import { memedexAssistant } from "../memedex/assistant";
+import { moviesThisYearAssistant } from "../movies-this-year/assistant";
+import { recipeAssistant } from "../recipe/assistant";
+import { subcenterAssistant } from "../subcenter/assistant";
+import { tournamentAssistant } from "../tournament/assistant";
+import { usersAssistant } from "../users/assistant";
 
-const ASSISTANT_DEFINITIONS: AppAssistantDefinition[] = [
-  kilerAssistantDefinition,
-  subcenterAssistantDefinition,
-  recipeAssistantDefinition,
-  concertListAssistantDefinition,
-  hobbyCenterAssistantDefinition,
-  mapTrackerAssistantDefinition,
-  chocolateDbAssistantDefinition,
-  memedexAssistantDefinition,
-  tournamentAssistantDefinition,
-  iskambilAssistantDefinition,
-  iconSetGuideAssistantDefinition,
-  ituYemekhaneAssistantDefinition,
-  moviesThisYearAssistantDefinition,
-  friendshipAssistantDefinition,
-  usersAssistantDefinition,
+export const APP_ASSISTANTS: AppAssistantModule[] = [
+  kilerAssistant,
+  subcenterAssistant,
+  recipeAssistant,
+  concertListAssistant,
+  hobbyCenterAssistant,
+  mapTrackerAssistant,
+  chocolateDbAssistant,
+  memedexAssistant,
+  tournamentAssistant,
+  iskambilAssistant,
+  iconSetGuideAssistant,
+  ituYemekhaneAssistant,
+  moviesThisYearAssistant,
+  friendshipAssistant,
+  usersAssistant,
 ];
-
-function toModule(definition: AppAssistantDefinition): AppAssistantModule {
-  const execute = ASSISTANT_EXECUTORS[definition.appId];
-  if (!execute) {
-    throw new Error(`Missing executor for app: ${definition.appId}`);
-  }
-  return { ...definition, execute };
-}
-
-export const APP_ASSISTANTS: AppAssistantModule[] =
-  ASSISTANT_DEFINITIONS.map(toModule);
 
 const assistantByAppId = new Map(
   APP_ASSISTANTS.map((module) => [module.appId, module]),
@@ -86,10 +73,16 @@ export async function executeAssistantTool(params: {
     );
   }
 
+  const executor = module.executors[params.toolName];
+  if (!executor) {
+    throw new AssistantToolError(
+      `No executor defined for tool "${params.toolName}" in app "${params.appId}"`,
+    );
+  }
+
   try {
-    return await module.execute({
+    return await executor({
       userId: params.userId,
-      toolName: params.toolName,
       args: params.args,
     });
   } catch (error) {
