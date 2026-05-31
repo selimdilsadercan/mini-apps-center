@@ -91,9 +91,14 @@ export default function ChocolateDBPage() {
       if (process.env.NODE_ENV === "development") {
         const localProducts = require("../../../../backend/chocolate-db/data/products.json");
         const statsMap = new Map(resp.chocolates.map(c => [c.id, c]));
+        const seen = new Set<string>();
+        const merged: any[] = [];
         
-        const merged = localProducts.map((p: any) => {
+        for (const p of localProducts) {
           const id = slugify(p.name);
+          if (seen.has(id)) continue;
+          seen.add(id);
+          
           const stat = statsMap.get(id);
           
           let brand = "Diğer";
@@ -112,7 +117,7 @@ export default function ChocolateDBPage() {
             if (firstWord) brand = firstWord;
           }
           
-          return {
+          merged.push({
             id,
             name: p.name,
             brand,
@@ -124,8 +129,8 @@ export default function ChocolateDBPage() {
             review_count: stat ? stat.review_count : 0,
             user_state: stat ? stat.user_state : null,
             user_rating: stat ? stat.user_rating : null
-          };
-        });
+          });
+        }
         
         setChocolates(merged);
       } else {
