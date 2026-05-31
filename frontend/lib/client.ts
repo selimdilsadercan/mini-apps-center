@@ -111,6 +111,26 @@ export interface ClientOptions {
 }
 
 export namespace ai_assistant {
+    export interface AssistantCardPayload {
+        type: string
+        data: { [key: string]: any }
+    }
+
+    export interface ChatMessageInput {
+        role: "user" | "assistant"
+        content: string
+    }
+
+    export interface ChatRequest {
+        userId?: string
+        messages: ChatMessageInput[]
+    }
+
+    export interface ChatResponse {
+        content: string
+        cards?: AssistantCardPayload[]
+    }
+
     export interface Conversation {
         id: string
         title: string
@@ -121,6 +141,21 @@ export namespace ai_assistant {
 
     export interface DeleteConversationResponse {
         success: boolean
+    }
+
+    export interface ExecuteToolRequest {
+        userId: string
+        appId: string
+        toolName: string
+        args?: { [key: string]: any }
+    }
+
+    export interface ExecuteToolResponse {
+        result: any
+    }
+
+    export interface GetCapabilitiesResponse {
+        apps: lib.AssistantAppCapabilities[]
     }
 
     export interface GetConversationsResponse {
@@ -151,15 +186,36 @@ export namespace ai_assistant {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.chat = this.chat.bind(this)
             this.deleteConversation = this.deleteConversation.bind(this)
+            this.executeTool = this.executeTool.bind(this)
+            this.getCapabilities = this.getCapabilities.bind(this)
             this.getConversations = this.getConversations.bind(this)
             this.upsertConversation = this.upsertConversation.bind(this)
+        }
+
+        public async chat(params: ChatRequest): Promise<ChatResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/chat`, JSON.stringify(params))
+            return await resp.json() as ChatResponse
         }
 
         public async deleteConversation(id: string, userId: string): Promise<DeleteConversationResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/ai-assistant/conversations/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
             return await resp.json() as DeleteConversationResponse
+        }
+
+        public async executeTool(params: ExecuteToolRequest): Promise<ExecuteToolResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ai-assistant/tools/execute`, JSON.stringify(params))
+            return await resp.json() as ExecuteToolResponse
+        }
+
+        public async getCapabilities(): Promise<GetCapabilitiesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ai-assistant/capabilities`)
+            return await resp.json() as GetCapabilitiesResponse
         }
 
         public async getConversations(userId: string): Promise<GetConversationsResponse> {
@@ -2176,6 +2232,29 @@ export namespace users {
 }
 
 export namespace lib {
+    export interface AssistantAppCapabilities {
+        appId: string
+        name: string
+        description: string
+        schema: string
+        tools: AssistantToolDefinition[]
+    }
+
+    export type AssistantPermission = "read" | "create" | "update" | "delete"
+
+    export interface AssistantToolDefinition {
+        name: string
+        description: string
+        permission: AssistantPermission
+        parameters: { [key: string]: AssistantToolParameter }
+    }
+
+    export interface AssistantToolParameter {
+        type: "string" | "number" | "boolean" | "object" | "array"
+        description: string
+        required?: boolean
+    }
+
     /**
      * Type definitions
      */

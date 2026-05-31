@@ -1,6 +1,13 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import type { AssistantAppCapabilities } from "../lib/assistant-types";
+import { AssistantToolError } from "../lib/assistant-tool-error";
+import {
+  executeAssistantTool,
+  listAssistantCapabilities,
+} from "./registry";
+import { runStaticAssistantChat } from "./static-chat";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -119,16 +126,137 @@ export const upsertConversation = api(
 export const deleteConversation = api(
   { expose: true, method: "DELETE", path: "/ai-assistant/conversations/:id/:userId" },
   async ({ id, userId }: DeleteConversationRequest): Promise<DeleteConversationResponse> => {
-    const { data, error } = await supabase.schema("ai_assistant").rpc("delete_conversation", {
-      clerk_id_param: userId,
-      conversation_id_param: id,
-    });
+    const { data: rpcDeleted, error: rpcError } = await supabase
+      .schema("ai_assistant")
+      .rpc("delete_conversation", {
+        clerk_id_param: userId,
+        conversation_id_param: id,
+      });
 
-    if (error) {
-      console.error("deleteConversation error:", error);
-      throw APIError.internal(`Failed to delete conversation: ${error.message}`);
+    if (!rpcError && typeof rpcDeleted === "number" && rpcDeleted > 0) {
+      return { success: true };
     }
 
-    return { success: !!data };
+    if (!rpcError && rpcDeleted === true) {
+      return { success: true };
+    }
+
+    if (rpcError) {
+      console.warn("delete_conversation RPC failed, trying direct delete:", rpcError.message);
+    }
+
+    const { data: deletedRows, error: deleteError } = await supabase
+      .schema("ai_assistant")
+      .from("conversations")
+      .delete()
+      .eq("id", id)
+      .eq("user_clerk_id", userId)
+      .select("id");
+
+    if (deleteError) {
+      console.error("deleteConversation error:", deleteError);
+      throw APIError.internal(`Failed to delete conversation: ${deleteError.message}`);
+    }
+
+    const deleted = (deletedRows?.length ?? 0) > 0;
+    if (!deleted) {
+      throw APIError.notFound("Conversation not found");
+    }
+
+    return { success: true };
+  },
+);
+
+interface GetCapabilitiesResponse {
+  apps: AssistantAppCapabilities[];
+}
+
+export const getCapabilities = api(
+  { expose: true, method: "GET", path: "/ai-assistant/capabilities" },
+  async (): Promise<GetCapabilitiesResponse> => {
+    return { apps: listAssistantCapabilities() };
+  },
+);
+
+interface ExecuteToolRequest {
+  userId: string;
+  appId: string;
+  toolName: string;
+  args?: Record<string, unknown>;
+}
+
+interface ExecuteToolResponse {
+  result: unknown;
+}
+
+export const executeTool = api(
+  { expose: true, method: "POST", path: "/ai-assistant/tools/execute" },
+  async ({
+    userId,
+    appId,
+    toolName,
+    args,
+  }: ExecuteToolRequest): Promise<ExecuteToolResponse> => {
+    try {
+      const result = await executeAssistantTool({
+        userId,
+        appId,
+        toolName,
+        args: args ?? {},
+      });
+      return { result };
+    } catch (error) {
+      if (error instanceof AssistantToolError) {
+        throw APIError.invalidArgument(error.message);
+      }
+      throw error;
+    }
+  },
+);
+
+interface ChatMessageInput {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface ChatRequest {
+  userId?: string;
+  messages: ChatMessageInput[];
+}
+
+interface AssistantCardPayload {
+  type: string;
+  data: Record<string, unknown>;
+}
+
+interface ChatResponse {
+  content: string;
+  cards?: AssistantCardPayload[];
+}
+
+export const chat = api(
+  { expose: true, method: "POST", path: "/ai-assistant/chat" },
+  async ({ userId, messages }: ChatRequest): Promise<ChatResponse> => {
+    if (!messages?.length) {
+      throw APIError.invalidArgument("En az bir mesaj gerekli");
+    }
+
+    const last = messages[messages.length - 1];
+    if (last.role !== "user" || !last.content.trim()) {
+      throw APIError.invalidArgument("Son mesaj kullanıcıdan olmalı");
+    }
+
+    try {
+      const result = await runStaticAssistantChat({
+        userId: userId?.trim() || null,
+        messages,
+      });
+      return { content: result.content, cards: result.cards };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Sohbet yanıtı oluşturulamadı";
+      console.error("chat error:", error);
+      throw APIError.internal(message);
+    }
   },
 );

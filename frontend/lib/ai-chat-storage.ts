@@ -1,4 +1,5 @@
 import Client, { Local } from "@/lib/client";
+import type { AssistantCard } from "@/lib/assistant-cards";
 
 const client = new Client(Local);
 
@@ -7,6 +8,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  cards?: AssistantCard[];
 }
 
 export interface SavedConversation {
@@ -17,6 +19,7 @@ export interface SavedConversation {
     role: "user" | "assistant";
     content: string;
     timestamp: string;
+    cards?: AssistantCard[];
   }>;
   createdAt: string;
   updatedAt: string;
@@ -24,6 +27,18 @@ export interface SavedConversation {
 
 const CONVERSATIONS_KEY = "ai-assistant-conversations";
 const ACTIVE_CHAT_KEY = "ai-assistant-active-id";
+
+/** Silinen sohbetlerin persist ile tekrar oluşmasını engeller */
+const recentlyDeletedIds = new Set<string>();
+
+function markConversationDeleted(id: string): void {
+  recentlyDeletedIds.add(id);
+  window.setTimeout(() => recentlyDeletedIds.delete(id), 10_000);
+}
+
+export function isConversationDeleted(id: string): boolean {
+  return recentlyDeletedIds.has(id);
+}
 
 export function createConversationId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -83,6 +98,7 @@ export function serializeMessages(messages: ChatMessage[]) {
     role: m.role,
     content: m.content,
     timestamp: m.timestamp.toISOString(),
+    ...(m.cards?.length ? { cards: m.cards } : {}),
   }));
 }
 
@@ -94,7 +110,23 @@ export function deserializeMessages(
     role: m.role,
     content: m.content,
     timestamp: new Date(m.timestamp),
+    cards: (m as { cards?: AssistantCard[] }).cards,
   }));
+}
+
+async function loadConversationsFromApi(
+  userId: string,
+): Promise<SavedConversation[]> {
+  const { conversations } = await client.ai_assistant.getConversations(userId);
+  return sortByCreatedAt(
+    conversations.map((c) => ({
+      id: c.id,
+      title: c.title,
+      messages: c.messages,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    })),
+  );
 }
 
 export async function loadConversations(
@@ -102,16 +134,7 @@ export async function loadConversations(
 ): Promise<SavedConversation[]> {
   if (userId) {
     try {
-      const { conversations } = await client.ai_assistant.getConversations(userId);
-      return sortByCreatedAt(
-        conversations.map((c) => ({
-          id: c.id,
-          title: c.title,
-          messages: c.messages,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt,
-        })),
-      );
+      return await loadConversationsFromApi(userId);
     } catch (error) {
       console.error("loadConversations from API failed:", error);
     }
@@ -124,6 +147,10 @@ export async function upsertConversation(
   messages: ChatMessage[],
   userId?: string | null,
 ): Promise<SavedConversation[]> {
+  if (isConversationDeleted(id)) {
+    return loadConversations(userId);
+  }
+
   if (!hasUserMessages(messages)) {
     return loadConversations(userId);
   }
@@ -184,25 +211,19 @@ export async function deleteConversation(
   id: string,
   userId?: string | null,
 ): Promise<SavedConversation[]> {
-  if (userId) {
-    try {
-      await client.ai_assistant.deleteConversation(id, userId);
-    } catch (error) {
-      console.error("deleteConversation from API failed:", error);
-    }
-  }
+  markConversationDeleted(id);
 
-  const conversations = (await loadConversations(userId)).filter(
-    (c) => c.id !== id,
-  );
-
-  if (!userId) {
-    saveConversationsLocal(conversations);
-  }
+  const localWithout = loadConversationsLocal().filter((c) => c.id !== id);
+  saveConversationsLocal(localWithout);
 
   if (getActiveChatId() === id) {
     sessionStorage.removeItem(ACTIVE_CHAT_KEY);
   }
 
-  return conversations;
+  if (userId) {
+    await client.ai_assistant.deleteConversation(id, userId);
+    return await loadConversationsFromApi(userId);
+  }
+
+  return localWithout;
 }

@@ -27,6 +27,10 @@ import {
   hasUserMessages,
   deleteConversation,
 } from "@/lib/ai-chat-storage";
+import { sendAssistantChat } from "@/lib/ai-assistant-chat";
+import AssistantCardGallery from "@/components/ai-chat/AssistantCardGallery";
+import ChatMessageContent from "@/components/ai-chat/ChatMessageContent";
+import toast from "react-hot-toast";
 
 export default function AIChatPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -98,7 +102,7 @@ export default function AIChatPage() {
 
   useEffect(() => {
     if (!isHydrated || !chatId || !hasUserMessages(messages)) return;
-    persistChat(chatId, messages);
+    void persistChat(chatId, messages);
   }, [messages, chatId, isHydrated, persistChat]);
 
   useEffect(() => {
@@ -155,13 +159,37 @@ export default function AIChatPage() {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    const next = await deleteConversation(conversationId, userId);
-    setConversations(next);
-    if (chatId === conversationId) {
+
+    const wasActive = chatId === conversationId;
+    if (wasActive) {
       const newId = createConversationId();
       setChatId(newId);
       setActiveChatId(newId);
       setMessages([]);
+    }
+
+    if (!userId) {
+      const next = await deleteConversation(conversationId, null);
+      setConversations(next);
+      return;
+    }
+
+    try {
+      const next = await deleteConversation(conversationId, userId);
+      setConversations(next);
+    } catch (error) {
+      console.error("deleteConversation failed:", error);
+      toast.error("Sohbet veritabanından silinemedi.");
+      const restored = await loadConversations(userId);
+      setConversations(restored);
+      if (wasActive) {
+        const deleted = restored.find((c) => c.id === conversationId);
+        if (deleted) {
+          setChatId(deleted.id);
+          setActiveChatId(deleted.id);
+          setMessages(deserializeMessages(deleted.messages));
+        }
+      }
     }
   };
 
@@ -176,21 +204,45 @@ export default function AIChatPage() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const history = nextMessages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const reply = await sendAssistantChat({
+        userId,
+        messages: history,
+      });
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          "Bu bir demo yanıtıdır. İleride buraya gerçek bir yapay zeka entegrasyonu gelecek. Tasarımı nasıl buldun?",
+        content: reply.content,
+        cards: reply.cards,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Yanıt alınamadı. Backend çalışıyor mu kontrol et.";
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `Bir sorun oluştu: ${message}`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const formatListDate = (iso: string) => {
@@ -324,7 +376,11 @@ export default function AIChatPage() {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`flex gap-3 max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                  className={`flex gap-3 ${
+                    message.role === "assistant" && message.cards?.length
+                      ? "max-w-[min(100%,28rem)] w-full"
+                      : "max-w-[85%]"
+                  } ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                 >
                   <div
                     className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center shadow-sm ${
@@ -340,15 +396,21 @@ export default function AIChatPage() {
                     )}
                   </div>
                   <div
-                    className={`px-4 py-3 rounded-2xl shadow-sm ${
+                    className={`px-4 py-3 rounded-2xl shadow-sm min-w-0 ${
                       message.role === "user"
                         ? "bg-indigo-600 text-white rounded-tr-none"
                         : "bg-white border border-white/60 text-gray-800 rounded-tl-none"
-                    }`}
+                    } ${message.role === "assistant" && message.cards?.length ? "w-full max-w-full" : ""}`}
                   >
-                    <p className="text-[14px] leading-relaxed font-medium">
-                      {message.content}
-                    </p>
+                    <ChatMessageContent
+                      content={message.content}
+                      className={`text-[14px] leading-relaxed font-medium ${
+                        message.role === "user" ? "text-white" : "text-gray-800"
+                      }`}
+                    />
+                    {message.role === "assistant" && message.cards?.length ? (
+                      <AssistantCardGallery cards={message.cards} userId={userId} />
+                    ) : null}
                     <span
                       className={`text-[10px] mt-1.5 block opacity-50 font-bold ${
                         message.role === "user" ? "text-right" : "text-left"
