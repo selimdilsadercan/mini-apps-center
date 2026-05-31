@@ -19,7 +19,7 @@ import { toast } from "react-hot-toast";
 import { getUserPreferencesAction, updateAppOrderAction } from "../home/actions";
 import { useTranslations } from "@/contexts/LanguageContext";
 
-const CATEGORIES: AppCategory[] = ['Utilities', 'Lifestyle', 'Board Games & Fun', 'Entertainment', 'Simulations', 'Local Services'];
+const CATEGORIES: AppCategory[] = ['Utilities', 'Developer Tools', 'Lifestyle', 'Board Games & Fun', 'Entertainment', 'Simulations', 'Local Services'];
 
 // App Store style horizontal section with vertical stacks of 3
 function AppSection({ 
@@ -341,6 +341,7 @@ export default function Discover() {
           <>
             {/* Categorized Sections */}
             <AppSection title={t("categories.Utilities")} apps={implementedApps.filter(a => a.category === 'Utilities').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Developer Tools")} apps={implementedApps.filter(a => a.category === 'Developer Tools').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Lifestyle")} apps={implementedApps.filter(a => a.category === 'Lifestyle').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Board Games & Fun")} apps={implementedApps.filter(a => a.category === 'Board Games & Fun').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => a.category === 'Entertainment').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />

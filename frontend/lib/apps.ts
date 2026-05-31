@@ -23,6 +23,7 @@ import React from "react";
 
 export type AppCategory =
   | "Utilities"
+  | "Developer Tools"
   | "Board Games & Fun"
   | "Entertainment"
   | "Simulations"
@@ -54,7 +55,7 @@ export const MINI_APPS: MiniApp[] = [
     name: "Icon Set Guide",
     description: "Compare open-source icon sets in real UI previews",
     icon: Palette,
-    category: "Utilities",
+    category: "Developer Tools",
     color: "#4C6EF5",
     href: "/apps/icon-set-guide",
     isImplemented: true,
