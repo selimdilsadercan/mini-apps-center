@@ -1010,7 +1010,7 @@ export namespace kiler {
 
     export interface PantryItem {
         id: string
-        "user_id": string
+        "user_id"?: string | null
         name: string
         amount: number
         unit: string

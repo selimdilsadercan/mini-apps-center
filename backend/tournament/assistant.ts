@@ -1,6 +1,3 @@
-import { secret } from "encore.dev/config";
-import { createSupabaseClient } from "../lib/supabase";
-import { runRpc } from "../lib/assistant-tool-error";
 import {
   optionalNumber,
   optionalString,
@@ -8,11 +5,7 @@ import {
   requireString,
 } from "../lib/assistant-params";
 import type { AppAssistantModule } from "../lib/assistant-types";
-
-const supabaseUrl = secret("SupabaseUrl");
-const supabaseAnonKey = secret("SupabaseAnonKey");
-const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
-const db = supabase.schema("tournament");
+import { tournament } from "~encore/clients";
 
 export const tournamentAssistant: AppAssistantModule = {
   appId: "tournament",
@@ -80,49 +73,46 @@ export const tournamentAssistant: AppAssistantModule = {
   ],
   executors: {
     list_tournaments: async () => {
-      return runRpc("list_tournaments", async () => await db.rpc("get_tournaments"));
+      const res = await tournament.getTournaments();
+      return res.tournaments;
     },
     create_tournament: async ({ userId, args }) => {
-      return runRpc("create_tournament", async () =>
-        await db.rpc("create_tournament", {
-          name_param: requireString(args, "name"),
-          slug_param: requireString(args, "slug"),
-          icon_param: optionalString(args, "icon") ?? "🏆",
-          capacity_param: requireNumber(args, "capacity"),
-          format_param: requireString(args, "format"),
-          league_match_count_param: optionalNumber(args, "leagueMatchCount") ?? 3,
-          advance_count_param: optionalNumber(args, "advanceCount") ?? 4,
-          players_per_match_param: optionalNumber(args, "playersPerMatch") ?? 2,
-          admin_clerk_id: userId,
-        }),
-      );
+      const res = await tournament.createTournament({
+        name: requireString(args, "name"),
+        slug: requireString(args, "slug"),
+        icon: optionalString(args, "icon") ?? "🏆",
+        capacity: requireNumber(args, "capacity"),
+        format: requireString(args, "format") as any,
+        leagueMatchCount: optionalNumber(args, "leagueMatchCount") ?? 3,
+        advanceCount: optionalNumber(args, "advanceCount") ?? 4,
+        playersPerMatch: optionalNumber(args, "playersPerMatch") ?? 2,
+        adminUserId: userId,
+      });
+      return res ? [res] : [];
     },
     join_tournament: async ({ userId, args }) => {
-      return runRpc("join_tournament", async () =>
-        await db.rpc("join_tournament", {
-          slug_param: requireString(args, "slug"),
-          clerk_id_param: userId,
-          username_param: requireString(args, "username"),
-          avatar_param: optionalString(args, "avatar"),
-          avoid_list_param: args.avoidList ?? [],
-        }),
-      );
+      const res = await tournament.joinTournament({
+        slug: requireString(args, "slug"),
+        userId: userId,
+        username: requireString(args, "username"),
+        avatar: optionalString(args, "avatar") ?? undefined,
+        avoidList: (args.avoidList as any) ?? [],
+      });
+      return res;
     },
     update_match_score: async ({ args }) => {
-      return runRpc("update_match_score", async () =>
-        await db.rpc("update_match_score", {
-          match_id: requireString(args, "matchId"),
-          scores_param: args.scores,
-        }),
-      );
+      const res = await tournament.updateMatchScore({
+        matchId: requireString(args, "matchId"),
+        scores: (args.scores as any) ?? {},
+      });
+      return res;
     },
     delete_tournament: async ({ userId, args }) => {
-      return runRpc("delete_tournament", async () =>
-        await db.rpc("delete_tournament", {
-          slug_param: requireString(args, "slug"),
-          admin_clerk_id: userId,
-        }),
-      );
+      const res = await tournament.deleteTournament({
+        slug: requireString(args, "slug"),
+        adminUserId: userId,
+      });
+      return res;
     },
   },
 };

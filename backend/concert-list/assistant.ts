@@ -1,17 +1,10 @@
-import { secret } from "encore.dev/config";
-import { createSupabaseClient } from "../lib/supabase";
-import { runRpc } from "../lib/assistant-tool-error";
 import {
   optionalNumber,
   optionalString,
   requireString,
 } from "../lib/assistant-params";
 import type { AppAssistantModule } from "../lib/assistant-types";
-
-const supabaseUrl = secret("SupabaseUrl");
-const supabaseAnonKey = secret("SupabaseAnonKey");
-const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
-const db = supabase.schema("concert_list");
+import { concert_list } from "~encore/clients";
 
 export const concertListAssistant: AppAssistantModule = {
   appId: "concert-list",
@@ -48,29 +41,27 @@ export const concertListAssistant: AppAssistantModule = {
   ],
   executors: {
     list_concerts: async ({ userId }) => {
-      return runRpc("list_concerts", async () =>
-        await db.rpc("get_concerts", { clerk_id_param: userId }),
-      );
+      const res = await concert_list.getConcerts({ userId });
+      return res.concerts;
     },
     add_concert: async ({ userId, args }) => {
-      return runRpc("add_concert", async () =>
-        await db.rpc("add_concert", {
-          clerk_id_param: userId,
-          artist_param: requireString(args, "artist"),
-          date_param: requireString(args, "date"),
-          venue_param: optionalString(args, "venue"),
-          notes_param: optionalString(args, "notes"),
-          rating_param: optionalNumber(args, "rating"),
-        }),
-      );
+      const rating = optionalNumber(args, "rating");
+      const res = await concert_list.addConcert({
+        userId,
+        artist: requireString(args, "artist"),
+        date: requireString(args, "date"),
+        venue: optionalString(args, "venue") ?? undefined,
+        notes: optionalString(args, "notes") ?? undefined,
+        rating: rating !== null ? rating : undefined,
+      });
+      return res.concert ? [res.concert] : [];
     },
     delete_concert: async ({ userId, args }) => {
-      return runRpc("delete_concert", async () =>
-        await db.rpc("delete_concert", {
-          clerk_id_param: userId,
-          concert_id_param: requireString(args, "id"),
-        }),
-      );
+      const res = await concert_list.deleteConcert({
+        id: requireString(args, "id"),
+        userId,
+      });
+      return res;
     },
   },
 };

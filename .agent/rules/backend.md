@@ -49,6 +49,24 @@ backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcu
 ### 2.2. Table Access
 - When direct table access is necessary, always specify the schema: `supabase.schema("service_name").from("table_name")`.
 
+## 3. AI Assistant Integration (assistant.ts)
+
+### 3.1. Tool Call Architecture
+- Every service must contain a local `assistant.ts` file that defines its AI assistant tools and executors.
+- **MANDATORY RULE**: Executors inside `assistant.ts` MUST NOT execute raw database queries or direct Supabase RPC functions. Instead, they must call the service's own API endpoints.
+- **Cross-Service Clients**: To trigger these API calls through Encore's service mesh (and make them visible in the Encore dashboard tracing logs), you must import the service client from `~encore/clients`.
+  - *Example:*
+    ```typescript
+    import { kiler } from "~encore/clients";
+    
+    // Inside executors:
+    list_items: async ({ userId }) => {
+      const res = await kiler.getItems({ userId });
+      return res.items;
+    }
+    ```
+- All parameter parsing from LLM args (which are `Record<string, unknown>`) should be done using helper functions in `../lib/assistant-params` (e.g. `requireString`, `optionalString`, `requireNumber`, `optionalNumber`).
+
 ---
 
 ## Session Summary (Migration to Schema Architecture)

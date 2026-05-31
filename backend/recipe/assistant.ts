@@ -2,12 +2,7 @@ import {
   requireString,
 } from "../lib/assistant-params";
 import type { AppAssistantModule } from "../lib/assistant-types";
-import {
-  getUserRecipes,
-  createRecipe,
-  updateRecipe,
-  deleteRecipe,
-} from "./recipe";
+import { recipe } from "~encore/clients";
 
 export const recipeAssistant: AppAssistantModule = {
   appId: "recipe",
@@ -53,11 +48,11 @@ export const recipeAssistant: AppAssistantModule = {
   ],
   executors: {
     list_recipes: async ({ userId }) => {
-      const res = await getUserRecipes({ userId });
+      const res = await recipe.getUserRecipes({ userId });
       return res.recipes;
     },
     create_recipe: async ({ userId, args }) => {
-      const res = await createRecipe({
+      const res = await recipe.createRecipe({
         userId,
         title: requireString(args, "title"),
         ingredients: (args.ingredients as any) ?? undefined,
@@ -66,7 +61,7 @@ export const recipeAssistant: AppAssistantModule = {
       return res.recipe ? [res.recipe] : [];
     },
     update_recipe: async ({ userId, args }) => {
-      const res = await updateRecipe({
+      const res = await recipe.updateRecipe({
         recipeId: requireString(args, "id"),
         userId,
         title: requireString(args, "title"),
@@ -76,7 +71,7 @@ export const recipeAssistant: AppAssistantModule = {
       return res.recipe ? [res.recipe] : [];
     },
     delete_recipe: async ({ userId, args }) => {
-      const res = await deleteRecipe({
+      const res = await recipe.deleteRecipe({
         recipeId: requireString(args, "id"),
         userId,
       });

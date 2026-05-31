@@ -71,7 +71,7 @@ export default function KilerPage() {
     return matchesTab && matchesSearch;
   });
 
-  const getDayDiff = (dateStr?: string) => {
+  const getDayDiff = (dateStr?: string | null) => {
     if (!dateStr) return null;
     const date = new Date(dateStr);
     const now = new Date();
