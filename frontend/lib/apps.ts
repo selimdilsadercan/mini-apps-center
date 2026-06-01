@@ -356,7 +356,10 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FF1493",
     href: "/apps/concert-list",
     isImplemented: true,
+<<<<<<< HEAD
     subdomain: "concerts",
+=======
+>>>>>>> abb218c (update)
   },
   {
     id: "tasket",
