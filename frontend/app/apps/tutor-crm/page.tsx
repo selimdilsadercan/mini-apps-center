@@ -75,10 +75,18 @@ export default function TutorCRMPage() {
 
   // Ref for the quick popup to detect click outside
   const quickPopupRef = useRef<HTMLDivElement>(null);
+  const wasResizingRef = useRef(false);
 
   // Drag and Drop lesson states
   const [draggedLesson, setDraggedLesson] = useState<tutor_crm.Lesson | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<{ day: Date; timeSlot: string } | null>(null);
+  const [resizingLesson, setResizingLesson] = useState<{
+    lesson: tutor_crm.Lesson;
+    edge: "top" | "bottom";
+    startY: number;
+    initialStartTime: string;
+    initialEndTime: string;
+  } | null>(null);
 
   // Drawer & Form control states
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -295,13 +303,13 @@ export default function TutorCRMPage() {
   const days = getDaysOfWeek(currentWeekStart);
 
   const generateTimeSlots = () => {
-    const slots = [];
-    for (let h = 8; h <= 21; h++) {
+    const slots = ["07:30"];
+    for (let h = 8; h <= 23; h++) {
       const hourStr = h.toString().padStart(2, "0");
       slots.push(`${hourStr}:00`);
       slots.push(`${hourStr}:30`);
     }
-    slots.push("22:00");
+    slots.push("00:00");
     return slots;
   };
   const timeSlots = generateTimeSlots();
@@ -397,13 +405,81 @@ export default function TutorCRMPage() {
   // Global mouseup event to stop dragging if mouse is released outside
   useEffect(() => {
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      if (isDragging) {
+      if (isDragging) { 
         finishDragging(e);
       }
     };
     window.addEventListener("mouseup", handleGlobalMouseUp);
     return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
   }, [isDragging, dragStartSlot, dragEndSlot]);
+
+  // Resize Lesson event handler effect
+  useEffect(() => {
+    if (!resizingLesson || !user) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaY = e.clientY - resizingLesson.startY;
+      const deltaSlots = Math.round(deltaY / slotHeight);
+      if (deltaSlots === 0) return;
+
+      const startIdx = timeSlots.indexOf(resizingLesson.initialStartTime.slice(0, 5));
+      const endIdx = timeSlots.indexOf(resizingLesson.initialEndTime.slice(0, 5));
+      if (startIdx === -1 || endIdx === -1) return;
+
+      let newStartIdx = startIdx;
+      let newEndIdx = endIdx;
+
+      if (resizingLesson.edge === "top") {
+        newStartIdx = Math.min(endIdx - 1, Math.max(0, startIdx + deltaSlots));
+      } else {
+        newEndIdx = Math.max(startIdx + 1, Math.min(timeSlots.length - 1, endIdx + deltaSlots));
+      }
+
+      const newStartTime = timeSlots[newStartIdx];
+      const newEndTime = timeSlots[newEndIdx];
+
+      setLessons(prev => prev.map(l => l.id === resizingLesson.lesson.id ? {
+        ...l,
+        start_time: newStartTime,
+        end_time: newEndTime
+      } : l));
+    };
+
+    const handleMouseUp = async () => {
+      const currentLesson = lessons.find(l => l.id === resizingLesson.lesson.id);
+      
+      setTimeout(() => {
+        wasResizingRef.current = false;
+      }, 100);
+
+      setResizingLesson(null);
+
+      if (currentLesson) {
+        if (currentLesson.start_time !== resizingLesson.initialStartTime || currentLesson.end_time !== resizingLesson.initialEndTime) {
+          try {
+            await client.tutor_crm.updateLesson({
+              lessonId: currentLesson.id,
+              userId: user.id,
+              lessonDate: currentLesson.lesson_date,
+              startTime: currentLesson.start_time.slice(0, 5),
+              endTime: currentLesson.end_time.slice(0, 5)
+            });
+            toast.success("Ders süresi güncellendi!");
+          } catch (error) {
+            toast.error("Ders güncellenirken hata oluştu");
+            fetchAllData(); // rollback
+          }
+        }
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [resizingLesson, user, lessons]);
 
   // Drag and Drop lesson event handlers
   const handleLessonDragStart = (e: React.DragEvent, lesson: tutor_crm.Lesson) => {
@@ -816,7 +892,7 @@ JSON Şeması:
             <div className="flex flex-col">
               <h1 className="text-base font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5">
                 <GraduationCap size={20} weight="fill" className="text-blue-600" />
-                Tutor <span className="text-blue-600">CRM</span>
+                Tutor <span className="text-blue-600">Place</span>
               </h1>
               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Planner & Manager</p>
             </div>
@@ -845,7 +921,7 @@ JSON Şeması:
 
         {/* Sidebar Footer Stats */}
         <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2.5">
-          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">CRM Genel Durum</p>
+          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Genel Durum</p>
           <div className="grid grid-cols-2 gap-1.5">
             <div className="bg-white p-2.5 rounded-lg shadow-sm border border-gray-100">
               <span className="text-[10px] text-gray-400 font-bold block">Öğrenci</span>
@@ -874,7 +950,7 @@ JSON Şeması:
           <CaretLeft size={22} weight="bold" className="text-gray-400" />
         </button>
         <div className="flex flex-col items-center">
-          <h1 className="text-lg font-black text-gray-900 uppercase tracking-tight">Tutor <span className="text-blue-600">CRM</span></h1>
+          <h1 className="text-lg font-black text-gray-900 uppercase tracking-tight">Tutor <span className="text-blue-600">Place</span></h1>
           <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Planner & Manager</p>
         </div>
         <div className="w-8" />
@@ -964,17 +1040,26 @@ JSON Şeması:
                             <tr className="align-top">
                               {/* Time Column */}
                               <td className="p-0 border-r border-gray-100 bg-gray-50/50 w-12 md:w-20">
-                                {timeSlots.map((timeSlot) => (
-                                  <div
-                                    key={timeSlot}
-                                    style={{ height: `${slotHeight}px` }}
-                                    className={`flex items-center justify-center font-bold text-gray-400 tracking-tight border-b border-gray-100/50 last:border-b-0 ${
-                                      isCompact ? "text-[9px] px-1" : "text-xs px-3"
-                                    }`}
-                                  >
-                                    {timeSlot}
-                                  </div>
-                                ))}
+                                {timeSlots.map((timeSlot) => {
+                                  const isFullHourLine = timeSlot.endsWith(":30");
+                                  return (
+                                    <div
+                                      key={timeSlot}
+                                      style={{ height: `${slotHeight}px` }}
+                                      className={`relative w-full border-b last:border-b-0 ${
+                                        isFullHourLine ? "border-gray-200" : "border-gray-100"
+                                      }`}
+                                    >
+                                      <span
+                                        className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-gray-400 bg-[#F8F9FA] px-1 select-none pointer-events-none ${
+                                          isCompact ? "text-[8px]" : "text-[10px]"
+                                        }`}
+                                      >
+                                        {timeSlot === "07:30" ? "" : timeSlot}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </td>
 
                               {/* Day Columns */}
@@ -1074,7 +1159,9 @@ JSON Şeması:
                                           if (isFirst) dropPreviewClasses += " border-t-2";
                                           if (isLast) dropPreviewClasses += " border-b-2";
                                         }
-                                        
+
+                                        const isFullHourLine = timeSlot.endsWith(":30");
+
                                         return (
                                           <div
                                             key={timeSlot}
@@ -1090,12 +1177,16 @@ JSON Şeması:
                                             onDragEnter={(e) => handleDragEnter(e, day, timeSlot)}
                                             onDrop={(e) => handleDropLesson(e, day, timeSlot)}
                                             style={{ height: `${slotHeight}px` }}
-                                            className={`border-b border-gray-100 last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 ${
+                                            className={`border-b last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 ${
+                                              isFullHourLine ? "border-gray-200" : "border-gray-100"
+                                            } ${
                                               isDropPreview
                                                 ? dropPreviewClasses
                                                 : isSelected
                                                   ? "bg-blue-100 border border-blue-600/30 shadow-inner z-10"
-                                                  : "hover:bg-blue-50/40"
+                                                  : resizingLesson
+                                                    ? ""
+                                                    : "hover:bg-blue-50/40"
                                             }`}
                                           >
                                             {isDropPreview && draggedLesson && dragOverSlot && (
@@ -1140,26 +1231,46 @@ JSON Şeması:
                                               left: `${pos.left}%`,
                                               width: `${pos.width}%`,
                                             }}
-                                            className={`absolute p-0.5 pointer-events-auto transition-all ${
+                                            className={`absolute p-0.5 pointer-events-auto ${resizingLesson?.lesson.id === lesson.id ? '' : 'transition-all'} ${
                                               isBeingDragged ? "opacity-40 scale-95" : ""
                                             }`}
                                           >
                                             <div
-                                              onClick={() => setSelectedLesson(lesson)}
+                                              onClick={() => {
+                                                if (wasResizingRef.current) return;
+                                                setSelectedLesson(lesson);
+                                              }}
                                               draggable={true}
                                               onDragStart={(e) => handleLessonDragStart(e, lesson)}
                                               onDragEnd={handleLessonDragEnd}
-                                              className="h-full bg-blue-50 hover:bg-blue-100/80 border-l-[3px] border-blue-600 rounded text-left cursor-grab active:cursor-grabbing transition-all hover:shadow-sm flex flex-col justify-center overflow-hidden p-1"
+                                              className="h-full relative group bg-blue-50 hover:bg-blue-100/80 border-l-[3px] border-blue-600 rounded text-left cursor-grab active:cursor-grabbing transition-all hover:shadow-sm flex flex-col justify-center overflow-hidden p-1"
                                             >
-                                              <div className="min-w-0">
+                                              {/* Top Resize Handle (Invisible, cursor only) */}
+                                              <div
+                                                onMouseDown={(e) => {
+                                                  e.stopPropagation();
+                                                  e.preventDefault();
+                                                  wasResizingRef.current = true;
+                                                  setResizingLesson({
+                                                    lesson,
+                                                    edge: "top",
+                                                    startY: e.clientY,
+                                                    initialStartTime: lesson.start_time,
+                                                    initialEndTime: lesson.end_time,
+                                                  });
+                                                }}
+                                                className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                              />
+
+                                              <div className="min-w-0 py-1">
                                                 {durationSlots === 1 ? (
-                                                  <p className="font-bold text-gray-950 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
+                                                  <p className="font-bold text-gray-955 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
                                                     <span className="truncate">{lesson.student_name}</span>
                                                     <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
                                                   </p>
                                                 ) : (
                                                   <>
-                                                    <p className="font-black text-gray-950 leading-tight truncate text-[10px] mb-0.5">
+                                                    <p className="font-black text-gray-955 leading-tight truncate text-[10px] mb-0.5">
                                                       {lesson.student_name}
                                                     </p>
                                                     <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
@@ -1173,6 +1284,23 @@ JSON Şeması:
                                                   {lesson.notes}
                                                 </p>
                                               )}
+
+                                              {/* Bottom Resize Handle (Invisible, cursor only) */}
+                                              <div
+                                                onMouseDown={(e) => {
+                                                  e.stopPropagation();
+                                                  e.preventDefault();
+                                                  wasResizingRef.current = true;
+                                                  setResizingLesson({
+                                                    lesson,
+                                                    edge: "bottom",
+                                                    startY: e.clientY,
+                                                    initialStartTime: lesson.start_time,
+                                                    initialEndTime: lesson.end_time,
+                                                  });
+                                                }}
+                                                className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                              />
                                             </div>
                                           </div>
                                         );

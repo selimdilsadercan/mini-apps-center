@@ -75,7 +75,7 @@ export const MINI_APPS: MiniApp[] = [
   },
   {
     id: "tutor-crm",
-    name: "Tutor CRM",
+    name: "Tutor Place",
     description: "Private tutors management: students, lessons, and payments",
     icon: GraduationCap,
     category: "Utilities",
