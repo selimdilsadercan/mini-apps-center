@@ -18,6 +18,7 @@ import { recipeAssistant } from "../recipe/assistant";
 import { subcenterAssistant } from "../subcenter/assistant";
 import { tournamentAssistant } from "../tournament/assistant";
 import { tasketAssistant } from "../tasket/assistant";
+import { tutorCrmAssistant } from "../tutor-crm/assistant";
 import { usersAssistant } from "../users/assistant";
 import { workplacesAssistant } from "../workplaces/assistant";
 
@@ -37,6 +38,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   moviesThisYearAssistant,
   friendshipAssistant,
   tasketAssistant,
+  tutorCrmAssistant,
   usersAssistant,
   workplacesAssistant,
 ];

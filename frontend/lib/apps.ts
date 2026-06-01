@@ -20,6 +20,7 @@ import {
   ListChecks,
   Coffee,
   FilePdf,
+  GraduationCap,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -70,6 +71,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Utilities",
     color: "#339AF0",
     href: "/apps/subcenter",
+    isImplemented: true,
+  },
+  {
+    id: "tutor-crm",
+    name: "Tutor CRM",
+    description: "Private tutors management: students, lessons, and payments",
+    icon: GraduationCap,
+    category: "Utilities",
+    color: "#228BE6",
+    href: "/apps/tutor-crm",
     isImplemented: true,
   },
   {

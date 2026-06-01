@@ -49,6 +49,7 @@ export default class Client {
     public readonly subcenter: subcenter.ServiceClient
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
+    public readonly tutor_crm: tutor_crm.ServiceClient
     public readonly users: users.ServiceClient
     public readonly workplaces: workplaces.ServiceClient
     private readonly options: ClientOptions
@@ -82,6 +83,7 @@ export default class Client {
         this.subcenter = new subcenter.ServiceClient(base)
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
+        this.tutor_crm = new tutor_crm.ServiceClient(base)
         this.users = new users.ServiceClient(base)
         this.workplaces = new workplaces.ServiceClient(base)
     }
@@ -2216,6 +2218,263 @@ export namespace tournament {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PATCH", `/tournament/participant/modify`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+    }
+}
+
+export namespace tutor_crm {
+    export interface AddHomeworkRequest {
+        userId: string
+        studentId: string
+        task: string
+        dueDate?: string
+    }
+
+    export interface AddLessonRequest {
+        userId: string
+        studentId: string
+        lessonDate: string
+        startTime: string
+        endTime: string
+        notes?: string
+        nextLessonPlan?: string
+    }
+
+    export interface AddPaymentRequest {
+        userId: string
+        studentId: string
+        amount: number
+        isPaid: boolean
+        paymentDate?: string
+        lessonCount: number
+        month?: number
+        year?: number
+    }
+
+    export interface AddStudentRequest {
+        userId: string
+        name: string
+        subject: string
+        level: string
+        parentContact?: string
+        hourlyRate: number
+    }
+
+    export interface DeleteRequest {
+        userId: string
+    }
+
+    export interface DeleteRequest {
+        userId: string
+    }
+
+    export interface Homework {
+        id: string
+        "student_id": string
+        "student_name"?: string
+        "clerk_id": string
+        task: string
+        "due_date"?: string | null
+        "is_completed": boolean
+        "created_at": string
+    }
+
+    export interface Lesson {
+        id: string
+        "student_id": string
+        "student_name"?: string
+        "clerk_id": string
+        "lesson_date": string
+        "start_time": string
+        "end_time": string
+        notes?: string | null
+        "next_lesson_plan"?: string | null
+        status: "scheduled" | "completed" | "cancelled"
+        "created_at": string
+    }
+
+    export interface Payment {
+        id: string
+        "student_id": string
+        "student_name"?: string
+        "clerk_id": string
+        amount: number
+        "is_paid": boolean
+        "payment_date"?: string | null
+        "lesson_count": number
+        month?: number | null
+        year?: number | null
+        "created_at": string
+    }
+
+    export interface Student {
+        id: string
+        "clerk_id": string
+        name: string
+        subject: string
+        level: string
+        "parent_contact"?: string | null
+        "hourly_rate": number
+        "created_at": string
+    }
+
+    export interface ToggleRequest {
+        id: string
+        userId: string
+    }
+
+    export interface ToggleRequest {
+        id: string
+        userId: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addHomework = this.addHomework.bind(this)
+            this.addLesson = this.addLesson.bind(this)
+            this.addPayment = this.addPayment.bind(this)
+            this.addStudent = this.addStudent.bind(this)
+            this.deleteLesson = this.deleteLesson.bind(this)
+            this.deleteStudent = this.deleteStudent.bind(this)
+            this.getHomeworks = this.getHomeworks.bind(this)
+            this.getLessons = this.getLessons.bind(this)
+            this.getPayments = this.getPayments.bind(this)
+            this.getStudents = this.getStudents.bind(this)
+            this.toggleHomework = this.toggleHomework.bind(this)
+            this.togglePayment = this.togglePayment.bind(this)
+        }
+
+        public async addHomework(params: AddHomeworkRequest): Promise<{
+    homework: Homework
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/homeworks`, JSON.stringify(params))
+            return await resp.json() as {
+    homework: Homework
+}
+        }
+
+        public async addLesson(params: AddLessonRequest): Promise<{
+    lesson: Lesson
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/lessons`, JSON.stringify(params))
+            return await resp.json() as {
+    lesson: Lesson
+}
+        }
+
+        public async addPayment(params: AddPaymentRequest): Promise<{
+    payment: Payment
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/payments`, JSON.stringify(params))
+            return await resp.json() as {
+    payment: Payment
+}
+        }
+
+        public async addStudent(params: AddStudentRequest): Promise<{
+    student: Student
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/students`, JSON.stringify(params))
+            return await resp.json() as {
+    student: Student
+}
+        }
+
+        public async deleteLesson(id: string, params: DeleteRequest): Promise<{
+    success: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/tutor-crm/lessons/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async deleteStudent(id: string, params: DeleteRequest): Promise<{
+    success: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/tutor-crm/students/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getHomeworks(userId: string): Promise<{
+    homeworks: Homework[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/homeworks/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    homeworks: Homework[]
+}
+        }
+
+        public async getLessons(userId: string): Promise<{
+    lessons: Lesson[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/lessons/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    lessons: Lesson[]
+}
+        }
+
+        public async getPayments(userId: string): Promise<{
+    payments: Payment[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/payments/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    payments: Payment[]
+}
+        }
+
+        public async getStudents(userId: string): Promise<{
+    students: Student[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/students/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    students: Student[]
+}
+        }
+
+        public async toggleHomework(params: ToggleRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/homeworks/toggle`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async togglePayment(params: ToggleRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/payments/toggle`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

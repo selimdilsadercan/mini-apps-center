@@ -24,8 +24,8 @@ This guide documents the mandatory conventions and structure for adding new appl
 - **Schema Isolation:** Every service must have its own dedicated schema named after the app ID (e.g., `kiler`, `map_tracker`).
 - **SQL File Organization:**
     - `table.sql`: Contains the **root/ideal state** of the database structure for that service.
-    - `migrations/`: Contains migration files (`01_init.up.sql`) for any changes.
-    - `functions/`: Each RPC function must reside in its own file in this folder.
+    - `migrations/`: Contains migration files. `01_init.up.sql` should include both tables and all initial RPC functions.
+    - `functions/`: Each RPC function must reside in its own file in this folder for easy updates without migrations.
 - **RPC Cleanup:** Every function SQL file **MUST** start with `DROP FUNCTION IF EXISTS [schema].[function_name]`.
 - **Naming:** Functions and tables should NOT use prefixes if they are inside a dedicated schema, but must be schema-qualified in calls.
 

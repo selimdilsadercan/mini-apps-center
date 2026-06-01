@@ -31,7 +31,8 @@ backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcu
 - **Migrations**: 
   - Sadece tablo yapısı değişiklikleri (tablo oluşturma, kolon ekleme/çıkarma vb.) için kullanılmalıdır.
   - Migration dosyaları `migrations/` klasöründe `01_description.up.sql` formatında olmalıdır.
-  - **Kritik Kural**: Migrasyon dosyalarının içine asla RPC fonksiyonları (CREATE FUNCTION) yazılmamalıdır.
+  - **Kritik Kural**: Yeni bir servis oluşturulurken, `01_init.up.sql` dosyası hem tablo yapılarını hem de başlangıçtaki tüm RPC fonksiyonlarını içermelidir.
+  - **Fonksiyon Güncellemeleri**: Fonksiyonlardaki mantıksal değişiklikler için yeni migrasyon dosyası oluşturulmamalıdır; doğrudan `functions/` altındaki ilgili dosya güncellenmelidir.
 
 ### 1.3. Function Management (RPC)
 - **Location**: Tüm RPC fonksiyonları servis dizini altındaki `functions/` klasöründe tutulmalıdır.
