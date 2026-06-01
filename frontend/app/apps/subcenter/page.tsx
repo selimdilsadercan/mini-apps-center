@@ -484,39 +484,11 @@ export default function SubscriptionCenter() {
   );
 
   const fetchPresets = async () => {
-    if (process.env.NODE_ENV === "development") {
-      try {
-        const context = (require as any).context(
-          "../../../../backend/subcenter/data",
-          false,
-          /\.json$/
-        );
-        const localPresets = context.keys().reduce((acc: any[], key: string) => {
-          return acc.concat(context(key));
-        }, []).map((p: any) => ({
-          id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
-          name: p.name,
-          plan_name: p.plan_name,
-          region: p.region,
-          avg_price: p.price,
-          currency: p.currency,
-          category: p.category,
-          color: p.color,
-          icon: p.icon,
-          usage_count: 1,
-          domain: p.domain,
-        }));
-        setPresets(localPresets);
-      } catch (err) {
-        console.error("Failed to load local presets:", err);
-      }
-    } else {
-      try {
-        const resp = await client.subcenter.getGlobalPresets();
-        setPresets(resp.presets);
-      } catch (err) {
-        console.error("Failed to load presets:", err);
-      }
+    try {
+      const resp = await client.subcenter.getGlobalPresets();
+      setPresets(resp.presets);
+    } catch (err) {
+      console.error("Failed to load presets:", err);
     }
   };
 
