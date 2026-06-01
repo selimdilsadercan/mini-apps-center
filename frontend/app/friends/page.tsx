@@ -249,20 +249,20 @@ function FriendsContent() {
         <section className="bg-white/80 backdrop-blur-md rounded-[2rem] border border-gray-150 p-6 shadow-xl shadow-indigo-100/10 mb-6">
           <h2 className="font-extrabold text-gray-900 text-base mb-1">{t("addFriend")}</h2>
           <p className="text-gray-400 text-xs mb-4 font-medium">{t("shareIdDescription")}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2.5">
             <input
               type="text"
               value={friendIdInput}
               onChange={(e) => setFriendIdInput(e.target.value)}
               placeholder={t("addFriendPlaceholder")}
-              className="flex-1 bg-gray-50 border border-gray-150 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full min-w-0 bg-gray-50 border border-gray-150 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
             />
             <button
               onClick={() => handleSendRequest(friendIdInput)}
               disabled={actionLoading || !friendIdInput.trim()}
-              className="px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
             >
-              {actionLoading ? <Spinner size={16} className="animate-spin" /> : <UserPlus size={16} weight="bold" />}
+              {actionLoading ? <Spinner size={16} className="animate-spin" /> : <UserPlus size={18} weight="bold" />}
               {t("addFriendButton")}
             </button>
           </div>

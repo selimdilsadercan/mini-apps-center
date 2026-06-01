@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useUser } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import MiniAppCard from "@/components/MiniAppCard";
@@ -35,7 +35,24 @@ function AppSection({
   onGetApp: (appId: string, e: React.MouseEvent) => void; 
   onOpenApp: (app: MiniApp) => void; 
 }) {
-  const router = useRouter();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [slideWidth, setSlideWidth] = useState<number | null>(null);
+
+  const measureSlideWidth = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setSlideWidth(el.clientWidth);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureSlideWidth();
+    const el = scrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measureSlideWidth);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measureSlideWidth]);
+
   if (apps.length === 0) return null;
   
   // Chunk apps into groups of 3 for vertical stacking
@@ -52,12 +69,20 @@ function AppSection({
         </h2>
       </div>
 
-      <div className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 snap-x snap-mandatory scroll-pl-5">
-        {/* Left Spacer to align with header padding */}
-        <div className="min-w-[20px] shrink-0" />
-        
+      <div
+        ref={scrollRef}
+        className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 px-5 snap-x snap-mandatory overscroll-x-contain touch-pan-x"
+      >
         {chunkedApps.map((chunk, chunkIdx) => (
-          <div key={chunkIdx} className="flex flex-col gap-5 w-[82vw] max-w-[320px] snap-start shrink-0">
+          <div
+            key={chunkIdx}
+            style={
+              slideWidth != null
+                ? { width: Math.min(slideWidth, 320) }
+                : undefined
+            }
+            className="flex flex-col gap-5 shrink-0 snap-start snap-always w-[calc(100vw-2.5rem)] max-w-[320px]"
+          >
             {chunk.map((app) => {
               const isInstalled = installedIds.includes(app.id);
               return (
@@ -119,9 +144,6 @@ function AppSection({
             })}
           </div>
         ))}
-
-        {/* Right Spacer to allow scrolling past the last item */}
-        <div className="min-w-[20px] shrink-0" />
       </div>
     </section>
   );
@@ -255,20 +277,20 @@ export default function Discover() {
         {/* Search Bar */}
         <div className="sticky top-0 z-50 bg-[#FAF9F7]/90 backdrop-blur-xl -mx-5 px-5 py-2.5 mb-2 transition-all duration-300">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none group-focus-within:text-indigo-600 text-gray-400 transition-colors">
-              <MagnifyingGlass size={20} weight="bold" />
+            <div className="absolute inset-y-0 left-3.5 sm:left-4 flex items-center pointer-events-none group-focus-within:text-indigo-600 text-gray-400 transition-colors">
+              <MagnifyingGlass size={18} weight="bold" className="sm:w-5 sm:h-5" />
             </div>
             <input
               type="text"
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/80 border border-gray-200/50 rounded-[1.5rem] py-3.5 pl-12 pr-12 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all font-semibold text-base text-gray-900 placeholder:text-gray-400/80"
+              className="w-full min-w-0 bg-white/80 border border-gray-200/50 rounded-[1.5rem] py-3 sm:py-3.5 pl-10 sm:pl-12 pr-10 sm:pr-12 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all font-semibold text-sm sm:text-base text-gray-900 placeholder:text-gray-400/80 truncate"
             />
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                className="absolute inset-y-0 right-3.5 sm:right-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
               >
                 <X size={18} weight="bold" />
               </button>

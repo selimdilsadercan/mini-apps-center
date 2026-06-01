@@ -11,7 +11,7 @@
   "discover": {
     "title": "Uygulama Merkezi",
     "subtitle": "Bir sonraki günlük yardımcınızı keşfedin.",
-    "searchPlaceholder": "Uygulamalar, oyunlar ve daha fazlası...",
+    "searchPlaceholder": "Uygulama ara...",
     "resultsFor": "\"{query}\" için sonuçlar",
     "noResults": "Sonuç bulunamadı",
     "tryDifferent": "Farklı bir anahtar kelime deneyin.",
@@ -110,7 +110,7 @@
     "profileQR": "Profil QR",
     "anonymous": "Gizli Kullanıcı",
     "addFriend": "Arkadaş Ekle",
-    "addFriendPlaceholder": "Kullanıcı ID'si (Clerk ID) girin...",
+    "addFriendPlaceholder": "Kullanıcı ID girin...",
     "inviteSent": "Arkadaşlık isteği gönderildi!",
     "inviteError": "Arkadaşlık isteği gönderilemedi. ID'yi kontrol edip tekrar deneyin.",
     "cannotAddSelf": "Kendinizi arkadaş olarak ekleyemezsiniz.",

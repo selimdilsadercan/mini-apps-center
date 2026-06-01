@@ -11,7 +11,7 @@
   "discover": {
     "title": "Everything Hub",
     "subtitle": "Discover your next daily essential.",
-    "searchPlaceholder": "Apps, Games and more...",
+    "searchPlaceholder": "Search apps...",
     "resultsFor": "Results for \"{query}\"",
     "noResults": "No results found",
     "tryDifferent": "Try a different keyword.",
@@ -110,7 +110,7 @@
     "profileQR": "Profile QR",
     "anonymous": "Anonymous User",
     "addFriend": "Add Friend",
-    "addFriendPlaceholder": "Enter user ID (Clerk ID)...",
+    "addFriendPlaceholder": "Enter user ID...",
     "inviteSent": "Friend request sent!",
     "inviteError": "Could not send friend request. Check the ID and try again.",
     "cannotAddSelf": "You cannot add yourself.",
