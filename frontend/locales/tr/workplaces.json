@@ -1,0 +1,79 @@
+{
+  "title": "Workplaces",
+  "subtitle": "Çalışmaya uygun en iyi kütüphane ve kafeler",
+  "suggestPlace": "Mekan Öner",
+  "searchPlaceholder": "Mekan adı, etiket veya notlarda ara...",
+  "filters": {
+    "wifi": "WiFi",
+    "parking": "Otopark",
+    "power": "Priz",
+    "wantToGo": "Gitmek istiyorum",
+    "visited": "Gittim"
+  },
+  "district": {
+    "label": "İlçe",
+    "all": "Tümü"
+  },
+  "toast": {
+    "signInRequired": "İşaretlemek için giriş yapmalısın.",
+    "updateFailed": "Güncellenemedi.",
+    "loadFailed": "Mekanlar yüklenemedi. Bağlantını kontrol et."
+  },
+  "loading": "Mekanlar yükleniyor...",
+  "noResults": "Mekan bulunamadı",
+  "noResultsHint": "Arama kriterlerine uygun mekan bulamadık.",
+  "modal": {
+    "title": "Yeni Mekan Öner",
+    "subtitle": "Çalışmaya uygun olduğunu düşündüğün bir yeri paylaş.",
+    "name": "Mekan Adı",
+    "notes": "Notlar",
+    "mapsUrl": "Google Maps URL",
+    "tags": "Etiketler (Virgülle ayır)",
+    "cancel": "İptal",
+    "submit": "Ekle"
+  },
+  "placeholders": {
+    "name": "Örn: Bulgur Palas",
+    "notes": "Mekan hakkında kısa bilgi...",
+    "mapsUrl": "https://maps.google.com/...",
+    "tags": "kütüphane, sakin, kahve..."
+  },
+  "amenity": {
+    "wifi": "WiFi",
+    "parking": "Otopark",
+    "power": "Priz",
+    "quiet": "Sessizlik",
+    "yes": "Var",
+    "no": "Yok",
+    "status": "{amenity}: {status}"
+  },
+  "quietLevels": {
+    "1": "Gürültülü",
+    "2": "Orta-gürültülü",
+    "3": "Orta",
+    "4": "Sakin",
+    "5": "Çok sakin",
+    "fallback": "Seviye {level}"
+  },
+  "wantToGo": "Gitmek istiyorum",
+  "visited": "Gittim",
+  "aria": {
+    "back": "Geri dön",
+    "removeWantToGo": "Gitmek istiyorum işaretini kaldır",
+    "addWantToGo": "Gitmek istiyorum",
+    "removeVisited": "Gittim işaretini kaldır",
+    "addVisited": "Gittim"
+  },
+  "detail": {
+    "title": "Mekan detayı",
+    "loading": "Mekan yükleniyor...",
+    "notFound": "Mekan bulunamadı",
+    "loadError": "Mekan yüklenemedi veya bulunamadı.",
+    "noPlaceId": "Mekan kimliği bulunamadı.",
+    "backToList": "Listeye dön",
+    "notes": "Notlar",
+    "tags": "Etiketler",
+    "openMaps": "Haritada aç",
+    "suggestedBy": "Öneren: {name}"
+  }
+}
