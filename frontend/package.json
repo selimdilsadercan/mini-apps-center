@@ -70,6 +70,7 @@
     "next-intl": "4.8.3",
     "papaparse": "^5.5.3",
     "path-scurry": "^2.0.2",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "4.4.168",
     "react": "19.2.3",
     "react-dom": "19.2.3",

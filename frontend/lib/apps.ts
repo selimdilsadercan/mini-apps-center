@@ -19,6 +19,7 @@ import {
   Palette,
   ListChecks,
   Coffee,
+  FilePdf,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -69,6 +70,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Utilities",
     color: "#339AF0",
     href: "/apps/subcenter",
+    isImplemented: true,
+  },
+  {
+    id: "pdf-tools",
+    name: "Pdf Tools",
+    description: "PDF sayfalarını düzenle, yeniden sırala ve sil. Tamamen cihazında çalışır.",
+    icon: FilePdf,
+    category: "Utilities",
+    color: "#E03131",
+    href: "/apps/pdf-tools",
     isImplemented: true,
   },
 

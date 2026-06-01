@@ -11,6 +11,5 @@
     "clean": "cd frontend && bun run clean",
     "mobile": "cd frontend && bun run mobile",
     "store": "cd frontend && bun run store"
-  },
-  "dependencies": {}
+  }
 }
