@@ -2331,6 +2331,24 @@ export namespace tutor_crm {
         userId: string
     }
 
+    export interface UpdateLessonRequest {
+        lessonId: string
+        userId: string
+        lessonDate: string
+        startTime: string
+        endTime: string
+    }
+
+    export interface UpdateStudentRequest {
+        studentId: string
+        userId: string
+        name: string
+        subject: string
+        level: string
+        parentContact?: string
+        hourlyRate: number
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -2348,6 +2366,8 @@ export namespace tutor_crm {
             this.getStudents = this.getStudents.bind(this)
             this.toggleHomework = this.toggleHomework.bind(this)
             this.togglePayment = this.togglePayment.bind(this)
+            this.updateLesson = this.updateLesson.bind(this)
+            this.updateStudent = this.updateStudent.bind(this)
         }
 
         public async addHomework(params: AddHomeworkRequest): Promise<{
@@ -2477,6 +2497,26 @@ export namespace tutor_crm {
             const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/payments/toggle`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        public async updateLesson(params: UpdateLessonRequest): Promise<{
+    lesson: Lesson
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/tutor-crm/lessons`, JSON.stringify(params))
+            return await resp.json() as {
+    lesson: Lesson
+}
+        }
+
+        public async updateStudent(params: UpdateStudentRequest): Promise<{
+    student: Student
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/tutor-crm/students`, JSON.stringify(params))
+            return await resp.json() as {
+    student: Student
 }
         }
     }

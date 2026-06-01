@@ -74,6 +74,16 @@ interface AddStudentRequest {
     hourlyRate: number;
 }
 
+interface UpdateStudentRequest {
+    studentId: string;
+    userId: string;
+    name: string;
+    subject: string;
+    level: string;
+    parentContact?: string;
+    hourlyRate: number;
+}
+
 interface AddLessonRequest {
     userId: string;
     studentId: string;
@@ -82,6 +92,14 @@ interface AddLessonRequest {
     endTime: string;
     notes?: string;
     nextLessonPlan?: string;
+}
+
+interface UpdateLessonRequest {
+    lessonId: string;
+    userId: string;
+    lessonDate: string;
+    startTime: string;
+    endTime: string;
 }
 
 interface AddHomeworkRequest {
@@ -133,7 +151,24 @@ export const addStudent = api(
             name_param: req.name,
             subject_param: req.subject,
             level_param: req.level,
-            parent_contact_param: req.parentContact,
+            parent_contact_param: req.parentContact || null,
+            hourly_rate_param: req.hourlyRate,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { student: data?.[0] };
+    }
+);
+
+export const updateStudent = api(
+    { expose: true, method: "PUT", path: "/tutor-crm/students" },
+    async (req: UpdateStudentRequest): Promise<{ student: Student }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("update_student", {
+            student_id_param: req.studentId,
+            clerk_id_param: req.userId,
+            name_param: req.name,
+            subject_param: req.subject,
+            level_param: req.level,
+            parent_contact_param: req.parentContact || null,
             hourly_rate_param: req.hourlyRate,
         });
         if (error) throw APIError.internal(error.message);
@@ -173,8 +208,23 @@ export const addLesson = api(
             lesson_date_param: req.lessonDate,
             start_time_param: req.startTime,
             end_time_param: req.endTime,
-            notes_param: req.notes,
-            next_lesson_plan_param: req.nextLessonPlan,
+            notes_param: req.notes || null,
+            next_lesson_plan_param: req.nextLessonPlan || null,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { lesson: data?.[0] };
+    }
+);
+
+export const updateLesson = api(
+    { expose: true, method: "PUT", path: "/tutor-crm/lessons" },
+    async (req: UpdateLessonRequest): Promise<{ lesson: Lesson }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("update_lesson", {
+            lesson_id_param: req.lessonId,
+            clerk_id_param: req.userId,
+            lesson_date_param: req.lessonDate,
+            start_time_param: req.startTime,
+            end_time_param: req.endTime,
         });
         if (error) throw APIError.internal(error.message);
         return { lesson: data?.[0] };
@@ -211,7 +261,7 @@ export const addHomework = api(
             clerk_id_param: req.userId,
             student_id_param: req.studentId,
             task_param: req.task,
-            due_date_param: req.dueDate,
+            due_date_param: req.dueDate || null,
         });
         if (error) throw APIError.internal(error.message);
         return { homework: data?.[0] };
@@ -249,10 +299,10 @@ export const addPayment = api(
             student_id_param: req.studentId,
             amount_param: req.amount,
             is_paid_param: req.isPaid,
-            payment_date_param: req.paymentDate,
+            payment_date_param: req.paymentDate || null,
             lesson_count_param: req.lessonCount,
-            month_param: req.month,
-            year_param: req.year,
+            month_param: req.month || null,
+            year_param: req.year || null,
         });
         if (error) throw APIError.internal(error.message);
         return { payment: data?.[0] };
