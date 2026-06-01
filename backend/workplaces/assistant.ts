@@ -19,6 +19,14 @@ export const workplacesAssistant: AppAssistantModule = {
       parameters: {},
     },
     {
+      name: "toggle_favorite",
+      description: "Bir mekanı favorilere ekler veya favorilerden çıkarır.",
+      permission: "update",
+      parameters: {
+        place_id: { type: "string", description: "Mekan UUID", required: true },
+      },
+    },
+    {
       name: "add_place",
       description: "Yeni bir çalışma mekanı önerir.",
       permission: "create",
@@ -35,9 +43,16 @@ export const workplacesAssistant: AppAssistantModule = {
     },
   ],
   executors: {
-    list_places: async () => {
-      const res = await workplaces.listPlaces();
+    list_places: async ({ userId }) => {
+      const res = await workplaces.listPlaces({ userId });
       return res.places;
+    },
+    toggle_favorite: async ({ userId, args }) => {
+      const res = await workplaces.toggleFavorite({
+        placeId: requireString(args, "place_id"),
+        userId,
+      });
+      return res;
     },
     add_place: async ({ userId, args }) => {
       const res = await workplaces.addPlace({

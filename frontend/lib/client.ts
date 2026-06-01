@@ -2376,6 +2376,18 @@ export namespace workplaces {
         place: Place
     }
 
+    export interface GetPlaceRequest {
+        userId?: string
+    }
+
+    export interface GetPlaceResponse {
+        place: Place
+    }
+
+    export interface ListPlacesRequest {
+        userId?: string
+    }
+
     export interface ListPlacesResponse {
         places: Place[]
     }
@@ -2400,6 +2412,28 @@ export namespace workplaces {
         "user_ratings_total"?: number
         metadata?: any
         "created_at": string
+        "is_favorite"?: boolean
+        "is_visited"?: boolean
+    }
+
+    export interface ToggleFavoriteRequest {
+        placeId: string
+        userId: string
+    }
+
+    export interface ToggleFavoriteResponse {
+        success: boolean
+        isFavorite: boolean
+    }
+
+    export interface ToggleVisitedRequest {
+        placeId: string
+        userId: string
+    }
+
+    export interface ToggleVisitedResponse {
+        success: boolean
+        isVisited: boolean
     }
 
     export class ServiceClient {
@@ -2408,7 +2442,10 @@ export namespace workplaces {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addPlace = this.addPlace.bind(this)
+            this.getPlace = this.getPlace.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
+            this.toggleVisited = this.toggleVisited.bind(this)
         }
 
         public async addPlace(params: AddPlaceRequest): Promise<AddPlaceResponse> {
@@ -2417,13 +2454,41 @@ export namespace workplaces {
             return await resp.json() as AddPlaceResponse
         }
 
+        public async getPlace(id: string, params: GetPlaceRequest): Promise<GetPlaceResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/place/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as GetPlaceResponse
+        }
+
         /**
          * Endpoints
          */
-        public async listPlaces(): Promise<ListPlacesResponse> {
+        public async listPlaces(params: ListPlacesRequest): Promise<ListPlacesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces`, undefined, {query})
             return await resp.json() as ListPlacesResponse
+        }
+
+        public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/favorite`, JSON.stringify(params))
+            return await resp.json() as ToggleFavoriteResponse
+        }
+
+        public async toggleVisited(params: ToggleVisitedRequest): Promise<ToggleVisitedResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/visited`, JSON.stringify(params))
+            return await resp.json() as ToggleVisitedResponse
         }
     }
 }

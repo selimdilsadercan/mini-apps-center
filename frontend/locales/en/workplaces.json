@@ -1,0 +1,79 @@
+{
+  "title": "Workplaces",
+  "subtitle": "The best libraries and cafés for getting work done",
+  "suggestPlace": "Suggest a place",
+  "searchPlaceholder": "Search by name, tag, or notes...",
+  "filters": {
+    "wifi": "WiFi",
+    "parking": "Parking",
+    "power": "Outlets",
+    "wantToGo": "Want to go",
+    "visited": "Visited"
+  },
+  "district": {
+    "label": "District",
+    "all": "All"
+  },
+  "toast": {
+    "signInRequired": "Sign in to save your lists.",
+    "updateFailed": "Could not update.",
+    "loadFailed": "Could not load places. Check your connection."
+  },
+  "loading": "Loading places...",
+  "noResults": "No places found",
+  "noResultsHint": "We couldn't find any places matching your filters.",
+  "modal": {
+    "title": "Suggest a new place",
+    "subtitle": "Share a spot you think is great for focused work.",
+    "name": "Place name",
+    "notes": "Notes",
+    "mapsUrl": "Google Maps URL",
+    "tags": "Tags (comma-separated)",
+    "cancel": "Cancel",
+    "submit": "Add"
+  },
+  "placeholders": {
+    "name": "e.g. Bulgur Palas",
+    "notes": "Short description of the place...",
+    "mapsUrl": "https://maps.google.com/...",
+    "tags": "library, quiet, coffee..."
+  },
+  "amenity": {
+    "wifi": "WiFi",
+    "parking": "Parking",
+    "power": "Outlets",
+    "quiet": "Quiet level",
+    "yes": "Yes",
+    "no": "No",
+    "status": "{amenity}: {status}"
+  },
+  "quietLevels": {
+    "1": "Loud",
+    "2": "Moderately loud",
+    "3": "Moderate",
+    "4": "Quiet",
+    "5": "Very quiet",
+    "fallback": "Level {level}"
+  },
+  "wantToGo": "Want to go",
+  "visited": "Visited",
+  "aria": {
+    "back": "Go back",
+    "removeWantToGo": "Remove want to go",
+    "addWantToGo": "Want to go",
+    "removeVisited": "Remove visited",
+    "addVisited": "Mark as visited"
+  },
+  "detail": {
+    "title": "Place details",
+    "loading": "Loading place...",
+    "notFound": "Place not found",
+    "loadError": "Could not load this place.",
+    "noPlaceId": "Place ID is missing.",
+    "backToList": "Back to list",
+    "notes": "Notes",
+    "tags": "Tags",
+    "openMaps": "Open in Maps",
+    "suggestedBy": "Suggested by: {name}"
+  }
+}
