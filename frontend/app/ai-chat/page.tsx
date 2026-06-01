@@ -327,13 +327,7 @@ export default function AIChatPage() {
     </form>
   );
 
-  if (!isUserLoaded || !isHydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-        <Sparkle size={32} weight="fill" className="text-violet-400 animate-pulse" />
-      </div>
-    );
-  }
+  const isPageReady = isUserLoaded && isHydrated;
 
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#FAF9F7] selection:bg-violet-100">
@@ -364,12 +358,21 @@ export default function AIChatPage() {
 
       <main
         className={`relative z-10 min-h-0 w-full flex-1 ${
-          isEmptyChat
-            ? "flex flex-col items-center justify-center overflow-hidden px-6 pb-6"
-            : "overflow-y-auto overflow-x-hidden"
+          !isPageReady
+            ? "flex items-center justify-center"
+            : isEmptyChat
+              ? "flex flex-col items-center justify-center overflow-hidden px-6 pb-6"
+              : "overflow-y-auto overflow-x-hidden"
         }`}
       >
-        {isEmptyChat && (
+        {!isPageReady ? (
+          <Sparkle
+            size={32}
+            weight="fill"
+            className="text-violet-400 animate-pulse"
+          />
+        ) : null}
+        {isPageReady && isEmptyChat && (
           <div className="flex w-full max-w-lg flex-col items-center gap-5">
             <p className="px-2 text-center text-2xl font-semibold leading-snug tracking-tight text-gray-800 sm:text-[1.65rem]">
               Hazır olduğunda buradayım.
@@ -379,11 +382,12 @@ export default function AIChatPage() {
         )}
         <div
           className={`mx-auto flex w-full max-w-lg flex-col gap-6 px-6 ${
-            isEmptyChat ? "hidden" : "pt-3 pb-4"
+            !isPageReady || isEmptyChat ? "hidden" : "pt-3 pb-4"
           }`}
         >
           <AnimatePresence initial={false}>
-            {!isEmptyChat &&
+            {isPageReady &&
+              !isEmptyChat &&
               messages.map((message) => (
               <motion.div
                 key={message.id}
@@ -443,7 +447,7 @@ export default function AIChatPage() {
             ))}
           </AnimatePresence>
 
-          {!isEmptyChat && isLoading && (
+          {isPageReady && !isEmptyChat && isLoading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -468,11 +472,11 @@ export default function AIChatPage() {
               </div>
             </motion.div>
           )}
-          {!isEmptyChat && <div ref={messagesEndRef} />}
+          {isPageReady && !isEmptyChat && <div ref={messagesEndRef} />}
         </div>
       </main>
 
-      {!isEmptyChat && (
+      {isPageReady && !isEmptyChat && (
         <footer className="relative z-40 shrink-0 w-full px-6 pb-28 pt-2">
           <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-1.5">
             {renderChatInput("compact")}

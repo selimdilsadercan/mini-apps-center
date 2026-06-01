@@ -280,16 +280,6 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
   },
   {
-    id: "ai-chat",
-    name: "AI Assistant",
-    description: "Akıllı yapay zeka asistanın ile sohbet et",
-    icon: Sparkle,
-    category: "Utilities",
-    color: "#8B5CF6",
-    href: "/ai-chat",
-    isImplemented: true,
-  },
-  {
     id: "tasket",
     name: "Tasket",
     description: "Notlarını ve görevlerini sepetinde topla, listelerle organize et",
