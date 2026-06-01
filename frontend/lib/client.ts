@@ -50,6 +50,7 @@ export default class Client {
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
     public readonly users: users.ServiceClient
+    public readonly workplaces: workplaces.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
 
@@ -82,6 +83,7 @@ export default class Client {
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
         this.users = new users.ServiceClient(base)
+        this.workplaces = new workplaces.ServiceClient(base)
     }
 
     /**
@@ -2342,6 +2344,86 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/app-order`, JSON.stringify(params))
             return await resp.json() as UpdateAppOrderResponse
+        }
+    }
+}
+
+/**
+ * Workplaces service
+ */
+export namespace workplaces {
+    export interface AddPlaceRequest {
+        name: string
+        note?: string
+        url?: string
+        tags?: string[]
+        wifi?: boolean
+        parking?: boolean
+        "power_outlets"?: boolean
+        "quiet_level"?: number
+        "suggested_by"?: string
+        latitude?: number
+        longitude?: number
+        district?: string
+        "image_url"?: string
+        address?: string
+        rating?: number
+        "user_ratings_total"?: number
+        metadata?: any
+    }
+
+    export interface AddPlaceResponse {
+        place: Place
+    }
+
+    export interface ListPlacesResponse {
+        places: Place[]
+    }
+
+    export interface Place {
+        id: string
+        name: string
+        note?: string
+        url?: string
+        tags: string[]
+        wifi: boolean
+        parking: boolean
+        "power_outlets": boolean
+        "quiet_level": number
+        "suggested_by"?: string
+        latitude?: number
+        longitude?: number
+        district?: string
+        "image_url"?: string
+        address?: string
+        rating?: number
+        "user_ratings_total"?: number
+        metadata?: any
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addPlace = this.addPlace.bind(this)
+            this.listPlaces = this.listPlaces.bind(this)
+        }
+
+        public async addPlace(params: AddPlaceRequest): Promise<AddPlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces`, JSON.stringify(params))
+            return await resp.json() as AddPlaceResponse
+        }
+
+        /**
+         * Endpoints
+         */
+        public async listPlaces(): Promise<ListPlacesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces`)
+            return await resp.json() as ListPlacesResponse
         }
     }
 }

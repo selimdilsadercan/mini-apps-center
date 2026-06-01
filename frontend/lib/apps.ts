@@ -18,6 +18,7 @@ import {
   MusicNotes,
   Palette,
   ListChecks,
+  Coffee,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -274,6 +275,16 @@ export const MINI_APPS: MiniApp[] = [
     category: "Utilities",
     color: "#20c997",
     href: "/apps/tasket",
+    isImplemented: true,
+  },
+  {
+    id: "workplaces",
+    name: "Workplaces",
+    description: "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner",
+    icon: Coffee,
+    category: "Lifestyle",
+    color: "#6F4E37",
+    href: "/apps/workplaces",
     isImplemented: true,
   },
 ];

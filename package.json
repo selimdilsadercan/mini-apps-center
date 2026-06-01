@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"sleep 3 && bun run generate:watch\"",
+    "dev": "kill -9 $(lsof -t -i:3000 -i:4000) 2>/dev/null || true && bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"sleep 3 && bun run generate:watch\"",
     "frontend": "cd frontend && bun run dev",
     "generate": "cd backend && bun run generate",
     "generate:watch": "cd backend && bun run generate:watch",

@@ -19,6 +19,7 @@ import { subcenterAssistant } from "../subcenter/assistant";
 import { tournamentAssistant } from "../tournament/assistant";
 import { tasketAssistant } from "../tasket/assistant";
 import { usersAssistant } from "../users/assistant";
+import { workplacesAssistant } from "../workplaces/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   kilerAssistant,
@@ -37,6 +38,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   friendshipAssistant,
   tasketAssistant,
   usersAssistant,
+  workplacesAssistant,
 ];
 
 const assistantByAppId = new Map(
