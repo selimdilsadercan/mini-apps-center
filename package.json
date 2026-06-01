@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "kill -9 $(lsof -t -i:3000 -i:4000) 2>/dev/null || true && bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"sleep 3 && bun run generate:watch\"",
-    "frontend": "cd frontend && bun run dev",
-    "generate": "cd backend && bun run generate",
-    "generate:watch": "cd backend && bun run generate:watch",
-    "encore": "cd backend && encore run",
+    "dev:ports": "bunx --yes kill-port 3000 4000",
+    "dev": "bun run dev:ports; bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run generate:watch:delayed\"",
+    "frontend": "bun run --cwd frontend dev",
+    "generate": "bun run --cwd backend generate",
+    "generate:watch": "bun run --cwd backend generate:watch",
+    "generate:watch:delayed": "bun -e \"await Bun.sleep(3000)\" && bun run generate:watch",
+    "encore": "bun run --cwd backend dev",
     "clean": "cd frontend && bun run clean",
     "mobile": "cd frontend && bun run mobile",
     "store": "cd frontend && bun run store"
