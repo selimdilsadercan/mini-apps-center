@@ -19,10 +19,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
-import Client, { concert_list, Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import { concert_list } from "@/lib/client";
 import { useRouter } from "next/navigation";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export default function ConcertListPage() {
   const { user, isLoaded: isUserLoaded } = useUser();

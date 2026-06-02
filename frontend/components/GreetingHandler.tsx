@@ -5,9 +5,9 @@ import { useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export function GreetingHandler() {
   const { user, isLoaded } = useUser();

@@ -1,7 +1,7 @@
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import type { AssistantCard, AssistantChatResult } from "@/lib/assistant-cards";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export async function sendAssistantChat(params: {
   userId: string | null;

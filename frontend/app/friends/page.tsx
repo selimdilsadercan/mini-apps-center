@@ -18,9 +18,10 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 import AppBar, { ActivePage } from "@/components/AppBar";
-import Client, { Local, friendship } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import { friendship } from "@/lib/client";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 function FriendsContent() {
   const { user, isLoaded } = useUser();

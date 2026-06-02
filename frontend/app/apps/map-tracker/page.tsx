@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import Client, { map_tracker, Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client, { map_tracker } from "@/lib/client";
 import { 
   Plus, 
   MapTrifold as MapIcon, 
@@ -27,7 +28,7 @@ const MapComponent = dynamic(
   }
 );
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export default function MapTrackerPage() {
   const router = useRouter();

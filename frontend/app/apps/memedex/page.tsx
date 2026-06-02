@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client from "@/lib/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   ArrowLeft,
@@ -23,7 +24,7 @@ import {
   Trash
 } from "@phosphor-icons/react";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 interface Meme {
   id: string;

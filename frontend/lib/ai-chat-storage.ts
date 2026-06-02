@@ -1,7 +1,7 @@
-import Client, { Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
 import type { AssistantCard } from "@/lib/assistant-cards";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export interface ChatMessage {
   id: string;

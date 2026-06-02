@@ -24,11 +24,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import Client, { Local, hobby_center } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client, { hobby_center } from "@/lib/client";
 import { HOBBIES_DATA, Hobby } from "./hobbies_data";
 
 // Initialize client
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export default function HobbyCenterPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
