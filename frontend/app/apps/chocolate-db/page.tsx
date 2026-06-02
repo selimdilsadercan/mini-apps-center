@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Client, { Local, chocolate_db } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client, { chocolate_db } from "@/lib/client";
 import { 
   Star, 
   MagnifyingGlass,
@@ -15,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUser } from "@clerk/clerk-react";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 const translations = {
   tr: {

@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { 
-  Users, 
-  Calendar, 
-  BookOpen, 
-  CreditCard, 
-  Plus, 
-  Trash, 
-  CheckCircle, 
-  Clock, 
+import {
+  Users,
+  Calendar,
+  BookOpen,
+  CreditCard,
+  Plus,
+  Trash,
+  CheckCircle,
+  Clock,
   CaretLeft,
   CaretRight,
   GraduationCap,
@@ -26,10 +26,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
-import Client, { tutor_crm, Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client, { tutor_crm } from "@/lib/client";
 import { useRouter } from "next/navigation";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 type TabType = "schedule" | "students" | "homework" | "payments";
 type CalendarViewType = "grid" | "list";
@@ -43,7 +44,7 @@ export default function TutorCRMPage() {
   const [lessons, setLessons] = useState<tutor_crm.Lesson[]>([]);
   const [homeworks, setHomeworks] = useState<tutor_crm.Homework[]>([]);
   const [payments, setPayments] = useState<tutor_crm.Payment[]>([]);
-  
+
   // Calendar-specific states - Compact mode as default now
   const [calendarView, setCalendarView] = useState<CalendarViewType>("grid");
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -125,7 +126,7 @@ export default function TutorCRMPage() {
     startTime?: string;
     endTime?: string;
   }>({});
-  
+
   // Lesson Detail view modal state
   const [selectedLesson, setSelectedLesson] = useState<tutor_crm.Lesson | null>(null);
 
@@ -409,7 +410,7 @@ export default function TutorCRMPage() {
       const endStr = lesson.end_time.slice(0, 5);
       const rowSpan = getLessonDurationSlots(startStr, endStr);
       map[startStr] = { lesson, rowSpan };
-      
+
       const [sH, sM] = startStr.split(":").map(Number);
       for (let i = 1; i < rowSpan; i++) {
         const totalMins = sH * 60 + sM + i * 30;
@@ -441,19 +442,19 @@ export default function TutorCRMPage() {
       setIsDragging(false);
       return;
     }
-    
+
     setIsDragging(false);
 
     const startIndex = timeSlots.indexOf(dragStartSlot.timeSlot);
     const endIndex = timeSlots.indexOf(dragEndSlot.timeSlot);
-    
+
     if (startIndex === -1 || endIndex === -1) return;
 
     const actualStartIdx = Math.min(startIndex, endIndex);
     const actualEndIdx = Math.max(startIndex, endIndex);
 
     const startSlot = timeSlots[actualStartIdx];
-    
+
     const endSlotRaw = timeSlots[actualEndIdx];
     const [h, m] = endSlotRaw.split(":").map(Number);
     const totalEndMins = h * 60 + m + 30;
@@ -480,7 +481,7 @@ export default function TutorCRMPage() {
   // Global mouseup event to stop dragging if mouse is released outside
   useEffect(() => {
     const handleGlobalMouseUp = (e: MouseEvent) => {
-      if (isDragging) { 
+      if (isDragging) {
         finishDragging(e);
       }
     };
@@ -522,7 +523,7 @@ export default function TutorCRMPage() {
 
     const handleMouseUp = async () => {
       const currentLesson = lessons.find(l => l.id === resizingLesson.lesson.id);
-      
+
       setTimeout(() => {
         wasResizingRef.current = false;
       }, 100);
@@ -590,7 +591,7 @@ export default function TutorCRMPage() {
 
     const startIndex = timeSlots.indexOf(timeSlot);
     if (startIndex === -1) return;
-    
+
     // Find the end time slot by adding duration
     const [h, m] = timeSlot.split(":").map(Number);
     const totalEndMins = h * 60 + m + (durationSlots * 30);
@@ -616,7 +617,7 @@ export default function TutorCRMPage() {
         startTime: timeSlot,
         endTime: newEndTimeStr
       });
-      
+
       toast.success("Ders saati güncellendi!");
     } catch (error) {
       toast.error("Ders güncellenirken hata oluştu");
@@ -642,7 +643,7 @@ export default function TutorCRMPage() {
     if (quickScheduleData) {
       if (formatDatePickerDate(day) !== quickScheduleData.date) return false;
       const startIndex = timeSlots.indexOf(quickScheduleData.startTime);
-      
+
       const [eH, eM] = quickScheduleData.endTime.split(":").map(Number);
       const lastSelectedMins = eH * 60 + eM - 30;
       const lastH = Math.floor(lastSelectedMins / 60);
@@ -712,7 +713,7 @@ JSON Şeması:
       if (cleanedText.startsWith("```")) {
         cleanedText = cleanedText.replace(/^```json/, "").replace(/^```/, "").replace(/```$/, "").trim();
       }
-      
+
       const parsedData = JSON.parse(cleanedText);
       if (!parsedData.students || !parsedData.lessons) {
         toast.error("Format hatası: JSON içerisinde 'students' ve 'lessons' dizileri bulunmalıdır.");
@@ -868,7 +869,7 @@ JSON Şeması:
         level: "Seviye Belirsiz",
         hourlyRate: 200
       });
-      
+
       // 2. Schedule the lesson with new student ID
       if (studentRes.student && studentRes.student.id) {
         await client.tutor_crm.addLesson({
@@ -880,7 +881,7 @@ JSON Şeması:
         });
         toast.success("Öğrenci oluşturuldu ve ders planlandı!");
       }
-      
+
       // Reset forms & close popup
       setQuickStudentName("");
       setQuickStudentSubject("");
@@ -895,7 +896,7 @@ JSON Şeması:
   // Click handler for scheduling from grid cells
   const handleGridCellClick = (day: Date, timeSlot: string, e: React.MouseEvent) => {
     const dateStr = formatDatePickerDate(day);
-    
+
     // Add 30 mins to calculate end time
     const [h, m] = timeSlot.split(":").map(Number);
     const totalEndMins = h * 60 + m + 30;
@@ -921,7 +922,7 @@ JSON Şeması:
     const startDay = start.getDate();
     const endDay = end.getDate();
     const year = start.getFullYear();
-    
+
     if (startMonth === endMonth) {
       return `${startDay} - ${endDay} ${startMonth} ${year}`;
     }
@@ -955,7 +956,7 @@ JSON Şeması:
         <Drawer.Trigger asChild>
           <button className="flex-1 sm:flex-initial bg-gray-950 text-white px-3.5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0 hover:bg-gray-800">
             <Plus size={12} weight="bold" />
-            <span>Ders Ekle</span>
+            <span>Ekle</span>
           </button>
         </Drawer.Trigger>
         <Drawer.Portal>
@@ -964,15 +965,15 @@ JSON Şeması:
             <div className="p-8 overflow-y-auto">
               <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-100 mb-8" />
               <Drawer.Title className="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Yeni <span className="text-blue-600">Kayıt</span></Drawer.Title>
-              <AddForm 
-                activeTab={activeTab} 
-                students={students} 
+              <AddForm
+                activeTab={activeTab}
+                students={students}
                 preFill={formPreFill}
-                onComplete={() => { 
+                onComplete={() => {
                   setIsDrawerOpen(false);
                   setFormPreFill({});
-                  fetchAllData(); 
-                }} 
+                  fetchAllData();
+                }}
               />
             </div>
           </Drawer.Content>
@@ -1023,8 +1024,8 @@ JSON Şeması:
                   setFormPreFill({}); // Reset pre-fill
                 }}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${activeTab === item.id
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                   }`}
               >
                 <item.icon size={18} weight={activeTab === item.id ? "fill" : "bold"} />
@@ -1069,8 +1070,8 @@ JSON Şeması:
                     <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center w-full sm:w-auto justify-center sm:justify-start">
                       {/* Plan Selector Dropdown */}
                       <div className="flex items-center bg-gray-50 border border-gray-150 rounded-xl px-2.5 py-1 shrink-0">
-                        <select 
-                          value={activeFollowedShareId || ""} 
+                        <select
+                          value={activeFollowedShareId || ""}
                           onChange={(e) => setActiveFollowedShareId(e.target.value || null)}
                           className="bg-transparent border-none text-[10px] font-black text-gray-800 uppercase outline-none focus:ring-0 cursor-pointer pr-6 py-0.5"
                         >
@@ -1088,13 +1089,13 @@ JSON Şeması:
 
                       {/* Week Navigation */}
                       <div className="flex items-center gap-1 shrink-0">
-                        <button 
+                        <button
                           onClick={() => changeWeek(-1)}
                           className="p-2 hover:bg-gray-50 border border-gray-100 rounded-lg transition-all bg-white shadow-sm"
                         >
                           <CaretLeft size={14} weight="bold" className="text-gray-600" />
                         </button>
-                        <button 
+                        <button
                           onClick={setTodayWeek}
                           className="px-2.5 py-1.5 hover:bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase text-gray-600 transition-all bg-white shadow-sm"
                         >
@@ -1103,7 +1104,7 @@ JSON Şeması:
                         <span className="text-[10px] sm:text-xs font-black text-gray-800 tracking-tight px-1.5 text-center min-w-[100px] sm:min-w-[130px]">
                           {formatWeekRange()}
                         </span>
-                        <button 
+                        <button
                           onClick={() => changeWeek(1)}
                           className="p-2 hover:bg-gray-50 border border-gray-100 rounded-lg transition-all bg-white shadow-sm"
                         >
@@ -1119,8 +1120,8 @@ JSON Şeması:
                         <button
                           onClick={() => setCalendarView("grid")}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-black uppercase transition-all ${calendarView === "grid"
-                              ? "bg-white text-gray-900 shadow-sm"
-                              : "text-gray-400 hover:text-gray-600"
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
                             }`}
                         >
                           <Calendar size={12} weight="bold" />
@@ -1129,8 +1130,8 @@ JSON Şeması:
                         <button
                           onClick={() => setCalendarView("list")}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-black uppercase transition-all ${calendarView === "list"
-                              ? "bg-white text-gray-900 shadow-sm"
-                              : "text-gray-400 hover:text-gray-600"
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
                             }`}
                         >
                           <List size={12} weight="bold" />
@@ -1163,626 +1164,620 @@ JSON Şeması:
                 </div>
               )}
               <AnimatePresence mode="wait">
-              {/* SCHEDULE / GRID TAB (FIRST / DEFAULT NOW) */}
-              {activeTab === "schedule" && (
-                <motion.div
-                  key="schedule"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
-                >
-                  {/* Followed plan warning banner */}
-                  {activeFollowedShareId && (
-                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between text-amber-800 text-xs font-semibold shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
-                        <span>Şu anda takip ettiğiniz <strong>{followedShares.find(f => f.share_id === activeFollowedShareId)?.alias || "Tutor"}</strong> planını görüntülüyorsunuz. (Salt Okunur)</span>
+                {/* SCHEDULE / GRID TAB (FIRST / DEFAULT NOW) */}
+                {activeTab === "schedule" && (
+                  <motion.div
+                    key="schedule"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6"
+                  >
+                    {/* Followed plan warning banner */}
+                    {activeFollowedShareId && (
+                      <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between text-amber-800 text-xs font-semibold shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
+                          <span>Şu anda takip ettiğiniz <strong>{followedShares.find(f => f.share_id === activeFollowedShareId)?.alias || "Tutor"}</strong> planını görüntülüyorsunuz. (Salt Okunur)</span>
+                        </div>
+                        <button
+                          onClick={() => setActiveFollowedShareId(null)}
+                          className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all shadow-sm"
+                        >
+                          Kendi Planıma Dön
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => setActiveFollowedShareId(null)}
-                        className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all shadow-sm"
-                      >
-                        Kendi Planıma Dön
-                      </button>
-                    </div>
-                  )}
-                  {/* Calendar Views */}
-                  {calendarView === "grid" ? (
-                    /* WEEKLY HOUR GRID WITH MOUSE DRAG RANGE */
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden select-none">
-                      <div className="overflow-x-auto">
-                        <table className={`w-full ${isCompact ? "min-w-[650px]" : "min-w-[900px]"} table-fixed border-collapse`}>
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-100">
-                              {/* Empty corner header for times */}
-                              <th className={`${isCompact ? "w-12 py-2 px-1 text-[8px]" : "w-20 py-4 px-3 text-[10px]"} font-black uppercase text-gray-400 text-center tracking-widest border-r border-gray-100`}>
-                                Saat
-                              </th>
-                              {days.map((day, idx) => {
-                                const isToday = formatDatePickerDate(day) === formatDatePickerDate(new Date());
-                                return (
-                                  <th key={idx} className={`${isCompact ? "py-2 px-1" : "py-4 px-3"} border-r border-gray-100 last:border-r-0`}>
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`font-black uppercase tracking-widest ${isCompact ? "text-[8px]" : "text-[10px]"
-                                        } ${isToday ? "text-blue-600" : "text-gray-400"}`}>
-                                        {day.toLocaleDateString("tr-TR", { weekday: isCompact ? "narrow" : "short" })}
-                                      </span>
-                                      <span className={`rounded-full flex items-center justify-center font-black ${isCompact ? "w-5 h-5 text-xs" : "w-7 h-7 text-sm"
-                                        } ${isToday ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-900"
-                                        }`}>
-                                        {day.getDate()}
-                                      </span>
-                                    </div>
-                                  </th>
-                                );
-                              })}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="align-top">
-                              {/* Time Column */}
-                              <td className="p-0 border-r border-gray-100 bg-gray-50/50 w-12 md:w-20">
-                                {timeSlots.map((timeSlot) => {
-                                  const isFullHourLine = timeSlot.endsWith(":30");
+                    )}
+                    {/* Calendar Views */}
+                    {calendarView === "grid" ? (
+                      /* WEEKLY HOUR GRID WITH MOUSE DRAG RANGE */
+                      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden select-none">
+                        <div className="overflow-x-auto">
+                          <table className={`w-full ${isCompact ? "min-w-[650px]" : "min-w-[900px]"} table-fixed border-collapse`}>
+                            <thead>
+                              <tr className="bg-gray-50 border-b border-gray-100">
+                                {/* Empty corner header for times */}
+                                <th className={`${isCompact ? "w-12 py-2 px-1 text-[8px]" : "w-20 py-4 px-3 text-[10px]"} font-black uppercase text-gray-400 text-center tracking-widest border-r border-gray-100`}>
+                                  Saat
+                                </th>
+                                {days.map((day, idx) => {
+                                  const isToday = formatDatePickerDate(day) === formatDatePickerDate(new Date());
                                   return (
-                                    <div
-                                      key={timeSlot}
-                                      style={{ height: `${slotHeight}px` }}
-                                      className={`relative w-full border-b last:border-b-0 ${
-                                        isFullHourLine ? "border-gray-200" : "border-gray-100"
-                                      }`}
-                                    >
-                                      <span
-                                        className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-gray-400 bg-[#F8F9FA] px-1 select-none pointer-events-none ${
-                                          isCompact ? "text-[8px]" : "text-[10px]"
-                                        }`}
-                                      >
-                                        {timeSlot === "07:30" ? "" : timeSlot}
-                                      </span>
-                                    </div>
+                                    <th key={idx} className={`${isCompact ? "py-2 px-1" : "py-4 px-3"} border-r border-gray-100 last:border-r-0`}>
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className={`font-black uppercase tracking-widest ${isCompact ? "text-[8px]" : "text-[10px]"
+                                          } ${isToday ? "text-blue-600" : "text-gray-400"}`}>
+                                          {day.toLocaleDateString("tr-TR", { weekday: isCompact ? "narrow" : "short" })}
+                                        </span>
+                                        <span className={`rounded-full flex items-center justify-center font-black ${isCompact ? "w-5 h-5 text-xs" : "w-7 h-7 text-sm"
+                                          } ${isToday ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-900"
+                                          }`}>
+                                          {day.getDate()}
+                                        </span>
+                                      </div>
+                                    </th>
                                   );
                                 })}
-                              </td>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="align-top">
+                                {/* Time Column */}
+                                <td className="p-0 border-r border-gray-100 bg-gray-50/50 w-12 md:w-20">
+                                  {timeSlots.map((timeSlot) => {
+                                    const isFullHourLine = timeSlot.endsWith(":30");
+                                    return (
+                                      <div
+                                        key={timeSlot}
+                                        style={{ height: `${slotHeight}px` }}
+                                        className={`relative w-full border-b last:border-b-0 ${isFullHourLine ? "border-gray-200" : "border-gray-100"
+                                          }`}
+                                      >
+                                        <span
+                                          className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-gray-400 bg-[#F8F9FA] px-1 select-none pointer-events-none ${isCompact ? "text-[8px]" : "text-[10px]"
+                                            }`}
+                                        >
+                                          {timeSlot === "07:30" ? "" : timeSlot}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </td>
 
-                              {/* Day Columns */}
-                              {days.map((day, dayIdx) => {
-                                const dateStr = formatDatePickerDate(day);
-                                const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
-                                
-                                // Group and calculate widths for overlapping lessons
-                                const sortedLessons = [...dayLessons].sort((a, b) => a.start_time.localeCompare(b.start_time));
-                                const clusters: tutor_crm.Lesson[][] = [];
-                                sortedLessons.forEach(lesson => {
-                                  let placed = false;
-                                  for (const cluster of clusters) {
-                                    const overlaps = cluster.some(cLesson => {
-                                      const lStart = lesson.start_time.slice(0, 5);
-                                      const lEnd = lesson.end_time.slice(0, 5);
-                                      const cStart = cLesson.start_time.slice(0, 5);
-                                      const cEnd = cLesson.end_time.slice(0, 5);
-                                      return lStart < cEnd && lEnd > cStart;
-                                    });
-                                    if (overlaps) {
-                                      cluster.push(lesson);
-                                      placed = true;
-                                      break;
+                                {/* Day Columns */}
+                                {days.map((day, dayIdx) => {
+                                  const dateStr = formatDatePickerDate(day);
+                                  const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
+
+                                  // Group and calculate widths for overlapping lessons
+                                  const sortedLessons = [...dayLessons].sort((a, b) => a.start_time.localeCompare(b.start_time));
+                                  const clusters: tutor_crm.Lesson[][] = [];
+                                  sortedLessons.forEach(lesson => {
+                                    let placed = false;
+                                    for (const cluster of clusters) {
+                                      const overlaps = cluster.some(cLesson => {
+                                        const lStart = lesson.start_time.slice(0, 5);
+                                        const lEnd = lesson.end_time.slice(0, 5);
+                                        const cStart = cLesson.start_time.slice(0, 5);
+                                        const cEnd = cLesson.end_time.slice(0, 5);
+                                        return lStart < cEnd && lEnd > cStart;
+                                      });
+                                      if (overlaps) {
+                                        cluster.push(lesson);
+                                        placed = true;
+                                        break;
+                                      }
                                     }
-                                  }
-                                  if (!placed) {
-                                    clusters.push([lesson]);
-                                  }
-                                });
-
-                                const lessonPositions = new Map<string, { width: number; left: number }>();
-                                clusters.forEach(cluster => {
-                                  const columns: tutor_crm.Lesson[][] = [];
-                                  cluster.forEach(lesson => {
-                                    let colIndex = 0;
-                                    while (true) {
-                                      if (!columns[colIndex]) {
-                                        columns[colIndex] = [lesson];
-                                        break;
-                                      }
-                                      const lastLessonInCol = columns[colIndex][columns[colIndex].length - 1];
-                                      const lStart = lesson.start_time.slice(0, 5);
-                                      const lastEnd = lastLessonInCol.end_time.slice(0, 5);
-                                      if (lStart >= lastEnd) {
-                                        columns[colIndex].push(lesson);
-                                        break;
-                                      }
-                                      colIndex++;
+                                    if (!placed) {
+                                      clusters.push([lesson]);
                                     }
                                   });
-                                  const totalCols = columns.length;
-                                  columns.forEach((col, colIdx) => {
-                                    col.forEach(lesson => {
-                                      lessonPositions.set(lesson.id, {
-                                        width: 100 / totalCols,
-                                        left: (colIdx * 100) / totalCols
+
+                                  const lessonPositions = new Map<string, { width: number; left: number }>();
+                                  clusters.forEach(cluster => {
+                                    const columns: tutor_crm.Lesson[][] = [];
+                                    cluster.forEach(lesson => {
+                                      let colIndex = 0;
+                                      while (true) {
+                                        if (!columns[colIndex]) {
+                                          columns[colIndex] = [lesson];
+                                          break;
+                                        }
+                                        const lastLessonInCol = columns[colIndex][columns[colIndex].length - 1];
+                                        const lStart = lesson.start_time.slice(0, 5);
+                                        const lastEnd = lastLessonInCol.end_time.slice(0, 5);
+                                        if (lStart >= lastEnd) {
+                                          columns[colIndex].push(lesson);
+                                          break;
+                                        }
+                                        colIndex++;
+                                      }
+                                    });
+                                    const totalCols = columns.length;
+                                    columns.forEach((col, colIdx) => {
+                                      col.forEach(lesson => {
+                                        lessonPositions.set(lesson.id, {
+                                          width: 100 / totalCols,
+                                          left: (colIdx * 100) / totalCols
+                                        });
                                       });
                                     });
                                   });
-                                });
 
-                                return (
-                                  <td
-                                    key={dayIdx}
-                                    className="p-0 border-r border-gray-100 last:border-r-0 relative align-top"
-                                    style={{ height: `${timeSlots.length * slotHeight}px` }}
-                                  >
-                                    {/* Grid slots background */}
-                                    <div className="absolute inset-0 flex flex-col pointer-events-auto">
-                                      {timeSlots.map((timeSlot) => {
-                                        const isSelected = isCellSelected(day, timeSlot);
-                                        const isDropPreview = isDropPreviewActive(day, timeSlot);
-                                        
-                                        let dropPreviewClasses = "";
-                                        let isFirst = false;
-                                        let isLast = false;
-                                        let dragPreviewEndTime = "";
-                                        
-                                        if (isDropPreview && draggedLesson && dragOverSlot) {
-                                          const startStr = draggedLesson.start_time.slice(0, 5);
-                                          const endStr = draggedLesson.end_time.slice(0, 5);
-                                          const durationSlots = getLessonDurationSlots(startStr, endStr);
-                                          const startIdx = timeSlots.indexOf(dragOverSlot.timeSlot);
-                                          const currentIdx = timeSlots.indexOf(timeSlot);
-                                          isFirst = currentIdx === startIdx;
-                                          isLast = currentIdx === startIdx + durationSlots - 1;
-                                          
-                                          // Calculate preview end time
-                                          const [h, m] = dragOverSlot.timeSlot.split(":").map(Number);
-                                          const totalEndMins = h * 60 + m + (durationSlots * 30);
-                                          const endH = Math.floor(totalEndMins / 60);
-                                          const endM = totalEndMins % 60;
-                                          dragPreviewEndTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
-                                          
-                                          dropPreviewClasses = "bg-blue-100/70 border-x-2 border-dashed border-blue-500 z-20";
-                                          if (isFirst) dropPreviewClasses += " border-t-2";
-                                          if (isLast) dropPreviewClasses += " border-b-2";
-                                        }
+                                  return (
+                                    <td
+                                      key={dayIdx}
+                                      className="p-0 border-r border-gray-100 last:border-r-0 relative align-top"
+                                      style={{ height: `${timeSlots.length * slotHeight}px` }}
+                                    >
+                                      {/* Grid slots background */}
+                                      <div className="absolute inset-0 flex flex-col pointer-events-auto">
+                                        {timeSlots.map((timeSlot) => {
+                                          const isSelected = isCellSelected(day, timeSlot);
+                                          const isDropPreview = isDropPreviewActive(day, timeSlot);
 
-                                        const isFullHourLine = timeSlot.endsWith(":30");
+                                          let dropPreviewClasses = "";
+                                          let isFirst = false;
+                                          let isLast = false;
+                                          let dragPreviewEndTime = "";
 
-                                        return (
-                                          <div
-                                            key={timeSlot}
-                                            data-date={dateStr}
-                                            data-time={timeSlot}
-                                            onMouseDown={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              if (e.button === 0) {
-                                                e.preventDefault();
-                                                startDragging(day, timeSlot);
-                                              }
-                                            }}
-                                            onMouseEnter={() => {
-                                              if (activeFollowedShareId) return;
-                                              updateDragging(day, timeSlot);
-                                            }}
-                                            onTouchStart={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              const touch = e.touches[0];
-                                              touchStartRef.current = { x: touch.clientX, y: touch.clientY, day, timeSlot };
-                                              touchMovedRef.current = false;
-                                            }}
-                                            onTouchMove={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              if (!touchStartRef.current) return;
-                                              const touch = e.touches[0];
-                                              const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
-                                              const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
-                                              if (diffX > 8 || diffY > 8) {
-                                                if (!touchMovedRef.current) {
-                                                  touchMovedRef.current = true;
-                                                  startDragging(touchStartRef.current.day, touchStartRef.current.timeSlot);
+                                          if (isDropPreview && draggedLesson && dragOverSlot) {
+                                            const startStr = draggedLesson.start_time.slice(0, 5);
+                                            const endStr = draggedLesson.end_time.slice(0, 5);
+                                            const durationSlots = getLessonDurationSlots(startStr, endStr);
+                                            const startIdx = timeSlots.indexOf(dragOverSlot.timeSlot);
+                                            const currentIdx = timeSlots.indexOf(timeSlot);
+                                            isFirst = currentIdx === startIdx;
+                                            isLast = currentIdx === startIdx + durationSlots - 1;
+
+                                            // Calculate preview end time
+                                            const [h, m] = dragOverSlot.timeSlot.split(":").map(Number);
+                                            const totalEndMins = h * 60 + m + (durationSlots * 30);
+                                            const endH = Math.floor(totalEndMins / 60);
+                                            const endM = totalEndMins % 60;
+                                            dragPreviewEndTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
+
+                                            dropPreviewClasses = "bg-blue-100/70 border-x-2 border-dashed border-blue-500 z-20";
+                                            if (isFirst) dropPreviewClasses += " border-t-2";
+                                            if (isLast) dropPreviewClasses += " border-b-2";
+                                          }
+
+                                          const isFullHourLine = timeSlot.endsWith(":30");
+
+                                          return (
+                                            <div
+                                              key={timeSlot}
+                                              data-date={dateStr}
+                                              data-time={timeSlot}
+                                              onMouseDown={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                if (e.button === 0) {
+                                                  e.preventDefault();
+                                                  startDragging(day, timeSlot);
                                                 }
-                                                const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                                                if (target) {
-                                                  const cell = target.closest('[data-date][data-time]');
-                                                  if (cell) {
-                                                    const dStr = cell.getAttribute('data-date');
-                                                    const tSlot = cell.getAttribute('data-time');
-                                                    if (dStr && tSlot) {
-                                                      const matchedDay = days.find(d => formatDatePickerDate(d) === dStr);
-                                                      if (matchedDay) {
-                                                        updateDragging(matchedDay, tSlot);
+                                              }}
+                                              onMouseEnter={() => {
+                                                if (activeFollowedShareId) return;
+                                                updateDragging(day, timeSlot);
+                                              }}
+                                              onTouchStart={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                const touch = e.touches[0];
+                                                touchStartRef.current = { x: touch.clientX, y: touch.clientY, day, timeSlot };
+                                                touchMovedRef.current = false;
+                                              }}
+                                              onTouchMove={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                if (!touchStartRef.current) return;
+                                                const touch = e.touches[0];
+                                                const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
+                                                const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
+                                                if (diffX > 8 || diffY > 8) {
+                                                  if (!touchMovedRef.current) {
+                                                    touchMovedRef.current = true;
+                                                    startDragging(touchStartRef.current.day, touchStartRef.current.timeSlot);
+                                                  }
+                                                  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                                                  if (target) {
+                                                    const cell = target.closest('[data-date][data-time]');
+                                                    if (cell) {
+                                                      const dStr = cell.getAttribute('data-date');
+                                                      const tSlot = cell.getAttribute('data-time');
+                                                      if (dStr && tSlot) {
+                                                        const matchedDay = days.find(d => formatDatePickerDate(d) === dStr);
+                                                        if (matchedDay) {
+                                                          updateDragging(matchedDay, tSlot);
+                                                        }
                                                       }
                                                     }
                                                   }
                                                 }
-                                              }
-                                            }}
-                                            onTouchEnd={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              if (!touchStartRef.current) return;
-                                              e.preventDefault();
-                                              const touch = e.changedTouches[0];
-                                              if (!touchMovedRef.current) {
-                                                const dateStr = formatDatePickerDate(touchStartRef.current.day);
-                                                const timeSlot = touchStartRef.current.timeSlot;
-                                                const [h, m] = timeSlot.split(":").map(Number);
-                                                const totalEndMins = h * 60 + m + 30;
-                                                const endH = Math.floor(totalEndMins / 60);
-                                                const endM = totalEndMins % 60;
-                                                const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
-
-                                                setQuickScheduleData({
-                                                  date: dateStr,
-                                                  startTime: timeSlot,
-                                                  endTime: endTimeStr,
-                                                  x: touch.clientX,
-                                                  y: touch.clientY
-                                                });
-                                              } else {
-                                                finishDragging({ clientX: touch.clientX, clientY: touch.clientY });
-                                              }
-                                              touchStartRef.current = null;
-                                              touchMovedRef.current = false;
-                                            }}
-                                            onClick={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              handleGridCellClick(day, timeSlot, e);
-                                            }}
-                                            onDragOver={(e) => e.preventDefault()}
-                                            onDragEnter={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              handleDragEnter(e, day, timeSlot);
-                                            }}
-                                            onDrop={(e) => {
-                                              if (activeFollowedShareId) return;
-                                              handleDropLesson(e, day, timeSlot);
-                                            }}
-                                            style={{ height: `${slotHeight}px` }}
-                                            className={`border-b last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 touch-none select-none ${
-                                              isFullHourLine ? "border-gray-200" : "border-gray-100"
-                                            } ${
-                                              isDropPreview
-                                                ? dropPreviewClasses
-                                                : isSelected
-                                                  ? "bg-blue-100 border border-blue-600/30 shadow-inner z-10"
-                                                  : resizingLesson
-                                                    ? ""
-                                                    : "hover:bg-blue-50/40"
-                                            }`}
-                                          >
-                                            {isDropPreview && draggedLesson && dragOverSlot && (
-                                              <>
-                                                {isFirst && (
-                                                  <span className="absolute left-1 top-0.5 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded pointer-events-none z-30 select-none shadow-sm leading-none">
-                                                    {dragOverSlot.timeSlot}
-                                                  </span>
-                                                )}
-                                                {isLast && (
-                                                  <span className="absolute right-1 bottom-0.5 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded pointer-events-none z-30 select-none shadow-sm leading-none">
-                                                    {dragPreviewEndTime}
-                                                  </span>
-                                                )}
-                                              </>
-                                            )}
-                                            <span className="absolute inset-0 flex items-center justify-center text-blue-600/0 group-hover:text-blue-600/70 font-black text-lg transition-all">
-                                              <Plus size={isCompact ? 12 : 16} weight="bold" />
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-
-                                    {/* Lessons Cards Overlay */}
-                                    <div className="absolute inset-0 pointer-events-none">
-                                      {sortedLessons.map((lesson) => {
-                                        const startStr = lesson.start_time.slice(0, 5);
-                                        const endStr = lesson.end_time.slice(0, 5);
-                                        const startIdx = timeSlots.indexOf(startStr);
-                                        if (startIdx === -1) return null;
-                                        const durationSlots = getLessonDurationSlots(startStr, endStr);
-                                        const pos = lessonPositions.get(lesson.id) || { width: 100, left: 0 };
-                                        const isBeingDragged = draggedLesson?.id === lesson.id;
-
-                                        return (
-                                          <div
-                                            key={lesson.id}
-                                            style={{
-                                              top: `${startIdx * slotHeight}px`,
-                                              height: `${durationSlots * slotHeight}px`,
-                                              left: `${pos.left}%`,
-                                              width: `${pos.width}%`,
-                                            }}
-                                            className={`absolute p-0.5 pointer-events-auto ${resizingLesson?.lesson.id === lesson.id ? '' : 'transition-all'} ${
-                                              isBeingDragged ? "opacity-40 scale-95" : ""
-                                            }`}
-                                          >
-                                            <div
-                                              onClick={() => {
-                                                if (activeFollowedShareId) return;
-                                                if (wasResizingRef.current) return;
-                                                setSelectedLesson(lesson);
                                               }}
-                                              draggable={!activeFollowedShareId}
-                                              onDragStart={(e) => {
+                                              onTouchEnd={(e) => {
                                                 if (activeFollowedShareId) return;
-                                                handleLessonDragStart(e, lesson);
+                                                if (!touchStartRef.current) return;
+                                                e.preventDefault();
+                                                const touch = e.changedTouches[0];
+                                                if (!touchMovedRef.current) {
+                                                  const dateStr = formatDatePickerDate(touchStartRef.current.day);
+                                                  const timeSlot = touchStartRef.current.timeSlot;
+                                                  const [h, m] = timeSlot.split(":").map(Number);
+                                                  const totalEndMins = h * 60 + m + 30;
+                                                  const endH = Math.floor(totalEndMins / 60);
+                                                  const endM = totalEndMins % 60;
+                                                  const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
+
+                                                  setQuickScheduleData({
+                                                    date: dateStr,
+                                                    startTime: timeSlot,
+                                                    endTime: endTimeStr,
+                                                    x: touch.clientX,
+                                                    y: touch.clientY
+                                                  });
+                                                } else {
+                                                  finishDragging({ clientX: touch.clientX, clientY: touch.clientY });
+                                                }
+                                                touchStartRef.current = null;
+                                                touchMovedRef.current = false;
                                               }}
-                                              onDragEnd={handleLessonDragEnd}
-                                              className={`h-full relative group bg-blue-50 border-l-[3px] border-blue-600 rounded text-left transition-all flex flex-col justify-center overflow-hidden p-1 ${
-                                                activeFollowedShareId 
-                                                  ? "cursor-default" 
-                                                  : "hover:bg-blue-100/80 cursor-grab active:cursor-grabbing hover:shadow-sm"
-                                              }`}
+                                              onClick={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                handleGridCellClick(day, timeSlot, e);
+                                              }}
+                                              onDragOver={(e) => e.preventDefault()}
+                                              onDragEnter={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                handleDragEnter(e, day, timeSlot);
+                                              }}
+                                              onDrop={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                handleDropLesson(e, day, timeSlot);
+                                              }}
+                                              style={{ height: `${slotHeight}px` }}
+                                              className={`border-b last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 touch-none select-none ${isFullHourLine ? "border-gray-200" : "border-gray-100"
+                                                } ${isDropPreview
+                                                  ? dropPreviewClasses
+                                                  : isSelected
+                                                    ? "bg-blue-100 border border-blue-600/30 shadow-inner z-10"
+                                                    : resizingLesson
+                                                      ? ""
+                                                      : "hover:bg-blue-50/40"
+                                                }`}
                                             >
-                                              {/* Top Resize Handle (Invisible, cursor only) */}
-                                              {!activeFollowedShareId && (
-                                                <div
-                                                  onMouseDown={(e) => {
-                                                    e.stopPropagation();
-                                                    e.preventDefault();
-                                                    wasResizingRef.current = true;
-                                                    setResizingLesson({
-                                                      lesson,
-                                                      edge: "top",
-                                                      startY: e.clientY,
-                                                      initialStartTime: lesson.start_time,
-                                                      initialEndTime: lesson.end_time,
-                                                    });
-                                                  }}
-                                                  className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
-                                                />
+                                              {isDropPreview && draggedLesson && dragOverSlot && (
+                                                <>
+                                                  {isFirst && (
+                                                    <span className="absolute left-1 top-0.5 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded pointer-events-none z-30 select-none shadow-sm leading-none">
+                                                      {dragOverSlot.timeSlot}
+                                                    </span>
+                                                  )}
+                                                  {isLast && (
+                                                    <span className="absolute right-1 bottom-0.5 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded pointer-events-none z-30 select-none shadow-sm leading-none">
+                                                      {dragPreviewEndTime}
+                                                    </span>
+                                                  )}
+                                                </>
                                               )}
+                                              <span className="absolute inset-0 flex items-center justify-center text-blue-600/0 group-hover:text-blue-600/70 font-black text-lg transition-all">
+                                                <Plus size={isCompact ? 12 : 16} weight="bold" />
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
 
-                                              <div className="min-w-0 py-1">
-                                                {durationSlots === 1 ? (
-                                                  <p className="font-bold text-gray-955 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
-                                                    <span className="truncate">{lesson.student_name}</span>
-                                                    <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
+                                      {/* Lessons Cards Overlay */}
+                                      <div className="absolute inset-0 pointer-events-none">
+                                        {sortedLessons.map((lesson) => {
+                                          const startStr = lesson.start_time.slice(0, 5);
+                                          const endStr = lesson.end_time.slice(0, 5);
+                                          const startIdx = timeSlots.indexOf(startStr);
+                                          if (startIdx === -1) return null;
+                                          const durationSlots = getLessonDurationSlots(startStr, endStr);
+                                          const pos = lessonPositions.get(lesson.id) || { width: 100, left: 0 };
+                                          const isBeingDragged = draggedLesson?.id === lesson.id;
+
+                                          return (
+                                            <div
+                                              key={lesson.id}
+                                              style={{
+                                                top: `${startIdx * slotHeight}px`,
+                                                height: `${durationSlots * slotHeight}px`,
+                                                left: `${pos.left}%`,
+                                                width: `${pos.width}%`,
+                                              }}
+                                              className={`absolute p-0.5 pointer-events-auto ${resizingLesson?.lesson.id === lesson.id ? '' : 'transition-all'} ${isBeingDragged ? "opacity-40 scale-95" : ""
+                                                }`}
+                                            >
+                                              <div
+                                                onClick={() => {
+                                                  if (activeFollowedShareId) return;
+                                                  if (wasResizingRef.current) return;
+                                                  setSelectedLesson(lesson);
+                                                }}
+                                                draggable={!activeFollowedShareId}
+                                                onDragStart={(e) => {
+                                                  if (activeFollowedShareId) return;
+                                                  handleLessonDragStart(e, lesson);
+                                                }}
+                                                onDragEnd={handleLessonDragEnd}
+                                                className={`h-full relative group bg-blue-50 border-l-[3px] border-blue-600 rounded text-left transition-all flex flex-col justify-center overflow-hidden p-1 ${activeFollowedShareId
+                                                    ? "cursor-default"
+                                                    : "hover:bg-blue-100/80 cursor-grab active:cursor-grabbing hover:shadow-sm"
+                                                  }`}
+                                              >
+                                                {/* Top Resize Handle (Invisible, cursor only) */}
+                                                {!activeFollowedShareId && (
+                                                  <div
+                                                    onMouseDown={(e) => {
+                                                      e.stopPropagation();
+                                                      e.preventDefault();
+                                                      wasResizingRef.current = true;
+                                                      setResizingLesson({
+                                                        lesson,
+                                                        edge: "top",
+                                                        startY: e.clientY,
+                                                        initialStartTime: lesson.start_time,
+                                                        initialEndTime: lesson.end_time,
+                                                      });
+                                                    }}
+                                                    className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                                  />
+                                                )}
+
+                                                <div className="min-w-0 py-1">
+                                                  {durationSlots === 1 ? (
+                                                    <p className="font-bold text-gray-955 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
+                                                      <span className="truncate">{lesson.student_name}</span>
+                                                      <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
+                                                    </p>
+                                                  ) : (
+                                                    <>
+                                                      <p className="font-black text-gray-955 leading-tight truncate text-[10px] mb-0.5">
+                                                        {lesson.student_name}
+                                                      </p>
+                                                      <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
+                                                        {startStr} - {endStr}
+                                                      </p>
+                                                    </>
+                                                  )}
+                                                </div>
+                                                {lesson.notes && durationSlots > 2 && (
+                                                  <p className="text-[8px] text-gray-500 font-medium mt-0.5 truncate max-w-full leading-none">
+                                                    {lesson.notes}
                                                   </p>
-                                                ) : (
-                                                  <>
-                                                    <p className="font-black text-gray-955 leading-tight truncate text-[10px] mb-0.5">
-                                                      {lesson.student_name}
-                                                    </p>
-                                                    <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
-                                                      {startStr} - {endStr}
-                                                    </p>
-                                                  </>
+                                                )}
+
+                                                {/* Bottom Resize Handle (Invisible, cursor only) */}
+                                                {!activeFollowedShareId && (
+                                                  <div
+                                                    onMouseDown={(e) => {
+                                                      e.stopPropagation();
+                                                      e.preventDefault();
+                                                      wasResizingRef.current = true;
+                                                      setResizingLesson({
+                                                        lesson,
+                                                        edge: "bottom",
+                                                        startY: e.clientY,
+                                                        initialStartTime: lesson.start_time,
+                                                        initialEndTime: lesson.end_time,
+                                                      });
+                                                    }}
+                                                    className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                                  />
                                                 )}
                                               </div>
-                                              {lesson.notes && durationSlots > 2 && (
-                                                <p className="text-[8px] text-gray-500 font-medium mt-0.5 truncate max-w-full leading-none">
-                                                  {lesson.notes}
-                                                </p>
-                                              )}
-
-                                              {/* Bottom Resize Handle (Invisible, cursor only) */}
-                                              {!activeFollowedShareId && (
-                                                <div
-                                                  onMouseDown={(e) => {
-                                                    e.stopPropagation();
-                                                    e.preventDefault();
-                                                    wasResizingRef.current = true;
-                                                    setResizingLesson({
-                                                      lesson,
-                                                      edge: "bottom",
-                                                      startY: e.clientY,
-                                                      initialStartTime: lesson.start_time,
-                                                      initialEndTime: lesson.end_time,
-                                                    });
-                                                  }}
-                                                  className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
-                                                />
-                                              )}
                                             </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          </tbody>
-                        </table>
+                                          );
+                                        })}
+                                      </div>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    /* LIST VIEW */
-                    <div className="space-y-4 w-full">
-                      {lessons.length === 0 ? (
-                        <EmptyState icon={Calendar} title="Ders Bulunamadı" description="Henüz planlanmış bir dersiniz yok." />
-                      ) : (
-                        lessons.map(lesson => (
-                          <div key={lesson.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
-                            <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                                <Clock size={24} weight="bold" />
+                    ) : (
+                      /* LIST VIEW */
+                      <div className="space-y-4 w-full">
+                        {lessons.length === 0 ? (
+                          <EmptyState icon={Calendar} title="Ders Bulunamadı" description="Henüz planlanmış bir dersiniz yok." />
+                        ) : (
+                          lessons.map(lesson => (
+                            <div key={lesson.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                  <Clock size={24} weight="bold" />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    {new Date(lesson.lesson_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                  </p>
+                                  <h3 className="font-black text-gray-955 text-lg mt-0.5">{lesson.student_name}</h3>
+                                  <p className="font-bold text-sm text-gray-600 mt-1 flex items-center gap-1.5">
+                                    <Clock size={16} /> {lesson.start_time.slice(0, 5)} - {lesson.end_time.slice(0, 5)}
+                                  </p>
+                                  {lesson.notes && <p className="text-sm text-gray-400 mt-2 italic">"{lesson.notes}"</p>}
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                  {new Date(lesson.lesson_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                                </p>
-                                <h3 className="font-black text-gray-955 text-lg mt-0.5">{lesson.student_name}</h3>
-                                <p className="font-bold text-sm text-gray-600 mt-1 flex items-center gap-1.5">
-                                  <Clock size={16} /> {lesson.start_time.slice(0, 5)} - {lesson.end_time.slice(0, 5)}
-                                </p>
-                                {lesson.notes && <p className="text-sm text-gray-400 mt-2 italic">"{lesson.notes}"</p>}
+
+                              <div className="flex items-center gap-4 self-stretch sm:self-center justify-between sm:justify-end">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${lesson.status === 'completed' ? 'bg-green-50 text-green-600' :
+                                  lesson.status === 'cancelled' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                                  }`}>
+                                  {lesson.status === 'completed' ? 'Tamamlandı' : lesson.status === 'cancelled' ? 'İptal' : 'Planlandı'}
+                                </span>
+
+                                <button
+                                  onClick={() => handleDeleteLesson(lesson.id)}
+                                  className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                >
+                                  <Trash size={20} />
+                                </button>
                               </div>
                             </div>
-                            
-                            <div className="flex items-center gap-4 self-stretch sm:self-center justify-between sm:justify-end">
-                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${lesson.status === 'completed' ? 'bg-green-50 text-green-600' :
-                                  lesson.status === 'cancelled' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
-                                }`}>
-                                {lesson.status === 'completed' ? 'Tamamlandı' : lesson.status === 'cancelled' ? 'İptal' : 'Planlandı'}
-                              </span>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
 
-                              <button
-                                onClick={() => handleDeleteLesson(lesson.id)}
-                                className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                              >
-                                <Trash size={20} />
-                              </button>
+                {/* STUDENTS TAB */}
+                {activeTab === "students" && (
+                  <motion.div
+                    key="students"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6 max-w-5xl"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                      <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Öğrencileriniz</h2>
+                      {actionButtons}
+                    </div>
+
+                    {students.length === 0 ? (
+                      <EmptyState icon={Users} title="Öğrenci Bulunamadı" description="İlk öğrencinizi ekleyerek başlayın." />
+                    ) : (
+                      <div className="space-y-8">
+                        {Object.entries(
+                          students.reduce((acc, student) => {
+                            const key = student.subject ? student.subject.trim() : "Diğer";
+                            if (!acc[key]) acc[key] = [];
+                            acc[key].push(student);
+                            return acc;
+                          }, {} as Record<string, tutor_crm.Student[]>)
+                        ).map(([subj, list]) => (
+                          <div key={subj} className="space-y-4">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1 flex items-center gap-2">
+                              <span className="w-1.5 h-3 bg-blue-600 rounded-full" />
+                              <span>{subj}</span>
+                              <span className="text-[10px] text-gray-300 font-bold">({list.length})</span>
+                            </h3>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {list.map(student => (
+                                <div
+                                  key={student.id}
+                                  onClick={() => setSelectedStudent(student)}
+                                  className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs shrink-0">
+                                      {getInitials(student.name)}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h3 className="font-black text-gray-905 text-sm group-hover:text-blue-600 transition-colors truncate">{student.name}</h3>
+                                      <p className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider mt-0.5">{student.subject}</p>
+                                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{student.level}</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="border-t border-gray-100 pt-3 mt-4 flex items-center justify-between">
+                                    <div>
+                                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Saatlik Ücret</span>
+                                      <span className="font-black text-gray-950 text-sm">{student.hourly_rate}₺</span>
+                                    </div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteStudent(student.id);
+                                      }}
+                                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                    >
+                                      <Trash size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))
-                      )}
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* HOMEWORK TAB */}
+                {activeTab === "homework" && (
+                  <motion.div
+                    key="homework"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 w-full"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                      <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödev Takibi</h2>
+                      {actionButtons}
                     </div>
-                  )}
-                </motion.div>
-              )}
-
-              {/* STUDENTS TAB */}
-              {activeTab === "students" && (
-                <motion.div
-                  key="students"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6 max-w-5xl"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Öğrencileriniz</h2>
-                    {actionButtons}
-                  </div>
-
-                  {students.length === 0 ? (
-                    <EmptyState icon={Users} title="Öğrenci Bulunamadı" description="İlk öğrencinizi ekleyerek başlayın." />
-                  ) : (
-                    <div className="space-y-8">
-                      {Object.entries(
-                        students.reduce((acc, student) => {
-                          const key = student.subject ? student.subject.trim() : "Diğer";
-                          if (!acc[key]) acc[key] = [];
-                          acc[key].push(student);
-                          return acc;
-                        }, {} as Record<string, tutor_crm.Student[]>)
-                      ).map(([subj, list]) => (
-                        <div key={subj} className="space-y-4">
-                          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1 flex items-center gap-2">
-                            <span className="w-1.5 h-3 bg-blue-600 rounded-full" />
-                            <span>{subj}</span>
-                            <span className="text-[10px] text-gray-300 font-bold">({list.length})</span>
-                          </h3>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {list.map(student => (
-                              <div
-                                key={student.id}
-                                onClick={() => setSelectedStudent(student)}
-                                className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs shrink-0">
-                                    {getInitials(student.name)}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <h3 className="font-black text-gray-905 text-sm group-hover:text-blue-600 transition-colors truncate">{student.name}</h3>
-                                    <p className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider mt-0.5">{student.subject}</p>
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{student.level}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="border-t border-gray-100 pt-3 mt-4 flex items-center justify-between">
-                                  <div>
-                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Saatlik Ücret</span>
-                                    <span className="font-black text-gray-950 text-sm">{student.hourly_rate}₺</span>
-                                  </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteStudent(student.id);
-                                    }}
-                                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                  >
-                                    <Trash size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
+                    {homeworks.length === 0 ? (
+                      <EmptyState icon={BookOpen} title="Ödev Bulunamadı" description="Öğrencilerinize ödev atayarak takibini yapın." />
+                    ) : (
+                      homeworks.map(hw => (
+                        <div key={hw.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={() => handleToggleHomework(hw.id)}
+                              className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${hw.is_completed ? "bg-green-500 border-green-500 text-white" : "border-gray-200 text-transparent hover:border-gray-300"
+                                }`}
+                            >
+                              <Check size={16} weight="bold" />
+                            </button>
+                            <div>
+                              <h3 className={`font-black text-sm ${hw.is_completed ? "text-gray-400 line-through" : "text-gray-900"}`}>{hw.task}</h3>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{hw.student_name} {hw.due_date && `• ${new Date(hw.due_date).toLocaleDateString('tr-TR')}`}</p>
+                            </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              )}
+                      ))
+                    )}
+                  </motion.div>
+                )}
 
-              {/* HOMEWORK TAB */}
-              {activeTab === "homework" && (
-                <motion.div
-                  key="homework"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4 w-full"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödev Takibi</h2>
-                    {actionButtons}
-                  </div>
-                  {homeworks.length === 0 ? (
-                    <EmptyState icon={BookOpen} title="Ödev Bulunamadı" description="Öğrencilerinize ödev atayarak takibini yapın." />
-                  ) : (
-                    homeworks.map(hw => (
-                      <div key={hw.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-                        <div className="flex items-center gap-4">
+                {/* PAYMENTS TAB */}
+                {activeTab === "payments" && (
+                  <motion.div
+                    key="payments"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-4 w-full"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                      <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödemeler ve Kazançlar</h2>
+                      {actionButtons}
+                    </div>
+                    {payments.length === 0 ? (
+                      <EmptyState icon={CreditCard} title="Ödeme Bulunamadı" description="Ödemeleri takip ederek kazancınızı yönetin." />
+                    ) : (
+                      payments.map(payment => (
+                        <div key={payment.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${payment.is_paid ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                              <Money size={24} weight="fill" />
+                            </div>
+                            <div>
+                              <h3 className="font-black text-gray-900 text-lg">{payment.amount}₺</h3>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{payment.student_name} • {payment.lesson_count} Ders</p>
+                            </div>
+                          </div>
                           <button
-                            onClick={() => handleToggleHomework(hw.id)}
-                            className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${hw.is_completed ? "bg-green-500 border-green-500 text-white" : "border-gray-200 text-transparent hover:border-gray-300"
+                            onClick={() => handleTogglePayment(payment.id)}
+                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${payment.is_paid ? "bg-green-500 text-white shadow-md shadow-green-150" : "bg-gray-100 text-gray-400 hover:bg-gray-250"
                               }`}
                           >
-                            <Check size={16} weight="bold" />
+                            {payment.is_paid ? "Ödendi" : "Bekliyor"}
                           </button>
-                          <div>
-                            <h3 className={`font-black text-sm ${hw.is_completed ? "text-gray-400 line-through" : "text-gray-900"}`}>{hw.task}</h3>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{hw.student_name} {hw.due_date && `• ${new Date(hw.due_date).toLocaleDateString('tr-TR')}`}</p>
-                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </motion.div>
-              )}
-
-              {/* PAYMENTS TAB */}
-              {activeTab === "payments" && (
-                <motion.div
-                  key="payments"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4 w-full"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödemeler ve Kazançlar</h2>
-                    {actionButtons}
-                  </div>
-                  {payments.length === 0 ? (
-                    <EmptyState icon={CreditCard} title="Ödeme Bulunamadı" description="Ödemeleri takip ederek kazancınızı yönetin." />
-                  ) : (
-                    payments.map(payment => (
-                      <div key={payment.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${payment.is_paid ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
-                            <Money size={24} weight="fill" />
-                          </div>
-                          <div>
-                            <h3 className="font-black text-gray-900 text-lg">{payment.amount}₺</h3>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{payment.student_name} • {payment.lesson_count} Ders</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleTogglePayment(payment.id)}
-                          className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${payment.is_paid ? "bg-green-500 text-white shadow-md shadow-green-150" : "bg-gray-100 text-gray-400 hover:bg-gray-250"
-                            }`}
-                        >
-                          {payment.is_paid ? "Ödendi" : "Bekliyor"}
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
         </div>
@@ -1799,8 +1794,8 @@ JSON Şeması:
               setQuickStudentName("");
               setQuickStudentSubject("");
             }} />
-            
-            <motion.div 
+
+            <motion.div
               ref={quickPopupRef}
               initial={{ scale: 0.9, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -1812,7 +1807,7 @@ JSON Şeması:
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
                   {quickScheduleData.startTime} - {quickScheduleData.endTime}
                 </span>
-                <button 
+                <button
                   onClick={() => {
                     setQuickScheduleData(null);
                     setShowNewStudentForm(false);
@@ -1850,7 +1845,7 @@ JSON Şeması:
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Create New Student Trigger */}
                   <button
                     onClick={() => setShowNewStudentForm(true)}
@@ -1865,8 +1860,8 @@ JSON Şeması:
                 <form onSubmit={handleQuickStudentSubmit} className="space-y-3.5">
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Öğrenci Adı</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       placeholder="Örn: Mehmet Can"
                       value={quickStudentName}
@@ -1876,8 +1871,8 @@ JSON Şeması:
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Ders / Branş</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Örn: Matematik"
                       value={quickStudentSubject}
                       onChange={e => setQuickStudentSubject(e.target.value)}
@@ -1920,7 +1915,7 @@ JSON Şeması:
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100 flex flex-col max-h-[90vh] overflow-y-auto"
             >
-              <button 
+              <button
                 onClick={() => setIsShareModalOpen(false)}
                 className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
               >
@@ -1942,18 +1937,16 @@ JSON Şeması:
                 <button
                   type="button"
                   onClick={() => setShareTab("my-share")}
-                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${
-                    shareTab === "my-share" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
-                  }`}
+                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${shareTab === "my-share" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                    }`}
                 >
                   Benim Paylaşımım
                 </button>
                 <button
                   type="button"
                   onClick={() => setShareTab("followed")}
-                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${
-                    shareTab === "followed" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
-                  }`}
+                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${shareTab === "followed" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                    }`}
                 >
                   Takip Ettiklerim
                 </button>
@@ -1970,9 +1963,8 @@ JSON Şeması:
                       </div>
                       <button
                         onClick={() => handleToggleShare(!shareSettings?.is_active, shareSettings?.allow_student_names || false)}
-                        className={`w-12 h-6 rounded-full p-1 transition-all ${
-                          shareSettings?.is_active ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
-                        }`}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${shareSettings?.is_active ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                          }`}
                       >
                         <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
                       </button>
@@ -1986,11 +1978,9 @@ JSON Şeması:
                       <button
                         disabled={!shareSettings?.is_active}
                         onClick={() => handleToggleShare(shareSettings?.is_active || false, !shareSettings?.allow_student_names)}
-                        className={`w-12 h-6 rounded-full p-1 transition-all ${
-                          !shareSettings?.is_active ? "opacity-50 cursor-not-allowed" : ""
-                        } ${
-                          shareSettings?.allow_student_names ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
-                        }`}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${!shareSettings?.is_active ? "opacity-50 cursor-not-allowed" : ""
+                          } ${shareSettings?.allow_student_names ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                          }`}
                       >
                         <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
                       </button>
@@ -2117,7 +2107,7 @@ JSON Şeması:
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100 flex flex-col max-h-[90vh] overflow-y-auto"
             >
-              <button 
+              <button
                 onClick={() => {
                   setIsBulkImportModalOpen(false);
                   setImportJson("");
@@ -2155,7 +2145,7 @@ JSON Şeması:
                   <div className="bg-gray-900 text-gray-300 p-4 rounded-2xl text-[10px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto border border-gray-800">
                     {systemPromptTemplate}
                   </div>
-                  
+
                   {/* AI Quick Buttons */}
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     <button
@@ -2197,7 +2187,7 @@ JSON Şeması:
                   </div>
 
                   <div className="flex gap-3 pt-4">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => {
                         setIsBulkImportModalOpen(false);
@@ -2207,7 +2197,7 @@ JSON Şeması:
                     >
                       İptal
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
                     >
@@ -2224,7 +2214,7 @@ JSON Şeması:
       {/* DETAILED STUDENT INFO DIALOG/MODAL */}
       <AnimatePresence>
         {selectedStudent && (
-          <div 
+          <div
             onClick={() => {
               setSelectedStudent(null);
               setNewHomeworkTask("");
@@ -2237,14 +2227,14 @@ JSON Şeması:
             }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
           >
-            <motion.div 
+            <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100 max-h-[90vh] overflow-y-auto"
             >
-              <button 
+              <button
                 onClick={() => {
                   setSelectedStudent(null);
                   setNewHomeworkTask("");
@@ -2259,7 +2249,7 @@ JSON Şeması:
               >
                 <X size={20} weight="bold" />
               </button>
-              
+
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm shrink-0">
                   {getInitials(selectedStudent.name)}
@@ -2276,7 +2266,7 @@ JSON Şeması:
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 relative">
                     <div className="flex items-center justify-between">
                       <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">Öğrenci Bilgileri</span>
-                      <button 
+                      <button
                         onClick={() => {
                           if (isEditingStudent) {
                             setIsEditingStudent(false);
@@ -2300,7 +2290,7 @@ JSON Şeması:
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="space-y-1">
                             <label className="text-[8px] font-black text-gray-400 uppercase">Öğrenci Adı</label>
-                            <input 
+                            <input
                               type="text"
                               required
                               value={editStudentName}
@@ -2310,7 +2300,7 @@ JSON Şeması:
                           </div>
                           <div className="space-y-1">
                             <label className="text-[8px] font-black text-gray-400 uppercase">Ders Branşı</label>
-                            <input 
+                            <input
                               type="text"
                               required
                               value={editStudentSubject}
@@ -2320,7 +2310,7 @@ JSON Şeması:
                           </div>
                           <div className="space-y-1">
                             <label className="text-[8px] font-black text-gray-400 uppercase">Sınıf / Seviye</label>
-                            <input 
+                            <input
                               type="text"
                               required
                               value={editStudentLevel}
@@ -2330,7 +2320,7 @@ JSON Şeması:
                           </div>
                           <div className="space-y-1">
                             <label className="text-[8px] font-black text-gray-400 uppercase">Saatlik Ücret (₺)</label>
-                            <input 
+                            <input
                               type="number"
                               required
                               value={editStudentHourlyRate}
@@ -2340,7 +2330,7 @@ JSON Şeması:
                           </div>
                           <div className="col-span-2 space-y-1">
                             <label className="text-[8px] font-black text-gray-400 uppercase">Veli İletişim Bilgisi</label>
-                            <input 
+                            <input
                               type="text"
                               value={editStudentParentContact}
                               onChange={e => setEditStudentParentContact(e.target.value)}
@@ -2387,7 +2377,7 @@ JSON Şeması:
                             dateA.setHours(0, 0, 0, 0);
                             const dateB = new Date(b.lesson_date);
                             dateB.setHours(0, 0, 0, 0);
-                            
+
                             const diffA = Math.abs(dateA.getTime() - today.getTime());
                             const diffB = Math.abs(dateB.getTime() - today.getTime());
                             return diffA - diffB;
@@ -2401,13 +2391,12 @@ JSON Şeması:
                                     <p className="font-black text-gray-900">
                                       {new Date(l.lesson_date).toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
                                     </p>
-                                    <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-extrabold ${
-                                      relStr === "Bugün" 
+                                    <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-extrabold ${relStr === "Bugün"
                                         ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                                         : relStr.includes("sonra") || relStr === "Yarın"
-                                        ? "bg-indigo-50 text-indigo-600 border border-indigo-100"
-                                        : "bg-gray-100 text-gray-500 border border-gray-200"
-                                    }`}>
+                                          ? "bg-indigo-50 text-indigo-600 border border-indigo-100"
+                                          : "bg-gray-100 text-gray-500 border border-gray-200"
+                                      }`}>
                                       {relStr}
                                     </span>
                                   </div>
@@ -2440,7 +2429,7 @@ JSON Şeması:
                     <form onSubmit={handleQuickLessonSubmit} className="space-y-3">
                       <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Ders Tarihi</label>
-                        <input 
+                        <input
                           type="date"
                           required
                           value={quickLessonDate}
@@ -2451,7 +2440,7 @@ JSON Şeması:
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
                           <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Başlangıç</label>
-                          <input 
+                          <input
                             type="time"
                             required
                             value={quickLessonStartTime}
@@ -2461,7 +2450,7 @@ JSON Şeması:
                         </div>
                         <div className="space-y-1">
                           <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Bitiş</label>
-                          <input 
+                          <input
                             type="time"
                             required
                             value={quickLessonEndTime}
@@ -2472,7 +2461,7 @@ JSON Şeması:
                       </div>
                       <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Ders Notu / Konu (Opsiyonel)</label>
-                        <input 
+                        <input
                           type="text"
                           placeholder="Örn: Newton yasaları soru çözümü"
                           value={quickLessonNotes}
@@ -2508,7 +2497,7 @@ JSON Şeması:
                     <form onSubmit={handleQuickHomeworkAssign} className="space-y-3">
                       <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Ödev Konusu / Görev</label>
-                        <textarea 
+                        <textarea
                           required
                           rows={2}
                           placeholder="Örn: Sayfa 40-45 arasındaki testler tamamlanacak."
@@ -2519,7 +2508,7 @@ JSON Şeması:
                       </div>
                       <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-400 uppercase tracking-wider pl-1">Teslim Tarihi (Opsiyonel)</label>
-                        <input 
+                        <input
                           type="date"
                           value={newHomeworkDueDate}
                           onChange={e => setNewHomeworkDueDate(e.target.value)}
@@ -2547,7 +2536,7 @@ JSON Şeması:
               </div>
 
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
-                <button 
+                <button
                   onClick={() => {
                     setSelectedStudent(null);
                     setNewHomeworkTask("");
@@ -2570,24 +2559,24 @@ JSON Şeması:
       {/* DETAILED LESSON INFO DIALOG/MODAL */}
       <AnimatePresence>
         {selectedLesson && (
-          <div 
+          <div
             onClick={() => setSelectedLesson(null)}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
           >
-            <motion.div 
+            <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative border border-gray-100"
             >
-              <button 
+              <button
                 onClick={() => setSelectedLesson(null)}
                 className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 <X size={20} weight="bold" />
               </button>
-              
+
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                   <Clock size={24} weight="bold" />
@@ -2625,7 +2614,7 @@ JSON Şeması:
                     <p className="text-sm text-gray-700 font-medium leading-relaxed">{selectedLesson.notes}</p>
                   </div>
                 )}
-                
+
                 {selectedLesson.next_lesson_plan && (
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <span className="text-[9px] font-black text-gray-400 uppercase block tracking-wider mb-1">Gelecek Ders Planı</span>
@@ -2635,14 +2624,14 @@ JSON Şeması:
               </div>
 
               <div className="flex gap-3 mt-8">
-                <button 
+                <button
                   onClick={() => handleDeleteLesson(selectedLesson.id)}
                   className="flex-1 bg-red-50 hover:bg-red-100/70 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                 >
                   <Trash size={16} />
                   <span>Dersi Sil / İptal Et</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setSelectedLesson(null)}
                   className="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
                 >
@@ -2664,8 +2653,8 @@ JSON Şeması:
               setFormPreFill({});
             }}
             className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition-all ${activeTab === item.id
-                ? "text-blue-600 font-black"
-                : "text-gray-400 hover:text-gray-600"
+              ? "text-blue-600 font-black"
+              : "text-gray-400 hover:text-gray-600"
               }`}
           >
             <item.icon size={22} weight={activeTab === item.id ? "fill" : "bold"} />
@@ -2696,20 +2685,20 @@ interface FormPreFillProps {
   endTime?: string;
 }
 
-function AddForm({ 
-  activeTab, 
-  students, 
+function AddForm({
+  activeTab,
+  students,
   preFill,
-  onComplete 
-}: { 
-  activeTab: TabType; 
-  students: tutor_crm.Student[]; 
+  onComplete
+}: {
+  activeTab: TabType;
+  students: tutor_crm.Student[];
   preFill: FormPreFillProps;
   onComplete: () => void;
 }) {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
-  
+
   // Decide active subform type. If preFill date or time is present, default to 'schedule'
   const [type, setType] = useState<TabType>(() => {
     if (preFill.date || preFill.startTime) {
@@ -2732,11 +2721,11 @@ function AddForm({
 
   // Lesson Form (with pre-fill defaults if present)
   const [lessonData, setLessonData] = useState({
-    studentId: "", 
-    date: preFill.date || new Date().toISOString().split('T')[0], 
-    start: preFill.startTime || "18:00", 
-    end: preFill.endTime || "19:00", 
-    notes: "", 
+    studentId: "",
+    date: preFill.date || new Date().toISOString().split('T')[0],
+    start: preFill.startTime || "18:00",
+    end: preFill.endTime || "19:00",
+    notes: "",
     nextPlan: ""
   });
 
@@ -2768,12 +2757,12 @@ function AddForm({
     if (preFill.date || preFill.startTime) {
       const initialStart = preFill.startTime || "18:00";
       const initialEnd = preFill.endTime || "19:00";
-      
+
       // Calculate initial duration difference in minutes
       const [sH, sM] = initialStart.split(":").map(Number);
       const [eH, eM] = initialEnd.split(":").map(Number);
       const diff = (eH * 60 + eM) - (sH * 60 + sM);
-      
+
       setLessonData(prev => ({
         ...prev,
         date: preFill.date || prev.date,
@@ -2868,8 +2857,8 @@ function AddForm({
           { id: "homework", label: "Ödev" },
           { id: "payments", label: "Ödeme" },
         ].map(t => (
-          <button 
-            key={t.id} 
+          <button
+            key={t.id}
             type="button"
             onClick={() => setType(t.id as TabType)}
             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${type === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-400"
@@ -2896,14 +2885,14 @@ function AddForm({
         <div className="space-y-4">
           <Select label="Öğrenci" value={lessonData.studentId} onChange={v => setLessonData({ ...lessonData, studentId: v })} options={students.map(s => ({ id: s.id, label: s.name }))} />
           <Input label="Tarih" type="date" value={lessonData.date} onChange={v => setLessonData({ ...lessonData, date: v })} />
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Input label="Başlangıç" type="time" value={lessonData.start} onChange={v => setLessonData({ ...lessonData, start: v })} />
-            
+
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ders Süresi</label>
               <select
-                value={duration} 
+                value={duration}
                 onChange={e => setDuration(e.target.value)}
                 className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-600/10 transition-all outline-none appearance-none"
               >

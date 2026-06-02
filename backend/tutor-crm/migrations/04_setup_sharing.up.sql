@@ -80,10 +80,10 @@ DECLARE
     v_is_active BOOLEAN;
     v_allow_student_names BOOLEAN;
 BEGIN
-    SELECT clerk_id, is_active, allow_student_names 
+    SELECT shares.clerk_id, shares.is_active, shares.allow_student_names 
     INTO v_clerk_id, v_is_active, v_allow_student_names 
     FROM tutor_crm.shares 
-    WHERE id = share_id_param;
+    WHERE shares.id = share_id_param;
 
     IF v_is_active = TRUE THEN
         RETURN QUERY 

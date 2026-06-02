@@ -17,9 +17,10 @@ import {
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
-import Client, { tutor_crm, Local } from "@/lib/client";
+import { createBrowserClient } from "@/lib/api";
+import Client, { tutor_crm } from "@/lib/client";
 
-const client = new Client(Local);
+const client = createBrowserClient();
 
 export default function SharedPlanPage() {
   const params = useParams();
@@ -355,7 +356,8 @@ export default function SharedPlanPage() {
                                   const startIdx = timeSlots.indexOf(lesson.start_time.slice(0, 5));
                                   const durationSlots = getLessonDurationSlots(lesson.start_time, lesson.end_time);
                                   
-                                  if (startIdx === -1) return null;
+                                  const startStr = lesson.start_time.slice(0, 5);
+                                  const endStr = lesson.end_time.slice(0, 5);
 
                                   return (
                                     <div
@@ -366,15 +368,24 @@ export default function SharedPlanPage() {
                                         left: "4px",
                                         width: "calc(100% - 8px)"
                                       }}
-                                      className="absolute rounded-xl bg-blue-50/80 border border-blue-200/60 p-2 pointer-events-auto transition-all overflow-hidden flex flex-col justify-between"
+                                      className="absolute rounded bg-blue-50 border-l-[3px] border-l-blue-600 p-1 pointer-events-auto transition-all overflow-hidden flex flex-col justify-center text-left"
                                     >
                                       <div className="min-w-0">
-                                        <p className="font-black text-gray-900 leading-tight truncate text-[10px] mb-0.5">
-                                          {lesson.student_name}
-                                        </p>
-                                        <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
-                                          {lesson.start_time.slice(0, 5)} - {lesson.end_time.slice(0, 5)}
-                                        </p>
+                                        {durationSlots === 1 ? (
+                                          <p className="font-bold text-gray-900 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
+                                            <span className="truncate">{lesson.student_name}</span>
+                                            <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
+                                          </p>
+                                        ) : (
+                                          <>
+                                            <p className="font-black text-gray-900 leading-tight truncate text-[10px] mb-0.5">
+                                              {lesson.student_name}
+                                            </p>
+                                            <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
+                                              {startStr} - {endStr}
+                                            </p>
+                                          </>
+                                        )}
                                       </div>
                                     </div>
                                   );

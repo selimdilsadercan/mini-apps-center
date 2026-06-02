@@ -27,14 +27,28 @@ function getBaseURL() {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
 
-    // Dev: localhost, 127.0.0.1 ve *.localhost (örn. iskambil.localhost) → local Encore
+    // Local IP control (e.g. 192.168.x.x, 10.x.x.x, 172.16.x.x - 172.31.x.x)
+    const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
+    const isLocalIP = isIP && (
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      (hostname.startsWith("172.") && 
+       parseInt(hostname.split(".")[1]) >= 16 && 
+       parseInt(hostname.split(".")[1]) <= 31)
+    );
+
+    // Dev: localhost, 127.0.0.1, *.localhost veya yerel ağ IP'si → local Encore
     const isLocalDev =
       !isNative &&
       (hostname === "localhost" ||
         hostname === "127.0.0.1" ||
-        hostname.endsWith(".localhost"));
+        hostname.endsWith(".localhost") ||
+        isLocalIP);
 
     if (isLocalDev) {
+      if (isLocalIP || hostname === "127.0.0.1") {
+        return `http://${hostname}:4000`;
+      }
       return Local;
     }
 

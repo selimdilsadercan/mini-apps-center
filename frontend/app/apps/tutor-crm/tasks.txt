@@ -1,4 +1,0 @@
-- mobilde bu hedaer daha küçük olsun çok yüksek şu an bi de fixed olmasına gerek yok
-- yuakrıdaki butonalrda yeni kayıt ekle değil ders ekle olsun, toplu yükle (ai) değil de Akıllı Yükle diyelimi planı paylaş değil paylaş diyelim
-- toplu saat seçimimiz için olan sürekleyelerk seçme oalyı mobilde olmuyor o olayı mobilde de çalışacak şekle getirelim
-- mobilde sidebar ya da tabs değil de aşağıda bir appbar göstereilm 
