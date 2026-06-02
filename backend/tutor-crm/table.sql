@@ -52,9 +52,31 @@ CREATE TABLE IF NOT EXISTS tutor_crm.payments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Shares table
+CREATE TABLE IF NOT EXISTS tutor_crm.shares (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    clerk_id TEXT NOT NULL UNIQUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    allow_student_names BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Followed shares table
+CREATE TABLE IF NOT EXISTS tutor_crm.followed_shares (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    clerk_id TEXT NOT NULL,
+    share_id UUID NOT NULL REFERENCES tutor_crm.shares(id) ON DELETE CASCADE,
+    alias TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(clerk_id, share_id)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_tutor_crm_students_clerk_id ON tutor_crm.students(clerk_id);
 CREATE INDEX IF NOT EXISTS idx_tutor_crm_lessons_student_id ON tutor_crm.lessons(student_id);
 CREATE INDEX IF NOT EXISTS idx_tutor_crm_lessons_clerk_id ON tutor_crm.lessons(clerk_id);
 CREATE INDEX IF NOT EXISTS idx_tutor_crm_homeworks_student_id ON tutor_crm.homeworks(student_id);
 CREATE INDEX IF NOT EXISTS idx_tutor_crm_payments_student_id ON tutor_crm.payments(student_id);
+CREATE INDEX IF NOT EXISTS idx_tutor_crm_shares_clerk_id ON tutor_crm.shares(clerk_id);
+CREATE INDEX IF NOT EXISTS idx_tutor_crm_followed_shares_clerk_id ON tutor_crm.followed_shares(clerk_id);
+CREATE INDEX IF NOT EXISTS idx_tutor_crm_followed_shares_share_id ON tutor_crm.followed_shares(share_id);

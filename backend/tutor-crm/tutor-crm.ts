@@ -59,6 +59,23 @@ export interface Payment {
     created_at: string;
 }
 
+export interface Share {
+    id: string;
+    clerk_id: string;
+    is_active: boolean;
+    allow_student_names: boolean;
+    created_at: string;
+}
+
+export interface FollowedShare {
+    id: string;
+    clerk_id: string;
+    share_id: string;
+    alias?: string | null;
+    created_at: string;
+    is_active?: boolean;
+}
+
 // ==================== REQUEST/RESPONSE TYPES ====================
 
 interface GetItemsRequest {
@@ -127,6 +144,35 @@ interface ToggleRequest {
 
 interface DeleteRequest {
     id: string;
+    userId: string;
+}
+
+interface GetShareSettingsRequest {
+    userId: string;
+}
+
+interface ToggleShareRequest {
+    userId: string;
+    isActive: boolean;
+    allowStudentNames: boolean;
+}
+
+interface GetSharedLessonsRequest {
+    shareId: string;
+}
+
+interface FollowShareRequest {
+    userId: string;
+    shareId: string;
+    alias: string;
+}
+
+interface UnfollowShareRequest {
+    userId: string;
+    shareId: string;
+}
+
+interface GetFollowedSharesRequest {
     userId: string;
 }
 
@@ -318,5 +364,76 @@ export const togglePayment = api(
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
+    }
+);
+
+export const getShareSettings = api(
+    { expose: true, method: "GET", path: "/tutor-crm/share/settings/:userId" },
+    async ({ userId }: GetShareSettingsRequest): Promise<{ share: Share }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("get_share_settings", {
+            clerk_id_param: userId,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { share: data?.[0] };
+    }
+);
+
+export const toggleShare = api(
+    { expose: true, method: "POST", path: "/tutor-crm/share/toggle" },
+    async (req: ToggleShareRequest): Promise<{ share: Share }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("toggle_share", {
+            clerk_id_param: req.userId,
+            is_active_param: req.isActive,
+            allow_student_names_param: req.allowStudentNames,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { share: data?.[0] };
+    }
+);
+
+export const getSharedLessons = api(
+    { expose: true, method: "GET", path: "/tutor-crm/share/lessons/:shareId" },
+    async ({ shareId }: GetSharedLessonsRequest): Promise<{ lessons: Lesson[] }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("get_shared_lessons", {
+            share_id_param: shareId,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { lessons: data || [] };
+    }
+);
+
+export const followShare = api(
+    { expose: true, method: "POST", path: "/tutor-crm/share/follow" },
+    async (req: FollowShareRequest): Promise<{ followed: FollowedShare }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("follow_share", {
+            clerk_id_param: req.userId,
+            share_id_param: req.shareId,
+            alias_param: req.alias,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { followed: data?.[0] };
+    }
+);
+
+export const unfollowShare = api(
+    { expose: true, method: "POST", path: "/tutor-crm/share/unfollow" },
+    async (req: UnfollowShareRequest): Promise<{ success: boolean }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("unfollow_share", {
+            clerk_id_param: req.userId,
+            share_id_param: req.shareId,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { success: !!data };
+    }
+);
+
+export const getFollowedShares = api(
+    { expose: true, method: "GET", path: "/tutor-crm/share/followed/:userId" },
+    async ({ userId }: GetFollowedSharesRequest): Promise<{ followed: FollowedShare[] }> => {
+        const { data, error } = await supabase.schema("tutor_crm").rpc("get_followed_shares", {
+            clerk_id_param: userId,
+        });
+        if (error) throw APIError.internal(error.message);
+        return { followed: data || [] };
     }
 );

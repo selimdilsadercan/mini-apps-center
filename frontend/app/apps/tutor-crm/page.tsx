@@ -20,15 +20,16 @@ import {
   GridFour,
   X,
   MagnifyingGlassPlus,
-  MagnifyingGlassMinus
+  MagnifyingGlassMinus,
+  ShareNetwork
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
-import Client, { tutor_crm } from "@/lib/client";
+import Client, { tutor_crm, Local } from "@/lib/client";
 import { useRouter } from "next/navigation";
 
-const client = new Client("http://localhost:4000");
+const client = new Client(Local);
 
 type TabType = "schedule" | "students" | "homework" | "payments";
 type CalendarViewType = "grid" | "list";
@@ -76,9 +77,20 @@ export default function TutorCRMPage() {
   // Ref for the quick popup to detect click outside
   const quickPopupRef = useRef<HTMLDivElement>(null);
   const wasResizingRef = useRef(false);
+  const touchStartRef = useRef<{ x: number, y: number, day: Date, timeSlot: string } | null>(null);
+  const touchMovedRef = useRef<boolean>(false);
 
   // Drag and Drop lesson states
   const [draggedLesson, setDraggedLesson] = useState<tutor_crm.Lesson | null>(null);
+
+  // Sharing & Followed Tutors states
+  const [shareSettings, setShareSettings] = useState<tutor_crm.Share | null>(null);
+  const [followedShares, setFollowedShares] = useState<tutor_crm.FollowedShare[]>([]);
+  const [activeFollowedShareId, setActiveFollowedShareId] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareTab, setShareTab] = useState<"my-share" | "followed">("my-share");
+  const [followInputId, setFollowInputId] = useState("");
+  const [followInputAlias, setFollowInputAlias] = useState("");
   const [dragOverSlot, setDragOverSlot] = useState<{ day: Date; timeSlot: string } | null>(null);
   const [resizingLesson, setResizingLesson] = useState<{
     lesson: tutor_crm.Lesson;
@@ -123,7 +135,7 @@ export default function TutorCRMPage() {
     if (isUserLoaded && user) {
       fetchAllData();
     }
-  }, [isUserLoaded, user]);
+  }, [isUserLoaded, user, activeFollowedShareId]);
 
   // Click outside to dismiss quick schedule popup
   useEffect(() => {
@@ -185,21 +197,84 @@ export default function TutorCRMPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const [sRes, lRes, hRes, pRes] = await Promise.all([
+      const [sRes, hRes, pRes, shareSettingsRes, followedSharesRes] = await Promise.all([
         client.tutor_crm.getStudents(user.id),
-        client.tutor_crm.getLessons(user.id),
         client.tutor_crm.getHomeworks(user.id),
-        client.tutor_crm.getPayments(user.id)
+        client.tutor_crm.getPayments(user.id),
+        client.tutor_crm.getShareSettings(user.id),
+        client.tutor_crm.getFollowedShares(user.id)
       ]);
       setStudents(sRes.students);
-      setLessons(lRes.lessons);
       setHomeworks(hRes.homeworks);
       setPayments(pRes.payments);
+      setShareSettings(shareSettingsRes.share);
+      setFollowedShares(followedSharesRes.followed);
+
+      // Fetch lessons: either followed plan or user's own lessons
+      if (activeFollowedShareId) {
+        const sharedLessonsRes = await client.tutor_crm.getSharedLessons(activeFollowedShareId);
+        setLessons(sharedLessonsRes.lessons);
+      } else {
+        const lRes = await client.tutor_crm.getLessons(user.id);
+        setLessons(lRes.lessons);
+      }
     } catch (error) {
       console.error("fetch error:", error);
       toast.error("Veriler yüklenirken hata oluştu");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleShare = async (isActive: boolean, allowStudentNames: boolean) => {
+    if (!user) return;
+    try {
+      const res = await client.tutor_crm.toggleShare({
+        userId: user.id,
+        isActive,
+        allowStudentNames
+      });
+      setShareSettings(res.share);
+      toast.success("Paylaşım ayarları güncellendi");
+    } catch (err) {
+      toast.error("Ayarlar güncellenirken hata oluştu");
+    }
+  };
+
+  const handleFollowPlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !followInputId.trim()) return;
+    try {
+      await client.tutor_crm.followShare({
+        userId: user.id,
+        shareId: followInputId.trim(),
+        alias: followInputAlias.trim() || "Takip Edilen Plan"
+      });
+      setFollowInputId("");
+      setFollowInputAlias("");
+      toast.success("Plan başarıyla takip listenize eklendi");
+      fetchAllData();
+    } catch (err) {
+      toast.error("Takip etme başarısız oldu. Geçerli bir Paylaşım ID girdiğinizden emin olun.");
+    }
+  };
+
+  const handleUnfollowPlan = async (shareId: string) => {
+    if (!user) return;
+    const confirmUnfollow = window.confirm("Bu planı takipten çıkarmak istediğinize emin misiniz?");
+    if (!confirmUnfollow) return;
+    try {
+      await client.tutor_crm.unfollowShare({
+        userId: user.id,
+        shareId
+      });
+      if (activeFollowedShareId === shareId) {
+        setActiveFollowedShareId(null);
+      }
+      toast.success("Plan takip listenizden çıkarıldı");
+      fetchAllData();
+    } catch (err) {
+      toast.error("Takibi bırakırken hata oluştu");
     }
   };
 
@@ -361,7 +436,7 @@ export default function TutorCRMPage() {
     setDragEndSlot({ day, timeSlot });
   };
 
-  const finishDragging = (e?: MouseEvent) => {
+  const finishDragging = (e?: MouseEvent | { clientX: number; clientY: number }) => {
     if (!isDragging || !dragStartSlot || !dragEndSlot) {
       setIsDragging(false);
       return;
@@ -874,8 +949,48 @@ JSON Şeması:
     popupY = Math.min(Math.max(16, quickScheduleData.y + 8), window.innerHeight - popupHeight - 16);
   }
 
+  const actionButtons = activeFollowedShareId ? null : (
+    <div className="flex gap-2 w-full sm:w-auto justify-stretch sm:justify-end">
+      <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <Drawer.Trigger asChild>
+          <button className="flex-1 sm:flex-initial bg-gray-950 text-white px-3.5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0 hover:bg-gray-800">
+            <Plus size={12} weight="bold" />
+            <span>Ders Ekle</span>
+          </button>
+        </Drawer.Trigger>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[60] max-w-2xl mx-auto">
+            <div className="p-8 overflow-y-auto">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-100 mb-8" />
+              <Drawer.Title className="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Yeni <span className="text-blue-600">Kayıt</span></Drawer.Title>
+              <AddForm 
+                activeTab={activeTab} 
+                students={students} 
+                preFill={formPreFill}
+                onComplete={() => { 
+                  setIsDrawerOpen(false);
+                  setFormPreFill({});
+                  fetchAllData(); 
+                }} 
+              />
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      <button
+        onClick={() => setIsBulkImportModalOpen(true)}
+        className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0"
+      >
+        <BookOpen size={12} weight="bold" />
+        <span>Akıllı Yükle</span>
+      </button>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row pb-36">
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row pb-24 md:pb-12">
       <Toaster position="top-center" />
 
       {/* DESKTOP SIDEBAR */}
@@ -919,64 +1034,25 @@ JSON Şeması:
           </nav>
         </div>
 
-        {/* Sidebar Footer Stats */}
-        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2.5">
-          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Genel Durum</p>
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="bg-white p-2.5 rounded-lg shadow-sm border border-gray-100">
-              <span className="text-[10px] text-gray-400 font-bold block">Öğrenci</span>
-              <span className="text-sm font-black text-gray-900">{students.length}</span>
-            </div>
-            <div className="bg-white p-2.5 rounded-lg shadow-sm border border-gray-100">
-              <span className="text-[10px] text-gray-400 font-bold block">Dersler</span>
-              <span className="text-sm font-black text-gray-900">{lessons.length}</span>
-            </div>
-          </div>
-          <button
-            onClick={() => router.push("/home")}
-            className="w-full text-center text-[10px] font-bold text-gray-400 hover:text-gray-600 block py-1 cursor-pointer"
-          >
-            ← Ana Sayfaya Dön
-          </button>
-        </div>
       </aside>
 
       {/* MOBILE HEADER */}
-      <header className="md:hidden bg-white border-b border-gray-100 px-6 py-6 sticky top-0 z-30 flex items-center justify-between">
+      <header className="md:hidden bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between">
         <button
           onClick={() => router.push("/home")}
-          className="p-2 hover:bg-gray-50 rounded-xl transition-colors"
+          className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors"
         >
-          <CaretLeft size={22} weight="bold" className="text-gray-400" />
+          <CaretLeft size={20} weight="bold" className="text-gray-400" />
         </button>
         <div className="flex flex-col items-center">
-          <h1 className="text-lg font-black text-gray-900 uppercase tracking-tight">Tutor <span className="text-blue-600">Place</span></h1>
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Planner & Manager</p>
+          <h1 className="text-sm font-black text-gray-900 uppercase tracking-tight">Tutor <span className="text-blue-600">Place</span></h1>
+          <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Planner & Manager</p>
         </div>
         <div className="w-8" />
       </header>
 
       {/* MAIN CONTAINER */}
       <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full overflow-x-hidden">
-        {/* Mobile-only scrolling tabs */}
-        <div className="md:hidden flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id as TabType);
-                setFormPreFill({});
-              }}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${activeTab === item.id
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-                  : "bg-white text-gray-400 hover:text-gray-600 border border-gray-100"
-                }`}
-            >
-              <item.icon size={18} weight={activeTab === item.id ? "fill" : "bold"} />
-              {item.label}
-            </button>
-          ))}
-        </div>
 
         {/* Content Wrapper */}
         <div className="space-y-6 relative">
@@ -986,6 +1062,98 @@ JSON Şeması:
             </div>
           ) : (
             <>
+              {/* TOP CONTROL BAR (ONLY FOR TAKVIM/SCHEDULE TAB) */}
+              {!loading && activeTab === "schedule" && (
+                <div className="flex flex-col lg:flex-row gap-3 items-center justify-between bg-white p-3 sm:px-5 sm:py-3 rounded-2xl border border-gray-100 w-full">
+                  <div className="flex flex-col sm:flex-row gap-3 items-center w-full lg:w-auto">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center w-full sm:w-auto justify-center sm:justify-start">
+                      {/* Plan Selector Dropdown */}
+                      <div className="flex items-center bg-gray-50 border border-gray-150 rounded-xl px-2.5 py-1 shrink-0">
+                        <select 
+                          value={activeFollowedShareId || ""} 
+                          onChange={(e) => setActiveFollowedShareId(e.target.value || null)}
+                          className="bg-transparent border-none text-[10px] font-black text-gray-800 uppercase outline-none focus:ring-0 cursor-pointer pr-6 py-0.5"
+                        >
+                          <option value="">Benim Planım</option>
+                          {followedShares.map(fs => (
+                            <option key={fs.share_id} value={fs.share_id}>
+                              {fs.alias || "Tutor"}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Vertical separator */}
+                      <div className="h-5 w-px bg-gray-200 shrink-0" />
+
+                      {/* Week Navigation */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button 
+                          onClick={() => changeWeek(-1)}
+                          className="p-2 hover:bg-gray-50 border border-gray-100 rounded-lg transition-all bg-white shadow-sm"
+                        >
+                          <CaretLeft size={14} weight="bold" className="text-gray-600" />
+                        </button>
+                        <button 
+                          onClick={setTodayWeek}
+                          className="px-2.5 py-1.5 hover:bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase text-gray-600 transition-all bg-white shadow-sm"
+                        >
+                          Bugün
+                        </button>
+                        <span className="text-[10px] sm:text-xs font-black text-gray-800 tracking-tight px-1.5 text-center min-w-[100px] sm:min-w-[130px]">
+                          {formatWeekRange()}
+                        </span>
+                        <button 
+                          onClick={() => changeWeek(1)}
+                          className="p-2 hover:bg-gray-50 border border-gray-100 rounded-lg transition-all bg-white shadow-sm"
+                        >
+                          <CaretRight size={14} weight="bold" className="text-gray-600" />
+                        </button>
+                      </div>
+
+                      {/* Vertical separator */}
+                      <div className="hidden sm:block h-5 w-px bg-gray-200 shrink-0" />
+
+                      {/* Grid vs List view toggle */}
+                      <div className="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200/50 shrink-0">
+                        <button
+                          onClick={() => setCalendarView("grid")}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-black uppercase transition-all ${calendarView === "grid"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-400 hover:text-gray-600"
+                            }`}
+                        >
+                          <Calendar size={12} weight="bold" />
+                          <span>Takvim</span>
+                        </button>
+                        <button
+                          onClick={() => setCalendarView("list")}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[9px] font-black uppercase transition-all ${calendarView === "list"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-400 hover:text-gray-600"
+                            }`}
+                        >
+                          <List size={12} weight="bold" />
+                          <span>Liste</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons & Share Button */}
+                  <div className="flex gap-2 w-full lg:w-auto justify-stretch sm:justify-end">
+                    <button
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="flex-1 sm:flex-initial bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 px-3.5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all shrink-0"
+                    >
+                      <ShareNetwork size={12} weight="bold" />
+                      <span>Paylaş</span>
+                    </button>
+                    {actionButtons}
+                  </div>
+                </div>
+              )}
+
               {loading && (
                 <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-3xl pointer-events-auto">
                   <div className="bg-white/90 border border-gray-150 shadow-2xl px-5 py-3 rounded-2xl flex items-center gap-3">
@@ -1004,6 +1172,21 @@ JSON Şeması:
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-6"
                 >
+                  {/* Followed plan warning banner */}
+                  {activeFollowedShareId && (
+                    <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between text-amber-800 text-xs font-semibold shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
+                        <span>Şu anda takip ettiğiniz <strong>{followedShares.find(f => f.share_id === activeFollowedShareId)?.alias || "Tutor"}</strong> planını görüntülüyorsunuz. (Salt Okunur)</span>
+                      </div>
+                      <button 
+                        onClick={() => setActiveFollowedShareId(null)}
+                        className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all shadow-sm"
+                      >
+                        Kendi Planıma Dön
+                      </button>
+                    </div>
+                  )}
                   {/* Calendar Views */}
                   {calendarView === "grid" ? (
                     /* WEEKLY HOUR GRID WITH MOUSE DRAG RANGE */
@@ -1165,19 +1348,94 @@ JSON Şeması:
                                         return (
                                           <div
                                             key={timeSlot}
+                                            data-date={dateStr}
+                                            data-time={timeSlot}
                                             onMouseDown={(e) => {
+                                              if (activeFollowedShareId) return;
                                               if (e.button === 0) {
                                                 e.preventDefault();
                                                 startDragging(day, timeSlot);
                                               }
                                             }}
-                                            onMouseEnter={() => updateDragging(day, timeSlot)}
-                                            onClick={(e) => handleGridCellClick(day, timeSlot, e)}
+                                            onMouseEnter={() => {
+                                              if (activeFollowedShareId) return;
+                                              updateDragging(day, timeSlot);
+                                            }}
+                                            onTouchStart={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              const touch = e.touches[0];
+                                              touchStartRef.current = { x: touch.clientX, y: touch.clientY, day, timeSlot };
+                                              touchMovedRef.current = false;
+                                            }}
+                                            onTouchMove={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              if (!touchStartRef.current) return;
+                                              const touch = e.touches[0];
+                                              const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
+                                              const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
+                                              if (diffX > 8 || diffY > 8) {
+                                                if (!touchMovedRef.current) {
+                                                  touchMovedRef.current = true;
+                                                  startDragging(touchStartRef.current.day, touchStartRef.current.timeSlot);
+                                                }
+                                                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                                                if (target) {
+                                                  const cell = target.closest('[data-date][data-time]');
+                                                  if (cell) {
+                                                    const dStr = cell.getAttribute('data-date');
+                                                    const tSlot = cell.getAttribute('data-time');
+                                                    if (dStr && tSlot) {
+                                                      const matchedDay = days.find(d => formatDatePickerDate(d) === dStr);
+                                                      if (matchedDay) {
+                                                        updateDragging(matchedDay, tSlot);
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }}
+                                            onTouchEnd={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              if (!touchStartRef.current) return;
+                                              e.preventDefault();
+                                              const touch = e.changedTouches[0];
+                                              if (!touchMovedRef.current) {
+                                                const dateStr = formatDatePickerDate(touchStartRef.current.day);
+                                                const timeSlot = touchStartRef.current.timeSlot;
+                                                const [h, m] = timeSlot.split(":").map(Number);
+                                                const totalEndMins = h * 60 + m + 30;
+                                                const endH = Math.floor(totalEndMins / 60);
+                                                const endM = totalEndMins % 60;
+                                                const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
+
+                                                setQuickScheduleData({
+                                                  date: dateStr,
+                                                  startTime: timeSlot,
+                                                  endTime: endTimeStr,
+                                                  x: touch.clientX,
+                                                  y: touch.clientY
+                                                });
+                                              } else {
+                                                finishDragging({ clientX: touch.clientX, clientY: touch.clientY });
+                                              }
+                                              touchStartRef.current = null;
+                                              touchMovedRef.current = false;
+                                            }}
+                                            onClick={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              handleGridCellClick(day, timeSlot, e);
+                                            }}
                                             onDragOver={(e) => e.preventDefault()}
-                                            onDragEnter={(e) => handleDragEnter(e, day, timeSlot)}
-                                            onDrop={(e) => handleDropLesson(e, day, timeSlot)}
+                                            onDragEnter={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              handleDragEnter(e, day, timeSlot);
+                                            }}
+                                            onDrop={(e) => {
+                                              if (activeFollowedShareId) return;
+                                              handleDropLesson(e, day, timeSlot);
+                                            }}
                                             style={{ height: `${slotHeight}px` }}
-                                            className={`border-b last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 ${
+                                            className={`border-b last:border-b-0 cursor-pointer relative group transition-all flex-shrink-0 touch-none select-none ${
                                               isFullHourLine ? "border-gray-200" : "border-gray-100"
                                             } ${
                                               isDropPreview
@@ -1237,30 +1495,40 @@ JSON Şeması:
                                           >
                                             <div
                                               onClick={() => {
+                                                if (activeFollowedShareId) return;
                                                 if (wasResizingRef.current) return;
                                                 setSelectedLesson(lesson);
                                               }}
-                                              draggable={true}
-                                              onDragStart={(e) => handleLessonDragStart(e, lesson)}
+                                              draggable={!activeFollowedShareId}
+                                              onDragStart={(e) => {
+                                                if (activeFollowedShareId) return;
+                                                handleLessonDragStart(e, lesson);
+                                              }}
                                               onDragEnd={handleLessonDragEnd}
-                                              className="h-full relative group bg-blue-50 hover:bg-blue-100/80 border-l-[3px] border-blue-600 rounded text-left cursor-grab active:cursor-grabbing transition-all hover:shadow-sm flex flex-col justify-center overflow-hidden p-1"
+                                              className={`h-full relative group bg-blue-50 border-l-[3px] border-blue-600 rounded text-left transition-all flex flex-col justify-center overflow-hidden p-1 ${
+                                                activeFollowedShareId 
+                                                  ? "cursor-default" 
+                                                  : "hover:bg-blue-100/80 cursor-grab active:cursor-grabbing hover:shadow-sm"
+                                              }`}
                                             >
                                               {/* Top Resize Handle (Invisible, cursor only) */}
-                                              <div
-                                                onMouseDown={(e) => {
-                                                  e.stopPropagation();
-                                                  e.preventDefault();
-                                                  wasResizingRef.current = true;
-                                                  setResizingLesson({
-                                                    lesson,
-                                                    edge: "top",
-                                                    startY: e.clientY,
-                                                    initialStartTime: lesson.start_time,
-                                                    initialEndTime: lesson.end_time,
-                                                  });
-                                                }}
-                                                className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
-                                              />
+                                              {!activeFollowedShareId && (
+                                                <div
+                                                  onMouseDown={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    wasResizingRef.current = true;
+                                                    setResizingLesson({
+                                                      lesson,
+                                                      edge: "top",
+                                                      startY: e.clientY,
+                                                      initialStartTime: lesson.start_time,
+                                                      initialEndTime: lesson.end_time,
+                                                    });
+                                                  }}
+                                                  className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                                />
+                                              )}
 
                                               <div className="min-w-0 py-1">
                                                 {durationSlots === 1 ? (
@@ -1286,21 +1554,23 @@ JSON Şeması:
                                               )}
 
                                               {/* Bottom Resize Handle (Invisible, cursor only) */}
-                                              <div
-                                                onMouseDown={(e) => {
-                                                  e.stopPropagation();
-                                                  e.preventDefault();
-                                                  wasResizingRef.current = true;
-                                                  setResizingLesson({
-                                                    lesson,
-                                                    edge: "bottom",
-                                                    startY: e.clientY,
-                                                    initialStartTime: lesson.start_time,
-                                                    initialEndTime: lesson.end_time,
-                                                  });
-                                                }}
-                                                className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
-                                              />
+                                              {!activeFollowedShareId && (
+                                                <div
+                                                  onMouseDown={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    wasResizingRef.current = true;
+                                                    setResizingLesson({
+                                                      lesson,
+                                                      edge: "bottom",
+                                                      startY: e.clientY,
+                                                      initialStartTime: lesson.start_time,
+                                                      initialEndTime: lesson.end_time,
+                                                    });
+                                                  }}
+                                                  className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
+                                                />
+                                              )}
                                             </div>
                                           </div>
                                         );
@@ -1316,7 +1586,7 @@ JSON Şeması:
                     </div>
                   ) : (
                     /* LIST VIEW */
-                    <div className="space-y-4 max-w-3xl">
+                    <div className="space-y-4 w-full">
                       {lessons.length === 0 ? (
                         <EmptyState icon={Calendar} title="Ders Bulunamadı" description="Henüz planlanmış bir dersiniz yok." />
                       ) : (
@@ -1369,8 +1639,9 @@ JSON Şeması:
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-6 max-w-5xl"
                 >
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
                     <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Öğrencileriniz</h2>
+                    {actionButtons}
                   </div>
 
                   {students.length === 0 ? (
@@ -1442,9 +1713,12 @@ JSON Şeması:
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4 max-w-3xl"
+                  className="space-y-4 w-full"
                 >
-                  <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödev Takibi</h2>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödev Takibi</h2>
+                    {actionButtons}
+                  </div>
                   {homeworks.length === 0 ? (
                     <EmptyState icon={BookOpen} title="Ödev Bulunamadı" description="Öğrencilerinize ödev atayarak takibini yapın." />
                   ) : (
@@ -1476,9 +1750,12 @@ JSON Şeması:
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4 max-w-3xl"
+                  className="space-y-4 w-full"
                 >
-                  <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödemeler ve Kazançlar</h2>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Ödemeler ve Kazançlar</h2>
+                    {actionButtons}
+                  </div>
                   {payments.length === 0 ? (
                     <EmptyState icon={CreditCard} title="Ödeme Bulunamadı" description="Ödemeleri takip ederek kazancınızı yönetin." />
                   ) : (
@@ -1633,112 +1910,202 @@ JSON Şeması:
         )}
       </AnimatePresence>
 
-      {/* FLOATING FIXED CALENDAR SETTINGS TOOLBAR AT BOTTOM OF SCREEN */}
-      {!loading && (
-        <div className="fixed bottom-10 left-0 right-0 flex justify-center px-6 z-40">
-          <div className="flex flex-col sm:flex-row gap-3 items-center bg-white/95 backdrop-blur-md px-5 py-3 rounded-[2rem] border border-gray-200/80 shadow-2xl max-w-full overflow-x-auto no-scrollbar">
-            {activeTab === "schedule" && (
-              <>
-                {/* Week Navigation */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <button 
-                    onClick={() => changeWeek(-1)}
-                    className="p-2.5 hover:bg-gray-50 border border-gray-100 rounded-xl transition-all bg-white shadow-sm"
-                  >
-                    <CaretLeft size={16} weight="bold" className="text-gray-600" />
-                  </button>
-                  <button 
-                    onClick={setTodayWeek}
-                    className="px-3.5 py-2 hover:bg-gray-50 border border-gray-100 rounded-xl text-[10px] font-black uppercase text-gray-600 transition-all bg-white shadow-sm"
-                  >
-                    Bugün
-                  </button>
-                  <span className="text-xs font-black text-gray-800 tracking-tight px-2 text-center min-w-[130px]">
-                    {formatWeekRange()}
-                  </span>
-                  <button 
-                    onClick={() => changeWeek(1)}
-                    className="p-2.5 hover:bg-gray-50 border border-gray-100 rounded-xl transition-all bg-white shadow-sm"
-                  >
-                    <CaretRight size={16} weight="bold" className="text-gray-600" />
-                  </button>
-                </div>
-
-                {/* Vertical separator */}
-                <div className="hidden sm:block h-6 w-px bg-gray-200 shrink-0" />
-
-                {/* Option settings switcher */}
-                <div className="flex gap-2 shrink-0">
-                  {/* Grid vs List view toggle */}
-                  <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200/50">
-                    <button
-                      onClick={() => setCalendarView("grid")}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${calendarView === "grid"
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-400 hover:text-gray-600"
-                        }`}
-                    >
-                      <GridFour size={14} weight="bold" />
-                      <span>Haftalık Plan</span>
-                    </button>
-                    <button
-                      onClick={() => setCalendarView("list")}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${calendarView === "list"
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-400 hover:text-gray-600"
-                        }`}
-                    >
-                      <List size={14} weight="bold" />
-                      <span>Liste</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Vertical separator */}
-                <div className="hidden sm:block h-6 w-px bg-gray-200 shrink-0" />
-              </>
-            )}
-
-            {/* Yeni Kayıt Ekle Trigger & Drawer nested in the toolbar */}
-            <Drawer.Root open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-              <Drawer.Trigger asChild>
-                <button className="bg-gray-950 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0 hover:bg-gray-800">
-                  <Plus size={14} weight="bold" />
-                  <span>Yeni Kayıt Ekle</span>
-                </button>
-              </Drawer.Trigger>
-              <Drawer.Portal>
-                <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
-                <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[60] max-w-2xl mx-auto">
-                  <div className="p-8 overflow-y-auto">
-                    <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-100 mb-8" />
-                    <Drawer.Title className="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Yeni <span className="text-blue-600">Kayıt</span></Drawer.Title>
-                    <AddForm 
-                      activeTab={activeTab} 
-                      students={students} 
-                      preFill={formPreFill}
-                      onComplete={() => { 
-                        setIsDrawerOpen(false);
-                        setFormPreFill({});
-                        fetchAllData(); 
-                      }} 
-                    />
-                  </div>
-                </Drawer.Content>
-              </Drawer.Portal>
-            </Drawer.Root>
-
-            {/* Toplu Yükle Button */}
-            <button
-              onClick={() => setIsBulkImportModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0"
+      {/* SHARE SETTINGS MODAL */}
+      <AnimatePresence>
+        {isShareModalOpen && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl relative border border-gray-100 flex flex-col max-h-[90vh] overflow-y-auto"
             >
-              <BookOpen size={14} weight="bold" />
-              <span>Toplu Yükle (AI)</span>
-            </button>
+              <button 
+                onClick={() => setIsShareModalOpen(false)}
+                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <X size={20} weight="bold" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                  <ShareNetwork size={24} weight="bold" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Plan Paylaşım Ayarları</h3>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Planınızı Paylaşın ve Başkalarının Planlarını Takip Edin</p>
+                </div>
+              </div>
+
+              {/* Share settings tabs */}
+              <div className="flex bg-gray-100 p-1 rounded-xl mb-6 border border-gray-200/50">
+                <button
+                  type="button"
+                  onClick={() => setShareTab("my-share")}
+                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${
+                    shareTab === "my-share" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Benim Paylaşımım
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShareTab("followed")}
+                  className={`flex-1 text-center py-2 rounded-lg text-xs font-black uppercase transition-all ${
+                    shareTab === "followed" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Takip Ettiklerim
+                </button>
+              </div>
+
+              {shareTab === "my-share" ? (
+                <div className="space-y-6">
+                  {/* Share config toggle */}
+                  <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Planımı Paylaş</h4>
+                        <p className="text-[10px] text-gray-500 font-medium mt-0.5">Planınızı dışarıya açık, salt okunur bir link ile paylaşır.</p>
+                      </div>
+                      <button
+                        onClick={() => handleToggleShare(!shareSettings?.is_active, shareSettings?.allow_student_names || false)}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${
+                          shareSettings?.is_active ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                        }`}
+                      >
+                        <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-gray-200/60 pt-4">
+                      <div>
+                        <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Öğrenci İsimlerini Göster</h4>
+                        <p className="text-[10px] text-gray-500 font-medium mt-0.5">Dışarıya açık planınızda öğrencilerin gerçek isimleri gösterilsin mi? (Kapalıyken "Ders" olarak maskelenir).</p>
+                      </div>
+                      <button
+                        disabled={!shareSettings?.is_active}
+                        onClick={() => handleToggleShare(shareSettings?.is_active || false, !shareSettings?.allow_student_names)}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${
+                          !shareSettings?.is_active ? "opacity-50 cursor-not-allowed" : ""
+                        } ${
+                          shareSettings?.allow_student_names ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                        }`}
+                      >
+                        <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {shareSettings?.is_active && (
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Paylaşım Bağlantınız</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={`${window.location.origin}/apps/tutor-crm/shared/${shareSettings.id}`}
+                          className="flex-1 bg-gray-50 border-none rounded-2xl px-5 py-3 text-xs font-mono text-gray-900 focus:ring-0 outline-none"
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/apps/tutor-crm/shared/${shareSettings.id}`);
+                            toast.success("Paylaşım linki kopyalandı!");
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-2xl text-xs font-black uppercase tracking-wider transition-colors"
+                        >
+                          Kopyala
+                        </button>
+                      </div>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider pl-1 mt-1">
+                        Bu linki alan herkes planınızı haftalık takvim şeklinde salt okunur olarak görüntüleyebilir.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Follow plan inline form */}
+                  <form onSubmit={handleFollowPlan} className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-4">
+                    <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Yeni Plan Takip Et</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-400 uppercase">Paylaşım ID (UUID)</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Örn: 9b1deb4d-3b7d-4bad-9bdd-..."
+                          value={followInputId}
+                          onChange={e => setFollowInputId(e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-400 uppercase">Takip İsmi / Takma Ad</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Örn: Ahmet Hoca Matematik"
+                          value={followInputAlias}
+                          onChange={e => setFollowInputAlias(e.target.value)}
+                          className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 outline-none"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                    >
+                      Planı Takip Et
+                    </button>
+                  </form>
+
+                  {/* Follow list */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-black text-gray-850 uppercase tracking-wider pl-1">Takip Ettiğiniz Planlar</h4>
+                    {followedShares.length === 0 ? (
+                      <p className="text-xs text-gray-400 font-bold p-4 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        Henüz takip ettiğiniz bir plan bulunmuyor.
+                      </p>
+                    ) : (
+                      <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                        {followedShares.map(fs => (
+                          <div key={fs.share_id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between hover:shadow-sm transition-all">
+                            <div>
+                              <h5 className="font-black text-sm text-gray-900">{fs.alias || "Tutor"}</h5>
+                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider font-mono mt-0.5">{fs.share_id}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setActiveFollowedShareId(fs.share_id);
+                                  setIsShareModalOpen(false);
+                                  toast.success(`${fs.alias} planı seçildi`);
+                                }}
+                                className="px-3.5 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-blue-100 transition-colors"
+                              >
+                                Görüntüle
+                              </button>
+                              <button
+                                onClick={() => handleUnfollowPlan(fs.share_id)}
+                                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Old floating toolbar removed - now rendered statically at top of main wrapper */}
 
       {/* BULK IMPORT MODAL */}
       <AnimatePresence>
@@ -2286,6 +2653,26 @@ JSON Şeması:
           </div>
         )}
       </AnimatePresence>
+
+      {/* MOBILE BOTTOM APPBAR */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-2 z-40 flex justify-between gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] pb-safe-bottom">
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id as TabType);
+              setFormPreFill({});
+            }}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition-all ${activeTab === item.id
+                ? "text-blue-600 font-black"
+                : "text-gray-400 hover:text-gray-600"
+              }`}
+          >
+            <item.icon size={22} weight={activeTab === item.id ? "fill" : "bold"} />
+            <span className="text-[9px] mt-0.5 tracking-tight uppercase">{item.label.split(" ")[0]}</span>
+          </button>
+        ))}
+      </div>
 
     </div>
   );

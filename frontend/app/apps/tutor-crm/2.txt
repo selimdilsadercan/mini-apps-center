@@ -1,0 +1,1 @@
+- mobilde ekran yan çevilrince appbarın da sidebarın da anlık hiç görünmediği bi alan yapablir myiiz

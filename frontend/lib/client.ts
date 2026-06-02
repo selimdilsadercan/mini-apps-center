@@ -2271,6 +2271,21 @@ export namespace tutor_crm {
         userId: string
     }
 
+    export interface FollowShareRequest {
+        userId: string
+        shareId: string
+        alias: string
+    }
+
+    export interface FollowedShare {
+        id: string
+        "clerk_id": string
+        "share_id": string
+        alias?: string | null
+        "created_at": string
+        "is_active"?: boolean
+    }
+
     export interface Homework {
         id: string
         "student_id": string
@@ -2310,6 +2325,14 @@ export namespace tutor_crm {
         "created_at": string
     }
 
+    export interface Share {
+        id: string
+        "clerk_id": string
+        "is_active": boolean
+        "allow_student_names": boolean
+        "created_at": string
+    }
+
     export interface Student {
         id: string
         "clerk_id": string
@@ -2329,6 +2352,17 @@ export namespace tutor_crm {
     export interface ToggleRequest {
         id: string
         userId: string
+    }
+
+    export interface ToggleShareRequest {
+        userId: string
+        isActive: boolean
+        allowStudentNames: boolean
+    }
+
+    export interface UnfollowShareRequest {
+        userId: string
+        shareId: string
     }
 
     export interface UpdateLessonRequest {
@@ -2360,12 +2394,18 @@ export namespace tutor_crm {
             this.addStudent = this.addStudent.bind(this)
             this.deleteLesson = this.deleteLesson.bind(this)
             this.deleteStudent = this.deleteStudent.bind(this)
+            this.followShare = this.followShare.bind(this)
+            this.getFollowedShares = this.getFollowedShares.bind(this)
             this.getHomeworks = this.getHomeworks.bind(this)
             this.getLessons = this.getLessons.bind(this)
             this.getPayments = this.getPayments.bind(this)
+            this.getShareSettings = this.getShareSettings.bind(this)
+            this.getSharedLessons = this.getSharedLessons.bind(this)
             this.getStudents = this.getStudents.bind(this)
             this.toggleHomework = this.toggleHomework.bind(this)
             this.togglePayment = this.togglePayment.bind(this)
+            this.toggleShare = this.toggleShare.bind(this)
+            this.unfollowShare = this.unfollowShare.bind(this)
             this.updateLesson = this.updateLesson.bind(this)
             this.updateStudent = this.updateStudent.bind(this)
         }
@@ -2440,6 +2480,26 @@ export namespace tutor_crm {
 }
         }
 
+        public async followShare(params: FollowShareRequest): Promise<{
+    followed: FollowedShare
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/share/follow`, JSON.stringify(params))
+            return await resp.json() as {
+    followed: FollowedShare
+}
+        }
+
+        public async getFollowedShares(userId: string): Promise<{
+    followed: FollowedShare[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/share/followed/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    followed: FollowedShare[]
+}
+        }
+
         public async getHomeworks(userId: string): Promise<{
     homeworks: Homework[]
 }> {
@@ -2470,6 +2530,26 @@ export namespace tutor_crm {
 }
         }
 
+        public async getShareSettings(userId: string): Promise<{
+    share: Share
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/share/settings/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    share: Share
+}
+        }
+
+        public async getSharedLessons(shareId: string): Promise<{
+    lessons: Lesson[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tutor-crm/share/lessons/${encodeURIComponent(shareId)}`)
+            return await resp.json() as {
+    lessons: Lesson[]
+}
+        }
+
         public async getStudents(userId: string): Promise<{
     students: Student[]
 }> {
@@ -2495,6 +2575,26 @@ export namespace tutor_crm {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/payments/toggle`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async toggleShare(params: ToggleShareRequest): Promise<{
+    share: Share
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/share/toggle`, JSON.stringify(params))
+            return await resp.json() as {
+    share: Share
+}
+        }
+
+        public async unfollowShare(params: UnfollowShareRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tutor-crm/share/unfollow`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

@@ -20,11 +20,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
-import Client, { kiler } from "@/lib/client";
+import Client, { kiler, Local } from "@/lib/client";
 import { useRouter } from "next/navigation";
 
 // Local client instance
-const client = new Client("http://localhost:4000");
+const client = new Client(Local);
 
 export default function KilerPage() {
   const { user, isLoaded: isUserLoaded } = useUser();

@@ -29,10 +29,11 @@ backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcu
 ### 1.2. Table Management
 - **Root Table Definition**: Each service directory must contain a `table.sql` file that represents the **ideal/latest state** of the database structure for that service.
 - **Migrations**: 
-  - Sadece tablo yapısı değişiklikleri (tablo oluşturma, kolon ekleme/çıkarma vb.) için kullanılmalıdır.
+  - Yeni bir özellik (feature) veya tablo yapısı değişikliği (tablo oluşturma, kolon ekleme/çıkarma vb.) eklendiğinde kullanılabilir.
+  - Yeni bir özellik eklendiğinde oluşturulan yeni migrasyon dosyası (örn: `04_setup_sharing.up.sql`) hem yeni tabloları hem de bu özelliğe ait yeni RPC fonksiyonlarını içermelidir.
   - Migration dosyaları `migrations/` klasöründe `01_description.up.sql` formatında olmalıdır.
   - **Kritik Kural**: Yeni bir servis oluşturulurken, `01_init.up.sql` dosyası hem tablo yapılarını hem de başlangıçtaki tüm RPC fonksiyonlarını içermelidir.
-  - **Fonksiyon Güncellemeleri**: Fonksiyonlardaki mantıksal değişiklikler için yeni migrasyon dosyası oluşturulmamalıdır; doğrudan `functions/` altındaki ilgili dosya güncellenmelidir.
+  - **Fonksiyon Güncellemeleri**: Varolan fonksiyonlardaki mantıksal değişiklikler için yeni migrasyon dosyası oluşturulmamalıdır; doğrudan `functions/` altındaki ilgili dosya güncellenmelidir.
 
 ### 1.3. Function Management (RPC)
 - **Location**: Tüm RPC fonksiyonları servis dizini altındaki `functions/` klasöründe tutulmalıdır.
