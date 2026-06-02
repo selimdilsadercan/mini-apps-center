@@ -21,22 +21,159 @@ import { useTranslations } from "@/contexts/LanguageContext";
 
 const CATEGORIES: AppCategory[] = ['Utilities', 'Developer Tools', 'Lifestyle', 'Board Games & Fun', 'Entertainment', 'Simulations', 'Local Services'];
 
+const DESKTOP_GRID_MIN_PX = 660;
+const GRID_COLUMNS = 3;
+const MOBILE_PEEK_PX = 40;
+const MOBILE_SCROLL_GAP_PX = 12;
+const MOBILE_SWIPE_THRESHOLD_PX = 40;
+
+function AppListColumn({
+  apps,
+  installedIds,
+  onGetApp,
+  onOpenApp,
+}: {
+  apps: MiniApp[];
+  installedIds: string[];
+  onGetApp: (appId: string, e: React.MouseEvent) => void;
+  onOpenApp: (app: MiniApp) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-5 min-w-0">
+      {apps.map((app) => {
+        const isInstalled = installedIds.includes(app.id);
+        return (
+          <div
+            key={app.id}
+            className="group flex items-center gap-3 min-w-0 w-full"
+          >
+            <button
+              type="button"
+              onClick={() => onOpenApp(app)}
+              className="flex flex-1 items-center gap-3 min-w-0 overflow-hidden text-left active:scale-[0.98] transition-all duration-200"
+            >
+              <div
+                className="w-[68px] h-[68px] rounded-[1.4rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
+                style={{
+                  backgroundColor: app.color,
+                  boxShadow: `0 8px 20px -6px ${app.color}50`,
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
+                <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
+                <app.icon size={32} weight="fill" color="white" className="relative z-10" />
+              </div>
+
+              <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
+                <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
+                  {app.name}
+                </h3>
+                <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
+                  {app.category} • {app.description}
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isInstalled) {
+                  onOpenApp(app);
+                } else {
+                  onGetApp(app.id, e);
+                }
+              }}
+              className={`px-5 py-2 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 select-none ${
+                isInstalled
+                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-indigo-600 hover:text-white"
+              }`}
+            >
+              {isInstalled ? "OPEN" : "GET"}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // App Store style horizontal section with vertical stacks of 3
-function AppSection({ 
-  title, 
-  apps, 
-  installedIds, 
-  onGetApp, 
-  onOpenApp 
-}: { 
-  title: string; 
-  apps: MiniApp[]; 
-  installedIds: string[]; 
-  onGetApp: (appId: string, e: React.MouseEvent) => void; 
-  onOpenApp: (app: MiniApp) => void; 
+function AppSection({
+  title,
+  apps,
+  installedIds,
+  onGetApp,
+  onOpenApp,
+  contentWidth,
+}: {
+  title: string;
+  apps: MiniApp[];
+  installedIds: string[];
+  onGetApp: (appId: string, e: React.MouseEvent) => void;
+  onOpenApp: (app: MiniApp) => void;
+  contentWidth: number | null;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{
+    x: number;
+    y: number;
+    scrollLeft: number;
+  } | null>(null);
   const [slideWidth, setSlideWidth] = useState<number | null>(null);
+
+  const mobileSlideWidth =
+    slideWidth != null ? Math.max(260, slideWidth - MOBILE_PEEK_PX) : null;
+
+  const scrollToAdjacentSlide = useCallback(
+    (direction: 1 | -1) => {
+      const el = scrollRef.current;
+      if (!el || mobileSlideWidth == null) return;
+      const step = mobileSlideWidth + MOBILE_SCROLL_GAP_PX;
+      el.scrollTo({
+        left: el.scrollLeft + direction * step,
+        behavior: "smooth",
+      });
+    },
+    [mobileSlideWidth],
+  );
+
+  const handleCarouselTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const el = scrollRef.current;
+      if (!el) return;
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        scrollLeft: el.scrollLeft,
+      };
+    },
+    [],
+  );
+
+  const handleCarouselTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const el = scrollRef.current;
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      if (!el || !start || mobileSlideWidth == null) return;
+
+      const dx = e.changedTouches[0].clientX - start.x;
+      const dy = e.changedTouches[0].clientY - start.y;
+
+      if (Math.abs(dy) > Math.abs(dx)) return;
+
+      const nativeMoved = Math.abs(el.scrollLeft - start.scrollLeft);
+      if (nativeMoved > 20) return;
+
+      if (Math.abs(dx) < MOBILE_SWIPE_THRESHOLD_PX) return;
+
+      scrollToAdjacentSlide(dx < 0 ? 1 : -1);
+    },
+    [mobileSlideWidth, scrollToAdjacentSlide],
+  );
 
   const measureSlideWidth = useCallback(() => {
     const el = scrollRef.current;
@@ -45,22 +182,25 @@ function AppSection({
   }, []);
 
   useLayoutEffect(() => {
+    if (contentWidth != null && contentWidth >= DESKTOP_GRID_MIN_PX) return;
     measureSlideWidth();
     const el = scrollRef.current;
     if (!el) return;
     const ro = new ResizeObserver(measureSlideWidth);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [measureSlideWidth]);
+  }, [measureSlideWidth, contentWidth]);
 
   if (apps.length === 0) return null;
-  
-  // Chunk apps into groups of 3 for vertical stacking
-  const chunkedApps = [];
+
+  const chunkedApps: MiniApp[][] = [];
   for (let i = 0; i < apps.length; i += 3) {
     chunkedApps.push(apps.slice(i, i + 3));
   }
-  
+
+  const useDesktopGrid =
+    contentWidth != null && contentWidth >= DESKTOP_GRID_MIN_PX;
+
   return (
     <section className="mt-10 first:mt-4">
       <div className="flex items-center justify-between mb-5 px-1">
@@ -69,82 +209,55 @@ function AppSection({
         </h2>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 px-5 snap-x snap-mandatory overscroll-x-contain touch-pan-x"
-      >
-        {chunkedApps.map((chunk, chunkIdx) => (
-          <div
-            key={chunkIdx}
-            style={
-              slideWidth != null
-                ? { width: Math.min(slideWidth, 320) }
-                : undefined
+      {useDesktopGrid ? (
+        <div className="grid grid-cols-3 gap-5 w-full pb-6">
+          {Array.from({ length: GRID_COLUMNS }, (_, colIdx) => {
+            const chunk = chunkedApps[colIdx];
+            if (!chunk) {
+              return <div key={`empty-${colIdx}`} className="min-w-0" aria-hidden />;
             }
-            className="flex flex-col gap-5 shrink-0 snap-start snap-always w-[calc(100vw-2.5rem)] max-w-[320px]"
-          >
-            {chunk.map((app) => {
-              const isInstalled = installedIds.includes(app.id);
-              return (
-                <div 
-                  key={app.id}
-                  className="group flex items-center justify-between gap-4"
-                >
-                  <button 
-                    onClick={() => onOpenApp(app)}
-                    className="flex-1 flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200"
-                  >
-                    {/* Icon */}
-                    <div 
-                      className="w-[68px] h-[68px] rounded-[1.4rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
-                      style={{ 
-                        backgroundColor: app.color,
-                        boxShadow: `0 8px 20px -6px ${app.color}50`
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
-                      <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
-                      <app.icon size={32} weight="fill" color="white" className="relative z-10" />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
-                          {app.name}
-                        </h3>
-                      </div>
-                      <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
-                        {app.category} • {app.description}
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Get / Open Button */}
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isInstalled) {
-                        onOpenApp(app);
-                      } else {
-                        onGetApp(app.id, e);
-                      }
-                    }}
-                    className={`px-5 py-2 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 select-none ${
-                      isInstalled
-                        ? "bg-green-100 text-green-600 hover:bg-green-200"
-                        : "bg-gray-100 text-gray-600 hover:bg-indigo-600 hover:text-white"
-                    }`}
-                  >
-                    {isInstalled ? "OPEN" : "GET"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+            return (
+              <AppListColumn
+                key={colIdx}
+                apps={chunk}
+                installedIds={installedIds}
+                onGetApp={onGetApp}
+                onOpenApp={onOpenApp}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          ref={scrollRef}
+          onTouchStart={handleCarouselTouchStart}
+          onTouchEnd={handleCarouselTouchEnd}
+          className="flex overflow-x-auto pb-6 gap-3 scrollbar-none no-scrollbar -mx-5 px-5 snap-x snap-proximity overscroll-x-contain [-webkit-overflow-scrolling:touch] scroll-smooth"
+          style={{ scrollPaddingInline: "1.25rem" }}
+        >
+          {chunkedApps.map((chunk, chunkIdx) => (
+            <div
+              key={chunkIdx}
+              style={
+                mobileSlideWidth != null
+                  ? {
+                      width: mobileSlideWidth,
+                      flex: `0 0 ${mobileSlideWidth}px`,
+                    }
+                  : { width: "100%", flex: "0 0 100%" }
+              }
+              className="flex flex-col gap-5 shrink-0 snap-start min-w-0 box-border"
+            >
+              <AppListColumn
+                apps={chunk}
+                installedIds={installedIds}
+                onGetApp={onGetApp}
+                onOpenApp={onOpenApp}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -155,9 +268,25 @@ export default function Discover() {
   const router = useRouter();
   const t = useTranslations("discover");
   const [searchQuery, setSearchQuery] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
   const [installedIds, setInstalledIds] = useState<string[]>([]);
   const [isPrefLoading, setIsPrefLoading] = useState(true);
+
+  const measureContentWidth = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    setContentWidth(el.clientWidth);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureContentWidth();
+    const el = contentRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measureContentWidth);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measureContentWidth]);
 
 
   const implementedApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented), []);
@@ -309,16 +438,17 @@ export default function Discover() {
                 filteredApps.map(app => {
                   const isInstalled = installedIds.includes(app.id);
                   return (
-                    <div 
-                      key={app.id} 
-                      className="flex items-center justify-between w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
+                    <div
+                      key={app.id}
+                      className="flex items-center justify-between w-full gap-4 min-w-0 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
                     >
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => handleAppClick(app)}
-                        className="flex-1 flex items-center text-left gap-4"
+                        className="flex-1 flex items-center min-w-0 text-left gap-4"
                       >
-                        <div 
-                          className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
+                        <div
+                          className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md"
                           style={{ backgroundColor: app.color }}
                         >
                           <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
@@ -330,7 +460,8 @@ export default function Discover() {
                           <p className="text-gray-500 text-sm truncate">{app.category}</p>
                         </div>
                       </button>
-                      <button 
+                      <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isInstalled) {
@@ -339,7 +470,7 @@ export default function Discover() {
                             handleGetApp(app.id, e);
                           }
                         }}
-                        className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer ${
+                        className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 ${
                           isInstalled
                             ? "bg-green-100 text-green-600 hover:bg-green-200"
                             : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
@@ -360,16 +491,15 @@ export default function Discover() {
           </section>
         ) : (
           /* Main App Store Layout */
-          <>
-            {/* Categorized Sections */}
-            <AppSection title={t("categories.Utilities")} apps={implementedApps.filter(a => a.category === 'Utilities').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Developer Tools")} apps={implementedApps.filter(a => a.category === 'Developer Tools').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Lifestyle")} apps={implementedApps.filter(a => a.category === 'Lifestyle').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Board Games & Fun")} apps={implementedApps.filter(a => a.category === 'Board Games & Fun').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => a.category === 'Entertainment').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-          </>
+          <div ref={contentRef} className="w-full min-w-0">
+            <AppSection title={t("categories.Utilities")} apps={implementedApps.filter(a => a.category === 'Utilities').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Developer Tools")} apps={implementedApps.filter(a => a.category === 'Developer Tools').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Lifestyle")} apps={implementedApps.filter(a => a.category === 'Lifestyle').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Board Games & Fun")} apps={implementedApps.filter(a => a.category === 'Board Games & Fun').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => a.category === 'Entertainment').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+            <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 9)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} contentWidth={contentWidth} />
+          </div>
         )}
       </main>
 

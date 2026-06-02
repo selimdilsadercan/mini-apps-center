@@ -1,11 +1,16 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { workplaces } from "@/lib/client";
 import {
+  applyPlacePatches,
+  setPlaceStatusPatch,
+} from "@/lib/workplaces-place-sync";
+import {
+  ArrowLeft,
   Coffee,
   WifiHigh,
   Car,
@@ -24,8 +29,15 @@ import { useTranslations } from "@/contexts/LanguageContext";
 
 export default function WorkplacesPage() {
   const t = useTranslations("workplaces");
+  const router = useRouter();
   const client = useMemo(() => createBrowserClient(), []);
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
+
+  const suggesterLabel =
+    user?.fullName ||
+    user?.username ||
+    user?.primaryEmailAddress?.emailAddress ||
+    undefined;
   const [places, setPlaces] = useState<workplaces.Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,6 +48,7 @@ export default function WorkplacesPage() {
   const [filterPower, setFilterPower] = useState(false);
   const [filterWantToGo, setFilterWantToGo] = useState(false);
   const [filterVisited, setFilterVisited] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const districts = useMemo(() => {
     const names = new Set<string>();
@@ -63,7 +76,7 @@ export default function WorkplacesPage() {
       const res = await client.workplaces.listPlaces({
         userId: user?.id,
       });
-      setPlaces(res.places ?? []);
+      setPlaces(applyPlacePatches(res.places ?? []));
     } catch (err) {
       console.error("Failed to fetch places:", err);
       toast.error(t("toast.loadFailed"));
@@ -71,51 +84,96 @@ export default function WorkplacesPage() {
     } finally {
       setLoading(false);
     }
+    // t is recreated each render; only refetch when user or client changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, client]);
 
   useEffect(() => {
+    if (!isUserLoaded) return;
     fetchPlaces();
-  }, [fetchPlaces]);
+  }, [fetchPlaces, isUserLoaded]);
 
   const handleToggleFavorite = async (placeId: string) => {
+    if (!isUserLoaded) return;
     if (!user?.id) {
       toast.error(t("toast.signInRequired"));
       return;
     }
+    const actionKey = `fav:${placeId}`;
+    if (pendingAction === actionKey) return;
+
+    const previous = places.find((p) => p.id === placeId)?.is_favorite ?? false;
+    setPendingAction(actionKey);
+    setPlaces((prev) =>
+      prev.map((p) =>
+        p.id === placeId ? { ...p, is_favorite: !previous } : p,
+      ),
+    );
+
     try {
       const res = await client.workplaces.toggleFavorite({
         placeId,
         userId: user.id,
       });
+      const isFavorite = Boolean(res.isFavorite);
       setPlaces((prev) =>
         prev.map((p) =>
-          p.id === placeId ? { ...p, is_favorite: res.isFavorite } : p,
+          p.id === placeId ? { ...p, is_favorite: isFavorite } : p,
         ),
       );
+      setPlaceStatusPatch(placeId, { is_favorite: isFavorite });
     } catch (err) {
       console.error("toggleFavorite failed:", err);
+      setPlaces((prev) =>
+        prev.map((p) =>
+          p.id === placeId ? { ...p, is_favorite: previous } : p,
+        ),
+      );
       toast.error(t("toast.updateFailed"));
+    } finally {
+      setPendingAction(null);
     }
   };
 
   const handleToggleVisited = async (placeId: string) => {
+    if (!isUserLoaded) return;
     if (!user?.id) {
       toast.error(t("toast.signInRequired"));
       return;
     }
+    const actionKey = `vis:${placeId}`;
+    if (pendingAction === actionKey) return;
+
+    const previous = places.find((p) => p.id === placeId)?.is_visited ?? false;
+    setPendingAction(actionKey);
+    setPlaces((prev) =>
+      prev.map((p) =>
+        p.id === placeId ? { ...p, is_visited: !previous } : p,
+      ),
+    );
+
     try {
       const res = await client.workplaces.toggleVisited({
         placeId,
         userId: user.id,
       });
+      const isVisited = Boolean(res.isVisited);
       setPlaces((prev) =>
         prev.map((p) =>
-          p.id === placeId ? { ...p, is_visited: res.isVisited } : p,
+          p.id === placeId ? { ...p, is_visited: isVisited } : p,
         ),
       );
+      setPlaceStatusPatch(placeId, { is_visited: isVisited });
     } catch (err) {
       console.error("toggleVisited failed:", err);
+      setPlaces((prev) =>
+        prev.map((p) =>
+          p.id === placeId ? { ...p, is_visited: previous } : p,
+        ),
+      );
       toast.error(t("toast.updateFailed"));
+    } finally {
+      setPendingAction(null);
     }
   };
 
@@ -162,10 +220,16 @@ export default function WorkplacesPage() {
 
   const handleAddPlace = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.id) {
+      toast.error(t("toast.signInRequired"));
+      return;
+    }
     try {
       await client.workplaces.addPlace({
         ...newPlace,
         tags: newPlace.tags.split(",").map((t) => t.trim()).filter(Boolean),
+        suggested_by: suggesterLabel,
+        suggested_by_clerk_id: user.id,
       });
       setShowAddModal(false);
       setNewPlace({
@@ -185,17 +249,27 @@ export default function WorkplacesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-28">
+    <div className="min-h-screen bg-neutral-50 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-[env(safe-area-inset-top,0px)]">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="bg-white border-b sticky top-0 z-40 shadow-sm isolate">
+        <div className="max-w-5xl mx-auto py-5 sm:py-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900 flex items-center gap-2">
-                <Coffee className="text-amber-700" weight="fill" />
-                {t("title")}
-              </h1>
-              <p className="text-neutral-500 mt-1">{t("subtitle")}</p>
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => router.push("/home")}
+                className="p-2.5 rounded-xl text-neutral-600 hover:bg-neutral-100 transition-colors shrink-0 touch-manipulation"
+                aria-label={t("aria.back")}
+              >
+                <ArrowLeft size={22} weight="bold" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-3xl font-bold text-neutral-900 flex items-center gap-2">
+                  <Coffee className="text-amber-700 shrink-0" weight="fill" />
+                  <span className="truncate">{t("title")}</span>
+                </h1>
+                <p className="text-neutral-500 mt-1">{t("subtitle")}</p>
+              </div>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
@@ -218,7 +292,7 @@ export default function WorkplacesPage() {
                 className="w-full pl-12 pr-4 py-3 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all"
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0">
               <FilterButton
                 active={filterWifi}
                 onClick={() => setFilterWifi(!filterWifi)}
@@ -246,7 +320,7 @@ export default function WorkplacesPage() {
                 <MapPin size={14} className="text-amber-700" />
                 {t("district.label")}
               </p>
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0">
                 <DistrictChip
                   active={!filterDistrict}
                   label={t("district.all")}
@@ -265,18 +339,37 @@ export default function WorkplacesPage() {
               </div>
             </div>
           )}
+
+          <div className="mt-4 pt-4 border-t border-neutral-100">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 pb-1">
+              <FilterButton
+                active={filterWantToGo}
+                onClick={() => setFilterWantToGo(!filterWantToGo)}
+                icon={<Heart weight={filterWantToGo ? "fill" : "regular"} />}
+                label={t("filters.wantToGo")}
+                activeClassName="bg-rose-100 text-rose-800 border-rose-200"
+              />
+              <FilterButton
+                active={filterVisited}
+                onClick={() => setFilterVisited(!filterVisited)}
+                icon={<CheckCircle weight={filterVisited ? "fill" : "regular"} />}
+                label={t("filters.visited")}
+                activeClassName="bg-emerald-100 text-emerald-800 border-emerald-200"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 mt-8">
+      <div className="relative z-0 max-w-5xl mx-auto mt-6 sm:mt-8 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))]">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
             <p className="text-neutral-500 font-medium">{t("loading")}</p>
           </div>
         ) : filteredPlaces.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
             <AnimatePresence mode="popLayout">
               {filteredPlaces.map((place) => (
                 <PlaceCard
@@ -284,6 +377,8 @@ export default function WorkplacesPage() {
                   place={place}
                   onToggleFavorite={handleToggleFavorite}
                   onToggleVisited={handleToggleVisited}
+                  isFavoritePending={pendingAction === `fav:${place.id}`}
+                  isVisitedPending={pendingAction === `vis:${place.id}`}
                 />
               ))}
             </AnimatePresence>
@@ -402,25 +497,6 @@ export default function WorkplacesPage() {
         )}
       </AnimatePresence>
 
-      {/* List filters: Gitmek istiyorum / Gittim */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
-          <FilterButton
-            active={filterWantToGo}
-            onClick={() => setFilterWantToGo(!filterWantToGo)}
-            icon={<Heart weight={filterWantToGo ? "fill" : "regular"} />}
-            label={t("filters.wantToGo")}
-            activeClassName="bg-rose-100 text-rose-800 border-rose-200"
-          />
-          <FilterButton
-            active={filterVisited}
-            onClick={() => setFilterVisited(!filterVisited)}
-            icon={<CheckCircle weight={filterVisited ? "fill" : "regular"} />}
-            label={t("filters.visited")}
-            activeClassName="bg-emerald-100 text-emerald-800 border-emerald-200"
-          />
-        </div>
-      </div>
     </div>
   );
 }
@@ -429,156 +505,185 @@ function PlaceCard({
   place,
   onToggleFavorite,
   onToggleVisited,
+  isFavoritePending,
+  isVisitedPending,
 }: {
   place: workplaces.Place;
   onToggleFavorite: (placeId: string) => void;
   onToggleVisited: (placeId: string) => void;
+  isFavoritePending: boolean;
+  isVisitedPending: boolean;
 }) {
   const t = useTranslations("workplaces");
+  const router = useRouter();
+
+  const openDetail = () => {
+    router.push(`/apps/workplaces/place?placeId=${encodeURIComponent(place.id)}`);
+  };
 
   return (
-    <Link
-      href={`/apps/workplaces/place?placeId=${encodeURIComponent(place.id)}`}
-      className="block h-full"
-    >
     <motion.div
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white rounded-3xl border border-neutral-200 overflow-hidden hover:shadow-xl hover:border-amber-200 transition-all group flex flex-col h-full"
+      className="relative bg-white rounded-2xl border border-neutral-200 overflow-hidden hover:shadow-lg hover:border-amber-200 transition-all group flex flex-col"
     >
-      {/* Image Header */}
-      <div className="relative h-48 w-full bg-neutral-100 overflow-hidden">
+      <div className="relative aspect-[5/3] w-full max-h-40 bg-neutral-100 overflow-hidden">
         {place.image_url ? (
           <img
             src={place.image_url}
             alt={place.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-300">
-            <Coffee size={48} weight="thin" />
+          <div className="w-full h-full flex items-center justify-center text-neutral-300 pointer-events-none">
+            <Coffee size={40} weight="thin" />
           </div>
         )}
+        <button
+          type="button"
+          onClick={openDetail}
+          className="absolute inset-0 z-0 cursor-pointer touch-manipulation"
+          aria-label={place.name}
+        />
+        <div className="absolute top-3 left-3 z-20 flex flex-col gap-2 pointer-events-auto">
+          <PlaceActionButton
+            active={place.is_favorite}
+            pending={isFavoritePending}
+            disabled={isFavoritePending}
+            activeClassName="bg-rose-500 text-white"
+            inactiveClassName="bg-white/95 text-neutral-500"
+            ariaLabel={
+              place.is_favorite ? t("aria.removeWantToGo") : t("aria.addWantToGo")
+            }
+            onActivate={() => onToggleFavorite(place.id)}
+          >
+            <Heart size={20} weight={place.is_favorite ? "fill" : "regular"} />
+          </PlaceActionButton>
+          <PlaceActionButton
+            active={place.is_visited}
+            pending={isVisitedPending}
+            disabled={isVisitedPending}
+            activeClassName="bg-emerald-600 text-white"
+            inactiveClassName="bg-white/95 text-neutral-500"
+            ariaLabel={place.is_visited ? t("aria.removeVisited") : t("aria.addVisited")}
+            onActivate={() => onToggleVisited(place.id)}
+          >
+            <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
+          </PlaceActionButton>
+        </div>
         {place.district && (
-          <div className="absolute bottom-3 left-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-xs font-bold rounded-full">
+          <div className="absolute bottom-3 left-3 z-10 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-xs font-bold rounded-full pointer-events-none">
             {place.district}
           </div>
         )}
         {place.rating && (
-          <div className="absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur-sm text-neutral-900 text-xs font-bold rounded-lg flex items-center gap-1 shadow-sm">
+          <div className="absolute top-3 right-3 z-10 px-2 py-1 bg-white/90 backdrop-blur-sm text-neutral-900 text-xs font-bold rounded-lg flex items-center gap-1 shadow-sm pointer-events-none">
             <span className="text-amber-500">★</span>
             {place.rating}
             <span className="text-neutral-400 font-normal">({place.user_ratings_total})</span>
           </div>
         )}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleFavorite(place.id);
-            }}
-            className={`p-2 rounded-full backdrop-blur-md shadow-sm transition-colors ${
-              place.is_favorite
-                ? "bg-rose-500 text-white"
-                : "bg-white/90 text-neutral-500 hover:text-rose-500"
-            }`}
-            aria-label={place.is_favorite ? t("aria.removeWantToGo") : t("aria.addWantToGo")}
-          >
-            <Heart size={20} weight={place.is_favorite ? "fill" : "regular"} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleVisited(place.id);
-            }}
-            className={`p-2 rounded-full backdrop-blur-md shadow-sm transition-colors ${
-              place.is_visited
-                ? "bg-emerald-600 text-white"
-                : "bg-white/90 text-neutral-500 hover:text-emerald-600"
-            }`}
-            aria-label={place.is_visited ? t("aria.removeVisited") : t("aria.addVisited")}
-          >
-            <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
-          </button>
-        </div>
       </div>
 
-      <div className="p-6 flex-1">
-        <div className="flex justify-between items-start gap-2">
-          <div>
-            <h3 className="text-xl font-bold text-neutral-900 group-hover:text-amber-800 transition-colors">
-              {place.name}
-            </h3>
-            {place.address && (
-              <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
-                {place.address}
-              </p>
-            )}
+      <button
+        type="button"
+        onClick={openDetail}
+        className="w-full text-left cursor-pointer touch-manipulation"
+      >
+        <div className="px-4 py-3">
+          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-amber-800 transition-colors line-clamp-1">
+            {place.name}
+          </h3>
+          {place.address && (
+            <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
+              {place.address}
+            </p>
+          )}
+
+          {place.note && (
+            <p className="text-neutral-600 mt-2 text-sm line-clamp-2 leading-snug">
+              {place.note}
+            </p>
+          )}
+
+          {place.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {place.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2 py-0.5 bg-neutral-100 text-neutral-500 text-[11px] font-medium rounded-md flex items-center gap-1"
+                >
+                  <Tag size={11} />
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="px-4 py-2.5 bg-neutral-50 border-t flex items-center justify-between pointer-events-none">
+          <div className="flex gap-3">
+            <StatusIcon active={place.wifi} icon={<WifiHigh size={18} />} amenityKey="wifi" />
+            <StatusIcon active={place.parking} icon={<Car size={18} />} amenityKey="parking" />
+            <StatusIcon active={place.power_outlets} icon={<Plug size={18} />} amenityKey="power" />
+          </div>
+          <div className="flex items-center gap-1.5 text-neutral-400">
+            <SpeakerLow size={18} />
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((level) => (
+                <div
+                  key={level}
+                  className={`w-1.5 h-3 rounded-full ${
+                    level <= place.quiet_level ? "bg-amber-500" : "bg-neutral-200"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-
-        {place.note && (
-          <p className="text-neutral-600 mt-3 text-sm line-clamp-3 leading-relaxed">
-            {place.note}
-          </p>
-        )}
-
-        {(place.is_favorite || place.is_visited) && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {place.is_favorite && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold">
-                {t("wantToGo")}
-              </span>
-            )}
-            {place.is_visited && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                {t("visited")}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-2 mt-4">
-          {place.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 py-1 bg-neutral-100 text-neutral-500 text-xs font-medium rounded-lg flex items-center gap-1"
-            >
-              <Tag size={12} />
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="px-6 py-4 bg-neutral-50 border-t flex items-center justify-between">
-        <div className="flex gap-3">
-          <StatusIcon active={place.wifi} icon={<WifiHigh size={18} />} amenityKey="wifi" />
-          <StatusIcon active={place.parking} icon={<Car size={18} />} amenityKey="parking" />
-          <StatusIcon active={place.power_outlets} icon={<Plug size={18} />} amenityKey="power" />
-        </div>
-        <div className="flex items-center gap-1.5 text-neutral-400">
-          <SpeakerLow size={18} />
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((level) => (
-              <div
-                key={level}
-                className={`w-1.5 h-3 rounded-full ${
-                  level <= place.quiet_level ? "bg-amber-500" : "bg-neutral-200"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      </button>
     </motion.div>
-    </Link>
+  );
+}
+
+function PlaceActionButton({
+  active,
+  pending,
+  disabled,
+  activeClassName,
+  inactiveClassName,
+  ariaLabel,
+  onActivate,
+  children,
+}: {
+  active?: boolean;
+  pending: boolean;
+  disabled: boolean;
+  activeClassName: string;
+  inactiveClassName: string;
+  ariaLabel: string;
+  onActivate: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label={ariaLabel}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (disabled) return;
+        onActivate();
+      }}
+      className={`relative z-20 flex items-center justify-center min-h-11 min-w-11 p-2.5 rounded-full backdrop-blur-md shadow-sm transition-colors touch-manipulation select-none ${
+        active ? activeClassName : inactiveClassName
+      } ${disabled ? "opacity-60" : ""} ${pending ? "animate-pulse" : ""}`}
+    >
+      {children}
+    </button>
   );
 }
 

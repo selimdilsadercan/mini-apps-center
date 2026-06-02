@@ -2362,6 +2362,7 @@ export namespace workplaces {
         "power_outlets"?: boolean
         "quiet_level"?: number
         "suggested_by"?: string
+        "suggested_by_clerk_id"?: string
         latitude?: number
         longitude?: number
         district?: string
@@ -2374,6 +2375,14 @@ export namespace workplaces {
 
     export interface AddPlaceResponse {
         place: Place
+    }
+
+    export interface DeletePlaceRequest {
+        userId: string
+    }
+
+    export interface DeletePlaceResponse {
+        success: boolean
     }
 
     export interface GetPlaceRequest {
@@ -2403,6 +2412,7 @@ export namespace workplaces {
         "power_outlets": boolean
         "quiet_level": number
         "suggested_by"?: string
+        "suggested_by_clerk_id"?: string
         latitude?: number
         longitude?: number
         district?: string
@@ -2442,6 +2452,7 @@ export namespace workplaces {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addPlace = this.addPlace.bind(this)
+            this.deletePlace = this.deletePlace.bind(this)
             this.getPlace = this.getPlace.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
@@ -2452,6 +2463,17 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces`, JSON.stringify(params))
             return await resp.json() as AddPlaceResponse
+        }
+
+        public async deletePlace(id: string, params: DeletePlaceRequest): Promise<DeletePlaceResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/workplaces/place/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeletePlaceResponse
         }
 
         public async getPlace(id: string, params: GetPlaceRequest): Promise<GetPlaceResponse> {

@@ -19,6 +19,7 @@ export interface Place {
   power_outlets: boolean;
   quiet_level: number;
   suggested_by?: string;
+  suggested_by_clerk_id?: string;
   latitude?: number;
   longitude?: number;
   district?: string;
@@ -55,6 +56,7 @@ export interface AddPlaceRequest {
   power_outlets?: boolean;
   quiet_level?: number;
   suggested_by?: string;
+  suggested_by_clerk_id?: string;
   latitude?: number;
   longitude?: number;
   district?: string;
@@ -91,6 +93,15 @@ export interface ToggleVisitedRequest {
 export interface ToggleVisitedResponse {
   success: boolean;
   isVisited: boolean;
+}
+
+export interface DeletePlaceRequest {
+  id: string;
+  userId: string;
+}
+
+export interface DeletePlaceResponse {
+  success: boolean;
 }
 
 async function loadFavoritePlaceIds(userId: string): Promise<Set<string>> {
@@ -313,6 +324,7 @@ export const addPlace = api(
       p_power_outlets: req.power_outlets || false,
       p_quiet_level: req.quiet_level || 3,
       p_suggested_by: req.suggested_by,
+      p_suggested_by_clerk_id: req.suggested_by_clerk_id,
       p_latitude: req.latitude,
       p_longitude: req.longitude,
       p_district: req.district,
@@ -327,5 +339,56 @@ export const addPlace = api(
       throw APIError.internal(`Failed to add place: ${error.message}`);
     }
     return { place: { ...data[0], is_favorite: false, is_visited: false } };
+  },
+);
+
+function canUserDeletePlace(
+  place: { suggested_by?: string | null; suggested_by_clerk_id?: string | null },
+  userId: string,
+): boolean {
+  if (place.suggested_by_clerk_id && place.suggested_by_clerk_id === userId) {
+    return true;
+  }
+  if (place.suggested_by === userId) {
+    return true;
+  }
+  return false;
+}
+
+export const deletePlace = api(
+  { expose: true, method: "DELETE", path: "/workplaces/place/:id" },
+  async ({ id, userId }: DeletePlaceRequest): Promise<DeletePlaceResponse> => {
+    if (!userId?.trim()) {
+      throw APIError.invalidArgument("userId is required");
+    }
+
+    const { data: place, error: readError } = await supabase
+      .schema("workplaces")
+      .from("places")
+      .select("id, suggested_by, suggested_by_clerk_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (readError) {
+      throw APIError.internal(`Failed to load place: ${readError.message}`);
+    }
+    if (!place) {
+      throw APIError.notFound("place not found");
+    }
+    if (!canUserDeletePlace(place, userId)) {
+      throw APIError.permissionDenied("you can only delete places you suggested");
+    }
+
+    const { error: deleteError } = await supabase
+      .schema("workplaces")
+      .from("places")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      throw APIError.internal(`Failed to delete place: ${deleteError.message}`);
+    }
+
+    return { success: true };
   },
 );

@@ -1,4 +1,12 @@
+    -- Run this entire file in Supabase SQL Editor (column + function)
+    ALTER TABLE workplaces.places
+    ADD COLUMN IF NOT EXISTS suggested_by_clerk_id TEXT;
+
+    CREATE INDEX IF NOT EXISTS idx_workplaces_places_suggested_by_clerk_id
+    ON workplaces.places(suggested_by_clerk_id);
+
     DROP FUNCTION IF EXISTS workplaces.add_place(text, text, text, text[], boolean, boolean, boolean, integer, text, numeric, numeric, text, text, text, numeric, integer, jsonb);
+    DROP FUNCTION IF EXISTS workplaces.add_place(text, text, text, text[], boolean, boolean, boolean, integer, text, text, numeric, numeric, text, text, text, numeric, integer, jsonb);
 
     CREATE OR REPLACE FUNCTION workplaces.add_place(
         p_name TEXT,
@@ -10,6 +18,7 @@
         p_power_outlets BOOLEAN DEFAULT FALSE,
         p_quiet_level INTEGER DEFAULT 3,
         p_suggested_by TEXT DEFAULT NULL,
+        p_suggested_by_clerk_id TEXT DEFAULT NULL,
         p_latitude NUMERIC DEFAULT NULL,
         p_longitude NUMERIC DEFAULT NULL,
         p_district TEXT DEFAULT NULL,
@@ -24,10 +33,12 @@
     SECURITY DEFINER
     AS $$
         INSERT INTO workplaces.places (
-            name, note, url, tags, wifi, parking, power_outlets, quiet_level, suggested_by,
+            name, note, url, tags, wifi, parking, power_outlets, quiet_level,
+            suggested_by, suggested_by_clerk_id,
             latitude, longitude, district, image_url, address, rating, user_ratings_total, metadata
         ) VALUES (
-            p_name, p_note, p_url, p_tags, p_wifi, p_parking, p_power_outlets, p_quiet_level, p_suggested_by,
+            p_name, p_note, p_url, p_tags, p_wifi, p_parking, p_power_outlets, p_quiet_level,
+            p_suggested_by, p_suggested_by_clerk_id,
             p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total, p_metadata
         )
         ON CONFLICT (id) DO UPDATE SET

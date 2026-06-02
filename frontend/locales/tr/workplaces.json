@@ -7,7 +7,7 @@
     "wifi": "WiFi",
     "parking": "Otopark",
     "power": "Priz",
-    "wantToGo": "Gitmek istiyorum",
+    "wantToGo": "Beğendim",
     "visited": "Gittim"
   },
   "district": {
@@ -17,7 +17,9 @@
   "toast": {
     "signInRequired": "İşaretlemek için giriş yapmalısın.",
     "updateFailed": "Güncellenemedi.",
-    "loadFailed": "Mekanlar yüklenemedi. Bağlantını kontrol et."
+    "loadFailed": "Mekanlar yüklenemedi. Bağlantını kontrol et.",
+    "deleteFailed": "Mekan silinemedi.",
+    "deleted": "Mekan silindi."
   },
   "loading": "Mekanlar yükleniyor...",
   "noResults": "Mekan bulunamadı",
@@ -55,12 +57,12 @@
     "5": "Çok sakin",
     "fallback": "Seviye {level}"
   },
-  "wantToGo": "Gitmek istiyorum",
+  "wantToGo": "Beğendim",
   "visited": "Gittim",
   "aria": {
     "back": "Geri dön",
-    "removeWantToGo": "Gitmek istiyorum işaretini kaldır",
-    "addWantToGo": "Gitmek istiyorum",
+    "removeWantToGo": "Beğeniyi kaldır",
+    "addWantToGo": "Beğendim",
     "removeVisited": "Gittim işaretini kaldır",
     "addVisited": "Gittim"
   },
@@ -74,6 +76,9 @@
     "notes": "Notlar",
     "tags": "Etiketler",
     "openMaps": "Haritada aç",
-    "suggestedBy": "Öneren: {name}"
+    "suggestedBy": "Öneren: {name}",
+    "deletePlace": "Mekanı sil",
+    "deleteConfirm": "Bu mekanı silmek istediğine emin misin? Bu işlem geri alınamaz.",
+    "deleting": "Siliniyor..."
   }
 }

@@ -7,7 +7,7 @@
     "wifi": "WiFi",
     "parking": "Parking",
     "power": "Outlets",
-    "wantToGo": "Want to go",
+    "wantToGo": "Liked",
     "visited": "Visited"
   },
   "district": {
@@ -17,7 +17,9 @@
   "toast": {
     "signInRequired": "Sign in to save your lists.",
     "updateFailed": "Could not update.",
-    "loadFailed": "Could not load places. Check your connection."
+    "loadFailed": "Could not load places. Check your connection.",
+    "deleteFailed": "Could not delete this place.",
+    "deleted": "Place deleted."
   },
   "loading": "Loading places...",
   "noResults": "No places found",
@@ -55,12 +57,12 @@
     "5": "Very quiet",
     "fallback": "Level {level}"
   },
-  "wantToGo": "Want to go",
+  "wantToGo": "Liked",
   "visited": "Visited",
   "aria": {
     "back": "Go back",
-    "removeWantToGo": "Remove want to go",
-    "addWantToGo": "Want to go",
+    "removeWantToGo": "Remove like",
+    "addWantToGo": "Like",
     "removeVisited": "Remove visited",
     "addVisited": "Mark as visited"
   },
@@ -74,6 +76,9 @@
     "notes": "Notes",
     "tags": "Tags",
     "openMaps": "Open in Maps",
-    "suggestedBy": "Suggested by: {name}"
+    "suggestedBy": "Suggested by: {name}",
+    "deletePlace": "Delete place",
+    "deleteConfirm": "Delete this place? This cannot be undone.",
+    "deleting": "Deleting..."
   }
 }

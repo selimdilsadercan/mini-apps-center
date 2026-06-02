@@ -2,10 +2,15 @@
 
 import React, { Suspense, useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { workplaces } from "@/lib/client";
+import {
+  applyPlacePatch,
+  normalizePlace,
+  setPlaceStatusPatch,
+} from "@/lib/workplaces-place-sync";
 import {
   ArrowLeft,
   ArrowSquareOut,
@@ -17,6 +22,7 @@ import {
   Plug,
   SpeakerLow,
   Tag,
+  Trash,
   WifiHigh,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
@@ -37,6 +43,7 @@ function PlaceDetailContent() {
   const t = useTranslations("workplaces");
   const client = useMemo(() => createBrowserClient(), []);
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const placeId = searchParams.get("placeId");
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -44,7 +51,18 @@ function PlaceDetailContent() {
   const [place, setPlace] = useState<workplaces.Place | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusLoading, setStatusLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"favorite" | "visited" | null>(
+    null,
+  );
+  const [deleting, setDeleting] = useState(false);
+
+  const canDeletePlace = useMemo(() => {
+    if (!place || !user?.id) return false;
+    if (place.suggested_by_clerk_id) {
+      return place.suggested_by_clerk_id === user.id;
+    }
+    return place.suggested_by === user.id;
+  }, [place, user?.id]);
 
   const loadPlace = useCallback(async () => {
     if (!placeId) {
@@ -70,7 +88,7 @@ function PlaceDetailContent() {
       }
 
       if (found) {
-        setPlace(found);
+        setPlace(applyPlacePatch(normalizePlace(found)));
       } else {
         setError(t("detail.notFound"));
       }
@@ -83,49 +101,84 @@ function PlaceDetailContent() {
   }, [placeId, user?.id, client]);
 
   useEffect(() => {
-    if (!isUserLoaded) return;
+    if (!isUserLoaded || !pathname?.startsWith("/apps/workplaces/place")) return;
     loadPlace();
-  }, [isUserLoaded, loadPlace]);
+  }, [isUserLoaded, loadPlace, pathname, user?.id]);
 
   const handleToggleFavorite = async () => {
     if (!place) return;
+    if (!isUserLoaded) return;
     if (!user?.id) {
       toast.error(t("toast.signInRequired"));
       return;
     }
+    if (pendingAction === "favorite") return;
+
+    const previous = place.is_favorite ?? false;
+    setPendingAction("favorite");
+    setPlace({ ...place, is_favorite: !previous });
+
     try {
-      setStatusLoading(true);
       const res = await client.workplaces.toggleFavorite({
         placeId: place.id,
         userId: user.id,
       });
-      setPlace({ ...place, is_favorite: res.isFavorite });
+      const isFavorite = Boolean(res.isFavorite);
+      setPlace((p) => (p ? { ...p, is_favorite: isFavorite } : p));
+      setPlaceStatusPatch(place.id, { is_favorite: isFavorite });
     } catch (err) {
       console.error("toggleFavorite failed:", err);
+      setPlace((p) => (p ? { ...p, is_favorite: previous } : p));
       toast.error(t("toast.updateFailed"));
     } finally {
-      setStatusLoading(false);
+      setPendingAction(null);
     }
   };
 
   const handleToggleVisited = async () => {
     if (!place) return;
+    if (!isUserLoaded) return;
     if (!user?.id) {
       toast.error(t("toast.signInRequired"));
       return;
     }
+    if (pendingAction === "visited") return;
+
+    const previous = place.is_visited ?? false;
+    setPendingAction("visited");
+    setPlace({ ...place, is_visited: !previous });
+
     try {
-      setStatusLoading(true);
       const res = await client.workplaces.toggleVisited({
         placeId: place.id,
         userId: user.id,
       });
-      setPlace({ ...place, is_visited: res.isVisited });
+      const isVisited = Boolean(res.isVisited);
+      setPlace((p) => (p ? { ...p, is_visited: isVisited } : p));
+      setPlaceStatusPatch(place.id, { is_visited: isVisited });
     } catch (err) {
       console.error("toggleVisited failed:", err);
+      setPlace((p) => (p ? { ...p, is_visited: previous } : p));
       toast.error(t("toast.updateFailed"));
     } finally {
-      setStatusLoading(false);
+      setPendingAction(null);
+    }
+  };
+
+  const handleDeletePlace = async () => {
+    if (!place || !user?.id || !canDeletePlace) return;
+    if (!window.confirm(t("detail.deleteConfirm"))) return;
+
+    try {
+      setDeleting(true);
+      await client.workplaces.deletePlace(place.id, { userId: user.id });
+      toast.success(t("toast.deleted"));
+      router.push("/apps/workplaces");
+    } catch (err) {
+      console.error("deletePlace failed:", err);
+      toast.error(t("toast.deleteFailed"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -138,9 +191,9 @@ function PlaceDetailContent() {
         : undefined);
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-12">
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
+    <div className="min-h-screen bg-neutral-50 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] pt-[env(safe-area-inset-top,0px)]">
+      <div className="bg-white border-b sticky top-0 z-40 shadow-sm isolate">
+        <div className="max-w-3xl mx-auto py-4 flex items-center gap-3 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))]">
           <button
             type="button"
             onClick={() => router.push("/apps/workplaces")}
@@ -161,9 +214,13 @@ function PlaceDetailContent() {
             <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
-                onClick={handleToggleFavorite}
-                disabled={statusLoading}
-                className={`p-2.5 rounded-xl transition-colors ${
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToggleFavorite();
+                }}
+                disabled={pendingAction === "favorite"}
+                className={`inline-flex items-center justify-center min-h-11 min-w-11 p-2.5 rounded-xl transition-colors touch-manipulation select-none ${
                   place.is_favorite
                     ? "bg-rose-500 text-white"
                     : "text-neutral-500 hover:bg-rose-50 hover:text-rose-500"
@@ -174,9 +231,13 @@ function PlaceDetailContent() {
               </button>
               <button
                 type="button"
-                onClick={handleToggleVisited}
-                disabled={statusLoading}
-                className={`p-2.5 rounded-xl transition-colors ${
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToggleVisited();
+                }}
+                disabled={pendingAction === "visited"}
+                className={`inline-flex items-center justify-center min-h-11 min-w-11 p-2.5 rounded-xl transition-colors touch-manipulation select-none ${
                   place.is_visited
                     ? "bg-emerald-600 text-white"
                     : "text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600"
@@ -190,7 +251,7 @@ function PlaceDetailContent() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 mt-6">
+      <div className="relative z-0 max-w-3xl mx-auto mt-6 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))]">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
@@ -224,20 +285,6 @@ function PlaceDetailContent() {
                   <Coffee size={64} weight="thin" />
                 </div>
               )}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {place.is_favorite && (
-                  <div className="px-3 py-1.5 bg-rose-500 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-sm">
-                    <Heart size={14} weight="fill" />
-                    {t("wantToGo")}
-                  </div>
-                )}
-                {place.is_visited && (
-                  <div className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center gap-1 shadow-sm">
-                    <CheckCircle size={14} weight="fill" />
-                    {t("visited")}
-                  </div>
-                )}
-              </div>
               {place.district && (
                 <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-md text-white text-sm font-bold rounded-full">
                   {place.district}
@@ -334,45 +381,28 @@ function PlaceDetailContent() {
                 </div>
               </div>
 
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={handleToggleFavorite}
-                  disabled={statusLoading}
-                  className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm border transition-colors disabled:opacity-50 ${
-                    place.is_favorite
-                      ? "bg-rose-500 text-white border-rose-500"
-                      : "bg-white text-rose-600 border-rose-200 hover:bg-rose-50"
-                  }`}
-                >
-                  <Heart size={20} weight={place.is_favorite ? "fill" : "regular"} />
-                  {t("wantToGo")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleToggleVisited}
-                  disabled={statusLoading}
-                  className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm border transition-colors disabled:opacity-50 ${
-                    place.is_visited
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-                  }`}
-                >
-                  <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
-                  {t("visited")}
-                </button>
-              </div>
-
               {mapsHref && (
                 <a
                   href={mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 flex items-center justify-center gap-2 w-full py-4 bg-amber-700 text-white font-semibold rounded-2xl hover:bg-amber-800 transition-colors shadow-sm"
+                  className="mt-8 flex items-center justify-center gap-2 w-full py-4 bg-amber-700 text-white font-semibold rounded-2xl hover:bg-amber-800 transition-colors shadow-sm"
                 >
                   <ArrowSquareOut size={20} weight="bold" />
                   {t("detail.openMaps")}
                 </a>
+              )}
+
+              {canDeletePlace && (
+                <button
+                  type="button"
+                  onClick={handleDeletePlace}
+                  disabled={deleting}
+                  className="mt-3 flex items-center justify-center gap-2 w-full py-3.5 bg-white text-red-600 font-semibold rounded-2xl border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
+                >
+                  <Trash size={20} weight="bold" />
+                  {deleting ? t("detail.deleting") : t("detail.deletePlace")}
+                </button>
               )}
 
               {place.suggested_by && (
@@ -420,7 +450,7 @@ function PlaceDetailFallback() {
   const t = useTranslations("workplaces");
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4 px-5 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
       <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
       <p className="text-neutral-500 font-medium">{t("detail.loading")}</p>
     </div>

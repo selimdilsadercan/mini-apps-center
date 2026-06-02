@@ -73,6 +73,7 @@ export const workplacesAssistant: AppAssistantModule = {
         user_ratings_total: (args.user_ratings_total as number) ?? undefined,
         metadata: (args.metadata as any) ?? {},
         suggested_by: userId,
+        suggested_by_clerk_id: userId,
       });
       return res.place ? [res.place] : [];
     },
