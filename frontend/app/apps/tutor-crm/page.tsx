@@ -21,7 +21,10 @@ import {
   X,
   MagnifyingGlassPlus,
   MagnifyingGlassMinus,
-  ShareNetwork
+  ShareNetwork,
+  MagnifyingGlass,
+  ListChecks,
+  CalendarCheck
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -56,6 +59,18 @@ export default function TutorCRMPage() {
     return monday;
   });
 
+  const [mobileDraftLesson, setMobileDraftLesson] = useState<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  } | null>(null);
+  const [resizingDraft, setResizingDraft] = useState<{
+    edge: "top" | "bottom";
+    startY: number;
+    initialStart: string;
+    initialEnd: string;
+  } | null>(null);
+
   // Mouse Drag selection states
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartSlot, setDragStartSlot] = useState<{ day: Date; timeSlot: string } | null>(null);
@@ -80,6 +95,7 @@ export default function TutorCRMPage() {
   const wasResizingRef = useRef(false);
   const touchStartRef = useRef<{ x: number, y: number, day: Date, timeSlot: string } | null>(null);
   const touchMovedRef = useRef<boolean>(false);
+  const swipeTouchStartRef = useRef<{ x: number, y: number } | null>(null);
 
   // Drag and Drop lesson states
   const [draggedLesson, setDraggedLesson] = useState<tutor_crm.Lesson | null>(null);
@@ -164,11 +180,51 @@ export default function TutorCRMPage() {
         setQuickLessonEndTime("");
         setQuickLessonNotes("");
         setIsEditingStudent(false);
+        setMobileDraftLesson(null); // clear mobile draft on Escape
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Touch-based draft lesson resizing on mobile
+  useEffect(() => {
+    if (!resizingDraft || !mobileDraftLesson) return;
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const deltaY = touch.clientY - resizingDraft.startY;
+      const deltaSlots = Math.round(deltaY / slotHeight);
+      if (deltaSlots === 0) return;
+
+      const startIdx = timeSlots.indexOf(resizingDraft.initialStart);
+      const endIdx = timeSlots.indexOf(resizingDraft.initialEnd);
+      if (startIdx === -1 || endIdx === -1) return;
+
+      if (resizingDraft.edge === "top") {
+        const newStartIdx = Math.min(endIdx - 1, Math.max(0, startIdx + deltaSlots));
+        const newStart = timeSlots[newStartIdx];
+        setMobileDraftLesson(prev => prev ? { ...prev, startTime: newStart } : null);
+        setQuickScheduleData(prev => prev ? { ...prev, startTime: newStart } : null);
+      } else {
+        const newEndIdx = Math.max(startIdx + 1, Math.min(timeSlots.length - 1, endIdx + deltaSlots));
+        const newEnd = timeSlots[newEndIdx];
+        setMobileDraftLesson(prev => prev ? { ...prev, endTime: newEnd } : null);
+        setQuickScheduleData(prev => prev ? { ...prev, endTime: newEnd } : null);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setResizingDraft(null);
+    };
+
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [resizingDraft, mobileDraftLesson]);
 
   const handleUpdateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -476,6 +532,30 @@ export default function TutorCRMPage() {
 
     setDragStartSlot(null);
     setDragEndSlot(null);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    swipeTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!swipeTouchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - swipeTouchStartRef.current.x;
+    const deltaY = touch.clientY - swipeTouchStartRef.current.y;
+    swipeTouchStartRef.current = null;
+
+    // Swipe horizontal check: distance > 60px, vertical distance < 50px
+    if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 50) {
+      if (deltaX > 0) {
+        // Swipe Right -> previous week
+        changeWeek(-1);
+      } else {
+        // Swipe Left -> next week
+        changeWeek(1);
+      }
+    }
   };
 
   // Global mouseup event to stop dragging if mouse is released outside
@@ -904,6 +984,32 @@ JSON Şeması:
     const endM = totalEndMins % 60;
     const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
 
+    // Mobile check
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      if (mobileDraftLesson) {
+        // Relocate current draft to new time/date, keeping the same duration!
+        const startIdx = timeSlots.indexOf(mobileDraftLesson.startTime);
+        const endIdx = timeSlots.indexOf(mobileDraftLesson.endTime);
+        const durationSlots = endIdx - startIdx;
+        
+        const newStartIdx = timeSlots.indexOf(timeSlot);
+        const newEndIdx = Math.min(timeSlots.length - 1, newStartIdx + durationSlots);
+        setMobileDraftLesson({
+          date: dateStr,
+          startTime: timeSlot,
+          endTime: timeSlots[newEndIdx]
+        });
+      } else {
+        // Create new draft
+        setMobileDraftLesson({
+          date: dateStr,
+          startTime: timeSlot,
+          endTime: endTimeStr
+        });
+      }
+      return;
+    }
+
     setQuickScheduleData({
       date: dateStr,
       startTime: timeSlot,
@@ -972,6 +1078,7 @@ JSON Şeması:
                 onComplete={() => {
                   setIsDrawerOpen(false);
                   setFormPreFill({});
+                  setMobileDraftLesson(null);
                   fetchAllData();
                 }}
               />
@@ -1037,23 +1144,71 @@ JSON Şeması:
 
       </aside>
 
-      {/* MOBILE HEADER */}
-      <header className="md:hidden bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between">
-        <button
-          onClick={() => router.push("/home")}
-          className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors"
-        >
-          <CaretLeft size={20} weight="bold" className="text-gray-400" />
-        </button>
-        <div className="flex flex-col items-center">
-          <h1 className="text-sm font-black text-gray-900 uppercase tracking-tight">Tutor <span className="text-blue-600">Place</span></h1>
-          <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Planner & Manager</p>
+      {/* MOBILE STICKY HEADER */}
+      <header className="md:hidden sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-40 shadow-sm">
+        {/* Month Selector / Month Text */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <button
+            onClick={() => router.push("/home")}
+            className="p-1 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer mr-1 shrink-0"
+          >
+            <CaretLeft size={18} weight="bold" className="text-gray-400" />
+          </button>
+          <span className="text-xs font-black text-gray-900 ml-1 uppercase truncate">
+            {currentWeekStart.toLocaleDateString("tr-TR", { month: "short", year: "numeric" })}
+          </span>
         </div>
-        <div className="w-8" />
+
+        {/* Right side items: Today, Search, Checklist */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Today Button */}
+          <button 
+            onClick={setTodayWeek}
+            className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors text-gray-600 cursor-pointer"
+            title="Bugün"
+          >
+            <Calendar size={16} weight="bold" />
+          </button>
+
+          {/* Search Button */}
+          <button 
+            onClick={() => {
+              setActiveTab("students");
+              toast.success("Öğrenci arama listesi açıldı");
+            }}
+            className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors text-gray-600 cursor-pointer"
+          >
+            <MagnifyingGlass size={16} weight="bold" />
+          </button>
+
+          {/* Badge Icon: Today's lessons count */}
+          <button
+            onClick={() => {
+              setActiveTab("schedule");
+              setCalendarView("list");
+            }}
+            className="relative p-1.5 hover:bg-gray-50 rounded-xl transition-colors text-gray-600 cursor-pointer"
+          >
+            <CalendarCheck size={16} weight="bold" />
+            {lessons.filter(l => l.lesson_date === formatDatePickerDate(new Date())).length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
+                {lessons.filter(l => l.lesson_date === formatDatePickerDate(new Date())).length}
+              </span>
+            )}
+          </button>
+
+          {/* Homeworks / Task Check Icon */}
+          <button
+            onClick={() => setActiveTab("homework")}
+            className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors text-gray-600 cursor-pointer"
+          >
+            <ListChecks size={16} weight="bold" />
+          </button>
+        </div>
       </header>
 
       {/* MAIN CONTAINER */}
-      <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full overflow-x-hidden">
+      <main className={`flex-1 ${activeTab === "schedule" ? "p-0" : "p-6"} md:p-10 max-w-7xl mx-auto w-full overflow-x-hidden`}>
 
         {/* Content Wrapper */}
         <div className="space-y-6 relative">
@@ -1065,7 +1220,7 @@ JSON Şeması:
             <>
               {/* TOP CONTROL BAR (ONLY FOR TAKVIM/SCHEDULE TAB) */}
               {!loading && activeTab === "schedule" && (
-                <div className="flex flex-col lg:flex-row gap-3 items-center justify-between bg-white p-3 sm:px-5 sm:py-3 rounded-2xl border border-gray-100 w-full">
+                <div className="hidden md:flex flex-col lg:flex-row gap-3 items-center justify-between bg-white p-3 sm:px-5 sm:py-3 rounded-2xl border border-gray-100 w-full">
                   <div className="flex flex-col sm:flex-row gap-3 items-center w-full lg:w-auto">
                     <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center w-full sm:w-auto justify-center sm:justify-start">
                       {/* Plan Selector Dropdown */}
@@ -1191,29 +1346,47 @@ JSON Şeması:
                     {/* Calendar Views */}
                     {calendarView === "grid" ? (
                       /* WEEKLY HOUR GRID WITH MOUSE DRAG RANGE */
-                      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden select-none">
+                      <div 
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        className="bg-white md:rounded-3xl md:border border-gray-100 md:shadow-sm overflow-hidden select-none h-[calc(100dvh-105px)] md:h-auto overflow-y-auto md:overflow-y-visible"
+                      >
                         <div className="overflow-x-auto">
-                          <table className={`w-full ${isCompact ? "min-w-[650px]" : "min-w-[900px]"} table-fixed border-collapse`}>
+                          <table className="w-full md:min-w-[900px] min-w-0 table-fixed border-collapse">
                             <thead>
                               <tr className="bg-gray-50 border-b border-gray-100">
                                 {/* Empty corner header for times */}
-                                <th className={`${isCompact ? "w-12 py-2 px-1 text-[8px]" : "w-20 py-4 px-3 text-[10px]"} font-black uppercase text-gray-400 text-center tracking-widest border-r border-gray-100`}>
+                                <th className={`sticky left-0 top-0 bg-gray-50 z-40 border-r border-gray-100 ${isCompact ? "w-10 py-1.5 px-0.5 text-[8px]" : "w-20 py-4 px-3 text-[10px]"} font-black uppercase text-gray-400 text-center tracking-widest`}>
                                   Saat
                                 </th>
                                 {days.map((day, idx) => {
                                   const isToday = formatDatePickerDate(day) === formatDatePickerDate(new Date());
+                                  const dateStr = formatDatePickerDate(day);
+                                  const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
                                   return (
-                                    <th key={idx} className={`${isCompact ? "py-2 px-1" : "py-4 px-3"} border-r border-gray-100 last:border-r-0`}>
+                                    <th key={idx} className={`sticky top-0 bg-white z-30 border-b border-gray-100 border-r border-gray-100 last:border-r-0 ${isCompact ? "py-1.5 px-0.5" : "py-4 px-3"}`}>
                                       <div className="flex flex-col items-center gap-0.5">
                                         <span className={`font-black uppercase tracking-widest ${isCompact ? "text-[8px]" : "text-[10px]"
                                           } ${isToday ? "text-blue-600" : "text-gray-400"}`}>
                                           {day.toLocaleDateString("tr-TR", { weekday: isCompact ? "narrow" : "short" })}
                                         </span>
-                                        <span className={`rounded-full flex items-center justify-center font-black ${isCompact ? "w-5 h-5 text-xs" : "w-7 h-7 text-sm"
+                                        <span className={`rounded-full flex items-center justify-center font-black ${isCompact ? "w-5 h-5 text-[10px]" : "w-7 h-7 text-sm"
                                           } ${isToday ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-900"
                                           }`}>
                                           {day.getDate()}
                                         </span>
+                                        {/* Day Summary Green Pills (Max 2 for mobile fitting) */}
+                                        <div className="hidden md:flex flex-col gap-0.5 w-full mt-1 px-0.5 overflow-hidden">
+                                          {dayLessons.slice(0, 2).map((lesson) => (
+                                            <span 
+                                              key={lesson.id} 
+                                              className="bg-emerald-600 text-white text-[7px] font-black rounded px-1 py-0.5 truncate text-center block w-full leading-none scale-90 md:scale-100"
+                                              title={lesson.student_name || ""}
+                                            >
+                                              {(lesson.student_name || "Öğrenci").split(" ")[0]}
+                                            </span>
+                                          ))}
+                                        </div>
                                       </div>
                                     </th>
                                   );
@@ -1222,8 +1395,8 @@ JSON Şeması:
                             </thead>
                             <tbody>
                               <tr className="align-top">
-                                {/* Time Column */}
-                                <td className="p-0 border-r border-gray-100 bg-gray-50/50 w-12 md:w-20">
+                                {/* Time Column - Sticky Left */}
+                                <td className={`sticky left-0 bg-gray-50/90 z-20 p-0 border-r border-gray-100 ${isCompact ? "w-10" : "w-20"}`}>
                                   {timeSlots.map((timeSlot) => {
                                     const isFullHourLine = timeSlot.endsWith(":30");
                                     return (
@@ -1372,7 +1545,7 @@ JSON Şeması:
                                                 const touch = e.touches[0];
                                                 const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
                                                 const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
-                                                if (diffX > 8 || diffY > 8) {
+                                                if (diffY > 8 && diffY > diffX) {
                                                   if (!touchMovedRef.current) {
                                                     touchMovedRef.current = true;
                                                     startDragging(touchStartRef.current.day, touchStartRef.current.timeSlot);
@@ -1399,21 +1572,7 @@ JSON Şeması:
                                                 e.preventDefault();
                                                 const touch = e.changedTouches[0];
                                                 if (!touchMovedRef.current) {
-                                                  const dateStr = formatDatePickerDate(touchStartRef.current.day);
-                                                  const timeSlot = touchStartRef.current.timeSlot;
-                                                  const [h, m] = timeSlot.split(":").map(Number);
-                                                  const totalEndMins = h * 60 + m + 30;
-                                                  const endH = Math.floor(totalEndMins / 60);
-                                                  const endM = totalEndMins % 60;
-                                                  const endTimeStr = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
-
-                                                  setQuickScheduleData({
-                                                    date: dateStr,
-                                                    startTime: timeSlot,
-                                                    endTime: endTimeStr,
-                                                    x: touch.clientX,
-                                                    y: touch.clientY
-                                                  });
+                                                  handleGridCellClick(touchStartRef.current.day, touchStartRef.current.timeSlot, { clientX: touch.clientX, clientY: touch.clientY } as any);
                                                 } else {
                                                   finishDragging({ clientX: touch.clientX, clientY: touch.clientY });
                                                 }
@@ -1468,6 +1627,68 @@ JSON Şeması:
 
                                       {/* Lessons Cards Overlay */}
                                       <div className="absolute inset-0 pointer-events-none">
+                                        {mobileDraftLesson && mobileDraftLesson.date === dateStr && (() => {
+                                          const startStr = mobileDraftLesson.startTime;
+                                          const endStr = mobileDraftLesson.endTime;
+                                          const startIdx = timeSlots.indexOf(startStr);
+                                          if (startIdx === -1) return null;
+                                          const durationSlots = getLessonDurationSlots(startStr, endStr);
+                                          return (
+                                            <div
+                                              style={{
+                                                top: `${startIdx * slotHeight}px`,
+                                                height: `${durationSlots * slotHeight}px`,
+                                                left: 0,
+                                                width: "100%",
+                                              }}
+                                              className="absolute p-0.5 pointer-events-auto z-30"
+                                            >
+                                              <div 
+                                                onClick={() => {
+                                                  setFormPreFill({
+                                                    date: mobileDraftLesson.date,
+                                                    startTime: mobileDraftLesson.startTime,
+                                                    endTime: mobileDraftLesson.endTime
+                                                  });
+                                                  setIsDrawerOpen(true);
+                                                }}
+                                                className="h-full relative bg-blue-600/10 border-2 border-dashed border-blue-600 rounded text-left flex flex-col justify-between overflow-visible p-1"
+                                              >
+                                                {/* Top drag handle dot */}
+                                                <div 
+                                                  onTouchStart={(e) => {
+                                                    e.stopPropagation();
+                                                    const touch = e.touches[0];
+                                                    setResizingDraft({
+                                                      edge: "top",
+                                                      startY: touch.clientY,
+                                                      initialStart: startStr,
+                                                      initialEnd: endStr
+                                                    });
+                                                  }}
+                                                  className="absolute -top-1.5 left-2 w-3.5 h-3.5 bg-blue-600 rounded-full border-2 border-white shadow-md z-40 cursor-ns-resize"
+                                                />
+                                                
+                                                {/* Content removed as per user request */}
+
+                                                {/* Bottom drag handle dot */}
+                                                <div 
+                                                  onTouchStart={(e) => {
+                                                    e.stopPropagation();
+                                                    const touch = e.touches[0];
+                                                    setResizingDraft({
+                                                      edge: "bottom",
+                                                      startY: touch.clientY,
+                                                      initialStart: startStr,
+                                                      initialEnd: endStr
+                                                    });
+                                                  }}
+                                                  className="absolute -bottom-1.5 right-2 w-3.5 h-3.5 bg-blue-600 rounded-full border-2 border-white shadow-md z-40 cursor-ns-resize"
+                                                />
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
                                         {sortedLessons.map((lesson) => {
                                           const startStr = lesson.start_time.slice(0, 5);
                                           const endStr = lesson.end_time.slice(0, 5);
@@ -1501,7 +1722,7 @@ JSON Şeması:
                                                   handleLessonDragStart(e, lesson);
                                                 }}
                                                 onDragEnd={handleLessonDragEnd}
-                                                className={`h-full relative group bg-blue-50 border-l-[3px] border-blue-600 rounded text-left transition-all flex flex-col justify-center overflow-hidden p-1 ${activeFollowedShareId
+                                                className={`h-full relative group bg-blue-50 md:border-l-[3px] border-l-0 border-blue-600 rounded text-left transition-all flex flex-col justify-center overflow-hidden p-1 ${activeFollowedShareId
                                                     ? "cursor-default"
                                                     : "hover:bg-blue-100/80 cursor-grab active:cursor-grabbing hover:shadow-sm"
                                                   }`}
@@ -1527,16 +1748,16 @@ JSON Şeması:
 
                                                 <div className="min-w-0 py-1">
                                                   {durationSlots === 1 ? (
-                                                    <p className="font-bold text-gray-955 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
-                                                      <span className="truncate">{lesson.student_name}</span>
-                                                      <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
+                                                    <p className="font-bold text-gray-955 leading-tight text-[9px] flex flex-col items-center justify-center gap-0.5 w-full">
+                                                      <span className="break-words whitespace-normal text-center w-full">{lesson.student_name}</span>
+                                                      <span className="hidden md:inline text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
                                                     </p>
                                                   ) : (
                                                     <>
-                                                      <p className="font-black text-gray-955 leading-tight truncate text-[10px] mb-0.5">
+                                                      <p className="font-black text-gray-955 leading-tight break-words whitespace-normal text-[10px] mb-0.5">
                                                         {lesson.student_name}
                                                       </p>
-                                                      <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
+                                                      <p className="hidden md:block font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
                                                         {startStr} - {endStr}
                                                       </p>
                                                     </>
@@ -2662,6 +2883,19 @@ JSON Şeması:
           </button>
         ))}
       </div>
+
+      {/* MOBILE FLOATING ACTION BUTTON */}
+      {!loading && activeTab === "schedule" && !activeFollowedShareId && (
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="md:hidden fixed bottom-20 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-200 z-40 active:scale-95 transition-all cursor-pointer"
+        >
+          <Plus size={24} weight="bold" />
+        </button>
+      )}
+
+      {/* MOBILE DRAFT LESSON BOTTOM DRAWER REMOVED AS PER USER REQUEST */}
+
 
     </div>
   );
