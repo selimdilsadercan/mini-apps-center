@@ -60,14 +60,7 @@ export function getAppHref(app: MiniApp): string {
     hostname === "127.0.0.1" ||
     hostname.endsWith(".localhost");
 
-  if (app.subdomain && isLocal) {
-    const host = port
-      ? `${app.subdomain}.localhost:${port}`
-      : `${app.subdomain}.localhost`;
-    return `${protocol}//${host}`;
-  }
-
-  if (app.subdomain) {
+  if (app.subdomain && !isLocal) {
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
     return `${protocol}//${app.subdomain}.${rootDomain}`;
   }
@@ -115,7 +108,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#4C6EF5",
     href: "/apps/icon-set-guide",
     isImplemented: true,
-    subdomain: "icons",
+    subdomain: "iconguide",
   },
   {
     id: "subcenter",
@@ -137,7 +130,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#228BE6",
     href: "/apps/tutor-crm",
     isImplemented: true,
-    subdomain: "tutor",
+    subdomain: "tutorplace",
   },
   {
     id: "pdf-tools",
@@ -161,7 +154,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#e03131",
     href: "/apps/iskambil",
     isImplemented: true,    
-    subdomain: "iskambil",
+    subdomain: "cardgames",
   },
   {
     id: "catan-bot",
@@ -183,7 +176,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#228BE6",
     href: "/apps/game-companion",
     isImplemented: true,
-    subdomain: "eslikci",
+    subdomain: "gamecompanion",
   },
   {
     id: "tournament-manager",
@@ -194,7 +187,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FCC419",
     href: "/apps/tournament-editor",
     isImplemented: true,
-    subdomain: "turnuva",
+    subdomain: "tournaments",
   },
   {
     id: "board-game-clubs",
@@ -205,7 +198,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#D4A830",
     href: "/apps/board-game-clubs",
     isImplemented: true,
-    subdomain: "kulup",
+    subdomain: "bgc",
   },
 
   // Entertainment
@@ -218,7 +211,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FF0000",
     href: "/apps/youtube-discover",
     isImplemented: true,
-    subdomain: "youtube",
+    subdomain: "ytdb",
   },
   {
     id: "film-graph",
@@ -274,7 +267,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#001A33",
     href: "/apps/itu-yemekhane",
     isImplemented: true,
-    subdomain: "itu",
+    subdomain: "itumeals",
     isLocal: true,
   },
   {
@@ -308,7 +301,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#4dabf7",
     href: "/apps/map-tracker",
     isImplemented: true,
-    subdomain: "harita",
+    subdomain: "maptracker",
   },
   {
     id: "chocolate-db",
@@ -319,7 +312,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#7B3F00",
     href: "/apps/chocolate-db",
     isImplemented: true,
-    subdomain: "cikolata",
+    subdomain: "chocolatedb",
   },
   {
     id: "meal-planner",
@@ -363,7 +356,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FF1493",
     href: "/apps/concert-list",
     isImplemented: true,
-    subdomain: "konser",
+    subdomain: "concerts",
   },
   {
     id: "tasket",
@@ -385,6 +378,6 @@ export const MINI_APPS: MiniApp[] = [
     color: "#6F4E37",
     href: "/apps/workplaces",
     isImplemented: true,
-    subdomain: "kutuphane",
+    subdomain: "workplaces",
   },
 ];
