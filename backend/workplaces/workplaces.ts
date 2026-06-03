@@ -449,7 +449,72 @@ export const updatePlace = api(
   { expose: true, method: "POST", path: "/workplaces/update" },
   async (req: UpdatePlaceRequest): Promise<UpdatePlaceResponse> => {
     await requireAdmin(req.userId);
-    const meta = await getEnrichedMetadata(req.google_place_id, req.metadata);
+
+    // Fetch existing place to preserve details that are not in the update request
+    const { data: currentRows, error: currentError } = await supabase
+      .schema("workplaces")
+      .from("places")
+      .select("*")
+      .eq("id", req.id)
+      .maybeSingle();
+
+    if (currentError || !currentRows) {
+      throw APIError.notFound("place not found to update");
+    }
+
+    const existing = currentRows;
+    const gId = req.google_place_id || existing.metadata?.google_place_id;
+    const apiKey = googleMapsApiKey();
+
+    let apiLat = undefined;
+    let apiLng = undefined;
+    let apiAddr = undefined;
+    let apiRating = undefined;
+    let apiRatingsTotal = undefined;
+    let apiImg = undefined;
+    let apiDistrict = undefined;
+
+    // Fetch details from Google Places API if coordinates or images are missing
+    if (gId && apiKey && (!existing.latitude || !existing.longitude || !existing.image_url || !existing.address)) {
+      try {
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${gId}&fields=geometry,formatted_address,rating,user_ratings_total,photos&key=${apiKey}`;
+        const response = await fetch(url);
+        const data = (await response.json()) as any;
+        if (data.result) {
+          const res = data.result;
+          apiLat = res.geometry?.location?.lat;
+          apiLng = res.geometry?.location?.lng;
+          apiAddr = res.formatted_address;
+          apiRating = res.rating;
+          apiRatingsTotal = res.user_ratings_total;
+          
+          if (res.photos && res.photos.length > 0) {
+            apiImg = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${res.photos[0].photo_reference}&key=${apiKey}`;
+          }
+
+          if (res.formatted_address) {
+            const parts = res.formatted_address.split(",");
+            if (parts.length > 1) {
+              apiDistrict = parts[parts.length - 2].trim().split(" ")[0];
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Enrichment from details API during update failed:", err);
+      }
+    }
+
+    const meta = await getEnrichedMetadata(gId, req.metadata || existing.metadata);
+
+    // Support merging new fields with existing fields fallback, or API-enriched fields
+    const finalLatitude = req.latitude !== undefined && req.latitude !== null ? req.latitude : (existing.latitude || apiLat);
+    const finalLongitude = req.longitude !== undefined && req.longitude !== null ? req.longitude : (existing.longitude || apiLng);
+    const finalDistrict = req.district !== undefined && req.district !== null ? req.district : (existing.district || apiDistrict);
+    const finalImageUrl = req.image_url !== undefined && req.image_url !== null ? req.image_url : (existing.image_url || apiImg);
+    const finalAddress = req.address !== undefined && req.address !== null ? req.address : (existing.address || apiAddr);
+    const finalRating = req.rating !== undefined && req.rating !== null ? req.rating : (existing.rating || apiRating);
+    const finalUserRatings = req.user_ratings_total !== undefined && req.user_ratings_total !== null ? req.user_ratings_total : (existing.user_ratings_total || apiRatingsTotal);
+
     const { data, error } = await supabase
       .schema("workplaces")
       .rpc("update_place", {
@@ -462,13 +527,13 @@ export const updatePlace = api(
         p_parking: req.parking || false,
         p_power_outlets: req.power_outlets || false,
         p_quiet_level: req.quiet_level || 3,
-        p_latitude: req.latitude,
-        p_longitude: req.longitude,
-        p_district: req.district,
-        p_image_url: req.image_url,
-        p_address: req.address,
-        p_rating: req.rating,
-        p_user_ratings_total: req.user_ratings_total,
+        p_latitude: finalLatitude,
+        p_longitude: finalLongitude,
+        p_district: finalDistrict,
+        p_image_url: finalImageUrl,
+        p_address: finalAddress,
+        p_rating: finalRating,
+        p_user_ratings_total: finalUserRatings,
         p_metadata: meta,
       });
     if (error) {

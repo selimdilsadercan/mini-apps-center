@@ -47,9 +47,9 @@ export function PlaceCard({
       >
         {/* Image Header */}
         <div className="relative h-36 w-full bg-neutral-100 overflow-hidden">
-          {place.image_url ? (
+          {(place.image_url || place.metadata?.photos?.[0]) ? (
             <img
-              src={place.image_url}
+              src={place.image_url || place.metadata?.photos?.[0]}
               alt={place.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

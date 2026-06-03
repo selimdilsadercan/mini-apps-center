@@ -15,6 +15,13 @@ import {
   MapPin,
   X,
   List,
+  House,
+  Coins,
+  Eye,
+  SpeakerLow,
+  Phone,
+  Globe,
+  Clock,
 } from "@phosphor-icons/react";
 
 const StudyPlacesMap = dynamic(() => import("./StudyPlacesMap"), {
@@ -388,7 +395,7 @@ function WorkplacesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-28">
+    <div className={`flex flex-col bg-neutral-50 ${viewMode === "map" ? "h-[calc(100vh-53px)] md:h-screen w-full pb-0" : "min-h-screen pb-28"}`}>
 
       {/* Compact Sticky Search & Filter Toolbar */}
       <div className="bg-white border-b sticky top-0 z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -492,14 +499,14 @@ function WorkplacesContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 mt-8">
+      <div className={viewMode === "map" ? "w-full flex-1 flex relative" : "max-w-7xl mx-auto px-4 mt-8"}>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
             <p className="text-neutral-500 font-medium">{t("loading")}</p>
           </div>
         ) : viewMode === "map" ? (
-          <div className="relative w-full h-[calc(100vh-180px)] min-h-[500px] rounded-3xl overflow-hidden border border-neutral-250 shadow-lg bg-neutral-100 flex">
+          <div className="relative w-full flex-1 min-h-0 bg-neutral-100 flex">
             {/* Map Container */}
             <div className="flex-1 h-full w-full">
               <StudyPlacesMap 
@@ -517,7 +524,7 @@ function WorkplacesContent() {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: "-100%", opacity: 0 }}
                   transition={{ type: "spring", damping: 25, stiffness: 220 }}
-                  className="absolute left-4 right-4 sm:right-auto top-4 bottom-4 sm:w-[340px] bg-white rounded-2xl shadow-2xl z-20 flex flex-col overflow-hidden border border-neutral-200"
+                  className="absolute left-4 right-4 sm:right-auto top-4 bottom-4 sm:w-[340px] bg-white rounded-2xl shadow-2xl z-[1000] flex flex-col overflow-hidden border border-neutral-200"
                 >
                   {/* Close button */}
                   <button 
@@ -527,16 +534,34 @@ function WorkplacesContent() {
                     <X size={14} weight="bold" />
                   </button>
 
-                  {/* Place Image */}
-                  <div className="w-full h-44 bg-neutral-150 relative shrink-0">
-                    <img 
-                      src={selectedPlace.image_url || "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop"} 
-                      alt={selectedPlace.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as any).src = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop";
-                      }}
-                    />
+                  {/* Place Image / Gallery */}
+                  <div className="w-full h-44 bg-neutral-150 relative shrink-0 overflow-hidden">
+                    {selectedPlace.metadata?.photos && selectedPlace.metadata.photos.length > 0 ? (
+                      <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth">
+                        {selectedPlace.metadata.photos.map((photoUrl: string, idx: number) => (
+                          <div key={idx} className="w-full h-full shrink-0 snap-start relative">
+                            <img 
+                              src={photoUrl} 
+                              alt={`${selectedPlace.name} - Görsel ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                            <div className="absolute bottom-2 right-2 bg-neutral-900/60 backdrop-blur-sm text-[9px] text-white px-2 py-0.5 rounded-full font-bold">
+                              {idx + 1} / {selectedPlace.metadata.photos.length}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <img 
+                        src={selectedPlace.image_url || "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop"} 
+                        alt={selectedPlace.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as any).src = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop";
+                        }}
+                      />
+                    )}
                   </div>
 
                   {/* Content */}
@@ -565,24 +590,153 @@ function WorkplacesContent() {
                       </p>
                     )}
 
-                    {/* Features list */}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
-                        <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider block">WiFi</span>
-                        <span className="text-xs font-bold text-neutral-700">
-                          {selectedPlace.metadata?.wifi_status ? wifiLabels[selectedPlace.metadata.wifi_status] : (selectedPlace.wifi ? "Var" : "Yok")}
-                        </span>
-                      </div>
-                      <div className="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
-                        <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider block">Priz</span>
-                        <span className="text-xs font-bold text-neutral-700">
-                          {selectedPlace.metadata?.outlets_status ? outletsLabels[selectedPlace.metadata.outlets_status] : (selectedPlace.power_outlets ? "Var" : "Yok")}
-                        </span>
+                    {/* Features list - 7 amenities grid simplified for side panel */}
+                    <div className="space-y-2 pt-1 border-t border-neutral-100">
+                      <p className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider">İmkanlar</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <WifiHigh size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">WiFi</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {selectedPlace.metadata?.wifi_status ? wifiLabels[selectedPlace.metadata.wifi_status] : (selectedPlace.wifi ? "Var" : "Yok")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <Plug size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">Priz</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {selectedPlace.metadata?.outlets_status ? outletsLabels[selectedPlace.metadata.outlets_status] : (selectedPlace.power_outlets ? "Var" : "Yok")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <Car size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">Otopark</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {Array.isArray(selectedPlace.metadata?.parking_status)
+                                ? selectedPlace.metadata.parking_status.map((k: string) => parkingLabels[k] || k).join(", ")
+                                : (parkingLabels[selectedPlace.metadata?.parking_status] || (selectedPlace.parking ? "Var" : "Yok"))}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <Coins size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">Fiyat</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {priceLabels[selectedPlace.metadata?.coffee_price] || "Orta / Normal"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <SpeakerLow size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">Sessizlik</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {selectedPlace.quiet_level ? {
+                                1: "Çok Gürültülü",
+                                2: "Gürültülü",
+                                3: "Orta",
+                                4: "Sessiz",
+                                5: "Çok Sessiz",
+                              }[selectedPlace.quiet_level] || "Orta" : "Orta"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-100 flex items-center gap-2">
+                          <Eye size={16} className="text-amber-700 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider block">Manzara</span>
+                            <span className="text-[11px] font-bold text-neutral-700 truncate block">
+                              {viewLabels[selectedPlace.metadata?.view_status] || "Yok"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Contact & Hours */}
+                    <div className="border-t border-neutral-100 pt-3 space-y-2">
+                      <p className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider">İletişim & Saatler</p>
+                      
+                      {selectedPlace.metadata?.phone && (
+                        <div className="flex items-center gap-2 text-xs text-neutral-600 font-semibold">
+                          <Phone size={14} className="text-amber-700 shrink-0" />
+                          <a href={`tel:${selectedPlace.metadata.phone}`} className="hover:text-amber-800 transition-colors">
+                            {selectedPlace.metadata.phone}
+                          </a>
+                        </div>
+                      )}
+
+                      {selectedPlace.metadata?.website && (
+                        <div className="flex items-center gap-2 text-xs text-neutral-600 font-semibold">
+                          <Globe size={14} className="text-amber-700 shrink-0" />
+                          <a href={selectedPlace.metadata.website} target="_blank" rel="noopener noreferrer" className="hover:text-amber-800 transition-colors truncate">
+                            Web Sitesi
+                          </a>
+                        </div>
+                      )}
+
+                      {selectedPlace.metadata?.opening_hours && (
+                        <div className="flex items-center gap-2 text-xs text-neutral-600 font-semibold">
+                          <Clock size={14} className="text-amber-700 shrink-0" />
+                          {selectedPlace.metadata.opening_hours.open_now !== undefined && (
+                            <span className={selectedPlace.metadata.opening_hours.open_now ? "text-emerald-700 font-bold" : "text-rose-700 font-bold"}>
+                              {selectedPlace.metadata.opening_hours.open_now ? "Açık" : "Kapalı"}
+                            </span>
+                          )}
+                          {(() => {
+                            if (!selectedPlace.metadata?.opening_hours?.weekday_text) return null;
+                            const weekdayText = selectedPlace.metadata.opening_hours.weekday_text;
+                            const todayDay = new Date().getDay();
+                            const googleIndex = todayDay === 0 ? 6 : todayDay - 1;
+                            const rawText = weekdayText[googleIndex] || null;
+                            if (!rawText) return null;
+                            
+                            const formatted = formatTo24Hour(rawText);
+                            const firstColon = formatted.indexOf(":");
+                            if (firstColon === -1) return formatted;
+                            const timePart = formatted.substring(firstColon + 1).trim();
+                            
+                            const parts = timePart.split(/[–\-]/);
+                            if (parts.length === 2 && selectedPlace.metadata.opening_hours.open_now) {
+                              const closeTime = parts[1].trim();
+                              if (closeTime === "00:00") return <span className="text-[11px] text-neutral-450">• 00:00'a kadar açık</span>;
+                              
+                              let suffix = "a";
+                              if (closeTime.endsWith(":30")) {
+                                suffix = "a";
+                              } else if (closeTime.endsWith(":00")) {
+                                const hour = closeTime.split(":")[0];
+                                if (hour === "22" || hour === "02" || hour === "12") {
+                                  suffix = "ye";
+                                } else if (hour === "19" || hour === "09") {
+                                  suffix = "a";
+                                } else if (hour === "16" || hour === "06") {
+                                  suffix = "ya";
+                                } else {
+                                  suffix = "e";
+                                }
+                              }
+                              return <span className="text-[11px] text-neutral-450">• {closeTime}'{suffix} kadar açık</span>;
+                            }
+                            return <span className="text-[11px] text-neutral-450">• {timePart}</span>;
+                          })()}
+                        </div>
+                      )}
+                    </div>
+
                     {selectedPlace.note && (
-                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-150 text-xs text-neutral-600 leading-relaxed font-semibold italic">
+                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-150 text-[11px] text-neutral-600 leading-relaxed font-semibold italic">
                         "{selectedPlace.note}"
                       </div>
                     )}
@@ -591,7 +745,7 @@ function WorkplacesContent() {
                   {/* Detail Link Footer */}
                   <div className="p-3 border-t border-neutral-100 bg-neutral-50 shrink-0">
                     <a
-                      href={`/apps/workplaces/place?id=${selectedPlace.id}`}
+                      href={`/apps/workplaces/place?placeId=${selectedPlace.id}`}
                       className="block text-center w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow no-underline"
                     >
                       Detayları Gör
@@ -1040,3 +1194,18 @@ const viewLabels: Record<string, string> = {
   PARK: "Park / Yeşil Alan",
   CITY: "Şehir Manzarası",
 };
+
+function formatTo24Hour(text: string): string {
+  if (!text) return text;
+  return text.replace(/(\d{1,2}):(\d{2})\s*(AM|PM)/gi, (match, hh, mm, ampm) => {
+    let hour = parseInt(hh, 10);
+    const m = ampm.toUpperCase();
+    if (m === "PM" && hour < 12) {
+      hour += 12;
+    } else if (m === "AM" && hour === 12) {
+      hour = 0;
+    }
+    const hourStr = hour.toString().padStart(2, "0");
+    return `${hourStr}:${mm}`;
+  });
+}
