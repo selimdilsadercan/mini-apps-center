@@ -71,7 +71,7 @@ function AppSection({
 
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 px-5 snap-x snap-mandatory overscroll-x-contain touch-pan-x"
+        className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 pl-4 pr-5 snap-x snap-mandatory overscroll-x-contain touch-pan-x scroll-pl-4"
       >
         {chunkedApps.map((chunk, chunkIdx) => (
           <div
@@ -116,7 +116,7 @@ function AppSection({
                         </h3>
                       </div>
                       <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
-                        {app.category} • {app.description}
+                        {app.description}
                       </p>
                     </div>
                   </button>
@@ -258,14 +258,14 @@ export default function Discover() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
       {/* Background Decorative Gradient (Same as Home) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
       </div>
 
-      <main className="flex-1 px-5 pb-32 overflow-y-auto max-w-4xl mx-auto w-full">
+      <main className="flex-1 px-5 pb-32 overflow-y-auto max-w-4xl mx-auto w-full overflow-x-hidden">
         {/* Header Section */}
         <header className="pt-8 pb-4">
           <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-1.5">
@@ -327,7 +327,7 @@ export default function Discover() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
-                          <p className="text-gray-500 text-sm truncate">{app.category}</p>
+                          <p className="text-gray-500 text-sm truncate">{app.description}</p>
                         </div>
                       </button>
                       <button 
