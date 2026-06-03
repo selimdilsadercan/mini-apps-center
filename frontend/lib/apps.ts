@@ -383,13 +383,13 @@ export const MINI_APPS: MiniApp[] = [
   },
   {
     id: "pomodoro",
-    name: "Pomodoro",
-    description: "Buz erimesi animasyonlu pomodoro sayacı",
+    name: "Melt & Work",
+    description: "Buz erimesi animasyonlu odaklanma sayacı",
     icon: Timer,
     category: "Utilities",
     color: "#4dabf7",
     href: "/apps/pomodoro",
     isImplemented: true,
-    subdomain: "pomodoro",
+    subdomain: "meltwork",
   },
 ];

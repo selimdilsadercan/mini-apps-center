@@ -9,8 +9,9 @@ import {
   Coffee,
   Timer,
   Gear,
-  CaretLeft,
+  ArrowLeft,
   Wind,
+  FastForward,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -415,8 +416,7 @@ export default function PomodoroPage() {
                 href="/"
                 className="p-2 text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
               >
-                <CaretLeft size={24} />
-                <span className="text-sm font-medium">{t("back")}</span>
+                <ArrowLeft size={28} />
               </Link>
 
               <button
@@ -483,13 +483,24 @@ export default function PomodoroPage() {
                     </Button>
                   </>
                 ) : (
-                  <Button
-                    size="lg"
-                    onClick={isBreak ? startWork : startBreak}
-                    className="w-64 bg-slate-800 text-white rounded-2xl h-16 text-xl font-semibold shadow-xl hover:bg-slate-900 transition-all pointer-events-auto"
-                  >
-                    {isBreak ? t("startWork") : t("startBreak")}
-                  </Button>
+                  <div className="flex flex-col items-center gap-4">
+                    <Button
+                      size="lg"
+                      onClick={isBreak ? startWork : startBreak}
+                      className="w-64 bg-slate-800 text-white rounded-2xl h-16 text-xl font-semibold shadow-xl hover:bg-slate-900 transition-all pointer-events-auto"
+                    >
+                      {isBreak ? t("startWork") : t("startBreak")}
+                    </Button>
+                    {isBreak && (
+                      <button
+                        onClick={startWork}
+                        className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium pointer-events-auto"
+                      >
+                        <FastForward size={18} weight="fill" />
+                        {t("skipBreak")}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

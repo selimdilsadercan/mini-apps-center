@@ -1,10 +1,11 @@
 {
-  "title": "Pomodoro",
-  "subtitle": "Buz erimesi animasyonlu pomodoro sayacı",
+  "title": "Melt & Work",
+  "subtitle": "Buz erimesi animasyonlu odaklanma sayacı",
   "focus": "Odaklan",
   "break": "Mola",
   "startBreak": "Molaya Başla",
   "startWork": "Tekrar Odaklan",
+  "skipBreak": "Molayı Geç",
   "back": "Geri",
   "focusTime": "Odaklanma Süresi (Dk)",
   "breakTime": "Mola Süresi (Dk)",
