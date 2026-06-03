@@ -51,7 +51,7 @@ function getSubdomain(host: string): string | null {
 
   // Production: theverything.site / xxx.theverything.site
   const ROOT_DOMAIN =
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
   if (hostname === ROOT_DOMAIN) return null;
 

@@ -23,7 +23,7 @@ export function SubdomainBanner({ subdomain }: SubdomainBannerProps) {
 
   const app = MINI_APPS.find((a) => a.subdomain === subdomain);
   const rootDomain =
-    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
   // Slight delay so it doesn't flash immediately on page load
   useEffect(() => {
@@ -124,7 +124,7 @@ export function SubdomainBannerAuto() {
 
   useEffect(() => {
     const hostname = window.location.hostname;
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
     // Localhost: xxx.localhost
     if (hostname.endsWith(".localhost")) {

@@ -80,7 +80,7 @@ export default function Profile() {
                     {t("guest")}
                   </h2>
                   <p className="text-gray-400 text-xs truncate mt-0.5">
-                    theverything.site
+                    allminiapps.com
                   </p>
                 </div>
               </>

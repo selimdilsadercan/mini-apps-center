@@ -104,9 +104,9 @@ public class StickerContentProvider extends ContentProvider {
                 "",
                 "",
                 "",
-                "https://theverything.site",
-                "https://theverything.site/privacy",
-                "https://theverything.site/license",
+                "https://allminiapps.com",
+                "https://allminiapps.com/privacy",
+                "https://allminiapps.com/license",
                 "1",
                 0, // avoid_cache: Integer
                 0  // animated: Integer (0 = false)

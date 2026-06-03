@@ -100,7 +100,7 @@ export function ClerkProviderWrapper({
       hostname === "127.0.0.1" ||
       hostname.endsWith(".localhost");
 
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
     if (isLocal) {
       const isSub = hostname !== "localhost" && hostname !== "127.0.0.1";
