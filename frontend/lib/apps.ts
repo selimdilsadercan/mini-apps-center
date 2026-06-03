@@ -390,6 +390,6 @@ export const MINI_APPS: MiniApp[] = [
     color: "#4dabf7",
     href: "/apps/pomodoro",
     isImplemented: true,
-    subdomain: "meltwork",
+    subdomain: "melt",
   },
 ];
