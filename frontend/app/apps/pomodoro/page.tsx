@@ -443,64 +443,54 @@ export default function PomodoroPage() {
               <div className="flex items-center gap-8">
                 {timeLeft > 0 ? (
                   <>
-                    <Button
-                      size="lg"
-                      variant={isFastForward ? "default" : "ghost"}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => setIsFastForward(!isFastForward)}
-                      className={`w-14 h-14 rounded-full transition-all ${
+                      className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
                         isFastForward
-                          ? "bg-orange-500 text-white shadow-orange-200 shadow-lg animate-pulse"
-                          : "text-slate-400 hover:text-slate-600"
+                          ? "bg-orange-500 text-white shadow-orange-200 shadow-xl animate-pulse"
+                          : "bg-white/10 text-slate-400 hover:text-slate-600 hover:bg-white/20"
                       }`}
                     >
-                      <Wind size={28} weight={isFastForward ? "fill" : "regular"} />
-                    </Button>
+                      <Wind size={36} weight={isFastForward ? "fill" : "regular"} />
+                    </motion.button>
 
-                    <Button
-                      size="lg"
-                      variant={isActive ? "outline" : "default"}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => setIsActive(!isActive)}
-                      className={`w-20 h-20 rounded-full shadow-lg transition-all ${
+                      className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all ${
                         isActive
-                          ? "border-slate-200 text-slate-600 hover:bg-slate-50"
-                          : "bg-sky-600 text-white hover:bg-sky-700 scale-110"
+                          ? "bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50"
+                          : "bg-sky-600 text-white hover:bg-sky-700"
                       }`}
                     >
                       {isActive ? (
-                        <Pause size={32} weight="fill" />
+                        <Pause size={28} weight="fill" />
                       ) : (
-                        <Play size={32} weight="fill" />
+                        <Play size={28} weight="fill" />
                       )}
-                    </Button>
+                    </motion.button>
 
-                    <Button
-                      size="lg"
-                      variant="ghost"
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={resetTimer}
-                      className="w-14 h-14 rounded-full text-slate-400 hover:text-slate-600"
+                      className="w-20 h-20 rounded-full flex items-center justify-center bg-white/10 text-slate-400 hover:text-slate-600 hover:bg-white/20 transition-all"
                     >
-                      <ArrowClockwise size={28} />
-                    </Button>
+                      <ArrowClockwise size={36} />
+                    </motion.button>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <Button
-                      size="lg"
-                      onClick={isBreak ? startWork : startBreak}
-                      className="w-64 bg-slate-800 text-white rounded-2xl h-16 text-xl font-semibold shadow-xl hover:bg-slate-900 transition-all pointer-events-auto"
-                    >
-                      {isBreak ? t("startWork") : t("startBreak")}
-                    </Button>
-                    {isBreak && (
-                      <button
-                        onClick={startWork}
-                        className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium pointer-events-auto"
-                      >
-                        <FastForward size={18} weight="fill" />
-                        {t("skipBreak")}
-                      </button>
-                    )}
-                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={isBreak ? startWork : startBreak}
+                    className="w-64 bg-slate-800 text-white rounded-2xl h-16 text-xl font-semibold shadow-xl hover:bg-slate-900 transition-all pointer-events-auto"
+                  >
+                    {isBreak ? t("startWork") : t("startBreak")}
+                  </motion.button>
                 )}
               </div>
             </div>
