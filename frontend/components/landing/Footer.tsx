@@ -1,13 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Sparkle } from "@phosphor-icons/react";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { getAppRootUrl } from "@/lib/apps";
 
 const Footer: React.FC = () => {
   const t = useTranslations("Footer");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const footerLinksData = {
     product: [
@@ -51,7 +57,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/home"
+                href={mounted ? getAppRootUrl() : "/"}
                 className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition-all duration-300 shadow-lg shadow-indigo-500/10 active:scale-95 text-center flex items-center justify-center gap-2"
               >
                 <Sparkle size={18} weight="fill" />

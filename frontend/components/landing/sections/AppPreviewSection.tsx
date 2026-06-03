@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, 
@@ -14,6 +14,7 @@ import {
 import PhoneMockup from "../PhoneMockup";
 import PhoneScreen from "../PhoneScreen";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { getAppRootUrl } from "@/lib/apps";
 
 interface AppData {
   id: string;
@@ -28,6 +29,11 @@ interface AppData {
 const AppPreviewSection: React.FC = () => {
   const t = useTranslations("AppPreview");
   const [selectedAppId, setSelectedAppId] = useState<string>("subcenter");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Define custom mock screens for apps inside the Phone
   const apps: AppData[] = [
@@ -392,7 +398,7 @@ const AppPreviewSection: React.FC = () => {
 
               <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
                 <a
-                  href="/home" 
+                  href={mounted ? getAppRootUrl() : "/"} 
                   className="px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md shadow-indigo-500/10 active:scale-95 text-center"
                 >
                   {t("playNow")}

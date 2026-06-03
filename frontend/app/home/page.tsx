@@ -349,7 +349,7 @@ function SortableAppIcon({
   };
 
   const handlePressEnd = (reason?: any) => {
-    console.log("DEBUG: handlePressEnd triggered, reason:", reason || "generic");
+    console.log("DEBUG: handlePressEnd triggered");
     if (pressTimerRef.current) {
       clearTimeout(pressTimerRef.current);
       pressTimerRef.current = null;

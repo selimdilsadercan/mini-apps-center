@@ -68,7 +68,13 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const subdomain = getSubdomain(host);
 
-  // ── Known subdomain → rewrite to the matching app page ───────────────────
+  // ── Special 'my' subdomain → serves the main application ─────────────────
+  if (subdomain === "my") {
+    // Let all app routes and root path '/' (original auth logic) pass through
+    return NextResponse.next();
+  }
+
+  // ── Known app subdomain → rewrite to the matching app page ───────────────────
   if (subdomain && SUBDOMAIN_ROUTES[subdomain]) {
     const targetPath = SUBDOMAIN_ROUTES[subdomain];
     const url = request.nextUrl.clone();
@@ -89,18 +95,43 @@ export function proxy(request: NextRequest) {
     return res;
   }
 
-  // ── Unknown subdomain → redirect to root ─────────────────────────────────
-  if (subdomain && !SUBDOMAIN_ROUTES[subdomain]) {
-    const rootUrl = request.nextUrl.clone();
-    rootUrl.hostname =
-      process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost";
-    rootUrl.port =
-      process.env.NODE_ENV === "development" ? "3000" : "";
-    rootUrl.pathname = "/home";
-    return NextResponse.redirect(rootUrl);
+  // ── Unknown subdomain → redirect to my.[domain]/home ─────────────────────
+  if (subdomain && subdomain !== "my" && !SUBDOMAIN_ROUTES[subdomain]) {
+    const appUrl = request.nextUrl.clone();
+    const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+    const isLocal = host.startsWith("localhost") || host.includes(".localhost");
+
+    appUrl.hostname = isLocal ? "my.localhost" : `my.${ROOT_DOMAIN}`;
+    appUrl.port = isLocal && host.split(":")[1] ? host.split(":")[1] : "";
+    appUrl.pathname = "/home";
+    return NextResponse.redirect(appUrl);
   }
 
-  // ── Main domain → pass through (Clerk auth handled client-side) ───────────
+  // ── Main domain (No subdomain) ───────────────────────────────────────────
+  const url = request.nextUrl.clone();
+  const originalPath = url.pathname;
+
+  // Root path '/' rewrites to serve the landing page internally
+  if (originalPath === "/") {
+    url.pathname = "/landing";
+    return NextResponse.rewrite(url);
+  }
+
+  // If trying to access application paths directly on the root domain,
+  // redirect to the personal 'my' subdomain.
+  const APP_ROUTES = ["/home", "/discover", "/profile", "/friends", "/ai-chat", "/sign-in", "/sign-up"];
+  const isAppRoute = APP_ROUTES.some(route => originalPath.startsWith(route));
+
+  if (isAppRoute) {
+    const myAppUrl = request.nextUrl.clone();
+    const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+    const isLocal = host.startsWith("localhost") || host.includes(".localhost");
+
+    myAppUrl.hostname = isLocal ? "my.localhost" : `my.${ROOT_DOMAIN}`;
+    myAppUrl.port = isLocal && host.split(":")[1] ? host.split(":")[1] : "";
+    return NextResponse.redirect(myAppUrl);
+  }
+
   return NextResponse.next();
 }
 

@@ -6,12 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { List, X, Sparkle } from "@phosphor-icons/react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getAppRootUrl } from "@/lib/apps";
 
 const Header: React.FC = () => {
   const t = useTranslations("Header");
   const { locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const menuItems = [
     { text: t("apps"), url: "#apps" },
@@ -20,6 +22,7 @@ const Header: React.FC = () => {
   ];
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
@@ -88,7 +91,7 @@ const Header: React.FC = () => {
             </div>
 
             <Link
-              href="/home"
+              href={mounted ? getAppRootUrl() : "/"}
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-md shadow-indigo-500/10 active:scale-95"
             >
               {t("openApp")}
@@ -136,7 +139,7 @@ const Header: React.FC = () => {
                 </Link>
               ))}
               <Link
-                href="/home"
+                href={mounted ? getAppRootUrl() : "/"}
                 onClick={() => setIsOpen(false)}
                 className="bg-indigo-600 text-white py-3.5 rounded-2xl text-base font-bold shadow-lg shadow-indigo-500/10 mt-2 active:scale-95 transition-all"
               >
