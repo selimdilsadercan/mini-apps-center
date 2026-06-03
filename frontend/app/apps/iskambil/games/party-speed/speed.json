@@ -1,0 +1,274 @@
+{
+  "id": "speed",
+  "name_tr": "Speed",
+  "name_en": "Speed",
+  "originalName": "Speed",
+  "description_tr": "İki oyuncunun sıra beklemeden, ortadaki kartların bir üstü veya bir altını oynayarak elindeki ve destesindeki kartları bitirmeye çalıştığı hızlı bir kart oyunudur.",
+  "description_en": "A fast two-player card game where players race without turns to play cards one rank higher or lower than the center cards and empty their hand and draw pile.",
+  "quickRules_tr": [
+    "Speed 2 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya 5 kartlık bir el ve 15 kartlık kapalı kişisel çekme destesi verilir.",
+    "Kalan 12 kart ortada kullanılır: iki açık oyun kartı ve iki tarafta 5'er kapalı yedek kart.",
+    "Oyuncular sıra beklemeden aynı anda kart oynar.",
+    "Ortadaki açık kartlardan birinin üzerine, o kartın bir üstü veya bir altı değerde kart oynanabilir.",
+    "Renk ve kart türü önemli değildir.",
+    "Oyuncu elindeki kart sayısı 5'in altına düştükçe kendi çekme destesinden kart çekerek elini tamamlar.",
+    "İki oyuncu da hamle yapamazsa ortadaki kapalı yedeklerden birer kart aynı anda açılır.",
+    "Kendi çekme destesini ve elindeki kartları ilk bitiren oyuncu kazanır."
+  ],
+  "quickRules_en": [
+    "Speed is played by 2 players with a standard 52-card deck without jokers.",
+    "Each player receives a 5-card hand and a 15-card personal face-down draw pile.",
+    "The remaining 12 cards are used in the center: two face-up play cards and two side reserve piles of 5 face-down cards each.",
+    "Players do not take turns; they play at the same time.",
+    "A card may be played on either center pile if it is one rank higher or one rank lower than the top card.",
+    "Suit and color do not matter.",
+    "When a player's hand drops below 5 cards, they refill from their personal draw pile.",
+    "If neither player can move, one card from each center reserve pile is flipped at the same time.",
+    "The first player to empty both their draw pile and their hand wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Her oyuncuya 5 kartlık bir el verilir. Oyuncular bu kartları ellerine alır.",
+    "Her oyuncuya ayrıca 15 kartlık kapalı kişisel çekme destesi verilir.",
+    "Böylece her oyuncuda toplam 20 kart olur: 5 kart elde, 15 kart çekme destesindedir.",
+    "İki oyuncuya toplam 40 kart dağıtılmış olur.",
+    "Kalan 12 kart masanın ortasına yerleştirilir.",
+    "Ortadaki düzen şu şekildedir: 5 kapalı yedek kart, 1 açık oyun kartı, 1 açık oyun kartı, 5 kapalı yedek kart.",
+    "İki açık oyun kartı, oyuncuların üzerine kart oynayacağı ortak desteleri başlatır.",
+    "Yanlardaki 5'er kapalı yedek kart, oyun tıkandığında yeni açık kartları oluşturmak için kullanılır.",
+    "Oyuncular hazır olduğunda aynı anda oynamaya başlar."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal a 5-card hand to each player. Players hold these cards in their hands.",
+    "Give each player a personal face-down draw pile of 15 cards.",
+    "Each player therefore has 20 cards in total: 5 cards in hand and 15 cards in their draw pile.",
+    "A total of 40 cards are dealt to the two players.",
+    "Place the remaining 12 cards in the center of the table.",
+    "The center layout is: 5 face-down reserve cards, 1 face-up play card, 1 face-up play card, 5 face-down reserve cards.",
+    "The two face-up play cards start the shared piles that players will play onto.",
+    "The two side reserve piles of 5 cards each are used to create new face-up cards when the game gets stuck.",
+    "When both players are ready, play begins simultaneously."
+  ],
+  "objective_tr": "Amaç, hızlı hamleler yaparak önce kişisel çekme destesindeki kartları, ardından eldeki kartları bitirmek ve rakipten önce tüm kartlardan kurtulmaktır.",
+  "objective_en": "The objective is to play quickly, empty your personal draw pile, then empty your hand, and get rid of all your cards before your opponent.",
+  "gameplay_tr": [
+    "Oyuncular sıra beklemeden aynı anda oynar.",
+    "Her oyuncu elindeki kartlardan birini ortadaki iki açık oyun destesinden herhangi birinin üzerine oynayabilir.",
+    "Oynanan kart, ortadaki karttan bir değer büyük veya bir değer küçük olmalıdır.",
+    "Örneğin ortadaki kart 8 ise üzerine 7 veya 9 oynanabilir.",
+    "Renk ve kart türü önemli değildir.",
+    "Oyuncu bir kart oynadıktan sonra elinde 5'ten az kart kalırsa kendi çekme destesinden kart çekerek elini tekrar 5 karta tamamlar.",
+    "Oyuncu aynı anda yalnızca bir kart oynayabilir.",
+    "İki oyuncu aynı anda aynı desteye kart oynamaya çalışırsa, kartı önce koyan oyuncunun hamlesi geçerli olur.",
+    "Oyuncular oynayabilecekleri kart olduğu sürece beklemeden devam eder.",
+    "Kişisel çekme destesi biten oyuncu artık kart çekemez ve sadece elindeki kartları bitirmeye çalışır."
+  ],
+  "gameplay_en": [
+    "Players do not take turns; they play simultaneously.",
+    "Each player may play a card from their hand onto either of the two face-up center piles.",
+    "The played card must be one rank higher or one rank lower than the top card of the center pile.",
+    "For example, if the center card is an 8, a 7 or a 9 may be played on it.",
+    "Suit and color do not matter.",
+    "After playing a card, if the player has fewer than 5 cards in hand, they draw from their personal draw pile to refill their hand to 5 cards.",
+    "A player may play only one card at a time.",
+    "If both players try to play on the same pile at the same time, the card placed first is valid.",
+    "Players continue as fast as they can while they have legal moves.",
+    "When a player's personal draw pile is empty, they can no longer refill and must try to play the remaining cards in hand."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kart Dağılımı",
+      "title_en": "Card Distribution",
+      "content_tr": [
+        "Speed'de 52 kartlık deste tamamen kullanılır.",
+        "Her oyuncuya 5 kartlık bir el verilir.",
+        "Her oyuncuya ayrıca 15 kartlık kapalı kişisel çekme destesi verilir.",
+        "Bu nedenle iki oyuncuya toplam 40 kart gider.",
+        "Kalan 12 kart masanın ortasında kullanılır.",
+        "Ortadaki 12 kartın 2 tanesi açık oyun kartıdır.",
+        "Kalan 10 kart, açık oyun kartlarının iki yanına 5'er kapalı yedek kart olarak konur.",
+        "Orta düzen şu şekildedir: 5 kapalı yedek kart, 1 açık oyun kartı, 1 açık oyun kartı, 5 kapalı yedek kart."
+      ],
+      "content_en": [
+        "Speed uses the full 52-card deck.",
+        "Each player receives a 5-card hand.",
+        "Each player also receives a personal face-down draw pile of 15 cards.",
+        "This means 40 cards go to the two players in total.",
+        "The remaining 12 cards are used in the center of the table.",
+        "Of these 12 center cards, 2 are face-up play cards.",
+        "The remaining 10 cards are placed as two face-down reserve piles of 5 cards each, one on each side of the play cards.",
+        "The center layout is: 5 face-down reserve cards, 1 face-up play card, 1 face-up play card, 5 face-down reserve cards."
+      ]
+    },
+    {
+      "title_tr": "Geçerli Hamleler",
+      "title_en": "Valid Moves",
+      "content_tr": [
+        "Bir kart, ortadaki açık kartlardan birinin üzerine yalnızca bir üst veya bir alt değerdeyse oynanabilir.",
+        "Örneğin 6'nın üzerine 5 veya 7 oynanabilir.",
+        "Vale'nin üzerine 10 veya Kız oynanabilir.",
+        "Kız'ın üzerine Vale veya Papaz oynanabilir.",
+        "Renk ve kart türü önemli değildir; sadece kart değeri dikkate alınır.",
+        "Aynı değerde kart oynanamaz."
+      ],
+      "content_en": [
+        "A card may be played on one of the face-up center cards only if it is one rank higher or one rank lower.",
+        "For example, a 5 or 7 may be played on a 6.",
+        "A 10 or Queen may be played on a Jack.",
+        "A Jack or King may be played on a Queen.",
+        "Suit and color do not matter; only rank matters.",
+        "A card of the same rank may not be played."
+      ]
+    },
+    {
+      "title_tr": "As Kuralı",
+      "title_en": "Ace Rule",
+      "content_tr": [
+        "As kuralı oyuna başlamadan önce belirlenmelidir.",
+        "Yaygın ve akıcı kuralda As hem 2'ye hem de Papaz'a bağlanır.",
+        "Bu kurala göre As'ın üzerine 2 veya Papaz oynanabilir.",
+        "Aynı şekilde 2'nin üzerine As, Papaz'ın üzerine As oynanabilir.",
+        "Daha katı kurallarda As yalnızca 2 ile bağlantılı kabul edilebilir.",
+        "Yeni başlayanlar için As'ın hem 2 hem Papaz ile bağlantılı olması daha hızlı ve eğlenceli bir oyun sağlar."
+      ],
+      "content_en": [
+        "The Ace rule should be agreed before the game begins.",
+        "In a common and smoother rule, Ace connects to both 2 and King.",
+        "With this rule, a 2 or King may be played on an Ace.",
+        "Likewise, an Ace may be played on a 2 or on a King.",
+        "In stricter rules, Ace may only connect to 2.",
+        "For beginners, allowing Ace to connect to both 2 and King creates a faster and more fun game."
+      ]
+    },
+    {
+      "title_tr": "El Tamamlama",
+      "title_en": "Refilling the Hand",
+      "content_tr": [
+        "Her oyuncu oyuna 5 kartlık elle başlar.",
+        "Oyuncu bir kart oynadığında elindeki kart sayısı azalır.",
+        "Oyuncu, kişisel çekme destesinde kart varsa elini tekrar 5 karta tamamlayabilir.",
+        "Kart çekmek için sıra beklenmez; oyuncu oynadıkça hızlıca elini tamamlar.",
+        "Kişisel çekme destesi bittiğinde oyuncu artık kart çekemez.",
+        "Bu noktadan sonra oyuncu yalnızca elinde kalan kartları oynayarak oyunu bitirmeye çalışır."
+      ],
+      "content_en": [
+        "Each player starts with a 5-card hand.",
+        "When a player plays a card, their hand size decreases.",
+        "If the player still has cards in their personal draw pile, they may refill their hand back to 5 cards.",
+        "Refilling does not require a turn; the player refills quickly while playing.",
+        "When the personal draw pile is empty, the player can no longer draw.",
+        "From that point, the player tries to finish the game using only the cards left in hand."
+      ]
+    },
+    {
+      "title_tr": "Tıkanma Durumu",
+      "title_en": "Stuck Situation",
+      "content_tr": [
+        "İki oyuncu da ortadaki destelere kart oynayamıyorsa oyun tıkanmış sayılır.",
+        "Bu durumda iki oyuncu hazır olur.",
+        "Ortadaki kapalı yedek kartlardan birer tane aynı anda açılır.",
+        "Açılan yedek kartlar iki açık oyun destesinin üstüne konur.",
+        "Yeni kartlar açıldıktan sonra oyuncular tekrar aynı anda kart oynamaya devam eder.",
+        "Ortada yedek kart kalmadıysa ve iki oyuncu da hamle yapamıyorsa oyun, ev kuralına göre eldeki kartların yeniden düzenlenmesi veya turun bitirilmesiyle çözülebilir."
+      ],
+      "content_en": [
+        "If neither player can play onto the center piles, the game is considered stuck.",
+        "Both players get ready.",
+        "One face-down reserve card is flipped onto each center pile at the same time.",
+        "These new reserve cards become the new top cards of the two play piles.",
+        "After the new cards are revealed, players continue playing simultaneously.",
+        "If there are no reserve cards left and neither player can move, the situation may be resolved by house rule, such as reshuffling or ending the round."
+      ]
+    },
+    {
+      "title_tr": "Speed ve Spit Farkı",
+      "title_en": "Difference Between Speed and Spit",
+      "content_tr": [
+        "Speed ve Spit birbirine çok benzeyen iki hızlı kart oyunudur.",
+        "Speed'de oyuncular genellikle 5 kartlık elden oynar ve kişisel çekme destesinden elini tamamlar.",
+        "Spit'te oyuncuların önünde solitaire benzeri beş sütunluk tableau düzeni bulunur.",
+        "Speed'de amaç el ve çekme destesini doğrudan bitirmektir.",
+        "Spit'te tur sonunda küçük desteyi alma ve yeni tableau kurma mekaniği vardır.",
+        "Bu yüzden Speed daha doğrudan ve sade, Spit ise biraz daha düzen/round yönetimi odaklıdır."
+      ],
+      "content_en": [
+        "Speed and Spit are very similar fast-paced card games.",
+        "In Speed, players usually play from a 5-card hand and refill from a personal draw pile.",
+        "In Spit, players have a solitaire-like five-pile tableau in front of them.",
+        "In Speed, the goal is to directly empty the hand and draw pile.",
+        "In Spit, there is a mechanic of taking the smaller pile and dealing a new tableau after each round.",
+        "For this reason, Speed is more direct and simple, while Spit is more focused on layout and round management."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Döngülü As: As hem 2 hem Papaz ile bağlantılıdır. En hızlı ve en yaygın oynanışlardan biridir.",
+        "Katı As: As yalnızca 2 ile bağlantılıdır; Papaz ile geçiş yapılamaz.",
+        "Tek El Kuralı: Oyuncular kartları yalnızca tek elle oynayabilir.",
+        "Çift El Kuralı: Daha hızlı ve kaotik oyun için iki elle oynamaya izin verilir.",
+        "Yedek Kartsız Varyant: Tıkanma durumunda ortadaki yedek kartlar yerine desteler karıştırılarak yeni açık kartlar oluşturulur."
+      ],
+      "content_en": [
+        "Wraparound Ace: Ace connects to both 2 and King. This is one of the fastest and most common ways to play.",
+        "Strict Ace: Ace connects only to 2; King-to-Ace movement is not allowed.",
+        "One-Hand Rule: Players may only use one hand to play cards.",
+        "Two-Hand Rule: Players may use both hands for a faster and more chaotic game.",
+        "No-Reserve Variant: Instead of center reserve cards, stuck situations are resolved by reshuffling or creating new center cards."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Speed'de klasik anlamda puanlama yoktur.",
+    "Amaç eldeki kartları ve kişisel çekme destesini rakipten önce bitirmektir.",
+    "Bir oyuncu tüm kartlarını bitirdiğinde oyunu kazanır.",
+    "İstenirse her oyun kazananına 1 puan verilerek birkaç oyunluk seri yapılabilir.",
+    "Seri oynanıyorsa belirlenen puana ilk ulaşan oyuncu genel kazanan olur."
+  ],
+  "scoring_en": [
+    "Speed usually has no formal scoring.",
+    "The goal is to empty your hand and personal draw pile before your opponent.",
+    "A player wins when they get rid of all their cards.",
+    "Optionally, the winner of each game may receive 1 point in a multi-game series.",
+    "If playing a series, the first player to reach a chosen score is the overall winner."
+  ],
+  "ending_tr": [
+    "Bir oyuncu kişisel çekme destesini bitirdikten sonra elindeki son kartları da oynarsa oyunu kazanır.",
+    "Oyuncu son kartını oynadığında genellikle 'Speed!' diyerek oyunu bitirdiğini ilan eder.",
+    "Rakip oyuncunun elinde veya çekme destesindeki kartlar önemli değildir.",
+    "İki oyuncu da hamle yapamıyor ve yedek kart kalmamışsa oyun ev kuralıyla çözülebilir.",
+    "Birden fazla oyun oynanacaksa kartlar yeniden karıştırılır ve yeni oyun başlar."
+  ],
+  "ending_en": [
+    "A player wins after emptying their personal draw pile and then playing the last card from their hand.",
+    "When playing the final card, the player usually calls 'Speed!' to announce the win.",
+    "It does not matter how many cards the opponent still has.",
+    "If neither player can move and there are no reserve cards left, the situation may be resolved by house rule.",
+    "If multiple games are played, the cards are shuffled and a new game begins."
+  ],
+  "notes_tr": [
+    "Speed çok hızlı oynanan bir oyundur; refleks ve dikkat önemlidir.",
+    "Oyuncular sıra beklemediği için aynı anda hamle yapar.",
+    "Renk ve kart türü önemli değildir; yalnızca kart değerinin bir üst veya bir alt olması gerekir.",
+    "Oyuna başlamadan önce As'ın Papaz'a bağlanıp bağlanmadığı netleştirilmelidir.",
+    "Tek elle oynama kuralı oyunu daha adil ve kontrollü hale getirebilir.",
+    "Speed ve Spit bazı gruplarda karıştırılır; bu kayıt 5 kartlık el ve kişisel çekme destesiyle oynanan Speed kurallarına göre yazılmıştır."
+  ],
+  "notes_en": [
+    "Speed is a very fast game, so reflexes and attention matter.",
+    "Players do not wait for turns; they play at the same time.",
+    "Suit and color do not matter; only being one rank higher or lower matters.",
+    "Players should agree before the game whether Ace connects to King.",
+    "A one-hand rule can make the game fairer and more controlled.",
+    "Speed and Spit are sometimes confused; this record is written for the Speed rules with a 5-card hand and personal draw pile."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Hız / El Bitirme",
+  "category_en": "Speed / Shedding"
+}

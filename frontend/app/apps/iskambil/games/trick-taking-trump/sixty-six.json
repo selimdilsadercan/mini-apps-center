@@ -1,0 +1,470 @@
+{
+  "id": "sixty-six",
+  "name_tr": "Altmışaltı (66)",
+  "name_en": "Sixty-Six",
+  "originalName": "Sixty-Six",
+  "description_tr": "24 kartlık desteyle oynanan, kozlu el alma, kart puanı ve evlilik puanlarını birleştiren iki kişilik strateji oyunudur.",
+  "description_en": "A two-player strategy game using a 24-card deck, combining trump trick-taking, card points, and marriage bonuses.",
+  "quickRules_tr": [
+    "Altmışaltı standart olarak 2 kişiyle oynanır.",
+    "Oyunda 9, 10, Vale, Kız, Papaz ve As kartlarından oluşan 24 kartlık deste kullanılır.",
+    "Her oyuncuya 6 kart dağıtılır.",
+    "Kalan kartlar kapalı talon destesini oluşturur ve bir kart açılarak koz rengini belirler.",
+    "Kart değerleri: As 11, 10'lu 10, Papaz 4, Kız 3, Vale 2, 9'lu 0 puandır.",
+    "Oyuncular el alarak kart puanı toplar; talon açıkken kazanılan eller de, talon bittikten sonra kazanılan eller de puana sayılır.",
+    "Talon açıkken renge uyma zorunluluğu yoktur.",
+    "Talon açıkken farklı renk ve koz olmayan kart oynanabilir, ancak bu kart eli alamaz.",
+    "Talon açıkken her elden sonra eli kazanan oyuncu önce kart çeker, kaybeden oyuncu sonra kart çeker.",
+    "Eli kazanan oyuncu bir sonraki eli başlatır.",
+    "Talon bittikten veya kapatıldıktan sonra renge uyma ve mümkünse eli alma kuralları uygulanır.",
+    "Aynı renkten Papaz ve Kız oyuncunun elindeyken evlilik ilan edilebilir.",
+    "Evlilik ilan edildiğinde kartlar oyundan çıkarılmaz; kartlar normal şekilde oynanmaya devam eder.",
+    "Koz evliliği 40 puan, diğer renk evlilikleri 20 puan değerindedir.",
+    "Kart ve evlilik puanlarıyla 66'ya ulaştığını ilan eden oyuncu eli bitirebilir.",
+    "Eli kazanan oyuncu rakibin puanına göre 1, 2 veya 3 oyun puanı alır.",
+    "Oyun genellikle 7 oyun puanına ilk ulaşan oyuncu tarafından kazanılır."
+  ],
+  "quickRules_en": [
+    "Standard Sixty-Six is played by 2 players.",
+    "The game uses a 24-card deck made of 9s, 10s, Jacks, Queens, Kings, and Aces.",
+    "Each player is dealt 6 cards.",
+    "The remaining cards form the face-down talon, and one card is turned face up to determine trump.",
+    "Card values are: Ace 11, Ten 10, King 4, Queen 3, Jack 2, Nine 0.",
+    "Players collect card points by winning tricks; tricks won while the talon is open and tricks won after it is exhausted both count.",
+    "While the talon is open, players are not required to follow suit.",
+    "While the talon is open, a card of a different suit that is not trump may be played, but it cannot win the trick.",
+    "While the talon is open, the trick winner draws first and the loser draws second.",
+    "The winner of a trick leads the next trick.",
+    "After the talon is exhausted or closed, following suit and trying to win the trick become mandatory when possible.",
+    "A King and Queen of the same suit may be declared as a marriage if both are in the player's hand.",
+    "When a marriage is declared, the cards are not removed from play; they continue to be played normally.",
+    "A trump marriage is worth 40 points, and a non-trump marriage is worth 20 points.",
+    "A player who believes they have reached 66 card and marriage points may declare it and end the hand.",
+    "The winner scores 1, 2, or 3 game points depending on the opponent's score.",
+    "The game is usually won by the first player to reach 7 game points."
+  ],
+  "setup_tr": [
+    "Standart desteden 2-8 arası kartlar çıkarılır.",
+    "Oyunda yalnızca 9, 10, Vale, Kız, Papaz ve As kartları kalır.",
+    "Toplam 24 kartlık deste karıştırılır.",
+    "Her oyuncuya 6 kart dağıtılır.",
+    "Kalan kartlar kapalı şekilde masaya konur ve talon destesini oluşturur.",
+    "Talon destesinin en üst kartı açılır ve koz rengini belirler.",
+    "Açılan koz kartı genellikle talon destesinin altına veya yanına açık şekilde yerleştirilir.",
+    "Dağıtmayan oyuncu ilk eli başlatır."
+  ],
+  "setup_en": [
+    "Remove cards 2 through 8 from a standard deck.",
+    "Only 9s, 10s, Jacks, Queens, Kings, and Aces remain in play.",
+    "Shuffle the resulting 24-card deck.",
+    "Deal 6 cards to each player.",
+    "Place the remaining cards face down as the talon.",
+    "Turn the top card of the talon face up to determine the trump suit.",
+    "The face-up trump card is usually placed under or beside the talon.",
+    "The non-dealer leads the first trick."
+  ],
+  "objective_tr": "Amaç, el alarak ve evlilik ilan ederek 66 kart puanına ulaşmak, doğru zamanda eli bitirmek ve rakipten önce hedef oyun puanına ulaşmaktır.",
+  "objective_en": "The objective is to reach 66 card points through tricks and marriage declarations, end the hand at the right time, and reach the target game score before the opponent.",
+  "gameplay_tr": [
+    "Bir oyuncu ortaya bir kart oynayarak eli başlatır.",
+    "Diğer oyuncu bir kart oynar ve elin kazananı belirlenir.",
+    "Talon açıkken ikinci oyuncu istediği kartı oynayabilir; renge uyma zorunluluğu yoktur.",
+    "Talon açıkken aynı renk oynanırsa yüksek kart eli alır.",
+    "Talon açıkken koz oynanırsa koz, koz olmayan karta üstün gelir.",
+    "Talon açıkken ikinci oyuncu farklı renk ve koz olmayan bir kart oynarsa bu kart eli alamaz; eli başlatan renkteki kart kazanır.",
+    "Eli kazanan oyuncu elin kartlarını kendi kazandığı kartlar arasına koyar.",
+    "İlk aşamada kazanılan ellerin kart puanları da oyuncunun toplamına eklenir; ikinci aşamadan farkı puanlama değil, kart çekme ve renge uyma kurallarıdır.",
+    "Talon açıkken eli kazanan oyuncu talondan ilk kartı çeker, kaybeden oyuncu ardından bir kart çeker.",
+    "Böylece iki oyuncunun eli tekrar 6 karta tamamlanır.",
+    "Eli kazanan oyuncu bir sonraki eli başlatır.",
+    "Her elde iki oyuncu da kartını oynamadan kimse kart çekmez; kart çekme yalnızca el bittikten sonra yapılır.",
+    "Talonun sonunda bir kapalı kart ve kozu gösteren açık kart kaldığında, eli kazanan oyuncu son kapalı kartı çeker; eli kaybeden oyuncu ise kozu gösteren açık kartı alır.",
+    "Bundan sonra talon biter ve kart çekme aşaması sona erer.",
+    "Talon bittiğinde veya oyunculardan biri talonu kapattığında artık kart çekilmez.",
+    "Bu aşamadan sonra oyuncular mümkünse renge uymak, mümkünse daha yüksek kartla eli almak ve renge uyamıyorsa mümkünse koz oynamak zorundadır.",
+    "Bir oyuncu kart ve evlilik puanları toplamının 66'ya ulaştığını düşünürse oyunu durdurup puan sayımı isteyebilir."
+  ],
+  "gameplay_en": [
+    "One player leads a card to start a trick.",
+    "The other player plays one card, and the winner of the trick is determined.",
+    "While the talon is open, the second player may play any card; following suit is not required.",
+    "While the talon is open, if both cards are of the same suit, the higher card wins the trick.",
+    "While the talon is open, a trump card beats a non-trump card.",
+    "While the talon is open, if the second player plays a card of a different suit that is not trump, that card cannot win the trick; the led-suit card wins.",
+    "The winner of the trick places the trick cards into their captured pile.",
+    "Card points won during the first phase also count toward the player's total; the difference from the second phase is not scoring, but the drawing and follow-suit rules.",
+    "While the talon is open, the trick winner draws the first card from the talon, and the loser draws the next card.",
+    "This refills both players' hands back to 6 cards.",
+    "The winner of the trick leads the next trick.",
+    "No player draws until both players have played a card to the trick; drawing happens only after the trick is complete.",
+    "At the end of the talon, when one face-down card and the face-up trump indicator card remain, the trick winner draws the final face-down card and the trick loser takes the face-up trump card.",
+    "After this, the talon is exhausted and the drawing phase ends.",
+    "When the talon is exhausted or one player closes it, no more cards are drawn.",
+    "From that point, players must follow suit if possible, win the trick if possible, and trump if they cannot follow suit and have a trump.",
+    "A player who believes their card and marriage points have reached 66 may stop the hand and request a point count."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Deste ve Kart Sıralaması",
+      "title_en": "Deck and Card Ranking",
+      "content_tr": [
+        "Altmışaltı 24 kartlık kısa desteyle oynanır.",
+        "Her renkten As, 10, Papaz, Kız, Vale ve 9 kullanılır.",
+        "Kartların güç sıralaması büyükten küçüğe As, 10, Papaz, Kız, Vale, 9 şeklindedir.",
+        "Bu sıralamada 10'lu, Papaz'dan daha güçlüdür.",
+        "2, 3, 4, 5, 6, 7 ve 8 kartları oyunda kullanılmaz."
+      ],
+      "content_en": [
+        "Sixty-Six is played with a short 24-card deck.",
+        "Each suit uses Ace, 10, King, Queen, Jack, and 9.",
+        "The ranking from high to low is Ace, 10, King, Queen, Jack, 9.",
+        "In this ranking, the 10 is stronger than the King.",
+        "Cards 2, 3, 4, 5, 6, 7, and 8 are not used."
+      ]
+    },
+    {
+      "title_tr": "Kart Puanları",
+      "title_en": "Card Points",
+      "content_tr": [
+        "As 11 puandır.",
+        "10'lu 10 puandır.",
+        "Papaz 4 puandır.",
+        "Kız 3 puandır.",
+        "Vale 2 puandır.",
+        "9'lu 0 puandır.",
+        "Bir eldeki tüm kart puanlarının toplamı 120'dir.",
+        "Oyuncular el aldıkça aldıkları kartların puanlarını toplar.",
+        "Talon açıkken kazanılan eller de, talon bittikten veya kapatıldıktan sonra kazanılan eller de aynı şekilde puana sayılır."
+      ],
+      "content_en": [
+        "Ace is worth 11 points.",
+        "Ten is worth 10 points.",
+        "King is worth 4 points.",
+        "Queen is worth 3 points.",
+        "Jack is worth 2 points.",
+        "Nine is worth 0 points.",
+        "The total value of all card points in one hand is 120.",
+        "Players add the values of cards they win in tricks.",
+        "Tricks won while the talon is open and tricks won after it is exhausted or closed count in the same way."
+      ]
+    },
+    {
+      "title_tr": "Koz",
+      "title_en": "Trump",
+      "content_tr": [
+        "Dağıtımdan sonra talondan açılan kartın rengi koz olur.",
+        "Koz rengi diğer renklerden üstündür.",
+        "Talon açıkken renge uyma zorunluluğu olmadığı için oyuncu isterse koz oynayabilir.",
+        "Talon açıkken farklı renk ve koz olmayan kart oynanırsa bu kart eli alamaz.",
+        "Talon bittikten veya kapatıldıktan sonra renge uyamayan oyuncu, elinde koz varsa koz oynamak zorundadır.",
+        "Aynı elde birden fazla koz oynanırsa en yüksek koz eli kazanır."
+      ],
+      "content_en": [
+        "After the deal, the suit of the face-up talon card becomes trump.",
+        "The trump suit outranks all other suits.",
+        "While the talon is open, players are not required to follow suit, so they may play trump if they want.",
+        "While the talon is open, a different-suit non-trump card cannot win the trick.",
+        "After the talon is exhausted or closed, a player who cannot follow suit must play a trump if they have one.",
+        "If more than one trump is played to a trick, the highest trump wins."
+      ]
+    },
+    {
+      "title_tr": "Talon Açıkken Oyun",
+      "title_en": "Play While the Talon Is Open",
+      "content_tr": [
+        "Oyunun ilk aşamasında talon açıktır ve her elden sonra oyuncular kart çeker.",
+        "Bu aşamada ikinci oyuncu renge uymak zorunda değildir.",
+        "İkinci oyuncu istediği kartı oynayabilir.",
+        "Eli kazanmak zorunlu değildir.",
+        "Aynı renk oynanırsa yüksek kart eli alır.",
+        "Koz oynanırsa koz, koz olmayan karta üstün gelir.",
+        "Farklı renk ve koz olmayan kart oynanırsa bu kart eli alamaz; eli başlatan renkteki kart kazanır.",
+        "Eli kazanan oyuncu talondan önce kart çeker; kaybeden oyuncu sonra kart çeker.",
+        "Eli kazanan oyuncu bir sonraki eli başlatır.",
+        "Talon açıkken kazanılan ellerin kart puanları oyuncunun toplamına eklenir.",
+        "Talon açıkken amaç hem puan toplamak hem de sonraki eller için doğru kartları elde tutmaktır."
+      ],
+      "content_en": [
+        "In the first phase, the talon is open and players draw cards after each trick.",
+        "During this phase, the second player is not required to follow suit.",
+        "The second player may play any card.",
+        "Winning the trick is not mandatory.",
+        "If both cards are of the same suit, the higher card wins.",
+        "If a trump is played against a non-trump card, the trump wins.",
+        "If a different-suit non-trump card is played, it cannot win the trick; the led-suit card wins.",
+        "The winner of the trick draws first from the talon; the loser draws second.",
+        "The winner of the trick leads the next trick.",
+        "Card points won while the talon is open are added to the player's total.",
+        "While the talon is open, the goal is both to collect points and to manage the hand for later tricks."
+      ]
+    },
+    {
+      "title_tr": "Kart Çekme Sırası",
+      "title_en": "Drawing Order",
+      "content_tr": [
+        "Kart çekme yalnızca talon açıkken yapılır.",
+        "Her el bittikten sonra eli kazanan oyuncu önce kart çeker.",
+        "Eli kaybeden oyuncu ardından kart çeker.",
+        "İki oyuncu kart çektikten sonra eller tekrar 6 karta tamamlanır.",
+        "Eli kazanan oyuncu bir sonraki eli başlatır.",
+        "Bir oyuncu yeni eli başlattığında rakip hemen kart çekmez; önce iki oyuncu da o elde kart oynar, sonra elin kazananına göre kart çekilir.",
+        "Talon bittikten veya kapatıldıktan sonra kart çekme yapılmaz."
+      ],
+      "content_en": [
+        "Drawing happens only while the talon is open.",
+        "After each trick, the trick winner draws first.",
+        "The trick loser draws next.",
+        "After both players draw, their hands are refilled to 6 cards.",
+        "The winner of the trick leads the next trick.",
+        "When a player leads the next trick, the opponent does not immediately draw; both players first play to that trick, and drawing happens only after the trick is resolved.",
+        "After the talon is exhausted or closed, no cards are drawn."
+      ]
+    },
+    {
+      "title_tr": "Talonun Son Kartları",
+      "title_en": "Final Cards of the Talon",
+      "content_tr": [
+        "Talonun sonunda genellikle bir kapalı kart ve kozu gösteren açık kart kalır.",
+        "Bu durumda oynanan eli kazanan oyuncu son kapalı kartı çeker.",
+        "Eli kaybeden oyuncu ise kozu gösteren açık kartı alır.",
+        "Böylece iki oyuncu da son kez birer kart almış olur.",
+        "Bundan sonra talon biter ve kart çekme aşaması sona erer.",
+        "Sonraki eller artık talon bitmiş gibi sıkı renge uyma ve kozlama kurallarıyla oynanır."
+      ],
+      "content_en": [
+        "At the end of the talon, there is usually one face-down card and the face-up trump indicator card left.",
+        "In this case, the winner of the trick draws the final face-down card.",
+        "The loser of the trick takes the face-up trump indicator card.",
+        "This means both players receive one final card.",
+        "After this, the talon is exhausted and the drawing phase ends.",
+        "The remaining tricks are played with the strict follow-suit and trumping rules."
+      ]
+    },
+    {
+      "title_tr": "Talon Bitince veya Kapatılınca",
+      "title_en": "After the Talon Is Exhausted or Closed",
+      "content_tr": [
+        "Talon bittiğinde veya bir oyuncu talonu kapattığında artık kart çekilmez.",
+        "Bu aşamada oyun daha sıkı el alma kurallarıyla devam eder.",
+        "İkinci oyuncu mümkünse oynanan renge uymak zorundadır.",
+        "Renge uyabiliyorsa ve daha yüksek kartı varsa, mümkünse eli almak zorundadır.",
+        "Renge uyamıyorsa ve elinde koz varsa koz oynamak zorundadır.",
+        "Renge uyamıyor ve kozu da yoksa istediği kartı atabilir.",
+        "Bu aşamada da kazanılan ellerin kart puanları oyuncunun toplamına eklenir.",
+        "Bu aşamada hafıza ve kart sayma çok daha önemli hale gelir."
+      ],
+      "content_en": [
+        "When the talon is exhausted or closed by a player, no more cards are drawn.",
+        "From this phase onward, stricter trick-taking rules apply.",
+        "The second player must follow the led suit if possible.",
+        "If they can follow suit and have a higher card, they must win the trick if possible.",
+        "If they cannot follow suit and have a trump, they must play a trump.",
+        "If they cannot follow suit and have no trump, they may play any card.",
+        "Tricks won in this phase also add card points to the player's total.",
+        "In this phase, memory and card counting become much more important."
+      ]
+    },
+    {
+      "title_tr": "Evlilik",
+      "title_en": "Marriage",
+      "content_tr": [
+        "Aynı renkten Papaz ve Kız oyuncunun elindeyken evlilik ilan edilebilir.",
+        "Evlilik, oyuncunun kazandığı kartlardan değil, o anda elinde bulunan aynı renkten Papaz ve Kız kartlarıyla ilan edilir.",
+        "Evlilik ilan etmek için Papaz ve Kız'ın ikisi de oyuncunun o anda elinde bulunmalıdır.",
+        "Evlilik yalnızca oyuncu eli başlatırken ilan edilebilir.",
+        "Oyuncu evlilik ilan ederken Papaz veya Kız kartlarından birini normal hamle olarak oynar.",
+        "Evlilik ilan edildiğinde Papaz ve Kız oyundan çıkarılmaz.",
+        "İlan sırasında bu iki karttan biri oynanır, diğeri oyuncunun elinde kalır.",
+        "Kartlar normal şekilde oyunda kullanılmaya devam eder.",
+        "Koz rengindeki evlilik 40 puan değerindedir.",
+        "Koz olmayan renklerdeki evlilik 20 puan değerindedir.",
+        "Evlilik puanlarının geçerli olması için oyuncunun elde en az bir el almış olması gerekir.",
+        "Evlilik puanları, oyuncunun 66'ya ulaşma hesabına eklenir."
+      ],
+      "content_en": [
+        "A King and Queen of the same suit may be declared as a marriage if both are in the player's hand.",
+        "A marriage is declared from the cards currently in the player's hand, not from cards already won in previous tricks.",
+        "To declare a marriage, both the King and Queen must be in the player's hand at that moment.",
+        "A marriage may only be declared when the player is leading a trick.",
+        "When declaring a marriage, the player plays either the King or the Queen as the normal lead card.",
+        "When a marriage is declared, the King and Queen are not removed from play.",
+        "One of the two cards is played during the declaration, and the other remains in the player's hand.",
+        "The cards continue to be used normally in play.",
+        "A marriage in the trump suit is worth 40 points.",
+        "A marriage in a non-trump suit is worth 20 points.",
+        "Marriage points usually count only if the player has won at least one trick.",
+        "Marriage points are added toward the player's count for reaching 66."
+      ]
+    },
+    {
+      "title_tr": "Kazanılan Kartlara Bakma",
+      "title_en": "Looking at Won Cards",
+      "content_tr": [
+        "Standart oyunda oyuncular kazandıkları kartları genellikle kapalı tutar.",
+        "Oyuncular 66'ya ulaşıp ulaşmadıklarını çoğunlukla akıldan takip eder.",
+        "Kazandığın kartları sürekli açıp saymak klasik ve daha ciddi oynanışta genellikle yapılmaz.",
+        "Yeni başlayanlar için ev kuralı olarak oyuncuların kazandıkları kartlara bakarak puan saymasına izin verilebilir.",
+        "Oyuna başlamadan önce puanların gizli mi, açık mı takip edileceği belirlenmelidir.",
+        "Yanlış 66 ilanı ceza doğurabileceği için klasik oyunda dikkatli sayım önemlidir."
+      ],
+      "content_en": [
+        "In standard play, players usually keep their won tricks face down.",
+        "Players mostly track whether they have reached 66 mentally.",
+        "Constantly looking through won cards and counting them is usually not done in classic or serious play.",
+        "As a beginner-friendly house rule, players may be allowed to look through their won cards to count their points.",
+        "Before the game begins, players should agree whether points are tracked secretly or openly.",
+        "Because a false declaration of 66 can be penalized, careful counting is important in classic play."
+      ]
+    },
+    {
+      "title_tr": "Koz 9'lusu ile Değişim",
+      "title_en": "Trump Nine Exchange",
+      "content_tr": [
+        "Talon açıkken elinde koz 9'lusu olan oyuncu, açık koz kartıyla değişim yapabilir.",
+        "Bu değişim genellikle yalnızca oyuncu eli başlatırken yapılabilir.",
+        "Oyuncu elindeki koz 9'lusunu açık koz kartının yerine koyar ve açık koz kartını eline alır.",
+        "Bu hamle oyuncuya daha güçlü bir koz kartı kazandırabilir.",
+        "Talon kapatıldıktan veya bittikten sonra bu değişim yapılamaz.",
+        "Bu kural bazı ev kurallarında kullanılmayabilir; oyuna başlamadan önce netleştirilmelidir."
+      ],
+      "content_en": [
+        "While the talon is open, a player holding the trump Nine may exchange it for the face-up trump card.",
+        "This exchange is usually allowed only when the player is leading a trick.",
+        "The player places the trump Nine in place of the face-up trump card and takes the face-up trump card into their hand.",
+        "This move can give the player a stronger trump card.",
+        "The exchange cannot be made after the talon has been closed or exhausted.",
+        "Some house rules may omit this rule, so it should be agreed before play begins."
+      ]
+    },
+    {
+      "title_tr": "Talonu Kapatma",
+      "title_en": "Closing the Talon",
+      "content_tr": [
+        "Bir oyuncu, elindeki kartlarla 66'ya ulaşabileceğini düşünüyorsa talonu kapatabilir.",
+        "Talon genellikle oyuncu eli başlatmadan önce kapatılır.",
+        "Talon kapatıldığında artık iki oyuncu da kart çekmez.",
+        "Oyun, talon bitmiş gibi sıkı renge uyma ve kozlama kurallarıyla devam eder.",
+        "Talonu kapatan oyuncu 66'ya ulaşırsa normal şekilde oyun puanı alır.",
+        "Talonu kapatan oyuncu 66'ya ulaşamazsa rakibi oyun puanı kazanır.",
+        "Rakip hiç el almamışsa ceza daha ağır olabilir."
+      ],
+      "content_en": [
+        "A player may close the talon if they believe they can reach 66 with the cards in hand.",
+        "The talon is usually closed before the player leads a trick.",
+        "Once the talon is closed, neither player draws more cards.",
+        "Play continues as if the talon were exhausted, with strict follow-suit and trumping rules.",
+        "If the player who closed reaches 66, they score game points normally.",
+        "If the player who closed fails to reach 66, the opponent scores game points.",
+        "If the opponent has taken no tricks, the penalty may be higher."
+      ]
+    },
+    {
+      "title_tr": "66 İlanı",
+      "title_en": "Declaring 66",
+      "content_tr": [
+        "Bir oyuncu aldığı el kartları ve evlilik puanlarıyla 66 veya daha fazla puana ulaştığını düşünüyorsa oyunu durdurabilir.",
+        "Oyuncu 66 ilan ettiğinde puanlar sayılır.",
+        "Gerçekten 66 veya daha fazla puanı varsa eli kazanır.",
+        "Eğer 66'ya ulaşamamışsa rakibi oyun puanı kazanır.",
+        "Oyuncular genellikle kendi puanlarını akıldan takip eder.",
+        "Yanlış 66 ilanı ciddi dezavantaj yaratabileceği için dikkatli sayım önemlidir."
+      ],
+      "content_en": [
+        "A player who believes they have reached 66 or more points from tricks and marriages may stop the hand.",
+        "When a player declares 66, the points are counted.",
+        "If the player really has 66 or more points, they win the hand.",
+        "If they have not reached 66, the opponent scores game points.",
+        "Players usually track their own points mentally.",
+        "A false declaration of 66 can be costly, so careful counting is important."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Standart 66: 24 kartlık deste, 6 kartlık el ve 7 oyun puanı hedefiyle oynanır.",
+        "Schnapsen: 20 kartlık Avusturya varyantıdır; 9'lular çıkarılır ve her oyuncuya 5 kart dağıtılır.",
+        "Evliliksiz Oyun: Başlangıç için evlilik puanları kapatılarak daha basit oynanabilir.",
+        "Açık Puan Takibi: Yeni başlayanlar için oyuncular kazandıkları kartlara bakarak puanlarını sayabilir.",
+        "Talonsuz Pratik: Tüm kartlar dağıtılarak sadece son aşama kuralları çalışılabilir.",
+        "Hedef Puan Değişimi: Oyun 7 yerine 5, 9 veya 11 oyun puanına kadar oynanabilir."
+      ],
+      "content_en": [
+        "Standard Sixty-Six: Played with a 24-card deck, 6-card hands, and a target of 7 game points.",
+        "Schnapsen: A 20-card Austrian variant; 9s are removed and each player receives 5 cards.",
+        "No-Marriage Game: For beginners, marriage bonuses may be turned off for a simpler game.",
+        "Open Point Tracking: For beginners, players may look at won cards to count their points.",
+        "No-Talon Practice: All cards may be dealt to practice only the final strict trick-taking phase.",
+        "Different Target Score: The match may be played to 5, 9, or 11 game points instead of 7."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Oyuncular aldıkları ellerdeki kart puanlarını toplar.",
+    "Talon açıkken kazanılan eller de, talon bittikten veya kapatıldıktan sonra kazanılan eller de aynı şekilde puana sayılır.",
+    "Evlilik puanları da oyuncunun toplamına eklenir.",
+    "Evlilik puanı, oyuncunun o anda elinde bulunan aynı renkten Papaz ve Kız ile ilan edilir; kazandığı kartlardan evlilik yapılmaz.",
+    "Bir oyuncu 66 veya daha fazla puana ulaştığını ilan ederse el sona erer.",
+    "Kazanan oyuncu, rakibin durumuna göre oyun puanı alır.",
+    "Rakip 33 veya daha fazla kart puanı aldıysa kazanan 1 oyun puanı alır.",
+    "Rakip en az bir el aldıysa ama 33 puanın altındaysa kazanan 2 oyun puanı alır.",
+    "Rakip hiç el almadıysa kazanan 3 oyun puanı alır.",
+    "Yanlış 66 ilan eden veya talonu kapatıp 66'ya ulaşamayan oyuncu yerine rakibi oyun puanı kazanır."
+  ],
+  "scoring_en": [
+    "Players add the card points from the tricks they have won.",
+    "Tricks won while the talon is open and tricks won after it is exhausted or closed count in the same way.",
+    "Marriage points are also added to the player's total.",
+    "Marriage points are declared from a King and Queen of the same suit currently in the player's hand; marriages cannot be made from already won cards.",
+    "When a player declares 66 or more points, the hand ends.",
+    "The winner scores game points depending on the opponent's result.",
+    "If the opponent has 33 or more card points, the winner scores 1 game point.",
+    "If the opponent has taken at least one trick but has fewer than 33 points, the winner scores 2 game points.",
+    "If the opponent has taken no tricks, the winner scores 3 game points.",
+    "If a player falsely declares 66 or closes the talon and fails to reach 66, the opponent scores game points instead."
+  ],
+  "ending_tr": [
+    "Bir el, oyunculardan biri doğru şekilde 66 ilan ettiğinde sona erer.",
+    "Talon kapatılmışsa ve kapatan oyuncu 66'ya ulaşamazsa rakibi puan alır.",
+    "Eğer tüm kartlar oynanır ve kimse 66 ilan etmezse, son elin kazananı veya ev kuralına göre el değerlendirilir.",
+    "El sonunda oyun puanları toplam skora eklenir.",
+    "Bir oyuncu 7 oyun puanına ulaştığında maçı kazanır.",
+    "Yeni el oynanacaksa dağıtıcı değişir ve kartlar yeniden karıştırılır."
+  ],
+  "ending_en": [
+    "A hand ends when one player correctly declares 66.",
+    "If the talon was closed and the closer fails to reach 66, the opponent scores.",
+    "If all cards are played and nobody declares 66, the last trick winner or house rule determines the hand result.",
+    "At the end of the hand, game points are added to the match score.",
+    "The first player to reach 7 game points wins the match.",
+    "If another hand is played, the deal passes to the other player and the cards are shuffled again."
+  ],
+  "notes_tr": [
+    "Altmışaltı, Schnapsen ve diğer marriage grubu oyunlarla akrabadır.",
+    "Oyunun adı, elde 66 puana ulaşma hedefinden gelir.",
+    "Yeni başlayanlar için en zor kısım talon açıkken serbest oyun ile talon kapandıktan sonraki zorunlu renge uyma kuralını ayırmaktır.",
+    "İlk aşama ve ikinci aşama arasında puanlama farkı yoktur; fark kart çekme ve oynama zorunluluklarındadır.",
+    "10'lu kartların Papaz, Kız ve Vale'den daha güçlü olduğu unutulmamalıdır.",
+    "Evlilik puanları oyunun kaderini değiştirebilir; özellikle koz evliliği 40 puan olduğu için çok değerlidir.",
+    "Evlilik ilanında kartlar oyundan çıkmaz; biri oynanır, diğeri elde kalır ve oyun normal devam eder.",
+    "Standart oyunda oyuncular kazandıkları kartlara sürekli bakmaz; yeni başlayanlar için açık puan takibi ev kuralı olarak kullanılabilir.",
+    "Oyuncular puanlarını gizli veya açık takip etmeyi oyuna başlamadan belirleyebilir."
+  ],
+  "notes_en": [
+    "Sixty-Six is related to Schnapsen and other games in the marriage group.",
+    "The game is named after the goal of reaching 66 points in a hand.",
+    "For beginners, the hardest part is separating the free play while the talon is open from the strict follow-suit rules after the talon is closed or exhausted.",
+    "There is no scoring difference between the first and second phases; the difference is in drawing and play obligations.",
+    "Players should remember that Tens rank above Kings, Queens, and Jacks.",
+    "Marriage points can change the outcome of the hand; a trump marriage is especially valuable at 40 points.",
+    "When a marriage is declared, the cards are not removed from play; one is played, the other remains in hand, and play continues normally.",
+    "In standard play, players do not constantly look through won cards; open point tracking can be used as a beginner-friendly house rule.",
+    "Players may agree before the game whether points are tracked secretly or openly."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "24 kartlık deste",
+  "deckCount_en": "24-card deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

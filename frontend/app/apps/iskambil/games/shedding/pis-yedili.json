@@ -1,0 +1,36 @@
+{
+  "id": "pis-yedili",
+  "name_tr": "pis yedili",
+  "name_en": "Pis Yedili / Crazy Eights",
+  "originalName": "Pis Yedili / Crazy Eights",
+  "description_tr": "Crazy Eights ailesinden gelen, Türkiye'de özel kart etkileriyle oynanan kart bitirme oyunu.",
+  "description_en": "A Turkish Crazy Eights-family shedding game with special action cards.",
+  "rules_tr": [
+    "2-7 oyuncuyla 52 kartlık standart deste kullanılır.",
+    "Her oyuncuya genellikle 7 kart dağıtılır. Kalan kartlar kapalı çekme destesi olur ve bir kart açılarak oyun başlar.",
+    "Sırası gelen oyuncu yerdeki kartla aynı renkten veya aynı değerden kart atar.",
+    "Vale renk değiştirme kartıdır; oyuncu yeni rengi belirler.",
+    "7 atan oyuncu sonraki oyuncuya genellikle 3 kart çektirir. Birden fazla 7 üst üste atılırsa ceza katlanabilir.",
+    "As genellikle sonraki oyuncuyu pas geçirir; 10 yön değiştirir. Bu özel etkiler ev kuralına göre değişebilir.",
+    "Oynayacak kartı olmayan oyuncu desteden kart çeker.",
+    "Elde tek kart kalınca 'Tek!' denmelidir. Söylemeyen oyuncuya ceza kartı verilebilir.",
+    "Elindeki tüm kartları ilk bitiren oyuncu eli kazanır; diğer oyuncular ellerinde kalan kartlar üzerinden ceza puanı alabilir."
+  ],
+  "rules_en": [
+    "Played with 2-7 players using a standard 52-card deck.",
+    "Each player usually receives 7 cards. The rest forms the draw pile and one card is turned over to start play.",
+    "On their turn, a player plays a card matching the suit or rank of the top card.",
+    "Jacks are color/suit-changing cards; the player names the new suit.",
+    "Playing a 7 usually makes the next player draw 3 cards. Multiple 7s may stack the penalty.",
+    "Aces usually skip the next player; 10s reverse direction. These effects may vary by house rule.",
+    "A player with no playable card draws from the deck.",
+    "When a player has one card left, they must say 'Tek!' A player who forgets may receive penalty cards.",
+    "The first player to empty their hand wins the hand; remaining players may receive penalty points for cards left in hand."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Bitirme",
+  "category_en": "Shedding"
+}

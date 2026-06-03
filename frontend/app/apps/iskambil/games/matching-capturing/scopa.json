@@ -1,0 +1,34 @@
+{
+  "id": "scopa",
+  "name_tr": "scopa",
+  "name_en": "Scopa",
+  "originalName": "Scopa",
+  "description_tr": "İtalyan kökenli, masadaki kartları eş değer veya toplamla almaya dayalı klasik toplama oyunu.",
+  "description_en": "A classic Italian fishing game where table cards are captured by equal value or by matching a sum.",
+  "rules_tr": [
+    "2 veya 4 oyuncuyla oynanır; 4 kişide ikişerli takım yapılabilir.",
+    "40 kartlık deste kullanılır. Standart 52'lik desteyle oynanacaksa 8, 9 ve 10 kartları çıkarılır.",
+    "Her oyuncuya 3 kart dağıtılır ve masaya 4 açık kart konur.",
+    "Oyuncu elindeki kartla masadaki aynı değerdeki tek kartı veya toplamı kendi kartına eşit olan birkaç kartı alabilir.",
+    "Kart alamayan oyuncu elindeki kartlardan birini masaya bırakır.",
+    "Bir oyuncu hamlesiyle masadaki tüm kartları temizlerse scopa yapar ve ekstra puan kazanır.",
+    "Kartlar bittikçe oyunculara yeniden 3'er kart dağıtılır; deste bitene kadar oyun sürer.",
+    "Puanlama en çok kart, en çok para/karo, settebello, primiera ve yapılan scopa sayısına göre hesaplanır."
+  ],
+  "rules_en": [
+    "Played with 2 or 4 players; with 4 players, partners may be used.",
+    "A 40-card deck is used. If using a standard 52-card deck, remove the 8s, 9s, and 10s.",
+    "Each player is dealt 3 cards and 4 cards are placed face up on the table.",
+    "A player may capture one table card of the same value or several cards whose total equals the played card.",
+    "If no capture is possible, the player places one card from hand onto the table.",
+    "If a player clears all table cards with a move, they score a scopa bonus.",
+    "After hands are empty, 3 more cards are dealt until the deck is exhausted.",
+    "Scoring is based on most cards, most coins/diamonds, settebello, primiera, and the number of scopas."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "40 Kartlık Deste",
+  "deckCount_en": "40-card deck",
+  "category_tr": "Eşleştirme / Toplama",
+  "category_en": "Matching / Capturing"
+}

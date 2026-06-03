@@ -1,0 +1,246 @@
+{
+  "id": "german-whist",
+  "name_tr": "Alman Whisti",
+  "name_en": "German Whist",
+  "originalName": "German Whist",
+  "description_tr": "İki oyunculu, ihalesiz ve kozlu bir Whist varyantıdır; oyuncular önce açık kartları kazanarak ellerini geliştirir, sonra gerçek el alma aşamasına geçer.",
+  "description_en": "A two-player, no-bid, trump Whist variant where players first improve their hands by winning exposed cards, then play a final trick-taking phase.",
+  "quickRules_tr": [
+    "2 kişiyle, 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya 13 kart dağıtılır.",
+    "Kalan deste kapalı şekilde ortaya konur ve en üst kart açılarak koz rengini belirler.",
+    "Oyun iki aşamadan oluşur: kart toplama aşaması ve son el alma aşaması.",
+    "İlk aşamada her elde kazanan oyuncu açık kartı, kaybeden oyuncu kapalı destenin üst kartını alır.",
+    "Deste bittikten sonra oyuncular ellerindeki 13 kartla normal el alma aşamasını oynar.",
+    "Mümkünse oynanan renge uymak gerekir.",
+    "Koz kartları diğer renklerden üstündür.",
+    "Son aşamada daha çok el alan oyuncu kazanır."
+  ],
+  "quickRules_en": [
+    "Played by 2 players with a standard 52-card deck.",
+    "Each player is dealt 13 cards.",
+    "The remaining deck is placed face down, and the top card is turned face up to determine the trump suit.",
+    "The game has two phases: the drawing phase and the final trick-taking phase.",
+    "In the first phase, the winner of each trick takes the face-up card, while the loser takes the top face-down card.",
+    "After the stock is exhausted, players play a normal trick-taking phase with their 13-card hands.",
+    "Players must follow the led suit if possible.",
+    "Trump cards outrank cards of other suits.",
+    "The player who wins more tricks in the final phase wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Her oyuncuya 13 kart dağıtılır.",
+    "Kalan 26 kart kapalı şekilde ortaya konur ve stock destesini oluşturur.",
+    "Stock destesinin en üst kartı açılır ve destenin üstüne açık şekilde konur.",
+    "Açılan bu kartın türü, tüm oyun için koz rengini belirler.",
+    "Kart sıralaması her tür içinde büyükten küçüğe As, Papaz, Kız, Vale, 10, 9, 8, 7, 6, 5, 4, 3, 2 şeklindedir.",
+    "İlk eli genellikle dağıtmayan oyuncu başlatır."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal 13 cards to each player.",
+    "Place the remaining 26 cards face down in the center as the stock pile.",
+    "Turn the top card of the stock face up and place it on top of the stock.",
+    "The suit of this face-up card becomes the trump suit for the whole hand.",
+    "Card ranking in each suit is Ace, King, Queen, Jack, 10, 9, 8, 7, 6, 5, 4, 3, 2 from high to low.",
+    "The non-dealer usually leads the first trick."
+  ],
+  "objective_tr": "Amaç, ilk aşamada güçlü kartları toplayarak son aşama için iyi bir el oluşturmak ve son el kazanma aşamasında rakipten daha fazla el kazanmaktır.",
+  "objective_en": "The objective is to build a strong hand during the first phase and then win more tricks than the opponent in the final trick-taking phase.",
+  "gameplay_tr": [
+    "Oyun kart toplama aşamasıyla başlar.",
+    "Bir oyuncu ortaya bir kart oynar; diğer oyuncu mümkünse aynı türden bir kart oynamak zorundadır.",
+    "İkinci oyuncunun elinde oynanan türden kart yoksa istediği kartı oynayabilir.",
+    "İki kart aynı türdense, yüksek olan kart eli kazanır.",
+    "Kartlar farklı türdense, koz oynanmışsa koz eli kazanır; koz yoksa eli başlatan oyuncunun türündeki kart kazanır.",
+    "İlk aşamada eli kazanan oyuncu stock destesinin üstündeki açık kartı eline alır.",
+    "Eli kaybeden oyuncu stock destesinin üstündeki kapalı kartı eline alır.",
+    "Sonra stock destesinden yeni bir kart açılır ve bir sonraki el için görünen ödül kartı olur.",
+    "Eli kazanan oyuncu bir sonraki eli başlatır.",
+    "Bu süreç stock destesindeki kartlar bitene kadar devam eder.",
+    "Stock bittikten sonra oyuncular ellerinde kalan 13 kartla son el alma aşamasını oynar.",
+    "Son aşamada artık kart çekilmez; kazanılan eller sayılır."
+  ],
+  "gameplay_en": [
+    "The game begins with the drawing phase.",
+    "One player leads a card, and the other player must follow suit if possible.",
+    "If the second player has no card of the led suit, they may play any card.",
+    "If both cards are of the same suit, the higher card wins the trick.",
+    "If the cards are of different suits, a trump card wins; if no trump is played, the card in the led suit wins.",
+    "In the first phase, the winner of the trick takes the face-up card from the top of the stock into their hand.",
+    "The loser of the trick takes the top face-down card from the stock into their hand.",
+    "A new card is then turned face up from the stock to become the visible reward card for the next trick.",
+    "The winner of the trick leads the next trick.",
+    "This continues until the stock is exhausted.",
+    "After the stock is exhausted, players play the final trick-taking phase with their remaining 13-card hands.",
+    "In the final phase, no more cards are drawn; won tricks are counted."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Koz ve Kart Sıralaması",
+      "title_en": "Trump and Card Ranking",
+      "content_tr": [
+        "İlk açılan stock kartının türü koz rengini belirler.",
+        "Koz rengi tüm oyun boyunca değişmez.",
+        "Koz kartları, koz olmayan tüm kartlardan üstündür.",
+        "Aynı tür içindeki kart sıralaması As, Papaz, Kız, Vale, 10, 9, 8, 7, 6, 5, 4, 3, 2 şeklindedir.",
+        "Koz oynanmamışsa, eli başlatan renkteki en yüksek kart eli kazanır.",
+        "Koz oynanmışsa, en yüksek koz kartı eli kazanır."
+      ],
+      "content_en": [
+        "The suit of the first exposed stock card determines the trump suit.",
+        "The trump suit does not change during the hand.",
+        "Trump cards outrank all non-trump cards.",
+        "Within each suit, the card ranking is Ace, King, Queen, Jack, 10, 9, 8, 7, 6, 5, 4, 3, 2.",
+        "If no trump is played, the highest card of the led suit wins the trick.",
+        "If trump is played, the highest trump card wins the trick."
+      ]
+    },
+    {
+      "title_tr": "1. Aşama: Kart Toplama",
+      "title_en": "Phase 1: Drawing Phase",
+      "content_tr": [
+        "İlk 13 el, kart toplama ve eli geliştirme aşamasıdır.",
+        "Her elin başında stock destesinin üstünde açık bir ödül kartı bulunur.",
+        "Eli kazanan oyuncu bu açık kartı alır.",
+        "Eli kaybeden oyuncu stock destesinin üstündeki kapalı kartı alır.",
+        "Bu aşamada kazanılan eller genellikle skor olarak sayılmaz; amaç son aşama için daha güçlü kartlar toplamaktır.",
+        "Oyuncular hangi açık kartları kazanacaklarını planlayarak son aşamadaki ellerini güçlendirmeye çalışır."
+      ],
+      "content_en": [
+        "The first 13 tricks are the drawing phase, where players improve their hands.",
+        "At the start of each trick, there is a face-up reward card on top of the stock.",
+        "The winner of the trick takes this face-up card.",
+        "The loser of the trick takes the top face-down card from the stock.",
+        "Tricks won in this phase usually do not count as the final score; the goal is to collect stronger cards for the final phase.",
+        "Players try to plan which exposed cards to win in order to improve their final hand."
+      ]
+    },
+    {
+      "title_tr": "2. Aşama: Son El Alma",
+      "title_en": "Phase 2: Final Trick-Taking",
+      "content_tr": [
+        "Stock destesi bittikten sonra oyuncuların ellerinde 13'er kart kalır.",
+        "Bu aşamada artık kart çekilmez.",
+        "Oyuncular normal kozlu Whist kurallarıyla 13 el oynar.",
+        "Eli başlatan oyuncu istediği kartı oynayabilir.",
+        "Diğer oyuncu mümkünse aynı türden kart oynamak zorundadır.",
+        "Aynı türden daha yüksek kart veya koz kartı eli kazanır.",
+        "Son aşamada kazanılan eller sayılır ve daha fazla el alan oyuncu oyunu kazanır."
+      ],
+      "content_en": [
+        "After the stock is exhausted, each player has 13 cards in hand.",
+        "No more cards are drawn in this phase.",
+        "Players play 13 tricks using normal trump Whist rules.",
+        "The player who leads may play any card.",
+        "The other player must follow suit if possible.",
+        "The higher card of the led suit or the highest trump card wins the trick.",
+        "Tricks won in the final phase are counted, and the player who wins more tricks wins the game."
+      ]
+    },
+    {
+      "title_tr": "Renge Uyma Kuralı",
+      "title_en": "Following Suit",
+      "content_tr": [
+        "Bir oyuncu eli başlatırken istediği kartı oynayabilir.",
+        "İkinci oyuncunun elinde oynanan renkten kart varsa o renge uymak zorundadır.",
+        "İkinci oyuncunun elinde oynanan renkten kart yoksa istediği kartı oynayabilir.",
+        "Oyuncu renge uymak zorundadır ama eli almak zorunda değildir.",
+        "Renge uyulamıyorsa koz oynanabilir veya başka bir kart atılabilir."
+      ],
+      "content_en": [
+        "The player who leads a trick may play any card.",
+        "If the second player has a card of the led suit, they must follow suit.",
+        "If the second player has no card of the led suit, they may play any card.",
+        "A player must follow suit when able, but they are not required to win the trick.",
+        "If a player cannot follow suit, they may play a trump or any other card."
+      ]
+    },
+    {
+      "title_tr": "İki Kişilik Batak ile Farkı",
+      "title_en": "Difference from Two-player Batak",
+      "content_tr": [
+        "Bu oyun Batak gibi kozlu ve el alma mantığına sahiptir, ancak Batak'taki gibi ihale yoktur.",
+        "Koz, oyuncular tarafından seçilmez; stock destesinden açılan ilk kartın türü koz olur.",
+        "Oyunun ilk yarısında kazanılan ellerden çok hangi kartların ele alındığı önemlidir.",
+        "Asıl skor genellikle ikinci aşamadaki 13 el üzerinden belirlenir.",
+        "Bu nedenle oyun, klasik Batak'tan çok German Whist / Two-player Whist kurallarına yakındır."
+      ],
+      "content_en": [
+        "This game has trump and trick-taking like Batak, but it has no bidding phase.",
+        "The trump suit is not chosen by the players; it is determined by the first exposed stock card.",
+        "In the first half, the important thing is not the tricks themselves but which cards are added to the hand.",
+        "The actual result is usually determined by the 13 tricks in the second phase.",
+        "For this reason, the game is closer to German Whist / Two-player Whist than to classic Batak."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Standart German Whist: Sadece son 13 el skor olarak sayılır.",
+        "26 El Sayılan Varyant: İlk aşamadaki eller de skor hesabına dahil edilir.",
+        "Kozsuz Varyant: Bazı gruplar oyunu koz olmadan oynayabilir.",
+        "Düşük El Varyantı: Bazı varyantlarda amaç daha az el almak olabilir.",
+        "Hedef Puanlı Oyun: Birden fazla el oynanır ve belirlenen puana ilk ulaşan oyuncu kazanır."
+      ],
+      "content_en": [
+        "Standard German Whist: Only the final 13 tricks count for scoring.",
+        "All-26-Tricks Variant: Tricks from the first phase are also included in the score.",
+        "No-Trump Variant: Some groups may play without a trump suit.",
+        "Low-Trick Variant: In some variants, the goal may be to win fewer tricks.",
+        "Target Score Game: Several hands are played, and the first player to reach a chosen score wins."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Standart German Whist'te genellikle yalnızca son aşamadaki 13 el sayılır.",
+    "Son aşamada daha fazla el alan oyuncu oyunu kazanır.",
+    "Basit puanlamada oyuncu kazandığı el sayısı kadar puan alabilir.",
+    "Daha klasik puanlamada 6 el üzerindeki fark puan olarak yazılabilir.",
+    "Örneğin son aşamada 8 el alan oyuncu, rakibi 5 el aldıysa 2 puan kazanmış sayılabilir.",
+    "İstenirse birkaç el oynanır ve hedef puana ilk ulaşan oyuncu genel kazanan olur."
+  ],
+  "scoring_en": [
+    "In standard German Whist, usually only the final 13 tricks are counted.",
+    "The player who wins more tricks in the final phase wins the game.",
+    "In simple scoring, each player may score the number of tricks they won.",
+    "In a more classic scoring method, only tricks above 6 count as points.",
+    "For example, if a player wins 8 tricks and the opponent wins 5, the player may score 2 points.",
+    "Optionally, several hands may be played until one player reaches a target score."
+  ],
+  "ending_tr": [
+    "Stock destesi bittikten sonra son 13 el oynanır.",
+    "Son el alma aşaması tamamlandığında oyuncular kazandıkları elleri sayar.",
+    "Daha fazla el alan oyuncu oyunu kazanır.",
+    "Eşitlik mümkün değildir çünkü son aşamada toplam 13 el vardır.",
+    "Birden fazla el oynanacaksa dağıtıcı değiştirilir ve yeni el başlar."
+  ],
+  "ending_en": [
+    "After the stock is exhausted, the final 13 tricks are played.",
+    "When the final trick-taking phase is complete, players count the tricks they won.",
+    "The player who won more tricks wins the game.",
+    "A tie is not possible because there are 13 tricks in the final phase.",
+    "If multiple hands are played, the deal passes to the other player and a new hand begins."
+  ],
+  "notes_tr": [
+    "Bu oyun iki kişilik kozlu el alma oyunu arayanlar için Batak'a benzer bir his verir.",
+    "Ancak teknik olarak Batak değil, German Whist / Two-player Whist varyantıdır.",
+    "İlk aşamada her eli kazanmak her zaman en iyi hamle olmayabilir; bazen açık kartı istemiyorsanız eli kaybetmek daha avantajlı olabilir.",
+    "İlk aşamada alınan kartlar sayesinde oyuncular ikinci aşamadaki ellerini bilinçli şekilde güçlendirir.",
+    "İkinci aşamada iki oyuncu da rakibin hangi kartları aldığını kısmen hatırlayabildiği için hafıza ve planlama önemlidir."
+  ],
+  "notes_en": [
+    "This game gives a Batak-like feeling for players looking for a two-player trump trick-taking game.",
+    "Technically, however, it is not Batak; it is a German Whist / Two-player Whist variant.",
+    "In the first phase, winning every trick is not always the best move; sometimes losing a trick is better if the exposed card is undesirable.",
+    "The cards collected in the first phase allow players to deliberately strengthen their hands for the second phase.",
+    "In the second phase, memory and planning matter because both players may remember some of the cards the opponent collected."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

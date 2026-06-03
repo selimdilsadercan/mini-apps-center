@@ -72,14 +72,16 @@ export function proxy(request: NextRequest) {
     const targetPath = SUBDOMAIN_ROUTES[subdomain];
     const url = request.nextUrl.clone();
 
-    // Avoid rewrite loop if already on the target path
-    if (url.pathname === targetPath) {
+    const originalPath = url.pathname;
+
+    // Avoid rewrite loop if already starting with target path
+    if (originalPath.startsWith(targetPath)) {
       const res = NextResponse.next();
       res.headers.set("x-subdomain", subdomain);
       return res;
     }
 
-    url.pathname = targetPath;
+    url.pathname = `${targetPath}${originalPath === "/" ? "" : originalPath}`;
     const res = NextResponse.rewrite(url);
     // Pass subdomain to the app so the discovery banner can self-activate
     res.headers.set("x-subdomain", subdomain);

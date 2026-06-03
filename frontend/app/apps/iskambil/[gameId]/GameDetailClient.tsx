@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   Users,
@@ -15,44 +15,16 @@ import {
 import { motion } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react"; 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { GameData } from "../games-registry";
 
 const client = createBrowserClient();
 
-interface Game {
-  id: string;
-  name_tr: string;
-  name_en: string;
-  original_name: string | null;
-  description_tr: string;
-  description_en: string;
-  rules_tr: string[];
-  rules_en: string[];
-  min_players: number;
-  max_players: number;
-  deck_count_tr: string;
-  deck_count_en: string;
-  category_tr: string;
-  category_en: string;
+interface GameState {
   is_favorite: boolean;
   is_known: boolean;
   user_note: string | null;
-  quick_rules_tr: string[] | null;
-  quick_rules_en: string[] | null;
-  setup_tr: string[] | null;
-  setup_en: string[] | null;
-  objective_tr: string | null;
-  objective_en: string | null;
-  gameplay_tr: string[] | null;
-  gameplay_en: string[] | null;
-  scoring_tr: string[] | null;
-  scoring_en: string[] | null;
-  ending_tr: string[] | null;
-  ending_en: string[] | null;
-  notes_tr: string[] | null;
-  notes_en: string[] | null;
-  custom_sections: GameSection[] | null;
 }
 
 interface GameSection {
@@ -97,52 +69,57 @@ const translations = {
   }
 };
 
-function GameDetailContent() {
+export default function GameDetailClient({ initialGame }: { initialGame: GameData }) {
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { locale: lang } = useLanguage();
-  
-  const gameId = searchParams.get("gameId");
   const t = translations[lang];
 
-  const [game, setGame] = useState<Game | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userState, setUserState] = useState<GameState>({
+    is_favorite: false,
+    is_known: false,
+    user_note: null
+  });
+  const [isLoadingState, setIsLoadingState] = useState(true);
   const [noteText, setNoteText] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
 
-  const fetchGameDetails = async (userId: string) => {
-    if (!gameId) return;
+  // Fetch only user states from API (known, favorite, note) to merge with static rules
+  const fetchUserState = async (userId: string) => {
     try {
-      setIsLoading(true);
+      setIsLoadingState(true);
       const resp = await client.iskambil.getGames(userId);
-      const found = (resp.games || []).find((g: Game) => g.id === gameId);
+      const found = (resp.games || []).find((g: any) => g.id === initialGame.id);
       if (found) {
-        setGame(found);
+        setUserState({
+          is_favorite: found.is_favorite,
+          is_known: found.is_known,
+          user_note: found.user_note || null
+        });
         setNoteText(found.user_note || "");
       }
     } catch (err) {
-      console.error("Failed to load game details:", err);
+      console.error("Failed to load game user state:", err);
     } finally {
-      setIsLoading(false);
+      setIsLoadingState(false);
     }
   };
 
   useEffect(() => {
-    if (!isUserLoaded || !gameId) return;
+    if (!isUserLoaded) return;
     const userId = user?.id ?? "guest";
-    fetchGameDetails(userId);
-  }, [isUserLoaded, user?.id, gameId]);
+    fetchUserState(userId);
+  }, [isUserLoaded, user?.id, initialGame.id]);
 
   const handleToggleFavorite = async () => {
-    if (!user?.id || !game) return;
+    if (!user?.id) return;
     try {
       const resp = await client.iskambil.toggleFavorite({
-        gameId: game.id,
+        gameId: initialGame.id,
         userId: user.id
       });
       if (resp.success) {
-        setGame(prev => prev ? { ...prev, is_favorite: resp.isFavorite } : null);
+        setUserState(prev => ({ ...prev, is_favorite: resp.isFavorite }));
       }
     } catch (err) {
       console.error("Favorite error:", err);
@@ -150,14 +127,14 @@ function GameDetailContent() {
   };
 
   const handleToggleKnown = async () => {
-    if (!user?.id || !game) return;
+    if (!user?.id) return;
     try {
       const resp = await client.iskambil.toggleKnown({
-        gameId: game.id,
+        gameId: initialGame.id,
         userId: user.id
       });
       if (resp.success) {
-        setGame(prev => prev ? { ...prev, is_known: resp.isKnown } : null);
+        setUserState(prev => ({ ...prev, is_known: resp.isKnown }));
       }
     } catch (err) {
       console.error("Known toggle error:", err);
@@ -165,16 +142,16 @@ function GameDetailContent() {
   };
 
   const handleSaveNote = async () => {
-    if (!user?.id || !game) return;
+    if (!user?.id) return;
     try {
       setIsSavingNote(true);
       const resp = await client.iskambil.saveNote({
-        gameId: game.id,
+        gameId: initialGame.id,
         userId: user.id,
         note: noteText
       });
       if (resp.success) {
-        setGame(prev => prev ? { ...prev, user_note: resp.note } : null);
+        setUserState(prev => ({ ...prev, user_note: resp.note }));
       }
     } catch (err) {
       console.error("Save note error:", err);
@@ -183,37 +160,19 @@ function GameDetailContent() {
     }
   };
 
-  if (!isUserLoaded || isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f1ea] text-[#0c3122]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-emerald-200 border-t-[#0c3122] rounded-full animate-spin" />
-          <p className="text-sm font-black uppercase tracking-widest text-[#0c3122]">{t.loading}</p>
-        </div>
-      </div>
-    );
-  }
+  const gameName = lang === "tr" ? initialGame.name_tr : initialGame.name_en;
+  const gameCategory = lang === "tr" ? initialGame.category_tr : initialGame.category_en;
+  const gameRules = lang === "tr" ? initialGame.rules_tr : initialGame.rules_en;
+  const deckCount = lang === "tr" ? initialGame.deckCount_tr : initialGame.deckCount_en;
 
-  if (!game) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f4f1ea] text-[#0c3122] p-6 text-center">
-        <XCircle size={64} className="text-red-500 mb-4" />
-        <h2 className="text-2xl font-black mb-4">{t.gameNotFound}</h2>
-        <button
-          onClick={() => router.push("/apps/iskambil")}
-          className="flex items-center gap-2 bg-[#0c3122] hover:bg-[#12422f] text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all cursor-pointer shadow-sm"
-        >
-          <ArrowLeft size={16} weight="bold" />
-          {t.back}
-        </button>
-      </div>
-    );
-  }
-
-  const gameName = lang === "tr" ? game.name_tr : game.name_en;
-  const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
-  const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
-  const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
+  const quickRules = lang === "tr" ? initialGame.quickRules_tr : initialGame.quickRules_en;
+  const setup = lang === "tr" ? initialGame.setup_tr : initialGame.setup_en;
+  const objective = lang === "tr" ? initialGame.objective_tr : initialGame.objective_en;
+  const gameplay = lang === "tr" ? initialGame.gameplay_tr : initialGame.gameplay_en;
+  const scoring = lang === "tr" ? initialGame.scoring_tr : initialGame.scoring_en;
+  const ending = lang === "tr" ? initialGame.ending_tr : initialGame.ending_en;
+  const notes = lang === "tr" ? initialGame.notes_tr : initialGame.notes_en;
+  const customSections = initialGame.customSections as GameSection[] | null;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white">
@@ -232,9 +191,9 @@ function GameDetailContent() {
               <h1 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-[#0c3122]">
                 {gameName.toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US")}
               </h1>
-              {game.original_name && game.original_name.toLowerCase() !== gameName.toLowerCase() && (
+              {initialGame.originalName && initialGame.originalName.toLowerCase() !== gameName.toLowerCase() && (
                 <p className="text-[10px] text-slate-400 font-semibold mt-1">
-                  ({game.original_name})
+                  ({initialGame.originalName})
                 </p>
               )}
             </div>
@@ -244,25 +203,25 @@ function GameDetailContent() {
             <button
               onClick={handleToggleKnown}
               className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${
-                game.is_known 
+                userState.is_known 
                   ? "bg-emerald-50 border-emerald-200 text-emerald-600" 
                   : "bg-[#f5f2e9] border-[#e2dcc8] text-slate-500 hover:text-emerald-600 hover:bg-[#eae6df]"
               }`}
               title={t.known}
             >
-              <CheckCircle size={20} weight={game.is_known ? "fill" : "bold"} />
+              <CheckCircle size={20} weight={userState.is_known ? "fill" : "bold"} />
             </button>
 
             <button
               onClick={handleToggleFavorite}
               className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${
-                game.is_favorite 
+                userState.is_favorite 
                   ? "bg-red-50 border-red-200 text-red-500" 
                   : "bg-[#f5f2e9] border-[#e2dcc8] text-slate-500 hover:text-red-500 hover:bg-[#eae6df]"
               }`}
               title={t.favorite}
             >
-              <Heart size={20} weight={game.is_favorite ? "fill" : "bold"} />
+              <Heart size={20} weight={userState.is_favorite ? "fill" : "bold"} />
             </button>
           </div>
         </div>
@@ -279,8 +238,7 @@ function GameDetailContent() {
           <div className="lg:col-span-2 space-y-4">
             
             <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-6 md:p-8 space-y-6 font-sans text-base text-slate-700 leading-relaxed shadow-sm">
-              {/* Check if we have the new detailed layout */}
-              {(lang === "tr" ? game.quick_rules_tr : game.quick_rules_en) ? (
+              {quickRules ? (
                 <div className="space-y-6">
                   
                   {/* Quick Summary */}
@@ -289,7 +247,7 @@ function GameDetailContent() {
                       {lang === "tr" ? "Hızlı Özet" : "Quick Summary"}
                     </h4>
                     <ol className="space-y-2 list-decimal list-inside pl-1">
-                      {(lang === "tr" ? game.quick_rules_tr : game.quick_rules_en)?.map((rule, idx) => (
+                      {quickRules.map((rule, idx) => (
                         <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                           <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
                         </li>
@@ -298,13 +256,13 @@ function GameDetailContent() {
                   </div>
 
                   {/* Setup */}
-                  {(lang === "tr" ? game.setup_tr : game.setup_en) && (
+                  {setup && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Kurulum" : "Setup"}
                       </h4>
                       <ol className="space-y-2 list-decimal list-inside pl-1">
-                        {(lang === "tr" ? game.setup_tr : game.setup_en)?.map((step, idx) => (
+                        {setup.map((step, idx) => (
                           <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                             <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{step}</span>
                           </li>
@@ -314,25 +272,25 @@ function GameDetailContent() {
                   )}
 
                   {/* Objective */}
-                  {(lang === "tr" ? game.objective_tr : game.objective_en) && (
+                  {objective && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Amaç" : "Objective"}
                       </h4>
                       <div className="p-4 bg-[#fbf9f3] border border-[#e2dec5] rounded-xl text-slate-700 text-sm leading-relaxed">
-                        {lang === "tr" ? game.objective_tr : game.objective_en}
+                        {objective}
                       </div>
                     </div>
                   )}
 
                   {/* Gameplay */}
-                  {(lang === "tr" ? game.gameplay_tr : game.gameplay_en) && (
+                  {gameplay && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Oynanış" : "Gameplay"}
                       </h4>
                       <ol className="space-y-2 list-decimal list-inside pl-1">
-                        {(lang === "tr" ? game.gameplay_tr : game.gameplay_en)?.map((step, idx) => (
+                        {gameplay.map((step, idx) => (
                           <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                             <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{step}</span>
                           </li>
@@ -342,13 +300,13 @@ function GameDetailContent() {
                   )}
 
                   {/* Scoring */}
-                  {(lang === "tr" ? game.scoring_tr : game.scoring_en) && (
+                  {scoring && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Puanlama" : "Scoring"}
                       </h4>
                       <ol className="space-y-2 list-decimal list-inside pl-1">
-                        {(lang === "tr" ? game.scoring_tr : game.scoring_en)?.map((rule, idx) => (
+                        {scoring.map((rule, idx) => (
                           <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                             <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
                           </li>
@@ -358,7 +316,7 @@ function GameDetailContent() {
                   )}
 
                   {/* Custom Sections */}
-                  {game.custom_sections?.map((section, sIdx) => {
+                  {customSections?.map((section, sIdx) => {
                     const title = lang === "tr" ? section.title_tr : section.title_en;
                     const content = lang === "tr" ? section.content_tr : section.content_en;
                     if (!title || !content || content.length === 0) return null;
@@ -379,13 +337,13 @@ function GameDetailContent() {
                   })}
 
                   {/* Ending */}
-                  {(lang === "tr" ? game.ending_tr : game.ending_en) && (
+                  {ending && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Oyun Sonu" : "Ending"}
                       </h4>
                       <ol className="space-y-2 list-decimal list-inside pl-1">
-                        {(lang === "tr" ? game.ending_tr : game.ending_en)?.map((rule, idx) => (
+                        {ending.map((rule, idx) => (
                           <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                             <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{rule}</span>
                           </li>
@@ -395,13 +353,13 @@ function GameDetailContent() {
                   )}
 
                   {/* Notes */}
-                  {(lang === "tr" ? game.notes_tr : game.notes_en) && (
+                  {notes && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
                         {lang === "tr" ? "Özel Notlar" : "Notes"}
                       </h4>
                       <ol className="space-y-2 list-decimal list-inside pl-1">
-                        {(lang === "tr" ? game.notes_tr : game.notes_en)?.map((note, idx) => (
+                        {notes.map((note, idx) => (
                           <li key={idx} className="marker:text-[#0c3122] marker:font-black pb-1 last:pb-0">
                             <span className="inline-block md:inline text-slate-700 text-sm leading-relaxed">{note}</span>
                           </li>
@@ -439,9 +397,9 @@ function GameDetailContent() {
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t.playerCapacity}</span>
                 <span className="text-sm font-bold text-[#0c3122] flex items-center gap-2">
                   <Users size={18} className="text-[#0c3122]/70" />
-                  {game.min_players === game.max_players 
-                    ? `${game.min_players} ${lang === "tr" ? "Oyuncu" : "Players"}` 
-                    : `${game.min_players}-${game.max_players} ${lang === "tr" ? "Oyuncu" : "Players"}`}
+                  {initialGame.minPlayers === initialGame.maxPlayers 
+                    ? `${initialGame.minPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}` 
+                    : `${initialGame.minPlayers}-${initialGame.maxPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`}
                 </span>
               </div>
               
@@ -463,47 +421,35 @@ function GameDetailContent() {
             </div>
 
             {/* Notes Section */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-black uppercase text-[#0c3122] tracking-[0.2em] flex items-center gap-2">
-                <Note size={18} />
-                {t.personalNotes}
-              </h3>
-              
-              <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-5 flex flex-col gap-4 shadow-sm">
-                <textarea
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  placeholder={t.notesPlaceholder}
-                  className="w-full bg-[#fdfcf7] border border-[#e2dec5] rounded-2xl p-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white transition-all text-slate-800 placeholder-slate-400 resize-none min-h-[160px]"
-                />
+            {user?.id && (
+              <div className="space-y-3">
+                <h3 className="text-xs font-black uppercase text-[#0c3122] tracking-[0.2em] flex items-center gap-2">
+                  <Note size={18} />
+                  {t.personalNotes}
+                </h3>
                 
-                <button
-                  onClick={handleSaveNote}
-                  disabled={isSavingNote}
-                  className="w-full bg-[#0c3122] hover:bg-[#12422f] text-white font-black py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px] cursor-pointer disabled:opacity-50 shadow-sm"
-                >
-                  <FloppyDisk size={16} />
-                  <span>{isSavingNote ? t.saving : t.save}</span>
-                </button>
+                <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-5 flex flex-col gap-4 shadow-sm">
+                  <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder={t.notesPlaceholder}
+                    className="w-full bg-[#fdfcf7] border border-[#e2dec5] rounded-2xl p-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white transition-all text-slate-800 placeholder-slate-400 resize-none min-h-[160px]"
+                  />
+                  
+                  <button
+                    onClick={handleSaveNote}
+                    disabled={isSavingNote}
+                    className="w-full bg-[#0c3122] hover:bg-[#12422f] text-white font-black py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px] cursor-pointer disabled:opacity-50 shadow-sm"
+                  >
+                    <FloppyDisk size={16} />
+                    <span>{isSavingNote ? t.saving : t.save}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </main>
     </div>
-  );
-}
-
-export default function GameDetailPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f1ea] text-[#0c3122]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-emerald-200 border-t-[#0c3122] rounded-full animate-spin" />
-        </div>
-      </div>
-    }>
-      <GameDetailContent />
-    </Suspense>
   );
 }

@@ -1,0 +1,32 @@
+{
+  "id": "es-bulmali-speed",
+  "name_tr": "eş bulmalı speed",
+  "name_en": "Snap",
+  "originalName": "Snap",
+  "description_tr": "Aynı değerde kartlar açıldığında oyuncuların hızlı tepki vererek kartları toplamaya çalıştığı refleks oyunu.",
+  "description_en": "A reflex game where players quickly react when cards of the same rank appear.",
+  "rules_tr": [
+    "2-6 oyuncuyla 52 kartlık standart deste kullanılır.",
+    "Kartlar oyunculara kapalı desteler halinde dağıtılır; oyuncular kendi kartlarına bakmaz.",
+    "Oyuncular sırayla kendi destelerinin en üst kartını ortaya veya kendi önlerine açık çevirir.",
+    "Açıkta aynı değerden iki kart göründüğünde oyuncular hızlıca 'Eş!' veya 'Snap!' diyerek ilgili desteye vurur.",
+    "Doğru eşleşmeyi ilk fark eden oyuncu eşleşen kartları veya ortadaki desteyi kazanır.",
+    "Yanlış eş diyen oyuncuya ceza kartı verilebilir.",
+    "Amaç en çok kartı toplamak veya diğer oyuncuların kartları bitince oyunda kalan son kişi olmaktır."
+  ],
+  "rules_en": [
+    "Played with 2-6 players using a standard 52-card deck.",
+    "Cards are dealt face down into player stacks; players do not look at their cards.",
+    "Players take turns turning over the top card of their stack into the center or in front of themselves.",
+    "When two visible cards of the same rank appear, players quickly call 'Snap!' or slap the relevant pile.",
+    "The first player to notice the correct match wins the matching cards or the center pile.",
+    "A player who calls incorrectly may receive a penalty card.",
+    "The goal is to collect the most cards or be the last player remaining when others run out."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

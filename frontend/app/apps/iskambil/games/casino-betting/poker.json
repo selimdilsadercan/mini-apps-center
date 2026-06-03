@@ -1,0 +1,34 @@
+{
+  "id": "poker",
+  "name_tr": "texas hold'em poker",
+  "name_en": "Texas Hold'em Poker",
+  "originalName": "Texas Hold'em Poker",
+  "description_tr": "Her oyuncunun iki kapalı kartı ve masadaki beş ortak kartı kullanarak en iyi beşli poker elini oluşturmaya çalıştığı poker türü.",
+  "description_en": "The most popular poker game where players receive two private cards and use five community cards to build the best five-card hand.",
+  "rules_tr": [
+    "2-10 oyuncuyla, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Dağıtıcı pozisyonunun solundaki iki oyuncu küçük kör ve büyük kör bahislerini koyar. Her oyuncuya kapalı 2 kart dağıtılır.",
+    "İlk bahis turundan sonra masaya üç açık ortak kart açar; buna flop denir.",
+    "İkinci bahis turundan sonra dördüncü ortak kart açılır; buna turn denir.",
+    "Üçüncü bahis turundan sonra beşinci ortak kart açılır; buna river denir.",
+    "Son bahis turundan sonra elde kalan oyuncular kartlarını açar. Oyuncular 2 kapalı kartları ve 5 ortak kart arasından en iyi 5 kartlık eli kurar.",
+    "El sıralaması yüksekten düşüğe şöyledir: Royal Flush, Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, Pair, High Card.",
+    "Bir bahis turunda herkes pas/fold yaparsa potu son aktif oyuncu kazanır; showdown'a kalırsa en iyi el potu alır."
+  ],
+  "rules_en": [
+    "Played with 2-10 players using a standard 52-card deck without jokers.",
+    "The two players to the left of the dealer put small blind and big blind bets. Each player is dealt 2 private face-down cards.",
+    "After the first betting round, three community cards are dealt face up (the Flop).",
+    "After the second betting round, a fourth community card is dealt (the Turn).",
+    "After the third betting round, the fifth and final community card is dealt (the River).",
+    "After the final betting round, players showdown. The best 5-card combination using private and community cards wins the pot.",
+    "Hand rankings from highest: Royal Flush, Straight Flush, Four of a Kind, Full House, Flush, Straight, Three of a Kind, Two Pair, Pair, High Card.",
+    "If all other players fold during a betting round, the last active player wins the pot; otherwise the best hand at showdown wins."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 10,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Casino / Bahis",
+  "category_en": "Casino / Betting"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "pinochle",
+  "name_tr": "pinochle",
+  "name_en": "Pinochle",
+  "originalName": "Pinochle",
+  "description_tr": "Özel 48 kartlık desteyle oynanan, meld/deklarasyon ve el alma aşamalarını birleştiren kozlu oyun.",
+  "description_en": "A trump trick-taking game using a special 48-card deck and combining meld scoring with trick play.",
+  "rules_tr": [
+    "Klasik Pinochle 4 kişiyle, ikişerli takımlar halinde oynanır. Cut-throat varyantı 3 kişiyle oynanabilir.",
+    "Deste 9, 10, Vale, Kız, Papaz ve As kartlarının her renkten ikişer kopyasından oluşan 48 kartlık özel destedir.",
+    "Kart sıralaması genellikle As, 10, Papaz, Kız, Vale, 9 şeklindedir.",
+    "El başında oyuncular ihale verir. En yüksek ihaleyi alan oyuncu veya takım koz rengini belirler.",
+    "Önce meld aşamasında oyuncular ellerindeki özel kombinasyonlardan puan alır: evlilikler, pinochle kombinasyonu, dört As, koz serisi gibi.",
+    "Sonra el alma aşamasına geçilir. Oyuncular mümkünse oynanan renge uymalı, gerekiyorsa koz kullanmalıdır.",
+    "Alınan ellerdeki As, 10 ve Papaz gibi puanlı kartlar takım skoruna eklenir.",
+    "İhaleyi alan takım vaat ettiği puana ulaşamazsa batmış sayılır. Hedef puana ilk ulaşan oyuncu veya takım oyunu kazanır."
+  ],
+  "rules_en": [
+    "Classic Pinochle is played by 4 players in two partnerships; a cut-throat variant can be played with 3 players.",
+    "The deck contains two copies of the 9, 10, Jack, Queen, King, and Ace in each suit, for 48 cards total.",
+    "Card ranking is usually Ace, 10, King, Queen, Jack, 9.",
+    "At the start of a hand, players bid. The highest bidder or bidding team names the trump suit.",
+    "First, players score melds from special combinations such as marriages, pinochle combinations, four Aces, or trump runs.",
+    "Then the trick-taking phase begins. Players must follow suit when possible and use trump according to the rules.",
+    "Point cards such as Aces, 10s, and Kings won in tricks are added to the team score.",
+    "If the bidding team fails to reach its bid, it is set. The first player or team to reach the target score wins."
+  ],
+  "minPlayers": 3,
+  "maxPlayers": 4,
+  "deckCount_tr": "48 Kartlık Pinochle Destesi",
+  "deckCount_en": "48-card Pinochle deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

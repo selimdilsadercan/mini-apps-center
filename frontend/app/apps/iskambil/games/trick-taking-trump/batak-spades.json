@@ -1,0 +1,34 @@
+{
+  "id": "batak-spades",
+  "name_tr": "batak",
+  "name_en": "Batak",
+  "originalName": "Batak",
+  "description_tr": "Türkiye'de yaygın oynanan, oyuncuların alacakları el sayısını tahmin ettiği kozlu el alma oyunu.",
+  "description_en": "A popular Turkish trump trick-taking game where players predict how many tricks they will win.",
+  "rules_tr": [
+    "Standart Batak 4 kişiyle ve 52 kartlık deste ile oynanır. Her oyuncuya 13 kart dağıtılır.",
+    "El başında oyuncular alabilecekleri el sayısı için ihale veya deklarasyon yapar.",
+    "İhaleyi alan oyuncu koz rengini belirler. Koz, oynanan renkten daha güçlüdür.",
+    "Oyuncular yerde oynanan renkten kart atmak zorundadır. O renkten kartı olmayan oyuncu koz atabilir veya ev kuralına göre koz atmak zorunda olabilir.",
+    "Elde koz oynandıysa en yüksek koz eli alır; koz yoksa oynanan renkteki en yüksek kart eli alır.",
+    "İhaleyi alan oyuncu söylediği kadar el alamazsa batar ve eksi puan alır.",
+    "İhale dışı oyuncuların puanlaması oynanan Batak türüne göre değişir.",
+    "Belirlenen tur veya hedef puan sonunda en yüksek skora sahip oyuncu kazanır."
+  ],
+  "rules_en": [
+    "Standard Batak is played by 4 players with a 52-card deck. Each player receives 13 cards.",
+    "At the start of a hand, players bid or declare how many tricks they expect to win.",
+    "The winning bidder names the trump suit. Trump cards outrank non-trump suits.",
+    "Players must follow the suit led if possible. A player with no card in the led suit may play trump, or may be required to trump depending on house rule.",
+    "If trump is played, the highest trump wins the trick; otherwise the highest card in the led suit wins.",
+    "If the bidder fails to win the declared number of tricks, they go set and receive negative points.",
+    "Scoring for non-bidding players varies by the Batak variant being played.",
+    "After the agreed number of rounds or target score, the highest-scoring player wins."
+  ],
+  "minPlayers": 4,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "El Alma / Koz",
+  "category_en": "Trick-taking / Trump"
+}

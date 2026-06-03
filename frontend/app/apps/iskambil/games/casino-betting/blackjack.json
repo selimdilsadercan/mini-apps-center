@@ -1,0 +1,32 @@
+{
+  "id": "blackjack",
+  "name_tr": "blackjack",
+  "name_en": "Blackjack",
+  "originalName": "Blackjack",
+  "description_tr": "Oyuncuların kasaya karşı 21'i geçmeden kasadan daha yüksek toplam yapmaya çalıştığı klasik casino oyunu.",
+  "description_en": "A classic casino card game where players play against the dealer to get a hand value closer to 21 without going over.",
+  "rules_tr": [
+    "1-7 oyuncu ve bir kasa/dağıtıcı ile oynanır. Ev oyunlarında tek deste, casino kurallarında birden çok deste kullanılabilir.",
+    "Her oyuncuya iki açık kart, kasaya bir açık ve bir kapalı kart verilir.",
+    "As 1 veya 11 sayılır; Vale, Kız ve Papaz 10; sayı kartları kendi değeri kadardır.",
+    "Oyuncu sırası geldiğinde kart isteyebilir (hit), durabilir (stand), uygun durumda bahsi ikiye katlayabilir (double down) veya aynı değerde iki kartı iki ele bölebilir (split).",
+    "Toplamı 21'i geçen oyuncu bust olur ve eli kaybeder.",
+    "Oyuncular hamlelerini bitirdikten sonra kasa kapalı kartını açar. Kasa genellikle 16 ve altında kart çeker, 17 ve üzerinde durur.",
+    "Blackjack, ilk iki kartla As ve 10 değerli kart gelmesidir. Beraberlikte push olur ve bahis iade edilir."
+  ],
+  "rules_en": [
+    "Played with 1-7 players against a dealer using one or multiple 52-card decks.",
+    "Players are dealt two face-up cards, and the dealer gets one face-up and one face-down card.",
+    "Aces count as 1 or 11; Jacks, Queens, Kings count as 10; number cards are face value.",
+    "Players can hit (draw cards), stand (keep current total), double down (double bet for one card), or split (make two hands out of a pair).",
+    "If player's total exceeds 21, they bust and immediately lose their bet.",
+    "After players stand, the dealer reveals the face-down card. The dealer must hit on 16 or lower, and stand on 17 or higher.",
+    "A Blackjack is an Ace and a 10-value card on the first two cards, paying 3:2 usually."
+  ],
+  "minPlayers": 1,
+  "maxPlayers": 7,
+  "deckCount_tr": "1-8 Deste",
+  "deckCount_en": "1-8 Decks",
+  "category_tr": "Casino / Bahis",
+  "category_en": "Casino / Betting"
+}

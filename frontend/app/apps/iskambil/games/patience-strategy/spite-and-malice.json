@@ -1,0 +1,34 @@
+{
+  "id": "spite-and-malice",
+  "name_tr": "Spite and Malice",
+  "name_en": "Spite and Malice",
+  "originalName": "Spite and Malice",
+  "description_tr": "İki kişilik rekabetçi solitaire/patience oyunu; amaç kendi ödeme destesini rakipten önce bitirmektir.",
+  "description_en": "A competitive patience/solitaire game where players race to empty their own pay-off pile first.",
+  "rules_tr": [
+    "Standart oyun 2 kişiyle ve iki deste karıştırılarak oynanır.",
+    "Her oyuncuya 20 kartlık kapalı ödeme destesi verilir; bu destenin en üst kartı açık tutulur. Ayrıca her oyuncunun 5 kartlık eli olur.",
+    "Masanın ortasında ortak merkez desteleri As ile başlar ve sırayla yükselerek devam eder.",
+    "Oyuncular ellerindeki kartları, ödeme destesinin açık kartını ve kendi yan atık destelerini kullanarak merkez destelerine kart eklemeye çalışır.",
+    "Sırası gelen oyuncu elini 5 karta tamamlar, merkez destelerine oynayabildiği kadar kart oynar ve sonra bir kartı kendi yan atık destesine atarak sırasını bitirir.",
+    "Yan atık desteleri oyuncuya aittir; rakibin yan destelerine kart oynanamaz.",
+    "Ödeme destesindeki tüm kartları ilk bitiren oyuncu oyunu kazanır.",
+    "Daha fazla oyuncuyla oynanacaksa genellikle oyuncu sayısına göre ek deste gerekir."
+  ],
+  "rules_en": [
+    "The standard game is for 2 players and uses two shuffled standard decks.",
+    "Each player receives a face-down pay-off pile of 20 cards with the top card face up, plus a 5-card hand.",
+    "Shared center piles are built from Ace upward in sequence.",
+    "Players use cards from their hand, the top of their pay-off pile, and their own side discard piles to build on the center piles.",
+    "At the start of a turn, a player refills their hand to 5 cards, plays as many cards as possible to the center, then ends the turn by discarding one card to a personal side pile.",
+    "Side discard piles belong only to their owner; players cannot play on an opponent's side piles.",
+    "The first player to empty their pay-off pile wins.",
+    "For more players, extra decks are usually added depending on player count."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "2 Deste",
+  "deckCount_en": "2 Decks",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

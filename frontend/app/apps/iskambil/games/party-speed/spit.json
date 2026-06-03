@@ -1,0 +1,242 @@
+{
+  "id": "spit",
+  "name_tr": "Spit",
+  "name_en": "Spit",
+  "originalName": "Spit",
+  "description_tr": "Speed'e benzeyen, iki oyuncunun aynı anda kart oynadığı çok hızlı ve rekabetçi bir kart bitirme oyunudur.",
+  "description_en": "A very fast and competitive two-player shedding game where both players play cards at the same time, similar to Speed.",
+  "quickRules_tr": [
+    "2 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Kartlar iki oyuncu arasında eşit şekilde bölünür.",
+    "Her oyuncu önüne beş sütundan oluşan kendi tableau düzenini kurar.",
+    "Ortada iki ortak spit destesi bulunur.",
+    "Oyuncular sıra beklemeden aynı anda kart oynar.",
+    "Ortadaki kartın bir üstü veya bir altı değerde kart oynanabilir.",
+    "Renk ve kart türü önemli değildir.",
+    "Hamle kalmadığında iki oyuncu aynı anda yeni spit kartı açar.",
+    "Birkaç tur sonunda tüm kartlarından kurtulan oyuncu oyunu kazanır."
+  ],
+  "quickRules_en": [
+    "Played by 2 players with a standard 52-card deck without jokers.",
+    "The deck is split evenly between the two players.",
+    "Each player builds a personal tableau of five piles in front of them.",
+    "Two shared spit piles are placed in the center.",
+    "Players do not take turns; they play simultaneously.",
+    "A card may be played if it is one rank higher or one rank lower than the center card.",
+    "Suit and color do not matter.",
+    "When no moves are available, both players reveal new spit cards at the same time.",
+    "After several rounds, the first player to get rid of all their cards wins."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Deste iki oyuncu arasında eşit bölünür; her oyuncu 26 kart alır.",
+    "Her oyuncu kendi önüne 5 sütunluk bir tableau kurar.",
+    "Birinci sütuna 1 açık kart konur.",
+    "İkinci sütuna 1 kapalı kart ve üstüne 1 açık kart konur.",
+    "Üçüncü sütuna 2 kapalı kart ve üstüne 1 açık kart konur.",
+    "Dördüncü sütuna 3 kapalı kart ve üstüne 1 açık kart konur.",
+    "Beşinci sütuna 4 kapalı kart ve üstüne 1 açık kart konur.",
+    "Bu şekilde her oyuncunun tableau alanında toplam 15 kart olur.",
+    "Her oyuncunun kalan 11 kartı kapalı şekilde kendi spit kartları olarak kenarda tutulur.",
+    "Ortadaki iki spit destesi başlangıçta boştur."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Split the deck evenly between the two players; each player receives 26 cards.",
+    "Each player builds a tableau of 5 piles in front of them.",
+    "Place 1 face-up card in the first pile.",
+    "Place 1 face-down card and then 1 face-up card on the second pile.",
+    "Place 2 face-down cards and then 1 face-up card on the third pile.",
+    "Place 3 face-down cards and then 1 face-up card on the fourth pile.",
+    "Place 4 face-down cards and then 1 face-up card on the fifth pile.",
+    "Each player now has 15 cards in their tableau.",
+    "Each player's remaining 11 cards are kept face down as their spit cards.",
+    "The two center spit piles start empty."
+  ],
+  "objective_tr": "Amaç, hızlı hamleler yaparak tableau kartlarını ve ardından elde kalan tüm kartları rakipten önce bitirmektir.",
+  "objective_en": "The objective is to play quickly and get rid of your tableau cards, and eventually all of your cards, before your opponent.",
+  "gameplay_tr": [
+    "İki oyuncu hazır olduğunda aynı anda kendi spit kartlarından birer kart açar ve ortadaki iki spit destesini başlatır.",
+    "Oyuncular sıra beklemeden aynı anda oynar.",
+    "Her oyuncu kendi tableau alanındaki açık kartları ortadaki iki spit destesinden herhangi birinin üzerine oynayabilir.",
+    "Oynanan kart, ortadaki destenin en üst kartından bir değer büyük veya bir değer küçük olmalıdır.",
+    "Örneğin ortada 8 varsa üzerine 7 veya 9 oynanabilir.",
+    "Renk ve kart türü önemli değildir.",
+    "As, hem 2'nin altı hem de Papaz'ın üstü gibi kullanılabilir.",
+    "Bir oyuncu tableau'daki açık kartını oynadığında, altında kapalı kart varsa bu kart açılır.",
+    "Boşalan tableau sütununa oyuncu kendi tableau alanındaki açık kartlardan birini taşıyebilir.",
+    "Oyuncular aynı anda aynı spit destesine kart oynamaya çalışırsa, kartı önce koyan oyuncunun hamlesi geçerli olur.",
+    "Her oyuncu aynı anda yalnızca bir kart oynayabilir."
+  ],
+  "gameplay_en": [
+    "When both players are ready, they each reveal one of their spit cards at the same time to start the two center spit piles.",
+    "Players do not take turns; they play simultaneously.",
+    "Each player may play face-up cards from their own tableau onto either of the two center spit piles.",
+    "The played card must be one rank higher or one rank lower than the top card of the center pile.",
+    "For example, if the center card is an 8, a 7 or a 9 may be played on it.",
+    "Suit and color do not matter.",
+    "An Ace may be used next to both a 2 and a King.",
+    "When a player plays a face-up card from their tableau, any face-down card underneath it is turned face up.",
+    "If a tableau pile becomes empty, the player may move a face-up card from another tableau pile into the empty space.",
+    "If both players try to play on the same spit pile at the same time, the card placed first is valid.",
+    "Each player may play only one card at a time."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Spit Kartları",
+      "title_en": "Spit Cards",
+      "content_tr": [
+        "Her oyuncunun tableau kurulduktan sonra kalan kapalı kartları kendi spit kartlarıdır.",
+        "Oyunun başında iki oyuncu aynı anda birer spit kartı açarak ortadaki iki desteyi başlatır.",
+        "Oyun tıkandığında ve iki oyuncu da hamle yapamadığında tekrar aynı anda birer spit kartı açılır.",
+        "Açılan yeni spit kartları ortadaki iki destenin üstüne konur ve oyun devam eder.",
+        "Bir oyuncunun spit kartı kalmadıysa özel bitiş kuralları uygulanabilir."
+      ],
+      "content_en": [
+        "Each player's remaining face-down cards after setting up the tableau are their spit cards.",
+        "At the start of play, both players reveal one spit card at the same time to start the two center piles.",
+        "When the game gets stuck and neither player can move, both players reveal another spit card at the same time.",
+        "The new spit cards are placed on top of the two center piles, and play continues.",
+        "If a player has no spit cards left, special endgame rules may apply."
+      ]
+    },
+    {
+      "title_tr": "Tableau Düzeni",
+      "title_en": "Tableau Layout",
+      "content_tr": [
+        "Her oyuncunun önünde 5 sütun bulunur.",
+        "Sütunlarda yalnızca en üstteki açık kartlar doğrudan oynanabilir.",
+        "Bir açık kart oynandığında altında kapalı kart varsa bu kart hemen açılır.",
+        "Boşalan bir sütuna, oyuncunun kendi tableau alanındaki başka bir açık kart taşınabilir.",
+        "Amaç tableau alanındaki kartları mümkün olduğunca hızlı şekilde ortadaki spit destelerine oynamaktır."
+      ],
+      "content_en": [
+        "Each player has 5 piles in front of them.",
+        "Only the top face-up cards of these piles are directly playable.",
+        "When a face-up card is played and there is a face-down card underneath it, that card is immediately turned face up.",
+        "If a pile becomes empty, another face-up card from the player's tableau may be moved into that empty space.",
+        "The goal is to play the tableau cards onto the center spit piles as quickly as possible."
+      ]
+    },
+    {
+      "title_tr": "Tur Sonu ve Küçük Desteyi Seçme",
+      "title_en": "End of a Round and Choosing the Smaller Pile",
+      "content_tr": [
+        "Bir oyuncu kendi tableau alanındaki tüm kartları bitirdiğinde tur sona erer.",
+        "Bu durumda iki oyuncu ortadaki spit destelerinden birini kapmak için yarışır.",
+        "Amaç genellikle daha küçük desteyi almaktır çünkü oyuncunun sonraki turdaki kart sayısı azalır.",
+        "İlk dokunan oyuncu dokunduğu desteyi alır; diğer oyuncu diğer desteyi alır.",
+        "Bazı ev kurallarında tableau'sunu ilk bitiren oyuncu doğrudan istediği desteyi seçer.",
+        "Alınan deste, oyuncunun elinde kalan kartlarla karıştırılır ve yeni tur için tekrar tableau kurulur."
+      ],
+      "content_en": [
+        "When one player empties all cards from their tableau, the round ends.",
+        "Both players then race to slap one of the two center spit piles.",
+        "The goal is usually to take the smaller pile because it reduces the player's card count for the next round.",
+        "The first player to touch a pile takes that pile; the other player takes the other pile.",
+        "In some house rules, the player who emptied their tableau first simply chooses a pile.",
+        "The pile taken is shuffled with the player's remaining cards, and a new tableau is dealt for the next round."
+      ]
+    },
+    {
+      "title_tr": "Tıkanma Durumu",
+      "title_en": "Stuck Situation",
+      "content_tr": [
+        "İki oyuncu da ortadaki destelere kart oynayamıyorsa oyun tıkanmış sayılır.",
+        "Bu durumda iki oyuncu hazır olur ve aynı anda yeni birer spit kartı açar.",
+        "Yeni açılan kartlar ortadaki iki spit destesinin üstüne konur.",
+        "Daha sonra oyuncular yeniden aynı anda kart oynamaya devam eder.",
+        "Eğer spit kartı kalmadıysa ve hamle de yoksa tur bitiş kurallarına geçilir."
+      ],
+      "content_en": [
+        "If neither player can play onto the center piles, the game is considered stuck.",
+        "Both players get ready and reveal one new spit card at the same time.",
+        "The newly revealed cards are placed on top of the two center spit piles.",
+        "Players then continue playing simultaneously.",
+        "If there are no spit cards left and no moves are available, the round moves to endgame rules."
+      ]
+    },
+    {
+      "title_tr": "Spit ve Speed Farkı",
+      "title_en": "Difference Between Spit and Speed",
+      "content_tr": [
+        "Spit ve Speed birbirine çok benzeyen iki hızlı kart oyunudur.",
+        "Spit'te oyuncuların önünde beş sütunluk solitaire benzeri bir tableau düzeni vardır.",
+        "Speed'de oyuncular genellikle elde tuttukları kartlardan oynar ve farklı bir orta düzen kullanır.",
+        "Spit'te tur sonunda küçük desteyi alma mekaniği oyunun ana stratejisidir.",
+        "Bu nedenle Spit, Speed'e göre biraz daha tableau ve tur yönetimi odaklıdır."
+      ],
+      "content_en": [
+        "Spit and Speed are very similar fast-paced card games.",
+        "In Spit, each player has a solitaire-like tableau of five piles in front of them.",
+        "In Speed, players usually play from a hand of cards and use a different center layout.",
+        "In Spit, taking the smaller pile at the end of a round is a major strategic element.",
+        "For this reason, Spit is slightly more focused on tableau and round management than Speed."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Klasik Spit: Her oyuncu 5 sütunluk tableau kurar ve kalan 11 kartı spit kartı olarak kullanır.",
+        "Küçük Desteyi Seçme: Tableau'sunu bitiren oyuncu ya küçük desteyi kapmak için yarışır ya da bazı ev kurallarında doğrudan seçer.",
+        "Tek El Kuralı: Bazı kurallarda oyuncular kartları yalnızca tek elle oynayabilir.",
+        "Çift El Kuralı: Daha hızlı ve kaotik oyun için iki elle oynamaya izin verilebilir.",
+        "Speed'e Yakın Varyant: Bazı gruplar Spit adını Speed'e çok benzeyen farklı bir orta düzen için de kullanabilir."
+      ],
+      "content_en": [
+        "Classic Spit: Each player builds a 5-pile tableau and uses the remaining 11 cards as spit cards.",
+        "Choosing the Smaller Pile: The player who empties their tableau may race to slap the smaller pile or, in some house rules, choose directly.",
+        "One-Hand Rule: In some rulesets, players may only use one hand to move cards.",
+        "Two-Hand Rule: For a faster and more chaotic game, players may be allowed to use both hands.",
+        "Speed-like Variant: Some groups use the name Spit for layouts that are much closer to Speed."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Spit'te klasik anlamda puanlama yoktur.",
+    "Her turun sonunda oyuncular aldıkları desteyle yeni turu kurar.",
+    "Daha küçük desteyi alan oyuncu sonraki tura daha az kartla başlayacağı için avantaj kazanır.",
+    "Asıl hedef puan toplamak değil, tüm kartlardan tamamen kurtulmaktır."
+  ],
+  "scoring_en": [
+    "Spit usually has no formal scoring.",
+    "At the end of each round, players use the pile they took to set up the next round.",
+    "The player who takes the smaller pile gains an advantage by starting the next round with fewer cards.",
+    "The main goal is not to score points, but to get rid of all cards completely."
+  ],
+  "ending_tr": [
+    "Birkaç tur sonunda bir oyuncu yeni tableau kuramayacak kadar az karta kalabilir.",
+    "Oyuncu elindeki son kartları da oynayıp ortadan deste almak zorunda kalmazsa oyunu kazanır.",
+    "Genel amaç, tüm kartlarından tamamen kurtulan ilk oyuncu olmaktır.",
+    "Eğer sadece bir spit destesi kurulabiliyorsa özel son tur kuralları uygulanabilir."
+  ],
+  "ending_en": [
+    "After several rounds, a player may have too few cards to build a full new tableau.",
+    "If a player plays their last cards and does not have to take a center pile, they win the game.",
+    "The overall goal is to be the first player to get rid of all cards completely.",
+    "If only one spit pile can be created, special final-round rules may apply."
+  ],
+  "notes_tr": [
+    "Spit çok hızlı oynanan bir oyundur; refleks ve dikkat önemlidir.",
+    "Oyuncular sıra beklemediği için aynı anda hamle yapar.",
+    "Renk ve tür önemli değildir; yalnızca kart değerinin bir üst veya bir alt olması gerekir.",
+    "As hem 2 ile hem de Papaz ile bağlantılı kabul edilebilir.",
+    "Oyuna başlamadan önce tek elle mi çift elle mi oynanacağı netleştirilmelidir.",
+    "Spit ve Speed isimleri bazı gruplarda birbirinin yerine kullanılabilir, ancak klasik kurallarda düzenleri farklıdır."
+  ],
+  "notes_en": [
+    "Spit is played very quickly, so reflexes and attention matter.",
+    "Players do not wait for turns; they play at the same time.",
+    "Suit and color do not matter; only being one rank higher or lower matters.",
+    "Aces may be considered adjacent to both 2 and King.",
+    "Players should agree before the game whether one hand or both hands may be used.",
+    "The names Spit and Speed are sometimes used interchangeably, but their classic layouts are different."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Hız / El Bitirme",
+  "category_en": "Speed / Shedding"
+}

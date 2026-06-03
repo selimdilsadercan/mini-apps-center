@@ -1,0 +1,32 @@
+{
+  "id": "himbil-esek",
+  "name_tr": "hımbıl / eşek",
+  "name_en": "Hımbıl / Spoons",
+  "originalName": "Spoons / Donkey",
+  "description_tr": "Oyuncuların aynı değerden dört kartı toplamaya çalıştığı, hız ve refleks içeren eğlenceli grup oyunu.",
+  "description_en": "A fast-paced card game where players pass cards trying to collect four of a kind and grab a target token or touch the table.",
+  "rules_tr": [
+    "En iyi 3-8 kişiyle oynanır. Oyuncu sayısı kadar kart değeri seçilir ve her değerden dört kart alınır. Örneğin 5 oyuncu için 5 farklı değerden toplam 20 kart hazırlanır.",
+    "Her oyuncuya 4 kart dağıtılır. Amaç elde aynı değerden 4 kart toplamaktır.",
+    "Her turda oyuncular istemedikleri bir kartı seçer ve aynı anda yanındaki oyuncuya kapalı şekilde verir.",
+    "Kart değiştirme, bir oyuncu elinde aynı değerden 4 kart toplayana kadar devam eder.",
+    "Dörtlüyü tamamlayan oyuncu elini masaya koyar veya 'Hımbıl!' der. Bunu gören diğer oyuncular da hızlıca ellerini ortaya koyar.",
+    "Elini en son koyan oyuncu ceza alır. E-Ş-E-K harfleriyle oynanıyorsa harfleri tamamlayan oyuncu elenir.",
+    "Oyun son oyuncu kalana kadar veya belirlenen ceza sınırına ulaşılana kadar sürer."
+  ],
+  "rules_en": [
+    "Best played with 3-8 people. Prepare sets of four identical rank cards equal to the number of players (e.g., 20 cards for 5 players).",
+    "Each player is dealt 4 cards. The goal is to collect four cards of the same rank.",
+    "Each round, players simultaneously pass one unwanted card to their neighbor.",
+    "Passing continues rapidly until a player gathers four cards of the same rank.",
+    "The player who completes the set quietly places their hand on the table (or grabs a spoon). Others must immediately do the same.",
+    "The last player to place their hand receives a letter (D-O-N-K-E-Y). The first to spell the full word is eliminated.",
+    "The game continues until only one player remains or until the agreed penalty limit is reached."
+  ],
+  "minPlayers": 3,
+  "maxPlayers": 8,
+  "deckCount_tr": "Oyuncu sayısı kadar dörtlü set",
+  "deckCount_en": "4-of-a-kind sets per player",
+  "category_tr": "Hız / Parti",
+  "category_en": "Party / Speed"
+}

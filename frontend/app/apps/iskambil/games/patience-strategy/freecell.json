@@ -1,0 +1,142 @@
+{
+  "id": "freecell",
+  "name_tr": "FreeCell",
+  "name_en": "FreeCell",
+  "originalName": "FreeCell",
+  "description_tr": "Tüm kartların baştan açık dağıtıldığı, dört geçici boş hücrenin stratejik kullanıldığı tek kişilik bir solitaire varyantıdır.",
+  "description_en": "A single-player solitaire variant where all cards are dealt face up from the start and four temporary free cells are used strategically.",
+  "quickRules_tr": [
+    "1 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Tüm kartlar baştan açık şekilde 8 tableau sütununa dağıtılır.",
+    "Amaç her kart türü için As'tan Papaz'a doğru dört foundation destesi oluşturmaktır.",
+    "Tableau sütunlarında kartlar azalan sıra ve alternatif renk kuralıyla dizilir.",
+    "Dört free cell geçici kart saklama alanıdır; her hücre yalnızca bir kart tutabilir.",
+    "Boş tableau sütunları kart veya geçerli kart dizisi taşımak için kullanılabilir.",
+    "Tüm kartlar foundation alanlarına taşındığında oyun kazanılır."
+  ],
+  "quickRules_en": [
+    "Played by 1 player with a standard 52-card deck without jokers.",
+    "All cards are dealt face up into 8 tableau columns.",
+    "The goal is to build four foundation piles by suit from Ace to King.",
+    "Tableau columns are built downward in alternating colors.",
+    "The four free cells are temporary storage spaces; each cell can hold only one card.",
+    "Empty tableau columns may be used to move cards or valid sequences.",
+    "The game is won when all cards are moved to the foundations."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Tüm kartlar açık şekilde 8 tableau sütununa dağıtılır.",
+    "Klasik düzende ilk 4 sütuna 7'şer kart, son 4 sütuna 6'şar kart dağıtılır.",
+    "Oyunun üst kısmında 4 free cell ve 4 foundation alanı bulunur.",
+    "Free cell alanları başlangıçta boştur.",
+    "Foundation alanları başlangıçta boştur.",
+    "FreeCell'de kapalı kart, stock destesi veya waste alanı yoktur."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal all cards face up into 8 tableau columns.",
+    "In the classic layout, the first 4 columns receive 7 cards each, and the last 4 columns receive 6 cards each.",
+    "There are 4 free cells and 4 foundation piles at the top of the play area.",
+    "The free cells start empty.",
+    "The foundation piles start empty.",
+    "FreeCell has no face-down cards, stock pile, or waste pile."
+  ],
+  "objective_tr": "Amaç, tüm kartları tableau ve free cell alanlarından foundation alanlarına taşıyarak her kart türünü As'tan Papaz'a kadar tamamlamaktır.",
+  "objective_en": "The objective is to move all cards from the tableau and free cells to the foundations, completing each suit from Ace to King.",
+  "gameplay_tr": [
+    "Foundation alanları aynı türden kartlarla As'tan Papaz'a doğru yükselen sırayla kurulur.",
+    "Tableau sütunlarında kartlar azalan sırayla ve alternatif renklerle dizilir.",
+    "Örneğin kırmızı 8'in üzerine siyah 7, siyah Kız'ın üzerine kırmızı Vale konabilir.",
+    "Her tableau sütununun yalnızca en alttaki açık kartı doğrudan oynanabilir durumdadır.",
+    "Oynanabilir bir kart foundation'a, uygun bir tableau sütununa, boş bir tableau sütununa veya boş bir free cell alanına taşınabilir.",
+    "Her free cell yalnızca bir kart tutabilir.",
+    "Free cell alanları geçici saklama için kullanılır; gereksiz doldurulursa hareket alanı azalır.",
+    "Boş tableau sütunları güçlü hareket alanlarıdır ve uzun dizileri taşımayı kolaylaştırır.",
+    "Geçerli bir dizi, tableau içinde azalan sıra ve alternatif renk kuralına uyuyorsa taşınabilir.",
+    "Aynı anda taşınabilecek kart sayısı boş free cell ve boş tableau sütunu sayısına bağlıdır."
+  ],
+  "gameplay_en": [
+    "Foundation piles are built upward by suit from Ace to King.",
+    "Tableau columns are built downward in alternating colors.",
+    "For example, a black 7 may be placed on a red 8, and a red Jack may be placed on a black Queen.",
+    "Only the bottom exposed card of each tableau column is directly playable.",
+    "A playable card may be moved to a foundation, a suitable tableau column, an empty tableau column, or an empty free cell.",
+    "Each free cell can hold only one card.",
+    "Free cells are used as temporary storage; filling them carelessly reduces mobility.",
+    "Empty tableau columns are powerful spaces and make it easier to move longer sequences.",
+    "A valid sequence may be moved within the tableau if it follows descending rank and alternating colors.",
+    "The number of cards that can be moved at once depends on the number of empty free cells and empty tableau columns."
+  ],
+  "areas_tr": [
+    "Tableau: Kartların açık şekilde dağıtıldığı 8 ana sütundur.",
+    "Free Cells: Her biri yalnızca 1 kart tutabilen 4 geçici saklama hücresidir.",
+    "Foundation: Kartların türlerine göre As'tan Papaz'a kadar toplandığı 4 hedef destesidir."
+  ],
+  "areas_en": [
+    "Tableau: The 8 main columns where all cards are dealt face up.",
+    "Free Cells: 4 temporary storage cells, each holding only 1 card.",
+    "Foundation: The 4 target piles where cards are built by suit from Ace to King."
+  ],
+  "movement_tr": [
+    "Tek bir kart, kurallara uygunsa her zaman taşınabilir.",
+    "Birden fazla kartlık diziyi taşımak için yeterli boş free cell veya boş tableau sütunu gerekir.",
+    "Genel mantık olarak boş free cell sayısı arttıkça aynı anda taşınabilecek dizi uzunluğu artar.",
+    "Boş tableau sütunları, dizileri parçalayıp yeniden kurmak için ekstra alan sağlar.",
+    "Dijital FreeCell oyunları genellikle bu çoklu taşıma işlemini otomatik olarak yapar; masaüstü oyunda oyuncu aynı sonucu tek tek hamlelerle oluşturur."
+  ],
+  "movement_en": [
+    "A single card can always be moved if the destination is legal.",
+    "Moving a sequence of multiple cards requires enough empty free cells or empty tableau columns.",
+    "In general, the more empty free cells you have, the longer the sequence you can move.",
+    "Empty tableau columns provide extra space for breaking down and rebuilding sequences.",
+    "Digital FreeCell games usually automate these multi-card moves; in a physical game, the player performs the same result through individual moves."
+  ],
+  "scoring_tr": [
+    "Klasik FreeCell'de puanlama zorunlu değildir; temel amaç oyunu tamamlamaktır.",
+    "Dijital sürümlerde hamle sayısı, süre veya tamamlanma durumuna göre skor tutulabilir.",
+    "Daha az hamleyle ve daha kısa sürede bitirmek daha iyi performans olarak değerlendirilebilir."
+  ],
+  "scoring_en": [
+    "Classic FreeCell does not require scoring; the main goal is to complete the game.",
+    "Digital versions may track score based on number of moves, time, or completion.",
+    "Finishing with fewer moves and in less time may be considered a better performance."
+  ],
+  "ending_tr": [
+    "Tüm kartlar foundation alanlarına taşındığında oyun kazanılır.",
+    "Oyuncu artık hiçbir anlamlı hamle yapamıyorsa oyun kaybedilmiş kabul edilebilir.",
+    "FreeCell'de kartların tamamı açık olduğu için oyun daha çok planlama ve stratejiye dayanır."
+  ],
+  "ending_en": [
+    "The game is won when all cards are moved to the foundation piles.",
+    "If the player can no longer make any meaningful move, the game may be considered lost.",
+    "Because all cards are visible from the start, FreeCell relies heavily on planning and strategy."
+  ],
+  "variants_tr": [
+    "Baker's Game: FreeCell'e benzer, ancak tableau sütunlarında kartlar alternatif renkle değil aynı türle dizilir.",
+    "Eight Off: FreeCell'e benzer, fakat 8 free cell kullanılır ve bazı kuralları daha esnektir.",
+    "Seahaven Towers: FreeCell ailesinden gelen, farklı dağıtım ve boş hücre yapısına sahip bir solitaire varyantıdır."
+  ],
+  "variants_en": [
+    "Baker's Game: Similar to FreeCell, but tableau columns are built by suit instead of alternating colors.",
+    "Eight Off: Similar to FreeCell, but uses 8 free cells and has slightly different movement rules.",
+    "Seahaven Towers: A FreeCell-family solitaire variant with a different layout and cell structure."
+  ],
+  "notes_tr": [
+    "FreeCell'de şans etkisi Klondike'a göre daha düşüktür çünkü tüm kartlar baştan görünür.",
+    "Çoğu FreeCell dağılımı çözülebilir kabul edilir; bu yüzden oyun genellikle dikkatli planlama gerektiren bir bulmaca gibi oynanır.",
+    "Free cell alanlarını erken doldurmak hareket kabiliyetini azaltır.",
+    "Boş tableau sütunları genellikle free cell alanlarından daha değerlidir çünkü uzun dizileri taşımayı kolaylaştırır."
+  ],
+  "notes_en": [
+    "FreeCell involves less luck than Klondike because all cards are visible from the start.",
+    "Most FreeCell deals are considered solvable, so the game often feels like a planning puzzle.",
+    "Filling free cells too early reduces mobility.",
+    "Empty tableau columns are often more valuable than free cells because they make it easier to move longer sequences."
+  ],
+  "minPlayers": 1,
+  "maxPlayers": 1,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Sabır / Strateji",
+  "category_en": "Patience / Strategy"
+}

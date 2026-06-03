@@ -1,0 +1,302 @@
+{
+  "id": "cucumber",
+  "name_tr": "Salatalık",
+  "name_en": "Cucumber",
+  "originalName": "Cucumber",
+  "description_tr": "Oyuncuların son eli almamaya çalıştığı, el alma ve kaçınma mantığını birleştiren İskandinav kökenli kart oyunudur.",
+  "description_en": "A Scandinavian avoidance trick-taking game where players try not to win the final trick.",
+  "quickRules_tr": [
+    "Salatalık genellikle 2-7 oyuncuyla, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya genellikle 7 kart dağıtılır.",
+    "Kalan kartlar bu elde kullanılmaz ve kenara ayrılır.",
+    "Oyunun amacı son eli almamaktır.",
+    "Renk ve kart türü genellikle önemli değildir; yalnızca kart değeri karşılaştırılır.",
+    "İlk oyuncu bir kart oynar.",
+    "Sonraki oyuncular mümkünse o eldeki en yüksek karta eşit veya daha yüksek bir kart oynamalıdır.",
+    "Eşit veya daha yüksek kart oynayamayan oyuncu elindeki en düşük kartı oynamak zorundadır.",
+    "Eldeki en yüksek kartı oynayan oyuncu eli alır ve bir sonraki eli başlatır.",
+    "Son eli alan oyuncu ceza puanı alır.",
+    "Belirlenen ceza sınırına ulaşan veya geçen oyuncu elenir.",
+    "Sona kalan oyuncu oyunu kazanır."
+  ],
+  "quickRules_en": [
+    "Cucumber is usually played with 2-7 players using a standard 52-card deck without jokers.",
+    "Each player is usually dealt 7 cards.",
+    "The remaining cards are set aside and not used in that hand.",
+    "The goal of the game is to avoid winning the final trick.",
+    "Suit and color usually do not matter; only card rank is compared.",
+    "The first player leads one card.",
+    "Later players must play a card equal to or higher than the highest card currently in the trick if possible.",
+    "If a player cannot play an equal or higher card, they must play their lowest card.",
+    "The player who played the highest card wins the trick and leads the next trick.",
+    "The player who wins the final trick receives penalty points.",
+    "A player who reaches or passes the penalty limit is eliminated.",
+    "The last remaining player wins the game."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste karıştırılır.",
+    "Her oyuncuya genellikle 7 kart kapalı şekilde dağıtılır.",
+    "Oyuncular kendi kartlarına bakabilir, ancak diğer oyunculara göstermez.",
+    "Kalan kartlar bu elde kullanılmaz ve kenara ayrılır.",
+    "Kart sıralaması genellikle As en yüksek, 2 en düşük olacak şekildedir.",
+    "Renkler ve kart türleri çoğu kuralda önemsizdir.",
+    "İlk eli başlatacak oyuncu dağıtanın solu, kura veya ev kuralıyla belirlenir."
+  ],
+  "setup_en": [
+    "Remove the jokers and shuffle a standard 52-card deck.",
+    "Deal 7 cards face down to each player.",
+    "Players may look at their own cards, but they do not show them to others.",
+    "The remaining cards are set aside and are not used in that hand.",
+    "The usual ranking is Ace high and 2 low.",
+    "Suits and colors usually do not matter.",
+    "The starting player may be the player to the dealer's left, chosen randomly, or decided by house rule."
+  ],
+  "objective_tr": "Amaç, eldeki ilk elleri yöneterek son eli almaktan kaçınmak ve ceza puanı almamaktır.",
+  "objective_en": "The objective is to manage the earlier tricks so that you avoid winning the final trick and receiving penalty points.",
+  "gameplay_tr": [
+    "Bir oyuncu ortaya bir kart oynayarak eli başlatır.",
+    "Sıradaki oyuncu, o elde şu ana kadar oynanmış en yüksek karta bakar.",
+    "Elinde bu en yüksek karta eşit veya daha yüksek bir kart varsa bunlardan birini oynamalıdır.",
+    "Oyuncu eşit veya daha yüksek kart oynayabiliyorsa daha düşük kart atamaz.",
+    "Elinde eşit veya daha yüksek kart yoksa elindeki en düşük kartı oynamak zorundadır.",
+    "Renk ve kart türü genellikle dikkate alınmaz; sadece kart değeri önemlidir.",
+    "Tüm oyuncular birer kart oynadıktan sonra eldeki en yüksek kart eli kazanır.",
+    "En yüksek kartı oynayan oyuncu eli alır ve bir sonraki eli başlatır.",
+    "Eğer en yüksek karttan birden fazla oynandıysa, bazı kurallarda en son oynanan en yüksek kart eli alır.",
+    "Oyun bu şekilde oyuncuların elindeki kartlar bitene kadar devam eder.",
+    "Son eli alan oyuncu ceza puanı alır."
+  ],
+  "gameplay_en": [
+    "A player leads one card to start the trick.",
+    "The next player looks at the highest card currently played in that trick.",
+    "If they have a card equal to or higher than that highest card, they must play one of those cards.",
+    "If a player can play an equal or higher card, they may not play a lower card.",
+    "If they have no equal or higher card, they must play their lowest card.",
+    "Suit and color usually do not matter; only rank matters.",
+    "After all players have played one card, the highest card in the trick wins it.",
+    "The player who played the highest card wins the trick and leads the next trick.",
+    "If multiple cards tie for highest, some rules award the trick to the last player who played that high card.",
+    "Play continues this way until all cards in hand have been played.",
+    "The player who wins the final trick receives penalty points."
+  ],
+  "customSections": [
+    {
+      "title_tr": "Kart Sıralaması",
+      "title_en": "Card Ranking",
+      "content_tr": [
+        "Kart sıralaması genellikle As, Papaz, Kız, Vale, 10, 9, 8, 7, 6, 5, 4, 3, 2 şeklindedir.",
+        "As en yüksek karttır.",
+        "2 en düşük karttır.",
+        "Renk ve kart türü genellikle önemli değildir.",
+        "Aynı değerde kartlar eşit kabul edilir.",
+        "Bazı ev kurallarında son elde As'ın özel bir değeri olabilir; ancak basit anlatımda As her zaman en yüksek kart olarak kabul edilebilir."
+      ],
+      "content_en": [
+        "The usual ranking is Ace, King, Queen, Jack, 10, 9, 8, 7, 6, 5, 4, 3, 2.",
+        "Ace is the highest card.",
+        "2 is the lowest card.",
+        "Suit and color usually do not matter.",
+        "Cards of the same rank are considered equal.",
+        "Some house rules give Aces a special value in the final trick, but for a simple explanation, Ace can be treated as always high."
+      ]
+    },
+    {
+      "title_tr": "Kart Oynama Zorunluluğu",
+      "title_en": "Play Requirement",
+      "content_tr": [
+        "Oyuncu, o eldeki en yüksek karta eşit veya daha yüksek kart oynayabiliyorsa bunu yapmak zorundadır.",
+        "Örneğin yerdeki en yüksek kart 8 ise oyuncu 8, 9, 10, Vale, Kız, Papaz veya As oynayabilir.",
+        "Oyuncunun elinde bu kartlardan biri varsa daha düşük kart oynayamaz.",
+        "Oyuncunun elinde eşit veya daha yüksek kart yoksa en düşük kartını oynamak zorundadır.",
+        "Bu yüzden oyuncu bazen istemeden eli almak zorunda kalabilir.",
+        "Oyunun stratejisi, son elde yüksek kartla kalmamaya çalışmaktır."
+      ],
+      "content_en": [
+        "If a player can play a card equal to or higher than the highest card in the trick, they must do so.",
+        "For example, if the highest card in the trick is an 8, the player may play an 8, 9, 10, Jack, Queen, King, or Ace.",
+        "If the player has one of those cards, they may not play a lower card.",
+        "If the player has no equal or higher card, they must play their lowest card.",
+        "This means a player may sometimes be forced to win a trick.",
+        "The strategy is to avoid being stuck with a high card for the final trick."
+      ]
+    },
+    {
+      "title_tr": "Son El Neden Önemli?",
+      "title_en": "Why the Final Trick Matters",
+      "content_tr": [
+        "Salatalık oyununda önceki eller genellikle puan kazandırmaz.",
+        "Asıl önemli olan son eldir.",
+        "Son eli alan oyuncu ceza puanı alır.",
+        "Bu yüzden oyuncular oyunun başında ellerindeki yüksek kartları güvenli şekilde çıkarmaya çalışır.",
+        "Son ele düşük kartlarla kalmak genellikle avantajlıdır.",
+        "Bir oyuncu son elde en yüksek kartı oynamak zorunda kalırsa o eli alır ve ceza yer."
+      ],
+      "content_en": [
+        "In Cucumber, earlier tricks usually do not score points.",
+        "The important trick is the final one.",
+        "The player who wins the final trick receives penalty points.",
+        "For this reason, players try to safely get rid of high cards earlier in the hand.",
+        "Reaching the final trick with low cards is usually advantageous.",
+        "If a player is forced to play the highest card in the final trick, they win it and receive a penalty."
+      ]
+    },
+    {
+      "title_tr": "Ceza Puanı",
+      "title_en": "Penalty Points",
+      "content_tr": [
+        "Son eli alan oyuncu ceza puanı alır.",
+        "Yaygın kuralda ceza puanı, son eli kazandıran kartın değerine göre belirlenir.",
+        "Örneğin son eli 10 ile alan oyuncu 10 ceza puanı alabilir.",
+        "Papaz, Kız, Vale ve As için ceza değerleri ev kuralına göre belirlenebilir.",
+        "Basit uygulama için As 14, Papaz 13, Kız 12, Vale 11, sayı kartları kendi değeri olarak sayılabilir.",
+        "Bazı kurallarda ceza sınırı 21 puandır.",
+        "21 veya daha fazla ceza puanına ulaşan oyuncu elenir."
+      ],
+      "content_en": [
+        "The player who wins the final trick receives penalty points.",
+        "In a common rule, the penalty is based on the value of the card that won the final trick.",
+        "For example, a player who wins the final trick with a 10 may receive 10 penalty points.",
+        "Penalty values for Ace, King, Queen, and Jack may be set by house rule.",
+        "For a simple app version, Ace can count as 14, King as 13, Queen as 12, Jack as 11, and number cards as face value.",
+        "Some rules use a penalty limit of 21 points.",
+        "A player who reaches 21 or more penalty points is eliminated."
+      ]
+    },
+    {
+      "title_tr": "Eşit En Yüksek Kart",
+      "title_en": "Tied Highest Card",
+      "content_tr": [
+        "Bir elde aynı en yüksek değerden birden fazla kart oynanabilir.",
+        "Yaygın bir kuralda, aynı en yüksek kartlardan en son oynanan kart eli kazanır.",
+        "Örneğin elde 10, Kız, Kız oynandıysa ikinci Kız eli alabilir.",
+        "Bazı ev kurallarında ilk oynanan en yüksek kart eli alabilir.",
+        "Oyuna başlamadan önce eşit en yüksek kart durumunda kimin eli alacağı netleştirilmelidir.",
+        "Basit uygulama kuralı olarak eşit en yüksek kartlardan en son oynanan kartın eli alması tercih edilebilir."
+      ],
+      "content_en": [
+        "More than one card of the same highest rank may be played to a trick.",
+        "A common rule is that the last played card among the tied highest cards wins the trick.",
+        "For example, if 10, Queen, Queen are played, the second Queen may win the trick.",
+        "Some house rules may instead give the trick to the first highest card played.",
+        "Players should agree before the game how tied highest cards are handled.",
+        "For a simple app rule, the last played tied highest card can be treated as the trick winner."
+      ]
+    },
+    {
+      "title_tr": "Oyuncu Elenmesi",
+      "title_en": "Player Elimination",
+      "content_tr": [
+        "Her elde son eli alan oyuncuya ceza puanı yazılır.",
+        "Oyuncuların ceza puanları eller boyunca birikir.",
+        "Belirlenen ceza sınırına ulaşan veya bu sınırı geçen oyuncu oyundan elenir.",
+        "Yaygın sınır 21 puandır.",
+        "Elenen oyuncu sonraki ellerde oynamaz.",
+        "Sona kalan son oyuncu oyunun kazananı olur."
+      ],
+      "content_en": [
+        "The player who wins the final trick receives penalty points for that hand.",
+        "Players' penalty points accumulate over multiple hands.",
+        "A player who reaches or passes the chosen penalty limit is eliminated.",
+        "A common limit is 21 points.",
+        "An eliminated player does not participate in later hands.",
+        "The last remaining player wins the game."
+      ]
+    },
+    {
+      "title_tr": "Strateji İpuçları",
+      "title_en": "Strategy Tips",
+      "content_tr": [
+        "Amaç her eli kazanmak değil, özellikle son eli almamaktır.",
+        "Yüksek kartları erken ellerde güvenli şekilde çıkarmak önemlidir.",
+        "Elinde çok yüksek kart kalan oyuncu son elde zor durumda kalabilir.",
+        "Bazen yüksek kart oynayıp bir eli almak, son elde ceza yemekten daha iyi olabilir.",
+        "Diğer oyuncuların hangi yüksek kartları oynadığını takip etmek avantaj sağlar.",
+        "Son ele düşük kartla kalmak genellikle en güvenli durumdur."
+      ],
+      "content_en": [
+        "The goal is not to win every trick, but especially to avoid winning the final trick.",
+        "It is important to get rid of high cards safely in earlier tricks.",
+        "A player left with very high cards may be in trouble in the final trick.",
+        "Sometimes winning an earlier trick with a high card is better than being penalized in the final trick.",
+        "Tracking which high cards other players have played gives an advantage.",
+        "Reaching the final trick with a low card is usually the safest position."
+      ]
+    },
+    {
+      "title_tr": "Varyantlar",
+      "title_en": "Variants",
+      "content_tr": [
+        "Danimarka Kuralı: Her oyuncuya 7 kart dağıtılır ve ceza sınırı genellikle 21 puandır.",
+        "Esnek Kart Sayısı: Dağıtan oyuncu kişi sayısına göre herkese eşit sayıda en az 3 kart dağıtabilir.",
+        "As Özel Kuralı: Bazı ev kurallarında son elde As düşük kabul edilebilir.",
+        "Son En Yüksek Kazanır: Eşit en yüksek kartlardan son oynanan kart eli alır.",
+        "İlk En Yüksek Kazanır: Eşit en yüksek kartlardan ilk oynanan kart eli alır.",
+        "Tek El Oyunu: Elenme sistemi olmadan tek el oynanır; son eli alan oyuncu kaybeder."
+      ],
+      "content_en": [
+        "Danish Rule: Each player is dealt 7 cards and the penalty limit is usually 21 points.",
+        "Flexible Hand Size: The dealer may deal an equal number of cards to each player, at least 3 each, depending on player count.",
+        "Special Ace Rule: In some house rules, Ace may be treated as low in the final trick.",
+        "Last Highest Wins: Among tied highest cards, the last played card wins the trick.",
+        "First Highest Wins: Among tied highest cards, the first played card wins the trick.",
+        "Single-Hand Game: The game is played without elimination; the player who wins the final trick loses."
+      ]
+    }
+  ],
+  "scoring_tr": [
+    "Salatalıkta önceki eller genellikle puan kazandırmaz.",
+    "Ceza puanı yalnızca son eli alan oyuncuya yazılır.",
+    "Ceza puanı genellikle son eli kazandıran kartın değerine göre belirlenir.",
+    "Basit puanlamada sayı kartları kendi değeri, Vale 11, Kız 12, Papaz 13, As 14 puan sayılabilir.",
+    "Oyuncuların ceza puanları eller boyunca birikir.",
+    "Belirlenen ceza sınırına ulaşan veya geçen oyuncu elenir.",
+    "Yaygın ceza sınırı 21 puandır."
+  ],
+  "scoring_en": [
+    "Earlier tricks usually do not score points in Cucumber.",
+    "Penalty points are given only to the player who wins the final trick.",
+    "The penalty is usually based on the value of the card that won the final trick.",
+    "In a simple scoring system, number cards count face value, Jack 11, Queen 12, King 13, and Ace 14.",
+    "Players' penalty points accumulate over multiple hands.",
+    "A player who reaches or passes the chosen penalty limit is eliminated.",
+    "A common penalty limit is 21 points."
+  ],
+  "ending_tr": [
+    "Bir el, oyuncuların ellerindeki tüm kartları oynamasıyla sona erer.",
+    "Son eli alan oyuncu ceza puanı alır.",
+    "Ceza puanı oyuncunun toplam ceza skoruna eklenir.",
+    "Ceza sınırına ulaşan veya geçen oyuncu oyundan elenir.",
+    "Elenmeyen oyuncularla yeni el oynanır.",
+    "Sona kalan son oyuncu oyunu kazanır."
+  ],
+  "ending_en": [
+    "A hand ends when all players have played all cards from their hands.",
+    "The player who wins the final trick receives penalty points.",
+    "The penalty is added to that player's total penalty score.",
+    "A player who reaches or passes the penalty limit is eliminated.",
+    "A new hand is played with the remaining players.",
+    "The last remaining player wins the game."
+  ],
+  "notes_tr": [
+    "Cucumber; Agurk, Gurka, Ogórek, Kurkku ve benzeri adlarla farklı ülkelerde oynanan bir oyun ailesine aittir.",
+    "Oyunda genellikle koz yoktur; kategori bu yüzden 'El Alma / Kaçınma' olarak yazılmalıdır.",
+    "Renkler çoğu varyantta önemsizdir; oyuncular kart değerlerine göre oynar.",
+    "Oyunun ilginç tarafı, normal el alma oyunlarının tersine son eli kazanmaktan kaçınmaktır.",
+    "Yeni başlayanlar için 7 kartlık el, As yüksek ve 21 ceza sınırı sade bir varsayılan kural seti oluşturur.",
+    "Eşit en yüksek kartlarda son oynananın eli alması uygulama için açık ve pratik bir varsayılandır."
+  ],
+  "notes_en": [
+    "Cucumber belongs to a family of games played under names such as Agurk, Gurka, Ogórek, Kurkku, and similar names in different countries.",
+    "The game usually has no trump, so the category should be 'Trick-taking / Avoidance'.",
+    "Suits are usually irrelevant; players play according to card rank.",
+    "The interesting twist is that, unlike most trick-taking games, players try to avoid winning the final trick.",
+    "For beginners, a 7-card hand, Ace high, and a 21-point penalty limit form a simple default ruleset.",
+    "For tied highest cards, treating the last played highest card as the winner is a clear and practical default for an app."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 7,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "El Alma / Kaçınma",
+  "category_en": "Trick-taking / Avoidance"
+}

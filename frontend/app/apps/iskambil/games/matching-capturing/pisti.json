@@ -1,0 +1,34 @@
+{
+  "id": "pisti",
+  "name_tr": "pişti",
+  "name_en": "Pişti",
+  "originalName": "Pişti",
+  "description_tr": "Türkiye'de çok oynanan, yerdeki kartı aynı değerle veya Vale ile alarak puan toplamaya dayalı kart oyunu.",
+  "description_en": "A very popular Turkish fishing game where players score by capturing the table with matching ranks or Jacks.",
+  "rules_tr": [
+    "Pişti 2 veya 4 kişiyle oynanır; 4 kişide karşılıklı oturan oyuncular takım olabilir.",
+    "52 kartlık standart deste kullanılır. Başta ortaya 3 kapalı ve 1 açık kart konur, oyunculara 4'er kart dağıtılır.",
+    "Oyuncular sırayla ellerinden bir kartı ortaya açık atar.",
+    "Atılan kart, yerdeki en üst kartla aynı değerdeyse oyuncu ortadaki tüm kartları alır.",
+    "Vale, yerdeki en üst kart ne olursa olsun ortadaki tüm kartları alır.",
+    "Yerde yalnızca tek kart varken aynı değerde kartla alınırsa pişti yapılır ve ekstra puan kazanılır. Tek Vale'yi Vale ile almak çift pişti sayılabilir.",
+    "Oyuncuların 4 kartı bitince yeniden 4'er kart dağıtılır; deste bitince eldeki son kartlar oynanır.",
+    "Puanlama yaygın olarak şöyledir: pişti 10, Vale ile pişti 20, Karo 10 üç puan, Sinek 2 iki puan, Aslar ve Valeler birer puan, en çok kart üç puan."
+  ],
+  "rules_en": [
+    "Pişti is played with 2 or 4 players; with 4 players, opposite players may form teams.",
+    "A standard 52-card deck is used. At the start, 3 cards are placed face down and 1 card face up in the center, and each player receives 4 cards.",
+    "Players take turns playing one card face up to the center.",
+    "If the played card matches the rank of the top table card, the player captures all cards in the center.",
+    "A Jack captures all center cards regardless of the top card.",
+    "If the table has only one card and it is captured by the same rank, the player scores a pişti bonus. Capturing a lone Jack with a Jack may count as double pişti.",
+    "When all players have used their 4 cards, 4 more cards are dealt. Play continues until the deck is exhausted.",
+    "Common scoring: pişti 10, Jack pişti 20, 10 of Diamonds 3, 2 of Clubs 2, each Ace and Jack 1, and most cards 3."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 4,
+  "deckCount_tr": "1 Deste",
+  "deckCount_en": "1 Deck",
+  "category_tr": "Eşleştirme / Toplama",
+  "category_en": "Matching / Capturing"
+}

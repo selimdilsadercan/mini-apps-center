@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/sync-games.js && next build",
     "start": "next start",
     "lint": "eslint",
     "generate": "bunx tsx scripts/generate-types.ts",

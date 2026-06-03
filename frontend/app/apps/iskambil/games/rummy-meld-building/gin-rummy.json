@@ -1,0 +1,105 @@
+{
+  "id": "gin-rummy",
+  "name_tr": "Gin Rummy",
+  "name_en": "Gin Rummy",
+  "originalName": "Gin Rummy",
+  "description_tr": "İki kişiyle oynanan, eldeki kartları set ve seri gruplarına dönüştürmeye ve perlere girmeyen kartların puanını azaltmaya dayalı klasik bir rummy oyunudur.",
+  "description_en": "A classic two-player rummy game based on forming sets and runs while reducing the value of unmatched cards.",
+  "quickRules_tr": [
+    "Gin Rummy 2 kişiyle, jokersiz 52 kartlık standart deste ile oynanır.",
+    "Her oyuncuya 10 kart dağıtılır.",
+    "Oyuncular sırayla kapalı desteden ya da atık destesinden bir kart alır, sonra bir kart atar.",
+    "Amaç aynı değerden setler veya aynı renkten ardışık seriler oluşturmaktır.",
+    "Perlere girmeyen kartlara deadwood denir.",
+    "Deadwood toplamı 10 veya daha az olan oyuncu knock yapabilir.",
+    "Tüm kartlar perlere girerse oyuncu Gin yapar."
+  ],
+  "quickRules_en": [
+    "Gin Rummy is played by 2 players with a standard 52-card deck without jokers.",
+    "Each player is dealt 10 cards.",
+    "Players take turns drawing from the stock pile or discard pile, then discarding one card.",
+    "The goal is to form sets of the same rank or runs of consecutive cards in the same suit.",
+    "Cards not included in melds are called deadwood.",
+    "A player with 10 or fewer deadwood points may knock.",
+    "If all cards are included in melds, the player goes Gin."
+  ],
+  "setup_tr": [
+    "Jokerler çıkarılır ve 52 kartlık standart deste kullanılır.",
+    "Her oyuncuya 10 kart dağıtılır.",
+    "Kalan kartlar kapalı deste olarak masaya konur.",
+    "Kapalı destenin en üst kartı açılır ve atık destesini başlatır."
+  ],
+  "setup_en": [
+    "Jokers are removed and a standard 52-card deck is used.",
+    "Each player is dealt 10 cards.",
+    "The remaining cards are placed face down as the stock pile.",
+    "The top card of the stock pile is turned face up to start the discard pile."
+  ],
+  "objective_tr": "Amaç, eldeki kartları set ve seri adı verilen perlere yerleştirerek deadwood puanını azaltmak ve eli rakipten daha avantajlı şekilde bitirmektir.",
+  "objective_en": "The goal is to arrange cards into melds called sets and runs, reduce deadwood points, and end the hand with a better score than the opponent.",
+  "gameplay_tr": [
+    "Oyuncu sırası geldiğinde kapalı desteden veya atık destesinin en üstünden bir kart çeker.",
+    "Kart çektikten sonra elinde geçici olarak 11 kart olur.",
+    "Oyuncu elinden bir kart atarak sırasını bitirir.",
+    "Set, aynı değerden 3 veya 4 karttan oluşur.",
+    "Seri, aynı renkten ardışık en az 3 karttan oluşur.",
+    "Oyuncu deadwood toplamı 10 veya daha az olduğunda, kart atarak knock yapabilir.",
+    "Knock yapan oyuncu perlerini ve deadwood kartlarını açar.",
+    "Rakip, knock yapan oyuncunun perlerine uygun deadwood kartlarını ekleyerek kendi deadwood puanını azaltabilir. Buna lay off denir.",
+    "Oyuncunun hiç deadwood kartı yoksa Gin yapar. Gin durumunda rakip lay off yapamaz."
+  ],
+  "gameplay_en": [
+    "On a turn, a player draws either from the stock pile or from the top of the discard pile.",
+    "After drawing, the player temporarily has 11 cards.",
+    "The player ends the turn by discarding one card.",
+    "A set consists of 3 or 4 cards of the same rank.",
+    "A run consists of at least 3 consecutive cards in the same suit.",
+    "A player may knock after discarding if their deadwood total is 10 or less.",
+    "The knocking player reveals their melds and deadwood cards.",
+    "The opponent may lay off suitable deadwood cards onto the knocker's melds to reduce their own deadwood score.",
+    "If the player has no deadwood, they go Gin. When a player goes Gin, the opponent may not lay off cards."
+  ],
+  "scoring_tr": [
+    "Deadwood puanı, perlere girmeyen kartların toplam değeridir.",
+    "As 1 puan, sayı kartları kendi değeri, vale-kız-papaz ise 10 puan sayılır.",
+    "Knock başarılı olursa, knock yapan oyuncu iki oyuncunun deadwood farkı kadar puan alır.",
+    "Rakibin deadwood puanı knock yapan oyuncununkiyle eşit veya daha düşükse undercut olur; bu durumda rakip fark puanını ve undercut bonusunu alır.",
+    "Gin yapan oyuncu, rakibin deadwood toplamına ek olarak Gin bonusu alır.",
+    "Gin ve undercut bonusları oynanan varyanta göre değişebilir; yaygın kullanımda Gin bonusu 20 veya 25 puan, undercut bonusu ise 10 veya 25 puan olabilir."
+  ],
+  "scoring_en": [
+    "Deadwood is the total value of cards not included in melds.",
+    "Aces count as 1 point, number cards count face value, and Jacks, Queens, and Kings count as 10 points.",
+    "If a knock is successful, the knocker scores the difference between the two players' deadwood totals.",
+    "If the opponent has deadwood equal to or lower than the knocker's deadwood, this is an undercut; the opponent scores the difference plus an undercut bonus.",
+    "A player who goes Gin scores the opponent's deadwood total plus a Gin bonus.",
+    "If the player has no deadwood, they go Gin. When a player goes Gin, the opponent may not lay off cards.",
+    "Gin and undercut bonuses vary by ruleset; common variants use 20 or 25 points for Gin and 10 or 25 points for undercut."
+  ],
+  "ending_tr": [
+    "Bir el, oyunculardan biri knock veya Gin yaptığında sona erer.",
+    "Oyun genellikle bir oyuncu 100 puana ulaşana kadar devam eder.",
+    "İstenirse hedef puan oyuncular tarafından değiştirilerek daha kısa veya daha uzun oyunlar oynanabilir."
+  ],
+  "ending_en": [
+    "A hand ends when a player knocks or goes Gin.",
+    "The game is usually played until one player reaches 100 points.",
+    "Players may agree on a different target score for shorter or longer games."
+  ],
+  "notes_tr": [
+    "Gin Rummy'de puanlama varyantları bulunduğu için uygulamada bonus değerleri ayarlanabilir tutulabilir.",
+    "Bazı kaynaklarda Gin bonusu 20 puan, bazı kaynaklarda 25 puan olarak geçer.",
+    "Basit anlatım için 25 puanlık Gin bonusu kullanılabilir; klasik Bicycle/Pagat tarzı anlatım için 20 puan tercih edilebilir."
+  ],
+  "notes_en": [
+    "Because Gin Rummy has several scoring variants, bonus values can be kept configurable in the app.",
+    "Some sources use a 20-point Gin bonus, while others use 25 points.",
+    "For a beginner-friendly version, a 25-point Gin bonus may be used; for a more classic Bicycle/Pagat-style version, 20 points may be preferred."
+  ],
+  "minPlayers": 2,
+  "maxPlayers": 2,
+  "deckCount_tr": "1 deste",
+  "deckCount_en": "1 deck",
+  "category_tr": "Rumi / Per Yapma",
+  "category_en": "Rummy / Meld-building"
+}
