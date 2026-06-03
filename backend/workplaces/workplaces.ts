@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import { users } from "~encore/clients";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -328,4 +329,250 @@ export const addPlace = api(
     }
     return { place: { ...data[0], is_favorite: false, is_visited: false } };
   },
+);
+
+export interface UpdatePlaceRequest {
+  id: string;
+  userId: string;
+  name: string;
+  note?: string;
+  url?: string;
+  wifi: boolean;
+  parking: boolean;
+  power_outlets: boolean;
+  quiet_level: number;
+  tags?: string[];
+  latitude?: number;
+  longitude?: number;
+  district?: string;
+  image_url?: string;
+  address?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  metadata?: any;
+  google_place_id?: string;
+}
+
+export interface UpdatePlaceResponse {
+  place: Place;
+}
+
+export interface DeletePlaceRequest {
+  placeId: string;
+  userId: string;
+}
+
+export interface DeletePlaceResponse {
+  success: boolean;
+}
+
+export interface SearchPlaceRequest {
+  query: string;
+}
+
+export interface SearchPlaceResponse {
+  results: Array<{
+    name: string;
+    address?: string;
+    url?: string;
+    latitude?: number;
+    longitude?: number;
+    rating?: number;
+    user_ratings_total?: number;
+    image_url?: string;
+    google_place_id?: string;
+    district?: string;
+  }>;
+}
+
+export interface ListPendingPlacesRequest {
+  userId: string;
+}
+
+export interface ListPendingPlacesResponse {
+  places: Place[];
+}
+
+export interface ApprovePlaceRequest {
+  placeId: string;
+  userId: string;
+}
+
+export interface ApprovePlaceResponse {
+  place: Place;
+}
+
+const googleMapsApiKey = secret("GoogleMapsAPIKey");
+
+async function requireAdmin(userId: string) {
+  if (!userId?.trim()) {
+    throw APIError.unauthenticated("Authentication required");
+  }
+  const res = await users.checkAdmin({ clerkId: userId });
+  if (!res.isAdmin) {
+    throw APIError.permissionDenied("Admin privilege required");
+  }
+}
+
+async function getEnrichedMetadata(googlePlaceId: string | undefined, existingMetadata: any): Promise<any> {
+  const meta = { ...(existingMetadata || {}) };
+  if (!googlePlaceId) return meta;
+  
+  const apiKey = googleMapsApiKey();
+  if (!apiKey) return meta;
+  
+  try {
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${googlePlaceId}&fields=formatted_phone_number,website,opening_hours,photos,types&key=${apiKey}`;
+    const response = await fetch(url);
+    const data = (await response.json()) as any;
+    
+    if (data.result) {
+      const res = data.result;
+      meta.phone = res.formatted_phone_number;
+      meta.website = res.website;
+      meta.opening_hours = res.opening_hours;
+      meta.google_place_id = googlePlaceId;
+      
+      if (res.photos && res.photos.length > 0) {
+        meta.photos = res.photos.map((photo: any) => 
+          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${photo.photo_reference}&key=${apiKey}`
+        );
+      }
+    }
+  } catch (err) {
+    console.error("getEnrichedMetadata error:", err);
+  }
+  return meta;
+}
+
+export const updatePlace = api(
+  { expose: true, method: "POST", path: "/workplaces/update" },
+  async (req: UpdatePlaceRequest): Promise<UpdatePlaceResponse> => {
+    await requireAdmin(req.userId);
+    const meta = await getEnrichedMetadata(req.google_place_id, req.metadata);
+    const { data, error } = await supabase
+      .schema("workplaces")
+      .rpc("update_place", {
+        p_id: req.id,
+        p_name: req.name,
+        p_note: req.note,
+        p_url: req.url,
+        p_tags: req.tags || [],
+        p_wifi: req.wifi || false,
+        p_parking: req.parking || false,
+        p_power_outlets: req.power_outlets || false,
+        p_quiet_level: req.quiet_level || 3,
+        p_latitude: req.latitude,
+        p_longitude: req.longitude,
+        p_district: req.district,
+        p_image_url: req.image_url,
+        p_address: req.address,
+        p_rating: req.rating,
+        p_user_ratings_total: req.user_ratings_total,
+        p_metadata: meta,
+      });
+    if (error) {
+      console.error("updatePlace error:", error);
+      throw APIError.internal(`Failed to update place: ${error.message}`);
+    }
+    return { place: { ...data[0], is_favorite: false, is_visited: false } };
+  }
+);
+
+export const deletePlace = api(
+  { expose: true, method: "POST", path: "/workplaces/delete" },
+  async ({ placeId, userId }: DeletePlaceRequest): Promise<DeletePlaceResponse> => {
+    await requireAdmin(userId);
+    const { data, error } = await supabase
+      .schema("workplaces")
+      .rpc("delete_place", { p_id: placeId });
+    if (error) {
+      console.error("deletePlace error:", error);
+      throw APIError.internal(`Failed to delete place: ${error.message}`);
+    }
+    return { success: !!data };
+  }
+);
+
+export const searchPlace = api(
+  { expose: true, method: "GET", path: "/workplaces/search" },
+  async ({ query }: SearchPlaceRequest): Promise<SearchPlaceResponse> => {
+    const apiKey = googleMapsApiKey();
+    if (!apiKey) {
+      return { results: [] };
+    }
+    
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+      const response = await fetch(url);
+      const data = (await response.json()) as any;
+      
+      if (!data.results) {
+        return { results: [] };
+      }
+      
+      const results = data.results.map((r: any) => {
+        let imageUrl = "";
+        if (r.photos && r.photos.length > 0) {
+          imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${r.photos[0].photo_reference}&key=${apiKey}`;
+        }
+        
+        let district = "";
+        if (r.formatted_address) {
+          const parts = r.formatted_address.split(",");
+          if (parts.length > 1) {
+            district = parts[parts.length - 2].trim().split(" ")[0];
+          }
+        }
+
+        return {
+          name: r.name,
+          address: r.formatted_address,
+          url: r.place_id ? `https://www.google.com/maps/place/?q=place_id:${r.place_id}` : undefined,
+          latitude: r.geometry?.location?.lat,
+          longitude: r.geometry?.location?.lng,
+          rating: r.rating,
+          user_ratings_total: r.user_ratings_total,
+          image_url: imageUrl,
+          google_place_id: r.place_id,
+          district: district,
+        };
+      });
+      
+      return { results };
+    } catch (err) {
+      console.error("searchPlace error:", err);
+      return { results: [] };
+    }
+  }
+);
+
+export const listPendingPlaces = api(
+  { expose: true, method: "GET", path: "/workplaces/pending/:userId" },
+  async ({ userId }: ListPendingPlacesRequest): Promise<ListPendingPlacesResponse> => {
+    await requireAdmin(userId);
+    const { data, error } = await supabase
+      .schema("workplaces")
+      .rpc("get_pending_places");
+    if (error) {
+      console.error("listPendingPlaces error:", error);
+      throw APIError.internal(`Failed to list pending places: ${error.message}`);
+    }
+    return { places: data || [] };
+  }
+);
+
+export const approvePlace = api(
+  { expose: true, method: "POST", path: "/workplaces/approve" },
+  async ({ placeId, userId }: ApprovePlaceRequest): Promise<ApprovePlaceResponse> => {
+    await requireAdmin(userId);
+    const { data, error } = await supabase
+      .schema("workplaces")
+      .rpc("approve_place", { p_id: placeId });
+    if (error) {
+      console.error("approvePlace error:", error);
+      throw APIError.internal(`Failed to approve place: ${error.message}`);
+    }
+    return { place: { ...data[0], is_favorite: false, is_visited: false } };
+  }
 );

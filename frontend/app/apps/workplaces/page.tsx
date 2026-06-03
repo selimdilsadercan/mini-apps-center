@@ -1,31 +1,38 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { workplaces } from "@/lib/client";
+import dynamic from "next/dynamic";
 import {
   Coffee,
   WifiHigh,
   Car,
   Plug,
-  SpeakerLow,
   Plus,
   MagnifyingGlass,
-  Tag,
-  Heart,
-  CheckCircle,
   MapPin,
+  X,
+  List,
 } from "@phosphor-icons/react";
-import toast from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "@/contexts/LanguageContext";
 
-export default function WorkplacesPage() {
+const StudyPlacesMap = dynamic(() => import("./StudyPlacesMap"), {
+  ssr: false,
+});
+import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "@/contexts/LanguageContext";
+import { useSearchParams } from "next/navigation";
+import { PlaceCard, Checkbox } from "./components/PlaceCard";
+
+function WorkplacesContent() {
   const t = useTranslations("workplaces");
   const client = useMemo(() => createBrowserClient(), []);
   const { user } = useUser();
+  const searchParams = useSearchParams();
+  const suggestParam = searchParams.get("suggest");
+
   const [places, setPlaces] = useState<workplaces.Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,8 +41,26 @@ export default function WorkplacesPage() {
   const [filterWifi, setFilterWifi] = useState(false);
   const [filterParking, setFilterParking] = useState(false);
   const [filterPower, setFilterPower] = useState(false);
-  const [filterWantToGo, setFilterWantToGo] = useState(false);
-  const [filterVisited, setFilterVisited] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingPlace, setEditingPlace] = useState<workplaces.Place | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [selectedPlace, setSelectedPlace] = useState<workplaces.Place | null>(null);
+
+  // Google Search Wizard States
+  const [addStep, setAddStep] = useState<1 | 2>(1); // 1: Google Search, 2: Details Form
+  const [searchMapQuery, setSearchMapQuery] = useState("");
+  const [mapSearchResults, setMapSearchResults] = useState<any[]>([]);
+  const [searchMapLoading, setSearchMapLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setIsAdmin(false);
+      return;
+    }
+    client.users.checkAdmin(user.id)
+      .then((res) => setIsAdmin(res.isAdmin))
+      .catch((err) => console.error("Failed to check admin status:", err));
+  }, [user?.id, client]);
 
   const districts = useMemo(() => {
     const names = new Set<string>();
@@ -55,6 +80,14 @@ export default function WorkplacesPage() {
     power_outlets: false,
     quiet_level: 3,
     tags: "",
+    // Enum values for metadata
+    wifi_status: "NO",
+    parking_status: [] as string[],
+    outlets_status: "NO",
+    outdoor_status: "NO",
+    view_status: "NO",
+    areas: [] as string[],
+    coffee_price: "MODERATE",
   });
 
   const fetchPlaces = useCallback(async () => {
@@ -76,6 +109,13 @@ export default function WorkplacesPage() {
   useEffect(() => {
     fetchPlaces();
   }, [fetchPlaces]);
+
+  // Open suggest modal automatically if URL has ?suggest=true
+  useEffect(() => {
+    if (suggestParam === "true") {
+      setShowAddModal(true);
+    }
+  }, [suggestParam]);
 
   const handleToggleFavorite = async (placeId: string) => {
     if (!user?.id) {
@@ -135,18 +175,12 @@ export default function WorkplacesPage() {
       const matchesParking = !filterParking || place.parking;
       const matchesPower = !filterPower || place.power_outlets;
 
-      const matchesList =
-        (!filterWantToGo && !filterVisited) ||
-        (filterWantToGo && place.is_favorite) ||
-        (filterVisited && place.is_visited);
-
       return (
         matchesSearch &&
         matchesDistrict &&
         matchesWifi &&
         matchesParking &&
-        matchesPower &&
-        matchesList
+        matchesPower
       );
     });
   }, [
@@ -156,69 +190,284 @@ export default function WorkplacesPage() {
     filterWifi,
     filterParking,
     filterPower,
-    filterWantToGo,
-    filterVisited,
   ]);
+
+  const handleEditClick = (place: workplaces.Place) => {
+    setEditingPlace(place);
+    
+    // Safely parse parking_status as an array of string
+    let parsedParking: string[] = [];
+    if (place.metadata?.parking_status) {
+      if (Array.isArray(place.metadata.parking_status)) {
+        parsedParking = place.metadata.parking_status;
+      } else {
+        parsedParking = [place.metadata.parking_status as string];
+      }
+    } else if (place.parking) {
+      parsedParking = ["FREE"];
+    } else {
+      parsedParking = ["NO"];
+    }
+
+    // Safely parse areas as an array of string
+    let parsedAreas: string[] = [];
+    if (place.metadata?.areas) {
+      if (Array.isArray(place.metadata.areas)) {
+        parsedAreas = place.metadata.areas;
+      } else {
+        parsedAreas = [place.metadata.areas as string];
+      }
+    }
+
+    setNewPlace({
+      name: place.name,
+      note: place.note || "",
+      url: place.url || "",
+      wifi: place.wifi || false,
+      parking: place.parking || false,
+      power_outlets: place.power_outlets || false,
+      quiet_level: place.quiet_level || 3,
+      tags: place.tags.join(", "),
+      wifi_status: place.metadata?.wifi_status || (place.wifi ? "FREE_FAST" : "NO"),
+      parking_status: parsedParking,
+      outlets_status: place.metadata?.outlets_status || (place.power_outlets ? "SOME" : "NO"),
+      outdoor_status: place.metadata?.outdoor_status || "NO",
+      view_status: place.metadata?.view_status || "NO",
+      areas: parsedAreas,
+      coffee_price: place.metadata?.coffee_price || "MODERATE",
+    } as any);
+    setAddStep(2); // Skip directly to details/form step
+    setShowAddModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+    setEditingPlace(null);
+    setAddStep(1);
+    setSearchMapQuery("");
+    setMapSearchResults([]);
+    setNewPlace({
+      name: "",
+      note: "",
+      url: "",
+      wifi: false,
+      parking: false,
+      power_outlets: false,
+      quiet_level: 3,
+      tags: "",
+      wifi_status: "NO",
+      parking_status: [] as string[],
+      outlets_status: "NO",
+      outdoor_status: "NO",
+      view_status: "NO",
+      areas: [] as string[],
+      coffee_price: "MODERATE",
+    } as any);
+  };
+
+  const handleSearchMaps = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchMapQuery.trim()) return;
+
+    try {
+      setSearchMapLoading(true);
+      const res = await client.workplaces.searchPlace({ query: searchMapQuery });
+      setMapSearchResults(res.results ?? []);
+      if (res.results?.length === 0) {
+        toast.error("Hiçbir mekan bulunamadı.");
+      }
+    } catch (err) {
+      console.error("Failed to search maps:", err);
+      toast.error("Arama yapılırken bir hata oluştu.");
+    } finally {
+      setSearchMapLoading(false);
+    }
+  };
+
+  const handleSelectMapPlace = (place: any) => {
+    setNewPlace({
+      name: place.name,
+      note: "",
+      url: place.url || "",
+      wifi: false,
+      parking: false,
+      power_outlets: false,
+      quiet_level: 3,
+      tags: "",
+      // Optional coordinates & address payload
+      latitude: place.latitude,
+      longitude: place.longitude,
+      address: place.address,
+      image_url: place.image_url,
+      rating: place.rating,
+      user_ratings_total: place.user_ratings_total,
+      district: place.district,
+      google_place_id: place.google_place_id,
+      wifi_status: "NO",
+      parking_status: [] as string[],
+      outlets_status: "NO",
+      outdoor_status: "NO",
+      view_status: "NO",
+      areas: [] as string[],
+      coffee_price: "MODERATE",
+    } as any);
+    setAddStep(2); // Go to final details step
+  };
+
+  const handleDeletePlace = async (placeId: string) => {
+    if (!user?.id) return;
+    if (!window.confirm("Bu mekanı silmek istediğinize emin misiniz?")) return;
+    try {
+      await client.workplaces.deletePlace({
+        placeId,
+        userId: user.id,
+      });
+      toast.success("Mekan başarıyla silindi");
+      fetchPlaces();
+    } catch (err) {
+      console.error("Failed to delete place:", err);
+      toast.error("Mekan silinemedi");
+    }
+  };
 
   const handleAddPlace = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await client.workplaces.addPlace({
-        ...newPlace,
-        tags: newPlace.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      });
-      setShowAddModal(false);
-      setNewPlace({
-        name: "",
-        note: "",
-        url: "",
-        wifi: false,
-        parking: false,
-        power_outlets: false,
-        quiet_level: 3,
-        tags: "",
-      });
+      const wifiBool = newPlace.wifi_status !== "NO";
+      const parkingBool = Array.isArray(newPlace.parking_status)
+        ? (newPlace.parking_status.length > 0 && !newPlace.parking_status.includes("NO"))
+        : newPlace.parking_status !== "NO";
+      const powerBool = newPlace.outlets_status !== "NO";
+
+      const metadata = {
+        ...(editingPlace?.metadata || {}),
+        wifi_status: newPlace.wifi_status,
+        parking_status: newPlace.parking_status,
+        outlets_status: newPlace.outlets_status,
+        outdoor_status: newPlace.outdoor_status,
+        view_status: newPlace.view_status,
+        areas: newPlace.areas,
+        coffee_price: newPlace.coffee_price,
+        google_place_id: (newPlace as any).google_place_id,
+      };
+
+      if (editingPlace) {
+        await client.workplaces.updatePlace({
+          id: editingPlace.id,
+          userId: user?.id || "",
+          name: newPlace.name,
+          note: newPlace.note,
+          url: newPlace.url,
+          wifi: wifiBool,
+          parking: parkingBool,
+          power_outlets: powerBool,
+          quiet_level: newPlace.quiet_level,
+          tags: newPlace.tags.split(",").map((t) => t.trim()).filter(Boolean),
+          metadata: metadata,
+          google_place_id: (newPlace as any).google_place_id,
+        });
+        toast.success("Mekan başarıyla güncellendi");
+      } else {
+        await client.workplaces.addPlace({
+          ...newPlace,
+          wifi: wifiBool,
+          parking: parkingBool,
+          power_outlets: powerBool,
+          suggested_by: user?.id || undefined,
+          tags: newPlace.tags.split(",").map((t) => t.trim()).filter(Boolean),
+          metadata: metadata,
+        } as any);
+        toast.success(isAdmin ? "Mekan eklendi" : "Öneri başarıyla gönderildi, admin onayı bekleniyor");
+      }
+      handleCloseModal();
       fetchPlaces();
     } catch (err) {
-      console.error("Failed to add place:", err);
+      console.error("Failed to save place:", err);
+      toast.error("İşlem başarısız oldu");
     }
   };
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-28">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900 flex items-center gap-2">
-                <Coffee className="text-amber-700" weight="fill" />
-                {t("title")}
-              </h1>
-              <p className="text-neutral-500 mt-1">{t("subtitle")}</p>
-            </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center justify-center gap-2 bg-amber-700 text-white px-6 py-3 rounded-xl font-medium hover:bg-amber-800 transition-colors shadow-sm"
-            >
-              <Plus weight="bold" />
-              {t("suggestPlace")}
-            </button>
-          </div>
 
-          {/* Search & Filters */}
-          <div className="mt-6 flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
+      {/* Compact Sticky Search & Filter Toolbar */}
+      <div className="bg-white border-b sticky top-0 z-30 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+        <div className="max-w-5xl mx-auto px-4 py-2.5">
+          <div className="flex flex-col sm:flex-row gap-3 items-center w-full">
+            {/* View Selector Tabs */}
+            <div className="flex bg-neutral-100 p-0.5 rounded-xl border border-neutral-250 shrink-0 w-full sm:w-auto shadow-sm">
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "list"
+                    ? "bg-white text-neutral-800 shadow-sm border border-neutral-200/40"
+                    : "text-neutral-500 hover:text-neutral-700"
+                }`}
+              >
+                <List size={14} weight="bold" />
+                Liste
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("map")}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "map"
+                    ? "bg-white text-neutral-800 shadow-sm border border-neutral-200/40"
+                    : "text-neutral-500 hover:text-neutral-700"
+                }`}
+              >
+                <MapPin size={14} weight="bold" />
+                Harita
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full flex-1">
+              <MagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all"
+                className="w-full pl-10 pr-10 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl outline-none transition-all text-xs text-neutral-800 placeholder-neutral-400"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-1 cursor-pointer"
+                  type="button"
+                >
+                  <X size={14} weight="bold" />
+                </button>
+              )}
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            {/* Filters */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar w-full sm:w-auto items-center">
+              
+              {/* District Dropdown Selector */}
+              {districts.length > 0 && (
+                <div className="relative shrink-0">
+                  <MapPin size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <select
+                    value={filterDistrict}
+                    onChange={(e) => setFilterDistrict(e.target.value)}
+                    className={`pl-7 pr-6 py-1.5 rounded-xl text-xs font-semibold border appearance-none outline-none bg-white cursor-pointer transition-all ${
+                      filterDistrict
+                        ? "bg-amber-100 text-amber-800 border-amber-200"
+                        : "text-neutral-600 border-neutral-200 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <option value="">{t("district.all")}</option>
+                    {districts.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <FilterButton
                 active={filterWifi}
                 onClick={() => setFilterWifi(!filterWifi)}
@@ -239,44 +488,121 @@ export default function WorkplacesPage() {
               />
             </div>
           </div>
-
-          {districts.length > 0 && (
-            <div className="mt-4">
-              <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <MapPin size={14} className="text-amber-700" />
-                {t("district.label")}
-              </p>
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <DistrictChip
-                  active={!filterDistrict}
-                  label={t("district.all")}
-                  onClick={() => setFilterDistrict("")}
-                />
-                {districts.map((district) => (
-                  <DistrictChip
-                    key={district}
-                    active={filterDistrict === district}
-                    label={district}
-                    onClick={() =>
-                      setFilterDistrict(filterDistrict === district ? "" : district)
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 mt-8">
+      <div className="max-w-7xl mx-auto px-4 mt-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
             <p className="text-neutral-500 font-medium">{t("loading")}</p>
           </div>
+        ) : viewMode === "map" ? (
+          <div className="relative w-full h-[calc(100vh-180px)] min-h-[500px] rounded-3xl overflow-hidden border border-neutral-250 shadow-lg bg-neutral-100 flex">
+            {/* Map Container */}
+            <div className="flex-1 h-full w-full">
+              <StudyPlacesMap 
+                places={filteredPlaces} 
+                onSelectPlace={setSelectedPlace}
+                selectedPlaceId={selectedPlace?.id}
+              />
+            </div>
+
+            {/* Google-like Side Panel */}
+            <AnimatePresence>
+              {selectedPlace && (
+                <motion.div
+                  initial={{ x: "-100%", opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: "-100%", opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                  className="absolute left-4 right-4 sm:right-auto top-4 bottom-4 sm:w-[340px] bg-white rounded-2xl shadow-2xl z-20 flex flex-col overflow-hidden border border-neutral-200"
+                >
+                  {/* Close button */}
+                  <button 
+                    onClick={() => setSelectedPlace(null)}
+                    className="absolute right-3 top-3 w-8 h-8 bg-white/90 hover:bg-white text-neutral-800 rounded-full flex items-center justify-center shadow-md z-10 transition-all cursor-pointer border border-neutral-100"
+                  >
+                    <X size={14} weight="bold" />
+                  </button>
+
+                  {/* Place Image */}
+                  <div className="w-full h-44 bg-neutral-150 relative shrink-0">
+                    <img 
+                      src={selectedPlace.image_url || "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop"} 
+                      alt={selectedPlace.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as any).src = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop";
+                      }}
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-4 flex-1 overflow-y-auto space-y-3.5 no-scrollbar">
+                    <div>
+                      {selectedPlace.district && (
+                        <span className="text-[9px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                          {selectedPlace.district}
+                        </span>
+                      )}
+                      <h3 className="text-base font-bold text-neutral-900 mt-1 leading-snug">{selectedPlace.name}</h3>
+                      {selectedPlace.rating && (
+                        <div className="flex items-center gap-1 mt-0.5 text-xs">
+                          <span className="text-amber-500">★</span>
+                          <span className="text-neutral-850 font-bold">{selectedPlace.rating}</span>
+                          {selectedPlace.user_ratings_total !== undefined && (
+                            <span className="text-neutral-450">({selectedPlace.user_ratings_total})</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedPlace.address && (
+                      <p className="text-xs text-neutral-500 leading-relaxed font-semibold">
+                        {selectedPlace.address}
+                      </p>
+                    )}
+
+                    {/* Features list */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
+                        <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider block">WiFi</span>
+                        <span className="text-xs font-bold text-neutral-700">
+                          {selectedPlace.metadata?.wifi_status ? wifiLabels[selectedPlace.metadata.wifi_status] : (selectedPlace.wifi ? "Var" : "Yok")}
+                        </span>
+                      </div>
+                      <div className="bg-neutral-50 p-2.5 rounded-xl border border-neutral-100">
+                        <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wider block">Priz</span>
+                        <span className="text-xs font-bold text-neutral-700">
+                          {selectedPlace.metadata?.outlets_status ? outletsLabels[selectedPlace.metadata.outlets_status] : (selectedPlace.power_outlets ? "Var" : "Yok")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedPlace.note && (
+                      <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-150 text-xs text-neutral-600 leading-relaxed font-semibold italic">
+                        "{selectedPlace.note}"
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Detail Link Footer */}
+                  <div className="p-3 border-t border-neutral-100 bg-neutral-50 shrink-0">
+                    <a
+                      href={`/apps/workplaces/place?id=${selectedPlace.id}`}
+                      className="block text-center w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow no-underline"
+                    >
+                      Detayları Gör
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         ) : filteredPlaces.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <AnimatePresence mode="popLayout">
               {filteredPlaces.map((place) => (
                 <PlaceCard
@@ -284,6 +610,9 @@ export default function WorkplacesPage() {
                   place={place}
                   onToggleFavorite={handleToggleFavorite}
                   onToggleVisited={handleToggleVisited}
+                  isAdmin={isAdmin}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeletePlace}
                 />
               ))}
             </AnimatePresence>
@@ -307,7 +636,7 @@ export default function WorkplacesPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowAddModal(false)}
+              onClick={handleCloseModal}
               className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm"
             />
             <motion.div
@@ -317,292 +646,317 @@ export default function WorkplacesPage() {
               className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden"
             >
               <div className="px-6 py-6 border-b">
-                <h2 className="text-xl font-bold text-neutral-900">{t("modal.title")}</h2>
-                <p className="text-neutral-500 text-sm mt-1">{t("modal.subtitle")}</p>
+                <h2 className="text-xl font-bold text-neutral-900">
+                  {editingPlace ? "Mekanı Düzenle" : (addStep === 1 ? "Mekan Ara (Google Maps)" : t("modal.title"))}
+                </h2>
+                <p className="text-neutral-500 text-sm mt-1">
+                  {editingPlace 
+                    ? "Lütfen mekan bilgilerini güncelleyin." 
+                    : (addStep === 1 
+                        ? "Öncelikle mekanı Google Haritalar üzerinde aratıp seçin." 
+                        : t("modal.subtitle"))}
+                </p>
               </div>
-              <form onSubmit={handleAddPlace} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.name")}</label>
-                  <input
-                    required
-                    type="text"
-                    value={newPlace.name}
-                    onChange={(e) => setNewPlace({ ...newPlace, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all"
-                    placeholder={t("placeholders.name")}
-                  />
+
+              {addStep === 1 ? (
+                <div className="p-6 space-y-4">
+                  <form onSubmit={handleSearchMaps} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={searchMapQuery}
+                        onChange={(e) => setSearchMapQuery(e.target.value)}
+                        placeholder="Google Haritalar'da mekan arayın..."
+                        className="w-full pl-4 pr-10 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                      />
+                      {searchMapQuery && (
+                        <button
+                          onClick={() => setSearchMapQuery("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-1 cursor-pointer"
+                          type="button"
+                        >
+                          <X size={14} weight="bold" />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={searchMapLoading}
+                      className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl transition-colors shadow-sm text-xs cursor-pointer disabled:opacity-50"
+                    >
+                      {searchMapLoading ? "Aranıyor..." : "Ara"}
+                    </button>
+                  </form>
+
+                  <div className="max-h-60 overflow-y-auto space-y-2 mt-4 pr-1 scrollbar-thin">
+                    {mapSearchResults.map((r, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectMapPlace(r)}
+                        className="w-full text-left p-3 hover:bg-neutral-50 rounded-xl border border-neutral-100 transition-all flex flex-col gap-1 cursor-pointer"
+                        type="button"
+                      >
+                        <span className="font-bold text-xs text-neutral-900">{r.name}</span>
+                        {r.address && <span className="text-[10px] text-neutral-500 line-clamp-1">{r.address}</span>}
+                        {r.rating && (
+                          <span className="text-[9px] text-amber-600 font-bold">
+                            ★ {r.rating} ({r.user_ratings_total})
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3 pt-4 border-t">
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-xl hover:bg-neutral-200 transition-colors text-xs cursor-pointer"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddStep(2)}
+                      className="flex-1 px-4 py-3 bg-amber-50 text-amber-800 font-bold border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors text-xs cursor-pointer"
+                    >
+                      Manuel Doldur
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.notes")}</label>
-                  <textarea
-                    value={newPlace.note}
-                    onChange={(e) => setNewPlace({ ...newPlace, note: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all h-24 resize-none"
-                    placeholder={t("placeholders.notes")}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.mapsUrl")}</label>
-                  <input
-                    type="url"
-                    value={newPlace.url}
-                    onChange={(e) => setNewPlace({ ...newPlace, url: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all"
-                    placeholder={t("placeholders.mapsUrl")}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-4 py-2">
-                  <Checkbox
-                    label={t("filters.wifi")}
-                    checked={newPlace.wifi}
-                    onChange={(checked) => setNewPlace({ ...newPlace, wifi: checked })}
-                    icon={<WifiHigh />}
-                  />
-                  <Checkbox
-                    label={t("filters.parking")}
-                    checked={newPlace.parking}
-                    onChange={(checked) => setNewPlace({ ...newPlace, parking: checked })}
-                    icon={<Car />}
-                  />
-                  <Checkbox
-                    label={t("filters.power")}
-                    checked={newPlace.power_outlets}
-                    onChange={(checked) => setNewPlace({ ...newPlace, power_outlets: checked })}
-                    icon={<Plug />}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.tags")}</label>
-                  <input
-                    type="text"
-                    value={newPlace.tags}
-                    onChange={(e) => setNewPlace({ ...newPlace, tags: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all"
-                    placeholder={t("placeholders.tags")}
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-xl hover:bg-neutral-200 transition-colors"
-                  >
-                    {t("modal.cancel")}
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-3 bg-amber-700 text-white font-medium rounded-xl hover:bg-amber-800 transition-colors shadow-sm"
-                  >
-                    {t("modal.submit")}
-                  </button>
-                </div>
-              </form>
+              ) : (
+                <form onSubmit={handleAddPlace} className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.name")}</label>
+                    <input
+                      required
+                      type="text"
+                      value={newPlace.name}
+                      onChange={(e) => setNewPlace({ ...newPlace, name: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                      placeholder={t("placeholders.name")}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.notes")}</label>
+                    <textarea
+                      value={newPlace.note}
+                      onChange={(e) => setNewPlace({ ...newPlace, note: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all h-24 resize-none text-xs text-neutral-800 font-semibold"
+                      placeholder={t("placeholders.notes")}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.mapsUrl")}</label>
+                    <input
+                      type="url"
+                      value={newPlace.url}
+                      onChange={(e) => setNewPlace({ ...newPlace, url: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                      placeholder={t("placeholders.mapsUrl")}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2 border-y border-neutral-100 my-2">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">WiFi Durumu</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(wifiLabels).map(([key, label]) => {
+                          const isSelected = newPlace.wifi_status === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setNewPlace({ ...newPlace, wifi_status: key })}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Kahve Fiyatı</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(priceLabels).map(([key, label]) => {
+                          const isSelected = newPlace.coffee_price === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setNewPlace({ ...newPlace, coffee_price: key })}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Priz / Güç Çıkışı</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(outletsLabels).map(([key, label]) => {
+                          const isSelected = newPlace.outlets_status === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setNewPlace({ ...newPlace, outlets_status: key })}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Manzara</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(viewLabels).map(([key, label]) => {
+                          const isSelected = newPlace.view_status === key;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setNewPlace({ ...newPlace, view_status: key })}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Otopark Seçenekleri</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(parkingLabels).map(([key, label]) => {
+                          if (key === "NO") return null;
+                          const isSelected = Array.isArray(newPlace.parking_status)
+                            ? newPlace.parking_status.includes(key)
+                            : false;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => {
+                                let current = Array.isArray(newPlace.parking_status) ? [...newPlace.parking_status] : [];
+                                if (current.includes(key)) {
+                                  current = current.filter(k => k !== key);
+                                } else {
+                                  current.push(key);
+                                }
+                                setNewPlace({ ...newPlace, parking_status: current });
+                              }}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Mevcut Alanlar</label>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(areaLabels).map(([key, label]) => {
+                          const isSelected = Array.isArray(newPlace.areas)
+                            ? newPlace.areas.includes(key)
+                            : false;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => {
+                                let current = Array.isArray(newPlace.areas) ? [...newPlace.areas] : [];
+                                if (current.includes(key)) {
+                                  current = current.filter(k => k !== key);
+                                } else {
+                                  current.push(key);
+                                }
+                                setNewPlace({ ...newPlace, areas: current });
+                              }}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-amber-100 border-amber-300 text-amber-900"
+                                  : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">{t("modal.tags")}</label>
+                    <input
+                      type="text"
+                      value={newPlace.tags}
+                      onChange={(e) => setNewPlace({ ...newPlace, tags: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                      placeholder={t("placeholders.tags")}
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-4 border-t">
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-xl hover:bg-neutral-200 transition-colors text-xs cursor-pointer"
+                    >
+                      {t("modal.cancel")}
+                    </button>
+                    {!editingPlace && (
+                      <button
+                        type="button"
+                        onClick={() => setAddStep(1)}
+                        className="px-4 py-3 bg-neutral-100 text-neutral-600 font-bold border border-neutral-200 rounded-xl hover:bg-neutral-200 transition-colors text-xs cursor-pointer"
+                      >
+                        Geri
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      className="flex-1 px-4 py-3 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl transition-colors shadow-sm text-xs cursor-pointer"
+                    >
+                      {editingPlace ? "Güncelle" : t("modal.submit")}
+                    </button>
+                  </div>
+                </form>
+              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* List filters: Gitmek istiyorum / Gittim */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
-          <FilterButton
-            active={filterWantToGo}
-            onClick={() => setFilterWantToGo(!filterWantToGo)}
-            icon={<Heart weight={filterWantToGo ? "fill" : "regular"} />}
-            label={t("filters.wantToGo")}
-            activeClassName="bg-rose-100 text-rose-800 border-rose-200"
-          />
-          <FilterButton
-            active={filterVisited}
-            onClick={() => setFilterVisited(!filterVisited)}
-            icon={<CheckCircle weight={filterVisited ? "fill" : "regular"} />}
-            label={t("filters.visited")}
-            activeClassName="bg-emerald-100 text-emerald-800 border-emerald-200"
-          />
-        </div>
-      </div>
     </div>
-  );
-}
-
-function PlaceCard({
-  place,
-  onToggleFavorite,
-  onToggleVisited,
-}: {
-  place: workplaces.Place;
-  onToggleFavorite: (placeId: string) => void;
-  onToggleVisited: (placeId: string) => void;
-}) {
-  const t = useTranslations("workplaces");
-
-  return (
-    <Link
-      href={`/apps/workplaces/place?placeId=${encodeURIComponent(place.id)}`}
-      className="block h-full"
-    >
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white rounded-3xl border border-neutral-200 overflow-hidden hover:shadow-xl hover:border-amber-200 transition-all group flex flex-col h-full"
-    >
-      {/* Image Header */}
-      <div className="relative h-48 w-full bg-neutral-100 overflow-hidden">
-        {place.image_url ? (
-          <img
-            src={place.image_url}
-            alt={place.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-300">
-            <Coffee size={48} weight="thin" />
-          </div>
-        )}
-        {place.district && (
-          <div className="absolute bottom-3 left-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-xs font-bold rounded-full">
-            {place.district}
-          </div>
-        )}
-        {place.rating && (
-          <div className="absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur-sm text-neutral-900 text-xs font-bold rounded-lg flex items-center gap-1 shadow-sm">
-            <span className="text-amber-500">★</span>
-            {place.rating}
-            <span className="text-neutral-400 font-normal">({place.user_ratings_total})</span>
-          </div>
-        )}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleFavorite(place.id);
-            }}
-            className={`p-2 rounded-full backdrop-blur-md shadow-sm transition-colors ${
-              place.is_favorite
-                ? "bg-rose-500 text-white"
-                : "bg-white/90 text-neutral-500 hover:text-rose-500"
-            }`}
-            aria-label={place.is_favorite ? t("aria.removeWantToGo") : t("aria.addWantToGo")}
-          >
-            <Heart size={20} weight={place.is_favorite ? "fill" : "regular"} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleVisited(place.id);
-            }}
-            className={`p-2 rounded-full backdrop-blur-md shadow-sm transition-colors ${
-              place.is_visited
-                ? "bg-emerald-600 text-white"
-                : "bg-white/90 text-neutral-500 hover:text-emerald-600"
-            }`}
-            aria-label={place.is_visited ? t("aria.removeVisited") : t("aria.addVisited")}
-          >
-            <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-6 flex-1">
-        <div className="flex justify-between items-start gap-2">
-          <div>
-            <h3 className="text-xl font-bold text-neutral-900 group-hover:text-amber-800 transition-colors">
-              {place.name}
-            </h3>
-            {place.address && (
-              <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
-                {place.address}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {place.note && (
-          <p className="text-neutral-600 mt-3 text-sm line-clamp-3 leading-relaxed">
-            {place.note}
-          </p>
-        )}
-
-        {(place.is_favorite || place.is_visited) && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {place.is_favorite && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold">
-                {t("wantToGo")}
-              </span>
-            )}
-            {place.is_visited && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
-                {t("visited")}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-2 mt-4">
-          {place.tags.map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 py-1 bg-neutral-100 text-neutral-500 text-xs font-medium rounded-lg flex items-center gap-1"
-            >
-              <Tag size={12} />
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="px-6 py-4 bg-neutral-50 border-t flex items-center justify-between">
-        <div className="flex gap-3">
-          <StatusIcon active={place.wifi} icon={<WifiHigh size={18} />} amenityKey="wifi" />
-          <StatusIcon active={place.parking} icon={<Car size={18} />} amenityKey="parking" />
-          <StatusIcon active={place.power_outlets} icon={<Plug size={18} />} amenityKey="power" />
-        </div>
-        <div className="flex items-center gap-1.5 text-neutral-400">
-          <SpeakerLow size={18} />
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((level) => (
-              <div
-                key={level}
-                className={`w-1.5 h-3 rounded-full ${
-                  level <= place.quiet_level ? "bg-amber-500" : "bg-neutral-200"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-    </Link>
-  );
-}
-
-function DistrictChip({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all whitespace-nowrap ${
-        active
-          ? "bg-amber-700 text-white border-amber-700 shadow-sm"
-          : "bg-white text-neutral-600 border-neutral-200 hover:border-amber-300 hover:text-amber-800"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -622,7 +976,7 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap border ${
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap border ${
         active
           ? activeClassName
           : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
@@ -634,46 +988,55 @@ function FilterButton({
   );
 }
 
-function StatusIcon({
-  active,
-  icon,
-  amenityKey,
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  amenityKey: "wifi" | "parking" | "power";
-}) {
-  const t = useTranslations("workplaces");
-  const amenity = t(`amenity.${amenityKey}`);
-  const status = active ? t("amenity.yes") : t("amenity.no");
-
+export default function WorkplacesPage() {
   return (
-    <div
-      className={`p-2 rounded-lg transition-colors relative group/tooltip ${
-        active ? "text-amber-700 bg-amber-100" : "text-neutral-300 bg-neutral-100"
-      }`}
-    >
-      {icon}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-800 text-white text-[10px] rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-        {t("amenity.status", { amenity, status })}
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
       </div>
-    </div>
+    }>
+      <WorkplacesContent />
+    </Suspense>
   );
 }
 
-function Checkbox({ label, checked, onChange, icon }: { label: string; checked: boolean; onChange: (v: boolean) => void; icon: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all ${
-        checked
-          ? "bg-amber-50 border-amber-500 text-amber-700"
-          : "bg-neutral-50 border-transparent text-neutral-400 hover:bg-neutral-100"
-      }`}
-    >
-      {React.isValidElement(icon) && React.cloneElement(icon as React.ReactElement<any>, { size: 24, weight: checked ? "fill" : "regular" })}
-      <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
-    </button>
-  );
-}
+const parkingLabels: Record<string, string> = {
+  NO: "Yok",
+  FREE: "Ücretsiz Otopark",
+  PAID: "Ücretli Otopark",
+  STREET: "Yol Üstü Park",
+};
+
+const areaLabels: Record<string, string> = {
+  INDOOR: "İç Mekan",
+  GARDEN: "Bahçe",
+  TERRACE: "Teras",
+  STUDY_ZONE: "Çalışma Masaları",
+};
+
+const priceLabels: Record<string, string> = {
+  CHEAP: "Uygun / Ucuz",
+  MODERATE: "Orta / Normal",
+  EXPENSIVE: "Pahalı / Yüksek",
+};
+
+const wifiLabels: Record<string, string> = {
+  NO: "Yok",
+  FREE_FAST: "Ücretsiz & Hızlı",
+  FREE_SLOW: "Ücretsiz & Yavaş",
+  PAID: "Ücretli",
+};
+
+const outletsLabels: Record<string, string> = {
+  NO: "Yok",
+  PLENTY: "Fazlaca Priz",
+  SOME: "Yeterli Priz",
+  FEW: "Çok Az Priz",
+};
+
+const viewLabels: Record<string, string> = {
+  NO: "Manzara Yok",
+  SEA: "Deniz Manzarası",
+  PARK: "Park / Yeşil Alan",
+  CITY: "Şehir Manzarası",
+};

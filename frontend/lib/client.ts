@@ -2858,6 +2858,10 @@ export namespace tutor_crm {
  * Users service - handles user identity and mapping with Clerk ID
  */
 export namespace users {
+    export interface CheckAdminResponse {
+        isAdmin: boolean
+    }
+
     export interface CreateUserRequest {
         clerkId: string
     }
@@ -2909,12 +2913,23 @@ export namespace users {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.checkAdmin = this.checkAdmin.bind(this)
             this.createUser = this.createUser.bind(this)
             this.getOrCreateUser = this.getOrCreateUser.bind(this)
             this.getUserByClerkId = this.getUserByClerkId.bind(this)
             this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
+        }
+
+        /**
+         * Clerk ID ile kullanıcının admin olup olmadığını sorgular
+         * GET /users/admin/check/:clerkId
+         */
+        public async checkAdmin(clerkId: string): Promise<CheckAdminResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/users/admin/check/${encodeURIComponent(clerkId)}`)
+            return await resp.json() as CheckAdminResponse
         }
 
         /**
@@ -3007,12 +3022,34 @@ export namespace workplaces {
         place: Place
     }
 
+    export interface ApprovePlaceRequest {
+        placeId: string
+        userId: string
+    }
+
+    export interface ApprovePlaceResponse {
+        place: Place
+    }
+
+    export interface DeletePlaceRequest {
+        placeId: string
+        userId: string
+    }
+
+    export interface DeletePlaceResponse {
+        success: boolean
+    }
+
     export interface GetPlaceRequest {
         userId?: string
     }
 
     export interface GetPlaceResponse {
         place: Place
+    }
+
+    export interface ListPendingPlacesResponse {
+        places: Place[]
     }
 
     export interface ListPlacesRequest {
@@ -3047,6 +3084,25 @@ export namespace workplaces {
         "is_visited"?: boolean
     }
 
+    export interface SearchPlaceRequest {
+        query: string
+    }
+
+    export interface SearchPlaceResponse {
+        results: {
+            name: string
+            address?: string
+            url?: string
+            latitude?: number
+            longitude?: number
+            rating?: number
+            "user_ratings_total"?: number
+            "image_url"?: string
+            "google_place_id"?: string
+            district?: string
+        }[]
+    }
+
     export interface ToggleFavoriteRequest {
         placeId: string
         userId: string
@@ -3067,22 +3123,65 @@ export namespace workplaces {
         isVisited: boolean
     }
 
+    export interface UpdatePlaceRequest {
+        id: string
+        userId: string
+        name: string
+        note?: string
+        url?: string
+        wifi: boolean
+        parking: boolean
+        "power_outlets": boolean
+        "quiet_level": number
+        tags?: string[]
+        latitude?: number
+        longitude?: number
+        district?: string
+        "image_url"?: string
+        address?: string
+        rating?: number
+        "user_ratings_total"?: number
+        metadata?: any
+        "google_place_id"?: string
+    }
+
+    export interface UpdatePlaceResponse {
+        place: Place
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addPlace = this.addPlace.bind(this)
+            this.approvePlace = this.approvePlace.bind(this)
+            this.deletePlace = this.deletePlace.bind(this)
             this.getPlace = this.getPlace.bind(this)
+            this.listPendingPlaces = this.listPendingPlaces.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
+            this.searchPlace = this.searchPlace.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
             this.toggleVisited = this.toggleVisited.bind(this)
+            this.updatePlace = this.updatePlace.bind(this)
         }
 
         public async addPlace(params: AddPlaceRequest): Promise<AddPlaceResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces`, JSON.stringify(params))
             return await resp.json() as AddPlaceResponse
+        }
+
+        public async approvePlace(params: ApprovePlaceRequest): Promise<ApprovePlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/approve`, JSON.stringify(params))
+            return await resp.json() as ApprovePlaceResponse
+        }
+
+        public async deletePlace(params: DeletePlaceRequest): Promise<DeletePlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/delete`, JSON.stringify(params))
+            return await resp.json() as DeletePlaceResponse
         }
 
         public async getPlace(id: string, params: GetPlaceRequest): Promise<GetPlaceResponse> {
@@ -3094,6 +3193,12 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/place/${encodeURIComponent(id)}`, undefined, {query})
             return await resp.json() as GetPlaceResponse
+        }
+
+        public async listPendingPlaces(userId: string): Promise<ListPendingPlacesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/pending/${encodeURIComponent(userId)}`)
+            return await resp.json() as ListPendingPlacesResponse
         }
 
         /**
@@ -3110,6 +3215,17 @@ export namespace workplaces {
             return await resp.json() as ListPlacesResponse
         }
 
+        public async searchPlace(params: SearchPlaceRequest): Promise<SearchPlaceResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/search`, undefined, {query})
+            return await resp.json() as SearchPlaceResponse
+        }
+
         public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/favorite`, JSON.stringify(params))
@@ -3120,6 +3236,12 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/visited`, JSON.stringify(params))
             return await resp.json() as ToggleVisitedResponse
+        }
+
+        public async updatePlace(params: UpdatePlaceRequest): Promise<UpdatePlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/update`, JSON.stringify(params))
+            return await resp.json() as UpdatePlaceResponse
         }
     }
 }

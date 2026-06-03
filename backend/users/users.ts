@@ -244,3 +244,40 @@ export const getUserPreferences = api(
     return { appOrder: data?.[0]?.app_order || null };
   }
 );
+
+interface CheckAdminRequest {
+  clerkId: string;
+}
+
+interface CheckAdminResponse {
+  isAdmin: boolean;
+}
+
+/**
+ * Clerk ID ile kullanıcının admin olup olmadığını sorgular
+ * GET /users/admin/check/:clerkId
+ */
+export const checkAdmin = api(
+  { expose: true, method: "GET", path: "/users/admin/check/:clerkId" },
+  async ({ clerkId }: CheckAdminRequest): Promise<CheckAdminResponse> => {
+    const { data: isAdminRpc, error } = await supabase.rpc("is_admin", {
+      p_clerk_id: clerkId,
+    });
+
+    if (error) {
+      console.warn("checkAdmin is_admin RPC failed, checking table directly:", error.message);
+      const { data, error: tableError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("clerk_id", clerkId)
+        .maybeSingle();
+
+      if (tableError || !data) {
+        return { isAdmin: false };
+      }
+      return { isAdmin: data.role === "admin" };
+    }
+
+    return { isAdmin: !!isAdminRpc };
+  }
+);
