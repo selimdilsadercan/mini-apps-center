@@ -4,12 +4,12 @@ import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, getAppHref } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { Sparkle, Plus, Check, ArrowsOutCardinal } from "@phosphor-icons/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -127,15 +127,15 @@ export default function Home() {
 
   // DnD Sensors
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 5,
+        delay: isEditMode ? 100 : 500,
+        tolerance: isEditMode ? 8 : 30,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -305,21 +305,56 @@ function SortableAppIcon({
   const Icon = app.icon;
 
   // Long press implementation variables
-  let pressTimer: NodeJS.Timeout;
+  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const handlePressStart = () => {
+  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
+    console.log("DEBUG: handlePressStart", e.type);
     if (isEditMode) return;
-    pressTimer = setTimeout(() => {
+    
+    if ("touches" in e && e.touches[0]) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+      console.log("DEBUG: touch start coords:", touchStartRef.current);
+    }
+
+    pressTimerRef.current = setTimeout(() => {
+      console.log("DEBUG: Timeout finished! Triggering onLongPress");
       onLongPress();
       // Vibrate if mobile device supports it
       if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(80);
       }
-    }, 600);
+    }, 500);
   };
 
-  const handlePressEnd = () => {
-    clearTimeout(pressTimer);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !pressTimerRef.current) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
+    const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
+    console.log(`DEBUG: handleTouchMove diffX: ${diffX.toFixed(1)}, diffY: ${diffY.toFixed(1)}`);
+    
+    // If moved more than 30px, it's a scroll/move, cancel the long press
+    if (diffX > 30 || diffY > 30) {
+      console.log("DEBUG: Cancelling long press because movement threshold exceeded");
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+        pressTimerRef.current = null;
+      }
+    }
+  };
+
+  const handlePressEnd = (reason?: any) => {
+    console.log("DEBUG: handlePressEnd triggered, reason:", reason || "generic");
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    touchStartRef.current = null;
   };
 
   // Wiggle animation for edit mode
@@ -336,6 +371,16 @@ function SortableAppIcon({
       rotate: 0,
     },
   };
+
+  // Define custom press handlers only when not in edit mode
+  const pressHandlers = !isEditMode ? {
+    onMouseDown: handlePressStart,
+    onMouseUp: handlePressEnd,
+    onMouseLeave: handlePressEnd,
+    onTouchStart: handlePressStart,
+    onTouchEnd: handlePressEnd,
+    onTouchMove: handleTouchMove,
+  } : {};
 
   return (
     <div
@@ -370,13 +415,10 @@ function SortableAppIcon({
             }
           }
         }}
-        onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
-        onMouseLeave={handlePressEnd}
-        onTouchStart={handlePressStart}
-        onTouchEnd={handlePressEnd}
-        {...attributes}
-        {...listeners}
+        {...(isEditMode ? attributes : {})}
+        {...(isEditMode ? listeners : {})}
+        {...pressHandlers}
+        onContextMenu={(e) => e.preventDefault()}
         className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200`}
       >
         {/* OS Icon Container - Squircle */}
