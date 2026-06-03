@@ -1,0 +1,127 @@
+{
+  "Header": {
+    "apps": "Uygulamalar",
+    "features": "Özellikler",
+    "faq": "SSS",
+    "openApp": "Uygulamayı Aç",
+    "signIn": "Giriş Yap"
+  },
+  "Hero": {
+    "badge": "Tamamen Canlı Arayüz",
+    "title1": "Tüm Günlük Araçların",
+    "title2": "Tek Bir Merkezde.",
+    "subtitle": "Oyunlardan verimlilik araçlarına, finans takipçilerinden kişisel yaşam asistanlarına kadar her şey tek bir süper uygulamada.",
+    "openApp": "Merkezi Keşfet",
+    "now": "Hemen",
+    "stats": {
+      "players": "Aktif Kullanıcı",
+      "games": "Mini Uygulama",
+      "puzzles": "Çözülen Görev",
+      "rating": "Memnuniyet Oranı"
+    }
+  },
+  "AppPreview": {
+    "badge": "🧩 Zengin Mini Uygulama Kütüphanesi",
+    "title": "İhtiyacın Olan Her Şey Burda",
+    "subtitle": "Kategorize edilmiş onlarca mini uygulama arasından dilediğini seç, ana ekranına ekle ve kendine özel işletim sistemini oluştur.",
+    "tryLive": "Hemen Uygulamaya Git",
+    "descriptionSuffix": "Bu mini uygulama ile günlük rutinlerini kolaylaştır, zamandan tasarruf et ve hayatını düzene sok.",
+    "difficulty": "Kategori",
+    "players": "Geliştirici",
+    "playNow": "Uygulamayı Aç",
+    "share": "Paylaş",
+    "loading": "Yükleniyor...",
+    "fallbackDesc": "Bu mini uygulamanın detaylı görünümü yakında burada olacak!"
+  },
+  "Features": {
+    "badge": "✨ Özellikler",
+    "title": "Gelişmiş Süper Uygulama Deneyimi",
+    "subtitle": "Everything'i benzersiz kılan bazı temel özellikler",
+    "items": {
+      "daily": {
+        "title": "Kişiselleştirilebilir Ana Ekran",
+        "description": "Dilediğin mini uygulamayı ana ekranına ekle, çıkar ve kendine özel bir kontrol paneli oluştur."
+      },
+      "chest": {
+        "title": "Tek Hesap, Onlarca Servis",
+        "description": "Clerk ile tek bir güvenli üyelik açarak tüm mini uygulamalarda verilerini bulut üzerinde senkronize et."
+      },
+      "hints": {
+        "title": "Encore & Supabase Altyapısı",
+        "description": "Yüksek performanslı backend servisleri ve gerçek zamanlı veritabanı sayesinde anında yanıt al."
+      },
+      "social": {
+        "title": "Sosyal Paylaşım & Arkadaşlar",
+        "description": "Arkadaş ekle, QR profilinle paylaş ve ortak listelerde veya oyunlarda birlikte etkileşime geç."
+      },
+      "duel": {
+        "title": "Mobil & Web Desteği",
+        "description": "Duyarlı tasarımı sayesinde ister bilgisayarından, ister telefonundan (Capacitor/Android) sorunsuz eriş."
+      },
+      "premium": {
+        "title": "Geliştirici Dostu Yapı",
+        "description": "Yeni mini uygulamalar eklemek çok kolay! Tanımlı standartlar sayesinde hızla yeni bir araç geliştir."
+      }
+    }
+  },
+  "FAQ": {
+    "badge": "❓ SSS",
+    "title": "Sıkça Sorulan Sorular",
+    "subtitle": "Everything Mini Apps Center hakkında merak ettikleriniz",
+    "moreQuestions": "Başka bir sorunuz mu var?",
+    "questions": {
+      "0": {
+        "q": "Mini Apps Center nedir?",
+        "a": "Mini Apps Center (Everything), günlük hayatta ihtiyaç duyabileceğiniz bütçe yönetimi, alışveriş listeleri, mini oyunlar ve üretkenlik araçları gibi farklı uygulamaları tek bir çatı altında birleştiren bir süper uygulamadır."
+      },
+      "1": {
+        "q": "Uygulamaları kullanmak ücretli mi?",
+        "a": "Hayır! Platformumuzdaki tüm temel uygulamalar tamamen ücretsizdir ve herhangi bir reklam içermez."
+      },
+      "2": {
+        "q": "Verilerim nasıl saklanıyor?",
+        "a": "Verileriniz Clerk entegrasyonuyla güvenli bir şekilde doğrulanır ve Supabase bulut veritabanında saklanır. Böylece telefon veya bilgisayar değiştirdiğinizde verileriniz kaybolmaz."
+      },
+      "3": {
+        "q": "Kendi mini uygulamamı ekleyebilir miyim?",
+        "a": "Evet, projemiz modüler bir yapıya sahiptir. Geliştirici kurallarına uyarak yeni bir frontend sayfası ve backend servisi ekleyip kolayca platforma dahil edebilirsiniz."
+      },
+      "4": {
+        "q": "Mobil uygulama olarak yüklenebilir mi?",
+        "a": "Platformumuz Capacitor altyapısı sayesinde yerel Android ve iOS uygulaması olarak derlenebilir. Mobil uyumlu arayüzü sayesinde tarayıcıda da uygulama benzeri bir deneyim sunar."
+      },
+      "5": {
+        "q": "Arkadaş ekleme özelliği ne işe yarıyor?",
+        "a": "Arkadaşlarınızı ekleyerek platformdaki bazı uygulamalarda ortak listeler oluşturabilir veya ilerlemelerinizi paylaşabilirsiniz."
+      }
+    }
+  },
+  "Footer": {
+    "cta": {
+      "title": "Bugün Keşfetmeye Başla",
+      "subtitle": "Tüm günlük araçlarını tek bir yerden yöneterek dijital hayatını sadeleştir.",
+      "openApp": "Uygulamayı Aç"
+    },
+    "tagline": "Zeki ve modüler günlük yaşam araçları merkezi.",
+    "links": {
+      "product": "Platform",
+      "company": "Geliştirici",
+      "legal": "Yasal"
+    },
+    "copyright": "© 2026 Everything. Tüm hakları saklıdır.",
+    "madeWith": "❤️ ile geliştirildi",
+    "linkTexts": {
+      "games": "Uygulamalar",
+      "features": "Özellikler",
+      "premium": "Dokümantasyon",
+      "howToPlay": "Destek",
+      "about": "Hakkımızda",
+      "blog": "Geliştirici Blogu",
+      "careers": "İletişim",
+      "contact": "Bize Ulaşın",
+      "privacy": "Gizlilik Politikası",
+      "terms": "Kullanım Şartları",
+      "cookies": "Çerez Politikası"
+    }
+  }
+}

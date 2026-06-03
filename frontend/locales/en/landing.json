@@ -1,0 +1,127 @@
+{
+  "Header": {
+    "apps": "Apps",
+    "features": "Features",
+    "faq": "FAQ",
+    "openApp": "Open App",
+    "signIn": "Sign In"
+  },
+  "Hero": {
+    "badge": "Fully Live Interface",
+    "title1": "All Your Daily Tools",
+    "title2": "In One Center.",
+    "subtitle": "From mini-games to productivity tools, expense trackers to personal lifestyle helpers, everything is combined in one single super-app.",
+    "openApp": "Explore Center",
+    "now": "Now",
+    "stats": {
+      "players": "Active Users",
+      "games": "Mini Apps",
+      "puzzles": "Tasks Solved",
+      "rating": "Satisfaction Rate"
+    }
+  },
+  "AppPreview": {
+    "badge": "🧩 Rich Mini App Library",
+    "title": "Everything You Need is Here",
+    "subtitle": "Choose from dozens of categorized mini apps, add them to your home screen, and construct your own custom dashboard ecosystem.",
+    "tryLive": "Go to App Now",
+    "descriptionSuffix": "Simplify your daily routines, save time, and organize your life with this mini application.",
+    "difficulty": "Category",
+    "players": "Developer",
+    "playNow": "Open App",
+    "share": "Share",
+    "loading": "Loading...",
+    "fallbackDesc": "A detailed interactive preview of this app is coming soon!"
+  },
+  "Features": {
+    "badge": "✨ Features",
+    "title": "Advanced Super App Experience",
+    "subtitle": "Key highlights that make Everything unique",
+    "items": {
+      "daily": {
+        "title": "Customizable Home Screen",
+        "description": "Add, remove, and arrange any mini app on your home dashboard to customize your view."
+      },
+      "chest": {
+        "title": "One Account, Dozens of Services",
+        "description": "Create a single secure login using Clerk and sync all your mini app data seamlessly in the cloud."
+      },
+      "hints": {
+        "title": "Encore & Supabase Backend",
+        "description": "Experience lightning-fast API responses and real-time database synchronization."
+      },
+      "social": {
+        "title": "Social Sharing & Friends",
+        "description": "Add friends, share via QR, and collaborate on shared lists or interactive modules."
+      },
+      "duel": {
+        "title": "Mobile & Web Support",
+        "description": "Access seamlessly from desktop or mobile (Capacitor/Android) with fully responsive layouts."
+      },
+      "premium": {
+        "title": "Developer Friendly Architecture",
+        "description": "Easily develop and add new mini apps using our structured guidelines and boilerplate."
+      }
+    }
+  },
+  "FAQ": {
+    "badge": "❓ FAQ",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about the Mini Apps Center",
+    "moreQuestions": "Have more questions?",
+    "questions": {
+      "0": {
+        "q": "What is the Mini Apps Center?",
+        "a": "Mini Apps Center (Everything) is a super app that gathers multiple daily utilities like budget tracking, meal planners, simple games, and productivity dashboards under a single platform."
+      },
+      "1": {
+        "q": "Is the platform free to use?",
+        "a": "Yes! All core applications on our platform are completely free and free of advertisements."
+      },
+      "2": {
+        "q": "How is my data saved?",
+        "a": "Your identity is safely authenticated via Clerk, and your data is securely stored in a Supabase cloud database. Changing devices won't lose your data."
+      },
+      "3": {
+        "q": "Can I add my own mini app?",
+        "a": "Yes, our platform is highly modular. You can easily add a new frontend page and matching backend service following our developer rules."
+      },
+      "4": {
+        "q": "Is there a mobile app?",
+        "a": "Yes, our platform is built to compile as a native Android or iOS app using Capacitor. The responsive interface provides an app-like experience in any browser."
+      },
+      "5": {
+        "q": "What does the friends feature do?",
+        "a": "Adding friends allows you to share lists, view progress, and collaborate in multiplayer or cooperative mini apps."
+      }
+    }
+  },
+  "Footer": {
+    "cta": {
+      "title": "Start Exploring Today",
+      "subtitle": "Simplify your digital life by managing all your daily utilities from one dashboard.",
+      "openApp": "Open App"
+    },
+    "tagline": "Smart and modular daily tools hub.",
+    "links": {
+      "product": "Platform",
+      "company": "Developer",
+      "legal": "Legal"
+    },
+    "copyright": "© 2026 Everything. All rights reserved.",
+    "madeWith": "Developed with ❤️",
+    "linkTexts": {
+      "games": "Apps",
+      "features": "Features",
+      "premium": "Documentation",
+      "howToPlay": "Support",
+      "about": "About Us",
+      "blog": "Dev Blog",
+      "careers": "Contact",
+      "contact": "Contact Us",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy"
+    }
+  }
+}
