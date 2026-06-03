@@ -20,6 +20,7 @@ import {
   ListChecks,
   Coffee,
   FilePdf,
+  Timer,
   GraduationCap,
 } from "@phosphor-icons/react";
 import React from "react";
@@ -379,5 +380,16 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/workplaces",
     isImplemented: true,
     subdomain: "workplaces",
+  },
+  {
+    id: "pomodoro",
+    name: "Pomodoro",
+    description: "Buz erimesi animasyonlu pomodoro sayacı",
+    icon: Timer,
+    category: "Utilities",
+    color: "#4dabf7",
+    href: "/apps/pomodoro",
+    isImplemented: true,
+    subdomain: "pomodoro",
   },
 ];

@@ -1,0 +1,12 @@
+{
+  "title": "Pomodoro",
+  "subtitle": "Pomodoro timer with ice melting animation",
+  "focus": "Focus",
+  "break": "Break",
+  "startBreak": "Start Break",
+  "startWork": "Focus Again",
+  "back": "Back",
+  "focusTime": "Focus Duration (Min)",
+  "breakTime": "Break Duration (Min)",
+  "minutes": "min"
+}

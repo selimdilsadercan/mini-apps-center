@@ -1,0 +1,12 @@
+{
+  "title": "Pomodoro",
+  "subtitle": "Buz erimesi animasyonlu pomodoro sayacı",
+  "focus": "Odaklan",
+  "break": "Mola",
+  "startBreak": "Molaya Başla",
+  "startWork": "Tekrar Odaklan",
+  "back": "Geri",
+  "focusTime": "Odaklanma Süresi (Dk)",
+  "breakTime": "Mola Süresi (Dk)",
+  "minutes": "dk"
+}
