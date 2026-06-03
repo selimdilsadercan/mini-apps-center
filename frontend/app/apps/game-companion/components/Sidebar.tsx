@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -169,7 +170,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {/* Back to Home Link */}
           <Link
-            href="/home"
+            href={getRootHomeUrl()}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-[var(--card-background)] transition-all duration-200 mb-4 border-b border-gray-100 dark:border-gray-800 pb-4"
           >
             <svg

@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
@@ -118,7 +119,7 @@ export default function ConcertListPage() {
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => router.push("/home")}
+            onClick={() => window.location.href = getRootHomeUrl()}
             className="group flex items-center gap-2 text-gray-400 text-xs font-semibold hover:text-white transition-all bg-white/5 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 active:scale-95"
           >
             <CaretLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />

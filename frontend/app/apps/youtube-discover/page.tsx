@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -79,7 +80,7 @@ export default function YouTubeDiscoverPage() {
     <div className="flex flex-col gap-12 pb-32 overflow-x-hidden relative">
       {/* Floating Back Button */}
       <button
-        onClick={() => router.push("/home")}
+        onClick={() => window.location.href = getRootHomeUrl()}
         className="absolute top-6 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white backdrop-blur-md transition-all cursor-pointer shadow-2xl active:scale-95"
         title="Geri Dön"
       >

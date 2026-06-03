@@ -85,6 +85,36 @@ export function ClerkProviderWrapper({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const [isSatellite, setIsSatellite] = useState(false);
+  const [domain, setDomain] = useState("");
+  const [signInUrl, setSignInUrl] = useState("/sign-in");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const protocol = window.location.protocol;
+
+    const isLocal =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.endsWith(".localhost");
+
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+
+    if (isLocal) {
+      const isSub = hostname !== "localhost" && hostname !== "127.0.0.1";
+      setIsSatellite(isSub);
+      // For localhost dev, set the domain to the primary host so it maps correctly
+      setDomain(port ? `localhost:${port}` : "localhost");
+      setSignInUrl(`${protocol}//localhost:${port || "3000"}/sign-in`);
+    } else {
+      const isSub = hostname !== rootDomain;
+      setIsSatellite(isSub);
+      setDomain(rootDomain);
+      setSignInUrl(`${protocol}//${rootDomain}/sign-in`);
+    }
+  }, []);
 
   return (
     <ClerkProvider
@@ -92,6 +122,9 @@ export function ClerkProviderWrapper({
       afterSignOutUrl="/"
       routerPush={(to) => router.push(to)}
       routerReplace={(to) => router.replace(to)}
+      isSatellite={isSatellite}
+      domain={domain}
+      signInUrl={signInUrl}
     >
       <DeepLinkHandler>
         {children}

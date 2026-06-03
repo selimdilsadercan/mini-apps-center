@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MiniApp } from "@/lib/apps";
+import { MiniApp, getAppHref } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 
 interface MiniAppIconProps {
@@ -12,9 +12,18 @@ export default function MiniAppIcon({ app }: MiniAppIconProps) {
   const router = useRouter();
   const Icon = app.icon;
 
+  const handleClick = () => {
+    const href = getAppHref(app);
+    if (href.startsWith("http")) {
+      window.location.href = href;
+    } else {
+      router.push(href);
+    }
+  };
+
   return (
     <button
-      onClick={() => router.push(app.href)}
+      onClick={handleClick}
       className="flex flex-col items-center group gap-2 active:scale-90 transition-all duration-200"
     >
       {/* Icon Container - Squircle style */}

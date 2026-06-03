@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -82,7 +83,7 @@ function RecipeContent() {
       
       if (result.data) {
         // Başarılı silme - ana sayfaya yönlendir
-        router.push("/home");
+        window.location.href = getRootHomeUrl();
       } else {
         setError(result.error || "Tarif silinemedi");
         setIsDeleteDialogOpen(false);

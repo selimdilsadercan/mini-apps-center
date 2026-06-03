@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
@@ -389,7 +390,7 @@ export default function Home() {
         {/* Header */}
         <div className="absolute top-8 left-8 z-10 flex flex-col gap-4">
           <button
-            onClick={() => router.push("/home")}
+            onClick={() => window.location.href = getRootHomeUrl()}
             className="pointer-events-auto group flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-850 hover:border-zinc-700 transition-all cursor-pointer shadow-lg active:scale-95"
             title="Geri Dön"
           >

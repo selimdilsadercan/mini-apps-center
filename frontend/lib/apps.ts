@@ -42,13 +42,66 @@ export interface MiniApp {
   color: string;
   href: string;
   isImplemented?: boolean;
+  subdomain?: string;
+  isLocal?: boolean;
 }
 
 /**
- * Generates the correct URL for a mini app.
+ * Generates the correct URL for a mini app, considering subdomains.
  */
 export function getAppHref(app: MiniApp): string {
-  return app.href;
+  if (typeof window === "undefined") return app.href;
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+
+  const isLocal =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".localhost");
+
+  if (app.subdomain && isLocal) {
+    const host = port
+      ? `${app.subdomain}.localhost:${port}`
+      : `${app.subdomain}.localhost`;
+    return `${protocol}//${host}`;
+  }
+
+  if (app.subdomain) {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+    return `${protocol}//${app.subdomain}.${rootDomain}`;
+  }
+
+  if (isLocal) {
+    const primary = port ? `localhost:${port}` : "localhost";
+    return `${protocol}//${primary}${app.href}`;
+  }
+
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+  return `${protocol}//${rootDomain}${app.href}`;
+}
+
+/**
+ * Returns the root home URL.
+ */
+export function getRootHomeUrl(): string {
+  if (typeof window === "undefined") return "/home";
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+
+  const isLocal =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".localhost");
+
+  if (isLocal) {
+    const primary = port ? `localhost:${port}` : "localhost";
+    return `${protocol}//${primary}/home`;
+  }
+
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "theverything.site";
+  return `${protocol}//${rootDomain}/home`;
 }
 
 export const MINI_APPS: MiniApp[] = [
@@ -62,6 +115,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#4C6EF5",
     href: "/apps/icon-set-guide",
     isImplemented: true,
+    subdomain: "icons",
   },
   {
     id: "subcenter",
@@ -72,6 +126,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#339AF0",
     href: "/apps/subcenter",
     isImplemented: true,
+    subdomain: "subcenter",
   },
   {
     id: "tutor-crm",
@@ -82,6 +137,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#228BE6",
     href: "/apps/tutor-crm",
     isImplemented: true,
+    subdomain: "tutor",
   },
   {
     id: "pdf-tools",
@@ -92,6 +148,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#E03131",
     href: "/apps/pdf-tools",
     isImplemented: true,
+    subdomain: "pdf",
   },
 
   // Games
@@ -104,6 +161,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#e03131",
     href: "/apps/iskambil",
     isImplemented: true,    
+    subdomain: "iskambil",
   },
   {
     id: "catan-bot",
@@ -114,6 +172,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#845EF7",
     href: "/apps/catan-bot",
     isImplemented: true,
+    subdomain: "catan",
   },
   {
     id: "game-companion",
@@ -124,6 +183,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#228BE6",
     href: "/apps/game-companion",
     isImplemented: true,
+    subdomain: "eslikci",
   },
   {
     id: "tournament-manager",
@@ -134,6 +194,18 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FCC419",
     href: "/apps/tournament-editor",
     isImplemented: true,
+    subdomain: "turnuva",
+  },
+  {
+    id: "board-game-clubs",
+    name: "Board Game Clubs",
+    description: "Oyun kulüplerinin ve kafelerinin kütüphanelerini keşfet ve yönet",
+    icon: GameController,
+    category: "Board Games & Fun",
+    color: "#D4A830",
+    href: "/apps/board-game-clubs",
+    isImplemented: true,
+    subdomain: "kulup",
   },
 
   // Entertainment
@@ -146,6 +218,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FF0000",
     href: "/apps/youtube-discover",
     isImplemented: true,
+    subdomain: "youtube",
   },
   {
     id: "film-graph",
@@ -156,6 +229,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#ef4444",
     href: "/apps/film-graph",
     isImplemented: true,
+    subdomain: "filmgraph",
   },
   {
     id: "movies-this-year",
@@ -166,6 +240,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#E50914",
     href: "/apps/movies-this-year",
     isImplemented: true,
+    subdomain: "movies",
   },
   {
     id: "memedex",
@@ -176,6 +251,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#d946ef",
     href: "/apps/memedex",
     isImplemented: true,
+    subdomain: "memedex",
   },
 
   // Dev & Design
@@ -198,6 +274,8 @@ export const MINI_APPS: MiniApp[] = [
     color: "#001A33",
     href: "/apps/itu-yemekhane",
     isImplemented: true,
+    subdomain: "itu",
+    isLocal: true,
   },
   {
     id: "kiler",
@@ -208,6 +286,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#40C057",
     href: "/apps/kiler",
     isImplemented: true,
+    subdomain: "kiler",
   },
   {
     id: "sticker-editor",
@@ -218,6 +297,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#25D366",
     href: "/apps/sticker-editor",
     isImplemented: true,
+    subdomain: "sticker",
   },
   {
     id: "map-tracker",
@@ -228,6 +308,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#4dabf7",
     href: "/apps/map-tracker",
     isImplemented: true,
+    subdomain: "harita",
   },
   {
     id: "chocolate-db",
@@ -238,6 +319,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#7B3F00",
     href: "/apps/chocolate-db",
     isImplemented: true,
+    subdomain: "cikolata",
   },
   {
     id: "meal-planner",
@@ -248,6 +330,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FCC419",
     href: "/apps/recipe",
     isImplemented: true,
+    subdomain: "recipe",
   },
   {
     id: "do-this-instead",
@@ -258,6 +341,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FA5252",
     href: "/apps/stop-scroll",
     isImplemented: true,
+    subdomain: "instead",
   },
   {
     id: "hobby-center",
@@ -268,6 +352,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#D4AF37",
     href: "/apps/hobby-center",
     isImplemented: true,
+    subdomain: "hobby",
   },
   {
     id: "concert-list",
@@ -278,6 +363,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#FF1493",
     href: "/apps/concert-list",
     isImplemented: true,
+    subdomain: "konser",
   },
   {
     id: "tasket",
@@ -288,6 +374,7 @@ export const MINI_APPS: MiniApp[] = [
     color: "#20c997",
     href: "/apps/tasket",
     isImplemented: true,
+    subdomain: "tasket",
   },
   {
     id: "workplaces",
@@ -298,5 +385,6 @@ export const MINI_APPS: MiniApp[] = [
     color: "#6F4E37",
     href: "/apps/workplaces",
     isImplemented: true,
+    subdomain: "kutuphane",
   },
 ];

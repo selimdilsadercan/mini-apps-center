@@ -1,4 +1,5 @@
 "use client";
+import { getRootHomeUrl } from "@/lib/apps";
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
@@ -173,7 +174,7 @@ export default function HobbyCenterPage() {
       {/* Header */}
       <header className="w-full max-w-4xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between z-10">
         <button 
-          onClick={() => router.push("/home")}
+          onClick={() => window.location.href = getRootHomeUrl()}
           className="group flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors duration-200"
         >
           <CaretLeft size={20} />

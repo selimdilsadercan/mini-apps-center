@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly assistant: assistant.ServiceClient
+    public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly friendship: friendship.ServiceClient
@@ -67,6 +68,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.assistant = new assistant.ServiceClient(base)
+        this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
@@ -234,6 +236,236 @@ export namespace assistant {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/assistant/conversations/upsert`, JSON.stringify(params))
             return await resp.json() as UpsertConversationResponse
+        }
+    }
+}
+
+/**
+ * BoardGameClubs service - handles clubs and board game library management
+ */
+export namespace board_game_clubs {
+    export interface AddClubGameRequest {
+        bggId?: number
+        title: string
+        imageUrl?: string
+        minPlayers?: number
+        maxPlayers?: number
+        playingTime?: number
+        description?: string
+        condition?: "new" | "good" | "worn" | "damaged"
+        status?: "available" | "borrowed" | "maintenance"
+        notes?: string
+        apiKey?: string
+    }
+
+    export interface AddClubGameResponse {
+        game: ClubGame | null
+    }
+
+    export interface BggGeeklistImportRequest {
+        geeklistId: string
+        apiKey?: string
+    }
+
+    export interface BggGeeklistImportResponse {
+        importedCount: number
+        failedCount: number
+        games: ClubGame[]
+    }
+
+    export interface BggSearchRequest {
+        query: string
+        apiKey?: string
+    }
+
+    export interface BggSearchResponse {
+        results: BggSearchResult[]
+    }
+
+    export interface BggSearchResult {
+        id: number
+        title: string
+        "year_published": number | null
+    }
+
+    export interface Club {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "owner_id": string
+        "created_at": string
+    }
+
+    export interface ClubGame {
+        id: string
+        "club_id": string
+        "bgg_id": number | null
+        title: string
+        "image_url": string | null
+        "min_players": number | null
+        "max_players": number | null
+        "playing_time": number | null
+        description: string | null
+        condition: "new" | "good" | "worn" | "damaged"
+        status: "available" | "borrowed" | "maintenance"
+        notes: string | null
+        "created_at": string
+    }
+
+    export interface CreateClubRequest {
+        name: string
+        description?: string
+        logoUrl?: string
+        ownerId: string
+    }
+
+    export interface CreateClubResponse {
+        club: Club | null
+    }
+
+    export interface DeleteClubGameResponse {
+        success: boolean
+    }
+
+    export interface GetClubDetailsResponse {
+        club: Club | null
+    }
+
+    export interface GetClubGamesResponse {
+        games: ClubGame[]
+    }
+
+    export interface GetUserClubsResponse {
+        clubs: Club[]
+    }
+
+    export interface UpdateClubGameRequest {
+        title?: string
+        imageUrl?: string
+        minPlayers?: number
+        maxPlayers?: number
+        playingTime?: number
+        description?: string
+        condition?: "new" | "good" | "worn" | "damaged"
+        status?: "available" | "borrowed" | "maintenance"
+        notes?: string
+    }
+
+    export interface UpdateClubGameResponse {
+        game: ClubGame | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addClubGame = this.addClubGame.bind(this)
+            this.createClub = this.createClub.bind(this)
+            this.deleteClubGame = this.deleteClubGame.bind(this)
+            this.getClubDetails = this.getClubDetails.bind(this)
+            this.getClubGames = this.getClubGames.bind(this)
+            this.getUserClubs = this.getUserClubs.bind(this)
+            this.importBggGeeklist = this.importBggGeeklist.bind(this)
+            this.searchBggGames = this.searchBggGames.bind(this)
+            this.updateClubGame = this.updateClubGame.bind(this)
+        }
+
+        /**
+         * Kulüp kütüphanesine oyun ekler (Manuel veya BGG verileri ile)
+         * POST /board-game-clubs/:clubId/games/add
+         */
+        public async addClubGame(clubId: string, params: AddClubGameRequest): Promise<AddClubGameResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/board-game-clubs/${encodeURIComponent(clubId)}/games/add`, JSON.stringify(params))
+            return await resp.json() as AddClubGameResponse
+        }
+
+        /**
+         * Yeni bir kutu oyunu kulübü/kafe profili oluşturur
+         * POST /board-game-clubs/create
+         */
+        public async createClub(params: CreateClubRequest): Promise<CreateClubResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/board-game-clubs/create`, JSON.stringify(params))
+            return await resp.json() as CreateClubResponse
+        }
+
+        /**
+         * Kütüphaneden oyun siler
+         * DELETE /board-game-clubs/games/:gameId
+         */
+        public async deleteClubGame(gameId: string): Promise<DeleteClubGameResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/board-game-clubs/games/${encodeURIComponent(gameId)}`)
+            return await resp.json() as DeleteClubGameResponse
+        }
+
+        /**
+         * Kulüp detaylarını getirir
+         * GET /board-game-clubs/:clubId
+         */
+        public async getClubDetails(clubId: string): Promise<GetClubDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/${encodeURIComponent(clubId)}`)
+            return await resp.json() as GetClubDetailsResponse
+        }
+
+        /**
+         * Kulübün oyun kütüphanesini getirir
+         * GET /board-game-clubs/:clubId/games
+         */
+        public async getClubGames(clubId: string): Promise<GetClubGamesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/${encodeURIComponent(clubId)}/games`)
+            return await resp.json() as GetClubGamesResponse
+        }
+
+        /**
+         * Kullanıcının sahip olduğu kulüpleri listeler
+         * GET /board-game-clubs/user/:userId
+         */
+        public async getUserClubs(userId: string): Promise<GetUserClubsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/user/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserClubsResponse
+        }
+
+        /**
+         * Bir BGG Geeklist'indeki tüm oyunları kulüp kütüphanesine toplu aktarır
+         * POST /board-game-clubs/:clubId/bgg/import-geeklist
+         */
+        public async importBggGeeklist(clubId: string, params: BggGeeklistImportRequest): Promise<BggGeeklistImportResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/board-game-clubs/${encodeURIComponent(clubId)}/bgg/import-geeklist`, JSON.stringify(params))
+            return await resp.json() as BggGeeklistImportResponse
+        }
+
+        /**
+         * BoardGameGeek üzerinden oyun arar
+         * GET /board-game-clubs/bgg/search
+         */
+        public async searchBggGames(params: BggSearchRequest): Promise<BggSearchResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                apiKey: params.apiKey,
+                query:  params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/bgg/search`, undefined, {query})
+            return await resp.json() as BggSearchResponse
+        }
+
+        /**
+         * Kütüphanedeki bir oyunun durumunu veya bilgilerini günceller
+         * PUT /board-game-clubs/games/:gameId
+         */
+        public async updateClubGame(gameId: string, params: UpdateClubGameRequest): Promise<UpdateClubGameResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/board-game-clubs/games/${encodeURIComponent(gameId)}`, JSON.stringify(params))
+            return await resp.json() as UpdateClubGameResponse
         }
     }
 }

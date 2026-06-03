@@ -21,6 +21,7 @@ import { tasketAssistant } from "../tasket/assistant";
 import { tutorCrmAssistant } from "../tutor-crm/assistant";
 import { usersAssistant } from "../users/assistant";
 import { workplacesAssistant } from "../workplaces/assistant";
+import { boardGameClubsAssistant } from "../board-game-clubs/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   kilerAssistant,
@@ -41,6 +42,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   tutorCrmAssistant,
   usersAssistant,
   workplacesAssistant,
+  boardGameClubsAssistant,
 ];
 
 const assistantByAppId = new Map(

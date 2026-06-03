@@ -18,6 +18,19 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   filmgraph: "/apps/film-graph",
   itu: "/apps/itu-yemekhane",
   hobby: "/apps/hobby-center",
+  icons: "/apps/icon-set-guide",
+  subcenter: "/apps/subcenter",
+  tutor: "/apps/tutor-crm",
+  pdf: "/apps/pdf-tools",
+  eslikci: "/apps/game-companion",
+  kulup: "/apps/board-game-clubs",
+  memedex: "/apps/memedex",
+  sticker: "/apps/sticker-editor",
+  recipe: "/apps/recipe",
+  instead: "/apps/stop-scroll",
+  konser: "/apps/concert-list",
+  tasket: "/apps/tasket",
+  kutuphane: "/apps/workplaces",
 };
 
 /**
@@ -49,7 +62,7 @@ function getSubdomain(host: string): string | null {
   return null;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const subdomain = getSubdomain(host);
 
