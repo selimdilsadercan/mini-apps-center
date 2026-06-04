@@ -39,26 +39,21 @@
     "signOut": "Çıkış Yap"
   },
   "stopScroll": {
-    "title": "Kaydırmayı Bırak, Hayatı Yaşa",
-    "subtitle": "Sosyal medyada sonsuz kaydırma yapmak yerine bugün yeni ve keyifli bir şeyler dene!",
-    "buttonText": "Bana Yeni Bir Şey Öner",
+    "title": "Bugün Ne Yapsam?",
+    "subtitle": "Tek başına yapabileceğin aktiviteleri keşfet ve gününü değerlendir.",
+    "buttonText": "Bana Bir Şey Öner",
     "cardTitle": "Günün Önerisi",
-    "viewApp": "Uygulamaya Git",
+    "viewApp": "Detaylara Git",
     "categories": {
-      "game": "🃏 Bir Kart Oyunu Oyna",
-      "chocolate": "🍫 Yeni Bir Çikolata Dene",
-      "movie": "🍿 Harika Bir Film İzle",
-      "activity": "🚶‍♂️ Çevrimdışı Aktivite Yap"
-    },
-    "staticActivities": [
-      "Dışarı çıkıp 15 dakika tempolu yürü.",
-      "10 sayfa kitap oku.",
-      "En son ne zaman içtiğini unuttuğun arkadaşını ara.",
-      "Odanı veya çalışma masanı düzenle.",
-      "En sevdiğin şarkıyı açıp sadece dinle (başka hiçbir şey yapmadan).",
-      "10 dakika meditasyon yap veya sadece gözlerini kapatıp dinlen.",
-      "Evdeki malzemelerle yeni bir içecek/kahve tarifi dene."
-    ]
+      "Eğlence & Sosyal": "🎭 Eğlence & Sosyal",
+      "Spor & Fiziksel Aktivite": "🏃‍♂️ Spor & Fiziksel",
+      "Yiyecek & İçecek": "🍔 Yiyecek & İçecek",
+      "Eğitim & Çalışma": "📚 Eğitim & Çalışma",
+      "Dışarı Çıkma & Gezi": "🏙️ Dışarı Çıkma & Gezi",
+      "Günlük & Pratik": "🛒 Günlük & Pratik",
+      "Ev & Rahat Takılma": "🏠 Ev & Rahat Takılma",
+      "Özel Planlar": "🎂 Özel Planlar"
+    }
   },
   "hobbyCenter": {
     "title": "Hobby Center",
