@@ -22,6 +22,7 @@ import {
   FilePdf,
   Timer,
   GraduationCap,
+  Users,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -415,5 +416,16 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     isLocal: true,
     subdomain: "melt",
+  },
+  {
+    id: "kim-gelir",
+    name: "Ne Yapsak?",
+    description: "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et ve ortak kararı gör!",
+    icon: Users,
+    category: "Lifestyle",
+    color: "#FF6B6B",
+    href: "/apps/kim-gelir",
+    isImplemented: true,
+    subdomain: "kimgelir",
   },
 ];

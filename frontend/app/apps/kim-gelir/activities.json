@@ -1,0 +1,492 @@
+[
+  {
+    "category": "Spor & Fiziksel Aktivite",
+    "items": [
+      {
+        "id": "gym",
+        "label": "Spora gitmek",
+        "icon": "🏋️‍♂️"
+      },
+      {
+        "id": "football",
+        "label": "Halı Saha",
+        "icon": "⚽"
+      },
+      {
+        "id": "basketball",
+        "label": "Basketbol",
+        "icon": "🏀"
+      },
+      {
+        "id": "volleyball",
+        "label": "Voleybol",
+        "icon": "🏐"
+      },
+      {
+        "id": "tennis",
+        "label": "Tenis",
+        "icon": "🎾"
+      },
+      {
+        "id": "table_tennis",
+        "label": "Masa Tenisi",
+        "icon": "🏓"
+      },
+      {
+        "id": "walk",
+        "label": "Yürüyüş",
+        "icon": "🚶‍♂️"
+      },
+      {
+        "id": "running",
+        "label": "Koşu",
+        "icon": "🏃‍♂️"
+      },
+      {
+        "id": "cycling",
+        "label": "Bisiklet",
+        "icon": "🚴‍♂️"
+      },
+      {
+        "id": "swimming",
+        "label": "Yüzme",
+        "icon": "🏊‍♂️"
+      },
+      {
+        "id": "yoga",
+        "label": "Yoga / Esneme",
+        "icon": "🧘‍♂️"
+      },
+      {
+        "id": "climbing",
+        "label": "Tırmanış",
+        "icon": "🧗‍♂️"
+      },
+      {
+        "id": "skating",
+        "label": "Paten / Kaykay",
+        "icon": "🛼"
+      },
+      {
+        "id": "hiking",
+        "label": "Doğa Yürüyüşü",
+        "icon": "🥾"
+      }
+    ]
+  },
+  {
+    "category": "Yiyecek & İçecek",
+    "items": [
+      {
+        "id": "coffee",
+        "label": "Kahve içmek",
+        "icon": "☕"
+      },
+      {
+        "id": "tea",
+        "label": "Çay içmek",
+        "icon": "🫖"
+      },
+      {
+        "id": "food",
+        "label": "Yemek yemek",
+        "icon": "🍔"
+      },
+      {
+        "id": "breakfast",
+        "label": "Kahvaltı",
+        "icon": "🍳"
+      },
+      {
+        "id": "brunch",
+        "label": "Brunch",
+        "icon": "🥐"
+      },
+      {
+        "id": "lunch",
+        "label": "Öğle Yemeği",
+        "icon": "🥗"
+      },
+      {
+        "id": "dinner",
+        "label": "Akşam Yemeği",
+        "icon": "🍽️"
+      },
+      {
+        "id": "dessert",
+        "label": "Tatlı yemek",
+        "icon": "🍰"
+      },
+      {
+        "id": "ice_cream",
+        "label": "Dondurma",
+        "icon": "🍦"
+      },
+      {
+        "id": "pizza",
+        "label": "Pizza",
+        "icon": "🍕"
+      },
+      {
+        "id": "burger",
+        "label": "Burger",
+        "icon": "🍔"
+      },
+      {
+        "id": "sushi",
+        "label": "Sushi",
+        "icon": "🍣"
+      },
+      {
+        "id": "street_food",
+        "label": "Sokak Lezzeti",
+        "icon": "🌯"
+      },
+      {
+        "id": "order_food",
+        "label": "Yemek söylemek",
+        "icon": "🛵"
+      },
+      {
+        "id": "cook_together",
+        "label": "Birlikte yemek yapmak",
+        "icon": "👨‍🍳"
+      }
+    ]
+  },
+  {
+    "category": "Eğlence & Sosyal",
+    "items": [
+      {
+        "id": "movie",
+        "label": "Sinema",
+        "icon": "🎬"
+      },
+      {
+        "id": "series",
+        "label": "Dizi / Film gecesi",
+        "icon": "🍿"
+      },
+      {
+        "id": "game",
+        "label": "Oyun oynamak",
+        "icon": "🎮"
+      },
+      {
+        "id": "board_game",
+        "label": "Kutu Oyunu",
+        "icon": "🎲"
+      },
+      {
+        "id": "card_game",
+        "label": "Kart Oyunu",
+        "icon": "🃏"
+      },
+      {
+        "id": "concert",
+        "label": "Konser / Etkinlik",
+        "icon": "🎵"
+      },
+      {
+        "id": "festival",
+        "label": "Festival",
+        "icon": "🎪"
+      },
+      {
+        "id": "bowling",
+        "label": "Bowling",
+        "icon": "🎳"
+      },
+      {
+        "id": "billiards",
+        "label": "Bilardo",
+        "icon": "🎱"
+      },
+      {
+        "id": "karaoke",
+        "label": "Karaoke",
+        "icon": "🎤"
+      },
+      {
+        "id": "arcade",
+        "label": "Arcade / Oyun Salonu",
+        "icon": "🕹️"
+      },
+      {
+        "id": "escape_room",
+        "label": "Kaçış Oyunu",
+        "icon": "🧩"
+      },
+      {
+        "id": "museum",
+        "label": "Müze / Sergi",
+        "icon": "🖼️"
+      },
+      {
+        "id": "theater",
+        "label": "Tiyatro",
+        "icon": "🎭"
+      },
+      {
+        "id": "standup",
+        "label": "Stand-up",
+        "icon": "🎙️"
+      },
+      {
+        "id": "shopping",
+        "label": "Alışveriş",
+        "icon": "🛍️"
+      },
+      {
+        "id": "chill",
+        "label": "Takılmak",
+        "icon": "🛋️"
+      }
+    ]
+  },
+  {
+    "category": "Eğitim & Çalışma",
+    "items": [
+      {
+        "id": "study",
+        "label": "Ders çalışmak",
+        "icon": "📚"
+      },
+      {
+        "id": "exam_study",
+        "label": "Sınava çalışmak",
+        "icon": "📝"
+      },
+      {
+        "id": "project",
+        "label": "Proje yapmak",
+        "icon": "💻"
+      },
+      {
+        "id": "library",
+        "label": "Kütüphaneye gitmek",
+        "icon": "🏛️"
+      },
+      {
+        "id": "coworking",
+        "label": "Birlikte çalışmak",
+        "icon": "🧑‍💻"
+      },
+      {
+        "id": "homework",
+        "label": "Ödev yapmak",
+        "icon": "📖"
+      },
+      {
+        "id": "presentation",
+        "label": "Sunum hazırlamak",
+        "icon": "📊"
+      },
+      {
+        "id": "brainstorm",
+        "label": "Fikir üretmek",
+        "icon": "💡"
+      },
+      {
+        "id": "reading",
+        "label": "Kitap okumak",
+        "icon": "📕"
+      },
+      {
+        "id": "language_practice",
+        "label": "Dil pratiği yapmak",
+        "icon": "🗣️"
+      }
+    ]
+  },
+  {
+    "category": "Dışarı Çıkma & Gezi",
+    "items": [
+      {
+        "id": "city_walk",
+        "label": "Şehir turu",
+        "icon": "🏙️"
+      },
+      {
+        "id": "seaside",
+        "label": "Sahile gitmek",
+        "icon": "🌊"
+      },
+      {
+        "id": "park",
+        "label": "Parka gitmek",
+        "icon": "🌳"
+      },
+      {
+        "id": "picnic",
+        "label": "Piknik",
+        "icon": "🧺"
+      },
+      {
+        "id": "sunset",
+        "label": "Gün batımı izlemek",
+        "icon": "🌅"
+      },
+      {
+        "id": "photo_walk",
+        "label": "Fotoğraf çekmeye çıkmak",
+        "icon": "📸"
+      },
+      {
+        "id": "road_trip",
+        "label": "Kısa gezi",
+        "icon": "🚗"
+      },
+      {
+        "id": "beach",
+        "label": "Plaja gitmek",
+        "icon": "🏖️"
+      },
+      {
+        "id": "camping",
+        "label": "Kamp",
+        "icon": "⛺"
+      },
+      {
+        "id": "explore_new_place",
+        "label": "Yeni yer keşfetmek",
+        "icon": "🗺️"
+      }
+    ]
+  },
+  {
+    "category": "Günlük & Pratik",
+    "items": [
+      {
+        "id": "market",
+        "label": "Markete gitmek",
+        "icon": "🛒"
+      },
+      {
+        "id": "errands",
+        "label": "İşleri halletmek",
+        "icon": "✅"
+      },
+      {
+        "id": "car_ride",
+        "label": "Arabaya çıkmak",
+        "icon": "🚘"
+      },
+      {
+        "id": "campus",
+        "label": "Kampüse gitmek",
+        "icon": "🎓"
+      },
+      {
+        "id": "commute_together",
+        "label": "Birlikte gitmek",
+        "icon": "🚇"
+      },
+      {
+        "id": "walk_pet",
+        "label": "Evcil hayvan gezdirmek",
+        "icon": "🐕"
+      },
+      {
+        "id": "haircut",
+        "label": "Berbere / kuaföre gitmek",
+        "icon": "💈"
+      },
+      {
+        "id": "shopping_errand",
+        "label": "Bir şey almaya gitmek",
+        "icon": "🛍️"
+      }
+    ]
+  },
+  {
+    "category": "Ev & Rahat Takılma",
+    "items": [
+      {
+        "id": "home_chill",
+        "label": "Evde takılmak",
+        "icon": "🏠"
+      },
+      {
+        "id": "house_party",
+        "label": "Ev buluşması",
+        "icon": "🎉"
+      },
+      {
+        "id": "movie_night",
+        "label": "Film gecesi",
+        "icon": "🎥"
+      },
+      {
+        "id": "dinner_at_home",
+        "label": "Evde yemek",
+        "icon": "🍝"
+      },
+      {
+        "id": "tea_at_home",
+        "label": "Evde çay / kahve",
+        "icon": "☕"
+      },
+      {
+        "id": "gaming_night",
+        "label": "Oyun gecesi",
+        "icon": "🎮"
+      },
+      {
+        "id": "watch_match",
+        "label": "Maç izlemek",
+        "icon": "📺"
+      },
+      {
+        "id": "sleepover",
+        "label": "Kalmalı buluşma",
+        "icon": "🛌"
+      }
+    ]
+  },
+  {
+    "category": "Özel Planlar",
+    "items": [
+      {
+        "id": "birthday",
+        "label": "Doğum günü",
+        "icon": "🎂"
+      },
+      {
+        "id": "celebration",
+        "label": "Kutlama",
+        "icon": "🥳"
+      },
+      {
+        "id": "date_plan",
+        "label": "Buluşma planı",
+        "icon": "💐"
+      },
+      {
+        "id": "surprise",
+        "label": "Sürpriz planı",
+        "icon": "🎁"
+      },
+      {
+        "id": "group_trip",
+        "label": "Grup gezisi",
+        "icon": "🧳"
+      },
+      {
+        "id": "weekend_plan",
+        "label": "Hafta sonu planı",
+        "icon": "📅"
+      },
+      {
+        "id": "night_out",
+        "label": "Akşam dışarı çıkmak",
+        "icon": "🌃"
+      },
+      {
+        "id": "special_event",
+        "label": "Özel etkinlik",
+        "icon": "✨"
+      }
+    ]
+  }
+]

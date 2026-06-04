@@ -42,6 +42,7 @@ export default class Client {
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
     public readonly kiler: kiler.ServiceClient
+    public readonly kim_gelir: kim_gelir.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
@@ -77,6 +78,7 @@ export default class Client {
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
         this.kiler = new kiler.ServiceClient(base)
+        this.kim_gelir = new kim_gelir.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
@@ -1303,6 +1305,127 @@ export namespace kiler {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/kiler/items/${encodeURIComponent(userId)}`)
             return await resp.json() as GetItemsResponse
+        }
+    }
+}
+
+/**
+ * Kim Gelir? service - handles invitations and responses
+ */
+export namespace kim_gelir {
+    export interface Activity {
+        id: string
+        creatorId: string
+        creatorUsername: string | null
+        creatorAvatar: string | null
+        title: string
+        location: string
+        timeOption: string
+        customTime: string | null
+        activityType: "quick_invite" | "plan_poll" | "time_poll"
+        options: string[]
+        createdAt: string
+        expiresAt: string
+        responses: ActivityInvite[]
+    }
+
+    export interface ActivityInvite {
+        userId: string
+        username: string | null
+        avatar: string | null
+        status: "gelirim" | "belki" | "gelemem" | "bekliyor"
+        selectedOptions: string[]
+        updatedAt: string
+    }
+
+    export interface AddActivityOptionRequest {
+        activityId: string
+        option: string
+    }
+
+    export interface AddActivityOptionResponse {
+        success: boolean
+    }
+
+    export interface CreateActivityRequest {
+        creatorId: string
+        title: string
+        location: string
+        timeOption: string
+        customTime?: string
+        invitedUserIds: string[]
+        activityType?: string
+        options?: string[]
+    }
+
+    export interface CreateActivityResponse {
+        activityId: string
+    }
+
+    export interface GetActivitiesResponse {
+        activities: Activity[]
+    }
+
+    export interface RespondToActivityRequest {
+        activityId: string
+        userId: string
+        status?: string
+        selectedOptions?: string[]
+    }
+
+    export interface RespondToActivityResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addActivityOption = this.addActivityOption.bind(this)
+            this.createActivity = this.createActivity.bind(this)
+            this.getActivities = this.getActivities.bind(this)
+            this.respondToActivity = this.respondToActivity.bind(this)
+        }
+
+        /**
+         * Anket seçeneği ekler
+         * POST /kim-gelir/add-option
+         */
+        public async addActivityOption(params: AddActivityOptionRequest): Promise<AddActivityOptionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/add-option`, JSON.stringify(params))
+            return await resp.json() as AddActivityOptionResponse
+        }
+
+        /**
+         * Yeni aktivite daveti veya anket oluşturur
+         * POST /kim-gelir/create
+         */
+        public async createActivity(params: CreateActivityRequest): Promise<CreateActivityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/create`, JSON.stringify(params))
+            return await resp.json() as CreateActivityResponse
+        }
+
+        /**
+         * Kullanıcıya ait aktif aktiviteleri ve anketleri listeler
+         * GET /kim-gelir/activities/:userId
+         */
+        public async getActivities(userId: string): Promise<GetActivitiesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/kim-gelir/activities/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetActivitiesResponse
+        }
+
+        /**
+         * Aktiviteye katılım durumunu veya anket oylarını günceller
+         * POST /kim-gelir/respond
+         */
+        public async respondToActivity(params: RespondToActivityRequest): Promise<RespondToActivityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/respond`, JSON.stringify(params))
+            return await resp.json() as RespondToActivityResponse
         }
     }
 }
