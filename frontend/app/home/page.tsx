@@ -382,6 +382,9 @@ function SortableAppIcon({
     onTouchMove: handleTouchMove,
   } : {};
 
+  const tApps = useTranslations("apps");
+  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+
   return (
     <div
       ref={setNodeRef}
@@ -396,7 +399,7 @@ function SortableAppIcon({
             onRemove(app.id);
           }}
           className="absolute top-0 right-0 sm:right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center border-2 border-white shadow-md z-30 transition-transform active:scale-90 cursor-pointer pointer-events-auto"
-          aria-label={`Remove ${app.name}`}
+          aria-label={`Remove ${appName}`}
         >
           <span className="text-[14px] leading-[0] font-black">×</span>
         </button>
@@ -449,7 +452,7 @@ function SortableAppIcon({
 
         {/* App Label */}
         <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2] mt-2">
-          {app.name}
+          {appName}
         </span>
       </motion.button>
     </div>

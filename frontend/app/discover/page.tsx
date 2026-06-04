@@ -35,6 +35,7 @@ function AppSection({
   onGetApp: (appId: string, e: React.MouseEvent) => void; 
   onOpenApp: (app: MiniApp) => void; 
 }) {
+  const t = useTranslations("discover");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slideWidth, setSlideWidth] = useState<number | null>(null);
 
@@ -53,6 +54,8 @@ function AppSection({
     return () => ro.disconnect();
   }, [measureSlideWidth]);
 
+  const tApps = useTranslations("apps");
+  
   if (apps.length === 0) return null;
   
   // Chunk apps into groups of 3 for vertical stacking
@@ -68,7 +71,7 @@ function AppSection({
           {title}
         </h2>
       </div>
-
+ 
       <div
         ref={scrollRef}
         className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 pl-4 pr-5 snap-x snap-mandatory overscroll-x-contain touch-pan-x scroll-pl-4"
@@ -85,6 +88,9 @@ function AppSection({
           >
             {chunk.map((app) => {
               const isInstalled = installedIds.includes(app.id);
+              const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+              const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
+
               return (
                 <div 
                   key={app.id}
@@ -107,16 +113,16 @@ function AppSection({
                       <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
                       <app.icon size={32} weight="fill" color="white" className="relative z-10" />
                     </div>
-
+ 
                     {/* Content */}
                     <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
-                          {app.name}
+                          {appName}
                         </h3>
                       </div>
                       <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
-                        {app.description}
+                        {appDesc}
                       </p>
                     </div>
                   </button>
@@ -137,7 +143,7 @@ function AppSection({
                         : "bg-gray-100 text-gray-600 hover:bg-indigo-600 hover:text-white"
                     }`}
                   >
-                    {isInstalled ? "OPEN" : "GET"}
+                    {isInstalled ? t("open") : t("get")}
                   </button>
                 </div>
               );
@@ -154,6 +160,7 @@ export default function Discover() {
   const { isLoaded, user } = useUser();
   const router = useRouter();
   const t = useTranslations("discover");
+  const tApps = useTranslations("apps");
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [installedIds, setInstalledIds] = useState<string[]>([]);
@@ -206,11 +213,15 @@ export default function Discover() {
   
   const filteredApps = useMemo(() => {
     if (!searchQuery) return [];
-    return implementedApps.filter(app => 
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      app.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery, implementedApps]);
+    return implementedApps.filter(app => {
+      const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+      const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
+      return (
+        appName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        appDesc.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [searchQuery, implementedApps, tApps]);
 
   const handleAppClick = (app: MiniApp) => {
     const href = getAppHref(app);
@@ -237,7 +248,8 @@ export default function Discover() {
       await updateAppOrderAction(user.id, newInstalled);
     }
 
-    const appName = MINI_APPS.find(a => a.id === appId)?.name || "App";
+    const rawApp = MINI_APPS.find(a => a.id === appId);
+    const appName = rawApp ? (tApps(`${rawApp.id}.name`) !== `apps.${rawApp.id}.name` ? tApps(`${rawApp.id}.name`) : rawApp.name) : "App";
     toast.success(t("addedToast", { appName }));
   };
 
@@ -308,6 +320,9 @@ export default function Discover() {
               {filteredApps.length > 0 ? (
                 filteredApps.map(app => {
                   const isInstalled = installedIds.includes(app.id);
+                  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+                  const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
+
                   return (
                     <div 
                       key={app.id} 
@@ -326,8 +341,8 @@ export default function Discover() {
                           <app.icon size={24} color="white" weight="fill" className="relative z-10" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-900 truncate">{app.name}</h3>
-                          <p className="text-gray-500 text-sm truncate">{app.description}</p>
+                          <h3 className="font-bold text-gray-900 truncate">{appName}</h3>
+                          <p className="text-gray-500 text-sm truncate">{appDesc}</p>
                         </div>
                       </button>
                       <button 
@@ -345,7 +360,7 @@ export default function Discover() {
                             : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
                         }`}
                       >
-                        {isInstalled ? "OPEN" : "GET"}
+                        {isInstalled ? t("open") : t("get")}
                       </button>
                     </div>
                   );

@@ -27,7 +27,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
 import { SAVING_CHALLENGES, Category, ChallengeItem, Metric } from "./data";
-import { useTranslations } from "@/contexts/LanguageContext";
+import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 
 const client = createBrowserClient();
 
@@ -35,6 +35,7 @@ export default function TasarrufChallengesPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
   const t = useTranslations("tasarruf");
+  const { locale } = useLanguage();
   const [activeTab, setActiveTab] = useState<"challenges" | "feed">("challenges");
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeItem | null>(null);
 
@@ -191,7 +192,7 @@ export default function TasarrufChallengesPage() {
                         className="flex items-center gap-2.5 p-3.5 bg-white border border-gray-150 hover:bg-gray-50 rounded-2xl text-left transition-all text-xs font-bold cursor-pointer active:scale-95 shadow-sm"
                       >
                         <span className="text-lg shrink-0">{item.emoji}</span>
-                        <span className="flex-1 leading-tight">{item.label}</span>
+                        <span className="flex-1 leading-tight">{t(`challenges.${item.id}.label` as any) || item.label}</span>
                       </button>
                     ))}
                   </div>
@@ -235,9 +236,9 @@ export default function TasarrufChallengesPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-black text-gray-900 truncate uppercase tracking-wider">{post.userName}</div>
+                        <div className="text-xs font-black text-gray-900 truncate uppercase tracking-wider">{post.userName === "Anonim" ? t("anonymous") : post.userName}</div>
                         <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                          <Clock size={10} /> {new Date(post.createdAt).toLocaleDateString('tr-TR')}
+                          <Clock size={10} /> {new Date(post.createdAt).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US")}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -248,7 +249,7 @@ export default function TasarrufChallengesPage() {
                               setShowAddModal(true);
                             }}
                             className="p-2 hover:bg-gray-50 active:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-700 transition-colors cursor-pointer flex items-center justify-center border border-transparent hover:border-gray-200/50"
-                            title="Gönderiyi Düzenle"
+                            title={t("editPost")}
                           >
                             <PencilSimple size={15} weight="bold" />
                           </button>
@@ -288,7 +289,7 @@ export default function TasarrufChallengesPage() {
 
               <header className="flex justify-between items-center mb-6 shrink-0">
                 <Drawer.Title className="font-black text-xl text-gray-900">
-                  {editingPost ? "Düzenle" : "Paylaş"}
+                  {editingPost ? t("edit") : t("share")}
                 </Drawer.Title>
                 <button
                   onClick={() => {
@@ -327,7 +328,7 @@ export default function TasarrufChallengesPage() {
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-200 mb-4" />
 
                 <header className="flex justify-between items-center mb-6 shrink-0">
-                  <Drawer.Title className="font-black text-xl text-gray-900">Tasarruf Önerisi</Drawer.Title>
+                  <Drawer.Title className="font-black text-xl text-gray-900">{t("savingSuggestion")}</Drawer.Title>
                   <button
                     onClick={() => setSelectedChallenge(null)}
                     className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
@@ -339,15 +340,15 @@ export default function TasarrufChallengesPage() {
                 <div className="flex items-center gap-3.5 p-4 bg-gray-50 border border-gray-150 rounded-2xl mb-6 shrink-0">
                   <span className="text-2xl">{selectedChallenge.emoji}</span>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Başlık</span>
-                    <span className="text-sm font-bold text-gray-800">{selectedChallenge.label}</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">{t("challengeTitle")}</span>
+                    <span className="text-sm font-bold text-gray-800">{t(`challenges.${selectedChallenge.id}.label` as any) || selectedChallenge.label}</span>
                   </div>
                 </div>
 
                 <div className="space-y-4 flex-1 overflow-y-auto pr-1">
                   <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("whatCanYouDo")}</label>
                   <p className="text-sm font-bold text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                    {selectedChallenge.description}
+                    {t(`challenges.${selectedChallenge.id}.description` as any) || selectedChallenge.description}
                   </p>
 
                   {/* PROMOTIONAL CARD: BOTTLE RETURN / DOA */}
@@ -417,7 +418,7 @@ export default function TasarrufChallengesPage() {
                     className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-green-100"
                   >
                     <Plus size={18} weight="bold" />
-                    Bunu Yaptım, Paylaş!
+                    {t("iDidThis")}
                   </button>
                 </div>
               </div>
@@ -444,7 +445,7 @@ export default function TasarrufChallengesPage() {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider ${activeTab === "challenges" ? "text-green-600" : "text-gray-500"
               }`}>
-              Görevler
+              {t("challengesTab")}
             </span>
           </button>
           <button
@@ -462,7 +463,7 @@ export default function TasarrufChallengesPage() {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-wider ${activeTab === "feed" ? "text-green-600" : "text-gray-500"
               }`}>
-              İlham
+              {t("inspiration")}
             </span>
           </button>
         </div>
@@ -481,6 +482,7 @@ function AddPostForm({
   editingPost?: any 
 }) {
   const { user } = useUser();
+  const t = useTranslations("tasarruf");
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeItem | null>(() => {
     if (initialChallenge) return initialChallenge;
     if (editingPost) {
@@ -519,12 +521,12 @@ function AddPostForm({
       return;
     }
 
-    let newDesc = selectedChallenge.postTemplate;
+    let newDesc = t(`challenges.${selectedChallenge.id}.postTemplate` as any) || selectedChallenge.postTemplate;
 
     // Replace primary metric
     const primaryKey = selectedChallenge.primaryMetric.key;
     const primaryVal = metricValues[primaryKey] || "";
-    newDesc = newDesc.replace(`{${primaryKey}}`, primaryVal || `[${selectedChallenge.primaryMetric.label}]`);
+    newDesc = newDesc.replace(`{${primaryKey}}`, primaryVal || `[${t(`challenges.${selectedChallenge.id}.primaryMetric.label` as any) || selectedChallenge.primaryMetric.label}]`);
 
     // Replace secondary metrics
     let foundAmount = "";
@@ -534,7 +536,7 @@ function AddPostForm({
 
     selectedChallenge.secondaryMetrics?.forEach(m => {
       const val = metricValues[m.key] || "";
-      newDesc = newDesc.replace(`{${m.key}}`, val || `[${m.label}]`);
+      newDesc = newDesc.replace(`{${m.key}}`, val || `[${t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.label` as any) || m.label}]`);
       if (m.inputType === "money" && val) {
         foundAmount = val;
       }
@@ -547,11 +549,11 @@ function AddPostForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("Giriş yapmalısın");
+      toast.error(t("loginRequired"));
       return;
     }
     if (!selectedChallenge) {
-      toast.error("Lütfen bir tasarruf türü seçin");
+      toast.error(t("selectTypeRequired"));
       return;
     }
     try {
@@ -565,7 +567,7 @@ function AddPostForm({
             category: selectedChallenge.label
           }
         });
-        toast.success("Başarıyla güncellendi!");
+        toast.success(t("updateSuccessToast"));
       } else {
         await client.feed.createEvent({
           userId: user.id,
@@ -579,12 +581,12 @@ function AddPostForm({
             category: selectedChallenge.label
           }
         });
-        toast.success("Başarıyla paylaşıldı!");
+        toast.success(t("successToast"));
       }
       onComplete();
     } catch (err) {
       console.error(err);
-      toast.error("Hata oluştu");
+      toast.error(t("errorToast"));
     } finally {
       setLoading(false);
     }
@@ -592,23 +594,23 @@ function AddPostForm({
 
   const handleDelete = async () => {
     if (!user) {
-      toast.error("Giriş yapmalısın");
+      toast.error(t("loginRequired"));
       return;
     }
     if (!editingPost) return;
 
-    if (!confirm("Bu gönderiyi silmek istediğinizden emin misiniz?")) {
+    if (!confirm(t("deleteConfirm"))) {
       return;
     }
 
     try {
       setLoading(true);
       await client.feed.deleteEvent(editingPost.id, { userId: user.id });
-      toast.success("Gönderi başarıyla silindi!");
+      toast.success(t("deleteSuccessToast"));
       onComplete();
     } catch (err) {
       console.error(err);
-      toast.error("Silme işlemi başarısız oldu");
+      toast.error(t("deleteErrorToast"));
     } finally {
       setLoading(false);
     }
@@ -640,7 +642,7 @@ function AddPostForm({
     <>
       <form onSubmit={handleSubmit} className="space-y-6 pb-6">
         <div className="space-y-2">
-          <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">1. Tasarruf Türü</label>
+          <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("savingType")}</label>
           <button
             type="button"
             onClick={() => setShowOptionModal(true)}
@@ -650,10 +652,10 @@ function AddPostForm({
               <span className="text-xl">
                 {selectedChallenge?.emoji || "✨"}
               </span>
-              <span className="flex-1 leading-tight">{selectedChallenge?.label || "Tasarruf Türü Seçin..."}</span>
+              <span className="flex-1 leading-tight">{selectedChallenge ? (t(`challenges.${selectedChallenge.id}.label` as any) || selectedChallenge.label) : t("selectSavingType")}</span>
             </div>
             <span className="text-[10px] font-black text-green-600 uppercase tracking-wider">
-              {selectedChallenge ? "Değiştir" : "Seç"}
+              {selectedChallenge ? t("change") : t("select")}
             </span>
           </button>
         </div>
@@ -667,13 +669,13 @@ function AddPostForm({
             }`}>
               <div className="space-y-2">
                 <label className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider block">
-                  {selectedChallenge.primaryMetric.label} ({selectedChallenge.primaryMetric.unit})
+                  {t(`challenges.${selectedChallenge.id}.primaryMetric.label` as any) || selectedChallenge.primaryMetric.label} {selectedChallenge.primaryMetric.unit ? `(${t(`challenges.${selectedChallenge.id}.primaryMetric.unit` as any) || selectedChallenge.primaryMetric.unit})` : ""}
                 </label>
                 <input
                   type={selectedChallenge.primaryMetric.inputType === "text" ? "text" : "number"}
                   step="0.01"
                   required
-                  placeholder={selectedChallenge.primaryMetric.placeholder}
+                  placeholder={t(`challenges.${selectedChallenge.id}.primaryMetric.placeholder` as any) || selectedChallenge.primaryMetric.placeholder}
                   value={metricValues[selectedChallenge.primaryMetric.key] || ""}
                   onChange={e => handleMetricChange(selectedChallenge.primaryMetric.key, e.target.value)}
                   className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-green-500 transition-all shadow-sm"
@@ -683,13 +685,13 @@ function AddPostForm({
               {selectedChallenge.secondaryMetrics?.map(m => (
                 <div key={m.key} className="space-y-2">
                   <label className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider block">
-                    {m.label} {m.unit ? `(${m.unit})` : ""}
+                    {t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.label` as any) || m.label} {m.unit ? `(${t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.unit` as any) || m.unit})` : ""}
                   </label>
                   <input
                     type={m.inputType === "text" ? "text" : "number"}
                     step="0.01"
                     required
-                    placeholder={m.placeholder}
+                    placeholder={t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.placeholder` as any) || m.placeholder}
                     value={metricValues[m.key] || ""}
                     onChange={e => handleMetricChange(m.key, e.target.value)}
                     className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-green-500 transition-all shadow-sm"
@@ -699,14 +701,14 @@ function AddPostForm({
             </div>
 
             <div className="space-y-2">
-              <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">2. Paylaşım Metni</label>
+              <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("shareText")}</label>
               <textarea
                 required
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-150 rounded-2xl p-4 text-sm focus:outline-none focus:border-green-500 transition-all font-bold min-h-[100px] resize-none shadow-sm"
               />
-              <p className="text-[10px] text-gray-400 font-medium px-1 italic">Metni dilediğin gibi düzenleyebilirsin.</p>
+              <p className="text-[10px] text-gray-400 font-medium px-1 italic">{t("shareTextHint")}</p>
             </div>
           </>
         )}
@@ -720,7 +722,7 @@ function AddPostForm({
           ) : (
             <>
               <CheckCircle size={20} weight="bold" />
-              <span>{editingPost ? "Değişiklikleri Kaydet" : "Paylaş ve İlham Ver"}</span>
+              <span>{editingPost ? t("saveChanges") : t("shareAndInspire")}</span>
             </>
           )}
         </button>
@@ -733,7 +735,7 @@ function AddPostForm({
             className="w-full py-4 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-650 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-red-100 mt-2 cursor-pointer"
           >
             <Trash size={20} weight="bold" />
-            <span>Gönderiyi Sil</span>
+            <span>{t("deletePost")}</span>
           </button>
         )}
       </form>
@@ -763,7 +765,7 @@ function AddPostForm({
                 {SAVING_CHALLENGES.map(cat => (
                   <div key={cat.category} className="space-y-2.5">
                     <h4 className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider px-1">
-                      {cat.category}
+                      {t(`categories.${cat.category}` as any)}
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                       {cat.items.map(item => (
@@ -781,7 +783,7 @@ function AddPostForm({
                             }`}
                         >
                           <span className="text-lg shrink-0">{item.emoji}</span>
-                          <span className="flex-1 leading-tight">{item.label}</span>
+                          <span className="flex-1 leading-tight">{t(`challenges.${item.id}.label` as any) || item.label}</span>
                         </button>
                       ))}
                     </div>

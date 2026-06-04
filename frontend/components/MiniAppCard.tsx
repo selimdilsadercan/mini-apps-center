@@ -4,6 +4,7 @@ import React from "react";
 import { MiniApp, getAppHref } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { CaretRight } from "@phosphor-icons/react";
+import { useTranslations } from "@/contexts/LanguageContext";
 
 interface MiniAppCardProps {
   app: MiniApp;
@@ -12,6 +13,7 @@ interface MiniAppCardProps {
 export default function MiniAppCard({ app }: MiniAppCardProps) {
   const router = useRouter();
   const Icon = app.icon;
+  const tApps = useTranslations("apps");
 
   const handleClick = () => {
     const href = getAppHref(app);
@@ -21,6 +23,9 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
       router.push(href);
     }
   };
+
+  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+  const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
 
   return (
     <button
@@ -45,12 +50,12 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
       <div className="flex-1 w-full">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-gray-900 text-base leading-tight group-hover:text-indigo-600 transition-colors">
-            {app.name}
+            {appName}
           </h3>
           <CaretRight size={14} weight="bold" className="text-gray-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
         </div>
         <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-          {app.description}
+          {appDesc}
         </p>
       </div>
 

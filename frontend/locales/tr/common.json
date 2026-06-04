@@ -25,7 +25,9 @@
       "Local Services": "Lokal & Kampüs Servisleri",
       "Lifestyle": "Günlük Yaşam"
     },
-    "addedToast": "{appName} uygulaması eklendi!"
+    "addedToast": "{appName} uygulaması eklendi!",
+    "get": "EKLE",
+    "open": "AÇ"
   },
   "profile": {
     "title": "Profil",
@@ -38,7 +40,9 @@
     "friends": "Arkadaşlarım",
     "signOut": "Çıkış Yap",
     "friendsStat": "Arkadaş",
-    "appsStat": "Uygulama"
+    "appsStat": "Uygulama",
+    "manageFriends": "Arkadaşlarımı Yönet",
+    "manageFriendsSubtitle": "Yeni istekler & Bağlantılar"
   },
   "stopScroll": {
     "title": "Bugün Ne Yapsam?",
@@ -206,5 +210,11 @@
     "emptyTitle": "İlk aboneliğini ekle",
     "emptyDescription": "Netflix, Spotify ve diğer üyeliklerini ekleyerek aylık harcamanı ve yenilenme tarihlerini tek yerden takip et.",
     "emptyAction": "Abonelik Ekle"
+  },
+  "apps": {
+    "tasarruf-challenges": {
+      "name": "Tasarruf",
+      "description": "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!"
+    }
   }
 }

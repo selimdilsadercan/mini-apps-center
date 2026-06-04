@@ -158,8 +158,8 @@ export default function Profile() {
                   <Users size={18} weight="fill" />
                 </div>
                 <div className="text-left">
-                  <span className="text-xs font-black text-gray-900 block">Arkadaşlarımı Yönet</span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Yeni istekler & Bağlantılar</span>
+                  <span className="text-xs font-black text-gray-900 block">{t("manageFriends")}</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{t("manageFriendsSubtitle")}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">

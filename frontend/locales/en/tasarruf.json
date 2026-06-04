@@ -1,49 +1,409 @@
 {
   "tasarruf": {
-    "title": "Tasarruf",
-    "subtitle": "Tasarruf Önerileri ve Paylaşımlar",
-    "share": "Paylaş",
-    "yourSavings": "Toplam",
-    "communitySavings": "Bu Ay",
-    "challenges": "Görevler",
-    "inspiration": "İlham",
-    "noPostsTitle": "Henüz Paylaşım Yok",
-    "noPostsDescription": "Tasarruf başarılarını paylaşan ilk kişi sen ol! Küçük bir adım, büyük bir fark yaratabilir.",
-    "shareFirstSaving": "İlk Tasarrufunu Paylaş",
-    "shareTitle": "Paylaş",
-    "savingType": "1. Tasarruf Türü",
-    "change": "Değiştir",
-    "select": "Seç",
-    "whatDidYouAchieve": "2. Ne Başardın?",
-    "achievementPlaceholder": "Örn: 191 tane şişe biriktirip geri dönüşüme verdim...",
-    "amount": "3. Miktar (₺)",
-    "shareAndInspire": "Paylaş ve İlham Ver",
-    "selectSavingType": "Tasarruf Türü Seç",
-    "selectSavingTypeSubtitle": "Yaptığın tasarrufa en uygun türü seç",
-    "other": "Diğer",
-    "generalOther": "Genel / Diğer",
-    "savingSuggestion": "Tasarruf Önerisi",
-    "trigger": "Tetikleyici",
-    "whatCanYouDo": "Neler Yapabilirsin?",
-    "iDidThis": "Bunu Yaptım, Paylaş!",
-    "successToast": "Başarıyla paylaşıldı!",
-    "errorToast": "Hata oluştu",
-    "loginRequired": "Giriş yapmalısın",
-    "selectTypeRequired": "Lütfen bir tasarruf türü seçin",
-    "manageSubscriptions": "Aboneliklerini Yönet",
-    "shareText": "2. Paylaşım Metni",
-    "shareTextHint": "Metni dilediğin gibi düzenleyebilirsin.",
-    "savingAchievement": "Tasarruf Başarısı!",
-    "headerTitle": "Tasarruf",
-    "headerSubtitle": "Tasarruf Önerileri ve Paylaşımlar",
+    "title": "Savings",
+    "subtitle": "Saving Suggestions and Posts",
+    "share": "Share",
+    "yourSavings": "Total",
+    "communitySavings": "This Month",
+    "challengesTab": "Challenges",
+    "inspiration": "Inspiration",
+    "noPostsTitle": "No Posts Yet",
+    "noPostsDescription": "Be the first to share your savings! A small step can make a big difference.",
+    "shareFirstSaving": "Share Your First Savings",
+    "shareTitle": "Share",
+    "savingType": "1. Saving Type",
+    "change": "Change",
+    "select": "Select",
+    "whatDidYouAchieve": "2. What did you achieve?",
+    "achievementPlaceholder": "E.g., I collected 191 bottles and recycled them...",
+    "amount": "3. Amount (₺)",
+    "shareAndInspire": "Share and Inspire",
+    "selectSavingType": "Select Saving Type",
+    "selectSavingTypeSubtitle": "Choose the type that best fits your savings",
+    "other": "Other",
+    "generalOther": "General / Other",
+    "savingSuggestion": "Saving Challenge",
+    "trigger": "Trigger",
+    "whatCanYouDo": "What can you do?",
+    "iDidThis": "I did this, share!",
+    "successToast": "Shared successfully!",
+    "errorToast": "An error occurred",
+    "loginRequired": "You must log in",
+    "selectTypeRequired": "Please select a saving type",
+    "manageSubscriptions": "Manage Subscriptions",
+    "shareText": "2. Post Text",
+    "shareTextHint": "You can edit the text as you wish.",
+    "savingAchievement": "Saving Achievement!",
+    "headerTitle": "Savings",
+    "headerSubtitle": "Saving Suggestions and Posts",
+    "anonymous": "Anonymous",
+    "challengeTitle": "Title",
+    "edit": "Edit",
+    "editPost": "Edit Post",
+    "deletePost": "Delete Post",
+    "deleteConfirm": "Are you sure you want to delete this post?",
+    "deleteSuccessToast": "Post deleted successfully!",
+    "deleteErrorToast": "Failed to delete post",
+    "updateSuccessToast": "Updated successfully!",
+    "saveChanges": "Save Changes",
     "categories": {
-      "Yiyecek & İçecek": "Yiyecek & İçecek",
-      "Geri Kazanım": "Geri Kazanım",
-      "Satış & İkinci Hand": "Satış & İkinci El",
-      "Satış & İkinci El": "Satış & İkinci El",
-      "Ulaşım": "Ulaşım",
-      "Abonelik & Dijital": "Abonelik & Dijital",
-      "Market & Ev": "Market & Ev"
+      "Yiyecek & İçecek": "Food & Drink",
+      "Geri Kazanım": "Recycling",
+      "Satış & İkinci El": "Sales & Second Hand",
+      "Ulaşım": "Transportation",
+      "Abonelik & Dijital": "Subscription & Digital",
+      "Market & Ev": "Market & Home"
+    },
+    "challenges": {
+      "coffee_skipped": {
+        "label": "Did not buy coffee",
+        "description": "Made coffee at home or skipped it instead of buying from outside.",
+        "primaryMetric": {
+          "label": "How many coffees did you skip?",
+          "unit": "pcs",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "I skipped {count} coffee, kept {amountSaved} TL in my pocket.",
+        "shareTitle": "Kept my coffee money in my pocket today"
+      },
+      "tea_skipped": {
+        "label": "Did not buy tea",
+        "description": "Brought tea from home or used tea bags instead of buying tea from outside.",
+        "primaryMetric": {
+          "label": "How many teas did you skip?",
+          "unit": "pcs",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "I skipped {count} tea, kept {amountSaved} TL in my pocket.",
+        "shareTitle": "Avoided small expenses"
+      },
+      "food_delivery_skipped": {
+        "label": "Did not order food",
+        "description": "Cooked at home instead of ordering food delivery.",
+        "primaryMetric": {
+          "label": "How many meals?",
+          "unit": "meals",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "I skipped ordering food for {mealCount} meals, saved {amountSaved} TL.",
+        "shareTitle": "Did not order food delivery today"
+      },
+      "lunch_from_home": {
+        "label": "Brought lunch from home",
+        "description": "Brought lunch from home instead of buying food at school/office.",
+        "primaryMetric": {
+          "label": "How many days?",
+          "unit": "days",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "I brought lunch from home for {dayCount} days, saved {amountSaved} TL.",
+        "shareTitle": "Saved money by bringing lunch from home"
+      },
+      "water_bottle_refill": {
+        "label": "Did not buy bottled water",
+        "description": "Used a reusable bottle instead of buying bottled water outside.",
+        "primaryMetric": {
+          "label": "How many bottles of water did you skip?",
+          "unit": "pcs",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "I skipped {bottleCount} bottles of water, saved {amountSaved} TL.",
+        "shareTitle": "Used my reusable water bottle"
+      },
+      "bottle_return": {
+        "label": "Recycled bottles/cans",
+        "description": "Returned accumulated bottles or cans to a recycle point.",
+        "primaryMetric": {
+          "label": "How many bottles/cans?",
+          "unit": "pcs",
+          "placeholder": "100"
+        },
+        "secondaryMetrics": {
+          "amountEarned": {
+            "label": "Earned amount"
+          }
+        },
+        "postTemplate": "I recycled {itemCount} bottles/cans, earned {amountEarned} TL.",
+        "shareTitle": "Turned trash into cash"
+      },
+      "scrap_sold": {
+        "label": "Sold scrap/recyclables",
+        "description": "Sold metal, paper, plastic, or electronics scraps from home.",
+        "primaryMetric": {
+          "label": "Approx. weight",
+          "unit": "kg",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountEarned": {
+            "label": "Earned amount"
+          }
+        },
+        "postTemplate": "I sold {weight} kg of recyclables, earned {amountEarned} TL.",
+        "shareTitle": "Decluttered and made money"
+      },
+      "unused_item_sold": {
+        "label": "Sold unused item",
+        "description": "Sold an unused item lying around the house.",
+        "primaryMetric": {
+          "label": "What did you sell?",
+          "placeholder": "Old headphones"
+        },
+        "secondaryMetrics": {
+          "amountEarned": {
+            "label": "Earned amount"
+          },
+          "itemCount": {
+            "label": "How many items?",
+            "unit": "pcs",
+            "placeholder": "1"
+          }
+        },
+        "postTemplate": "I sold {itemName}, earned {amountEarned} TL.",
+        "shareTitle": "Sold an unused item"
+      },
+      "second_hand_bought": {
+        "label": "Bought second-hand",
+        "description": "Bought a second-hand item instead of buying new to spend less.",
+        "primaryMetric": {
+          "label": "What did you buy?",
+          "placeholder": "Keyboard"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Savings vs new"
+          }
+        },
+        "postTemplate": "Bought second-hand {itemName}, saved {amountSaved} TL compared to new.",
+        "shareTitle": "Chose second-hand over brand new"
+      },
+      "discount_used": {
+        "label": "Used discount/coupon",
+        "description": "Used a discount or coupon on a purchase to pay less.",
+        "primaryMetric": {
+          "label": "What did you buy?",
+          "placeholder": "Grocery shopping"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Discount savings"
+          }
+        },
+        "postTemplate": "Used coupon/discount for {purchaseName}, saved {amountSaved} TL.",
+        "shareTitle": "Caught a great discount"
+      },
+      "taxi_skipped": {
+        "label": "Did not take a taxi",
+        "description": "Used public transport, walked, or chose another option instead of a taxi.",
+        "primaryMetric": {
+          "label": "How many trips?",
+          "unit": "times",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Skipped taking a taxi {tripCount} times, saved {amountSaved} TL.",
+        "shareTitle": "Kept taxi fare in my pocket"
+      },
+      "walked_instead": {
+        "label": "Walked instead",
+        "description": "Walked short distances instead of using a vehicle or taxi.",
+        "primaryMetric": {
+          "label": "Approx. distance",
+          "unit": "km",
+          "placeholder": "2"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Walked {distance} km, saved {amountSaved} TL.",
+        "shareTitle": "Walked short distance"
+      },
+      "public_transport_used": {
+        "label": "Used public transport",
+        "description": "Used public transport instead of driving or taking a taxi.",
+        "primaryMetric": {
+          "label": "How many trips?",
+          "unit": "times",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Used public transport for {tripCount} trips, saved {amountSaved} TL.",
+        "shareTitle": "Saved money with transit"
+      },
+      "carpool": {
+        "label": "Carpooled",
+        "description": "Shared travel costs with friends instead of going alone.",
+        "primaryMetric": {
+          "label": "With how many people?",
+          "unit": "people",
+          "placeholder": "3"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Shared travel with {peopleCount} people, saved {amountSaved} TL.",
+        "shareTitle": "Reduced travel expenses"
+      },
+      "subscription_cancelled": {
+        "label": "Cancelled subscription",
+        "description": "Cancelled an unused subscription.",
+        "primaryMetric": {
+          "label": "Which subscription?",
+          "placeholder": "Netflix"
+        },
+        "secondaryMetrics": {
+          "monthlySaved": {
+            "label": "Monthly savings"
+          }
+        },
+        "postTemplate": "Cancelled my {subscriptionName} subscription, will keep {monthlySaved} TL in my pocket monthly.",
+        "shareTitle": "Closed an unused subscription"
+      },
+      "student_plan_used": {
+        "label": "Switched to student/family plan",
+        "description": "Switched to student, family or cheaper plan instead of normal plan.",
+        "primaryMetric": {
+          "label": "Which service?",
+          "placeholder": "Spotify"
+        },
+        "secondaryMetrics": {
+          "monthlySaved": {
+            "label": "Monthly savings"
+          }
+        },
+        "postTemplate": "Switched to a cheaper plan for {serviceName}, will save {monthlySaved} TL monthly.",
+        "shareTitle": "Switched to a cheaper plan"
+      },
+      "home_grown_onion": {
+        "label": "Grew green onions",
+        "description": "Grew my own green onions at home instead of buying from the market.",
+        "primaryMetric": {
+          "label": "How many bunches?",
+          "unit": "bunches",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Grew {count} bunches of green onions at home, saved {amountSaved} TL.",
+        "shareTitle": "Growing my own veggies"
+      },
+      "home_grown_herbs": {
+        "label": "Grew herbs",
+        "description": "Grew greens like mint, basil, or parsley at home.",
+        "primaryMetric": {
+          "label": "How many pots/bunches?",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Grew {count} herbs at home, saved {amountSaved} TL.",
+        "shareTitle": "Fresh and free herbs"
+      },
+      "reusable_bag_used": {
+        "label": "Did not buy plastic bags",
+        "description": "Brought a cloth bag or net from home instead of buying plastic bags.",
+        "primaryMetric": {
+          "label": "How many plastic bags did you skip?",
+          "unit": "pcs",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Skipped buying {bagCount} plastic bags, saved {amountSaved} TL using a reusable bag.",
+        "shareTitle": "Protected nature and my wallet by using reusable bags"
+      },
+      "bulk_buying": {
+        "label": "Bought in bulk",
+        "description": "Bought in bulk instead of buying one by one to lower unit price.",
+        "primaryMetric": {
+          "label": "What did you buy?",
+          "placeholder": "Tea bags"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Savings"
+          }
+        },
+        "postTemplate": "Bought {itemName} in bulk, saved {amountSaved} TL.",
+        "shareTitle": "Paid less by buying in bulk"
+      },
+      "home_repair": {
+        "label": "Repaired it myself",
+        "description": "Fixed a simple repair myself without calling service/repairman.",
+        "primaryMetric": {
+          "label": "What did you repair?",
+          "placeholder": "Table leg"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Did {repairName} repair myself, saved {amountSaved} TL.",
+        "shareTitle": "Avoided service fee"
+      },
+      "leftovers_used": {
+        "label": "Ate leftovers",
+        "description": "Used leftover food in a new meal instead of throwing it away.",
+        "primaryMetric": {
+          "label": "How many meals?",
+          "unit": "meals",
+          "placeholder": "1"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount"
+          }
+        },
+        "postTemplate": "Ate leftovers for {mealCount} meals, saved {amountSaved} TL.",
+        "shareTitle": "Reduced food waste"
+      }
     }
   }
 }

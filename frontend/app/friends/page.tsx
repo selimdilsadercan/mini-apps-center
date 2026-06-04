@@ -375,9 +375,6 @@ function FriendsContent() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-gray-900 font-extrabold text-sm truncate">{friend.username || t("anonymous")}</p>
-                      {friend.username && (
-                        <p className="text-[10px] text-indigo-500 font-semibold">@{friend.username}</p>
-                      )}
                     </div>
                   </div>
                   <button

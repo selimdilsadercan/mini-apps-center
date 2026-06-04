@@ -25,7 +25,9 @@
       "Local Services": "Local & Campus Services",
       "Lifestyle": "Lifestyle & Daily Life"
     },
-    "addedToast": "{appName} added to My Apps!"
+    "addedToast": "{appName} added to My Apps!",
+    "get": "GET",
+    "open": "OPEN"
   },
   "profile": {
     "title": "Profile",
@@ -38,7 +40,9 @@
     "friends": "My Friends",
     "signOut": "Sign Out",
     "friendsStat": "Friends",
-    "appsStat": "Apps"
+    "appsStat": "Apps",
+    "manageFriends": "Manage Friends",
+    "manageFriendsSubtitle": "New Requests & Connections"
   },
   "stopScroll": {
     "title": "Stop Scrolling, Start Living",
@@ -210,5 +214,11 @@
     "emptyTitle": "Add your first subscription",
     "emptyDescription": "Add Netflix, Spotify, and your other memberships to track monthly spending and renewal dates in one place.",
     "emptyAction": "Add Subscription"
+  },
+  "apps": {
+    "tasarruf-challenges": {
+      "name": "Savings Challenges",
+      "description": "Track saving suggestions, reduce spending, and achieve your goals!"
+    }
   }
 }

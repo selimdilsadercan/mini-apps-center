@@ -1,7 +1,7 @@
 "use client";
 
 import { getRootHomeUrl } from "@/lib/apps";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   CaretLeft,
@@ -21,9 +21,7 @@ import {
   Users,
   Tray,
   ChatCircle,
-  Eye,
-  Gear,
-  UserCircle
+  Eye
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -34,7 +32,7 @@ import Client, { suggest, friendship } from "@/lib/client";
 // Initialize client
 const client = createBrowserClient();
 
-type TabType = "inbox" | "saved" | "sent" | "create";
+type TabType = "inbox" | "saved" | "sent";
 
 export default function SuggestPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -43,6 +41,7 @@ export default function SuggestPage() {
   const [sentList, setSentList] = useState<suggest.SentSuggestion[]>([]);
   const [friendsList, setFriendsList] = useState<friendship.FriendUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -59,26 +58,98 @@ export default function SuggestPage() {
   // Selected Suggestion for Detail view
   const [detailSuggestion, setDetailSuggestion] = useState<suggest.InboxSuggestion | null>(null);
 
-  // Profile Settings Modal state
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [profileUsername, setProfileUsername] = useState("");
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  // Wizard and Place Search States
+  const [createStep, setCreateStep] = useState<1 | 2>(1);
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeResults, setPlaceResults] = useState<any[]>([]);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Prepopulate state when Clerk user loads
+  // Click Outside logic to clear place results
   useEffect(() => {
-    if (user) {
-      // Query database user record to get configured username rather than relying on clerk
-      client.users.getUserByClerkId(user.id).then(res => {
-        if (res.user?.username) {
-          setProfileUsername(res.user.username);
-        }
-      }).catch(err => console.error("Error fetching db user info:", err));
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setPlaceResults([]);
+      }
     }
-  }, [user]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounced Place Search (runs only when category is place and selectedPlace is not locked)
+  useEffect(() => {
+    if (formData.category !== "place" || !placeQuery.trim() || selectedPlace) {
+      setPlaceResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        setSearchingPlaces(true);
+        const res = await client.workplaces.searchPlace({ query: placeQuery });
+        setPlaceResults(res.results || []);
+      } catch (err) {
+        console.error("Error searching places:", err);
+      } finally {
+        setSearchingPlaces(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [placeQuery, formData.category, selectedPlace]);
+
+  const closeCreateDrawer = () => {
+    setIsCreateOpen(false);
+    setCreateStep(1);
+    setFormData({
+      category: "movie",
+      title: "",
+      shortNote: "",
+      rating: 5,
+      externalLink: "",
+      imageUrl: "",
+    });
+    setSelectedFriends([]);
+    setPlaceQuery("");
+    setPlaceResults([]);
+    setSelectedPlace(null);
+  };
+
+  const handleSelectCategory = (category: suggest.SuggestionCategory) => {
+    setFormData({ ...formData, category });
+    setCreateStep(2);
+  };
+
+  const handleSelectPlace = (place: any) => {
+    setSelectedPlace(place);
+    setFormData({
+      ...formData,
+      title: place.name,
+      externalLink: place.url || "",
+      imageUrl: place.image_url || "",
+    });
+    setPlaceQuery("");
+    setPlaceResults([]);
+  };
+
+  const handleClearPlace = () => {
+    setSelectedPlace(null);
+    setFormData({
+      ...formData,
+      title: "",
+      externalLink: "",
+      imageUrl: "",
+    });
+  };
 
   useEffect(() => {
     if (isUserLoaded && user) {
       fetchData();
+      // Fetch friends list once so it's always ready for the suggestions drawer
+      client.friendship.getFriends(user.id).then(res => {
+        setFriendsList(res.friends || []);
+      }).catch(err => console.error("Error fetching friends:", err));
     }
   }, [isUserLoaded, user, activeTab]);
 
@@ -92,9 +163,6 @@ export default function SuggestPage() {
       } else if (activeTab === "sent") {
         const sentRes = await client.suggest.getSent(user.id);
         setSentList(sentRes.suggestions);
-      } else if (activeTab === "create") {
-        const friendsRes = await client.friendship.getFriends(user.id);
-        setFriendsList(friendsRes.friends || []);
       }
     } catch (error) {
       console.error("fetchData error:", error);
@@ -127,52 +195,7 @@ export default function SuggestPage() {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
 
-    // Validation
-    const cleanUsername = profileUsername.trim().toLowerCase();
-    
-    if (!cleanUsername) {
-      toast.error("Kullanıcı adı boş olamaz");
-      return;
-    }
-    
-    if (cleanUsername.length > 26) {
-      toast.error("Kullanıcı adı en fazla 26 karakter olmalıdır");
-      return;
-    }
-
-    const usernameRegex = /^[a-z0-9_.-]+$/;
-    if (!usernameRegex.test(cleanUsername)) {
-      toast.error("Kullanıcı adı yalnızca küçük harfler, sayılar ve alt çizgi/nokta/tire içerebilir");
-      return;
-    }
-
-    try {
-      setIsUpdatingProfile(true);
-
-      // Synchronize changes to public.users using getOrCreateUser backend API
-      await client.users.getOrCreateUser({
-        clerkId: user.id,
-        username: cleanUsername,
-        fullName: user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || undefined,
-        avatarUrl: user.imageUrl,
-      });
-
-      toast.success("Kullanıcı adınız başarıyla güncellendi");
-      setIsProfileOpen(false);
-      
-      // Refresh active data tabs to show updated values
-      fetchData();
-    } catch (error: any) {
-      console.error("Profile update error:", error);
-      toast.error(error.message || "Profil güncellenirken bir hata oluştu");
-    } finally {
-      setIsUpdatingProfile(false);
-    }
-  };
 
   const handleCreateSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,7 +230,16 @@ export default function SuggestPage() {
         imageUrl: "",
       });
       setSelectedFriends([]);
-      setActiveTab("sent");
+      setCreateStep(1);
+      setSelectedPlace(null);
+      setPlaceQuery("");
+      setPlaceResults([]);
+      setIsCreateOpen(false);
+      if (activeTab === "sent") {
+        fetchData();
+      } else {
+        setActiveTab("sent");
+      }
     } catch (error) {
       toast.error("Öneri gönderilemedi");
     } finally {
@@ -274,41 +306,25 @@ export default function SuggestPage() {
         
         {/* Navigation Bar / Return */}
         <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => (window.location.href = getRootHomeUrl())}
-            className="group flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-2xl border border-gray-100 shadow-sm active:scale-95 text-xs font-bold"
-          >
-            <CaretLeft size={16} weight="bold" className="group-hover:-translate-x-0.5 transition-transform" />
-            <span>Katalog</span>
-          </button>
-          
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsProfileOpen(true)}
-              className="flex items-center gap-1 bg-white border border-gray-100 hover:bg-gray-50 px-3.5 py-2 rounded-2xl text-xs font-bold text-gray-600 shadow-sm active:scale-95 transition-all"
-              title="Profili Düzenle"
+              onClick={() => (window.location.href = getRootHomeUrl())}
+              className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
             >
-              <Gear size={16} />
-              <span>Profil</span>
+              <CaretLeft size={24} color="#374151" />
             </button>
-            <div className="flex items-center gap-1.5 bg-indigo-50/80 border border-indigo-100/50 px-3.5 py-2 rounded-2xl font-black text-[10px] text-indigo-600 uppercase tracking-wider">
-              <Compass size={14} weight="fill" className="animate-spin-slow" />
-              Suggest Center
-            </div>
+            <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
+              Tavsiye <span className="text-indigo-600">Kutusu</span>
+            </h1>
           </div>
-        </div>
 
-        {/* Hero Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex bg-white p-4 rounded-3xl shadow-md border border-gray-50 mb-3 text-indigo-600">
-            <Compass size={32} weight="fill" />
-          </div>
-          <h1 className="text-3xl font-black tracking-tight uppercase">
-            Tavsiye <span className="text-indigo-600">Kutusu</span>
-          </h1>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-            "Arkadaş tavsiyeleri kaybolmasın"
-          </p>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-md shadow-indigo-100 transition-all active:scale-95 cursor-pointer"
+          >
+            <Plus size={16} weight="bold" />
+            <span>Öner</span>
+          </button>
         </div>
 
         {/* Tabs Menu */}
@@ -317,7 +333,6 @@ export default function SuggestPage() {
             { id: "inbox", label: "Gelenler", icon: Tray },
             { id: "saved", label: "Kaydedilenler", icon: Bookmark },
             { id: "sent", label: "Gönderdiklerim", icon: PaperPlaneTilt },
-            { id: "create", label: "Öner", icon: Plus },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -338,7 +353,7 @@ export default function SuggestPage() {
         </div>
 
         {/* Dynamic Lists */}
-        {loading && activeTab !== "create" ? (
+        {loading ? (
           <div className="py-20 text-center text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
             Tavsiyeler Getiriliyor...
           </div>
@@ -547,182 +562,288 @@ export default function SuggestPage() {
               </motion.div>
             )}
 
-            {/* CREATE TAB */}
-            {activeTab === "create" && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm"
-              >
-                <form onSubmit={handleCreateSuggestion} className="space-y-6">
-                  {/* Category Selection */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Öneri Kategorisi
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
+
+          </AnimatePresence>
+        )}
+      </main>
+
+      {/* Create Suggestion Drawer */}
+      <Drawer.Root open={isCreateOpen} onOpenChange={(open) => {
+        if (!open) closeCreateDrawer();
+      }}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[94dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
+            <div className="p-6 overflow-y-auto flex-1 flex flex-col">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 bg-gray-200 rounded-full mb-6" />
+              
+              <header className="flex justify-between items-center mb-6 shrink-0">
+                <Drawer.Title className="font-black text-xl text-gray-900 flex items-center gap-2">
+                  {createStep === 2 && (
+                    <button
+                      onClick={() => setCreateStep(1)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors mr-1"
+                    >
+                      <CaretLeft size={20} weight="bold" />
+                    </button>
+                  )}
+                  <span>{createStep === 1 ? "Ne Öneriyorsun?" : "Detaylar"}</span>
+                </Drawer.Title>
+                <button
+                  onClick={closeCreateDrawer}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                >
+                  <XCircle size={24} className="text-gray-400" />
+                </button>
+              </header>
+
+              <AnimatePresence mode="wait">
+                {createStep === 1 ? (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="space-y-6 flex-1 flex flex-col justify-center py-6"
+                  >
+                    <div className="grid grid-cols-4 gap-2.5">
                       {[
-                        { id: "movie", label: "Film", emoji: "🎬" },
-                        { id: "tv", label: "Dizi", emoji: "📺" },
-                        { id: "game", label: "Oyun", emoji: "🎮" },
-                        { id: "place", label: "Mekan", emoji: "📍" },
+                        { id: "movie", label: "Film", emoji: "🎬", color: "bg-red-50 text-red-600 hover:bg-red-100/50" },
+                        { id: "tv", label: "Dizi", emoji: "📺", color: "bg-violet-50 text-violet-600 hover:bg-violet-100/50" },
+                        { id: "game", label: "Oyun", emoji: "🎮", color: "bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50" },
+                        { id: "place", label: "Mekan", emoji: "📍", color: "bg-amber-50 text-amber-600 hover:bg-amber-100/50" },
                       ].map((cat) => (
                         <button
                           key={cat.id}
                           type="button"
-                          onClick={() => setFormData({ ...formData, category: cat.id as suggest.SuggestionCategory })}
-                          className={`py-3 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${
-                            formData.category === cat.id
-                              ? "bg-indigo-50/50 border-indigo-600 text-indigo-600 font-bold"
-                              : "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
-                          }`}
+                          onClick={() => handleSelectCategory(cat.id as suggest.SuggestionCategory)}
+                          className={`py-4 px-2 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 transform active:scale-95 cursor-pointer shadow-sm ${cat.color}`}
                         >
-                          <span className="text-xl">{cat.emoji}</span>
-                          <span className="text-[9px] uppercase tracking-wider">{cat.label}</span>
+                          <span className="text-2xl">{cat.emoji}</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider">{cat.label}</span>
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Title */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Başlık
-                    </label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="Film, mekan veya oyun adı..."
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                    />
-                  </div>
-
-                  {/* Short Note */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Kısa Not / Neden Öneriyorsun?
-                    </label>
-                    <textarea
-                      placeholder="Neden tavsiye ediyorsun? Harika detaylar ekle..."
-                      rows={3}
-                      value={formData.shortNote}
-                      onChange={(e) => setFormData({ ...formData, shortNote: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300 resize-none"
-                    />
-                  </div>
-
-                  {/* Score & Rating */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center pl-1">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        Puanın
-                      </label>
-                      <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                        {formData.rating} / 5
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={5}
-                      step={0.5}
-                      value={formData.rating}
-                      onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-                      className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                    />
-                  </div>
-
-                  {/* External Link */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Dış Link (IMDb, Google Maps vb.)
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://example.com"
-                      value={formData.externalLink}
-                      onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                    />
-                  </div>
-
-                  {/* Image Url */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Görsel Linki (Opsiyonel)
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="Görsel adresi..."
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                    />
-                  </div>
-
-                  {/* Friend Multi-Select */}
-                  <div className="space-y-2 pt-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                      Gönderilecek Arkadaşlar ({selectedFriends.length})
-                    </label>
-                    {friendsList.length === 0 ? (
-                      <div className="py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                          Arkadaş listeniz boş. Önce arkadaş ekleyin!
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50">
-                        {friendsList.map((friend) => {
-                          const isSelected = selectedFriends.includes(friend.id);
-                          return (
-                            <button
-                              key={friend.id}
-                              type="button"
-                              onClick={() => toggleFriendSelection(friend.id)}
-                              className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
-                                isSelected ? "bg-indigo-600 text-white" : "hover:bg-gray-100"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <img
-                                  src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                                  alt={friend.username || "Friend"}
-                                  className="w-6 h-6 rounded-full object-cover border border-gray-200"
-                                />
-                                <span className="text-xs font-bold">{friend.username || "Arkadaş"}</span>
-                              </div>
-                              {isSelected && <CheckCircle size={16} weight="fill" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    disabled={isSubmitting}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-400"
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="flex-1 flex flex-col"
                   >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <PaperPlaneTilt size={16} weight="fill" />
-                        <span>Öneriyi Gönder</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-      </main>
+                    <form onSubmit={handleCreateSuggestion} className="space-y-6 pb-6 flex-1">
+                      
+                      {/* Place-specific autocomplete search block */}
+                      {formData.category === "place" ? (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                            Mekan Ara (Google Haritalar)
+                          </label>
+                          
+                          {selectedPlace ? (
+                            <div className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                              <div className="flex-1 min-w-0">
+                                <span className="text-xs font-black text-indigo-900 block truncate">{selectedPlace.name}</span>
+                                <span className="text-[10px] text-indigo-700/70 block truncate">{selectedPlace.address}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleClearPlace}
+                                className="ml-3 text-[10px] font-black text-red-600 hover:text-red-700 uppercase tracking-wider"
+                              >
+                                Temizle
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="relative" ref={searchContainerRef}>
+                              <input
+                                required
+                                type="text"
+                                placeholder="Kafe, restoran veya mekan adı girin..."
+                                value={placeQuery}
+                                onChange={(e) => setPlaceQuery(e.target.value)}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                              />
+                              {searchingPlaces && (
+                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                                  <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                                </div>
+                              )}
+                              
+                              {placeResults.length > 0 && (
+                                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-gray-100">
+                                  {placeResults.map((place, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => handleSelectPlace(place)}
+                                      className="w-full text-left p-3 hover:bg-indigo-50/30 transition-all active:bg-indigo-50 flex flex-col gap-0.5"
+                                    >
+                                      <span className="text-xs font-bold text-gray-900 block truncate">{place.name}</span>
+                                      <span className="text-[10px] text-gray-400 block truncate">{place.address}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Title input for other types */
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                            Başlık
+                          </label>
+                          <input
+                            required
+                            type="text"
+                            placeholder="Film, dizi veya oyun adı..."
+                            value={formData.title}
+                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                          />
+                        </div>
+                      )}
+
+                      {/* Conditionally show remaining fields for place type only after a place is chosen */}
+                      {(formData.category !== "place" || !!selectedPlace) && (
+                        <>
+                          {/* Short Note */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                              Neden Tavsiye Ediyorsun?
+                            </label>
+                            <textarea
+                              placeholder="Arkadaşın neden bunu denemeli?"
+                              rows={3}
+                              value={formData.shortNote}
+                              onChange={(e) => setFormData({ ...formData, shortNote: e.target.value })}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300 resize-none"
+                            />
+                          </div>
+
+                          {/* Score & Rating */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center pl-1">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                Puanın
+                              </label>
+                              <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                                {formData.rating} / 5
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={5}
+                              step={0.5}
+                              value={formData.rating}
+                              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+                              className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Non-Mekan Links */}
+                      {formData.category !== "place" && (
+                        <>
+                          {/* External Link */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                              Dış Link (IMDb, YouTube vb.)
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="https://example.com"
+                              value={formData.externalLink}
+                              onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                            />
+                          </div>
+
+                          {/* Image Url */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                              Görsel Linki (Opsiyonel)
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="Görsel adresi..."
+                              value={formData.imageUrl}
+                              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Friend Multi-Select */}
+                      {(formData.category !== "place" || !!selectedPlace) && (
+                        <div className="space-y-2 pt-2">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                            Gönderilecek Arkadaşlar ({selectedFriends.length})
+                          </label>
+                          {friendsList.length === 0 ? (
+                            <div className="py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                Arkadaş listeniz boş. Önce arkadaş ekleyin!
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50">
+                              {friendsList.map((friend) => {
+                                const isSelected = selectedFriends.includes(friend.id);
+                                return (
+                                  <button
+                                    key={friend.id}
+                                    type="button"
+                                    onClick={() => toggleFriendSelection(friend.id)}
+                                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
+                                      isSelected ? "bg-indigo-600 text-white" : "hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <img
+                                        src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                        alt={friend.username || "Friend"}
+                                        className="w-6 h-6 rounded-full object-cover border border-gray-200"
+                                      />
+                                      <span className="text-xs font-bold">{friend.username || "Arkadaş"}</span>
+                                    </div>
+                                    {isSelected && <CheckCircle size={16} weight="fill" />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Submit Button */}
+                      <button
+                        disabled={isSubmitting || !formData.title.trim() || selectedFriends.length === 0}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <PaperPlaneTilt size={16} weight="fill" />
+                            <span>Öneriyi Gönder</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
       {/* Suggestion Detail Drawer */}
       <Drawer.Root open={!!detailSuggestion} onOpenChange={(open) => !open && setDetailSuggestion(null)}>
@@ -834,70 +955,6 @@ export default function SuggestPage() {
         </Drawer.Portal>
       </Drawer.Root>
 
-      {/* Profile Settings Drawer */}
-      <Drawer.Root open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
-            <div className="p-6 overflow-y-auto">
-              <div className="mx-auto w-12 h-1 bg-gray-200 rounded-full mb-6" />
-              
-              <div className="flex items-center gap-2 mb-6">
-                <UserCircle size={24} className="text-indigo-600" />
-                <h2 className="text-xl font-black uppercase tracking-tight">Profili Düzenle</h2>
-              </div>
-
-              <form onSubmit={handleUpdateProfile} className="space-y-6">
-                {/* Username Input */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center pl-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      Kullanıcı Adı
-                    </label>
-                    <span className="text-[9px] text-gray-400 font-bold">
-                      {profileUsername.length}/26 Karakter (Küçük Harf)
-                    </span>
-                  </div>
-                  <input
-                    required
-                    type="text"
-                    maxLength={26}
-                    placeholder="kullanici_adi"
-                    value={profileUsername}
-                    onChange={(e) => setProfileUsername(e.target.value.toLowerCase().replace(/\s+/g, ""))}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                  />
-                  <p className="text-[9px] text-gray-400 pl-1">
-                    * Yalnızca küçük harf, rakam, nokta (.), tire (-) ve alt çizgi (_) kullanılabilir. Boşluk bırakılamaz.
-                  </p>
-                </div>
-
-                {/* Submit & Cancel Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="flex-1 bg-white hover:bg-gray-50 border border-gray-200 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
-                  >
-                    Vazgeç
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isUpdatingProfile}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 disabled:bg-indigo-400"
-                  >
-                    {isUpdatingProfile ? (
-                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      "Değişiklikleri Kaydet"
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
     </div>
   );
 }
