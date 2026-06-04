@@ -212,3 +212,79 @@ export const addActivityOption = api(
     return { success: true };
   }
 );
+
+// ==================== EDIT & DELETE ENDPOINTS ====================
+
+export interface EditActivityRequest {
+  activityId: string;
+  userId: string;
+  title: string;
+  location: string;
+  timeOption: string;
+  customTime?: string;
+}
+
+export interface EditActivityResponse {
+  success: boolean;
+}
+
+/**
+ * Aktiviteyi düzenler
+ * POST /kim-gelir/edit
+ */
+export const editActivity = api(
+  { expose: true, method: "POST", path: "/kim-gelir/edit" },
+  async (req: EditActivityRequest): Promise<EditActivityResponse> => {
+    const { error } = await supabase
+      .schema("kim_gelir")
+      .from("activities")
+      .update({
+        title: req.title,
+        location: req.location,
+        time_option: req.timeOption,
+        custom_time: req.customTime || null,
+      })
+      .eq("id", req.activityId)
+      .eq("creator_id", req.userId);
+
+    if (error) {
+      console.error("editActivity error:", error);
+      throw APIError.internal(`Failed to edit activity: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+);
+
+export interface DeleteActivityRequest {
+  activityId: string;
+  userId: string;
+}
+
+export interface DeleteActivityResponse {
+  success: boolean;
+}
+
+/**
+ * Aktiviteyi siler
+ * POST /kim-gelir/delete
+ */
+export const deleteActivity = api(
+  { expose: true, method: "POST", path: "/kim-gelir/delete" },
+  async (req: DeleteActivityRequest): Promise<DeleteActivityResponse> => {
+    const { error } = await supabase
+      .schema("kim_gelir")
+      .from("activities")
+      .delete()
+      .eq("id", req.activityId)
+      .eq("creator_id", req.userId);
+
+    if (error) {
+      console.error("deleteActivity error:", error);
+      throw APIError.internal(`Failed to delete activity: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+);
+

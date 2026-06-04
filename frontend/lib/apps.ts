@@ -228,6 +228,17 @@ export const MINI_APPS: MiniApp[] = [
 
   // Entertainment
   {
+    id: "memedex",
+    name: "Memedex",
+    description: "Trend meme'ler, doğru kullanım bağlamları ve hazır Giphy template'leri!",
+    icon: MaskHappy,
+    category: "Entertainment",
+    color: "#d946ef",
+    href: "/apps/memedex",
+    isImplemented: true,
+    subdomain: "memedex",
+  },
+  {
     id: "youtube-series",
     name: "Youtube Discover",
     description: "Yeni seriler keşfet ve izleme listeni yönet",
@@ -260,17 +271,6 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "movies",
   },
-  {
-    id: "memedex",
-    name: "Memedex",
-    description: "Trend meme'ler, doğru kullanım bağlamları ve hazır Giphy template'leri!",
-    icon: MaskHappy,
-    category: "Entertainment",
-    color: "#d946ef",
-    href: "/apps/memedex",
-    isImplemented: true,
-    subdomain: "memedex",
-  },
 
   // Dev & Design
   {
@@ -296,6 +296,39 @@ export const MINI_APPS: MiniApp[] = [
     isLocal: true,
   },
   {
+    id: "sticker-editor",
+    name: "Sticker Maker",
+    description: "WhatsApp için kendi sticker paketlerini tasarla",
+    icon: MaskHappy,
+    category: "Utilities",
+    color: "#25D366",
+    href: "/apps/sticker-editor",
+    isImplemented: true,
+    subdomain: "sticker",
+  },
+  {
+    id: "kim-gelir",
+    name: "Ne Yapsak?",
+    description: "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et ve ortak kararı gör!",
+    icon: Users,
+    category: "Lifestyle",
+    color: "#FF5252",
+    href: "/apps/kim-gelir",
+    isImplemented: true,
+    subdomain: "kimgelir",
+  },
+  {
+    id: "workplaces",
+    name: "Workplaces",
+    description: "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner",
+    icon: Coffee,
+    category: "Lifestyle",
+    color: "#6F4E37",
+    href: "/apps/workplaces",
+    isImplemented: true,
+    subdomain: "workplaces",
+  },
+  {
     id: "kiler",
     name: "Kiler",
     description: "Evdeki stoklarını yönet ve bayatlamadan tüket",
@@ -305,17 +338,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/kiler",
     isImplemented: true,
     subdomain: "kiler",
-  },
-  {
-    id: "sticker-editor",
-    name: "Sticker Maker",
-    description: "WhatsApp için kendi sticker paketlerini tasarla",
-    icon: MaskHappy,
-    category: "Lifestyle",
-    color: "#25D366",
-    href: "/apps/sticker-editor",
-    isImplemented: true,
-    subdomain: "sticker",
   },
   {
     id: "map-tracker",
@@ -394,17 +416,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tasket",
   },
-  {
-    id: "workplaces",
-    name: "Workplaces",
-    description: "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner",
-    icon: Coffee,
-    category: "Lifestyle",
-    color: "#6F4E37",
-    href: "/apps/workplaces",
-    isImplemented: true,
-    subdomain: "workplaces",
-  },
+
   {
     id: "pomodoro",
     name: "Melt & Work",
@@ -417,15 +429,5 @@ export const MINI_APPS: MiniApp[] = [
     isLocal: true,
     subdomain: "melt",
   },
-  {
-    id: "kim-gelir",
-    name: "Ne Yapsak?",
-    description: "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et ve ortak kararı gör!",
-    icon: Users,
-    category: "Lifestyle",
-    color: "#FF5252",
-    href: "/apps/kim-gelir",
-    isImplemented: true,
-    subdomain: "kimgelir",
-  },
+
 ];

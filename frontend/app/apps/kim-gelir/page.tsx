@@ -67,7 +67,7 @@ function KimGelirContent() {
   
   // Quick Invite fields
   const [customTitle, setCustomTitle] = useState("");
-  const [selectedPresetId, setSelectedPresetId] = useState("gym");
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [selectedTimeId, setSelectedTimeId] = useState("now");
   const [customTime, setCustomTime] = useState("");
   const [showPresetModal, setShowPresetModal] = useState(false);
@@ -81,6 +81,84 @@ function KimGelirContent() {
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
+
+  // Details Drawer states
+  const [selectedDetailActivity, setSelectedDetailActivity] = useState<kim_gelir.Activity | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editTimeOption, setEditTimeOption] = useState("");
+  const [editCustomTime, setEditCustomTime] = useState("");
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const handleOpenDetails = (act: kim_gelir.Activity) => {
+    setSelectedDetailActivity(act);
+    setIsEditMode(false);
+    setEditTitle(act.title);
+    setEditLocation(act.location);
+    setEditTimeOption(act.timeOption);
+    setEditCustomTime(act.customTime || "");
+  };
+
+  const handleDeleteActivity = async (activityId: string) => {
+    if (!user) return;
+    if (!confirm("Bu aktiviteyi silmek istediğinize emin misiniz?")) return;
+    try {
+      setDetailLoading(true);
+      await client.kim_gelir.deleteActivity({
+        activityId,
+        userId: user.id
+      });
+      showToastMsg("Aktivite başarıyla silindi.", "success");
+      setSelectedDetailActivity(null);
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      showToastMsg("Aktivite silinemedi.", "error");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleEditActivity = async (activityId: string) => {
+    if (!user) return;
+    if (!editTitle.trim() || !editLocation.trim()) {
+      showToastMsg("Lütfen tüm alanları doldurun.", "error");
+      return;
+    }
+    try {
+      setDetailLoading(true);
+      await client.kim_gelir.editActivity({
+        activityId,
+        userId: user.id,
+        title: editTitle.trim(),
+        location: editLocation.trim(),
+        timeOption: editTimeOption,
+        customTime: editCustomTime.trim() || undefined
+      });
+      showToastMsg("Aktivite başarıyla güncellendi.", "success");
+      setIsEditMode(false);
+      
+      // Update local state directly for responsive interface
+      setActivities(prev =>
+        prev.map(act =>
+          act.id === activityId
+            ? { ...act, title: editTitle.trim(), location: editLocation.trim(), timeOption: editTimeOption, customTime: editCustomTime.trim() || null }
+            : act
+        )
+      );
+      
+      // Also update selectedDetailActivity
+      setSelectedDetailActivity(prev => 
+        prev ? { ...prev, title: editTitle.trim(), location: editLocation.trim(), timeOption: editTimeOption, customTime: editCustomTime.trim() || null } : null
+      );
+    } catch (err) {
+      console.error(err);
+      showToastMsg("Aktivite güncellenemedi.", "error");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const fetchAllData = async () => {
     if (!user) return;
@@ -142,9 +220,13 @@ function KimGelirContent() {
     let finalCustomTime: string | undefined = undefined;
 
     if (activityType === "quick_invite") {
+      if (selectedPresetId === null) {
+        showToastMsg("Lütfen bir aktivite seçin.", "error");
+        return;
+      }
       finalTitle = ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.label || "Aktivite";
       if (selectedPresetId === "" && customTitle.trim()) {
-        finalTitle = customTitle.trim();
+        finalTitle = customTitle;
       } else if (selectedPresetId === "" && !customTitle.trim()) {
         showToastMsg("Lütfen bir aktivite seçin veya yazın.", "error");
         return;
@@ -194,7 +276,7 @@ function KimGelirContent() {
       
       // Reset state
       setCustomTitle("");
-      setSelectedPresetId("gym");
+      setSelectedPresetId(null);
       setSelectedTimeId("now");
       setCustomTime("");
       setLocation("");
@@ -385,6 +467,7 @@ function KimGelirContent() {
                       onRespond={handleRespond}
                       onAddOption={handleAddOptionToPoll}
                       actionLoading={actionLoading}
+                      onOpenDetails={handleOpenDetails}
                     />
                   ))}
                 </div>
@@ -411,6 +494,7 @@ function KimGelirContent() {
                       onRespond={handleRespond}
                       onAddOption={handleAddOptionToPoll}
                       actionLoading={actionLoading}
+                      onOpenDetails={handleOpenDetails}
                     />
                   ))}
                 </div>
@@ -479,15 +563,19 @@ function KimGelirContent() {
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-xl">
-                            {selectedPresetId 
-                              ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.icon || "❓"
-                              : "✍️"}
+                            {selectedPresetId !== null
+                              ? selectedPresetId 
+                                ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.icon || "❓"
+                                : "✍️"
+                              : "🔍"}
                           </span>
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-gray-800">
-                              {selectedPresetId 
-                                ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.label || "Aktivite Seçin..."
-                                : customTitle || "Özel Aktivite"}
+                              {selectedPresetId !== null
+                                ? selectedPresetId 
+                                  ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.label || "Aktivite Seçin..."
+                                  : customTitle || "Özel Aktivite"
+                                : "Aktivite Seçin..."}
                             </span>
                             {location.trim() && (
                               <span className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -496,7 +584,9 @@ function KimGelirContent() {
                             )}
                           </div>
                         </div>
-                        <span className="text-xs font-black text-[#FF6B6B] uppercase tracking-wider">Değiştir</span>
+                        <span className="text-xs font-black text-[#FF6B6B] uppercase tracking-wider">
+                          {selectedPresetId !== null ? "Değiştir" : "Seç"}
+                        </span>
                       </button>
                     </div>
 
@@ -602,8 +692,13 @@ function KimGelirContent() {
                 <div className="pt-4 shrink-0">
                   <button
                     type="submit"
-                    disabled={modalLoading || friends.length === 0}
-                    className="w-full py-4 bg-[#FF6B6B] hover:bg-[#ff5252] disabled:opacity-50 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-md shadow-red-100"
+                    disabled={
+                      modalLoading || 
+                      selectedFriendIds.length === 0 ||
+                      (activityType === "quick_invite" && selectedPresetId === null) ||
+                      (activityType === "plan_poll" && !pollTitle.trim())
+                    }
+                    className="w-full py-4 bg-[#FF6B6B] hover:bg-[#ff5252] disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-md shadow-red-100"
                   >
                     {modalLoading ? (
                       <Spinner size={18} className="animate-spin" />
@@ -1096,6 +1191,170 @@ function KimGelirContent() {
         </Drawer.Portal>
       </Drawer.Root>
 
+      {/* DETAILS DRAWER */}
+      <Drawer.Root open={!!selectedDetailActivity} onOpenChange={(open) => { if (!open) setSelectedDetailActivity(null); }}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[92dvh] outline-none z-[70] max-w-md mx-auto border-t border-gray-100 shadow-2xl flex flex-col">
+            {selectedDetailActivity && (
+              <div className="p-6 flex-1 overflow-y-auto flex flex-col">
+                <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-200 mb-4" />
+
+                <header className="flex justify-between items-center mb-6 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Drawer.Title className="font-black text-xl text-gray-900">
+                      {isEditMode ? "Daveti Düzenle" : "Davet Detayı"}
+                    </Drawer.Title>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedDetailActivity(null)}
+                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                  >
+                    <X size={20} weight="bold" />
+                  </button>
+                </header>
+
+                {isEditMode ? (
+                  /* EDIT MODE FORM */
+                  <div className="space-y-5 flex-1 overflow-y-auto pr-1">
+                    <div className="space-y-2">
+                      <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">Başlık</label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-150 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-[#FF6B6B] font-bold text-gray-800"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">Konum / Mekan</label>
+                      <input
+                        type="text"
+                        value={editLocation}
+                        onChange={(e) => setEditLocation(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-150 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-[#FF6B6B] font-bold text-gray-800"
+                      />
+                    </div>
+
+                    {selectedDetailActivity.activityType === "quick_invite" && (
+                      <div className="space-y-2">
+                        <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">Zaman</label>
+                        <input
+                          type="text"
+                          value={editTimeOption}
+                          onChange={(e) => setEditTimeOption(e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-150 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-[#FF6B6B] font-bold text-gray-800"
+                          placeholder="Zaman bilgisi (örn: Şimdi, Akşam 20:00...)"
+                        />
+                      </div>
+                    )}
+
+                    <div className="pt-4 flex gap-3 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleEditActivity(selectedDetailActivity.id)}
+                        disabled={detailLoading}
+                        className="flex-1 py-3.5 bg-[#FF6B6B] hover:bg-[#ff5252] disabled:opacity-50 text-white rounded-2xl font-bold text-xs transition-all active:scale-95 cursor-pointer text-center"
+                      >
+                        {detailLoading ? "Kaydediliyor..." : "Kaydet"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditMode(false)}
+                        className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-bold text-xs transition-all active:scale-95 cursor-pointer text-center"
+                      >
+                        Vazgeç
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* DETAILS VIEW */
+                  <div className="space-y-6 flex-1 overflow-y-auto pr-1">
+                    {/* Event summary card */}
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#FF6B6B]/10 text-[#FF6B6B]">
+                          {selectedDetailActivity.activityType === "quick_invite" ? "Hızlı Plan" : "Anketli Plan"}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold">
+                          Oluşturan: {selectedDetailActivity.creatorId === user.id ? "Ben" : selectedDetailActivity.creatorUsername || "Arkadaşın"}
+                        </span>
+                      </div>
+                      <h3 className="font-black text-xl text-gray-900 leading-tight">
+                        {selectedDetailActivity.title}
+                      </h3>
+                      
+                      <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
+                        {selectedDetailActivity.activityType === "quick_invite" && (
+                          <div className="flex items-center gap-2 text-xs text-gray-600 font-semibold">
+                            <Clock size={16} className="text-[#FF6B6B]" />
+                            <span>{selectedDetailActivity.timeOption}{selectedDetailActivity.customTime ? ` (${selectedDetailActivity.customTime})` : ""}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-semibold">
+                          <MapPin size={16} className="text-[#FF6B6B]" />
+                          <span>{selectedDetailActivity.location}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Participant statuses details list */}
+                    <div className="space-y-4">
+                      <h4 className="font-extrabold text-xs text-gray-400 uppercase tracking-wider px-1">Katılımcı Durumları</h4>
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {selectedDetailActivity.responses.map(resp => (
+                          <div key={resp.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100 text-xs font-bold">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-lg bg-gray-200 overflow-hidden shrink-0">
+                                {resp.avatar ? <img src={resp.avatar} alt="" className="w-full h-full object-cover" /> : "👤"}
+                              </div>
+                              <span className="text-gray-800">{resp.userId === user.id ? "Ben" : resp.username || "Katılımcı"}</span>
+                            </div>
+
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              resp.status === "gelirim" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                              resp.status === "belki" ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                              resp.status === "gelemem" ? "bg-rose-50 text-rose-600 border border-rose-100" :
+                              "bg-gray-100 text-gray-500"
+                            }`}>
+                              {resp.status === "gelirim" ? "Geliyor" :
+                               resp.status === "belki" ? "Belki" :
+                               resp.status === "gelemem" ? "Gelemiyor" : "Bekliyor"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* OWNER ACTIONS */}
+                    {selectedDetailActivity.creatorId === user.id && (
+                      <div className="pt-4 border-t border-gray-100 flex gap-3 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditMode(true)}
+                          className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold text-xs transition-all active:scale-95 cursor-pointer text-center"
+                        >
+                          Düzenle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteActivity(selectedDetailActivity.id)}
+                          disabled={detailLoading}
+                          className="flex-1 py-3.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-2xl font-bold text-xs transition-all active:scale-95 cursor-pointer text-center"
+                        >
+                          {detailLoading ? "Siliniyor..." : "Sil"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] pointer-events-none">
@@ -1119,9 +1378,10 @@ interface ActivityCardProps {
   onRespond: (activityId: string, status: string, selectedOptions: string[]) => Promise<void>;
   onAddOption: (activityId: string, optionText: string) => Promise<void>;
   actionLoading: string | null;
+  onOpenDetails: (activity: kim_gelir.Activity) => void;
 }
 
-function ActivityCard({ activity, currentUserId, onRespond, onAddOption, actionLoading }: ActivityCardProps) {
+function ActivityCard({ activity, currentUserId, onRespond, onAddOption, actionLoading, onOpenDetails }: ActivityCardProps) {
   const isPoll = activity.activityType === "plan_poll" || activity.activityType === "time_poll";
   const [showAddInput, setShowAddInput] = useState(false);
   const [optionText, setOptionText] = useState("");
@@ -1169,10 +1429,18 @@ function ActivityCard({ activity, currentUserId, onRespond, onAddOption, actionL
           </div>
         </div>
         
-        {/* Activity Type Badge */}
-        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-          {activity.activityType === "quick_invite" ? "Hızlı Plan" : activity.activityType === "plan_poll" ? "Plan Anketi" : "Zaman Anketi"}
-        </span>
+        {/* Actions & Badge */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button 
+            onClick={() => onOpenDetails(activity)}
+            className="text-[9px] font-black text-[#FF6B6B] hover:text-[#ff5252] bg-rose-50 hover:bg-rose-100/70 px-2 py-1 rounded-lg uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+          >
+            Detaylar
+          </button>
+          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-lg bg-gray-100 text-gray-500">
+            {activity.activityType === "quick_invite" ? "Hızlı Plan" : activity.activityType === "plan_poll" ? "Plan Anketi" : "Zaman Anketi"}
+          </span>
+        </div>
       </div>
 
       {/* Activity Details Card */}

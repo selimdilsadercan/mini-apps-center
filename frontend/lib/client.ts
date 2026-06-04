@@ -1425,6 +1425,28 @@ export namespace kim_gelir {
         activityId: string
     }
 
+    export interface DeleteActivityRequest {
+        activityId: string
+        userId: string
+    }
+
+    export interface DeleteActivityResponse {
+        success: boolean
+    }
+
+    export interface EditActivityRequest {
+        activityId: string
+        userId: string
+        title: string
+        location: string
+        timeOption: string
+        customTime?: string
+    }
+
+    export interface EditActivityResponse {
+        success: boolean
+    }
+
     export interface GetActivitiesResponse {
         activities: Activity[]
     }
@@ -1447,6 +1469,8 @@ export namespace kim_gelir {
             this.baseClient = baseClient
             this.addActivityOption = this.addActivityOption.bind(this)
             this.createActivity = this.createActivity.bind(this)
+            this.deleteActivity = this.deleteActivity.bind(this)
+            this.editActivity = this.editActivity.bind(this)
             this.getActivities = this.getActivities.bind(this)
             this.respondToActivity = this.respondToActivity.bind(this)
         }
@@ -1469,6 +1493,26 @@ export namespace kim_gelir {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/create`, JSON.stringify(params))
             return await resp.json() as CreateActivityResponse
+        }
+
+        /**
+         * Aktiviteyi siler
+         * POST /kim-gelir/delete
+         */
+        public async deleteActivity(params: DeleteActivityRequest): Promise<DeleteActivityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/delete`, JSON.stringify(params))
+            return await resp.json() as DeleteActivityResponse
+        }
+
+        /**
+         * Aktiviteyi düzenler
+         * POST /kim-gelir/edit
+         */
+        public async editActivity(params: EditActivityRequest): Promise<EditActivityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/edit`, JSON.stringify(params))
+            return await resp.json() as EditActivityResponse
         }
 
         /**
