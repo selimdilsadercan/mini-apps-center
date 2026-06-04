@@ -1,0 +1,35 @@
+{
+  "title": "Daily Weather",
+  "subtitle": "Morning Istanbul weather notifications",
+  "loadingWeather": "Loading weather…",
+  "cityBadge": "Istanbul",
+  "today": "Today",
+  "previewNote": "Preview data — live API coming soon.",
+  "stats": {
+    "humidity": "Humidity",
+    "wind": "Wind"
+  },
+  "notifications": {
+    "title": "Morning notification",
+    "description": "Get a daily weather summary at your chosen time.",
+    "enabled": "On",
+    "disabled": "Off",
+    "hourLabel": "Notification time",
+    "timeHint": "Enter hour and minute (e.g. 07:30)",
+    "inspectMenu": "Inspect",
+    "sendTest": "Send test notification",
+    "showPayload": "View payload",
+    "testSent": "Test notification ready",
+    "testFailed": "Test failed",
+    "inspectTitle": "Notification payload (inspect)",
+    "noPayloadYet": "No test yet — send one from the Inspect menu.",
+    "devices": "{count} registered device(s)",
+    "previewTitle": "Notification preview",
+    "permissionHint": "On the mobile app, grant notification permission to receive pushes.",
+    "requestPermission": "Enable notifications",
+    "signInRequired": "Sign in to save your preferences.",
+    "saved": "Preferences saved.",
+    "saveFailed": "Could not save preferences.",
+    "invalidTime": "Enter a valid time (e.g. 07:30)"
+  }
+}

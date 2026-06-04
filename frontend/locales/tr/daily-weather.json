@@ -1,0 +1,35 @@
+{
+  "title": "Daily Weather",
+  "subtitle": "Her sabah İstanbul hava durumu bildirimi",
+  "loadingWeather": "Hava durumu yükleniyor…",
+  "cityBadge": "İstanbul",
+  "today": "Bugün",
+  "previewNote": "Önizleme verisi — gerçek API yakında bağlanacak.",
+  "stats": {
+    "humidity": "Nem",
+    "wind": "Rüzgâr"
+  },
+  "notifications": {
+    "title": "Sabah bildirimi",
+    "description": "Seçtiğin saatte günlük hava özetini al.",
+    "enabled": "Açık",
+    "disabled": "Kapalı",
+    "hourLabel": "Bildirim saati",
+    "timeHint": "Saat ve dakikayı gir (ör. 07:30)",
+    "inspectMenu": "İncele",
+    "sendTest": "Test bildirimi gönder",
+    "showPayload": "Gönderilen veri",
+    "testSent": "Test bildirimi hazır",
+    "testFailed": "Test gönderilemedi",
+    "inspectTitle": "Bildirim verisi (incele)",
+    "noPayloadYet": "Henüz test yok — İncele menüsünden test gönder.",
+    "devices": "{count} kayıtlı cihaz",
+    "previewTitle": "Bildirim önizlemesi",
+    "permissionHint": "Mobil uygulamada bildirim izni vererek push alabilirsin.",
+    "requestPermission": "Bildirim izni ver",
+    "signInRequired": "Tercihleri kaydetmek için giriş yap.",
+    "saved": "Tercihler kaydedildi.",
+    "saveFailed": "Tercihler kaydedilemedi.",
+    "invalidTime": "Geçerli bir saat gir (ör. 07:30)"
+  }
+}

@@ -43,18 +43,22 @@ export default function FeedPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"foryou" | "friends" | "all">("foryou");
   const [events, setEvents] = useState<feed.FeedEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const fetchFeed = async (scope: "foryou" | "friends" | "all") => {
-    if (!user) return;
+  const feedLoadKey = !isLoaded
+    ? "clerk-loading"
+    : user?.id ?? "signed-out";
+
+  const fetchFeed = async (scope: "foryou" | "friends" | "all", userId: string) => {
     try {
       setLoading(true);
-      const res = await client.feed.getFeed(user.id, { scope });
+      const res = await client.feed.getFeed(userId, { scope });
       setEvents(res.events || []);
     } catch (err) {
       console.error("Error fetching feed:", err);
+      setEvents([]);
       showToastMsg("Akış yüklenirken bir hata oluştu.", "error");
     } finally {
       setLoading(false);
@@ -62,10 +66,14 @@ export default function FeedPage() {
   };
 
   useEffect(() => {
-    if (isLoaded && user) {
-      fetchFeed(activeTab);
+    if (feedLoadKey === "clerk-loading") return;
+    if (feedLoadKey === "signed-out") {
+      setEvents([]);
+      setLoading(false);
+      return;
     }
-  }, [isLoaded, user, activeTab]);
+    void fetchFeed(activeTab, feedLoadKey);
+  }, [feedLoadKey, activeTab]);
 
   const showToastMsg = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -94,7 +102,7 @@ export default function FeedPage() {
     }
   };
 
-  if (!isLoaded || loading) {
+  if (!isLoaded) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
@@ -148,7 +156,11 @@ export default function FeedPage() {
 
       <main className="flex-1 px-4 max-w-md mx-auto w-full pt-4">
 
-        {events.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Spinner size={32} className="text-blue-600 animate-spin" />
+          </div>
+        ) : events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
               <Compass size={36} weight="duotone" />

@@ -36,6 +36,7 @@ export default class Client {
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
+    public readonly daily_weather: daily_weather.ServiceClient
     public readonly feed: feed.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
@@ -75,6 +76,7 @@ export default class Client {
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
+        this.daily_weather = new daily_weather.ServiceClient(base)
         this.feed = new feed.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
@@ -746,6 +748,129 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/concerts/${encodeURIComponent(userId)}`)
             return await resp.json() as GetConcertsResponse
+        }
+    }
+}
+
+export namespace daily_weather {
+    export interface GetPreferencesResponse {
+        preferences: WeatherPreferences
+    }
+
+    export interface GetWeatherRequest {
+        city?: string
+        locale?: string
+    }
+
+    export interface GetWeatherResponse {
+        weather: WeatherSnapshot
+    }
+
+    export interface TestNotificationRequest {
+        userId: string
+        locale?: string
+    }
+
+    export interface TestNotificationResponse {
+        payload: WeatherNotificationPayload
+        deviceCount: number
+        pushSent: boolean
+        message: string
+    }
+
+    export interface UpsertPreferencesRequest {
+        userId: string
+        notificationsEnabled: boolean
+        notifyHour: number
+        notifyMinute?: number
+        city?: string
+    }
+
+    export interface UpsertPreferencesResponse {
+        preferences: WeatherPreferences
+    }
+
+    export type WeatherIcon = "sun" | "cloud" | "rain" | "partly"
+
+    export interface WeatherNotificationPayload {
+        title: string
+        body: string
+        data: {
+            type: "daily_weather"
+            city: string
+            notifyHour: number
+            notifyMinute: number
+            tempC: number
+            tempMinC: number
+            tempMaxC: number
+            condition: string
+            sentAt: string
+        }
+    }
+
+    export interface WeatherPreferences {
+        "user_clerk_id": string
+        "notifications_enabled": boolean
+        "notify_hour": number
+        "notify_minute": number
+        city: string
+        "created_at": string
+        "updated_at": string
+    }
+
+    export interface WeatherSnapshot {
+        city: string
+        dateLabel: string
+        condition: string
+        tempC: number
+        tempMinC: number
+        tempMaxC: number
+        humidity: number
+        windKmh: number
+        icon: WeatherIcon
+        weatherCode: number
+        fetchedAt: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getPreferences = this.getPreferences.bind(this)
+            this.getWeather = this.getWeather.bind(this)
+            this.sendTestNotification = this.sendTestNotification.bind(this)
+            this.upsertPreferences = this.upsertPreferences.bind(this)
+        }
+
+        public async getPreferences(userId: string): Promise<GetPreferencesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/daily-weather/preferences/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetPreferencesResponse
+        }
+
+        public async getWeather(params: GetWeatherRequest): Promise<GetWeatherResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:   params.city,
+                locale: params.locale,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/daily-weather/weather`, undefined, {query})
+            return await resp.json() as GetWeatherResponse
+        }
+
+        public async sendTestNotification(params: TestNotificationRequest): Promise<TestNotificationResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/daily-weather/test-notification`, JSON.stringify(params))
+            return await resp.json() as TestNotificationResponse
+        }
+
+        public async upsertPreferences(params: UpsertPreferencesRequest): Promise<UpsertPreferencesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/daily-weather/preferences`, JSON.stringify(params))
+            return await resp.json() as UpsertPreferencesResponse
         }
     }
 }

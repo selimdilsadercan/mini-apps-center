@@ -99,6 +99,9 @@ export const getFeed = api(
     let query = supabase.schema("public").from("feed_events").select("*");
 
     if (req.scope === "friends") {
+      if (friendIds.length === 0) {
+        return { events: [] };
+      }
       query = query.in("user_id", friendIds);
     } else if (req.scope === "all") {
       // All platform events - no user filter

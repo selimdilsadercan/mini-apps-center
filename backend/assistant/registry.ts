@@ -4,6 +4,7 @@ import type {
 } from "../lib/assistant-types";
 import { AssistantToolError } from "../lib/assistant-tool-error";
 import { chocolateDbAssistant } from "../chocolate-db/assistant";
+import { dailyWeatherAssistant } from "../daily-weather/assistant";
 import { concertListAssistant } from "../concert-list/assistant";
 import { friendshipAssistant } from "../friendship/assistant";
 import { hobbyCenterAssistant } from "../hobby-center/assistant";
@@ -49,6 +50,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   pomodoroAssistant,
   kimGelirAssistant,
   feedAssistant,
+  dailyWeatherAssistant,
 ];
 
 const assistantByAppId = new Map(

@@ -212,6 +212,10 @@
     "emptyAction": "Abonelik Ekle"
   },
   "apps": {
+    "daily-weather": {
+      "name": "Daily Weather",
+      "description": "Her sabah İstanbul hava durumu bildirimi al"
+    },
     "tasarruf-challenges": {
       "name": "Tasarruf",
       "description": "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!"

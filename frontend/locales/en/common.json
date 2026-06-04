@@ -216,6 +216,10 @@
     "emptyAction": "Add Subscription"
   },
   "apps": {
+    "daily-weather": {
+      "name": "Daily Weather",
+      "description": "Get a morning Istanbul weather notification"
+    },
     "tasarruf-challenges": {
       "name": "Savings Challenges",
       "description": "Track saving suggestions, reduce spending, and achieve your goals!"

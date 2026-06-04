@@ -21,6 +21,11 @@ export default function Profile() {
   const [loadingDb, setLoadingDb] = useState(true);
   const [hasFriendsBadge, setHasFriendsBadge] = useState(false);
 
+  // Tek elemanlı sabit deps: isLoaded + oturum durumu (HMR'da dizi boyutu değişmesin)
+  const profileLoadKey = !isLoaded
+    ? "clerk-loading"
+    : user?.id ?? "signed-out";
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setHasFriendsBadge(localStorage.getItem("has_pending_requests") === "true");
@@ -37,36 +42,53 @@ export default function Profile() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      // Fetch database user to show correct username handle & full name
-      client.users.getUserByClerkId(user.id)
-        .then(res => {
-          if (res.user) {
-            setDbUser(res.user);
-          }
-        })
-        .catch(err => console.error("Error loading user profile handle:", err))
-        .finally(() => setLoadingDb(false));
+    if (!isLoaded) return;
 
-      // Fetch friends list to get total friends count
-      client.friendship.getFriends(user.id)
-        .then(res => {
-          if (res.friends) {
-            setFriendsCount(res.friends.length);
-          }
-        })
-        .catch(err => console.error("Error loading friends count:", err));
-
-      // Fetch user preferences/active apps count
-      client.users.getUserPreferences(user.id)
-        .then(res => {
-          if (res.appOrder) {
-            setActiveAppsCount(res.appOrder.length);
-          }
-        })
-        .catch(err => console.error("Error loading active apps count:", err));
+    if (!user) {
+      setDbUser(null);
+      setFriendsCount(0);
+      setActiveAppsCount(0);
+      setLoadingDb(false);
+      return;
     }
-  }, [user]);
+
+    let cancelled = false;
+    setLoadingDb(true);
+
+    client.users
+      .getUserByClerkId(user.id)
+      .then((res) => {
+        if (!cancelled) {
+          setDbUser(res.user ?? null);
+        }
+      })
+      .catch((err) => console.error("Error loading user profile handle:", err))
+      .finally(() => {
+        if (!cancelled) setLoadingDb(false);
+      });
+
+    client.friendship
+      .getFriends(user.id)
+      .then((res) => {
+        if (!cancelled && res.friends) {
+          setFriendsCount(res.friends.length);
+        }
+      })
+      .catch((err) => console.error("Error loading friends count:", err));
+
+    client.users
+      .getUserPreferences(user.id)
+      .then((res) => {
+        if (!cancelled && res.appOrder) {
+          setActiveAppsCount(res.appOrder.length);
+        }
+      })
+      .catch((err) => console.error("Error loading active apps count:", err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileLoadKey]);
 
   if (!isLoaded || loadingDb) {
     return (
