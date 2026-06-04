@@ -448,4 +448,15 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tasarruf",
   },
+  {
+    id: "suggest",
+    name: "Suggest",
+    description: "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et. Durumlarını takip et!",
+    icon: Compass,
+    category: "Lifestyle",
+    color: "#6366f1",
+    href: "/apps/suggest",
+    isImplemented: true,
+    subdomain: "suggest",
+  },
 ];

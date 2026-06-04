@@ -50,6 +50,7 @@ export default class Client {
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
+    public readonly suggest: suggest.ServiceClient
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
@@ -88,6 +89,7 @@ export default class Client {
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
+        this.suggest = new suggest.ServiceClient(base)
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
@@ -2237,6 +2239,166 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/subcenter/${encodeURIComponent(id)}`, JSON.stringify(params))
             return await resp.json() as UpdateSubscriptionResponse
+        }
+    }
+}
+
+export namespace suggest {
+    export interface CreateSuggestionRequest {
+        senderClerkId: string
+        category: SuggestionCategory
+        title: string
+        shortNote?: string
+        rating?: number
+        externalLink?: string
+        imageUrl?: string
+        recipientClerkIds: string[]
+    }
+
+    export interface CreateSuggestionResponse {
+        success: boolean
+        suggestionId?: string
+        recipientsAdded?: number
+    }
+
+    export interface DetailResponse {
+        suggestion: SuggestionDetail | null
+    }
+
+    export interface InboxResponse {
+        suggestions: InboxSuggestion[]
+    }
+
+    export interface InboxSuggestion {
+        "suggestion_id": string
+        "sender_clerk_id": string
+        "sender_username": string | null
+        "sender_avatar": string | null
+        status: RecipientStatus
+        "updated_at": string
+        id: string
+        category: SuggestionCategory
+        title: string
+        "short_note": string | null
+        rating: number | null
+        "external_link": string | null
+        "image_url": string | null
+        "created_at": string
+    }
+
+    export interface RecipientInfo {
+        "recipient_clerk_id": string
+        "recipient_username": string | null
+        "recipient_avatar": string | null
+        status: RecipientStatus
+        "updated_at": string
+    }
+
+    export type RecipientStatus = "pending" | "saved" | "completed" | "ignored"
+
+    export interface SentResponse {
+        suggestions: SentSuggestion[]
+    }
+
+    export interface SentSuggestion {
+        recipients: RecipientInfo[]
+        id: string
+        category: SuggestionCategory
+        title: string
+        "short_note": string | null
+        rating: number | null
+        "external_link": string | null
+        "image_url": string | null
+        "created_at": string
+    }
+
+    export type SuggestionCategory = "movie" | "tv" | "game" | "place"
+
+    export interface SuggestionDetail {
+        "sender_clerk_id": string
+        "sender_username": string | null
+        "sender_avatar": string | null
+        "recipient_status": RecipientStatus | null
+        id: string
+        category: SuggestionCategory
+        title: string
+        "short_note": string | null
+        rating: number | null
+        "external_link": string | null
+        "image_url": string | null
+        "created_at": string
+    }
+
+    export interface UpdateStatusRequest {
+        recipientClerkId: string
+        suggestionId: string
+        status: RecipientStatus
+    }
+
+    export interface UpdateStatusResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createSuggestion = this.createSuggestion.bind(this)
+            this.getInbox = this.getInbox.bind(this)
+            this.getSent = this.getSent.bind(this)
+            this.getSuggestionDetail = this.getSuggestionDetail.bind(this)
+            this.updateStatus = this.updateStatus.bind(this)
+        }
+
+        /**
+         * Yeni bir öneri oluşturur ve alıcılara gönderir
+         * POST /suggest/create
+         */
+        public async createSuggestion(params: CreateSuggestionRequest): Promise<CreateSuggestionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/create`, JSON.stringify(params))
+            return await resp.json() as CreateSuggestionResponse
+        }
+
+        /**
+         * Kullanıcıya gelen tüm önerileri listeler (Inbox)
+         * GET /suggest/inbox/:userId
+         */
+        public async getInbox(userId: string): Promise<InboxResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/inbox/${encodeURIComponent(userId)}`)
+            return await resp.json() as InboxResponse
+        }
+
+        /**
+         * Kullanıcının gönderdiği tüm önerileri ve alıcıların durumunu listeler (Sent)
+         * GET /suggest/sent/:userId
+         */
+        public async getSent(userId: string): Promise<SentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/sent/${encodeURIComponent(userId)}`)
+            return await resp.json() as SentResponse
+        }
+
+        /**
+         * Öneri detayını getirir (Gönderen veya Alıcı görebilir)
+         * GET /suggest/detail/:id/:userId
+         */
+        public async getSuggestionDetail(id: string, userId: string): Promise<DetailResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/detail/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as DetailResponse
+        }
+
+        /**
+         * Bir önerinin alıcı durumunu günceller (Save, Completed, Ignore, etc.)
+         * POST /suggest/status
+         */
+        public async updateStatus(params: UpdateStatusRequest): Promise<UpdateStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/status`, JSON.stringify(params))
+            return await resp.json() as UpdateStatusResponse
         }
     }
 }
