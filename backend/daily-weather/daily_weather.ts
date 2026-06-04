@@ -7,6 +7,7 @@ import {
   fetchWeatherSnapshot,
   type WeatherSnapshot,
 } from "./weather_provider";
+import { sendWeatherPush } from "./push";
 
 export type { WeatherSnapshot } from "./weather_provider";
 
@@ -243,25 +244,12 @@ export const sendTestNotification = api(
     const weather = await fetchWeatherSnapshot(prefs.city, lang);
     const payload = buildNotificationPayload(prefs, weather, lang);
 
-    const { data: tokens, error: tokenError } = await supabase
-      .from("user_fcm_tokens")
-      .select("fcm_token")
-      .eq("clerk_id", userId);
-
-    if (tokenError) {
-      console.error("sendTestNotification tokens:", tokenError);
-    }
-
-    const deviceCount = tokens?.length ?? 0;
-
-    return {
+    const { deviceCount, pushSent, message } = await sendWeatherPush(
+      supabase,
+      userId,
       payload,
-      deviceCount,
-      pushSent: false,
-      message:
-        deviceCount > 0
-          ? "Test payload hazır. Mobil push henüz bağlanmadı."
-          : "Test payload hazır. Kayıtlı cihaz token'ı yok.",
-    };
+    );
+
+    return { payload, deviceCount, pushSent, message };
   },
 );

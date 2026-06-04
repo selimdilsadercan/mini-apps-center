@@ -18,6 +18,7 @@
     "timeHint": "Saat ve dakikayı gir (ör. 07:30)",
     "inspectMenu": "İncele",
     "sendTest": "Test bildirimi gönder",
+    "sendingTest": "Gönderiliyor…",
     "showPayload": "Gönderilen veri",
     "testSent": "Test bildirimi hazır",
     "testFailed": "Test gönderilemedi",

@@ -18,6 +18,7 @@
     "timeHint": "Enter hour and minute (e.g. 07:30)",
     "inspectMenu": "Inspect",
     "sendTest": "Send test notification",
+    "sendingTest": "Sending…",
     "showPayload": "View payload",
     "testSent": "Test notification ready",
     "testFailed": "Test failed",

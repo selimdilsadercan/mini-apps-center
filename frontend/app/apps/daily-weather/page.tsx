@@ -43,10 +43,11 @@ export default function DailyWeatherPage() {
   const { locale } = useLanguage();
   const t = useTranslations("dailyWeather");
   const { user, isLoaded: isUserLoaded } = useUser();
-  const { permission, handleRequestPermission, loading: permissionLoading } =
+  const { permission, handleRequestPermission, loading: permissionLoading, refreshSetup } =
     useNotifications();
 
   const [enabled, setEnabled] = useState(true);
+  const [testSending, setTestSending] = useState(false);
   const [notifyHour, setNotifyHour] = useState(7);
   const [notifyMinute, setNotifyMinute] = useState(0);
   const [prefsLoading, setPrefsLoading] = useState(false);
@@ -100,6 +101,12 @@ export default function DailyWeatherPage() {
     typeof window !== "undefined" &&
     (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
       ?.isNativePlatform?.();
+
+  useEffect(() => {
+    if (isUserLoaded && user && isNative) {
+      void refreshSetup();
+    }
+  }, [isUserLoaded, user, isNative, refreshSetup]);
 
   const loadPreferences = useCallback(async () => {
     if (!user) {
@@ -181,6 +188,35 @@ export default function DailyWeatherPage() {
     setNotifyMinute(minute);
     if (saving) return;
     await persistPreferences(enabled, hour, minute);
+  };
+
+  const handleTestNotification = async () => {
+    if (!user) {
+      toast.error(t("notifications.signInRequired"));
+      return;
+    }
+    if (isNative && permission !== "granted") {
+      toast.error(t("notifications.permissionHint"));
+      return;
+    }
+    try {
+      setTestSending(true);
+      const client = createBrowserClient();
+      const res = await client.daily_weather.sendTestNotification({
+        userId: user.id,
+        locale: lang,
+      });
+      if (res.pushSent) {
+        toast.success(res.message || t("notifications.testSent"));
+      } else {
+        toast.error(res.message || t("notifications.testFailed"));
+      }
+    } catch (err) {
+      console.error("handleTestNotification:", err);
+      toast.error(t("notifications.testFailed"));
+    } finally {
+      setTestSending(false);
+    }
   };
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
@@ -324,6 +360,18 @@ export default function DailyWeatherPage() {
               </select>
             </div>
           </div>
+
+          {user && (
+            <button
+              type="button"
+              disabled={testSending || (isNative && permission !== "granted")}
+              onClick={() => void handleTestNotification()}
+              className="w-full flex items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-100 font-semibold py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Bell size={18} weight="fill" />
+              {testSending ? t("notifications.sendingTest") : t("notifications.sendTest")}
+            </button>
+          )}
 
           {isNative && permission !== "granted" && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">

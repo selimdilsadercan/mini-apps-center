@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS daily_weather.preferences (
     notify_hour INTEGER NOT NULL DEFAULT 7 CHECK (notify_hour >= 0 AND notify_hour <= 23),
     notify_minute INTEGER NOT NULL DEFAULT 0 CHECK (notify_minute >= 0 AND notify_minute <= 59),
     city TEXT NOT NULL DEFAULT 'Istanbul',
+    last_notified_date DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
