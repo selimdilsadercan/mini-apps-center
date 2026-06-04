@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import React, { useEffect, useRef, useState } from "react";
 import { registerPlugin, Capacitor } from "@capacitor/core";
@@ -207,7 +207,7 @@ export default function StickerEditorPage() {
       {/* Header */}
       <header className="p-4 border-b border-white/10 flex items-center justify-between bg-black/50 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <Link href={getRootHomeUrl()}>
+          <Link href={getAppRootUrl()}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-5 h-5" />
             </Button>

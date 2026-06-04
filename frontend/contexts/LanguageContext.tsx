@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import trMessages from "@/locales/tr/index";
+import { setCookie, getCookie } from "@/lib/cookies";
 
 type Locale = "tr" | "en";
 
@@ -25,7 +26,7 @@ export function LanguageProvider({ children, messages: initialMessages }: { chil
       const newMessages = (await import(`@/locales/${newLocale}/index`)).default;
       setLocaleState(newLocale);
       setMessages(newMessages);
-      localStorage.setItem("everything_locale", newLocale);
+      setCookie("everything_locale", newLocale);
       document.documentElement.lang = newLocale;
     } catch (e) {
       console.error("Failed to load messages", e);
@@ -34,7 +35,7 @@ export function LanguageProvider({ children, messages: initialMessages }: { chil
 
   useEffect(() => {
     const initLanguage = async () => {
-      const savedLocale = localStorage.getItem("everything_locale") as Locale;
+      const savedLocale = getCookie("everything_locale") as Locale;
       let initialLocale: Locale = "tr";
 
       if (savedLocale && (savedLocale === "tr" || savedLocale === "en")) {

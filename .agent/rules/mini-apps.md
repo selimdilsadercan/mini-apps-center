@@ -87,4 +87,17 @@ This guide documents the mandatory conventions and structure for adding new appl
   ```
 
 ## ✨ UI/UX Standards
-- use tailwind always
+- Use **Tailwind CSS** for all styling.
+- **Navigation:**
+    - Every mini-app must have a "Back" button that redirects to the user's personal hub.
+    - **Rule:** Use `window.location.href = getAppRootUrl()` for the back button. Import `getAppRootUrl` from `@/lib/apps`.
+    - Do NOT use `router.back()` or `getRootHomeUrl()` as they might not work correctly across subdomains.
+- **Not Found Page:**
+    - A global `frontend/app/not-found.tsx` is implemented to redirect any invalid paths back to the root domain's home page.
+
+## 🌍 Localization (i18n)
+- **Cross-Subdomain Persistence:** 
+    - Language selection (locale) is shared across all subdomains (e.g., `my.allminiapps.com`, `tasarruf.allminiapps.com`).
+    - This is achieved using a cookie named `everything_locale` scoped to the root domain (`.allminiapps.com`).
+    - **Usage:** Always use the `useLanguage` hook and `LanguageProvider` to manage and access the current locale.
+    - **Implementation Detail:** The `setLocale` function in `LanguageContext.tsx` automatically handles setting this cross-subdomain cookie.
