@@ -754,8 +754,8 @@ function AddPostForm({
 
               <header className="flex justify-between items-center mb-6 shrink-0">
                 <div>
-                  <Drawer.Title className="font-black text-xl text-gray-900">Tasarruf Türü Seç</Drawer.Title>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">Yaptığın tasarrufa en uygun türü seç</p>
+                  <Drawer.Title className="font-black text-xl text-gray-900">{t("selectSavingType")}</Drawer.Title>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">{t("selectSavingTypeSubtitle")}</p>
                 </div>
                 <button
                   onClick={() => setShowOptionModal(false)}

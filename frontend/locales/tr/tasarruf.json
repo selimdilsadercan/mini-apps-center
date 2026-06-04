@@ -69,7 +69,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "95"
           }
         },
         "postTemplate": "{count} kahve almadım, {amountSaved} TL cepte kaldı.",
@@ -85,7 +87,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "25"
           }
         },
         "postTemplate": "{count} çay almadım, {amountSaved} TL cepte kaldı.",
@@ -101,7 +105,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "220"
           }
         },
         "postTemplate": "{mealCount} öğün dışarıdan söylemedim, {amountSaved} TL cepte kaldı.",
@@ -117,7 +123,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "180"
           }
         },
         "postTemplate": "{dayCount} gün evden yemek götürdüm, {amountSaved} TL cepte kaldı.",
@@ -133,7 +141,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "15"
           }
         },
         "postTemplate": "{bottleCount} şişe su almadım, {amountSaved} TL cepte kaldı.",
@@ -149,7 +159,9 @@
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Geri kazanılan para"
+            "label": "Geri kazanılan para",
+            "unit": "TL",
+            "placeholder": "10"
           }
         },
         "postTemplate": "{itemCount} şişe/kutu iade ettim, {amountEarned} TL geri kazandım.",
@@ -165,7 +177,9 @@
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Kazanılan para"
+            "label": "Kazanılan para",
+            "unit": "TL",
+            "placeholder": "25"
           }
         },
         "postTemplate": "{weight} kg geri dönüşüm malzemesi sattım, {amountEarned} TL kazandım.",
@@ -176,11 +190,14 @@
         "description": "Evde duran ve kullanmadığım bir eşyayı sattım.",
         "primaryMetric": {
           "label": "Ne sattın?",
+          "unit": "",
           "placeholder": "Eski kulaklık"
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Kazanılan para"
+            "label": "Kazanılan para",
+            "unit": "TL",
+            "placeholder": "650"
           },
           "itemCount": {
             "label": "Kaç eşya sattın?",
@@ -196,11 +213,14 @@
         "description": "Sıfır almak yerine ikinci el alarak daha az para harcadım.",
         "primaryMetric": {
           "label": "Ne aldın?",
+          "unit": "",
           "placeholder": "Klavye"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Sıfıra göre tasarruf"
+            "label": "Sıfıra göre tasarruf",
+            "unit": "TL",
+            "placeholder": "500"
           }
         },
         "postTemplate": "{itemName} ürününü ikinci el aldım, {amountSaved} TL tasarruf ettim.",
@@ -211,11 +231,14 @@
         "description": "Alacağım üründe indirim veya kupon kullanarak daha az ödedim.",
         "primaryMetric": {
           "label": "Ne aldın?",
+          "unit": "",
           "placeholder": "Market alışverişi"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "İndirimle kalan para"
+            "label": "İndirimle kalan para",
+            "unit": "TL",
+            "placeholder": "150"
           }
         },
         "postTemplate": "{purchaseName} için kupon/indirim kullandım, {amountSaved} TL tasarruf ettim.",
@@ -231,7 +254,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "180"
           }
         },
         "postTemplate": "{tripCount} kez taksiye binmedim, {amountSaved} TL cepte kaldı.",
@@ -247,7 +272,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "60"
           }
         },
         "postTemplate": "{distance} km yürüdüm, {amountSaved} TL cepte kaldı.",
@@ -263,7 +290,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "120"
           }
         },
         "postTemplate": "{tripCount} yolculukta toplu taşıma kullandım, {amountSaved} TL tasarruf ettim.",
@@ -279,7 +308,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "100"
           }
         },
         "postTemplate": "{peopleCount} kişi yol paylaştık, {amountSaved} TL tasarruf ettim.",
@@ -290,11 +321,14 @@
         "description": "Kullanmadığım bir aboneliği iptal ettim.",
         "primaryMetric": {
           "label": "Hangi abonelik?",
+          "unit": "",
           "placeholder": "Netflix"
         },
         "secondaryMetrics": {
           "monthlySaved": {
-            "label": "Aylık tasarruf"
+            "label": "Aylık tasarruf",
+            "unit": "TL",
+            "placeholder": "149"
           }
         },
         "postTemplate": "{subscriptionName} aboneliğini iptal ettim, ayda {monthlySaved} TL cepte kalacak.",
@@ -305,11 +339,14 @@
         "description": "Normal plan yerine öğrenci, aile veya daha ucuz plana geçtim.",
         "primaryMetric": {
           "label": "Hangi servis?",
+          "unit": "",
           "placeholder": "Spotify"
         },
         "secondaryMetrics": {
           "monthlySaved": {
-            "label": "Aylık tasarruf"
+            "label": "Aylık tasarruf",
+            "unit": "TL",
+            "placeholder": "80"
           }
         },
         "postTemplate": "{serviceName} için daha ucuz plana geçtim, ayda {monthlySaved} TL tasarruf edeceğim.",
@@ -325,7 +362,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "15"
           }
         },
         "postTemplate": "Evde {count} demet taze soğan yetiştirdim, {amountSaved} TL tasarruf ettim.",
@@ -336,11 +375,14 @@
         "description": "Nane, fesleğen veya maydanoz gibi yeşillikleri evde yetiştirdim.",
         "primaryMetric": {
           "label": "Kaç saksı/demet?",
+          "unit": "adet",
           "placeholder": "1"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "20"
           }
         },
         "postTemplate": "Evde {count} adet yeşillik yetiştirdim, {amountSaved} TL tasarruf ettim.",
@@ -356,7 +398,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "2.5"
           }
         },
         "postTemplate": "{bagCount} adet plastik poşet almadım, bez çanta kullanarak {amountSaved} TL tasarruf ettim.",
@@ -367,11 +411,14 @@
         "description": "Tek tek almak yerine toplu alarak birim fiyatı düşürdüm.",
         "primaryMetric": {
           "label": "Ne aldın?",
+          "unit": "",
           "placeholder": "Poşet çay"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Tasarruf"
+            "label": "Tasarruf",
+            "unit": "TL",
+            "placeholder": "75"
           }
         },
         "postTemplate": "{itemName} ürününü toplu aldım, {amountSaved} TL tasarruf ettim.",
@@ -382,11 +429,14 @@
         "description": "Basit bir tamiri servis çağırmadan kendim hallettim.",
         "primaryMetric": {
           "label": "Neyi tamir ettin?",
+          "unit": "",
           "placeholder": "Masa ayağı"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "300"
           }
         },
         "postTemplate": "{repairName} tamirini kendim yaptım, {amountSaved} TL cepte kaldı.",
@@ -402,7 +452,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Cepte kalan para"
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "100"
           }
         },
         "postTemplate": "Artan yemeği {mealCount} öğün değerlendirdim, {amountSaved} TL cepte kaldı.",

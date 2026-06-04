@@ -69,7 +69,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "95"
           }
         },
         "postTemplate": "I skipped {count} coffee, kept {amountSaved} TL in my pocket.",
@@ -85,7 +87,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "25"
           }
         },
         "postTemplate": "I skipped {count} tea, kept {amountSaved} TL in my pocket.",
@@ -101,7 +105,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "220"
           }
         },
         "postTemplate": "I skipped ordering food for {mealCount} meals, saved {amountSaved} TL.",
@@ -117,7 +123,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "180"
           }
         },
         "postTemplate": "I brought lunch from home for {dayCount} days, saved {amountSaved} TL.",
@@ -133,7 +141,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "15"
           }
         },
         "postTemplate": "I skipped {bottleCount} bottles of water, saved {amountSaved} TL.",
@@ -149,7 +159,9 @@
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Earned amount"
+            "label": "Earned amount",
+            "unit": "TL",
+            "placeholder": "10"
           }
         },
         "postTemplate": "I recycled {itemCount} bottles/cans, earned {amountEarned} TL.",
@@ -165,7 +177,9 @@
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Earned amount"
+            "label": "Earned amount",
+            "unit": "TL",
+            "placeholder": "25"
           }
         },
         "postTemplate": "I sold {weight} kg of recyclables, earned {amountEarned} TL.",
@@ -176,11 +190,14 @@
         "description": "Sold an unused item lying around the house.",
         "primaryMetric": {
           "label": "What did you sell?",
+          "unit": "",
           "placeholder": "Old headphones"
         },
         "secondaryMetrics": {
           "amountEarned": {
-            "label": "Earned amount"
+            "label": "Earned amount",
+            "unit": "TL",
+            "placeholder": "650"
           },
           "itemCount": {
             "label": "How many items?",
@@ -196,11 +213,14 @@
         "description": "Bought a second-hand item instead of buying new to spend less.",
         "primaryMetric": {
           "label": "What did you buy?",
+          "unit": "",
           "placeholder": "Keyboard"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Savings vs new"
+            "label": "Savings vs new",
+            "unit": "TL",
+            "placeholder": "500"
           }
         },
         "postTemplate": "Bought second-hand {itemName}, saved {amountSaved} TL compared to new.",
@@ -211,11 +231,14 @@
         "description": "Used a discount or coupon on a purchase to pay less.",
         "primaryMetric": {
           "label": "What did you buy?",
+          "unit": "",
           "placeholder": "Grocery shopping"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Discount savings"
+            "label": "Discount savings",
+            "unit": "TL",
+            "placeholder": "150"
           }
         },
         "postTemplate": "Used coupon/discount for {purchaseName}, saved {amountSaved} TL.",
@@ -231,7 +254,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "180"
           }
         },
         "postTemplate": "Skipped taking a taxi {tripCount} times, saved {amountSaved} TL.",
@@ -247,7 +272,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "60"
           }
         },
         "postTemplate": "Walked {distance} km, saved {amountSaved} TL.",
@@ -263,7 +290,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "120"
           }
         },
         "postTemplate": "Used public transport for {tripCount} trips, saved {amountSaved} TL.",
@@ -279,7 +308,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "100"
           }
         },
         "postTemplate": "Shared travel with {peopleCount} people, saved {amountSaved} TL.",
@@ -290,11 +321,14 @@
         "description": "Cancelled an unused subscription.",
         "primaryMetric": {
           "label": "Which subscription?",
+          "unit": "",
           "placeholder": "Netflix"
         },
         "secondaryMetrics": {
           "monthlySaved": {
-            "label": "Monthly savings"
+            "label": "Monthly savings",
+            "unit": "TL",
+            "placeholder": "149"
           }
         },
         "postTemplate": "Cancelled my {subscriptionName} subscription, will keep {monthlySaved} TL in my pocket monthly.",
@@ -305,11 +339,14 @@
         "description": "Switched to student, family or cheaper plan instead of normal plan.",
         "primaryMetric": {
           "label": "Which service?",
+          "unit": "",
           "placeholder": "Spotify"
         },
         "secondaryMetrics": {
           "monthlySaved": {
-            "label": "Monthly savings"
+            "label": "Monthly savings",
+            "unit": "TL",
+            "placeholder": "80"
           }
         },
         "postTemplate": "Switched to a cheaper plan for {serviceName}, will save {monthlySaved} TL monthly.",
@@ -325,7 +362,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "15"
           }
         },
         "postTemplate": "Grew {count} bunches of green onions at home, saved {amountSaved} TL.",
@@ -336,11 +375,14 @@
         "description": "Grew greens like mint, basil, or parsley at home.",
         "primaryMetric": {
           "label": "How many pots/bunches?",
+          "unit": "pcs",
           "placeholder": "1"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "20"
           }
         },
         "postTemplate": "Grew {count} herbs at home, saved {amountSaved} TL.",
@@ -356,7 +398,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "2.5"
           }
         },
         "postTemplate": "Skipped buying {bagCount} plastic bags, saved {amountSaved} TL using a reusable bag.",
@@ -367,11 +411,14 @@
         "description": "Bought in bulk instead of buying one by one to lower unit price.",
         "primaryMetric": {
           "label": "What did you buy?",
+          "unit": "",
           "placeholder": "Tea bags"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Savings"
+            "label": "Savings",
+            "unit": "TL",
+            "placeholder": "75"
           }
         },
         "postTemplate": "Bought {itemName} in bulk, saved {amountSaved} TL.",
@@ -382,11 +429,14 @@
         "description": "Fixed a simple repair myself without calling service/repairman.",
         "primaryMetric": {
           "label": "What did you repair?",
+          "unit": "",
           "placeholder": "Table leg"
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "300"
           }
         },
         "postTemplate": "Did {repairName} repair myself, saved {amountSaved} TL.",
@@ -402,7 +452,9 @@
         },
         "secondaryMetrics": {
           "amountSaved": {
-            "label": "Saved amount"
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "100"
           }
         },
         "postTemplate": "Ate leftovers for {mealCount} meals, saved {amountSaved} TL.",
