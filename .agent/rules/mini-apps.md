@@ -55,6 +55,10 @@ This guide documents the mandatory conventions and structure for adding new appl
 - Register new apps in `frontend/lib/apps.ts`.
 - Set `isImplemented: true` only when the initial feature set is ready.
 - Use **Phosphor Icons** and descriptive, localized names.
+- **Subdomain Configuration:**
+    - Every new app must have a unique `subdomain` field in `frontend/lib/apps.ts`.
+    - This subdomain must also be registered in `frontend/proxy.ts` (Next.js Proxy/Middleware) in the `SUBDOMAIN_ROUTES` map to ensure correct routing.
+    - The exported function in `frontend/proxy.ts` must be named `proxy`.
 
 ## ✨ UI/UX Standards
 - use tailwind always

@@ -354,7 +354,7 @@ export default function TasarrufChallengesPage() {
                   {/* PROMOTIONAL CARD: BOTTLE RETURN / DOA */}
                   {selectedChallenge.id === "bottle_return" && (
                     <a
-                      href="https://doa.gov.tr/"
+                      href={locale === "en" ? "https://doa.gov.tr/en" : "https://doa.gov.tr/"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-4 bg-gradient-to-br from-emerald-50 to-teal-50/30 p-4 rounded-3xl border border-emerald-100 hover:border-emerald-250 transition-all active:scale-[0.98] group cursor-pointer shadow-sm"
@@ -372,9 +372,9 @@ export default function TasarrufChallengesPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-emerald-900 uppercase tracking-tight">Depozito İade Sistemi (DOA)</h4>
+                        <h4 className="text-xs font-black text-emerald-900 uppercase tracking-tight">{t("doaTitle")}</h4>
                         <p className="text-[10px] font-bold text-emerald-700/70 leading-relaxed mt-0.5">
-                          İade noktalarını öğrenip geri kazanım yaparak bütçene katkıda bulun.
+                          {t("doaDescription")}
                         </p>
                       </div>
                       <div className="p-2 rounded-xl bg-white/80 group-hover:bg-emerald-50 border border-emerald-100/20 group-hover:border-emerald-200/50 transition-all shrink-0">
@@ -396,9 +396,9 @@ export default function TasarrufChallengesPage() {
                         <CreditCard size={24} className="text-blue-600" weight="duotone" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-blue-900 uppercase tracking-tight">Aboneliklerini Yönet (Subcenter)</h4>
+                        <h4 className="text-xs font-black text-blue-900 uppercase tracking-tight">{t("subcenterTitle")}</h4>
                         <p className="text-[10px] font-bold text-blue-700/70 leading-relaxed mt-0.5">
-                          Gereksiz aboneliklerini takip et, kolayca iptal et ve aylık giderlerini azalt.
+                          {t("subcenterDescription")}
                         </p>
                       </div>
                       <div className="p-2 rounded-xl bg-white/80 group-hover:bg-blue-50 border border-blue-100/20 group-hover:border-blue-200/50 transition-all shrink-0">
