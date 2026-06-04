@@ -1,5 +1,95 @@
 [
   {
+    "category": "Eğlence & Sosyal",
+    "items": [
+      {
+        "id": "movie",
+        "label": "Sinema",
+        "icon": "🎬"
+      },
+      {
+        "id": "series",
+        "label": "Dizi / Film gecesi",
+        "icon": "🍿"
+      },
+      {
+        "id": "game",
+        "label": "Oyun oynamak",
+        "icon": "🎮"
+      },
+      {
+        "id": "board_game",
+        "label": "Kutu Oyunu",
+        "icon": "🎲"
+      },
+      {
+        "id": "card_game",
+        "label": "Kart Oyunu",
+        "icon": "🃏"
+      },
+      {
+        "id": "concert",
+        "label": "Konser / Etkinlik",
+        "icon": "🎵"
+      },
+      {
+        "id": "festival",
+        "label": "Festival",
+        "icon": "🎪"
+      },
+      {
+        "id": "bowling",
+        "label": "Bowling",
+        "icon": "🎳"
+      },
+      {
+        "id": "billiards",
+        "label": "Bilardo",
+        "icon": "🎱"
+      },
+      {
+        "id": "karaoke",
+        "label": "Karaoke",
+        "icon": "🎤"
+      },
+      {
+        "id": "arcade",
+        "label": "Arcade / Oyun Salonu",
+        "icon": "🕹️"
+      },
+      {
+        "id": "escape_room",
+        "label": "Kaçış Oyunu",
+        "icon": "🧩"
+      },
+      {
+        "id": "museum",
+        "label": "Müze / Sergi",
+        "icon": "🖼️"
+      },
+      {
+        "id": "theater",
+        "label": "Tiyatro",
+        "icon": "🎭"
+      },
+      {
+        "id": "standup",
+        "label": "Stand-up",
+        "icon": "🎙️"
+      },
+      {
+        "id": "shopping",
+        "label": "Alışveriş",
+        "icon": "🛍️"
+      },
+      {
+        "id": "chill",
+        "label": "Takılmak",
+        "icon": "🛋️"
+      }
+    ]
+  },
+  {
     "category": "Spor & Fiziksel Aktivite",
     "items": [
       {
@@ -151,96 +241,6 @@
         "id": "cook_together",
         "label": "Birlikte yemek yapmak",
         "icon": "👨‍🍳"
-      }
-    ]
-  },
-  {
-    "category": "Eğlence & Sosyal",
-    "items": [
-      {
-        "id": "movie",
-        "label": "Sinema",
-        "icon": "🎬"
-      },
-      {
-        "id": "series",
-        "label": "Dizi / Film gecesi",
-        "icon": "🍿"
-      },
-      {
-        "id": "game",
-        "label": "Oyun oynamak",
-        "icon": "🎮"
-      },
-      {
-        "id": "board_game",
-        "label": "Kutu Oyunu",
-        "icon": "🎲"
-      },
-      {
-        "id": "card_game",
-        "label": "Kart Oyunu",
-        "icon": "🃏"
-      },
-      {
-        "id": "concert",
-        "label": "Konser / Etkinlik",
-        "icon": "🎵"
-      },
-      {
-        "id": "festival",
-        "label": "Festival",
-        "icon": "🎪"
-      },
-      {
-        "id": "bowling",
-        "label": "Bowling",
-        "icon": "🎳"
-      },
-      {
-        "id": "billiards",
-        "label": "Bilardo",
-        "icon": "🎱"
-      },
-      {
-        "id": "karaoke",
-        "label": "Karaoke",
-        "icon": "🎤"
-      },
-      {
-        "id": "arcade",
-        "label": "Arcade / Oyun Salonu",
-        "icon": "🕹️"
-      },
-      {
-        "id": "escape_room",
-        "label": "Kaçış Oyunu",
-        "icon": "🧩"
-      },
-      {
-        "id": "museum",
-        "label": "Müze / Sergi",
-        "icon": "🖼️"
-      },
-      {
-        "id": "theater",
-        "label": "Tiyatro",
-        "icon": "🎭"
-      },
-      {
-        "id": "standup",
-        "label": "Stand-up",
-        "icon": "🎙️"
-      },
-      {
-        "id": "shopping",
-        "label": "Alışveriş",
-        "icon": "🛍️"
-      },
-      {
-        "id": "chill",
-        "label": "Takılmak",
-        "icon": "🛋️"
       }
     ]
   },

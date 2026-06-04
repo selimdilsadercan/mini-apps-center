@@ -423,7 +423,7 @@ export const MINI_APPS: MiniApp[] = [
     description: "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et ve ortak kararı gör!",
     icon: Users,
     category: "Lifestyle",
-    color: "#FF6B6B",
+    color: "#FF5252",
     href: "/apps/kim-gelir",
     isImplemented: true,
     subdomain: "kimgelir",

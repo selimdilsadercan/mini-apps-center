@@ -22,13 +22,21 @@ import {
   Trash
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
-import { friendship, kim_gelir } from "@/lib/client";
+import { friendship, kim_gelir, workplaces } from "@/lib/client";
 import { Drawer } from "vaul";
+import dynamic from "next/dynamic";
+
+const StudyPlacesMap = dynamic(() => import("../workplaces/StudyPlacesMap"), {
+  ssr: false,
+});
 
 const client = createBrowserClient();
 
 // Fast Activity Presets
 import ACTIVITIES_DATA from "./activities.json";
+import CINEMAS_DATA from "./cinemas.json";
+import THEATERS_DATA from "./theaters.json";
+import { GAMES_DATA } from "../iskambil/games-registry";
 const ALL_PRESET_ACTIVITIES = ACTIVITIES_DATA.flatMap(cat => cat.items);
 
 const PRESET_TIMES = [
@@ -48,6 +56,7 @@ function KimGelirContent() {
   // State lists
   const [activities, setActivities] = useState<kim_gelir.Activity[]>([]);
   const [friends, setFriends] = useState<friendship.FriendUser[]>([]);
+  const [workplacesList, setWorkplacesList] = useState<workplaces.Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -82,6 +91,13 @@ function KimGelirContent() {
 
       const friendsRes = await client.friendship.getFriends(user.id);
       setFriends(friendsRes.friends);
+
+      try {
+        const workplacesRes = await client.workplaces.listPlaces({ userId: user.id });
+        setWorkplacesList(workplacesRes.places || []);
+      } catch (wErr) {
+        console.error("Error fetching workplaces:", wErr);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
       showToastMsg("Veriler yüklenirken bir hata oluştu.", "error");
@@ -467,11 +483,18 @@ function KimGelirContent() {
                               ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.icon || "❓"
                               : "✍️"}
                           </span>
-                          <span className="text-sm font-bold text-gray-800">
-                            {selectedPresetId 
-                              ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.label || "Aktivite Seçin..."
-                              : customTitle || "Özel Aktivite"}
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-gray-800">
+                              {selectedPresetId 
+                                ? ALL_PRESET_ACTIVITIES.find(p => p.id === selectedPresetId)?.label || "Aktivite Seçin..."
+                                : customTitle || "Özel Aktivite"}
+                            </span>
+                            {location.trim() && (
+                              <span className="text-xs text-gray-400 font-semibold mt-0.5">
+                                {location}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span className="text-xs font-black text-[#FF6B6B] uppercase tracking-wider">Değiştir</span>
                       </button>
@@ -529,7 +552,7 @@ function KimGelirContent() {
                 {/* Kimlere Sorulsun? */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">Kimlere Sorulsun?</label>
+                    <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">3. Kimlere Sorulsun?</label>
                     {friends.length > 0 && (
                       <button
                         type="button"
@@ -649,6 +672,7 @@ function KimGelirContent() {
                     type="button"
                     onClick={() => {
                       setTempSelectedActivity({ id: "", label: presetSearch.trim(), icon: "✍️" });
+                      setLocation("");
                     }}
                     className="mb-4 w-full flex items-center justify-between p-3.5 bg-rose-50 border border-rose-100 hover:bg-rose-100/55 rounded-2xl text-left transition-all cursor-pointer text-xs font-bold text-rose-700 shrink-0 active:scale-[0.98]"
                   >
@@ -678,6 +702,7 @@ function KimGelirContent() {
                             type="button"
                             onClick={() => {
                               setTempSelectedActivity({ id: "", label: presetSearch.trim(), icon: "✍️" });
+                              setLocation("");
                             }}
                             className="mt-3 text-xs font-black text-[#FF6B6B] hover:underline"
                           >
@@ -706,10 +731,11 @@ function KimGelirContent() {
                                   type="button"
                                   onClick={() => {
                                     setTempSelectedActivity({ id: item.id, label: item.label, icon: item.icon });
+                                    setLocation("");
                                   }}
                                   className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left transition-all text-xs font-bold cursor-pointer active:scale-95 ${
                                     isSelected
-                                      ? "bg-rose-50 border-[#FF6B6B] text-rose-700 animate-pulse"
+                                      ? "bg-rose-50 border-[#FF6B6B] text-rose-700"
                                       : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
                                   }`}
                                 >
@@ -781,6 +807,19 @@ function KimGelirContent() {
                   let locationPlaceholder = "Örn: Kadıköy, Kampüs, Cafe adı...";
                   const actId = tempSelectedActivity.id;
 
+                  const isStudyActivity = [
+                    "study",
+                    "exam_study",
+                    "project",
+                    "library",
+                    "coworking",
+                    "homework",
+                    "presentation",
+                    "brainstorm",
+                    "reading",
+                    "language_practice"
+                  ].includes(actId);
+
                   if (actId === "gym") {
                     locationLabel = "Hangi spor salonunda buluşacaksınız?";
                     locationPlaceholder = "Örn: MacFit Kadıköy, Hillside...";
@@ -793,30 +832,237 @@ function KimGelirContent() {
                   } else if (actId === "movie") {
                     locationLabel = "Hangi sinemada buluşacaksınız?";
                     locationPlaceholder = "Örn: Paribu Cineverse Akasya...";
+                  } else if (actId === "theater") {
+                    locationLabel = "Hangi tiyatroda buluşacaksınız?";
+                    locationPlaceholder = "Örn: Harbiye Muhsin Ertuğrul Sahnesi...";
+                  } else if (actId === "card_game") {
+                    locationLabel = "Hangi kart oyununu oynayacaksınız?";
+                    locationPlaceholder = "Örn: Batak, Pis Yedili, Pişti...";
                   } else if (["football", "basketball", "volleyball", "tennis", "table_tennis"].includes(actId)) {
                     locationLabel = "Hangi sahada / kortta oynayacaksınız?";
                     locationPlaceholder = "Örn: İTÜ Halı Sahası, Bostancı Spor Tesisleri...";
                   } else if (actId === "library") {
                     locationLabel = "Hangi kütüphanede çalışacaksınız?";
-                    locationPlaceholder = "Örn: İTÜ Mustafa İnan Kütüphanesi...";
+                    locationPlaceholder = "Örn: İTÜ Mustafa İnan Kütüphanesi, Salt Galata...";
+                  } else if (isStudyActivity) {
+                    locationLabel = "Nerede çalışacaksınız?";
+                    locationPlaceholder = "Örn: İTÜ Kütüphanesi, Espressolab, Ev...";
                   }
 
+                  const getNormalized = (text: string) => {
+                    return text
+                      .toLowerCase()
+                      .replace(/ı/g, 'i')
+                      .replace(/ğ/g, 'g')
+                      .replace(/ü/g, 'u')
+                      .replace(/ş/g, 's')
+                      .replace(/ö/g, 'o')
+                      .replace(/ç/g, 'c');
+                  };
+
+                  const query = getNormalized(location);
+                  const filteredCinemas = actId === "movie" 
+                    ? (CINEMAS_DATA as any[]).filter(c => {
+                        if (!location.trim()) return true;
+                        const nameMatch = getNormalized(c.name || "").includes(query);
+                        const districtMatch = getNormalized(c.district || "").includes(query);
+                        const keywordsMatch = c.keywords?.some((k: string) => getNormalized(k || "").includes(query));
+                        return nameMatch || districtMatch || keywordsMatch;
+                      })
+                    : [];
+
+                  const filteredTheaters = actId === "theater" 
+                    ? (THEATERS_DATA as any[]).filter(t => {
+                        if (!location.trim()) return true;
+                        const nameMatch = getNormalized(t.name || "").includes(query);
+                        const districtMatch = getNormalized(t.district || "").includes(query);
+                        const keywordsMatch = t.keywords?.some((k: string) => getNormalized(k || "").includes(query));
+                        return nameMatch || districtMatch || keywordsMatch;
+                      })
+                    : [];
+
+                  const filteredGames = actId === "card_game"
+                    ? (GAMES_DATA as any[]).filter(g => {
+                        if (!location.trim()) return true;
+                        const nameTrMatch = getNormalized(g.name_tr || "").includes(query);
+                        const nameEnMatch = getNormalized(g.name_en || "").includes(query);
+                        return nameTrMatch || nameEnMatch;
+                      })
+                    : [];
+
+                  const filteredWorkplaces = isStudyActivity
+                    ? (workplacesList || []).filter(w => {
+                        if (!location.trim()) return true;
+                        const nameMatch = getNormalized(w.name || "").includes(query);
+                        const districtMatch = getNormalized(w.district || "").includes(query);
+                        const tagsMatch = w.tags?.some((t: string) => getNormalized(t || "").includes(query));
+                        return nameMatch || districtMatch || tagsMatch;
+                      })
+                    : [];
+
                   return (
-                    <div className="space-y-3 mb-8 flex-1">
-                      <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">
+                    <div className="space-y-3 mb-4 flex flex-col min-h-0">
+                      <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block shrink-0">
                         {locationLabel}
                       </label>
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                           type="text"
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
                           placeholder={locationPlaceholder}
-                          className="w-full bg-gray-50 border border-gray-150 rounded-2xl pl-11 pr-4 py-3 text-xs focus:outline-none focus:border-[#FF6B6B] transition-colors font-bold"
+                          className="w-full bg-gray-50 border border-gray-150 rounded-2xl pl-11 pr-10 py-3 text-xs focus:outline-none focus:border-[#FF6B6B] transition-colors font-bold text-gray-800"
                           autoFocus
                         />
+                        {location && (
+                          <button
+                            type="button"
+                            onClick={() => setLocation("")}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-650 hover:bg-gray-250/50 rounded-full transition-all active:scale-90"
+                          >
+                            <X size={14} weight="bold" />
+                          </button>
+                        )}
                       </div>
+
+                      {actId === "movie" && (
+                        <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1 flex-1">
+                          {filteredCinemas.map((cinema) => {
+                            const cinemaValue = `${cinema.name} (${cinema.district})`;
+                            const isSelected = location === cinemaValue;
+                            return (
+                              <button
+                                key={cinema.id}
+                                type="button"
+                                onClick={() => setLocation(cinemaValue)}
+                                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-rose-50 border-[#FF6B6B] text-rose-700"
+                                    : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="text-sm shrink-0">🎬</span>
+                                  <span className="truncate">{cinema.name}</span>
+                                </div>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-lg font-semibold shrink-0 ml-2 ${
+                                  isSelected ? "bg-rose-100 text-rose-800" : "bg-gray-200/60 text-gray-500"
+                                }`}>
+                                  {cinema.district}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {actId === "theater" && (
+                        <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1 flex-1">
+                          {filteredTheaters.map((theater) => {
+                            const theaterValue = `${theater.name} (${theater.district})`;
+                            const isSelected = location === theaterValue;
+                            return (
+                              <button
+                                key={theater.id}
+                                type="button"
+                                onClick={() => setLocation(theaterValue)}
+                                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-rose-50 border-[#FF6B6B] text-rose-700"
+                                    : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="text-sm shrink-0">🎭</span>
+                                  <span className="truncate">{theater.name}</span>
+                                </div>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-lg font-semibold shrink-0 ml-2 ${
+                                  isSelected ? "bg-rose-100 text-rose-800" : "bg-gray-200/60 text-gray-500"
+                                }`}>
+                                  {theater.district}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {actId === "card_game" && (
+                        <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1 flex-1">
+                          {filteredGames.map((game) => {
+                            const gameValue = game.name_tr;
+                            const isSelected = location === gameValue;
+                            return (
+                              <button
+                                key={game.id}
+                                type="button"
+                                onClick={() => setLocation(gameValue)}
+                                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-rose-50 border-[#FF6B6B] text-rose-700"
+                                    : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="text-sm shrink-0">🃏</span>
+                                  <span className="truncate">{game.name_tr}</span>
+                                </div>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-lg font-semibold shrink-0 ml-2 ${
+                                  isSelected ? "bg-rose-100 text-rose-800" : "bg-gray-200/60 text-gray-500"
+                                }`}>
+                                  {game.minPlayers}-{game.maxPlayers} Oyuncu
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {isStudyActivity && (
+                        <div className="flex flex-col gap-2 min-h-0 flex-1">
+                          {/* Map view wrapper */}
+                          {filteredWorkplaces.some(w => w.latitude && w.longitude) && (
+                            <div className="w-full h-40 rounded-2xl overflow-hidden border border-gray-150 shrink-0 z-10">
+                              <StudyPlacesMap
+                                places={filteredWorkplaces}
+                                onSelectPlace={(place) => setLocation(`${place.name} (${place.district || "İstanbul"})`)}
+                                selectedPlaceId={workplacesList.find(w => `${w.name} (${w.district || "İstanbul"})` === location)?.id}
+                              />
+                            </div>
+                          )}
+
+                          {/* List view of matches */}
+                          <div className="space-y-1.5 overflow-y-auto max-h-48 pr-1 flex-1 mt-1">
+                            {filteredWorkplaces.map((place) => {
+                              const placeValue = `${place.name} (${place.district || "İstanbul"})`;
+                              const isSelected = location === placeValue;
+                              return (
+                                <button
+                                  key={place.id}
+                                  type="button"
+                                  onClick={() => setLocation(placeValue)}
+                                  className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer ${
+                                    isSelected
+                                      ? "bg-rose-50 border-[#FF6B6B] text-rose-700"
+                                      : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <span className="text-sm shrink-0">🏫</span>
+                                    <span className="truncate">{place.name}</span>
+                                  </div>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-lg font-semibold shrink-0 ml-2 ${
+                                    isSelected ? "bg-rose-100 text-rose-800" : "bg-gray-200/60 text-gray-500"
+                                  }`}>
+                                    {place.district || "Çalışma Alanı"}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

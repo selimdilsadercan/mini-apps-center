@@ -1,0 +1,2177 @@
+[
+    {
+        "id": "ibb_harbiye_muhsin_ertugrul_sahnesi",
+        "name": "Harbiye Muhsin Ertuğrul Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Harbiye",
+        "venueType": "municipal_theater",
+        "address": "Harbiye Mahallesi, Darülbedai Caddesi No:3 Şişli / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "central",
+            "large_stage"
+        ],
+        "priority": 98,
+        "isActive": true,
+        "keywords": [
+            "harbiye",
+            "muhsin ertuğrul",
+            "şehir tiyatroları",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_fatih_resat_nuri_sahnesi",
+        "name": "Fatih Reşat Nuri Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Fatih",
+        "area": "Fatih",
+        "venueType": "municipal_theater",
+        "address": "Fatih / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "central"
+        ],
+        "priority": 88,
+        "isActive": true,
+        "keywords": [
+            "fatih",
+            "reşat nuri",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_uskudar_musahit_sahnesi",
+        "name": "Üsküdar Müsahipzade Celal Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Üsküdar",
+        "area": "Üsküdar",
+        "venueType": "municipal_theater",
+        "address": "Üsküdar / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "central"
+        ],
+        "priority": 90,
+        "isActive": true,
+        "keywords": [
+            "üsküdar",
+            "müsahipzade celal",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_uskudar_kerem_yilmazer_sahnesi",
+        "name": "Üsküdar Kerem Yılmazer Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Üsküdar",
+        "area": "Üsküdar",
+        "venueType": "municipal_theater",
+        "address": "Üsküdar / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal"
+        ],
+        "priority": 84,
+        "isActive": true,
+        "keywords": [
+            "üsküdar",
+            "kerem yılmazer",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_kadikoy_haldun_taner_sahnesi",
+        "name": "Kadıköy Haldun Taner Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Kadıköy",
+        "venueType": "municipal_theater",
+        "address": "Kadıköy / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "central",
+            "historic"
+        ],
+        "priority": 96,
+        "isActive": true,
+        "keywords": [
+            "kadıköy",
+            "haldun taner",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_gaziosmanpasa_ferih_egemen_sahnesi",
+        "name": "Gaziosmanpaşa Ferih Egemen Çocuk Tiyatrosu Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Gaziosmanpaşa",
+        "area": "Gaziosmanpaşa",
+        "venueType": "municipal_theater",
+        "address": "Gaziosmanpaşa / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "children_theater"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "gaziosmanpaşa",
+            "ferih egemen",
+            "çocuk tiyatrosu",
+            "şehir tiyatroları"
+        ]
+    },
+    {
+        "id": "ibb_kagithane_sadabad_sahnesi",
+        "name": "Kağıthane Sadabad Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Kağıthane",
+        "area": "Kağıthane",
+        "venueType": "municipal_theater",
+        "address": "Kağıthane / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "kağıthane",
+            "sadabad",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_umraniye_sahnesi",
+        "name": "Ümraniye Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Ümraniye",
+        "area": "Ümraniye",
+        "venueType": "municipal_theater",
+        "address": "Ümraniye / İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "ümraniye",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_atasehir_sener_sen_sahnesi",
+        "name": "Ataşehir İnal Aydınoğlu Kültür Merkezi Şener Şen Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Ataşehir",
+        "area": "İçerenköy",
+        "venueType": "municipal_theater",
+        "address": "İçerenköy, Sivas Sk. No:2, 34752 Ataşehir/İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "cultural_center"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "ataşehir",
+            "inal aydınoğlu",
+            "şener şen",
+            "şehir tiyatroları",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ibb_beylikduzu_rasim_oztekin_sahnesi",
+        "name": "Beylikdüzü FSM Kültür Sanat Merkezi Rasim Öztekin Sahnesi",
+        "operator": "İBB Şehir Tiyatroları",
+        "chain": "İBB Şehir Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beylikdüzü",
+        "area": "Yakuplu",
+        "venueType": "municipal_theater",
+        "address": "Yakuplu, 44. Sk., 34524 Beylikdüzü/İstanbul",
+        "ticketProviders": [
+            "İBB Şehir Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "ibb_sehir_tiyatrolari",
+        "features": [
+            "theater",
+            "municipal",
+            "cultural_center"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "beylikdüzü",
+            "rasim öztekin",
+            "fsm kültür merkezi",
+            "şehir tiyatroları"
+        ]
+    },
+    {
+        "id": "dt_akm_turk_telekom_opera_salonu",
+        "name": "Atatürk Kültür Merkezi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Taksim",
+        "venueType": "state_theater",
+        "address": "Gümüşsuyu Mahallesi Mete Caddesi No:2 Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "central",
+            "large_stage",
+            "premium"
+        ],
+        "priority": 99,
+        "isActive": true,
+        "keywords": [
+            "akm",
+            "atatürk kültür merkezi",
+            "taksim",
+            "devlet tiyatrosu",
+            "beyoğlu"
+        ]
+    },
+    {
+        "id": "dt_mecidiyekoy_buyuk_sahne",
+        "name": "Mecidiyeköy Büyük Sahne",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Mecidiyeköy",
+        "venueType": "state_theater",
+        "address": "Fulya Mahallesi, Büyükdere Caddesi Torun Center A Blok No:74A/15 Şişli / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "central",
+            "large_stage"
+        ],
+        "priority": 94,
+        "isActive": true,
+        "keywords": [
+            "mecidiyeköy",
+            "büyük sahne",
+            "devlet tiyatrosu",
+            "torun center",
+            "şişli"
+        ]
+    },
+    {
+        "id": "dt_mecidiyekoy_studyo_sahne",
+        "name": "Mecidiyeköy Stüdyo Sahne",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Mecidiyeköy",
+        "venueType": "state_theater",
+        "address": "Fulya Mahallesi, Büyükdere Caddesi Torun Center A Blok No:74A/15 Şişli / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "central",
+            "studio_stage"
+        ],
+        "priority": 90,
+        "isActive": true,
+        "keywords": [
+            "mecidiyeköy",
+            "stüdyo sahne",
+            "devlet tiyatrosu",
+            "torun center",
+            "şişli"
+        ]
+    },
+    {
+        "id": "dt_fatih_belediyesi_kultur_sanat_merkezi",
+        "name": "Fatih Belediyesi Kültür Sanat Merkezi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Fatih",
+        "area": "Akşemsettin",
+        "venueType": "state_theater",
+        "address": "Akşemsettin Mahallesi Adnan Menderes Vatan Bulvarı Fatih / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "cultural_center"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "fatih",
+            "devlet tiyatrosu",
+            "kültür sanat merkezi",
+            "vatan"
+        ]
+    },
+    {
+        "id": "dt_kucukcekmece_sahnesi",
+        "name": "Küçükçekmece Devlet Tiyatrosu Sahnesi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Küçükçekmece",
+        "area": "Küçükçekmece",
+        "venueType": "state_theater",
+        "address": "Küçükçekmece / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "küçükçekmece",
+            "devlet tiyatrosu",
+            "sahne"
+        ]
+    },
+    {
+        "id": "dt_kozyatagi_kultur_merkezi",
+        "name": "Kozyatağı Kültür Merkezi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Kozyatağı",
+        "venueType": "state_theater",
+        "address": "Kozyatağı / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "cultural_center"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "kozyatağı",
+            "kadıköy",
+            "devlet tiyatrosu",
+            "kültür merkezi"
+        ]
+    },
+    {
+        "id": "dt_zeytinburnu_sahnesi",
+        "name": "Zeytinburnu Sahnesi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Zeytinburnu",
+        "area": "Zeytinburnu",
+        "venueType": "state_theater",
+        "address": "Zeytinburnu / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "zeytinburnu",
+            "devlet tiyatrosu",
+            "sahne"
+        ]
+    },
+    {
+        "id": "dt_garibaldi_sahnesi",
+        "name": "Garibaldi Sahnesi",
+        "operator": "İstanbul Devlet Tiyatrosu",
+        "chain": "Devlet Tiyatroları",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Galata",
+        "venueType": "state_theater",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "state_theater",
+            "central"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "garibaldi",
+            "beyoğlu",
+            "galata",
+            "devlet tiyatrosu"
+        ]
+    },
+    {
+        "id": "zorlu_psm",
+        "name": "Zorlu PSM",
+        "operator": "Zorlu PSM",
+        "chain": "Zorlu PSM",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Zincirlikuyu",
+        "venueType": "performing_arts_center",
+        "address": "Zorlu Center, Levazım Mahallesi, Koru Sokak No:2 Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletix",
+            "Passo",
+            "Biletinial"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "musical",
+            "concert",
+            "large_stage",
+            "premium",
+            "mall"
+        ],
+        "priority": 100,
+        "isActive": true,
+        "keywords": [
+            "zorlu psm",
+            "zorlu",
+            "beşiktaş",
+            "zincirlikuyu",
+            "tiyatro",
+            "müzikal"
+        ]
+    },
+    {
+        "id": "dasdas_istanbul",
+        "name": "DasDas İstanbul",
+        "operator": "DasDas",
+        "chain": "DasDas",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Ataşehir",
+        "area": "Metropol İstanbul",
+        "venueType": "private_theater",
+        "address": "Metropol İstanbul, Ataşehir / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "private",
+            "standup",
+            "concert",
+            "mall",
+            "popular"
+        ],
+        "priority": 96,
+        "isActive": true,
+        "keywords": [
+            "dasdas",
+            "ataşehir",
+            "metropol",
+            "tiyatro",
+            "stand up"
+        ]
+    },
+    {
+        "id": "dasdas_istinyepark",
+        "name": "DasDas İstinyePark",
+        "operator": "DasDas",
+        "chain": "DasDas",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Sarıyer",
+        "area": "İstinye",
+        "venueType": "private_theater",
+        "address": "İstinyePark AVM Sarıyer / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Venue"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "private",
+            "mall",
+            "popular"
+        ],
+        "priority": 88,
+        "isActive": true,
+        "keywords": [
+            "dasdas istinyepark",
+            "istinye",
+            "sarıyer",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "moda_sahnesi_buyuk_salon",
+        "name": "Moda Sahnesi",
+        "operator": "Moda Sahnesi",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Moda",
+        "venueType": "independent_theater",
+        "address": "Moda / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "independent",
+            "arthouse",
+            "central",
+            "popular"
+        ],
+        "priority": 96,
+        "isActive": true,
+        "keywords": [
+            "moda sahnesi",
+            "moda",
+            "kadıköy",
+            "tiyatro",
+            "bağımsız"
+        ]
+    },
+    {
+        "id": "craft_tiyatro",
+        "name": "Craft Tiyatro",
+        "operator": "Craft",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Bomonti",
+        "venueType": "independent_theater",
+        "address": "Bomonti / Şişli / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "independent",
+            "acting_studio"
+        ],
+        "priority": 84,
+        "isActive": true,
+        "keywords": [
+            "craft",
+            "craft tiyatro",
+            "bomonti",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ikincikat_karakoy",
+        "name": "İkincikat",
+        "operator": "İkincikat",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Karaköy",
+        "venueType": "independent_theater",
+        "address": "Karaköy / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "independent",
+            "central",
+            "experimental"
+        ],
+        "priority": 88,
+        "isActive": true,
+        "keywords": [
+            "ikincikat",
+            "karaköy",
+            "beyoğlu",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ikincikat_kadikoy",
+        "name": "İkincikat Kadıköy",
+        "operator": "İkincikat",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Kadıköy",
+        "venueType": "independent_theater",
+        "address": "Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "independent",
+            "central",
+            "experimental"
+        ],
+        "priority": 86,
+        "isActive": true,
+        "keywords": [
+            "ikincikat kadıköy",
+            "kadıköy",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "akla_kara_tiyatro",
+        "name": "Ak'la Kara Tiyatro",
+        "operator": "Ak'la Kara Tiyatro",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "private_theater",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private",
+            "central"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "ak'la kara",
+            "akla kara",
+            "beşiktaş",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "tiyatro_kedi",
+        "name": "Tiyatro Kedi",
+        "operator": "Tiyatro Kedi",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Şişli",
+        "venueType": "private_theater",
+        "address": "Şişli / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private",
+            "popular"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "tiyatro kedi",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "tiyatro_kare",
+        "name": "Tiyatrokare",
+        "operator": "Tiyatrokare",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Şişli",
+        "venueType": "private_theater",
+        "address": "Şişli / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private",
+            "popular"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "tiyatrokare",
+            "tiyatro kare",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "ortoyuncular_ses_tiyatrosu",
+        "name": "Ortaoyuncular / Ses Tiyatrosu",
+        "operator": "Ortaoyuncular",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "İstiklal",
+        "venueType": "historic_theater",
+        "address": "İstiklal Caddesi / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Venue"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "historic",
+            "central",
+            "private"
+        ],
+        "priority": 88,
+        "isActive": true,
+        "keywords": [
+            "ortaoyuncular",
+            "ses tiyatrosu",
+            "ferhan şensoy",
+            "beyoğlu",
+            "istiklal"
+        ]
+    },
+    {
+        "id": "tiyatro_pangars",
+        "name": "Tiyatro Pangar",
+        "operator": "Tiyatro Pangar",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Beyoğlu",
+        "venueType": "private_theater",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private",
+            "independent"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "tiyatro pangar",
+            "pangar",
+            "beyoğlu",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "oyun_atolyesi",
+        "name": "Oyun Atölyesi",
+        "operator": "Oyun Atölyesi",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Moda",
+        "venueType": "independent_theater",
+        "address": "Moda / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "independent",
+            "central",
+            "popular"
+        ],
+        "priority": 92,
+        "isActive": true,
+        "keywords": [
+            "oyun atölyesi",
+            "moda",
+            "kadıköy",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "baba_sahne",
+        "name": "Baba Sahne",
+        "operator": "Baba Sahne",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Caferağa",
+        "venueType": "independent_theater",
+        "address": "Caferağa / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "independent",
+            "central",
+            "popular"
+        ],
+        "priority": 92,
+        "isActive": true,
+        "keywords": [
+            "baba sahne",
+            "şevket çoruh",
+            "kadıköy",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "the_harp_sahne_kadikoy",
+        "name": "The Harp Sahne Kadıköy",
+        "operator": "The Harp Sahne",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Kadıköy",
+        "venueType": "private_stage",
+        "address": "Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Mobilet"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "standup",
+            "performance",
+            "central"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "the harp",
+            "harp sahne",
+            "kadıköy",
+            "stand up",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "efsahne_beyoglu",
+        "name": "Efsahne Beyoğlu",
+        "operator": "Efsahne",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Beyoğlu",
+        "venueType": "private_stage",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Mobilet"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "standup",
+            "central",
+            "performance"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "efsahne",
+            "beyoğlu",
+            "stand up",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "apartman_sahne",
+        "name": "Apartman Sahne",
+        "operator": "Apartman Sahne",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Beyoğlu",
+        "venueType": "independent_stage",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Mobilet"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "independent",
+            "standup",
+            "experimental"
+        ],
+        "priority": 72,
+        "isActive": true,
+        "keywords": [
+            "apartman sahne",
+            "beyoğlu",
+            "tiyatro",
+            "stand up"
+        ]
+    },
+    {
+        "id": "alti_ustu_kabare",
+        "name": "Altı Üstü Kabare",
+        "operator": "Altı Üstü Kabare",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Beyoğlu",
+        "venueType": "cabaret_stage",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Mobilet"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "standup",
+            "cabaret",
+            "performance"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "altı üstü kabare",
+            "kabare",
+            "beyoğlu",
+            "stand up",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bogazici_komedi_kulubu",
+        "name": "Boğaziçi Komedi Kulübü",
+        "operator": "Boğaziçi Komedi Kulübü",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "comedy_club",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial"
+        ],
+        "source": "mobilet",
+        "features": [
+            "standup",
+            "comedy",
+            "performance"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "boğaziçi komedi kulübü",
+            "stand up",
+            "komedi",
+            "beşiktaş"
+        ]
+    },
+    {
+        "id": "trump_sahne",
+        "name": "Trump Sahne",
+        "operator": "Trump Sahne",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Mecidiyeköy",
+        "venueType": "mall_stage",
+        "address": "Trump AVM, Mecidiyeköy / Şişli / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "children_theater",
+            "standup",
+            "mall"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "trump sahne",
+            "trump avm",
+            "mecidiyeköy",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "akasyakultur_sanat",
+        "name": "Akasya Kültür Sanat",
+        "operator": "Akasya Kültür Sanat",
+        "chain": "Akasya",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Üsküdar",
+        "area": "Acıbadem",
+        "venueType": "mall_stage",
+        "address": "Akasya AVM, Acıbadem / Üsküdar / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "children_theater",
+            "mall",
+            "performance"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "akasya kültür sanat",
+            "akasya",
+            "acıbadem",
+            "üsküdar",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "akmerkez_sanat",
+        "name": "Akmerkez Sanat",
+        "operator": "Akmerkez",
+        "chain": "Akmerkez",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Etiler",
+        "venueType": "mall_stage",
+        "address": "Akmerkez AVM, Etiler / Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "children_theater",
+            "mall"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "akmerkez",
+            "akmerkez sanat",
+            "etiler",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "aklatara_tiyatro",
+        "name": "Ak'la Kara Tiyatro",
+        "operator": "Ak'la Kara Tiyatro",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "private_theater",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private",
+            "central"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "akla kara",
+            "ak'la kara",
+            "beşiktaş",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "akbank_sanat",
+        "name": "Akbank Sanat",
+        "operator": "Akbank Sanat",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Taksim",
+        "venueType": "cultural_center_stage",
+        "address": "İstiklal Caddesi / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "performance",
+            "festival",
+            "central",
+            "cultural_center"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "akbank sanat",
+            "beyoğlu",
+            "taksim",
+            "performans",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "arter",
+        "name": "Arter",
+        "operator": "Arter",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Dolapdere",
+        "venueType": "cultural_center_stage",
+        "address": "Dolapdere / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Mobilet",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "performance",
+            "theater",
+            "contemporary_art",
+            "cultural_center"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "arter",
+            "dolapdere",
+            "beyoğlu",
+            "performans",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bomontiada_alt",
+        "name": "Bomontiada ALT",
+        "operator": "Bomontiada",
+        "chain": "Cultural Venue",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Bomonti",
+        "venueType": "performance_stage",
+        "address": "Bomontiada, Bomonti / Şişli / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "performance",
+            "theater",
+            "concert",
+            "central"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "bomontiada",
+            "alt",
+            "bomonti",
+            "performans",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bkm_mutfak_carsi",
+        "name": "BKM Mutfak Çarşı",
+        "operator": "BKM Mutfak",
+        "chain": "BKM",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "comedy_stage",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Biletix",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "standup",
+            "comedy",
+            "theater",
+            "central",
+            "popular"
+        ],
+        "priority": 88,
+        "isActive": true,
+        "keywords": [
+            "bkm mutfak",
+            "beşiktaş",
+            "stand up",
+            "komedi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bkm_tiyatro",
+        "name": "BKM Tiyatro",
+        "operator": "BKM",
+        "chain": "BKM",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "private_theater",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Biletix",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "standup",
+            "comedy",
+            "popular"
+        ],
+        "priority": 86,
+        "isActive": true,
+        "keywords": [
+            "bkm",
+            "bkm tiyatro",
+            "beşiktaş",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "profilo_kultur_merkezi",
+        "name": "Profilo Kültür Merkezi",
+        "operator": "Profilo",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Şişli",
+        "area": "Mecidiyeköy",
+        "venueType": "cultural_center_stage",
+        "address": "Profilo AVM / Mecidiyeköy / Şişli / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Biletix",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "children_theater",
+            "standup",
+            "mall"
+        ],
+        "priority": 82,
+        "isActive": true,
+        "keywords": [
+            "profilo",
+            "profilo kültür merkezi",
+            "mecidiyeköy",
+            "şişli",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "caddebostan_kultur_merkezi",
+        "name": "Caddebostan Kültür Merkezi",
+        "operator": "Kadıköy Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Caddebostan",
+        "venueType": "cultural_center_stage",
+        "address": "Caddebostan / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "concert",
+            "cultural_center",
+            "central"
+        ],
+        "priority": 84,
+        "isActive": true,
+        "keywords": [
+            "ckm",
+            "caddebostan kültür merkezi",
+            "kadıköy",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "kozyatagi_kultur_merkezi_gazanfer_ozcan",
+        "name": "Kozyatağı Kültür Merkezi Gönül Ülkü ve Gazanfer Özcan Sahnesi",
+        "operator": "Kadıköy Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Kozyatağı",
+        "venueType": "cultural_center_stage",
+        "address": "Kozyatağı / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "kozyatağı kültür merkezi",
+            "gazanfer özcan",
+            "kadıköy",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "maltepe_turkan_saylan_kultur_merkezi",
+        "name": "Maltepe Türkan Saylan Kültür Merkezi",
+        "operator": "Maltepe Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Maltepe",
+        "area": "Maltepe",
+        "venueType": "cultural_center_stage",
+        "address": "Maltepe / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "concert",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 78,
+        "isActive": true,
+        "keywords": [
+            "türkan saylan",
+            "maltepe",
+            "kültür merkezi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "maltepe_yasar_kemal_kultur_merkezi",
+        "name": "Maltepe Yaşar Kemal Kültür Merkezi",
+        "operator": "Maltepe Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Maltepe",
+        "area": "Maltepe",
+        "venueType": "cultural_center_stage",
+        "address": "Maltepe / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "yaşar kemal",
+            "maltepe",
+            "kültür merkezi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "kartal_sanat_tiyatrosu",
+        "name": "Kartal Sanat Tiyatrosu",
+        "operator": "Kartal Sanat Tiyatrosu",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kartal",
+        "area": "Kartal",
+        "venueType": "private_theater",
+        "address": "Kartal / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "private"
+        ],
+        "priority": 70,
+        "isActive": true,
+        "keywords": [
+            "kartal sanat tiyatrosu",
+            "kartal",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "pendik_yunus_emre_kultur_merkezi",
+        "name": "Pendik Yunus Emre Kültür Merkezi",
+        "operator": "Pendik Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Pendik",
+        "area": "Pendik",
+        "venueType": "cultural_center_stage",
+        "address": "Pendik / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 72,
+        "isActive": true,
+        "keywords": [
+            "pendik",
+            "yunus emre",
+            "kültür merkezi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "atasehir_dasdas",
+        "name": "DasDas",
+        "operator": "DasDas",
+        "chain": "DasDas",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Ataşehir",
+        "area": "Ataşehir",
+        "venueType": "private_theater",
+        "address": "Ataşehir / İstanbul",
+        "ticketProviders": [
+            "Mobilet",
+            "Biletinial"
+        ],
+        "source": "mobilet",
+        "features": [
+            "theater",
+            "standup",
+            "concert",
+            "popular"
+        ],
+        "priority": 96,
+        "isActive": true,
+        "keywords": [
+            "dasdas",
+            "ataşehir",
+            "tiyatro",
+            "standup"
+        ]
+    },
+    {
+        "id": "watergarden_performance_hall",
+        "name": "Watergarden Performance Hall",
+        "operator": "Watergarden",
+        "chain": "Cultural Venue",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Ataşehir",
+        "area": "Barbaros",
+        "venueType": "performance_stage",
+        "address": "Watergarden AVM, Ataşehir / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "standup",
+            "concert",
+            "mall"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "watergarden",
+            "ataşehir",
+            "performans",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "sahne_pulcherie",
+        "name": "Sahne Pulchérie",
+        "operator": "Sahne Pulchérie",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Taksim",
+        "venueType": "independent_stage",
+        "address": "Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "performance",
+            "central",
+            "independent"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "sahne pulcherie",
+            "pulcherie",
+            "beyoğlu",
+            "taksim",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "kumbaraci50",
+        "name": "Kumbaracı50",
+        "operator": "Kumbaracı50",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Galata",
+        "venueType": "independent_theater",
+        "address": "Galata / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "independent",
+            "experimental",
+            "central"
+        ],
+        "priority": 86,
+        "isActive": true,
+        "keywords": [
+            "kumbaracı50",
+            "kumbaracı",
+            "galata",
+            "beyoğlu",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "tophane_i_amire",
+        "name": "Tophane-i Amire Kültür ve Sanat Merkezi",
+        "operator": "Mimar Sinan Güzel Sanatlar Üniversitesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "Tophane",
+        "venueType": "cultural_center_stage",
+        "address": "Tophane / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "performance",
+            "festival",
+            "cultural_center",
+            "central"
+        ],
+        "priority": 70,
+        "isActive": true,
+        "keywords": [
+            "tophane-i amire",
+            "tophane",
+            "beyoğlu",
+            "performans",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "atlas_1948",
+        "name": "Atlas 1948",
+        "operator": "Atlas 1948",
+        "chain": "Cultural Venue",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beyoğlu",
+        "area": "İstiklal",
+        "venueType": "historic_stage",
+        "address": "İstiklal Caddesi / Beyoğlu / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Mobilet",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cinema",
+            "historic",
+            "central",
+            "special_event"
+        ],
+        "priority": 80,
+        "isActive": true,
+        "keywords": [
+            "atlas 1948",
+            "atlas",
+            "beyoğlu",
+            "istiklal",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "akatlar_kultur_merkezi",
+        "name": "Akatlar Kültür Merkezi",
+        "operator": "Beşiktaş Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Akatlar",
+        "venueType": "cultural_center_stage",
+        "address": "Akatlar / Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "standup",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "akatlar kültür merkezi",
+            "akatlar",
+            "beşiktaş",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "suleyman_seba_kultur_merkezi",
+        "name": "Süleyman Seba Kültür Merkezi",
+        "operator": "Beşiktaş Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Fulya",
+        "venueType": "cultural_center_stage",
+        "address": "Fulya / Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "standup",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "süleyman seba",
+            "beşiktaş",
+            "fulya",
+            "tiyatro",
+            "standup"
+        ]
+    },
+    {
+        "id": "sahne_besiktas",
+        "name": "Sahne Beşiktaş",
+        "operator": "Sahne Beşiktaş",
+        "chain": "Independent",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "private_stage",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "theater",
+            "standup",
+            "central"
+        ],
+        "priority": 74,
+        "isActive": true,
+        "keywords": [
+            "sahne beşiktaş",
+            "beşiktaş",
+            "tiyatro",
+            "standup"
+        ]
+    },
+    {
+        "id": "besiktas_kultur_merkezi",
+        "name": "Beşiktaş Kültür Merkezi",
+        "operator": "BKM",
+        "chain": "BKM",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Beşiktaş",
+        "area": "Beşiktaş",
+        "venueType": "private_theater",
+        "address": "Beşiktaş / İstanbul",
+        "ticketProviders": [
+            "Biletix",
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "standup",
+            "comedy",
+            "central",
+            "popular"
+        ],
+        "priority": 86,
+        "isActive": true,
+        "keywords": [
+            "beşiktaş kültür merkezi",
+            "bkm",
+            "beşiktaş",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "avcilar_baris_manco_kultur_merkezi",
+        "name": "Avcılar Barış Manço Kültür Merkezi",
+        "operator": "Avcılar Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Avcılar",
+        "area": "Avcılar",
+        "venueType": "cultural_center_stage",
+        "address": "Avcılar / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 68,
+        "isActive": true,
+        "keywords": [
+            "avcılar",
+            "barış manço",
+            "kültür merkezi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bakirkoy_yunus_emre_kultur_merkezi",
+        "name": "Bakırköy Yunus Emre Kültür Merkezi",
+        "operator": "Bakırköy Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Bakırköy",
+        "area": "Bakırköy",
+        "venueType": "cultural_center_stage",
+        "address": "Bakırköy / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 72,
+        "isActive": true,
+        "keywords": [
+            "bakırköy",
+            "yunus emre",
+            "kültür merkezi",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "bahcelievler_nurettin_topcu_kultur_merkezi",
+        "name": "Bahçelievler Belediyesi Nurettin Topçu Kültür Merkezi",
+        "operator": "Bahçelievler Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Bahçelievler",
+        "area": "Bahçelievler",
+        "venueType": "cultural_center_stage",
+        "address": "Bahçelievler / İstanbul",
+        "ticketProviders": [
+            "Devlet Tiyatroları",
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "devlet_tiyatrolari",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal",
+            "state_theater"
+        ],
+        "priority": 72,
+        "isActive": true,
+        "keywords": [
+            "bahçelievler",
+            "nurettin topçu",
+            "devlet tiyatrosu",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "sariyer_bogazici_kultur_sanat_merkezi",
+        "name": "Sarıyer Boğaziçi Kültür Sanat Merkezi",
+        "operator": "Sarıyer Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Sarıyer",
+        "area": "Sarıyer",
+        "venueType": "cultural_center_stage",
+        "address": "Sarıyer / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "cultural_center",
+            "municipal"
+        ],
+        "priority": 70,
+        "isActive": true,
+        "keywords": [
+            "sarıyer",
+            "boğaziçi kültür sanat",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "mall_of_istanbul_moi_sahne",
+        "name": "MOİ Sahne",
+        "operator": "Mall of İstanbul",
+        "chain": "MOİ Sahne",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Başakşehir",
+        "area": "Mall of İstanbul",
+        "venueType": "mall_stage",
+        "address": "Mall of İstanbul, Başakşehir / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Biletix",
+            "Venue"
+        ],
+        "source": "biletinial",
+        "features": [
+            "theater",
+            "children_theater",
+            "standup",
+            "mall",
+            "large_stage"
+        ],
+        "priority": 84,
+        "isActive": true,
+        "keywords": [
+            "moi sahne",
+            "mall of istanbul",
+            "başakşehir",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "hoca_pasa_kultur_merkezi",
+        "name": "Hocapaşa Kültür Merkezi",
+        "operator": "Hocapaşa Kültür Merkezi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Avrupa",
+        "district": "Fatih",
+        "area": "Sirkeci",
+        "venueType": "cultural_center_stage",
+        "address": "Sirkeci / Fatih / İstanbul",
+        "ticketProviders": [
+            "Biletinial",
+            "Venue"
+        ],
+        "source": "tripadvisor",
+        "features": [
+            "performance",
+            "dance",
+            "cultural_show",
+            "touristic",
+            "historic"
+        ],
+        "priority": 76,
+        "isActive": true,
+        "keywords": [
+            "hocapaşa",
+            "sirkeci",
+            "fatih",
+            "gösteri",
+            "tiyatro"
+        ]
+    },
+    {
+        "id": "sureyya_operasi",
+        "name": "Süreyya Operası",
+        "operator": "Kadıköy Belediyesi",
+        "chain": "Cultural Center",
+        "city": "İstanbul",
+        "region": "Anadolu",
+        "district": "Kadıköy",
+        "area": "Bahariye",
+        "venueType": "opera_theater",
+        "address": "Bahariye / Kadıköy / İstanbul",
+        "ticketProviders": [
+            "Venue",
+            "Biletinial"
+        ],
+        "source": "tiyatrolar_com_tr",
+        "features": [
+            "opera",
+            "theater",
+            "concert",
+            "historic",
+            "central"
+        ],
+        "priority": 84,
+        "isActive": true,
+        "keywords": [
+            "süreyya operası",
+            "kadıköy",
+            "bahariye",
+            "opera",
+            "tiyatro"
+        ]
+    }
+]
