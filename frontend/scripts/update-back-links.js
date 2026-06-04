@@ -41,10 +41,10 @@ files.forEach(relPath => {
   }
 
   // Replace router.push('/home') or router.push("/home")
-  content = content.replace(/router\.push\(\s*["']\/home["']\s*\)/g, 'window.location.href = getRootHomeUrl()');
+  content = content.replace(/router\.push\(\s*["']\/home["']\s*\)/g, 'window.location.href = getAppRootUrl()');
   
   // Replace Link/a href="/home" or href='/home'
-  content = content.replace(/href\s*=\s*["']\/home["']/g, 'href={getRootHomeUrl()}');
+  content = content.replace(/href\s*=\s*["']\/home["']/g, 'href={getAppRootUrl()}');
   
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`Successfully updated ${relPath}`);

@@ -1,5 +1,6 @@
 "use client";
 
+import { getAppRootUrl } from "@/lib/apps";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -48,7 +49,7 @@ export default function TournamentListPage() {
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
           <div className="flex items-center gap-6">
             <button 
-              onClick={() => router.push("/")} 
+              onClick={() => window.location.href = getAppRootUrl()} 
               className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors border border-white/10 group"
               title="Ana Sayfaya Dön"
             >

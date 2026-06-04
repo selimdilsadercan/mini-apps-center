@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -82,7 +82,7 @@ function CreateRecipeContent() {
       }
 
       // Redirect to home
-      window.location.href = getRootHomeUrl();
+      window.location.href = getAppRootUrl();
     } catch (err) {
       console.error("Import error:", err);
       setError("Tarif kaydedilemedi. Lütfen tekrar deneyin.");

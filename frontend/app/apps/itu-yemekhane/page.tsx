@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -242,7 +242,7 @@ export function ITUYemekhaneAppContent({
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           {(!isMock) ? (
             <Link
-              href={getRootHomeUrl()}
+              href={getAppRootUrl()}
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center gap-2 group"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

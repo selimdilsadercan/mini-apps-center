@@ -14,7 +14,7 @@ import {
   ArrowLeft
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 import dynamic from "next/dynamic";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -102,7 +102,7 @@ export default function MapTrackerPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                window.location.href = getRootHomeUrl();
+                window.location.href = getAppRootUrl();
               }}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-[#F1EDE2] text-[#3D405B] hover:bg-[#E9E5D9] transition-all cursor-pointer"
               title="Geri Dön"

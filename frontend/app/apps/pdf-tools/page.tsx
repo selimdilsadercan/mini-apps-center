@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { useState, useEffect, useRef } from "react";
 import { 
@@ -306,7 +306,7 @@ export default function PdfToolsPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => window.location.href = getRootHomeUrl()}
+              onClick={() => window.location.href = getAppRootUrl()}
               className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
             >
               <CaretLeft size={24} weight="bold" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
@@ -133,7 +133,7 @@ export default function TasarrufChallengesPage() {
           <header className="flex items-center justify-between max-w-md mx-auto px-4 py-6">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => router.push("/home")}
+                onClick={() => window.location.href = getAppRootUrl()}
                 className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
               >
                 <ArrowLeft size={24} color="#374151" />
@@ -754,8 +754,8 @@ function AddPostForm({
 
               <header className="flex justify-between items-center mb-6 shrink-0">
                 <div>
-                  <Drawer.Title className="font-black text-xl text-gray-900">Tasarruf Türü Seç</Drawer.Title>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">Yaptığın tasarrufa en uygun türü seç</p>
+                  <Drawer.Title className="font-black text-xl text-gray-900">{t("selectSavingType")}</Drawer.Title>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">{t("selectSavingTypeSubtitle")}</p>
                 </div>
                 <button
                   onClick={() => setShowOptionModal(false)}

@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
@@ -19,7 +19,7 @@ export default function Header({ className = "" }: HeaderProps) {
         <div className="flex items-center justify-between">
           {/* Back Button */}
           <button
-            onClick={() => window.location.href = getRootHomeUrl()}
+            onClick={() => window.location.href = getAppRootUrl()}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <ArrowLeft size={24} className="text-gray-700 dark:text-gray-200" />

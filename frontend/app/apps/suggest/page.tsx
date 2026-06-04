@@ -1,6 +1,6 @@
 "use client";
 
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
@@ -352,7 +352,7 @@ function SuggestPageContent() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => (window.location.href = getRootHomeUrl())}
+              onClick={() => (window.location.href = getAppRootUrl())}
               className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
             >
               <CaretLeft size={24} color="#374151" />

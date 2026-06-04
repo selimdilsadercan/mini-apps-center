@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
@@ -129,7 +129,7 @@ export default function KilerPage() {
         {/* Breadcrumb / Status */}
         <div className="flex items-center justify-between mb-8">
           <button 
-            onClick={() => window.location.href = getRootHomeUrl()}
+            onClick={() => window.location.href = getAppRootUrl()}
             className="group flex items-center gap-2 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-900 transition-all bg-white/40 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-white shadow-sm active:scale-95"
           >
             <CaretLeft size={14} weight="bold" className="group-hover:-translate-x-1 transition-transform" />

@@ -20,7 +20,7 @@ import {
   createClubAction 
 } from "./actions";
 import type { board_game_clubs, lib } from "@/lib/client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 export default function BoardGameClubsPage() {
   const router = useRouter();
@@ -132,7 +132,7 @@ export default function BoardGameClubsPage() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => {
-              window.location.href = getRootHomeUrl();
+              window.location.href = getAppRootUrl();
             }}
             className="p-2 hover:bg-stone-200/50 rounded-xl text-stone-500 hover:text-stone-850 transition-all duration-300 border border-transparent hover:border-stone-300/40"
           >

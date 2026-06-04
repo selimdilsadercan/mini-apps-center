@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { Cards, ArrowLeft, Compass, Heart } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,7 @@ export default function IskambilAppBar({ activeTab }: IskambilAppBarProps) {
         {/* Brand/Title & Back Button */}
         <div className="flex items-center gap-4 min-w-0">
           <button
-            onClick={() => window.location.href = getRootHomeUrl()}
+            onClick={() => window.location.href = getAppRootUrl()}
             className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5f2e9] border border-[#e2dcc8] text-[#0c3122] hover:bg-[#eae6df] transition-all cursor-pointer flex-shrink-0"
             title={t.back}
           >

@@ -1,5 +1,6 @@
 "use client";
 
+import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -872,7 +873,7 @@ export default function SubscriptionCenter() {
         <div className="max-w-5xl mx-auto h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.back()}
+              onClick={() => window.location.href = getAppRootUrl()}
               className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 transition-all active:scale-95 shadow-sm cursor-pointer"
             >
               <ArrowLeft size={18} weight="bold" />
