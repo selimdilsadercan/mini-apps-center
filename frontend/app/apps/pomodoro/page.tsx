@@ -1,5 +1,7 @@
 "use client";
 
+import { getAppRootUrl } from "@/lib/apps";
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -413,7 +415,7 @@ export default function PomodoroPage() {
           >
             <div className="absolute top-6 left-6 right-6 flex justify-between items-center pointer-events-auto">
               <Link
-                href="/"
+                href={getAppRootUrl()}
                 className="p-2 text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
               >
                 <ArrowLeft size={28} />

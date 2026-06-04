@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl, getRootHomeUrl } from "@/lib/apps";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
@@ -84,7 +84,7 @@ export default function StopScrollPage() {
       {/* Header */}
       <header className="w-full max-w-4xl flex items-center justify-between z-10 mb-8">
         <Link 
-          href={getRootHomeUrl()} 
+          href={getAppRootUrl()} 
           className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors duration-200"
         >
           <ArrowLeft size={20} weight="bold" />

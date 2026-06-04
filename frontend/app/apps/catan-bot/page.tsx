@@ -1,5 +1,6 @@
 "use client";
 
+import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -400,7 +401,7 @@ export default function CatanBot() {
     <div className="flex min-h-screen flex-col bg-[#0A0F1E] text-white">
       <header className="flex items-center justify-between px-6 py-6 border-b border-white/5">
         <div className="flex items-center gap-5 max-w-7xl mx-auto w-full">
-          <button onClick={() => router.back()} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all"><ArrowLeft size={22} weight="bold" /></button>
+          <button onClick={() => window.location.href = getAppRootUrl()} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all"><ArrowLeft size={22} weight="bold" /></button>
           <div className="flex flex-col">
             <h1 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3"><Robot size={28} weight="fill" className="text-amber-400" /> CatanBot</h1>
             <span className="text-[10px] uppercase tracking-widest text-amber-400/60 font-bold">Smart Algorithm Visualizer</span>

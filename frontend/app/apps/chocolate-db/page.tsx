@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import React, { useEffect, useState } from "react";
 import { createBrowserClient } from "@/lib/api";
@@ -168,7 +168,7 @@ export default function ChocolateDBPage() {
       <div className="relative overflow-hidden bg-[#4A2C2A] pt-20 pb-12 px-4 sm:px-6 md:py-16 lg:px-8">
         {/* Back Button */}
         <button
-          onClick={() => window.location.href = getRootHomeUrl()}
+          onClick={() => window.location.href = getAppRootUrl()}
           className="absolute top-4 left-4 md:top-6 md:left-6 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-[#F3E5D8]/10 hover:bg-[#F3E5D8]/20 border border-[#F3E5D8]/20 text-[#F3E5D8] transition-all cursor-pointer shadow-lg"
           title={lang === "tr" ? "Geri Dön" : "Go Back"}
         >

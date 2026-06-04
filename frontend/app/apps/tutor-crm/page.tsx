@@ -1,5 +1,5 @@
 "use client";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getAppRootUrl } from "@/lib/apps";
 
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
@@ -1111,7 +1111,7 @@ JSON Şeması:
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => window.location.href = getRootHomeUrl()}
+              onClick={() => window.location.href = getAppRootUrl()}
               className="p-1.5 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
             >
               <CaretLeft size={18} weight="bold" className="text-gray-400" />
@@ -1153,7 +1153,7 @@ JSON Şeması:
         {/* Month Selector / Month Text */}
         <div className="flex items-center gap-1.5 min-w-0">
           <button
-            onClick={() => window.location.href = getRootHomeUrl()}
+            onClick={() => window.location.href = getAppRootUrl()}
             className="p-1 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer mr-1 shrink-0"
           >
             <CaretLeft size={18} weight="bold" className="text-gray-400" />

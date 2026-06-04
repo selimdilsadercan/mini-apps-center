@@ -1,5 +1,6 @@
 "use client";
 
+import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useMemo } from "react";
 import {
   MagnifyingGlass,
