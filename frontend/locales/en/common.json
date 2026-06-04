@@ -35,6 +35,7 @@
     "english": "English",
     "welcome": "Welcome, {name}",
     "guest": "Guest User",
+    "friends": "My Friends",
     "signOut": "Sign Out"
   },
   "stopScroll": {

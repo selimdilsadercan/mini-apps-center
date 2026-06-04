@@ -36,6 +36,7 @@ export default class Client {
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
+    public readonly feed: feed.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly icon_set_guide: icon_set_guide.ServiceClient
@@ -72,6 +73,7 @@ export default class Client {
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
+        this.feed = new feed.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
@@ -740,6 +742,67 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/concerts/${encodeURIComponent(userId)}`)
             return await resp.json() as GetConcertsResponse
+        }
+    }
+}
+
+/**
+ * Feed service
+ */
+export namespace feed {
+    export interface CreateEventRequest {
+        userId: string
+        username?: string | null
+        userAvatar?: string | null
+        appId: string
+        eventType: string
+        payload: any
+    }
+
+    export interface CreateEventResponse {
+        event: FeedEvent
+    }
+
+    export interface FeedEvent {
+        id: string
+        userId: string
+        username: string | null
+        userAvatar: string | null
+        appId: string
+        eventType: string
+        payload: any
+        createdAt: string
+    }
+
+    export interface GetFeedResponse {
+        events: FeedEvent[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createEvent = this.createEvent.bind(this)
+            this.getFeed = this.getFeed.bind(this)
+        }
+
+        /**
+         * Endpoint to log a social event
+         */
+        public async createEvent(params: CreateEventRequest): Promise<CreateEventResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/feed/event`, JSON.stringify(params))
+            return await resp.json() as CreateEventResponse
+        }
+
+        /**
+         * Endpoint to fetch feed events for user & their friends
+         */
+        public async getFeed(userId: string): Promise<GetFeedResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/feed/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetFeedResponse
         }
     }
 }

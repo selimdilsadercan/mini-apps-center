@@ -552,7 +552,9 @@ function KimGelirContent() {
                 {/* Kimlere Sorulsun? */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">3. Kimlere Sorulsun?</label>
+                    <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">
+                      {activityType === "quick_invite" ? "3. Kimlere Sorulsun?" : "Kimlere Sorulsun?"}
+                    </label>
                     {friends.length > 0 && (
                       <button
                         type="button"

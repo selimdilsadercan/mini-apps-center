@@ -6,14 +6,15 @@ import {
   Compass, 
   User,
   Users,
-  Sparkle
+  Sparkle,
+  Globe
 } from "@phosphor-icons/react";
 
 // Aktif sayfa enum'u
 export enum ActivePage {
   HUB = "hub",
   DISCOVER = "discover",
-  FRIENDS = "friends",  
+  FEED = "feed",  
   AI_CHAT = "ai-chat",
   NOTIFICATIONS = "notifications",
   PROFILE = "profile",
@@ -83,20 +84,20 @@ export default function AppBar({ activePage }: AppBarProps) {
           </div>
         </Link>
 
-        {/* Friends */}
+        {/* Feed */}
         <Link
-          href="/friends"
+          href="/feed"
           className={`flex flex-col items-center group transition-all duration-300 ${
-            activePage === ActivePage.FRIENDS ? "scale-110" : "opacity-50 hover:opacity-100"
+            activePage === ActivePage.FEED ? "scale-110" : "opacity-50 hover:opacity-100"
           }`}
         >
           <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-            activePage === ActivePage.FRIENDS ? "bg-blue-600 shadow-lg shadow-blue-100" : "bg-transparent group-hover:bg-blue-50"
+            activePage === ActivePage.FEED ? "bg-blue-600 shadow-lg shadow-blue-100" : "bg-transparent group-hover:bg-blue-50"
           }`}>
-            <Users 
+            <Globe 
               size={24} 
-              weight={activePage === ActivePage.FRIENDS ? "fill" : "bold"}
-              color={activePage === ActivePage.FRIENDS ? "white" : "#1F2937"} 
+              weight={activePage === ActivePage.FEED ? "fill" : "bold"}
+              color={activePage === ActivePage.FEED ? "white" : "#1F2937"} 
             />
           </div>
         </Link>

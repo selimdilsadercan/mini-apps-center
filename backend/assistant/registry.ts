@@ -24,6 +24,7 @@ import { workplacesAssistant } from "../workplaces/assistant";
 import { boardGameClubsAssistant } from "../board-game-clubs/assistant";
 import { pomodoroAssistant } from "../pomodoro/assistant";
 import { kimGelirAssistant } from "../kim-gelir/assistant";
+import { feedAssistant } from "../feed/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   kilerAssistant,
@@ -47,6 +48,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   boardGameClubsAssistant,
   pomodoroAssistant,
   kimGelirAssistant,
+  feedAssistant,
 ];
 
 const assistantByAppId = new Map(

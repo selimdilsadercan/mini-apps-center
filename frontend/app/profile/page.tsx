@@ -2,7 +2,8 @@
 
 import { useUser, SignOutButton } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
-import { Sparkle, Translate, SignOut, User } from "@phosphor-icons/react";
+import Link from "next/link";
+import { Sparkle, Translate, SignOut, User, Users } from "@phosphor-icons/react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 
 export default function Profile() {
@@ -97,6 +98,31 @@ export default function Profile() {
               </SignOutButton>
             </div>
           )}
+        </section>
+
+        {/* Friends Navigation Card */}
+        <section className="bg-white/80 backdrop-blur-md rounded-[2rem] border border-gray-150 p-6 shadow-xl shadow-indigo-100/10 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                <Users size={20} weight="bold" />
+              </div>
+              <div>
+                <h3 className="font-black text-gray-900 text-base leading-tight">
+                  {t("friends") || "Arkadaşlarım"}
+                </h3>
+                <p className="text-gray-400 text-xs mt-0.5 font-medium">
+                  Bağlantılarını yönet ve yeni arkadaşlar ekle
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/friends"
+              className="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-sm hover:shadow transition-all cursor-pointer no-underline"
+            >
+              Yönet
+            </Link>
+          </div>
         </section>
 
         {/* Language Selection Card */}

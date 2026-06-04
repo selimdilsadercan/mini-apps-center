@@ -35,6 +35,7 @@
     "english": "English",
     "welcome": "Hoş Geldiniz, {name}",
     "guest": "Misafir Kullanıcı",
+    "friends": "Arkadaşlarım",
     "signOut": "Çıkış Yap"
   },
   "stopScroll": {

@@ -202,10 +202,18 @@ function FriendsContent() {
       <main className="flex-1 px-6 max-w-md mx-auto w-full pt-10">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none">
-            {t("title")}
-          </h1>
-          <p className="text-xs text-gray-400 font-medium mt-1.5">{t("subtitle")}</p>
+          <div className="flex items-center gap-3 mb-2">
+            <button 
+              onClick={() => router.push("/profile")} 
+              className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95 cursor-pointer"
+            >
+              <ArrowLeft size={24} color="#374151" />
+            </button>
+            <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none">
+              {t("title")}
+            </h1>
+          </div>
+          <p className="text-xs text-gray-400 font-medium pl-1">{t("subtitle")}</p>
         </header>
 
         {/* Share ID Card */}
@@ -435,7 +443,7 @@ function FriendsContent() {
       )}
 
       {/* Bottom App Navigation */}
-      <AppBar activePage={ActivePage.FRIENDS} />
+      <AppBar activePage={ActivePage.PROFILE} />
     </div>
   );
 }
