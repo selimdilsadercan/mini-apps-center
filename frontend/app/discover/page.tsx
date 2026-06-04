@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } fr
 import { useUser } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import MiniAppCard from "@/components/MiniAppCard";
-import { MINI_APPS, AppCategory, MiniApp, getAppHref } from "@/lib/apps";
+import { MINI_APPS, AppCategory, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { 
   MagnifyingGlass, 
   Sparkle,
@@ -224,12 +224,7 @@ export default function Discover() {
   }, [searchQuery, implementedApps, tApps]);
 
   const handleAppClick = (app: MiniApp) => {
-    const href = getAppHref(app);
-    if (href.startsWith("http")) {
-      window.location.href = href;
-    } else {
-      router.push(href);
-    }
+    navigateToMiniApp(app, router);
   };
 
   const handleGetApp = async (appId: string, e: React.MouseEvent) => {

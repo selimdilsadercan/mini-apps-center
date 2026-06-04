@@ -50,19 +50,32 @@ export interface MiniApp {
   isLocal?: boolean;
 }
 
+/** Capacitor APK/WebView (build flag veya çalışma anı). */
+export function isCapacitorNative(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } })
+    .Capacitor;
+  return !!cap?.isNativePlatform?.();
+}
+
 /**
  * Generates the correct URL for a mini app, considering subdomains.
  */
 export function getAppHref(app: MiniApp): string {
   if (typeof window === "undefined") return app.href;
 
-  // Capacitor native modda subdomain routing çalışmaz.
-  // Her zaman iç path kullan, Next.js router üzerinden navigate et.
-  if (process.env.NEXT_PUBLIC_CAPACITOR === "true") {
+  // Capacitor / localhost WebView: subdomain yok, iç path kullan.
+  if (
+    process.env.NEXT_PUBLIC_CAPACITOR === "true" ||
+    isCapacitorNative()
+  ) {
     return app.href;
   }
 
   const hostname = window.location.hostname;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return app.href;
+  }
   const port = window.location.port;
   const protocol = window.location.protocol;
 
@@ -83,6 +96,30 @@ export function getAppHref(app: MiniApp): string {
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
   return `${protocol}//${rootDomain}${app.href}`;
+}
+
+/**
+ * Mini app açma — telefonda aynı origin ise router.push, değilse tam URL.
+ */
+export function navigateToMiniApp(
+  app: MiniApp,
+  router: { push: (href: string) => void },
+): void {
+  const href = getAppHref(app);
+  if (!href.startsWith("http")) {
+    router.push(href);
+    return;
+  }
+  try {
+    const url = new URL(href);
+    if (typeof window !== "undefined" && url.origin === window.location.origin) {
+      router.push(`${url.pathname}${url.search}${url.hash}`);
+      return;
+    }
+  } catch {
+    /* external */
+  }
+  window.location.href = href;
 }
 
 /**

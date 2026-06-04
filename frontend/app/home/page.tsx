@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/clerk-react";
-import { MINI_APPS, MiniApp, getAppHref } from "@/lib/apps";
+import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { Sparkle, Plus, Check, ArrowsOutCardinal } from "@phosphor-icons/react";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -389,7 +389,7 @@ function SortableAppIcon({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col items-center gap-2 touch-none select-none relative ${isDragging ? "pointer-events-none" : ""}`}
+      className={`flex flex-col items-center gap-2 select-none relative ${isEditMode ? "touch-none" : "touch-manipulation"} ${isDragging ? "pointer-events-none" : ""}`}
     >
       {/* Remove Button in Edit Mode */}
       {isEditMode && (
@@ -410,12 +410,7 @@ function SortableAppIcon({
         animate={isEditMode && !isDragging ? "wiggle" : "idle"}
         onClick={() => {
           if (!isEditMode) {
-            const href = getAppHref(app);
-            if (href.startsWith("http")) {
-              window.location.href = href;
-            } else {
-              router.push(href);
-            }
+            navigateToMiniApp(app, router);
           }
         }}
         {...(isEditMode ? attributes : {})}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MiniApp, getAppHref } from "@/lib/apps";
+import { MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 
 interface MiniAppIconProps {
@@ -13,12 +13,7 @@ export default function MiniAppIcon({ app }: MiniAppIconProps) {
   const Icon = app.icon;
 
   const handleClick = () => {
-    const href = getAppHref(app);
-    if (href.startsWith("http")) {
-      window.location.href = href;
-    } else {
-      router.push(href);
-    }
+    navigateToMiniApp(app, router);
   };
 
   return (

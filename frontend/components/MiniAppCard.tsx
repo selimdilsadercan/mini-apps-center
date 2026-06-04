@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MiniApp, getAppHref } from "@/lib/apps";
+import { MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { CaretRight } from "@phosphor-icons/react";
 import { useTranslations } from "@/contexts/LanguageContext";
@@ -16,12 +16,7 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
   const tApps = useTranslations("apps");
 
   const handleClick = () => {
-    const href = getAppHref(app);
-    if (href.startsWith("http")) {
-      window.location.href = href;
-    } else {
-      router.push(href);
-    }
+    navigateToMiniApp(app, router);
   };
 
   const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
