@@ -38,7 +38,7 @@ export default function ConcertListPage() {
 
   // Load concerts when user is loaded
   useEffect(() => {
-    if (isUserLoaded && user) {
+    if (isUserLoaded) {
       fetchConcerts();
     }
   }, [isUserLoaded, user]);
@@ -46,7 +46,10 @@ export default function ConcertListPage() {
   const fetchConcerts = async () => {
     try {
       setLoading(true);
-      if (!user) return;
+      if (!user) {
+        setConcerts([]);
+        return;
+      }
       const res = await client.concert_list.getConcerts(user.id);
       setConcerts(res.concerts || []);
     } catch (error) {

@@ -63,7 +63,7 @@ export default function TasarrufChallengesPage() {
   });
 
   useEffect(() => {
-    if (isUserLoaded && user) {
+    if (isUserLoaded) {
       fetchData();
     }
   }, [isUserLoaded, user]);
@@ -71,12 +71,16 @@ export default function TasarrufChallengesPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      if (!user) return;
+      
+      const promises: Promise<any>[] = [
+        client.feed.getEventsByApp("tasarruf-challenges")
+      ];
 
-      const [feedRes, statsRes] = await Promise.all([
-        client.feed.getEventsByApp("tasarruf-challenges"),
-        client.tasarruf_challenges.getStats(user.id)
-      ]);
+      if (user) {
+        promises.push(client.tasarruf_challenges.getStats(user.id));
+      }
+
+      const [feedRes, statsRes] = await Promise.all(promises);
 
       const mappedPosts = (feedRes.events || []).map((evt: any) => ({
         id: evt.id,

@@ -52,7 +52,8 @@ function getBaseURL() {
       return Local;
     }
 
-    return Environment("staging");
+    const env = process.env.NEXT_PUBLIC_ENCORE_ENVIRONMENT || "staging";
+    return Environment(env);
   }
 
   // Server ortamı için (Server Actions vs)

@@ -37,7 +37,7 @@ export default function KilerPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isUserLoaded && user) {
+    if (isUserLoaded) {
       fetchItems();
     }
   }, [isUserLoaded, user]);
@@ -45,7 +45,10 @@ export default function KilerPage() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      if (!user) return;
+      if (!user) {
+        setItems([]);
+        return;
+      }
       const response = await client.kiler.getItems(user.id);
       setItems(response.items);
     } catch (error) {

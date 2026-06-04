@@ -60,5 +60,31 @@ This guide documents the mandatory conventions and structure for adding new appl
     - This subdomain must also be registered in `frontend/proxy.ts` (Next.js Proxy/Middleware) in the `SUBDOMAIN_ROUTES` map to ensure correct routing.
     - The exported function in `frontend/proxy.ts` must be named `proxy`.
 
+### 🔄 Data Fetching & Loading States
+- **Authentication:** Many apps use `useUser()` from Clerk.
+- **Rule:** Always ensure `loading` states are resolved (set to `false`) even if the user is not logged in. This prevents infinite spinners for anonymous users.
+- **Pattern:**
+  ```tsx
+  useEffect(() => {
+    if (isUserLoaded) {
+      fetchData();
+    }
+  }, [isUserLoaded, user]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      if (!user) {
+        // Clear data or set defaults for anonymous users
+        setItems([]); 
+        return;
+      }
+      // Fetch data for authenticated user
+    } finally {
+      setLoading(false);
+    }
+  };
+  ```
+
 ## ✨ UI/UX Standards
 - use tailwind always

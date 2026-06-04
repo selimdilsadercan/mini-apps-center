@@ -161,7 +161,10 @@ function KimGelirContent() {
   };
 
   const fetchAllData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const actsRes = await client.kim_gelir.getActivities(user.id);
@@ -185,7 +188,7 @@ function KimGelirContent() {
   };
 
   useEffect(() => {
-    if (isLoaded && user) {
+    if (isLoaded) {
       fetchAllData();
     }
   }, [isLoaded, user]);

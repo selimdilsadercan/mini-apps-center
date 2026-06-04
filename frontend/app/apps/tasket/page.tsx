@@ -1067,7 +1067,10 @@ export default function TasketApp() {
   }, [activeList, editor]);
 
   const fetchData = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       const res = await client.tasket.getData(user.id);
@@ -1083,7 +1086,7 @@ export default function TasketApp() {
   };
 
   useEffect(() => {
-    if (isUserLoaded && user?.id) {
+    if (isUserLoaded) {
       fetchData();
     }
   }, [isUserLoaded, user?.id]);

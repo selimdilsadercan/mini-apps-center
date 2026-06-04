@@ -185,25 +185,28 @@ function SuggestPageContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (isUserLoaded && user) {
+    if (isUserLoaded) {
       fetchData();
-      // Fetch friends list once so it's always ready for the suggestions drawer
-      client.friendship.getFriends(user.id).then(res => {
-        setFriendsList(res.friends || []);
-      }).catch(err => console.error("Error fetching friends:", err));
+      if (user) {
+        // Fetch friends list once so it's always ready for the suggestions drawer
+        client.friendship.getFriends(user.id).then(res => {
+          setFriendsList(res.friends || []);
+        }).catch(err => console.error("Error fetching friends:", err));
+      }
     }
   }, [isUserLoaded, user, activeTab]);
 
   const fetchData = async () => {
-    if (!user) return;
     try {
       setLoading(true);
-      if (activeTab === "inbox" || activeTab === "saved") {
-        const inboxRes = await client.suggest.getInbox(user.id);
-        setInboxList(inboxRes.suggestions);
-      } else if (activeTab === "sent") {
-        const sentRes = await client.suggest.getSent(user.id);
-        setSentList(sentRes.suggestions);
+      if (user) {
+        if (activeTab === "inbox" || activeTab === "saved") {
+          const inboxRes = await client.suggest.getInbox(user.id);
+          setInboxList(inboxRes.suggestions);
+        } else if (activeTab === "sent") {
+          const sentRes = await client.suggest.getSent(user.id);
+          setSentList(sentRes.suggestions);
+        }
       }
     } catch (error) {
       console.error("fetchData error:", error);

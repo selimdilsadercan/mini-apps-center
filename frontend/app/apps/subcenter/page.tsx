@@ -493,7 +493,10 @@ export default function SubscriptionCenter() {
   };
 
   const fetchData = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       const subsResp = await client.subcenter.getUserSubscriptions(user.id);
@@ -519,7 +522,7 @@ export default function SubscriptionCenter() {
   }, []);
 
   useEffect(() => {
-    if (isUserLoaded && user?.id) {
+    if (isUserLoaded) {
       fetchData();
     }
   }, [isUserLoaded, user?.id]);

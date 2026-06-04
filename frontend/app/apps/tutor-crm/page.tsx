@@ -150,7 +150,7 @@ export default function TutorCRMPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isUserLoaded && user) {
+    if (isUserLoaded) {
       fetchAllData();
     }
   }, [isUserLoaded, user, activeFollowedShareId]);
@@ -252,7 +252,10 @@ export default function TutorCRMPage() {
   };
 
   const fetchAllData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [sRes, hRes, pRes, shareSettingsRes, followedSharesRes] = await Promise.all([
