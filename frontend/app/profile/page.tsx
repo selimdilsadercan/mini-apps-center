@@ -131,14 +131,14 @@ export default function Profile() {
           </p>
 
           {/* Social Stats line */}
-          <div className="flex gap-8 justify-center mt-6 py-2 px-8 bg-white/60 border border-gray-100 rounded-2xl shadow-sm">
-            <Link href="/friends" className="flex flex-col items-center no-underline text-gray-900">
+          <div className="grid grid-cols-2 divide-x divide-gray-150 mt-6 py-3.5 bg-white/60 border border-gray-100 rounded-2xl shadow-sm text-center w-full max-w-[240px]">
+            <Link href="/friends" className="flex flex-col items-center no-underline text-gray-900 justify-center">
               <span className="text-lg font-black">{friendsCount}</span>
-              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Arkadaş</span>
+              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{t("friendsStat")}</span>
             </Link>
-            <div className="flex flex-col items-center border-l border-gray-150 pl-8">
+            <div className="flex flex-col items-center justify-center">
               <span className="text-lg font-black">{activeAppsCount}</span>
-              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Minis</span>
+              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{t("appsStat")}</span>
             </div>
           </div>
         </div>
@@ -172,37 +172,35 @@ export default function Profile() {
           </div>
 
           {/* Language Preference selection inside settings container */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 space-y-4">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-2xl">
                 <Globe size={18} weight="bold" />
               </div>
-              <span className="text-xs font-black text-gray-900">Uygulama Dili / Language</span>
+              <span className="text-xs font-black text-gray-900">{t("language")}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            {/* Segmented language switcher on the right */}
+            <div className="flex items-center bg-gray-50 border border-gray-100 rounded-2xl p-1 shrink-0">
               <button
                 onClick={() => setLocale("tr")}
-                className={`py-3 rounded-2xl font-bold text-xs transition-all active:scale-[0.97] cursor-pointer flex items-center justify-center gap-2 border ${
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
                   locale === "tr"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
-                    : "bg-gray-50 text-gray-600 border-gray-100 hover:border-gray-200"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-400 hover:text-gray-700"
                 }`}
               >
-                <span>🇹🇷</span>
-                <span>Türkçe</span>
+                TR
               </button>
-
               <button
                 onClick={() => setLocale("en")}
-                className={`py-3 rounded-2xl font-bold text-xs transition-all active:scale-[0.97] cursor-pointer flex items-center justify-center gap-2 border ${
+                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
                   locale === "en"
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100"
-                    : "bg-gray-50 text-gray-600 border-gray-100 hover:border-gray-200"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-400 hover:text-gray-700"
                 }`}
               >
-                <span>🇬🇧</span>
-                <span>English</span>
+                EN
               </button>
             </div>
           </div>

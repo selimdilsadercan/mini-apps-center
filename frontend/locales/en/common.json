@@ -29,14 +29,16 @@
   },
   "profile": {
     "title": "Profile",
-    "language": "Language",
+    "language": "App Language",
     "selectLanguage": "Select Application Language",
     "turkish": "Türkçe",
     "english": "English",
     "welcome": "Welcome, {name}",
     "guest": "Guest User",
     "friends": "My Friends",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "friendsStat": "Friends",
+    "appsStat": "Apps"
   },
   "stopScroll": {
     "title": "Stop Scrolling, Start Living",

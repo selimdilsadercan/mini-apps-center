@@ -29,14 +29,16 @@
   },
   "profile": {
     "title": "Profil",
-    "language": "Dil",
+    "language": "Uygulama Dili",
     "selectLanguage": "Uygulama Dili Seçin",
     "turkish": "Türkçe",
     "english": "English",
     "welcome": "Hoş Geldiniz, {name}",
     "guest": "Misafir Kullanıcı",
     "friends": "Arkadaşlarım",
-    "signOut": "Çıkış Yap"
+    "signOut": "Çıkış Yap",
+    "friendsStat": "Arkadaş",
+    "appsStat": "Uygulama"
   },
   "stopScroll": {
     "title": "Bugün Ne Yapsam?",
