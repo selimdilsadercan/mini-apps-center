@@ -206,3 +206,35 @@ export const getPendingRequests = api(
     return { requests };
   }
 );
+
+interface GetSentRequestsResponse {
+  requests: PendingRequest[];
+}
+
+/**
+ * Gönderilen bekleyen arkadaşlık isteklerini getirir
+ * GET /friendship/requests/sent/:userId
+ */
+export const getSentRequests = api(
+  { expose: true, method: "GET", path: "/friendship/requests/sent/:userId" },
+  async ({ userId }: { userId: string }): Promise<GetSentRequestsResponse> => {
+    const { data, error } = await supabase.rpc("get_sent_requests", {
+      clerk_id_param: userId,
+    });
+
+    if (error) {
+      console.error("getSentRequests error:", error);
+      throw APIError.internal(`Failed to get sent requests: ${error.message}`);
+    }
+
+    const requests: PendingRequest[] = (data || []).map((item: any) => ({
+      id: item.id,
+      username: item.username,
+      avatar: item.avatar,
+      createdAt: item.created_at,
+    }));
+
+    return { requests };
+  }
+);
+

@@ -21,7 +21,9 @@ import {
   Users,
   Tray,
   ChatCircle,
-  Eye
+  Eye,
+  Gear,
+  UserCircle
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -56,6 +58,23 @@ export default function SuggestPage() {
 
   // Selected Suggestion for Detail view
   const [detailSuggestion, setDetailSuggestion] = useState<suggest.InboxSuggestion | null>(null);
+
+  // Profile Settings Modal state
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileUsername, setProfileUsername] = useState("");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Prepopulate state when Clerk user loads
+  useEffect(() => {
+    if (user) {
+      // Query database user record to get configured username rather than relying on clerk
+      client.users.getUserByClerkId(user.id).then(res => {
+        if (res.user?.username) {
+          setProfileUsername(res.user.username);
+        }
+      }).catch(err => console.error("Error fetching db user info:", err));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isUserLoaded && user) {
@@ -105,6 +124,53 @@ export default function SuggestPage() {
       }
     } catch (error) {
       toast.error("Durum güncellenemedi");
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    // Validation
+    const cleanUsername = profileUsername.trim().toLowerCase();
+    
+    if (!cleanUsername) {
+      toast.error("Kullanıcı adı boş olamaz");
+      return;
+    }
+    
+    if (cleanUsername.length > 26) {
+      toast.error("Kullanıcı adı en fazla 26 karakter olmalıdır");
+      return;
+    }
+
+    const usernameRegex = /^[a-z0-9_.-]+$/;
+    if (!usernameRegex.test(cleanUsername)) {
+      toast.error("Kullanıcı adı yalnızca küçük harfler, sayılar ve alt çizgi/nokta/tire içerebilir");
+      return;
+    }
+
+    try {
+      setIsUpdatingProfile(true);
+
+      // Synchronize changes to public.users using getOrCreateUser backend API
+      await client.users.getOrCreateUser({
+        clerkId: user.id,
+        username: cleanUsername,
+        fullName: user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || undefined,
+        avatarUrl: user.imageUrl,
+      });
+
+      toast.success("Kullanıcı adınız başarıyla güncellendi");
+      setIsProfileOpen(false);
+      
+      // Refresh active data tabs to show updated values
+      fetchData();
+    } catch (error: any) {
+      console.error("Profile update error:", error);
+      toast.error(error.message || "Profil güncellenirken bir hata oluştu");
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -216,9 +282,19 @@ export default function SuggestPage() {
             <span>Katalog</span>
           </button>
           
-          <div className="flex items-center gap-1.5 bg-indigo-50/80 border border-indigo-100/50 px-3.5 py-2 rounded-2xl font-black text-[10px] text-indigo-600 uppercase tracking-wider">
-            <Compass size={14} weight="fill" className="animate-spin-slow" />
-            Suggest Center
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="flex items-center gap-1 bg-white border border-gray-100 hover:bg-gray-50 px-3.5 py-2 rounded-2xl text-xs font-bold text-gray-600 shadow-sm active:scale-95 transition-all"
+              title="Profili Düzenle"
+            >
+              <Gear size={16} />
+              <span>Profil</span>
+            </button>
+            <div className="flex items-center gap-1.5 bg-indigo-50/80 border border-indigo-100/50 px-3.5 py-2 rounded-2xl font-black text-[10px] text-indigo-600 uppercase tracking-wider">
+              <Compass size={14} weight="fill" className="animate-spin-slow" />
+              Suggest Center
+            </div>
           </div>
         </div>
 
@@ -754,6 +830,71 @@ export default function SuggestPage() {
                 </div>
               </div>
             )}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      {/* Profile Settings Drawer */}
+      <Drawer.Root open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
+            <div className="p-6 overflow-y-auto">
+              <div className="mx-auto w-12 h-1 bg-gray-200 rounded-full mb-6" />
+              
+              <div className="flex items-center gap-2 mb-6">
+                <UserCircle size={24} className="text-indigo-600" />
+                <h2 className="text-xl font-black uppercase tracking-tight">Profili Düzenle</h2>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="space-y-6">
+                {/* Username Input */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center pl-1">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Kullanıcı Adı
+                    </label>
+                    <span className="text-[9px] text-gray-400 font-bold">
+                      {profileUsername.length}/26 Karakter (Küçük Harf)
+                    </span>
+                  </div>
+                  <input
+                    required
+                    type="text"
+                    maxLength={26}
+                    placeholder="kullanici_adi"
+                    value={profileUsername}
+                    onChange={(e) => setProfileUsername(e.target.value.toLowerCase().replace(/\s+/g, ""))}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                  />
+                  <p className="text-[9px] text-gray-400 pl-1">
+                    * Yalnızca küçük harf, rakam, nokta (.), tire (-) ve alt çizgi (_) kullanılabilir. Boşluk bırakılamaz.
+                  </p>
+                </div>
+
+                {/* Submit & Cancel Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="flex-1 bg-white hover:bg-gray-50 border border-gray-200 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdatingProfile}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 disabled:bg-indigo-400"
+                  >
+                    {isUpdatingProfile ? (
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      "Değişiklikleri Kaydet"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>

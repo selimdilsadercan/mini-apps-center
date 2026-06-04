@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS users_get_user;
+DROP FUNCTION IF EXISTS users_get_user_by_username;
 
-CREATE OR REPLACE FUNCTION users_get_user(clerk_id_param TEXT)
+CREATE OR REPLACE FUNCTION users_get_user_by_username(username_param TEXT)
 RETURNS TABLE (
   id UUID,
   clerk_id TEXT,
@@ -20,6 +20,6 @@ AS $$
     avatar_url,
     created_at
   FROM users
-  WHERE clerk_id = clerk_id_param
+  WHERE LOWER(username) = LOWER(username_param)
   LIMIT 1;
 $$;

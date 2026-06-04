@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   SquaresFour, 
@@ -27,6 +28,23 @@ interface AppBarProps {
 }
 
 export default function AppBar({ activePage }: AppBarProps) {
+  const [hasBadge, setHasBadge] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHasBadge(localStorage.getItem("has_pending_requests") === "true");
+    }
+
+    const handleBadgeUpdate = (e: any) => {
+      setHasBadge(e.detail.hasPending);
+    };
+
+    window.addEventListener("incoming-requests-badge", handleBadgeUpdate);
+    return () => {
+      window.removeEventListener("incoming-requests-badge", handleBadgeUpdate);
+    };
+  }, []);
+
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-sm bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] px-2 py-3 z-50">
       <div className="flex items-center justify-around">
@@ -109,14 +127,19 @@ export default function AppBar({ activePage }: AppBarProps) {
             activePage === ActivePage.PROFILE ? "scale-110" : "opacity-50 hover:opacity-100"
           }`}
         >
-          <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-            activePage === ActivePage.PROFILE ? "bg-gray-900 shadow-lg shadow-gray-200" : "bg-transparent group-hover:bg-gray-100"
-          }`}>
-            <User 
-              size={24} 
-              weight={activePage === ActivePage.PROFILE ? "fill" : "bold"}
-              color={activePage === ActivePage.PROFILE ? "white" : "#1F2937"} 
-            />
+          <div className="relative">
+            <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
+              activePage === ActivePage.PROFILE ? "bg-gray-900 shadow-lg shadow-gray-200" : "bg-transparent group-hover:bg-gray-100"
+            }`}>
+              <User 
+                size={24} 
+                weight={activePage === ActivePage.PROFILE ? "fill" : "bold"}
+                color={activePage === ActivePage.PROFILE ? "white" : "#1F2937"} 
+              />
+            </div>
+            {hasBadge && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+            )}
           </div>
         </Link>
       </div>

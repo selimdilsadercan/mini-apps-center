@@ -915,6 +915,10 @@ export namespace friendship {
         requests: PendingRequest[]
     }
 
+    export interface GetSentRequestsResponse {
+        requests: PendingRequest[]
+    }
+
     export interface PendingRequest {
         id: string
         username: string | null
@@ -940,6 +944,7 @@ export namespace friendship {
             this.acceptRequest = this.acceptRequest.bind(this)
             this.getFriends = this.getFriends.bind(this)
             this.getPendingRequests = this.getPendingRequests.bind(this)
+            this.getSentRequests = this.getSentRequests.bind(this)
             this.rejectRequest = this.rejectRequest.bind(this)
             this.removeFriend = this.removeFriend.bind(this)
             this.sendRequest = this.sendRequest.bind(this)
@@ -973,6 +978,16 @@ export namespace friendship {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/friendship/requests/pending/${encodeURIComponent(userId)}`)
             return await resp.json() as GetPendingRequestsResponse
+        }
+
+        /**
+         * Gönderilen bekleyen arkadaşlık isteklerini getirir
+         * GET /friendship/requests/sent/:userId
+         */
+        public async getSentRequests(userId: string): Promise<GetSentRequestsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/friendship/requests/sent/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetSentRequestsResponse
         }
 
         /**
@@ -3357,6 +3372,7 @@ export namespace users {
     export interface GetOrCreateUserRequest {
         clerkId: string
         username?: string
+        fullName?: string
         avatarUrl?: string
     }
 
@@ -3366,6 +3382,10 @@ export namespace users {
     }
 
     export interface GetUserByClerkIdResponse {
+        user: lib.User | null
+    }
+
+    export interface GetUserByUsernameResponse {
         user: lib.User | null
     }
 
@@ -3401,6 +3421,7 @@ export namespace users {
             this.createUser = this.createUser.bind(this)
             this.getOrCreateUser = this.getOrCreateUser.bind(this)
             this.getUserByClerkId = this.getUserByClerkId.bind(this)
+            this.getUserByUsername = this.getUserByUsername.bind(this)
             this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
@@ -3444,6 +3465,16 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/users/user/clerk/${encodeURIComponent(clerkId)}`)
             return await resp.json() as GetUserByClerkIdResponse
+        }
+
+        /**
+         * Username ile Supabase user'ı getirir
+         * GET /users/user/username/:username
+         */
+        public async getUserByUsername(username: string): Promise<GetUserByUsernameResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/users/user/username/${encodeURIComponent(username)}`)
+            return await resp.json() as GetUserByUsernameResponse
         }
 
         /**
@@ -3789,6 +3820,7 @@ export namespace lib {
         id: string
         "clerk_id": string
         username: string | null
+        "full_name": string | null
         "avatar_url": string | null
         "created_at": string
     }

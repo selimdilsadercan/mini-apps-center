@@ -26,6 +26,7 @@ interface CreateUserRequest {
 interface CreateUserRequest {
   clerkId: string;
   username?: string;
+  fullName?: string;
   avatarUrl?: string;
 }
 
@@ -36,6 +37,7 @@ interface CreateUserResponse {
 interface GetOrCreateUserRequest {
   clerkId: string;
   username?: string;
+  fullName?: string;
   avatarUrl?: string;
 }
 
@@ -99,11 +101,12 @@ export const getUserByClerkId = api(
  */
 export const createUser = api(
   { expose: true, method: "POST", path: "/users/user/create" },
-  async ({ clerkId, username, avatarUrl }: CreateUserRequest): Promise<CreateUserResponse> => {
+  async ({ clerkId, username, fullName, avatarUrl }: CreateUserRequest): Promise<CreateUserResponse> => {
     const { data, error } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
       username_param: username || null,
       avatar_url_param: avatarUrl || null,
+      full_name_param: fullName || null,
     });
 
     if (error) {
@@ -121,7 +124,7 @@ export const createUser = api(
  */
 export const getOrCreateUser = api(
   { expose: true, method: "POST", path: "/users/user/get-or-create" },
-  async ({ clerkId, username, avatarUrl }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
+  async ({ clerkId, username, fullName, avatarUrl }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
     // Önce mevcut user'ı ara
     const { data: existingData, error: existingError } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
@@ -134,15 +137,17 @@ export const getOrCreateUser = api(
     const existingUser = existingData?.[0] || null;
 
     if (existingUser) {
-      // Mevcut user'ın username veya avatar'ı eksikse veya değiştiyse güncelle
+      // Mevcut user'ın username, full_name veya avatar'ı eksikse veya değiştiyse güncelle
       if (
         (username && existingUser.username !== username) ||
+        (fullName && existingUser.full_name !== fullName) ||
         (avatarUrl && existingUser.avatar_url !== avatarUrl)
       ) {
         const { data: updatedData, error: updateError } = await supabase.rpc("users_create_user", {
           clerk_id_param: clerkId,
           username_param: username || existingUser.username,
           avatar_url_param: avatarUrl || existingUser.avatar_url,
+          full_name_param: fullName || existingUser.full_name,
         });
         if (!updateError && updatedData?.[0]) {
           return { user: updatedData[0], isNewUser: false };
@@ -158,6 +163,7 @@ export const getOrCreateUser = api(
       clerk_id_param: clerkId,
       username_param: username || null,
       avatar_url_param: avatarUrl || null,
+      full_name_param: fullName || null,
     });
 
     if (newError) {
@@ -279,5 +285,34 @@ export const checkAdmin = api(
     }
 
     return { isAdmin: !!isAdminRpc };
+  }
+);
+
+interface GetUserByUsernameRequest {
+  username: string;
+}
+
+interface GetUserByUsernameResponse {
+  user: User | null;
+}
+
+/**
+ * Username ile Supabase user'ı getirir
+ * GET /users/user/username/:username
+ */
+export const getUserByUsername = api(
+  { expose: true, method: "GET", path: "/users/user/username/:username" },
+  async ({ username }: GetUserByUsernameRequest): Promise<GetUserByUsernameResponse> => {
+    const cleanedUsername = username.trim().toLowerCase();
+    const { data, error } = await supabase.rpc("users_get_user_by_username", {
+      username_param: cleanedUsername,
+    });
+
+    if (error) {
+      console.error("getUserByUsername error:", error);
+      return { user: null };
+    }
+
+    return { user: data?.[0] || null };
   }
 );

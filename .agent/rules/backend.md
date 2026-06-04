@@ -80,3 +80,7 @@ The following services have been successfully migrated to the dedicated schema +
 5. **Recipe**: `recipe` schema
 
 All direct `public` table accesses have been replaced with schema-qualified RPC calls.
+
+## 4. Developer Workflow & Client Generation
+- **DO NOT RUN `bun run generate` OR `encore gen`**: The user has a background development client watcher configured. The AI assistant does not need to manually trigger typings compilation or client regenerations during implementation steps.
+
