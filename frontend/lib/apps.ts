@@ -53,6 +53,13 @@ export interface MiniApp {
  */
 export function getAppHref(app: MiniApp): string {
   if (typeof window === "undefined") return app.href;
+
+  // Capacitor native modda subdomain routing çalışmaz.
+  // Her zaman iç path kullan, Next.js router üzerinden navigate et.
+  if (process.env.NEXT_PUBLIC_CAPACITOR === "true") {
+    return app.href;
+  }
+
   const hostname = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
