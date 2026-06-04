@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.everything.miniapps',
-  appName: 'recipe',
+  appId: 'com.everything.app',
+  appName: 'Everything',
   webDir: 'out',
   plugins: {
     StatusBar: {

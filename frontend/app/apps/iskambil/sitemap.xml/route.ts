@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { GAMES_DATA } from "../games-registry";
 
+export const dynamic = "force-static";
+
 export async function GET() {
   const baseUrl = "https://cardgames.allminiapps.com";
 

@@ -26,7 +26,7 @@ export default function OAuthNativeCallbackPage() {
 
       try {
         await handleRedirectCallback({
-           redirectUrl: "https://mini-apps-center-frontend.vercel.app/sso-callback"
+           redirectUrl: "https://my.allminiapps.com/sso-callback"
         });
         console.log("Silent verification success");
       } catch (err) {
