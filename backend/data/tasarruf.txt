@@ -1,0 +1,103 @@
+[
+  {
+    "category": "Yiyecek & İçecek",
+    "items": [
+      {
+        "id": "coffee_outside",
+        "trigger": "Dışarıdan kahve almak",
+        "alternatives": [
+          "Evde kahve yapıp termosta götür",
+          "Hazır kahve yerine filtre kahve/çekirdek kahve kullan",
+          "Haftalık kahve hakkı belirle"
+        ]
+      },
+      {
+        "id": "tea_outside",
+        "trigger": "Dışarıdan çay almak",
+        "alternatives": [
+          "Poşet çay alıp okulda/ofiste demle",
+          "Termosa evde çay koy",
+          "Çay/kahve için küçük aylık bütçe belirle"
+        ]
+      },
+      {
+        "id": "food_delivery",
+        "trigger": "Dışarıdan yemek söylemek",
+        "alternatives": [
+          "Haftalık meal prep yap",
+          "Evde kolay makarna/tavuk/pilav gibi hızlı yemek hazırla",
+          "Sadece indirim/kupon varsa sipariş ver"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Alışveriş",
+    "items": [
+      {
+        "id": "new_clothes",
+        "trigger": "Yeni kıyafet almak",
+        "alternatives": [
+          "Önce dolabındaki benzer parçaları kontrol et",
+          "30 gün bekleme kuralı uygula",
+          "İkinci el veya indirim dönemini bekle"
+        ]
+      },
+      {
+        "id": "electronics",
+        "trigger": "Yeni elektronik ürün almak",
+        "alternatives": [
+          "Gerçekten ihtiyaç mı istek mi kontrol et",
+          "İkinci el temiz ürünlere bak",
+          "Eski cihazı satıp bütçeye ekle"
+        ]
+      },
+      {
+        "id": "unused_items",
+        "trigger": "Evde kullanılmayan eşyalar",
+        "alternatives": [
+          "Dolap, Gardrops, Letgo veya Sahibinden üzerinden satışa çıkar",
+          "3 aydır kullanılmayan eşyaları listele",
+          "Satıştan gelen parayı ayrı bir tasarruf hesabına koy"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Ulaşım",
+    "items": [
+      {
+        "id": "taxi",
+        "trigger": "Taksiye binmek",
+        "alternatives": [
+          "Toplu taşıma + kısa yürüyüş kombinasyonu yap",
+          "Arkadaşlarla yol paylaş",
+          "Acil değilse 15 dakika erken çık"
+        ]
+      },
+      {
+        "id": "fuel",
+        "trigger": "Araçla kısa mesafe gitmek",
+        "alternatives": [
+          "Kısa mesafede yürümeyi tercih et",
+          "Aynı rota işleri tek seferde hallet",
+          "Yakıt tüketimi düşük rota seç"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Abonelikler",
+    "items": [
+      {
+        "id": "unused_subscriptions",
+        "trigger": "Kullanılmayan abonelikler",
+        "alternatives": [
+          "Son 30 günde kullanmadığın abonelikleri iptal et",
+          "Aile planı veya öğrenci planı kullan",
+          "Aynı işlevi gören iki abonelikten birini kapat"
+        ]
+      }
+    ]
+  }
+]

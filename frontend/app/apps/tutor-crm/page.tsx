@@ -1376,18 +1376,6 @@ JSON Şeması:
                                           }`}>
                                           {day.getDate()}
                                         </span>
-                                        {/* Day Summary Green Pills (Max 2 for mobile fitting) */}
-                                        <div className="hidden md:flex flex-col gap-0.5 w-full mt-1 px-0.5 overflow-hidden">
-                                          {dayLessons.slice(0, 2).map((lesson) => (
-                                            <span 
-                                              key={lesson.id} 
-                                              className="bg-emerald-600 text-white text-[7px] font-black rounded px-1 py-0.5 truncate text-center block w-full leading-none scale-90 md:scale-100"
-                                              title={lesson.student_name || ""}
-                                            >
-                                              {(lesson.student_name || "Öğrenci").split(" ")[0]}
-                                            </span>
-                                          ))}
-                                        </div>
                                       </div>
                                     </th>
                                   );
@@ -1401,7 +1389,7 @@ JSON Şeması:
                                   {timeSlots.map((timeSlot) => {
                                     const isFullHourLine = timeSlot.endsWith(":30");
                                     return (
-                                      <div
+                                      <div  
                                         key={timeSlot}
                                         style={{ height: `${slotHeight}px` }}
                                         className={`relative w-full border-b last:border-b-0 ${isFullHourLine ? "border-gray-200" : "border-gray-100"
@@ -1864,7 +1852,7 @@ JSON Şeması:
                     {students.length === 0 ? (
                       <EmptyState icon={Users} title="Öğrenci Bulunamadı" description="İlk öğrencinizi ekleyerek başlayın." />
                     ) : (
-                      <div className="space-y-8">
+                      <div className="space-y-6">
                         {Object.entries(
                           students.reduce((acc, student) => {
                             const key = student.subject ? student.subject.trim() : "Diğer";
@@ -1873,7 +1861,7 @@ JSON Şeması:
                             return acc;
                           }, {} as Record<string, tutor_crm.Student[]>)
                         ).map(([subj, list]) => (
-                          <div key={subj} className="space-y-4">
+                          <div key={subj} className="space-y-3">
                             <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1 flex items-center gap-2">
                               <span className="w-1.5 h-3 bg-blue-600 rounded-full" />
                               <span>{subj}</span>
@@ -1885,7 +1873,7 @@ JSON Şeması:
                                 <div
                                   key={student.id}
                                   onClick={() => setSelectedStudent(student)}
-                                  className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
+                                  className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden"
                                 >
                                   <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-xs shrink-0">
@@ -1898,7 +1886,7 @@ JSON Şeması:
                                     </div>
                                   </div>
 
-                                  <div className="border-t border-gray-100 pt-3 mt-4 flex items-center justify-between">
+                                  <div className="border-t border-gray-100 pt-2.5 mt-3 flex items-center justify-between">
                                     <div>
                                       <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Saatlik Ücret</span>
                                       <span className="font-black text-gray-950 text-sm">{student.hourly_rate}₺</span>

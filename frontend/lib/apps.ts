@@ -23,6 +23,7 @@ import {
   Timer,
   GraduationCap,
   Users,
+  PiggyBank,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -436,5 +437,15 @@ export const MINI_APPS: MiniApp[] = [
     isLocal: true,
     subdomain: "melt",
   },
-
+  {
+    id: "tasarruf-challenges",
+    name: "Tasarruf",
+    description: "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!",
+    icon: PiggyBank,
+    category: "Lifestyle",
+    color: "#40C057",
+    href: "/apps/tasarruf-challenges",
+    isImplemented: true,
+    subdomain: "tasarruf",
+  },
 ];

@@ -50,6 +50,7 @@ export default class Client {
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
+    public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
     public readonly tutor_crm: tutor_crm.ServiceClient
@@ -87,6 +88,7 @@ export default class Client {
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
+        this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
         this.tutor_crm = new tutor_crm.ServiceClient(base)
@@ -763,6 +765,10 @@ export namespace feed {
         event: FeedEvent
     }
 
+    export interface DeleteEventRequest {
+        userId: string
+    }
+
     export interface FeedEvent {
         id: string
         userId: string
@@ -774,8 +780,21 @@ export namespace feed {
         createdAt: string
     }
 
+    export interface GetEventsByAppResponse {
+        events: FeedEvent[]
+    }
+
+    export interface GetFeedRequest {
+        scope?: string
+    }
+
     export interface GetFeedResponse {
         events: FeedEvent[]
+    }
+
+    export interface UpdateEventRequest {
+        userId: string
+        payload: any
     }
 
     export class ServiceClient {
@@ -784,7 +803,10 @@ export namespace feed {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.createEvent = this.createEvent.bind(this)
+            this.deleteEvent = this.deleteEvent.bind(this)
+            this.getEventsByApp = this.getEventsByApp.bind(this)
             this.getFeed = this.getFeed.bind(this)
+            this.updateEvent = this.updateEvent.bind(this)
         }
 
         /**
@@ -797,12 +819,57 @@ export namespace feed {
         }
 
         /**
+         * Delete a feed event
+         */
+        public async deleteEvent(id: string, params: DeleteEventRequest): Promise<{
+    success: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/feed/event/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Get feed events for a specific app
+         */
+        public async getEventsByApp(appId: string): Promise<GetEventsByAppResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/feed/app/${encodeURIComponent(appId)}`)
+            return await resp.json() as GetEventsByAppResponse
+        }
+
+        /**
          * Endpoint to fetch feed events for user & their friends
          */
-        public async getFeed(userId: string): Promise<GetFeedResponse> {
+        public async getFeed(userId: string, params: GetFeedRequest): Promise<GetFeedResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                scope: params.scope,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/feed/${encodeURIComponent(userId)}`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/feed/${encodeURIComponent(userId)}`, undefined, {query})
             return await resp.json() as GetFeedResponse
+        }
+
+        /**
+         * Update a feed event's payload
+         */
+        public async updateEvent(id: string, params: UpdateEventRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/feed/event/${encodeURIComponent(id)}`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
     }
 }
@@ -2170,6 +2237,31 @@ export namespace subcenter {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/subcenter/${encodeURIComponent(id)}`, JSON.stringify(params))
             return await resp.json() as UpdateSubscriptionResponse
+        }
+    }
+}
+
+export namespace tasarruf_challenges {
+    export interface StatsResponse {
+        userTotalSavings: number
+        userMonthSavings: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getStats = this.getStats.bind(this)
+        }
+
+        /**
+         * Get user and community stats
+         */
+        public async getStats(userId: string): Promise<StatsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tasarruf-challenges/stats/${encodeURIComponent(userId)}`)
+            return await resp.json() as StatsResponse
         }
     }
 }

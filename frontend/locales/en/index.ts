@@ -3,6 +3,7 @@ import tasket from "./tasket.json";
 import workplaces from "./workplaces.json";
 import pomodoro from "./pomodoro.json";
 import landing from "./landing.json";
+import tasarruf from "./tasarruf.json";
 
 const messages = {
   ...common,
@@ -10,6 +11,7 @@ const messages = {
   tasket,
   workplaces,
   pomodoro,
+  ...tasarruf,
 };
 
 export default messages;

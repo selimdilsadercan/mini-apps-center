@@ -3,8 +3,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Spinner,
   Newspaper,
   Calendar,
@@ -17,7 +17,8 @@ import {
   Compass,
   Trophy,
   Coffee,
-  Heart
+  Heart,
+  PiggyBank
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { feed, kim_gelir } from "@/lib/client";
@@ -40,16 +41,17 @@ function formatRelativeTime(dateStr: string) {
 export default function FeedPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"foryou" | "friends" | "all">("foryou");
   const [events, setEvents] = useState<feed.FeedEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const fetchFeed = async () => {
+  const fetchFeed = async (scope: "foryou" | "friends" | "all") => {
     if (!user) return;
     try {
       setLoading(true);
-      const res = await client.feed.getFeed(user.id);
+      const res = await client.feed.getFeed(user.id, { scope });
       setEvents(res.events || []);
     } catch (err) {
       console.error("Error fetching feed:", err);
@@ -61,9 +63,9 @@ export default function FeedPage() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      fetchFeed();
+      fetchFeed(activeTab);
     }
-  }, [isLoaded, user]);
+  }, [isLoaded, user, activeTab]);
 
   const showToastMsg = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -82,7 +84,7 @@ export default function FeedPage() {
       });
       showToastMsg("Cevabınız iletildi!", "success");
       // Refresh feed events
-      const res = await client.feed.getFeed(user.id);
+      const res = await client.feed.getFeed(user.id, { scope: activeTab });
       setEvents(res.events || []);
     } catch (err) {
       console.error(err);
@@ -111,16 +113,40 @@ export default function FeedPage() {
         <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
       </div>
 
-      <main className="flex-1 px-4 max-w-md mx-auto w-full pt-6">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
-              Sosyal Akış
-            </h1>
-            <p className="text-xs text-gray-400 font-medium mt-1.5">Arkadaşlarının Son Hareketleri</p>
-          </div>
-        </header>
+      {/* Sticky Top Tabs */}
+      <div className="sticky top-0 z-30 bg-[#FAF9F7]/85 backdrop-blur-md border-b border-gray-100/50 py-4 px-4 shrink-0">
+        <div className="flex items-center justify-center gap-1 p-1 bg-gray-100/80 rounded-2xl max-w-md mx-auto shadow-inner border border-gray-200/20">
+          <button
+            onClick={() => setActiveTab("foryou")}
+            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer ${activeTab === "foryou"
+                ? "bg-white text-gray-900 shadow-sm border border-gray-200/10"
+                : "text-gray-400 hover:text-gray-600"
+              }`}
+          >
+            For You
+          </button>
+          <button
+            onClick={() => setActiveTab("friends")}
+            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer ${activeTab === "friends"
+                ? "bg-white text-gray-900 shadow-sm border border-gray-200/10"
+                : "text-gray-400 hover:text-gray-600"
+              }`}
+          >
+            Friends
+          </button>
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer ${activeTab === "all"
+                ? "bg-white text-gray-900 shadow-sm border border-gray-200/10"
+                : "text-gray-400 hover:text-gray-600"
+              }`}
+          >
+            All
+          </button>
+        </div>
+      </div>
+
+      <main className="flex-1 px-4 max-w-md mx-auto w-full pt-4">
 
         {events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
@@ -133,13 +159,13 @@ export default function FeedPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {events.map((event) => {
               const isCreator = event.userId === user?.id;
               return (
-                <div 
+                <div
                   key={event.id}
-                  className="bg-white/80 backdrop-blur-md rounded-[2rem] border border-gray-150 p-5 shadow-lg shadow-blue-100/10 hover:shadow-xl transition-all duration-300"
+                  className="bg-white/80 backdrop-blur-md rounded-3xl border border-gray-150 p-4 shadow-md shadow-blue-100/5 hover:shadow-lg transition-all duration-300"
                 >
                   {/* User Profile Info */}
                   <div className="flex items-center justify-between mb-4">
@@ -159,9 +185,24 @@ export default function FeedPage() {
                       </div>
                     </div>
                     {/* Badge mapping for app source */}
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                      {event.appId === "kim-gelir" ? "Ne Yapsak?" : event.appId === "workplaces" ? "Mekanlar" : event.appId === "tournament" ? "Turnuva" : event.appId}
-                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const path = event.appId === "tasarruf-challenges"
+                          ? "/apps/tasarruf-challenges"
+                          : event.appId === "kim-gelir"
+                            ? "/apps/kim-gelir"
+                            : event.appId === "workplaces"
+                              ? "/apps/workplaces"
+                              : event.appId === "tournament"
+                                ? "/apps/tournament-editor"
+                                : undefined;
+                        if (path) router.push(path);
+                      }}
+                      className="relative z-10 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 active:scale-95 transition-all cursor-pointer border border-gray-200/20"
+                    >
+                      {event.appId === "kim-gelir" ? "Ne Yapsak?" : event.appId === "workplaces" ? "Mekanlar" : event.appId === "tournament" ? "Turnuva" : event.appId === "tasarruf-challenges" ? "Tasarruf" : event.appId}
+                    </button>
                   </div>
 
                   {/* Render Custom Event Types */}
@@ -281,6 +322,26 @@ export default function FeedPage() {
                       )}
                     </div>
                   )}
+
+                  {event.appId === "tasarruf-challenges" && event.eventType === "saving_achievement" && (
+                    <div className="bg-green-50/50 border border-green-100 rounded-2xl p-4 space-y-2">
+                      <h3 className="font-black text-sm text-green-950 leading-tight flex items-center gap-1.5">
+                        <PiggyBank size={16} className="text-green-600" weight="fill" />
+                        Tasarruf Başarısı!
+                      </h3>
+                      <p className="text-xs font-bold text-gray-700 leading-relaxed">
+                        {event.payload.description}
+                      </p>
+                      <div className="flex items-center justify-between pt-2 border-t border-green-200/50">
+                        <span className="text-[10px] font-black text-green-600 uppercase tracking-wider">
+                          {event.payload.category}
+                        </span>
+                        <span className="text-sm font-black text-green-700">
+                          +{event.payload.amount}₺
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -291,11 +352,10 @@ export default function FeedPage() {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] pointer-events-none">
-          <div className={`p-4 rounded-2xl border text-sm font-bold shadow-lg flex items-center justify-center text-center ${
-            toast.type === "success" 
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200" 
+          <div className={`p-4 rounded-2xl border text-sm font-bold shadow-lg flex items-center justify-center text-center ${toast.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-red-50 text-red-800 border-red-200"
-          }`}>
+            }`}>
             {toast.message}
           </div>
         </div>
