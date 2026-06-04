@@ -28,6 +28,8 @@ import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import Client, { suggest, friendship } from "@/lib/client";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 // Initialize client
 const client = createBrowserClient();
@@ -35,7 +37,16 @@ const client = createBrowserClient();
 type TabType = "inbox" | "saved" | "sent";
 
 export default function SuggestPage() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">Yükleniyor...</div>}>
+      <SuggestPageContent />
+    </Suspense>
+  );
+}
+
+function SuggestPageContent() {
   const { user, isLoaded: isUserLoaded } = useUser();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>("inbox");
   const [inboxList, setInboxList] = useState<suggest.InboxSuggestion[]>([]);
   const [sentList, setSentList] = useState<suggest.SentSuggestion[]>([]);
@@ -142,6 +153,36 @@ export default function SuggestPage() {
       imageUrl: "",
     });
   };
+
+  // Parse query parameters to pre-populate Mekan suggestion
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    const suggestPlaceName = searchParams.get("suggestPlaceName");
+    const suggestPlaceUrl = searchParams.get("suggestPlaceUrl");
+    const suggestPlaceImage = searchParams.get("suggestPlaceImage");
+    const suggestPlaceAddress = searchParams.get("suggestPlaceAddress");
+    const suggestPlaceId = searchParams.get("suggestPlaceId");
+
+    if (categoryParam === "place" && suggestPlaceName) {
+      setFormData({
+        category: "place",
+        title: suggestPlaceName,
+        shortNote: "",
+        rating: 5,
+        externalLink: suggestPlaceUrl || "",
+        imageUrl: suggestPlaceImage || "",
+      });
+      setSelectedPlace({
+        name: suggestPlaceName,
+        address: suggestPlaceAddress || "",
+        url: suggestPlaceUrl || "",
+        image_url: suggestPlaceImage || "",
+        google_place_id: suggestPlaceId || "",
+      });
+      setCreateStep(2);
+      setIsCreateOpen(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (isUserLoaded && user) {

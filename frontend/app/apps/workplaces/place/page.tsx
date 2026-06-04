@@ -27,6 +27,7 @@ import {
   Eye,
   X,
   Phone,
+  Compass,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
@@ -634,6 +635,37 @@ function PlaceDetailContent() {
 
               {/* Bottom Right: Hours & Contact */}
               <div className="space-y-6">
+
+                {/* Suggest App Promotion / Recommendation Banner */}
+                <Link
+                  href={`/apps/suggest?category=place&suggestPlaceName=${encodeURIComponent(place.name)}&suggestPlaceUrl=${encodeURIComponent(place.url || "")}&suggestPlaceImage=${encodeURIComponent(place.image_url || (place.metadata?.photos && place.metadata.photos[0]) || "")}&suggestPlaceAddress=${encodeURIComponent(place.address || "")}&suggestPlaceId=${encodeURIComponent(place.metadata?.google_place_id || "")}`}
+                  className="flex items-center justify-between p-4 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100/50 text-indigo-950 rounded-[1.4rem] transition-colors no-underline cursor-pointer group shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Suggest App Icon styled exactly like Discover Page */}
+                    <div 
+                      className="w-12 h-12 rounded-[1.05rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-300 group-hover:scale-105"
+                      style={{ 
+                        backgroundColor: "#6366f1",
+                        boxShadow: `0 6px 16px -4px rgba(99, 102, 241, 0.4)`
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
+                      <div className="absolute inset-0 border border-white/20 rounded-[1.05rem]"></div>
+                      <Compass size={24} weight="fill" className="relative z-10 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-[14px] font-black text-indigo-950 block leading-tight">Suggest</span>
+                      <span className="text-[11px] font-bold text-gray-500 block mt-0.5">Bu mekanı arkadaşlarına tavsiye et!</span>
+                    </div>
+                  </div>
+                  <div className="text-indigo-400 group-hover:text-indigo-650 transition-colors pl-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="bold" viewBox="0 0 256 256">
+                      <path d="M96,40V216a8,8,0,0,0,13.66,5.66l88-88a8,8,0,0,0,0-11.32l-88-88A8,8,0,0,0,96,40Z"></path>
+                    </svg>
+                  </div>
+                </Link>
 
                 {/* Hours / Contact Card */}
                 <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-4">
