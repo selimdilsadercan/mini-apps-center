@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { Sparkle, Plus, Check, ArrowsOutCardinal } from "@phosphor-icons/react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -234,7 +234,6 @@ export default function Home() {
                     isEditMode={isEditMode}
                     isActive={activeId === app.id}
                     onRemove={removeApp}
-                    onLongPress={() => setIsEditMode(true)}
                   />
                 ))}
               </SortableContext>
@@ -277,13 +276,11 @@ function SortableAppIcon({
   isEditMode,
   isActive,
   onRemove,
-  onLongPress,
 }: {
   app: MiniApp;
   isEditMode: boolean;
   isActive: boolean;
   onRemove: (id: string) => void;
-  onLongPress: () => void;
 }) {
   const router = useRouter();
   const {
@@ -304,59 +301,6 @@ function SortableAppIcon({
 
   const Icon = app.icon;
 
-  // Long press implementation variables
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
-    console.log("DEBUG: handlePressStart", e.type);
-    if (isEditMode) return;
-    
-    if ("touches" in e && e.touches[0]) {
-      touchStartRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-      console.log("DEBUG: touch start coords:", touchStartRef.current);
-    }
-
-    pressTimerRef.current = setTimeout(() => {
-      console.log("DEBUG: Timeout finished! Triggering onLongPress");
-      onLongPress();
-      // Vibrate if mobile device supports it
-      if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(80);
-      }
-    }, 500);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartRef.current || !pressTimerRef.current) return;
-    const touch = e.touches[0];
-    if (!touch) return;
-    const diffX = Math.abs(touch.clientX - touchStartRef.current.x);
-    const diffY = Math.abs(touch.clientY - touchStartRef.current.y);
-    console.log(`DEBUG: handleTouchMove diffX: ${diffX.toFixed(1)}, diffY: ${diffY.toFixed(1)}`);
-    
-    // If moved more than 30px, it's a scroll/move, cancel the long press
-    if (diffX > 30 || diffY > 30) {
-      console.log("DEBUG: Cancelling long press because movement threshold exceeded");
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-        pressTimerRef.current = null;
-      }
-    }
-  };
-
-  const handlePressEnd = (reason?: any) => {
-    console.log("DEBUG: handlePressEnd triggered");
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    touchStartRef.current = null;
-  };
-
   // Wiggle animation for edit mode
   const wiggleVariants: any = {
     wiggle: {
@@ -371,16 +315,6 @@ function SortableAppIcon({
       rotate: 0,
     },
   };
-
-  // Define custom press handlers only when not in edit mode
-  const pressHandlers = !isEditMode ? {
-    onMouseDown: handlePressStart,
-    onMouseUp: handlePressEnd,
-    onMouseLeave: handlePressEnd,
-    onTouchStart: handlePressStart,
-    onTouchEnd: handlePressEnd,
-    onTouchMove: handleTouchMove,
-  } : {};
 
   const tApps = useTranslations("apps");
   const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
@@ -415,7 +349,6 @@ function SortableAppIcon({
         }}
         {...(isEditMode ? attributes : {})}
         {...(isEditMode ? listeners : {})}
-        {...pressHandlers}
         onContextMenu={(e) => e.preventDefault()}
         className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200`}
       >

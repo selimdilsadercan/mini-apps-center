@@ -156,3 +156,107 @@ export const deleteConcert = api(
     return { success: !!data };
   }
 );
+
+interface GetArtistImageRequest {
+  artist: string;
+}
+
+interface GetArtistImageResponse {
+  imageUrl: string;
+}
+
+/**
+ * Fetch artist image from Wikipedia API
+ * GET /concert-list/artist-image
+ */
+export const getArtistImage = api(
+  { expose: true, method: "GET", path: "/concert-list/artist-image" },
+  async ({ artist }: GetArtistImageRequest): Promise<GetArtistImageResponse> => {
+    if (!artist || !artist.trim()) {
+      return { imageUrl: "" };
+    }
+    console.log(`[getArtistImage] Searching for artist: "${artist}"`);
+
+    // Try YouTube Channel Avatar first
+    try {
+      const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(artist.trim())}&sp=EgIQAg%3D%3D`;
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"
+        }
+      });
+      const html = await res.text();
+      // Match yt3.ggpht.com or yt3.googleusercontent.com channel avatar URLs
+      const matches = html.match(/https:\/\/yt3\.(?:ggpht\.com|googleusercontent\.com)\/[\w-]+=[sS]\d+(?:-[a-zA-Z0-9]+)*/g);
+      
+      console.log(`[getArtistImage] YouTube Channel Matches count: ${matches ? matches.length : 0}`);
+      if (matches && matches.length > 0) {
+        // Force high resolution by replacing size parameter (e.g. s88, s176) with s240
+        let imageUrl = matches[0];
+        imageUrl = imageUrl.replace(/=s\d+/, "=s240");
+        console.log(`[getArtistImage] YouTube Channel Avatar selected: "${imageUrl}"`);
+        return { imageUrl };
+      }
+    } catch (err) {
+      console.error("Error fetching artist avatar from YouTube Channel:", err);
+    }
+
+    // Fallback 1 & 2: Turkish Wikipedia (tr) & English Wikipedia (en)
+    const wikis = ["tr", "en"];
+    for (const lang of wikis) {
+      try {
+        const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+          artist.trim()
+        )}&format=json&origin=*`;
+        const searchRes = await fetch(searchUrl, {
+          headers: {
+            "User-Agent": "MyConcertList/1.0 (contact@example.com)"
+          }
+        });
+        const searchData = (await searchRes.json()) as any;
+        const firstResult = searchData.query?.search?.[0];
+        console.log(`[getArtistImage] Wikipedia (${lang}) search firstResult:`, firstResult ? firstResult.title : "None");
+
+        if (firstResult && firstResult.title) {
+          const titleKey = firstResult.title.replace(/\s+/g, "_");
+          const summaryUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titleKey)}`;
+          const summaryRes = await fetch(summaryUrl, {
+            headers: {
+              "User-Agent": "MyConcertList/1.0 (contact@example.com)"
+            }
+          });
+          const summaryData = (await summaryRes.json()) as any;
+          console.log(`[getArtistImage] Wikipedia (${lang}) summary thumbnail:`, summaryData.thumbnail ? summaryData.thumbnail.source : "None");
+
+          if (summaryData.thumbnail && summaryData.thumbnail.source) {
+            return { imageUrl: summaryData.thumbnail.source };
+          }
+        }
+      } catch (err) {
+        console.error(`Error fetching artist image from Wikipedia (${lang}):`, err);
+      }
+    }
+
+    // Fallback 3: iTunes Song Search (extracting track album cover and resizing it to 300x300)
+    try {
+      const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(artist.trim())}&entity=song&limit=1`;
+      const itunesRes = await fetch(itunesUrl);
+      const itunesData = (await itunesRes.json()) as any;
+      const firstTrack = itunesData.results?.[0];
+      console.log(`[getArtistImage] iTunes search firstTrack:`, firstTrack ? firstTrack.trackName : "None");
+
+      if (firstTrack && firstTrack.artworkUrl100) {
+        // Change 100x100 to 300x300 for high resolution cover
+        const highResUrl = firstTrack.artworkUrl100.replace("/100x100bb.jpg", "/300x300bb.jpg");
+        console.log(`[getArtistImage] iTunes cover selected: "${highResUrl}"`);
+        return { imageUrl: highResUrl };
+      }
+    } catch (err) {
+      console.error("Error fetching artist image from iTunes:", err);
+    }
+
+    console.log(`[getArtistImage] No image found anywhere. Returning empty string.`);
+    return { imageUrl: "" };
+  }
+);
+

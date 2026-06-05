@@ -695,6 +695,14 @@ export namespace concert_list {
         success: boolean
     }
 
+    export interface GetArtistImageRequest {
+        artist: string
+    }
+
+    export interface GetArtistImageResponse {
+        imageUrl: string
+    }
+
     export interface GetConcertsResponse {
         concerts: Concert[]
     }
@@ -707,6 +715,7 @@ export namespace concert_list {
             this.addConcert = this.addConcert.bind(this)
             this.bulkImportConcerts = this.bulkImportConcerts.bind(this)
             this.deleteConcert = this.deleteConcert.bind(this)
+            this.getArtistImage = this.getArtistImage.bind(this)
             this.getConcerts = this.getConcerts.bind(this)
         }
 
@@ -738,6 +747,21 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/concert-list/concerts/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
             return await resp.json() as DeleteConcertResponse
+        }
+
+        /**
+         * Fetch artist image from Wikipedia API
+         * GET /concert-list/artist-image
+         */
+        public async getArtistImage(params: GetArtistImageRequest): Promise<GetArtistImageResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/artist-image`, undefined, {query})
+            return await resp.json() as GetArtistImageResponse
         }
 
         /**
