@@ -417,24 +417,26 @@ async function requireAdmin(userId: string) {
 async function getEnrichedMetadata(googlePlaceId: string | undefined, existingMetadata: any): Promise<any> {
   const meta = { ...(existingMetadata || {}) };
   if (!googlePlaceId) return meta;
-  
+
+  // TEMPORARILY DISABLED TO AVOID COSTS
+  /*
   const apiKey = googleMapsApiKey();
   if (!apiKey) return meta;
-  
+
   try {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${googlePlaceId}&fields=formatted_phone_number,website,opening_hours,photos,types&key=${apiKey}`;
     const response = await fetch(url);
     const data = (await response.json()) as any;
-    
+
     if (data.result) {
       const res = data.result;
       meta.phone = res.formatted_phone_number;
       meta.website = res.website;
       meta.opening_hours = res.opening_hours;
       meta.google_place_id = googlePlaceId;
-      
+
       if (res.photos && res.photos.length > 0) {
-        meta.photos = res.photos.map((photo: any) => 
+        meta.photos = res.photos.map((photo: any) =>
           `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${photo.photo_reference}&key=${apiKey}`
         );
       }
@@ -442,6 +444,7 @@ async function getEnrichedMetadata(googlePlaceId: string | undefined, existingMe
   } catch (err) {
     console.error("getEnrichedMetadata error:", err);
   }
+  */
   return meta;
 }
 
@@ -474,7 +477,8 @@ export const updatePlace = api(
     let apiImg = undefined;
     let apiDistrict = undefined;
 
-    // Fetch details from Google Places API if coordinates or images are missing
+    // Fetch details from Google Places API if coordinates or images are missing (TEMPORARILY DISABLED TO AVOID COSTS)
+    /*
     if (gId && apiKey && (!existing.latitude || !existing.longitude || !existing.image_url || !existing.address)) {
       try {
         const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${gId}&fields=geometry,formatted_address,rating,user_ratings_total,photos&key=${apiKey}`;
@@ -487,7 +491,7 @@ export const updatePlace = api(
           apiAddr = res.formatted_address;
           apiRating = res.rating;
           apiRatingsTotal = res.user_ratings_total;
-          
+
           if (res.photos && res.photos.length > 0) {
             apiImg = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${res.photos[0].photo_reference}&key=${apiKey}`;
           }
@@ -503,6 +507,7 @@ export const updatePlace = api(
         console.error("Enrichment from details API during update failed:", err);
       }
     }
+    */
 
     const meta = await getEnrichedMetadata(gId, req.metadata || existing.metadata);
 
@@ -562,26 +567,28 @@ export const deletePlace = api(
 export const searchPlace = api(
   { expose: true, method: "GET", path: "/workplaces/search" },
   async ({ query }: SearchPlaceRequest): Promise<SearchPlaceResponse> => {
+    // TEMPORARILY DISABLED GOOGLE SEARCH TO AVOID COSTS
+    /*
     const apiKey = googleMapsApiKey();
     if (!apiKey) {
       return { results: [] };
     }
-    
+
     try {
       const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
       const response = await fetch(url);
       const data = (await response.json()) as any;
-      
+
       if (!data.results) {
         return { results: [] };
       }
-      
+
       const results = data.results.map((r: any) => {
         let imageUrl = "";
         if (r.photos && r.photos.length > 0) {
           imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${r.photos[0].photo_reference}&key=${apiKey}`;
         }
-        
+
         let district = "";
         if (r.formatted_address) {
           const parts = r.formatted_address.split(",");
@@ -603,10 +610,46 @@ export const searchPlace = api(
           district: district,
         };
       });
-      
+
       return { results };
     } catch (err) {
       console.error("searchPlace error:", err);
+      return { results: [] };
+    }
+    */
+
+    // USING OPENSTREETMAP (NOMINATIM) INSTEAD
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=10`;
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "MiniAppsCenter/1.0"
+        }
+      });
+      const data = (await response.json()) as any;
+      if (!Array.isArray(data)) {
+        return { results: [] };
+      }
+      const results = data.map((r: any) => {
+        const name = r.name || r.display_name.split(",")[0];
+        const address = r.display_name;
+        const district = r.address?.suburb || r.address?.city_district || r.address?.town || "";
+        return {
+          name: name,
+          address: address,
+          url: `https://www.openstreetmap.org/#map=18/${r.lat}/${r.lon}`,
+          latitude: parseFloat(r.lat),
+          longitude: parseFloat(r.lon),
+          rating: 0,
+          user_ratings_total: 0,
+          image_url: "",
+          google_place_id: `osm_${r.place_id}`,
+          district: district,
+        };
+      });
+      return { results };
+    } catch (err) {
+      console.error("searchPlace OSM error:", err);
       return { results: [] };
     }
   }

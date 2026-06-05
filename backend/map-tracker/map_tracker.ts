@@ -35,40 +35,37 @@ interface GooglePlaceResponse {
   }[];
 }
 
-// Helper to geocode via Google Places API
-async function geocodeWithGoogle(name: string, address?: string) {
-  const apiKey = googleMapsApiKey();
-  if (!apiKey) return null;
-
+// Helper to geocode via OpenStreetMap (Nominatim) API instead of Google Maps API
+async function geocodeWithOSM(name: string, address?: string) {
   try {
     const query = encodeURIComponent(`${name} ${address || ""} İstanbul Turkey`);
-    const fields = "geometry,formatted_address,name,rating,user_ratings_total,international_phone_number,website,opening_hours";
-    const url = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=${fields}&key=${apiKey}`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
     
-    const response = await fetch(url);
-    const data = (await response.json()) as any; // Cast as any for simplicity with extra fields
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "MiniAppsCenter/1.0"
+      }
+    });
+    const data = (await response.json()) as any;
 
-    if (data.status === "OK" && data.candidates?.[0]) {
-      const candidate = data.candidates[0];
-      const location = candidate.geometry.location;
-      
-      // Combine existing metadata with new Google data
+    if (Array.isArray(data) && data.length > 0) {
+      const result = data[0];
       return {
-        lat: location.lat,
-        lng: location.lng,
-        address: candidate.formatted_address,
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon),
+        address: result.display_name,
         google_data: {
-          rating: candidate.rating,
-          user_ratings_total: candidate.user_ratings_total,
-          phone: candidate.international_phone_number,
-          website: candidate.website,
-          opening_hours: candidate.opening_hours,
-          name: candidate.name
+          rating: 0,
+          user_ratings_total: 0,
+          phone: "",
+          website: "",
+          opening_hours: null,
+          name: name
         }
       };
     }
   } catch (err) {
-    console.error("Google Geocoding Error:", err);
+    console.error("OSM Geocoding Error:", err);
   }
   return null;
 }
@@ -82,7 +79,7 @@ export const importItems = api(
       req.items.map(async (item) => {
         // Always try to geocode to get full metadata and precise coordinates
         // even if some coordinates exist, Google's data is usually better.
-        const geo = await geocodeWithGoogle(item.name, item.address);
+        const geo = await geocodeWithOSM(item.name, item.address);
         
         if (geo) {
           return {
