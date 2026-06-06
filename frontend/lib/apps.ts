@@ -25,6 +25,7 @@ import {
   GraduationCap,
   Users,
   PiggyBank,
+  Warning,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -507,5 +508,16 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/tasarruf-challenges",
     isImplemented: true,
     subdomain: "tasarruf",
+  },
+  {
+    id: "penalty-jar",
+    name: "Penalty Jar",
+    description: "Arkadaşlarınla belirlediğin kuralları kimlerin çiğnediğini ve ceza kavanozunu takip et!",
+    icon: Warning,
+    category: "Board Games & Fun",
+    color: "#E03131",
+    href: "/apps/penalty-jar",
+    isImplemented: true,
+    subdomain: "kavanoz",
   },
 ];

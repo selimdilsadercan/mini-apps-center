@@ -48,6 +48,7 @@ export default class Client {
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
+    public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
@@ -88,6 +89,7 @@ export default class Client {
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
+        this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
@@ -2029,6 +2031,230 @@ export namespace movies_this_year {
             return await resp.json() as {
     count: number
 }
+        }
+    }
+}
+
+/**
+ * Penalty Jar service - tracks rule violations and peer approvals
+ */
+export namespace penalty_jar {
+    export interface CreateLobbyRequest {
+        creatorId: string
+        name: string
+        penaltyType: "points" | "jar"
+        currency?: string
+        pointStart?: number
+        penaltyAmount?: number
+        rules: Rule[]
+    }
+
+    export interface CreateLobbyResponse {
+        lobbyId: string
+        joinCode: string
+    }
+
+    export interface GetLobbyResponse {
+        lobby: Lobby
+    }
+
+    export interface GetUserLobbiesResponse {
+        lobbies: {
+            id: string
+            joinCode: string
+            name: string
+            penaltyType: "points" | "jar"
+            role: string
+            joinedAt: string
+            totalPoints: number
+            members: LobbyMemberBrief[]
+        }[]
+    }
+
+    export interface Infraction {
+        id: string
+        reportedUserId: string
+        reportedUsername: string | null
+        reportedAvatar: string | null
+        reporterUserId: string | null
+        reporterUsername: string | null
+        ruleName: string
+        penaltyAmount: number
+        isSelfReport: boolean
+        status: "pending" | "approved" | "rejected"
+        createdAt: string
+        votes: Vote[]
+    }
+
+    export interface JoinLobbyRequest {
+        userId: string
+        joinCode: string
+    }
+
+    export interface JoinLobbyResponse {
+        lobbyId: string
+        success: boolean
+    }
+
+    export interface LeaveLobbyRequest {
+        lobbyId: string
+        userId: string
+    }
+
+    export interface LeaveLobbyResponse {
+        success: boolean
+    }
+
+    export interface Lobby {
+        id: string
+        joinCode: string
+        creatorId: string
+        name: string
+        penaltyType: "points" | "jar"
+        currency: string
+        pointStart: number
+        penaltyAmount: number
+        rules: Rule[]
+        createdAt: string
+        members: Member[]
+        infractions: Infraction[]
+    }
+
+    export interface LobbyMemberBrief {
+        userId: string
+        username: string | null
+        avatar: string | null
+    }
+
+    export interface Member {
+        userId: string
+        username: string | null
+        avatar: string | null
+        points: number
+        moneyOwed: number
+        role: string
+        joinedAt: string
+    }
+
+    export interface ReportInfractionRequest {
+        lobbyId: string
+        reportedUserId: string
+        reporterUserId?: string
+        ruleName: string
+        penaltyAmount: number
+        isSelfReport: boolean
+    }
+
+    export interface ReportInfractionResponse {
+        infractionId: string
+        success: boolean
+    }
+
+    export interface Rule {
+        id: string
+        name: string
+        penalty: number
+    }
+
+    export interface Vote {
+        userId: string
+        username: string | null
+        approve: boolean
+    }
+
+    export interface VoteInfractionRequest {
+        infractionId: string
+        userId: string
+        approve: boolean
+    }
+
+    export interface VoteInfractionResponse {
+        status: "pending" | "approved" | "rejected"
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createLobby = this.createLobby.bind(this)
+            this.getLobby = this.getLobby.bind(this)
+            this.getUserLobbies = this.getUserLobbies.bind(this)
+            this.joinLobby = this.joinLobby.bind(this)
+            this.leaveLobby = this.leaveLobby.bind(this)
+            this.reportInfraction = this.reportInfraction.bind(this)
+            this.voteInfraction = this.voteInfraction.bind(this)
+        }
+
+        /**
+         * Creates a new lobby
+         * POST /penalty-jar/lobby/create
+         */
+        public async createLobby(params: CreateLobbyRequest): Promise<CreateLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/create`, JSON.stringify(params))
+            return await resp.json() as CreateLobbyResponse
+        }
+
+        /**
+         * Fetches all details of a lobby (members, scoreboard, infractions, and rules)
+         * GET /penalty-jar/lobby/:lobbyId
+         */
+        public async getLobby(lobbyId: string): Promise<GetLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/penalty-jar/lobby/${encodeURIComponent(lobbyId)}`)
+            return await resp.json() as GetLobbyResponse
+        }
+
+        /**
+         * Gets all lobbies that a user is currently a member of
+         * GET /penalty-jar/user-lobbies/:userId
+         */
+        public async getUserLobbies(userId: string): Promise<GetUserLobbiesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/penalty-jar/user-lobbies/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserLobbiesResponse
+        }
+
+        /**
+         * Joins a lobby using a join code
+         * POST /penalty-jar/lobby/join
+         */
+        public async joinLobby(params: JoinLobbyRequest): Promise<JoinLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/join`, JSON.stringify(params))
+            return await resp.json() as JoinLobbyResponse
+        }
+
+        /**
+         * Leaves a lobby
+         * POST /penalty-jar/lobby/leave
+         */
+        public async leaveLobby(params: LeaveLobbyRequest): Promise<LeaveLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/leave`, JSON.stringify(params))
+            return await resp.json() as LeaveLobbyResponse
+        }
+
+        /**
+         * Reports a new rule infraction (either caught or self-reported)
+         * POST /penalty-jar/infraction/report
+         */
+        public async reportInfraction(params: ReportInfractionRequest): Promise<ReportInfractionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/infraction/report`, JSON.stringify(params))
+            return await resp.json() as ReportInfractionResponse
+        }
+
+        /**
+         * Votes on a pending infraction (friends voting to verify a caught incident)
+         * POST /penalty-jar/infraction/vote
+         */
+        public async voteInfraction(params: VoteInfractionRequest): Promise<VoteInfractionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/infraction/vote`, JSON.stringify(params))
+            return await resp.json() as VoteInfractionResponse
         }
     }
 }
