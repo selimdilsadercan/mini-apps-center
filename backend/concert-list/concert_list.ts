@@ -10,15 +10,25 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
 
+export interface ConcertFriend {
+  id: string;
+  username: string | null;
+  avatar: string | null;
+}
+
 export interface Concert {
   id: string;
   user_clerk_id: string;
+  creator_username?: string | null;
+  creator_avatar?: string | null;
   artist: string;
   date: string; // YYYY-MM-DD
   venue?: string;
   notes?: string;
   rating?: number;
   created_at: string;
+  friends?: ConcertFriend[];
+  image_url?: string | null;
 }
 
 // ==================== REQ/RES INTERFACES ====================
@@ -38,9 +48,27 @@ interface AddConcertRequest {
   venue?: string;
   notes?: string;
   rating?: number;
+  friendIds?: string[];
+  imageUrl?: string;
 }
 
 interface AddConcertResponse {
+  concert: Concert | null;
+}
+
+interface EditConcertRequest {
+  id: string;
+  userId: string;
+  artist: string;
+  date: string;
+  venue?: string;
+  notes?: string;
+  rating?: number;
+  friendIds?: string[];
+  imageUrl?: string;
+}
+
+interface EditConcertResponse {
   concert: Concert | null;
 }
 
@@ -96,7 +124,7 @@ export const getConcerts = api(
  */
 export const addConcert = api(
   { expose: true, method: "POST", path: "/concert-list/concerts/add" },
-  async ({ userId, artist, date, venue, notes, rating }: AddConcertRequest): Promise<AddConcertResponse> => {
+  async ({ userId, artist, date, venue, notes, rating, friendIds, imageUrl }: AddConcertRequest): Promise<AddConcertResponse> => {
     const { data, error } = await supabase.schema("concert_list").rpc("add_concert", {
       clerk_id_param: userId,
       artist_param: artist,
@@ -104,6 +132,8 @@ export const addConcert = api(
       venue_param: venue || null,
       notes_param: notes || null,
       rating_param: rating || null,
+      friend_ids_param: friendIds || [],
+      image_url_param: imageUrl || null,
     });
 
     if (error) {
@@ -114,6 +144,35 @@ export const addConcert = api(
     return { concert: data?.[0] || null };
   }
 );
+
+/**
+ * Edit an existing concert
+ * POST /concert-list/concerts/edit
+ */
+export const editConcert = api(
+  { expose: true, method: "POST", path: "/concert-list/concerts/edit" },
+  async ({ id, userId, artist, date, venue, notes, rating, friendIds, imageUrl }: EditConcertRequest): Promise<EditConcertResponse> => {
+    const { data, error } = await supabase.schema("concert_list").rpc("edit_concert", {
+      concert_id_param: id,
+      clerk_id_param: userId,
+      artist_param: artist,
+      date_param: date,
+      venue_param: venue || null,
+      notes_param: notes || null,
+      rating_param: rating || null,
+      friend_ids_param: friendIds || [],
+      image_url_param: imageUrl || null,
+    });
+
+    if (error) {
+      console.error("editConcert error:", error);
+      throw APIError.internal(`Failed to edit concert: ${error.message}`);
+    }
+
+    return { concert: data?.[0] || null };
+  }
+);
+
 
 /**
  * Bulk import concerts
@@ -257,6 +316,104 @@ export const getArtistImage = api(
 
     console.log(`[getArtistImage] No image found anywhere. Returning empty string.`);
     return { imageUrl: "" };
+  }
+);
+
+interface GetArtistImagesRequest {
+  artist: string;
+}
+
+interface GetArtistImagesResponse {
+  imageUrls: string[];
+}
+
+/**
+ * Fetch multiple potential artist images from YouTube, Wikipedia, and iTunes
+ * GET /concert-list/artist-images
+ */
+export const getArtistImages = api(
+  { expose: true, method: "GET", path: "/concert-list/artist-images" },
+  async ({ artist }: GetArtistImagesRequest): Promise<GetArtistImagesResponse> => {
+    const urls: string[] = [];
+    if (!artist || !artist.trim()) {
+      return { imageUrls: [] };
+    }
+
+    // 1. YouTube Channel Avatars
+    try {
+      const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(artist.trim())}&sp=EgIQAg%3D%3D`;
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"
+        }
+      });
+      const html = await res.text();
+      const matches = html.match(/https:\/\/yt3\.(?:ggpht\.com|googleusercontent\.com)\/[\w-]+=[sS]\d+(?:-[a-zA-Z0-9]+)*/g);
+      if (matches) {
+        const seen = new Set<string>();
+        for (const match of matches) {
+          const highRes = match.replace(/=s\d+/, "=s240");
+          if (!seen.has(highRes)) {
+            seen.add(highRes);
+            urls.push(highRes);
+          }
+          if (urls.length >= 4) break;
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching from YouTube:", err);
+    }
+
+    // 2. Wikipedia (tr & en)
+    const wikis = ["tr", "en"];
+    for (const lang of wikis) {
+      if (urls.length >= 5) break;
+      try {
+        const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artist.trim())}&format=json&origin=*`;
+        const searchRes = await fetch(searchUrl, {
+          headers: { "User-Agent": "MyConcertList/1.0" }
+        });
+        const searchData = (await searchRes.json()) as any;
+        const results = searchData.query?.search || [];
+        for (const result of results) {
+          if (urls.length >= 5) break;
+          if (result.title) {
+            const titleKey = result.title.replace(/\s+/g, "_");
+            const summaryUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titleKey)}`;
+            const summaryRes = await fetch(summaryUrl, {
+              headers: { "User-Agent": "MyConcertList/1.0" }
+            });
+            const summaryData = (await summaryRes.json()) as any;
+            if (summaryData.thumbnail?.source && !urls.includes(summaryData.thumbnail.source)) {
+              urls.push(summaryData.thumbnail.source);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching from Wikipedia:", err);
+      }
+    }
+
+    // 3. iTunes
+    try {
+      const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(artist.trim())}&entity=song&limit=3`;
+      const itunesRes = await fetch(itunesUrl);
+      const itunesData = (await itunesRes.json()) as any;
+      const results = itunesData.results || [];
+      for (const result of results) {
+        if (urls.length >= 6) break;
+        if (result.artworkUrl100) {
+          const highResUrl = result.artworkUrl100.replace("/100x100bb.jpg", "/300x300bb.jpg");
+          if (!urls.includes(highResUrl)) {
+            urls.push(highResUrl);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching from iTunes:", err);
+    }
+
+    return { imageUrls: urls };
   }
 );
 

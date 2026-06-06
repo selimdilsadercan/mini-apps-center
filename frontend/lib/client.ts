@@ -661,6 +661,8 @@ export namespace concert_list {
         venue?: string
         notes?: string
         rating?: number
+        friendIds?: string[]
+        imageUrl?: string
     }
 
     export interface AddConcertResponse {
@@ -685,16 +687,42 @@ export namespace concert_list {
     export interface Concert {
         id: string
         "user_clerk_id": string
+        "creator_username"?: string | null
+        "creator_avatar"?: string | null
         artist: string
         date: string
         venue?: string
         notes?: string
         rating?: number
         "created_at": string
+        friends?: ConcertFriend[]
+        "image_url"?: string | null
+    }
+
+    export interface ConcertFriend {
+        id: string
+        username: string | null
+        avatar: string | null
     }
 
     export interface DeleteConcertResponse {
         success: boolean
+    }
+
+    export interface EditConcertRequest {
+        id: string
+        userId: string
+        artist: string
+        date: string
+        venue?: string
+        notes?: string
+        rating?: number
+        friendIds?: string[]
+        imageUrl?: string
+    }
+
+    export interface EditConcertResponse {
+        concert: Concert | null
     }
 
     export interface GetArtistImageRequest {
@@ -703,6 +731,14 @@ export namespace concert_list {
 
     export interface GetArtistImageResponse {
         imageUrl: string
+    }
+
+    export interface GetArtistImagesRequest {
+        artist: string
+    }
+
+    export interface GetArtistImagesResponse {
+        imageUrls: string[]
     }
 
     export interface GetConcertsResponse {
@@ -717,7 +753,9 @@ export namespace concert_list {
             this.addConcert = this.addConcert.bind(this)
             this.bulkImportConcerts = this.bulkImportConcerts.bind(this)
             this.deleteConcert = this.deleteConcert.bind(this)
+            this.editConcert = this.editConcert.bind(this)
             this.getArtistImage = this.getArtistImage.bind(this)
+            this.getArtistImages = this.getArtistImages.bind(this)
             this.getConcerts = this.getConcerts.bind(this)
         }
 
@@ -752,6 +790,16 @@ export namespace concert_list {
         }
 
         /**
+         * Edit an existing concert
+         * POST /concert-list/concerts/edit
+         */
+        public async editConcert(params: EditConcertRequest): Promise<EditConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/concert-list/concerts/edit`, JSON.stringify(params))
+            return await resp.json() as EditConcertResponse
+        }
+
+        /**
          * Fetch artist image from Wikipedia API
          * GET /concert-list/artist-image
          */
@@ -764,6 +812,21 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/artist-image`, undefined, {query})
             return await resp.json() as GetArtistImageResponse
+        }
+
+        /**
+         * Fetch multiple potential artist images from YouTube, Wikipedia, and iTunes
+         * GET /concert-list/artist-images
+         */
+        public async getArtistImages(params: GetArtistImagesRequest): Promise<GetArtistImagesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/artist-images`, undefined, {query})
+            return await resp.json() as GetArtistImagesResponse
         }
 
         /**

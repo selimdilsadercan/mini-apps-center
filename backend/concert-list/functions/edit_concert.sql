@@ -1,7 +1,8 @@
-DROP FUNCTION IF EXISTS concert_list.add_concert(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, TEXT[]);
-DROP FUNCTION IF EXISTS concert_list.add_concert(TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, TEXT[], TEXT);
+DROP FUNCTION IF EXISTS concert_list.edit_concert(UUID, TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, TEXT[]);
+DROP FUNCTION IF EXISTS concert_list.edit_concert(UUID, TEXT, TEXT, DATE, TEXT, TEXT, INTEGER, TEXT[], TEXT);
 
-CREATE OR REPLACE FUNCTION concert_list.add_concert(
+CREATE OR REPLACE FUNCTION concert_list.edit_concert(
+    concert_id_param UUID,
     clerk_id_param TEXT,
     artist_param TEXT,
     date_param DATE,
@@ -25,19 +26,27 @@ RETURNS TABLE (
     friends JSONB,
     image_url TEXT
 ) AS $$
-DECLARE
-    v_new_concert_id UUID;
 BEGIN
-    INSERT INTO concert_list.concerts (
-        user_clerk_id, artist, date, venue, notes, rating, image_url
-    ) VALUES (
-        clerk_id_param, artist_param, date_param, venue_param, notes_param, rating_param, image_url_param
-    ) RETURNING concert_list.concerts.id INTO v_new_concert_id;
-    
-    -- Insert friends
-    IF friend_ids_param IS NOT NULL AND array_length(friend_ids_param, 1) > 0 THEN
-        INSERT INTO concert_list.concert_friends (concert_id, friend_clerk_id)
-        SELECT v_new_concert_id, unnest(friend_ids_param);
+    -- Update concert (only if the caller is the owner)
+    UPDATE concert_list.concerts
+    SET artist = artist_param,
+        date = date_param,
+        venue = venue_param,
+        notes = notes_param,
+        rating = rating_param,
+        image_url = image_url_param
+    WHERE concerts.id = concert_id_param AND concerts.user_clerk_id = clerk_id_param;
+
+    -- Update friends (first delete old associations, then insert new ones)
+    -- Only do this if the caller is the owner
+    IF FOUND THEN
+        DELETE FROM concert_list.concert_friends
+        WHERE concert_friends.concert_id = concert_id_param;
+
+        IF friend_ids_param IS NOT NULL AND array_length(friend_ids_param, 1) > 0 THEN
+            INSERT INTO concert_list.concert_friends (concert_id, friend_clerk_id)
+            SELECT concert_id_param, unnest(friend_ids_param);
+        END IF;
     END IF;
 
     RETURN QUERY
@@ -70,6 +79,6 @@ BEGIN
         c.image_url
     FROM concert_list.concerts c
     JOIN public.users cu ON c.user_clerk_id = cu.clerk_id
-    WHERE c.id = v_new_concert_id;
+    WHERE c.id = concert_id_param;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
