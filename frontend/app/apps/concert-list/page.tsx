@@ -133,16 +133,18 @@ export default function ConcertListPage() {
             <span>Katalog</span>
           </button>
 
-          <button
-            onClick={() => {
-              setSelectedConcertForEdit(null);
-              setShowAddDrawer(true);
-            }}
-            className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-pink-900/10"
-          >
-            <Plus size={14} weight="bold" />
-            <span>Yeni Konser</span>
-          </button>
+          {user && (
+            <button
+              onClick={() => {
+                setSelectedConcertForEdit(null);
+                setShowAddDrawer(true);
+              }}
+              className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-pink-900/10"
+            >
+              <Plus size={14} weight="bold" />
+              <span>Yeni Konser</span>
+            </button>
+          )}
         </div>
 
         {/* Hero Section */}
@@ -169,6 +171,11 @@ export default function ConcertListPage() {
         {loading ? (
           <div className="text-center py-20 text-gray-400 text-xs font-semibold uppercase tracking-widest animate-pulse">
             Zaman tüneli yükleniyor...
+          </div>
+        ) : !user ? (
+          <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center p-6">
+            <MusicNotes size={40} className="text-gray-600 mb-4" />
+            <p className="text-sm font-semibold text-gray-400">Konser listeni görebilmek ve yeni konserler eklemek için giriş yapmalısın.</p>
           </div>
         ) : concerts.length === 0 ? (
           <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center p-6">

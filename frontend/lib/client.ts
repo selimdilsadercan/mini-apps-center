@@ -34,6 +34,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 export default class Client {
     public readonly assistant: assistant.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
+    public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
@@ -75,6 +76,7 @@ export default class Client {
         const base = new BaseClient(this.target, this.options)
         this.assistant = new assistant.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
+        this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
@@ -478,6 +480,155 @@ export namespace board_game_clubs {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/board-game-clubs/games/${encodeURIComponent(gameId)}`, JSON.stringify(params))
             return await resp.json() as UpdateClubGameResponse
+        }
+    }
+}
+
+export namespace campus_concerts {
+    export interface AddConcertRequest {
+        userId: string
+        artist: string
+        campus: string
+        date: string
+        description?: string
+        imageUrl?: string
+    }
+
+    export interface AddConcertResponse {
+        concert: CampusConcert | null
+    }
+
+    export interface Attendee {
+        "clerk_id": string
+        username: string | null
+        "avatar_url": string | null
+        status: string
+    }
+
+    export interface CampusConcert {
+        id: string
+        artist: string
+        campus: string
+        date: string
+        description?: string | null
+        "image_url"?: string | null
+        "added_by_clerk_id"?: string | null
+        "creator_username"?: string | null
+        "creator_avatar"?: string | null
+        "created_at": string
+        "user_status"?: string | null
+        attendees?: Attendee[]
+    }
+
+    export interface GetArtistImageRequest {
+        artist: string
+    }
+
+    export interface GetArtistImageResponse {
+        imageUrl: string
+    }
+
+    export interface GetArtistImagesRequest {
+        artist: string
+    }
+
+    export interface GetArtistImagesResponse {
+        imageUrls: string[]
+    }
+
+    export interface GetConcertsRequest {
+        userId?: string
+    }
+
+    export interface GetConcertsResponse {
+        concerts: CampusConcert[]
+    }
+
+    export interface SetAttendanceRequest {
+        userId: string
+        concertId: string
+        status: string
+    }
+
+    export interface SetAttendanceResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addConcert = this.addConcert.bind(this)
+            this.getArtistImage = this.getArtistImage.bind(this)
+            this.getArtistImages = this.getArtistImages.bind(this)
+            this.getConcerts = this.getConcerts.bind(this)
+            this.setAttendance = this.setAttendance.bind(this)
+        }
+
+        /**
+         * Add a new campus concert
+         * POST /campus-concerts/concerts/add
+         */
+        public async addConcert(params: AddConcertRequest): Promise<AddConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-concerts/concerts/add`, JSON.stringify(params))
+            return await resp.json() as AddConcertResponse
+        }
+
+        /**
+         * Fetch artist image from YouTube / Wikipedia / iTunes
+         * GET /campus-concerts/artist-image
+         */
+        public async getArtistImage(params: GetArtistImageRequest): Promise<GetArtistImageResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/artist-image`, undefined, {query})
+            return await resp.json() as GetArtistImageResponse
+        }
+
+        /**
+         * Fetch multiple potential artist images
+         * GET /campus-concerts/artist-images
+         */
+        public async getArtistImages(params: GetArtistImagesRequest): Promise<GetArtistImagesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/artist-images`, undefined, {query})
+            return await resp.json() as GetArtistImagesResponse
+        }
+
+        /**
+         * Get all campus concerts. Optionally provides requesting user's status.
+         * GET /campus-concerts/concerts
+         */
+        public async getConcerts(params: GetConcertsRequest): Promise<GetConcertsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/concerts`, undefined, {query})
+            return await resp.json() as GetConcertsResponse
+        }
+
+        /**
+         * Set user attendance status for a concert
+         * POST /campus-concerts/attendance/set
+         */
+        public async setAttendance(params: SetAttendanceRequest): Promise<SetAttendanceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-concerts/attendance/set`, JSON.stringify(params))
+            return await resp.json() as SetAttendanceResponse
         }
     }
 }
