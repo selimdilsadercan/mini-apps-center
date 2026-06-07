@@ -606,6 +606,54 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
           },
           {
             order: 4,
+            id: "saracoglu-coffee",
+            titleTr: "Saraçoğlu Mahallesi / Kahve Molası",
+            titleEn: "Saraçoğlu Neighborhood / Coffee Break",
+            areaTr: "Kızılay / Saraçoğlu",
+            areaEn: "Kızılay / Saraçoğlu",
+            category: "city_life",
+            priority: "medium",
+            estimatedDurationMinutes: 45,
+            descriptionTr: "Türkiye'nin ilk toplu konut projesi olan tarihi Saraçoğlu Mahallesi'nde, restore edilmiş evlerin arasında huzurlu bir kahve molası.",
+            descriptionEn: "A peaceful coffee break among restored houses in the historic Saraçoğlu Neighborhood, Turkey's first social housing project.",
+            whatToDoTr: ["Restore edilmiş sokaklarda yürü", "Tarihi evleri incele", "Butik bir kafede kahve iç"],
+            whatToDoEn: ["Walk through restored streets", "Examine historic houses", "Drink coffee in a boutique cafe"],
+            tipsTr: ["Mahallenin mimarisi fotoğraf çekmek için harikadır.", "Kızılay'a yürüme mesafesindedir."],
+            tipsEn: ["The neighborhood's architecture is great for photography.", "Within walking distance to Kızılay."],
+            accessInfo: {
+              summaryTr: "Kızılay merkezinden kısa bir yürüyüşle ulaşılabilir.",
+              summaryEn: "Accessible by a short walk from Kızılay center.",
+              recommendedModes: ["walk", "taxi"],
+              walkingRequired: "low"
+            },
+            flexible: true
+          },
+          {
+            order: 5,
+            id: "genclik-parki",
+            titleTr: "Gençlik Parkı",
+            titleEn: "Gençlik Park",
+            areaTr: "Ulus",
+            areaEn: "Ulus",
+            category: "park",
+            priority: "high",
+            estimatedDurationMinutes: 60,
+            descriptionTr: "Cumhuriyet döneminin simge parklarından biri; büyük havuzu, lunaparkı ve yeşil alanlarıyla Ankara'nın kalbinde bir vaha.",
+            descriptionEn: "One of the iconic parks of the Republican era; an oasis in the heart of Ankara with its large pool, amusement park, and green areas.",
+            whatToDoTr: ["Havuz kenarında yürü", "Lunaparkta vakit geçir", "Sandalla gezinti yap"],
+            whatToDoEn: ["Walk by the pool", "Spend time at the amusement park", "Take a boat ride"],
+            tipsTr: ["Akşam saatlerinde ışıklandırmalar çok güzeldir.", "Ulus metrosuna çok yakındır."],
+            tipsEn: ["The lighting is very beautiful in the evening.", "Very close to Ulus metro."],
+            accessInfo: {
+              summaryTr: "Ulus metro durağının hemen yanındadır.",
+              summaryEn: "Right next to the Ulus metro station.",
+              recommendedModes: ["metro", "walk", "taxi"],
+              walkingRequired: "low"
+            },
+            flexible: true
+          },
+          {
+            order: 6,
             id: "ulus-historic",
             titleTr: "Ulus / İlk TBMM / Ankara Palas",
             titleEn: "Ulus / First Parliament / Ankara Palace",
@@ -629,7 +677,7 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
             flexible: true
           },
           {
-            order: 5,
+            order: 7,
             id: "ankara-castle",
             titleTr: "Ankara Kalesi",
             titleEn: "Ankara Castle",
@@ -659,7 +707,7 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
             flexible: true
           },
           {
-            order: 6,
+            order: 8,
             id: "anatolian-civilizations-museum",
             titleTr: "Anadolu Medeniyetleri Müzesi",
             titleEn: "Museum of Anatolian Civilizations",
@@ -683,7 +731,7 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
             flexible: true
           },
           {
-            order: 7,
+            order: 9,
             id: "rahmi-m-koc-museum-ankara",
             titleTr: "Rahmi M. Koç Müzesi Ankara",
             titleEn: "Rahmi M. Koç Museum Ankara",
@@ -713,7 +761,7 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
             flexible: true
           },
           {
-            order: 8,
+            order: 10,
             id: "tunali-kugulu-park",
             titleTr: "Tunalı / Kuğulu Park",
             titleEn: "Tunalı / Kuğulu Park",
@@ -737,7 +785,7 @@ export const CITY_GUIDES: Record<string, CityGuide> = {
             flexible: true
           },
           {
-            order: 9,
+            order: 11,
             id: "if-sokak",
             titleTr: "IF Sokak",
             titleEn: "IF Street",
