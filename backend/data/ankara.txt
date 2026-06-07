@@ -1,0 +1,385 @@
+{
+  "city": {
+    "id": "ankara",
+    "name": "Ankara",
+    "country": "Türkiye",
+    "description": "Ankara için rahat tempolu 1 günlük şehir rotası.",
+    "bestFor": ["ilk kez gelenler", "az yürümek isteyenler", "kültür + akşam planı"],
+    "estimatedTotalDurationHours": 10,
+    "estimatedWalkingLevel": "medium-low"
+  },
+  "culturalHighlights": {
+    "localFoodsAndDrinks": [],
+    "iconicPlaces": [],
+    "localExperiences": [],
+    "thingsToKnow": []
+  },
+  "tours": []
+}
+{
+  "city": {
+    "id": "ankara",
+    "name": "Ankara",
+    "country": "Türkiye",
+    "region": "Central Anatolia",
+    "description": "Ankara için bir günde gezilebilecek, kültür ve akşam sosyalleşmesini birleştiren şehir rotası.",
+    "bestFor": [
+      "ilk kez gelenler",
+      "tarih görmek isteyenler",
+      "az yürümek isteyenler",
+      "akşam Tunalı tarafında vakit geçirmek isteyenler"
+    ],
+    "estimatedTotalDurationHours": 10,
+    "estimatedWalkingLevel": "medium-low",
+    "recommendedStartTime": "10:00",
+    "recommendedEndTime": "22:30"
+  },
+  "culturalHighlights": {
+    "localFoodsAndDrinks": [
+      {
+        "name": "Muzlu süt / atom",
+        "description": "Ankara'da son yıllarda popülerleşen Adana tarzı büfe içeceği deneyimi.",
+        "whereToTry": ["Ye-İç Büfe / Akköprü"]
+      },
+      {
+        "name": "Aspava",
+        "description": "Ankara'nın klasikleşmiş gece yemeği kültürü. Dürüm, ikramlar ve hızlı servisle bilinir.",
+        "whereToTry": ["Kızılay", "Bahçelievler", "Tunalı çevresi"]
+      },
+      {
+        "name": "AOÇ dondurması",
+        "description": "Atatürk Orman Çiftliği ile özdeşleşen klasik Ankara lezzetlerinden biri.",
+        "whereToTry": ["AOÇ çevresi", "bazı Ankara restoranları"]
+      }
+    ],
+    "iconicPlaces": [
+      {
+        "name": "Anıtkabir",
+        "description": "Ankara'nın en önemli sembolü ve şehirde ilk kez gelenler için ana durak."
+      },
+      {
+        "name": "Ulus",
+        "description": "Cumhuriyet dönemi Ankara'sını hissettiren tarihî merkez."
+      },
+      {
+        "name": "Ankara Kalesi çevresi",
+        "description": "Tarihî sokaklar, müzeler ve şehir manzarasıyla bilinen bölge."
+      },
+      {
+        "name": "Tunalı Hilmi Caddesi",
+        "description": "Ankara'nın yürüyüş, kafe ve akşam sosyalleşme hattı."
+      },
+      {
+        "name": "Kuğulu Park",
+        "description": "Tunalı'nın en bilinen parkı ve kısa mola noktası."
+      }
+    ],
+    "localExperiences": [
+      {
+        "name": "Karanfil Sokak'ta kafe molası",
+        "description": "Kızılay çevresinde kısa oturma ve insan kalabalığını gözlemleme deneyimi."
+      },
+      {
+        "name": "Tunalı'da akşam yürüyüşü",
+        "description": "Kuğulu Park'tan başlayıp IF Sokak veya çevredeki mekanlara geçilen klasik akşam planı."
+      }
+    ],
+    "thingsToKnow": [
+      "Ankara'da bazı tarihî bölgeler yokuşludur; Kale çevresi enerjiniz düşükse yorucu olabilir.",
+      "Kızılay daha çok aktarma ve kısa mola bölgesi gibi düşünülebilir.",
+      "Tunalı ve Kuğulu Park akşam saatleri için daha keyiflidir.",
+      "Müze saatleri ve servis bilgileri gitmeden önce kontrol edilmelidir."
+    ]
+  },
+  "tours": [
+    {
+      "id": "ankara-one-day-comfort-route",
+      "title": "Ankara 1 Günlük Rahat Şehir Rotası",
+      "description": "Ankamall'de kısa lezzet molasıyla başlayıp Anıtkabir, Ulus, müzeler ve Tunalı akşamıyla biten rahat tempolu Ankara rotası.",
+      "theme": ["culture", "local food", "history", "evening social"],
+      "pace": "relaxed",
+      "walkingLevel": "medium-low",
+      "recommendedFor": [
+        "1 günü olanlar",
+        "çok yorulmadan gezmek isteyenler",
+        "şehir hissini almak isteyenler"
+      ],
+      "startArea": "Akköprü / ANKAmall",
+      "endArea": "Tunalı / IF Sokak",
+      "estimatedDurationHours": 10,
+      "routeNotes": [
+        "Rota kuzeybatıdan merkeze, sonra Tunalı tarafına inecek şekilde planlanmıştır.",
+        "Kale çevresinde fazla yürümek istemiyorsanız sadece müze bölgesine uğrayın.",
+        "Ulus ve Kale kısmı günün en yorucu bölümü olabilir; süreyi kısa tutmak mantıklıdır."
+      ],
+      "stops": [
+        {
+          "order": 1,
+          "id": "ankamall-ye-ic-bufe",
+          "title": "ANKAmall / Ye-İç Büfe",
+          "area": "Akköprü",
+          "category": "local_food_drink",
+          "priority": "optional",
+          "estimatedDurationMinutes": 30,
+          "recommendedTime": "10:00",
+          "description": "Güne Adana tarzı muzlu süt veya atom içerek başlanabilecek kısa lezzet durağı.",
+          "whatToDo": [
+            "Muzlu süt veya atom iç",
+            "Çok oyalanmadan merkeze geç"
+          ],
+          "whatToTry": [
+            "Muzlu süt",
+            "Atom"
+          ],
+          "tips": [
+            "Bu durak rotaya keyif katar ama zaman azsa atlanabilir.",
+            "ANKAmall/Akköprü ulaşım olarak pratik bir başlangıç noktasıdır."
+          ],
+          "transportToNext": {
+            "destination": "Kızılay",
+            "recommendedMode": "metro",
+            "description": "Akköprü tarafından metro/aktarma ile Kızılay'a geçilebilir.",
+            "walkingRequired": "low",
+            "notes": [
+              "Kızılay merkez aktarma noktası olarak kullanılabilir."
+            ]
+          }
+        },
+        {
+          "order": 2,
+          "id": "kizilay-karanfil-sokak",
+          "title": "Kızılay / Karanfil Sokak",
+          "area": "Kızılay",
+          "category": "break",
+          "priority": "medium",
+          "estimatedDurationMinutes": 45,
+          "recommendedTime": "11:00",
+          "description": "Merkeze geldikten sonra kısa kafe molası verilecek durak.",
+          "whatToDo": [
+            "Karanfil Sokak'ta kısa mola ver",
+            "Kahve iç",
+            "Bir sonraki Anıtkabir durağına geçmeden dinlen"
+          ],
+          "tips": [
+            "Kızılay'ı uzun uzun gezmek yerine mola ve aktarma noktası gibi kullanmak daha mantıklı.",
+            "Enerjin düşükse burada fazla yürümemek iyi olur."
+          ],
+          "transportToNext": {
+            "destination": "Anıtkabir",
+            "recommendedMode": "Ankaray",
+            "description": "Kızılay'dan Ankaray ile Anıtkabir tarafına geçilebilir.",
+            "walkingRequired": "medium",
+            "notes": [
+              "Anıtkabir girişine ulaşmak için istasyondan sonra bir miktar yürüyüş olabilir."
+            ]
+          }
+        },
+        {
+          "order": 3,
+          "id": "anitkabir",
+          "title": "Anıtkabir",
+          "area": "Tandoğan / Anıttepe",
+          "category": "historic_landmark",
+          "priority": "must-see",
+          "estimatedDurationMinutes": 90,
+          "recommendedTime": "12:15",
+          "description": "Ankara'nın en önemli ve sembolik durağı.",
+          "whatToDo": [
+            "Aslanlı Yol'dan yürüyerek tören alanına çık",
+            "Mozoleyi ziyaret et",
+            "Müze bölümüne zaman kalırsa hızlıca göz at"
+          ],
+          "tips": [
+            "Günün ana durağı burası olduğu için çok hızlı geçme.",
+            "Çanta kontrolü ve giriş süresi için ekstra zaman bırak.",
+            "Alan geniş olduğu için rahat ayakkabı iyi olur."
+          ],
+          "warnings": [
+            "Yürüyüş mesafesi beklenenden fazla olabilir.",
+            "Sıcak havalarda su almak iyi olur."
+          ],
+          "transportToNext": {
+            "destination": "Ulus",
+            "recommendedMode": "public_transport_or_shuttle",
+            "description": "Anıtkabir'den Ulus tarafına toplu taşıma, taksi veya varsa servisle geçilebilir.",
+            "walkingRequired": "low",
+            "shuttleInfo": {
+              "available": true,
+              "description": "Yerel servis/aktarma varsa Ulus'a geçiş için kullanılabilir.",
+              "verificationNeeded": true
+            },
+            "notes": [
+              "Servis saatleri veya kalkış noktası gitmeden önce kontrol edilmeli."
+            ]
+          }
+        },
+        {
+          "order": 4,
+          "id": "ulus-first-parliament-ankara-palas",
+          "title": "Ulus / İlk TBMM / Ankara Palas",
+          "area": "Ulus",
+          "category": "historic_area",
+          "priority": "medium",
+          "estimatedDurationMinutes": 45,
+          "recommendedTime": "14:00",
+          "description": "Cumhuriyet dönemi Ankara'sını hızlıca görmek için kısa tarihî merkez durağı.",
+          "whatToDo": [
+            "İlk TBMM çevresini gör",
+            "Ankara Palas'ı dışarıdan gör",
+            "Ulus çevresinde kısa yürüyüş yap"
+          ],
+          "tips": [
+            "Bu bölgeyi kısa tutmak rotayı rahatlatır.",
+            "Asıl müze gezisi için enerjiyi Kale çevresine saklamak daha iyi olabilir."
+          ],
+          "transportToNext": {
+            "destination": "Ankara Kalesi / Müze bölgesi",
+            "recommendedMode": "taxi_or_short_walk",
+            "description": "Ulus'tan Kale altı ve müze bölgesine kısa mesafede geçilebilir.",
+            "walkingRequired": "medium",
+            "notes": [
+              "Kale tarafı yokuşlu olabilir.",
+              "Enerji düşükse taksi kullanmak daha mantıklı olabilir."
+            ]
+          }
+        },
+        {
+          "order": 5,
+          "id": "anatolian-civilizations-museum",
+          "title": "Anadolu Medeniyetleri Müzesi",
+          "area": "Kale çevresi",
+          "category": "museum",
+          "priority": "high",
+          "estimatedDurationMinutes": 60,
+          "recommendedTime": "15:00",
+          "description": "Ankara'da kısa sürede en güçlü kültür deneyimi veren müzelerden biri.",
+          "whatToDo": [
+            "Müzeyi hızlı ama seçerek gez",
+            "Ana sergi akışına odaklan",
+            "Çok yorulmadan çık"
+          ],
+          "tips": [
+            "Tek müze seçilecekse burası daha iyi tercih olabilir.",
+            "Detaylı gezmek uzun sürebilir; 1 günlük rotada seçici gezmek daha mantıklı."
+          ],
+          "warnings": [
+            "Müze kapanış saati ve bilet durumu gitmeden önce kontrol edilmeli."
+          ],
+          "transportToNext": {
+            "destination": "Rahmi M. Koç Müzesi Ankara",
+            "recommendedMode": "walk",
+            "description": "Aynı bölgede kısa yürüyüşle geçilebilir.",
+            "walkingRequired": "medium",
+            "notes": [
+              "Yokuş ve taş sokaklar yorabilir."
+            ]
+          }
+        },
+        {
+          "order": 6,
+          "id": "rahmi-m-koc-museum-ankara",
+          "title": "Rahmi M. Koç Müzesi Ankara",
+          "area": "Kale çevresi",
+          "category": "museum",
+          "priority": "optional",
+          "estimatedDurationMinutes": 45,
+          "recommendedTime": "16:15",
+          "description": "Ulaşım, endüstri, teknoloji ve nostaljik objeler üzerine keyifli bir müze durağı.",
+          "whatToDo": [
+            "Müzeyi hızlıca gez",
+            "Zaman azsa sadece ilgi çeken bölümlere bak"
+          ],
+          "tips": [
+            "Anadolu Medeniyetleri sonrası enerji kalırsa eklenmeli.",
+            "Yorgunluk varsa bu durak atlanıp direkt Tunalı'ya geçilebilir."
+          ],
+          "warnings": [
+            "Açık gün ve saatleri gitmeden önce kontrol edilmeli."
+          ],
+          "transportToNext": {
+            "destination": "Tunalı / Kuğulu Park",
+            "recommendedMode": "taxi_or_public_transport",
+            "description": "Kale çevresinden Tunalı'ya geçmek için taksi daha konforlu olabilir.",
+            "walkingRequired": "low",
+            "notes": [
+              "Günün bu noktasında yürümeyi azaltmak için taksi mantıklı olabilir.",
+              "Toplu taşıma kullanılacaksa Kızılay aktarması gerekebilir."
+            ]
+          }
+        },
+        {
+          "order": 7,
+          "id": "tunali-kugulu-park",
+          "title": "Tunalı / Kuğulu Park",
+          "area": "Tunalı Hilmi",
+          "category": "evening_walk",
+          "priority": "high",
+          "estimatedDurationMinutes": 60,
+          "recommendedTime": "18:00",
+          "description": "Akşamüstü kısa yürüyüş, park molası ve Tunalı atmosferi için ideal durak.",
+          "whatToDo": [
+            "Kuğulu Park'ta kısa tur at",
+            "Tunalı Hilmi Caddesi'nde yürüyüş yap",
+            "İstersen kafe molası ver"
+          ],
+          "tips": [
+            "Günün yorgunluğunu atmak için güzel final bölgesi.",
+            "Çok yürümek istemezsen Kuğulu Park çevresinde kısa kalıp direkt mekana geçebilirsin."
+          ],
+          "transportToNext": {
+            "destination": "IF Sokak",
+            "recommendedMode": "walk",
+            "description": "Tunalı çevresinden IF Sokak'a yürüyerek geçilebilir.",
+            "walkingRequired": "low-medium",
+            "notes": [
+              "Akşam saatlerinde bölge daha canlı olur."
+            ]
+          }
+        },
+        {
+          "order": 8,
+          "id": "if-sokak",
+          "title": "IF Sokak",
+          "area": "Tunalı çevresi",
+          "category": "nightlife",
+          "priority": "high",
+          "estimatedDurationMinutes": 120,
+          "recommendedTime": "19:30",
+          "description": "Günün kapanışı için bira, yemek veya arkadaşlarla oturma noktası.",
+          "whatToDo": [
+            "Bira veya yemek molası ver",
+            "Günü burada kapat"
+          ],
+          "tips": [
+            "Bu rota için en mantıklı akşam kapanışı.",
+            "Yoğun saatlerde yer bulmak zor olabilir."
+          ],
+          "transportToNext": null
+        }
+      ],
+      "fallbackOptions": [
+        {
+          "condition": "Enerji düşükse",
+          "action": "Ulus ve Kale çevresini kısa tut; sadece Anadolu Medeniyetleri Müzesi'ni gezip Tunalı'ya geç."
+        },
+        {
+          "condition": "Zaman azsa",
+          "action": "Rahmi M. Koç Müzesi'ni çıkar; Anıtkabir + Anadolu Medeniyetleri + Tunalı yap."
+        },
+        {
+          "condition": "Yürümek istemiyorsan",
+          "action": "Kale çevresinde taksi kullan; Kuğulu Park'ta uzun yürüyüş yapma."
+        },
+        {
+          "condition": "Müze kapanışına yetişilemezse",
+          "action": "Ulus/Kale çevresini dışarıdan görüp direkt Tunalı'ya geç."
+        }
+      ],
+      "generalWarnings": [
+        "Müze ve Anıtkabir saatleri değişebileceği için uygulama içinde güncel kontrol önerisi gösterilmeli.",
+        "Kale çevresi yokuşlu olduğu için rota yorgun kullanıcılar için opsiyonel tutulmalı.",
+        "Servis bilgileri sabit veri olarak değil, doğrulama gerektiren bilgi olarak tutulmalı."
+      ]
+    }
+  ]
+}
