@@ -46,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     async function loadOrder() {
       try {
-        const implementedApps = MINI_APPS.filter((app) => app.isImplemented);
+        const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
 
         let orderIds: string[] | null = null;
 
@@ -343,14 +343,16 @@ function SortableAppIcon({
         variants={wiggleVariants}
         animate={isEditMode && !isDragging ? "wiggle" : "idle"}
         onClick={() => {
-          if (!isEditMode) {
+          if (!isEditMode && !app.isBeta) {
             navigateToMiniApp(app, router);
+          } else if (app.isBeta) {
+            toast.error("Bu uygulama şu an geliştirilme aşamasındadır.");
           }
         }}
         {...(isEditMode ? attributes : {})}
         {...(isEditMode ? listeners : {})}
         onContextMenu={(e) => e.preventDefault()}
-        className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200`}
+        className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200 ${app.isBeta ? "opacity-50 grayscale-[0.3]" : ""}`}
       >
         {/* OS Icon Container - Squircle */}
         <div
@@ -379,7 +381,7 @@ function SortableAppIcon({
         </div>
 
         {/* App Label */}
-        <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2] mt-2">
+        <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2] mt-2 flex flex-col items-center gap-0.5">
           {appName}
         </span>
       </motion.button>

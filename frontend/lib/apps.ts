@@ -50,6 +50,8 @@ export interface MiniApp {
   isImplemented?: boolean;
   subdomain?: string;
   isLocal?: boolean;
+  isBeta?: boolean;
+  isCancelled?: boolean;
 }
 
 /** Capacitor APK/WebView (build flag veya çalışma anı). */
@@ -182,6 +184,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/icon-set-guide",
     isImplemented: true,
     subdomain: "iconguide",
+    isBeta: true,
   },
   {
     id: "subcenter",
@@ -193,6 +196,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/subcenter",
     isImplemented: true,
     subdomain: "subcenter",
+    isBeta: true,
   },
   {
     id: "daily-weather",
@@ -204,6 +208,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/daily-weather",
     isImplemented: true,
     subdomain: "weather",
+    isBeta: true,
   },
   {
     id: "suggest",
@@ -213,8 +218,9 @@ export const MINI_APPS: MiniApp[] = [
     category: "Lifestyle",
     color: "#6366f1",
     href: "/apps/suggest",
-    isImplemented: true,  
+    isImplemented: true,
     subdomain: "suggest",
+    isBeta: true,
   },
   {
     id: "tutor-crm",
@@ -226,6 +232,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/tutor-crm",
     isImplemented: true,
     subdomain: "tutorplace",
+    isBeta: true,
   },
   {
     id: "pdf-tools",
@@ -237,6 +244,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/pdf-tools",
     isImplemented: true,
     subdomain: "pdf",
+    isBeta: true,
   },
 
   // Games
@@ -248,7 +256,7 @@ export const MINI_APPS: MiniApp[] = [
     category: "Board Games & Fun",
     color: "#e03131",
     href: "/apps/iskambil",
-    isImplemented: true,    
+    isImplemented: true,
     subdomain: "cardgames",
   },
   {
@@ -261,6 +269,8 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/catan-bot",
     isImplemented: true,
     subdomain: "catan",
+    isBeta: true,
+    isCancelled: true,
   },
   {
     id: "game-companion",
@@ -272,6 +282,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/game-companion",
     isImplemented: true,
     subdomain: "gamecompanion",
+    isBeta: true,
   },
   {
     id: "tournament-manager",
@@ -283,6 +294,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/tournament-editor",
     isImplemented: true,
     subdomain: "tournaments",
+    isBeta: true,
   },
   {
     id: "board-game-clubs",
@@ -294,6 +306,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/board-game-clubs",
     isImplemented: true,
     subdomain: "bgc",
+    isBeta: true,
   },
 
   // Entertainment
@@ -307,6 +320,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/memedex",
     isImplemented: true,
     subdomain: "memedex",
+    isBeta: true,
   },
   {
     id: "youtube-series",
@@ -318,6 +332,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/youtube-discover",
     isImplemented: true,
     subdomain: "ytdb",
+    isBeta: true,
   },
   {
     id: "film-graph",
@@ -329,6 +344,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/film-graph",
     isImplemented: true,
     subdomain: "filmgraph",
+    isBeta: true,
   },
   {
     id: "movies-this-year",
@@ -340,6 +356,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/movies-this-year",
     isImplemented: true,
     subdomain: "movies",
+    isBeta: true,
   },
 
   // Dev & Design
@@ -352,6 +369,8 @@ export const MINI_APPS: MiniApp[] = [
     color: "#748FFC",
     href: "/apps/meme-sorts",
     isImplemented: true,
+    isBeta: true,
+    isCancelled: true,
   },
   {
     id: "itu-yemekhane",
@@ -364,6 +383,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "itumeals",
     isLocal: true,
+    isBeta: true,
   },
   {
     id: "sticker-editor",
@@ -375,6 +395,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/sticker-editor",
     isImplemented: true,
     subdomain: "sticker",
+    isBeta: true,
   },
   {
     id: "kim-gelir",
@@ -386,6 +407,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/kim-gelir",
     isImplemented: true,
     subdomain: "kimgelir",
+    isBeta: true,
   },
   {
     id: "workplaces",
@@ -397,6 +419,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/workplaces",
     isImplemented: true,
     subdomain: "workplaces",
+    isBeta: true,
   },
   {
     id: "kiler",
@@ -408,6 +431,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/kiler",
     isImplemented: true,
     subdomain: "kiler",
+    isBeta: true,
   },
   {
     id: "map-tracker",
@@ -419,6 +443,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/map-tracker",
     isImplemented: true,
     subdomain: "maptracker",
+    isBeta: true,
   },
   {
     id: "chocolate-db",
@@ -430,6 +455,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/chocolate-db",
     isImplemented: true,
     subdomain: "chocolatedb",
+    isBeta: true,
   },
   {
     id: "meal-planner",
@@ -441,6 +467,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/recipe",
     isImplemented: true,
     subdomain: "recipe",
+    isBeta: true,
   },
   {
     id: "ne-yapsam",
@@ -452,6 +479,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/stop-scroll",
     isImplemented: true,
     subdomain: "neyapsam",
+    isBeta: true,
   },
   {
     id: "hobby-center",
@@ -463,6 +491,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/hobby-center",
     isImplemented: true,
     subdomain: "hobby",
+    isBeta: true,
   },
   {
     id: "concert-list",
@@ -474,6 +503,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/concert-list",
     isImplemented: true,
     subdomain: "concerts",
+    isBeta: true,
   },
   {
     id: "campus-concerts",
@@ -485,6 +515,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/campus-concerts",
     isImplemented: true,
     subdomain: "kampus",
+    isBeta: true,
   },
   {
     id: "one-day-city-guide",
@@ -496,6 +527,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/one-day-city-guide",
     isImplemented: true,
     subdomain: "oneday",
+    isBeta: true,
   },
   {
     id: "tasket",
@@ -507,6 +539,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/tasket",
     isImplemented: true,
     subdomain: "tasket",
+    isBeta: true,
   },
 
   {
@@ -519,6 +552,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/pomodoro",
     isImplemented: true,
     isLocal: true,
+    isBeta: true,
     subdomain: "melt",
   },
   {
@@ -531,6 +565,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/tasarruf-challenges",
     isImplemented: true,
     subdomain: "tasarruf",
+    isBeta: true,
   },
   {
     id: "penalty-jar",
@@ -542,5 +577,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/penalty-jar",
     isImplemented: true,
     subdomain: "kavanoz",
+    isBeta: true,
   },
 ];

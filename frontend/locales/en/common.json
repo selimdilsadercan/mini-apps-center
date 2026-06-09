@@ -27,7 +27,10 @@
     },
     "addedToast": "{appName} added to My Apps!",
     "get": "GET",
-    "open": "OPEN"
+    "open": "OPEN",
+    "betaTitle": "In Development",
+    "betaSubtitle": "These apps are coming soon, stay tuned!",
+    "comingSoon": "SOON"
   },
   "profile": {
     "title": "Profile",

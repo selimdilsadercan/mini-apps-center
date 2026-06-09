@@ -44,7 +44,7 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
       {/* Content */}
       <div className="flex-1 w-full">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold text-gray-900 text-base leading-tight group-hover:text-indigo-600 transition-colors">
+          <h3 className="font-bold text-gray-900 text-base leading-tight group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
             {appName}
           </h3>
           <CaretRight size={14} weight="bold" className="text-gray-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />

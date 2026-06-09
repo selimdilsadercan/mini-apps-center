@@ -27,7 +27,10 @@
     },
     "addedToast": "{appName} uygulaması eklendi!",
     "get": "EKLE",
-    "open": "AÇ"
+    "open": "AÇ",
+    "betaTitle": "Geliştirilme Aşamasındakiler",
+    "betaSubtitle": "Bu uygulamalar yakında sizlerle olacak, takipte kalın!",
+    "comingSoon": "YAKINDA"
   },
   "profile": {
     "title": "Profil",
