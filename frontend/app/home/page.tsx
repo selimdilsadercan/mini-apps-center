@@ -343,16 +343,14 @@ function SortableAppIcon({
         variants={wiggleVariants}
         animate={isEditMode && !isDragging ? "wiggle" : "idle"}
         onClick={() => {
-          if (!isEditMode && !app.isBeta) {
+          if (!isEditMode) {
             navigateToMiniApp(app, router);
-          } else if (app.isBeta) {
-            toast.error("Bu uygulama şu an geliştirilme aşamasındadır.");
           }
         }}
         {...(isEditMode ? attributes : {})}
         {...(isEditMode ? listeners : {})}
         onContextMenu={(e) => e.preventDefault()}
-        className={`relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200 ${app.isBeta ? "opacity-50 grayscale-[0.3]" : ""}`}
+        className="relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200"
       >
         {/* OS Icon Container - Squircle */}
         <div

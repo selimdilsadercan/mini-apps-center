@@ -454,7 +454,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/chocolate-db",
     isImplemented: true,
     subdomain: "chocolatedb",
-    isBeta: true,
   },
   {
     id: "meal-planner",

@@ -678,6 +678,7 @@ export namespace chocolate_db {
 
     export interface ListChocolatesResponse {
         chocolates: Chocolate[]
+        totalCount: number
     }
 
     export interface Review {
@@ -762,9 +763,15 @@ export namespace chocolate_db {
          */
         public async listChocolates(params: {
     userId?: string
+    page?: number
+    limit?: number
+    query?: string
 }): Promise<ListChocolatesResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                page:   params.page === undefined ? undefined : String(params.page),
+                query:  params.query,
                 userId: params.userId,
             })
 

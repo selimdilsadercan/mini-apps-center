@@ -6,7 +6,7 @@ CREATE SCHEMA IF NOT EXISTS chocolate_db;
 CREATE TABLE chocolate_db.reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     chocolate_id TEXT NOT NULL,
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 10),
     comment TEXT,
     reviewer_name TEXT,
     clerk_id TEXT,

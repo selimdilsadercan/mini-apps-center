@@ -39,6 +39,7 @@ export interface Chocolate {
 
 export interface ListChocolatesResponse {
     chocolates: Chocolate[];
+    totalCount: number;
 }
 
 export interface Review {
@@ -130,16 +131,25 @@ function loadProducts(): Chocolate[] {
 // List all chocolates (loaded from file + rating/reviews statistics from DB)
 export const listChocolates = api(
     { expose: true, method: "GET", path: "/chocolate" },
-    async (params: { userId?: string }): Promise<ListChocolatesResponse> => {
-        const chocolates = loadProducts();
+    async (params: { userId?: string, page?: number, limit?: number, query?: string }): Promise<ListChocolatesResponse> => {
+        let chocolates = loadProducts();
         
+        // Apply search filter if query is provided
+        if (params.query) {
+            const q = params.query.toLowerCase();
+            chocolates = chocolates.filter(c => 
+                c.name.toLowerCase().includes(q) || 
+                c.brand.toLowerCase().includes(q)
+            );
+        }
+
         const { data, error } = await supabase
             .schema("chocolate_db")
             .rpc("get_chocolates", { p_clerk_id: params.userId || "" });
             
         if (error) {
             console.error("Failed to fetch reviews summary:", error.message);
-            return { chocolates };
+            // Even if DB fails, we can still return the basic list
         }
 
         const statsMap = new Map<string, { avg_rating: number, review_count: number, user_state: string | null, user_rating: number | null }>();
@@ -154,7 +164,7 @@ export const listChocolates = api(
             }
         }
 
-        const mergedChocolates = chocolates.map(choco => {
+        let mergedChocolates = chocolates.map(choco => {
             const stats = statsMap.get(choco.id);
             return {
                 ...choco,
@@ -165,6 +175,11 @@ export const listChocolates = api(
             };
         });
 
+        // Filter out disliked chocolates if userId is provided (optional, but good for UX)
+        if (params.userId) {
+            mergedChocolates = mergedChocolates.filter(c => c.user_state !== "dislike");
+        }
+
         mergedChocolates.sort((a, b) => {
             if (b.avg_rating !== a.avg_rating) {
                 return b.avg_rating - a.avg_rating;
@@ -172,7 +187,19 @@ export const listChocolates = api(
             return a.name.localeCompare(b.name);
         });
 
-        return { chocolates: mergedChocolates };
+        const totalCount = mergedChocolates.length;
+
+        // Apply pagination
+        if (params.page !== undefined && params.limit !== undefined) {
+            const start = (params.page - 1) * params.limit;
+            const end = start + params.limit;
+            mergedChocolates = mergedChocolates.slice(start, end);
+        }
+
+        return { 
+            chocolates: mergedChocolates,
+            totalCount
+        };
     }
 );
 

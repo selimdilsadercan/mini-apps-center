@@ -66,100 +66,62 @@ export default function ChocolateDBPage() {
 
   const [chocolates, setChocolates] = useState<chocolate_db.Chocolate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const LIMIT = 24;
 
-  const slugify = (text: string): string => {
-    const trMap: { [key: string]: string } = {
-      'ç': 'c', 'g': 'g', 'ğ': 'g', 'ı': 'i', 'i': 'i', 'o': 'o', 'ö': 'o',
-      's': 's', 'ş': 's', 'u': 'u', 'ü': 'u', 'Ç': 'C', 'Ğ': 'G', 'İ': 'I',
-      'Ö': 'O', 'Ş': 'S', 'Ü': 'U'
-    };
-    let slug = text;
-    for (const key in trMap) {
-      slug = slug.replace(new RegExp(key, 'g'), trMap[key]);
-    }
-    return slug
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
-  };
-
-  const fetchChocolates = async () => {
+  const fetchChocolates = async (pageNum = 1, query = "", isNewSearch = false) => {
     try {
-      const resp = await client.chocolate_db.listChocolates({ userId: user?.id || "" });
-      
-      if (process.env.NODE_ENV === "development") {
-        const localProducts = require("../../../../backend/chocolate-db/data/products.json");
-        const statsMap = new Map(resp.chocolates.map(c => [c.id, c]));
-        const seen = new Set<string>();
-        const merged: any[] = [];
-        
-        for (const p of localProducts) {
-          const id = slugify(p.name);
-          if (seen.has(id)) continue;
-          seen.add(id);
-          
-          const stat = statsMap.get(id);
-          
-          let brand = "Diğer";
-          const nameLower = p.name.toLowerCase();
-          if (nameLower.startsWith("ülker")) brand = "Ülker";
-          else if (nameLower.startsWith("eti")) brand = "Eti";
-          else if (nameLower.startsWith("nestle") || nameLower.startsWith("nestlé")) brand = "Nestlé";
-          else if (nameLower.startsWith("kahve dünyası")) brand = "Kahve Dünyası";
-          else if (nameLower.startsWith("milka")) brand = "Milka";
-          else if (nameLower.startsWith("sarelle")) brand = "Sarelle";
-          else if (nameLower.startsWith("kinder")) brand = "Kinder";
-          else if (nameLower.startsWith("schar")) brand = "Schär";
-          else if (nameLower.startsWith("dido")) brand = "Ülker";
-          else {
-            const firstWord = p.name.split(" ")[0];
-            if (firstWord) brand = firstWord;
-          }
-          
-          merged.push({
-            id,
-            name: p.name,
-            brand,
-            description_tr: `${p.weight || ""} ${p.price || ""}`.trim() || "Lezzetli çikolata atıştırmalığı.",
-            description_en: `${p.weight || ""} Chocolate Snack`.trim() || "Delicious chocolate snack.",
-            image_url: p.image_url,
-            category: p.category || null,
-            avg_rating: stat ? stat.avg_rating : 0,
-            review_count: stat ? stat.review_count : 0,
-            user_state: stat ? stat.user_state : null,
-            user_rating: stat ? stat.user_rating : null
-          });
-        }
-        
-        setChocolates(merged);
-      } else {
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+
+      const resp = await client.chocolate_db.listChocolates({ 
+        userId: user?.id || "",
+        page: pageNum,
+        limit: LIMIT,
+        query: query
+      });
+
+      if (isNewSearch || pageNum === 1) {
         setChocolates(resp.chocolates);
+      } else {
+        setChocolates(prev => [...prev, ...resp.chocolates]);
       }
+
+      setHasMore(resp.chocolates.length === LIMIT);
+      setPage(pageNum);
     } catch (err) {
       console.error("Failed to fetch chocolates:", err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
+  // Debounce search
   useEffect(() => {
-    fetchChocolates();
-  }, [user?.id]);
+    const timer = setTimeout(() => {
+      fetchChocolates(1, searchQuery, true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, user?.id]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchChocolates(page + 1, searchQuery);
+    }
+  };
 
   const [selectedCategory, setSelectedCategory] = useState("");
 
+  // Server-side filtered already, but we still have category filter on client for now
+  // or we could move category to server too. For now let's keep client category filter
+  // but search is server-side.
   const filteredChocolates = chocolates.filter(c => {
-    // Hide blocked/disliked chocolates from the main screen
-    if (c.user_state === "dislike") return false;
-
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.brand.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || c.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   return (
@@ -247,16 +209,37 @@ export default function ChocolateDBPage() {
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-            {[1, 2, 3, 4, 5, 6].map(i => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
               <div key={i} className="aspect-[3/4] bg-[#EEDCC5] dark:bg-[#2A1812] animate-pulse rounded-xl sm:rounded-2xl"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-            {filteredChocolates.map((choco) => (
-              <ChocolateCard key={choco.id} choco={choco} onReview={fetchChocolates} lang={lang} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+              {filteredChocolates.map((choco) => (
+                <ChocolateCard key={choco.id} choco={choco} onReview={() => fetchChocolates(1, searchQuery, true)} lang={lang} />
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-12 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="px-8 py-3 rounded-full bg-[#4A2C2A] dark:bg-[#D4AF37] text-[#F3E5D8] dark:text-[#1A0F0A] font-bold shadow-lg hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                >
+                  {loadingMore ? (
+                    <>
+                      <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      {lang === "tr" ? "Yükleniyor..." : "Loading..."}
+                    </>
+                  ) : (
+                    lang === "tr" ? "Daha Fazla Yükle" : "Load More"
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {!loading && filteredChocolates.length === 0 && (
@@ -274,11 +257,13 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
   const { user } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (showModal) {
       setRating(choco.user_rating || 0);
+      setHoverRating(0);
     }
   }, [showModal, choco.user_rating]);
 
@@ -369,7 +354,7 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
             <h3 className="text-xs sm:text-sm font-bold line-clamp-1 text-[#4A2C2A] dark:text-[#F3E5D8]">{choco.name}</h3>
             <div className="flex items-center gap-1 bg-[#D4AF37]/10 dark:bg-[#D4AF37]/20 px-2 py-0.5 rounded-full text-[#D4AF37] w-fit text-[10px] sm:text-xs font-bold">
               <Star weight="fill" className="size-3 sm:size-3.5" />
-              <span>{choco.avg_rating.toFixed(1)}</span>
+              <span>{choco.avg_rating.toFixed(1)}/10</span>
             </div>
             {choco.category && (
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#4A2C2A]/5 dark:bg-[#D4AF37]/10 text-[#4A2C2A]/60 dark:text-[#D4AF37] w-fit">
@@ -474,51 +459,66 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-[#4A2C2A]/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          <div className="relative bg-[#FDF5E6] dark:bg-[#1A0F0A] w-full max-w-sm rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-3xl overflow-hidden">
+          <div className="relative bg-[#FDF5E6] dark:bg-[#1A0F0A] w-full max-w-md rounded-2xl sm:rounded-[2.5rem] p-8 sm:p-12 shadow-3xl overflow-hidden border border-[#D4AF37]/20">
             <button 
               onClick={() => setShowModal(false)}
-              className="absolute top-6 right-6 p-2 hover:bg-[#4A2C2A]/5 rounded-full transition-colors cursor-pointer"
+              className="absolute top-6 right-6 p-2 hover:bg-[#4A2C2A]/5 dark:hover:bg-white/5 rounded-full transition-colors cursor-pointer"
             >
-              <X weight="bold" className="size-6 text-[#4A2C2A]" />
+              <X weight="bold" className="size-6 text-[#4A2C2A] dark:text-[#F3E5D8]" />
             </button>
  
-            <h2 className="text-lg sm:text-xl font-bold text-[#4A2C2A] dark:text-[#D4AF37] mb-6 text-center pr-8">
-              {t.rateTitle} {choco.name}
+            <h2 className="text-xl sm:text-2xl font-black text-[#4A2C2A] dark:text-[#D4AF37] mb-2 text-center pr-8">
+              {t.rateTitle}
             </h2>
+            <p className="text-sm text-[#4A2C2A]/60 dark:text-[#F3E5D8]/60 text-center mb-8 font-bold">
+              {choco.name}
+            </p>
 
-            <div className="space-y-6 sm:space-y-8">
-              <div className="flex justify-center gap-2 sm:gap-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="focus:outline-none transition-all hover:scale-125 cursor-pointer"
-                  >
-                    <Star 
-                      weight={rating >= star ? "fill" : "regular"} 
-                      className={`size-10 sm:size-12 ${rating >= star ? "text-[#D4AF37]" : "text-[#4A2C2A]/20 dark:text-white/10"}`} 
-                    />
-                  </button>
-                ))}
+            <div className="space-y-10">
+              <div className="flex flex-col items-center gap-4">
+                <div className="text-4xl sm:text-5xl font-black text-[#D4AF37] drop-shadow-sm">
+                  {hoverRating || rating || 0}<span className="text-xl sm:text-2xl opacity-40">/10</span>
+                </div>
+                
+                <div 
+                  className="flex justify-center gap-1 sm:gap-1.5"
+                  onMouseLeave={() => setHoverRating(0)}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      className="focus:outline-none transition-all hover:scale-125 cursor-pointer"
+                    >
+                      <Star 
+                        weight={(hoverRating || rating) >= star ? "fill" : "regular"} 
+                        className={`size-7 sm:size-9 ${(hoverRating || rating) >= star ? "text-[#D4AF37]" : "text-[#4A2C2A]/20 dark:text-white/10"}`} 
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <button 
-                onClick={handleSubmitReview} 
-                disabled={isSubmitting || rating === 0}
-                className="w-full bg-[#4A2C2A] dark:bg-[#D4AF37] text-white dark:text-[#4A2C2A] py-3 rounded-xl font-bold text-sm sm:text-base shadow-2xl hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {isSubmitting ? t.submitting : t.saveReview}
-              </button>
-
-              {choco.user_rating && choco.user_rating > 0 ? (
+              <div className="space-y-3">
                 <button 
-                  onClick={handleDeleteReview} 
-                  disabled={isSubmitting}
-                  className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all disabled:opacity-50 cursor-pointer border border-rose-500/20"
+                  onClick={handleSubmitReview} 
+                  disabled={isSubmitting || rating === 0}
+                  className="w-full bg-[#4A2C2A] dark:bg-[#D4AF37] text-white dark:text-[#4A2C2A] py-4 rounded-2xl font-black text-base sm:text-lg shadow-2xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {t.deleteReview}
+                  {isSubmitting ? t.submitting : t.saveReview}
                 </button>
-              ) : null}
+
+                {choco.user_rating && choco.user_rating > 0 ? (
+                  <button 
+                    onClick={handleDeleteReview} 
+                    disabled={isSubmitting}
+                    className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-50 cursor-pointer border border-rose-500/20"
+                  >
+                    {t.deleteReview}
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
