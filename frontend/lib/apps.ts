@@ -196,7 +196,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/subcenter",
     isImplemented: true,
     subdomain: "subcenter",
-    isBeta: true,
   },
   {
     id: "daily-weather",

@@ -1,0 +1,16 @@
+{
+  "name": "Everything Mini Apps Center",
+  "short_name": "Everything",
+  "description": "One hub for all your daily digital needs - Games, Utilities, Productivity and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F7",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
