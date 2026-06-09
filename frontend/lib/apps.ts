@@ -26,6 +26,7 @@ import {
   Users,
   PiggyBank,
   Warning,
+  PaperPlaneTilt,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -208,7 +209,7 @@ export const MINI_APPS: MiniApp[] = [
     id: "suggest",
     name: "Suggest",
     description: "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et. Durumlarını takip et!",
-    icon: Compass,
+    icon: PaperPlaneTilt,
     category: "Lifestyle",
     color: "#6366f1",
     href: "/apps/suggest",

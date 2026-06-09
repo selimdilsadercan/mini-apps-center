@@ -10,7 +10,7 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
 
-export type SuggestionCategory = "movie" | "tv" | "game" | "place";
+export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "book";
 export type RecipientStatus = "pending" | "saved" | "completed" | "ignored";
 
 export interface RecipientInfo {
@@ -98,7 +98,46 @@ interface DetailResponse {
   suggestion: SuggestionDetail | null;
 }
 
+interface SearchSongRequest {
+  query: string;
+}
+
+export interface SongResult {
+  trackId: number;
+  trackName: string;
+  artistName: string;
+  artworkUrl100: string;
+  trackViewUrl: string;
+}
+
+interface SearchSongResponse {
+  results: SongResult[];
+}
+
 // ==================== API ENDPOINTS ====================
+
+/**
+ * iTunes API üzerinden şarkı araması yapar
+ * GET /suggest/search/song
+ */
+export const searchSong = api(
+  { expose: true, method: "GET", path: "/suggest/search/song" },
+  async ({ query }: SearchSongRequest): Promise<SearchSongResponse> => {
+    const response = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=10`
+    );
+    const data = (await response.json()) as any;
+    return {
+      results: (data.results || []).map((item: any) => ({
+        trackId: item.trackId,
+        trackName: item.trackName,
+        artistName: item.artistName,
+        artworkUrl100: item.artworkUrl100,
+        trackViewUrl: item.trackViewUrl,
+      })),
+    };
+  }
+);
 
 /**
  * Yeni bir öneri oluşturur ve alıcılara gönderir

@@ -4,11 +4,14 @@ import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
+  ArrowLeft,
   CaretLeft,
   Compass,
   FilmReel,
   Television,
-  GameController,
+  MusicNotes,
+  YoutubeLogo,
+  BookOpen,
   MapPin,
   PaperPlaneTilt,
   Plus,
@@ -56,7 +59,7 @@ function SuggestPageContent() {
 
   // Form State
   const [formData, setFormData] = useState({
-    category: "movie" as suggest.SuggestionCategory,
+    category: "song" as suggest.SuggestionCategory,
     title: "",
     shortNote: "",
     rating: 5,
@@ -69,52 +72,73 @@ function SuggestPageContent() {
   // Selected Suggestion for Detail view
   const [detailSuggestion, setDetailSuggestion] = useState<suggest.InboxSuggestion | null>(null);
 
-  // Wizard and Place Search States
+  // Wizard and Search States
   const [createStep, setCreateStep] = useState<1 | 2>(1);
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeResults, setPlaceResults] = useState<any[]>([]);
-  const [searchingPlaces, setSearchingPlaces] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Click Outside logic to clear place results
+  // Friends Search State
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
+
+  // Focus search input when step 2 opens
+  useEffect(() => {
+    if (isCreateOpen && createStep === 2 && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isCreateOpen, createStep]);
+
+  // Click Outside logic to clear search results
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setPlaceResults([]);
+        setSearchResults([]);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounced Place Search (runs only when category is place and selectedPlace is not locked)
+  // Debounced Search
   useEffect(() => {
-    if (formData.category !== "place" || !placeQuery.trim() || selectedPlace) {
-      setPlaceResults([]);
+    if (!searchQuery.trim() || selectedItem) {
+      setSearchResults([]);
       return;
     }
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        setSearchingPlaces(true);
-        const res = await client.workplaces.searchPlace({ query: placeQuery });
-        setPlaceResults(res.results || []);
+        setIsSearching(true);
+        if (formData.category === "song") {
+          const res = await client.suggest.searchSong({ query: searchQuery });
+          setSearchResults(res.results || []);
+        } else if (formData.category === "place") {
+          const res = await client.workplaces.searchPlace({ query: searchQuery });
+          setSearchResults(res.results || []);
+        } else {
+          // For other categories, we don't have smart search yet
+          setSearchResults([]);
+        }
       } catch (err) {
-        console.error("Error searching places:", err);
+        console.error("Search error:", err);
       } finally {
-        setSearchingPlaces(false);
+        setIsSearching(false);
       }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [placeQuery, formData.category, selectedPlace]);
+  }, [searchQuery, formData.category, selectedItem]);
 
   const closeCreateDrawer = () => {
     setIsCreateOpen(false);
     setCreateStep(1);
     setFormData({
-      category: "movie",
+      category: "song",
       title: "",
       shortNote: "",
       rating: 5,
@@ -122,30 +146,42 @@ function SuggestPageContent() {
       imageUrl: "",
     });
     setSelectedFriends([]);
-    setPlaceQuery("");
-    setPlaceResults([]);
-    setSelectedPlace(null);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedItem(null);
   };
 
   const handleSelectCategory = (category: suggest.SuggestionCategory) => {
     setFormData({ ...formData, category });
     setCreateStep(2);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedItem(null);
   };
 
-  const handleSelectPlace = (place: any) => {
-    setSelectedPlace(place);
-    setFormData({
-      ...formData,
-      title: place.name,
-      externalLink: place.url || "",
-      imageUrl: place.image_url || "",
-    });
-    setPlaceQuery("");
-    setPlaceResults([]);
+  const handleSelectItem = (item: any) => {
+    setSelectedItem(item);
+    if (formData.category === "song") {
+      setFormData({
+        ...formData,
+        title: `${item.trackName} - ${item.artistName}`,
+        externalLink: item.trackViewUrl || "",
+        imageUrl: item.artworkUrl100?.replace('100x100bb', '600x600bb') || "",
+      });
+    } else if (formData.category === "place") {
+      setFormData({
+        ...formData,
+        title: item.name,
+        externalLink: item.url || "",
+        imageUrl: item.image_url || "",
+      });
+    }
+    setSearchQuery("");
+    setSearchResults([]);
   };
 
-  const handleClearPlace = () => {
-    setSelectedPlace(null);
+  const handleClearItem = () => {
+    setSelectedItem(null);
     setFormData({
       ...formData,
       title: "",
@@ -172,7 +208,7 @@ function SuggestPageContent() {
         externalLink: suggestPlaceUrl || "",
         imageUrl: suggestPlaceImage || "",
       });
-      setSelectedPlace({
+      setSelectedItem({
         name: suggestPlaceName,
         address: suggestPlaceAddress || "",
         url: suggestPlaceUrl || "",
@@ -266,7 +302,7 @@ function SuggestPageContent() {
       
       // Reset form
       setFormData({
-        category: "movie",
+        category: "song",
         title: "",
         shortNote: "",
         rating: 5,
@@ -275,9 +311,9 @@ function SuggestPageContent() {
       });
       setSelectedFriends([]);
       setCreateStep(1);
-      setSelectedPlace(null);
-      setPlaceQuery("");
-      setPlaceResults([]);
+      setSelectedItem(null);
+      setSearchQuery("");
+      setSearchResults([]);
       setIsCreateOpen(false);
       if (activeTab === "sent") {
         fetchData();
@@ -293,20 +329,24 @@ function SuggestPageContent() {
 
   const getCategoryIcon = (category: string, size = 20) => {
     switch (category) {
+      case "song": return <MusicNotes size={size} weight="fill" className="text-pink-500" />;
       case "movie": return <FilmReel size={size} weight="fill" className="text-red-500" />;
       case "tv": return <Television size={size} weight="fill" className="text-violet-500" />;
-      case "game": return <GameController size={size} weight="fill" className="text-emerald-500" />;
+      case "video": return <YoutubeLogo size={size} weight="fill" className="text-red-600" />;
       case "place": return <MapPin size={size} weight="fill" className="text-amber-500" />;
+      case "book": return <BookOpen size={size} weight="fill" className="text-emerald-600" />;
       default: return <Compass size={size} weight="fill" />;
     }
   };
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
+      case "song": return "🎵 Şarkı";
       case "movie": return "🎬 Film";
       case "tv": return "📺 Dizi";
-      case "game": return "🎮 Oyun";
+      case "video": return "📹 Video";
       case "place": return "📍 Mekan";
+      case "book": return "📚 Kitap";
       default: return "💡 Öneri";
     }
   };
@@ -334,6 +374,14 @@ function SuggestPageContent() {
     }
   };
 
+  const handleSelectAllFriends = () => {
+    if (selectedFriends.length === friendsList.length) {
+      setSelectedFriends([]);
+    } else {
+      setSelectedFriends(friendsList.map(f => f.id));
+    }
+  };
+
   const filteredInbox = inboxList.filter((item) => {
     if (activeTab === "saved") return item.status === "saved";
     return true; // "inbox" tab shows all
@@ -353,12 +401,12 @@ function SuggestPageContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
-              className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
+              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95"
             >
-              <CaretLeft size={24} color="#374151" />
+              <ArrowLeft size={20} weight="bold" className="text-gray-600" />
             </button>
             <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
-              Tavsiye <span className="text-indigo-600">Kutusu</span>
+              Suggest
             </h1>
           </div>
 
@@ -419,102 +467,76 @@ function SuggestPageContent() {
                     </p>
                   </div>
                 ) : (
-                  filteredInbox.map((item) => (
-                    <motion.div
-                      layoutId={item.id}
-                      key={item.id}
-                      className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col gap-4"
-                    >
-                      {/* Top Header */}
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(item.category)}
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">
-                            {getCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                        {getStatusBadge(item.status)}
-                      </div>
-
-                      {/* Content Row */}
-                      <div className="flex gap-4 items-start">
-                        {item.image_url && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {filteredInbox.map((item, idx) => (
+                      <motion.div
+                        layoutId={item.id}
+                        key={item.id}
+                        onClick={() => setDetailSuggestion(item)}
+                        style={{ rotate: idx % 2 === 0 ? "-2deg" : "2deg" }}
+                        className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group cursor-pointer active:scale-95 hover:scale-[1.02] z-10 hover:z-20"
+                      >
+                        {/* Background Image/Cover */}
+                        {item.image_url ? (
                           <img
                             src={item.image_url}
                             alt={item.title}
-                            className="w-16 h-20 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+                            className="absolute inset-0 w-full h-full object-cover"
                           />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-indigo-50 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
+                              {getCategoryIcon(item.category, 32)}
+                            </div>
+                            <span className="text-[10px] font-black text-indigo-900/40 uppercase tracking-widest line-clamp-2">
+                              {item.title}
+                            </span>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-black tracking-tight text-gray-900 leading-snug">
-                            {item.title}
-                          </h3>
-                          {item.short_note && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                              {item.short_note}
-                            </p>
+
+                        {/* Overlay for status and sender */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60" />
+
+                        {/* Category Icon Badge (Top Left) - Sticker Style */}
+                        <div className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-white shadow-md flex items-center justify-center border border-gray-100 -rotate-3">
+                          {getCategoryIcon(item.category, 14)}
+                        </div>
+
+                        {/* Status Badge (Top Right) - Sticker Style */}
+                        <div className="absolute top-2 right-2 rotate-3">
+                          {item.status === "saved" && (
+                            <div className="w-7 h-7 rounded-lg bg-amber-400 text-white flex items-center justify-center shadow-md border border-white">
+                              <BookmarkSimple size={14} weight="fill" />
+                            </div>
                           )}
-                          {item.rating && (
-                            <div className="flex items-center gap-1 mt-2 text-amber-500">
-                              <Star size={12} weight="fill" />
-                              <span className="text-[10px] font-black">{item.rating}/5</span>
+                          {item.status === "completed" && (
+                            <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-md border border-white">
+                              <CheckCircle size={14} weight="fill" />
                             </div>
                           )}
                         </div>
-                      </div>
 
-                      {/* Sender Info & Footer Buttons */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                        <div className="flex items-center gap-2">
+                        {/* Sender Avatar Badge (Bottom Right) - Sticker Style */}
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-white p-1 rounded-lg shadow-lg border border-gray-100 rotate-2 z-20">
                           <img
                             src={item.sender_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
                             alt={item.sender_username || "Friend"}
-                            className="w-6 h-6 rounded-full object-cover border border-gray-100"
+                            className="w-5 h-5 rounded-md object-cover"
                           />
-                          <span className="text-[10px] font-black text-gray-600">
-                            {item.sender_username || "Bir Arkadaş"}
+                          <span className="text-[8px] font-black text-gray-900 truncate max-w-[50px]">
+                            {item.sender_username?.split(' ')[0] || "Arkadaş"}
                           </span>
                         </div>
 
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setDetailSuggestion(item)}
-                            className="p-2 hover:bg-gray-50 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                            title="Detaylar"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          {item.status !== "saved" && item.status !== "completed" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "saved")}
-                              className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                              title="Kaydet"
-                            >
-                              <BookmarkSimple size={16} />
-                            </button>
-                          )}
-                          {item.status !== "completed" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "completed")}
-                              className="p-2 hover:bg-green-50 hover:text-green-600 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                              title="Tamamladım"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                          )}
-                          {item.status !== "ignored" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "ignored")}
-                              className="p-2 hover:bg-red-50 hover:text-red-600 rounded-xl text-gray-400 hover:border-red-100 active:scale-95 transition-all"
-                              title="Yok Say"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          )}
+                        {/* Title (Bottom Left) */}
+                        <div className="absolute bottom-2 left-2 right-20 z-10">
+                          <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
+                            {item.title}
+                          </h3>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))
+                      </motion.div>
+                    ))}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -535,73 +557,77 @@ function SuggestPageContent() {
                     </p>
                   </div>
                 ) : (
-                  sentList.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col gap-4"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(item.category)}
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">
-                            {getCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                        <span className="text-[9px] text-gray-400 font-mono">
-                          {new Date(item.created_at).toLocaleDateString("tr-TR")}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-4 items-start">
-                        {item.image_url && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {sentList.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        style={{ transform: `rotate(${idx % 2 === 0 ? "-2deg" : "2deg"})` }}
+                        className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group active:scale-95 hover:scale-[1.02] z-10 hover:z-20"
+                      >
+                        {/* Background Image/Cover */}
+                        {item.image_url ? (
                           <img
                             src={item.image_url}
                             alt={item.title}
-                            className="w-14 h-18 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+                            className="absolute inset-0 w-full h-full object-cover"
                           />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-indigo-50 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
+                              {getCategoryIcon(item.category, 32)}
+                            </div>
+                            <span className="text-[10px] font-black text-indigo-900/40 uppercase tracking-widest line-clamp-2">
+                              {item.title}
+                            </span>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-black text-gray-900 tracking-tight leading-snug">
-                            {item.title}
-                          </h3>
-                          {item.short_note && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                              {item.short_note}
-                            </p>
-                          )}
-                        </div>
-                      </div>
 
-                      {/* Recipient Tracking */}
-                      <div className="pt-3 border-t border-gray-50 space-y-2">
-                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
-                          Alıcı Durumları:
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {item.recipients.map((rec) => (
-                            <div
-                              key={rec.recipient_clerk_id}
-                              className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-full pl-1.5 pr-2.5 py-1"
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60" />
+
+                        {/* Category Icon Badge (Top Left) - Sticker Style */}
+                        <div className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-white shadow-md flex items-center justify-center border border-gray-100 -rotate-3">
+                          {getCategoryIcon(item.category, 14)}
+                        </div>
+
+                        {/* Date (Top Right) - Sticker Style */}
+                        <div className="absolute top-2 right-2 h-7 px-2 rounded-lg bg-white shadow-md border border-gray-100 flex items-center justify-center rotate-3">
+                          <span className="text-[8px] font-black text-gray-500 tracking-tighter">
+                            {new Date(item.created_at).toLocaleDateString("tr-TR", { day: '2-digit', month: '2-digit' })}
+                          </span>
+                        </div>
+
+                        {/* Recipient Avatars (Bottom Right) - Sticker Style */}
+                        <div className="absolute bottom-2 right-2 flex -space-x-2 rotate-2 z-20">
+                          {item.recipients.slice(0, 3).map((rec, idx) => (
+                            <div 
+                              key={rec.recipient_clerk_id} 
+                              className="relative"
+                              style={{ zIndex: 10 - idx }}
                             >
                               <img
                                 src={rec.recipient_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
                                 alt={rec.recipient_username || "Friend"}
-                                className="w-4 h-4 rounded-full object-cover"
+                                className="w-6 h-6 rounded-md object-cover border-2 border-white shadow-md"
                               />
-                              <span className="text-[9px] font-bold text-gray-600">
-                                {rec.recipient_username || "Arkadaş"}
-                              </span>
-                              <div className="w-1.5 h-1.5 rounded-full ml-1" style={{
-                                backgroundColor: rec.status === 'completed' ? '#10b981' : 
-                                                 rec.status === 'saved' ? '#f59e0b' : 
-                                                 rec.status === 'ignored' ? '#ef4444' : '#3b82f6'
-                              }} />
                             </div>
                           ))}
+                          {item.recipients.length > 3 && (
+                            <div className="w-6 h-6 rounded-md bg-white border-2 border-white flex items-center justify-center text-[8px] font-black text-gray-500 shadow-md z-0">
+                              +{item.recipients.length - 3}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Title (Bottom Left) */}
+                        <div className="absolute bottom-2 left-2 right-20 z-10">
+                          <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
+                            {item.title}
+                          </h3>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -617,7 +643,7 @@ function SuggestPageContent() {
       }}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[94dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
             <div className="p-6 overflow-y-auto flex-1 flex flex-col">
               <div className="mx-auto w-12 h-1.5 flex-shrink-0 bg-gray-200 rounded-full mb-6" />
               
@@ -633,12 +659,6 @@ function SuggestPageContent() {
                   )}
                   <span>{createStep === 1 ? "Ne Öneriyorsun?" : "Detaylar"}</span>
                 </Drawer.Title>
-                <button
-                  onClick={closeCreateDrawer}
-                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
-                >
-                  <XCircle size={24} className="text-gray-400" />
-                </button>
               </header>
 
               <AnimatePresence mode="wait">
@@ -648,25 +668,32 @@ function SuggestPageContent() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="space-y-6 flex-1 flex flex-col justify-center py-6"
+                    className="space-y-6 flex-1 flex flex-col justify-center pb-6"
                   >
-                    <div className="grid grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: "movie", label: "Film", emoji: "🎬", color: "bg-red-50 text-red-600 hover:bg-red-100/50" },
-                        { id: "tv", label: "Dizi", emoji: "📺", color: "bg-violet-50 text-violet-600 hover:bg-violet-100/50" },
-                        { id: "game", label: "Oyun", emoji: "🎮", color: "bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50" },
-                        { id: "place", label: "Mekan", emoji: "📍", color: "bg-amber-50 text-amber-600 hover:bg-amber-100/50" },
-                      ].map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => handleSelectCategory(cat.id as suggest.SuggestionCategory)}
-                          className={`py-4 px-2 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 transform active:scale-95 cursor-pointer shadow-sm ${cat.color}`}
-                        >
-                          <span className="text-2xl">{cat.emoji}</span>
-                          <span className="text-[10px] font-black uppercase tracking-wider">{cat.label}</span>
-                        </button>
-                      ))}
+                        { id: "song", label: "Şarkı", icon: MusicNotes, color: "text-pink-500", bg: "bg-pink-100/80" },
+                        { id: "movie", label: "Film", icon: FilmReel, color: "text-red-500", bg: "bg-red-100/80" },
+                        { id: "tv", label: "Dizi", icon: Television, color: "text-violet-500", bg: "bg-violet-100/80" },
+                        { id: "video", label: "Video", icon: YoutubeLogo, color: "text-red-600", bg: "bg-red-100/80" },
+                        { id: "place", label: "Mekan", icon: MapPin, color: "text-amber-500", bg: "bg-amber-100/80" },
+                        { id: "book", label: "Kitap", icon: BookOpen, color: "text-emerald-600", bg: "bg-emerald-100/80" },
+                      ].map((cat) => {
+                        const Icon = cat.icon;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleSelectCategory(cat.id as suggest.SuggestionCategory)}
+                            className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 cursor-pointer bg-white border border-gray-100/50 shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] group`}
+                          >
+                            <div className={`w-12 h-12 rounded-xl ${cat.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                              <Icon size={24} weight="fill" className={cat.color} />
+                            </div>
+                            <span className="text-[10px] font-black tracking-tight text-gray-900">{cat.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 ) : (
@@ -679,207 +706,182 @@ function SuggestPageContent() {
                   >
                     <form onSubmit={handleCreateSuggestion} className="space-y-6 pb-6 flex-1">
                       
-                      {/* Place-specific autocomplete search block */}
-                      {formData.category === "place" ? (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Mekan Ara (Google Haritalar)
-                          </label>
-                          
-                          {selectedPlace ? (
-                            <div className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                      {/* Smart Search Block */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 tracking-widest pl-1">
+                          {formData.category === "song" ? "Şarkı Ara" : 
+                           formData.category === "place" ? "Mekan Ara" : "Başlık"}
+                        </label>
+                        
+                        {selectedItem ? (
+                          <div className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {formData.imageUrl && (
+                                <img src={formData.imageUrl} className="w-10 h-10 rounded-lg object-cover border border-indigo-100" />
+                              )}
                               <div className="flex-1 min-w-0">
-                                <span className="text-xs font-black text-indigo-900 block truncate">{selectedPlace.name}</span>
-                                <span className="text-[10px] text-indigo-700/70 block truncate">{selectedPlace.address}</span>
+                                <span className="text-xs font-black text-indigo-900 block truncate">{formData.title}</span>
+                                <span className="text-[10px] text-indigo-700/70 block truncate">
+                                  {formData.category === "song" ? selectedItem.artistName : selectedItem.address}
+                                </span>
                               </div>
-                              <button
-                                type="button"
-                                onClick={handleClearPlace}
-                                className="ml-3 text-[10px] font-black text-red-600 hover:text-red-700 uppercase tracking-wider"
-                              >
-                                Temizle
-                              </button>
                             </div>
-                          ) : (
-                            <div className="relative" ref={searchContainerRef}>
-                              <input
-                                required
-                                type="text"
-                                placeholder="Kafe, restoran veya mekan adı girin..."
-                                value={placeQuery}
-                                onChange={(e) => setPlaceQuery(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                              />
-                              {searchingPlaces && (
-                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                                  <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                                </div>
-                              )}
-                              
-                              {placeResults.length > 0 && (
-                                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-gray-100">
-                                  {placeResults.map((place, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => handleSelectPlace(place)}
-                                      className="w-full text-left p-3 hover:bg-indigo-50/30 transition-all active:bg-indigo-50 flex flex-col gap-0.5"
-                                    >
-                                      <span className="text-xs font-bold text-gray-900 block truncate">{place.name}</span>
-                                      <span className="text-[10px] text-gray-400 block truncate">{place.address}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        /* Title input for other types */
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Başlık
-                          </label>
-                          <input
-                            required
-                            type="text"
-                            placeholder="Film, dizi veya oyun adı..."
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                          />
-                        </div>
-                      )}
-
-                      {/* Conditionally show remaining fields for place type only after a place is chosen */}
-                      {(formData.category !== "place" || !!selectedPlace) && (
-                        <>
-                          {/* Short Note */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Neden Tavsiye Ediyorsun?
-                            </label>
-                            <textarea
-                              placeholder="Arkadaşın neden bunu denemeli?"
-                              rows={3}
-                              value={formData.shortNote}
-                              onChange={(e) => setFormData({ ...formData, shortNote: e.target.value })}
-                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300 resize-none"
-                            />
+                            <button
+                              type="button"
+                              onClick={handleClearItem}
+                              className="ml-3 text-[10px] font-black text-red-600 hover:text-red-700 tracking-wider"
+                            >
+                              Temizle
+                            </button>
                           </div>
-
-                          {/* Score & Rating */}
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center pl-1">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                Puanın
-                              </label>
-                              <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                                {formData.rating} / 5
-                              </span>
-                            </div>
+                        ) : (
+                          <div className="relative" ref={searchContainerRef}>
                             <input
-                              type="range"
-                              min={0}
-                              max={5}
-                              step={0.5}
-                              value={formData.rating}
-                              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-                              className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {/* Non-Mekan Links */}
-                      {formData.category !== "place" && (
-                        <>
-                          {/* External Link */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Dış Link (IMDb, YouTube vb.)
-                            </label>
-                            <input
-                              type="url"
-                              placeholder="https://example.com"
-                              value={formData.externalLink}
-                              onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
+                              ref={searchInputRef}
+                              required
+                              type="text"
+                              placeholder={`${getCategoryLabel(formData.category)} adını yazın...`}
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') e.preventDefault();
+                              }}
                               className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
                             />
+                            {isSearching && (
+                              <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                                <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                              </div>
+                            )}
+                            
+                            {searchResults.length > 0 && (
+                              <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 max-h-[450px] overflow-y-auto divide-y divide-gray-100">
+                                {searchResults.map((item, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleSelectItem(item)}
+                                    className="w-full text-left p-4 hover:bg-indigo-50/30 transition-all active:bg-indigo-50 flex items-center gap-4"
+                                  >
+                                    {formData.category === "song" && (
+                                      <img src={item.artworkUrl100} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
+                                    )}
+                                    <div className="flex flex-col gap-1 min-w-0">
+                                      <span className="text-sm font-bold text-gray-900 block truncate">
+                                        {formData.category === "song" ? item.trackName : item.name}
+                                      </span>
+                                      <span className="text-xs text-gray-400 block truncate">
+                                        {formData.category === "song" ? item.artistName : item.address}
+                                      </span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-
-                          {/* Image Url */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Görsel Linki (Opsiyonel)
-                            </label>
-                            <input
-                              type="url"
-                              placeholder="Görsel adresi..."
-                              value={formData.imageUrl}
-                              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                            />
-                          </div>
-                        </>
-                      )}
+                        )}
+                      </div>
 
                       {/* Friend Multi-Select */}
-                      {(formData.category !== "place" || !!selectedPlace) && (
-                        <div className="space-y-2 pt-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Gönderilecek Arkadaşlar ({selectedFriends.length})
-                          </label>
+                      {(selectedItem || (formData.category !== "song" && formData.category !== "place")) && (
+                        <div className="space-y-3 pt-2 flex-1 flex flex-col min-h-0">
+                          <div className="flex items-center justify-between pl-1">
+                            <label className="text-[10px] font-black text-gray-400 tracking-widest">
+                              Gönderilecek Arkadaşlar ({selectedFriends.length})
+                            </label>
+                            {friendsList.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={handleSelectAllFriends}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                              >
+                                {selectedFriends.length === friendsList.length ? "Seçimi Kaldır" : "Tümünü Seç"}
+                              </button>
+                            )}
+                          </div>
+
+                          {friendsList.length > 0 && (
+                            <input
+                              type="text"
+                              placeholder="Arkadaş ara..."
+                              value={friendSearchQuery}
+                              onChange={(e) => setFriendSearchQuery(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') e.preventDefault();
+                              }}
+                              className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[10px] font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                            />
+                          )}
+
                           {friendsList.length === 0 ? (
-                            <div className="py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            <div className="py-8 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
+                              <p className="text-[10px] text-gray-400 font-bold tracking-wider">
                                 Arkadaş listeniz boş. Önce arkadaş ekleyin!
                               </p>
                             </div>
                           ) : (
-                            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50">
-                              {friendsList.map((friend) => {
-                                const isSelected = selectedFriends.includes(friend.id);
-                                return (
-                                  <button
-                                    key={friend.id}
-                                    type="button"
-                                    onClick={() => toggleFriendSelection(friend.id)}
-                                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
-                                      isSelected ? "bg-indigo-600 text-white" : "hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <img
-                                        src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                                        alt={friend.username || "Friend"}
-                                        className="w-6 h-6 rounded-full object-cover border border-gray-200"
-                                      />
-                                      <span className="text-xs font-bold">{friend.username || "Arkadaş"}</span>
-                                    </div>
-                                    {isSelected && <CheckCircle size={16} weight="fill" />}
-                                  </button>
-                                );
-                              })}
+                            <div className="flex-1 overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50 min-h-[200px]">
+                              {friendsList
+                                .filter(f => f.username?.toLowerCase().includes(friendSearchQuery.toLowerCase()))
+                                .map((friend) => {
+                                  const isSelected = selectedFriends.includes(friend.id);
+                                  return (
+                                    <button
+                                      key={friend.id}
+                                      type="button"
+                                      onClick={() => toggleFriendSelection(friend.id)}
+                                      className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all border ${
+                                        isSelected 
+                                          ? "bg-indigo-50/50 border-indigo-200 text-indigo-900 shadow-sm" 
+                                          : "hover:bg-gray-100 bg-white border-gray-50 text-gray-700"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <img
+                                          src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                          alt={friend.username || "Friend"}
+                                          className={`w-8 h-8 rounded-full object-cover border transition-all ${isSelected ? "border-indigo-200 shadow-sm" : "border-gray-200"}`}
+                                        />
+                                        <span className={`text-xs font-bold transition-colors ${isSelected ? "text-indigo-900" : "text-gray-700"}`}>
+                                          {friend.username || "Arkadaş"}
+                                        </span>
+                                      </div>
+                                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                        isSelected 
+                                          ? "bg-indigo-600 border-indigo-600 text-white" 
+                                          : "bg-white border-gray-200 text-transparent"
+                                      }`}>
+                                        <CheckCircle size={14} weight="fill" />
+                                      </div>
+                                    </button>
+                                  );
+                                })}
                             </div>
                           )}
+
+                          {/* Submit Button - Only show when at least one friend is selected */}
+                          <AnimatePresence>
+                            {selectedFriends.length > 0 && (
+                              <motion.button
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                disabled={isSubmitting || !formData.title.trim()}
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                              >
+                                {isSubmitting ? (
+                                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <PaperPlaneTilt size={16} weight="fill" />
+                                    <span>Öneriyi Gönder</span>
+                                  </>
+                                )}
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
                         </div>
                       )}
-
-                      {/* Submit Button */}
-                      <button
-                        disabled={isSubmitting || !formData.title.trim() || selectedFriends.length === 0}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-                      >
-                        {isSubmitting ? (
-                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <PaperPlaneTilt size={16} weight="fill" />
-                            <span>Öneriyi Gönder</span>
-                          </>
-                        )}
-                      </button>
                     </form>
                   </motion.div>
                 )}
@@ -902,7 +904,7 @@ function SuggestPageContent() {
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-2">
                     {getCategoryIcon(detailSuggestion.category, 24)}
-                    <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
+                    <span className="text-xs font-black text-gray-500 tracking-wider">
                       {getCategoryLabel(detailSuggestion.category)}
                     </span>
                   </div>
@@ -968,7 +970,7 @@ function SuggestPageContent() {
                   {detailSuggestion.status !== "saved" && detailSuggestion.status !== "completed" && (
                     <button
                       onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "saved")}
-                      className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                      className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <BookmarkSimple size={16} />
                       <span>Kaydet</span>
@@ -977,7 +979,7 @@ function SuggestPageContent() {
                   {detailSuggestion.status !== "completed" && (
                     <button
                       onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "completed")}
-                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
                     >
                       <CheckCircle size={16} />
                       <span>Tamamladım</span>
@@ -986,7 +988,7 @@ function SuggestPageContent() {
                   {detailSuggestion.status !== "ignored" && (
                     <button
                       onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "ignored")}
-                      className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                      className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <XCircle size={16} />
                       <span>Yok Say</span>

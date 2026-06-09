@@ -2900,6 +2900,14 @@ export namespace suggest {
 
     export type RecipientStatus = "pending" | "saved" | "completed" | "ignored"
 
+    export interface SearchSongRequest {
+        query: string
+    }
+
+    export interface SearchSongResponse {
+        results: SongResult[]
+    }
+
     export interface SentResponse {
         suggestions: SentSuggestion[]
     }
@@ -2916,7 +2924,15 @@ export namespace suggest {
         "created_at": string
     }
 
-    export type SuggestionCategory = "movie" | "tv" | "game" | "place"
+    export interface SongResult {
+        trackId: number
+        trackName: string
+        artistName: string
+        artworkUrl100: string
+        trackViewUrl: string
+    }
+
+    export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "book"
 
     export interface SuggestionDetail {
         "sender_clerk_id": string
@@ -2952,6 +2968,7 @@ export namespace suggest {
             this.getInbox = this.getInbox.bind(this)
             this.getSent = this.getSent.bind(this)
             this.getSuggestionDetail = this.getSuggestionDetail.bind(this)
+            this.searchSong = this.searchSong.bind(this)
             this.updateStatus = this.updateStatus.bind(this)
         }
 
@@ -2993,6 +3010,21 @@ export namespace suggest {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/suggest/detail/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
             return await resp.json() as DetailResponse
+        }
+
+        /**
+         * iTunes API üzerinden şarkı araması yapar
+         * GET /suggest/search/song
+         */
+        public async searchSong(params: SearchSongRequest): Promise<SearchSongResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/search/song`, undefined, {query})
+            return await resp.json() as SearchSongResponse
         }
 
         /**

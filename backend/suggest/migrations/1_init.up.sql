@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS suggest.suggestions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sender_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
     sender_clerk_id TEXT NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('movie', 'tv', 'game', 'place')),
+    category TEXT NOT NULL CHECK (category IN ('song', 'movie', 'tv', 'video', 'place', 'book')),
     title TEXT NOT NULL,
     short_note TEXT,
     rating DECIMAL CHECK (rating >= 0 AND rating <= 5),
