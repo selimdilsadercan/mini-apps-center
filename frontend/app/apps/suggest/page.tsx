@@ -1172,19 +1172,47 @@ function SuggestPageContent() {
                       {detailSentSuggestion.title}
                     </h2>
                     
-                    {detailSentSuggestion.rating && (
-                      <div className="flex items-center gap-1 text-amber-500">
-                        <Star size={16} weight="fill" />
-                        <span className="text-sm font-black">{detailSentSuggestion.rating}/5</span>
-                      </div>
+                    {detailSentSuggestion.is_daily_pick && (
+                      <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mt-1 italic">Daily Pick</span>
                     )}
                   </div>
 
+                  {/* Recipient list with status and reaction */}
                   <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-0.5">Senin Notun</span>
-                    <p className="text-xs text-gray-600 leading-relaxed italic">
-                      "{detailSentSuggestion.short_note || "Herhangi bir not eklenmemiş."}"
-                    </p>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-0.5">Alıcılar & Durumları</span>
+                    {detailSentSuggestion.recipients && detailSentSuggestion.recipients.length > 0 ? (
+                      <div className="space-y-3 divide-y divide-gray-50">
+                        {detailSentSuggestion.recipients.map((recipient, idx) => {
+                          const emojiMap: Record<string, string> = { loved: "🔥", skull: "💀", saved: "❤️", mid: "😐", perfect: "🎯" };
+                          const labelMap: Record<string, string> = { loved: "Çok İyi", skull: "Bu Ne?", saved: "Kaydettim", mid: "Orta", perfect: "Nokta Atışı" };
+                          const statusLabels: Record<string, string> = { pending: "Bekliyor", saved: "Kaydetti", completed: "Tamamladı", ignored: "Yok Saydı" };
+                          
+                          return (
+                            <div key={recipient.recipient_clerk_id} className={`flex items-center justify-between ${idx > 0 ? "pt-3" : ""}`}>
+                              <div className="flex items-center gap-2">
+                                <img
+                                  src={recipient.recipient_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                  alt={recipient.recipient_username || "Alıcı"}
+                                  className="w-8 h-8 rounded-full object-cover border border-gray-150"
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-gray-800">{recipient.recipient_username || "Bilinmeyen Kullanıcı"}</span>
+                                  <span className="text-[9px] font-bold text-gray-400 uppercase">{statusLabels[recipient.status] || recipient.status}</span>
+                                </div>
+                              </div>
+                              {detailSentSuggestion.reaction && (
+                                <div className="flex items-center gap-1 bg-indigo-50/50 border border-indigo-100/50 px-2 py-1 rounded-xl">
+                                  <span className="text-xs">{emojiMap[detailSentSuggestion.reaction]}</span>
+                                  <span className="text-[8px] font-black uppercase text-indigo-600 tracking-tight">{labelMap[detailSentSuggestion.reaction]}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic pl-0.5">Paylaşım linki ile gönderilmiş (Alıcı henüz giriş yapmadı).</p>
+                    )}
                   </div>
 
                   {/* Share link controls inside sent details */}
