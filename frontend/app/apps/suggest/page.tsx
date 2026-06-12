@@ -33,7 +33,11 @@ import {
   Check,
   ShareNetwork,
   Sparkle,
-  ArrowRight
+  ArrowRight,
+  SpotifyLogo,
+  PlayCircle,
+  Play,
+  Pause
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -85,6 +89,48 @@ function SuggestPageContent() {
   // Selected Suggestion for Detail view
   const [detailSuggestion, setDetailSuggestion] = useState<suggest.InboxSuggestion | null>(null);
   const [detailSentSuggestion, setDetailSentSuggestion] = useState<suggest.SentSuggestion | null>(null);
+
+  // Audio Playback State for Detail views
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+  const togglePlay = (previewUrl: string) => {
+    if (!previewUrl) return;
+
+    if (isPlaying) {
+      audio?.pause();
+      setIsPlaying(false);
+    } else {
+      if (audio) {
+        audio.play().catch(err => console.error("Error playing audio:", err));
+        setIsPlaying(true);
+      } else {
+        const newAudio = new Audio(previewUrl);
+        newAudio.loop = true;
+        newAudio.play().catch(err => console.error("Error playing audio:", err));
+        newAudio.onended = () => setIsPlaying(false);
+        setAudio(newAudio);
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+      }
+    };
+  }, [audio]);
+
+  // Stop audio and reset state when switching drawers or closing
+  useEffect(() => {
+    if (audio) {
+      audio.pause();
+      setAudio(null);
+      setIsPlaying(false);
+    }
+  }, [detailSuggestion, detailSentSuggestion]);
 
   // Wizard and Search States
   const [createStep, setCreateStep] = useState<1 | 2>(1);
@@ -452,6 +498,33 @@ function SuggestPageContent() {
     }
     const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
     return `https://suggest.${ROOT_DOMAIN}/s/${id}`;
+  };
+
+  const getExternalLinkButtonLabel = (category: string) => {
+    switch (category) {
+      case "song": return "Hemen Dinle";
+      case "place": return "Haritada Aç";
+      case "movie":
+      case "tv":
+      case "video":
+        return "Hemen İzle";
+      case "book": return "Hemen Oku";
+      default: return "Hemen İncele";
+    }
+  };
+
+  const getExternalLinkButtonIcon = (category: string, size = 18) => {
+    switch (category) {
+      case "song": return <MusicNotes size={size} weight="bold" />;
+      case "place": return <MapPin size={size} weight="bold" />;
+      case "movie":
+      case "tv":
+        return <FilmReel size={size} weight="bold" />;
+      case "video":
+        return <YoutubeLogo size={size} weight="bold" />;
+      case "book": return <BookOpen size={size} weight="bold" />;
+      default: return <Globe size={size} weight="bold" />;
+    }
   };
 
   const copyToClipboard = (link: string) => {
@@ -1045,7 +1118,7 @@ function SuggestPageContent() {
                   <div className="flex items-center gap-2">
                     {getCategoryIcon(detailSuggestion.category, 24)}
                     <span className="text-xs font-black text-gray-500 tracking-wider">
-                      {getCategoryLabel(detailSuggestion.category)}
+                    {getCategoryLabel(detailSuggestion.category)}
                     </span>
                   </div>
                   {getStatusBadge(detailSuggestion.status)}
@@ -1053,22 +1126,26 @@ function SuggestPageContent() {
 
                 <div className="space-y-4 mb-6">
                   {detailSuggestion.image_url && (
-                    <img
-                      src={detailSuggestion.image_url}
-                      alt={detailSuggestion.title}
-                      className="w-full h-48 rounded-2xl object-cover border border-gray-100 shadow-sm"
-                    />
+                    <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                      <img
+                        src={detailSuggestion.image_url}
+                        alt={detailSuggestion.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      {detailSuggestion.category === "song" && detailSuggestion.preview_url && (
+                        <button
+                          type="button"
+                          onClick={() => togglePlay(detailSuggestion.preview_url!)}
+                          className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
+                        >
+                          {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                        </button>
+                      )}
+                    </div>
                   )}
                   <h2 className="text-2xl font-black text-gray-900 leading-snug tracking-tight">
                     {detailSuggestion.title}
                   </h2>
-                  
-                  {detailSuggestion.rating && (
-                    <div className="flex items-center gap-1 text-amber-500">
-                      <Star size={16} weight="fill" />
-                      <span className="text-sm font-black">{detailSuggestion.rating}/5</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
@@ -1088,18 +1165,80 @@ function SuggestPageContent() {
                 </div>
 
                 {detailSuggestion.external_link && (
-                  <a
-                    href={detailSuggestion.external_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl mb-8 active:scale-98 transition-all font-bold text-xs shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 text-indigo-600">
-                      <Globe size={18} />
-                      <span>{detailSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
-                    </div>
-                    <PaperPlaneTilt size={16} className="text-gray-400" />
-                  </a>
+                  <div className="mb-8">
+                    {detailSuggestion.category === "song" ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Spotify */}
+                        <a
+                          href={`https://open.spotify.com/search/${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <SpotifyLogo size={16} weight="fill" className="text-[#1DB954]" />
+                            <span>Spotify</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* Apple Music */}
+                        <a
+                          href={detailSuggestion.external_link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <MusicNotes size={16} weight="fill" className="text-[#FC3C44]" />
+                            <span>Apple Music</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* YouTube */}
+                        <a
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <YoutubeLogo size={16} weight="fill" className="text-[#FF0000]" />
+                            <span>YouTube</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* YouTube Music */}
+                        <a
+                          href={`https://music.youtube.com/search?q=${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <PlayCircle size={16} weight="fill" className="text-[#FF0000]" />
+                            <span>YT Music</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+                      </div>
+                    ) : (
+                      <a
+                        href={detailSuggestion.external_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 text-indigo-600">
+                          {getExternalLinkButtonIcon(detailSuggestion.category, 18)}
+                          <span>{detailSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
+                        </div>
+                        <PaperPlaneTilt size={16} className="text-gray-400" />
+                      </a>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex gap-2">
