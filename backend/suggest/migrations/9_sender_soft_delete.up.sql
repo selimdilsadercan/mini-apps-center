@@ -1,3 +1,38 @@
+-- 9_sender_soft_delete.up.sql
+-- Adds soft-delete option for suggestion senders so they can delete suggestions from their own list without breaking recipient views.
+
+-- 1. Add sender_deleted_at column to suggestions table
+ALTER TABLE suggest.suggestions
+    ADD COLUMN IF NOT EXISTS sender_deleted_at TIMESTAMP WITH TIME ZONE;
+
+-- 2. Grant permissions
+GRANT USAGE ON SCHEMA suggest TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA suggest TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA suggest TO anon, authenticated, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA suggest TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA suggest GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA suggest GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA suggest GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+
+-- 3. delete_sent_suggestion.sql
+DROP FUNCTION IF EXISTS suggest.delete_sent_suggestion(TEXT, TEXT);
+
+CREATE OR REPLACE FUNCTION suggest.delete_sent_suggestion(
+    sender_clerk_id_param TEXT,
+    share_id_param TEXT
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE suggest.suggestions
+    SET sender_deleted_at = NOW()
+    WHERE sender_clerk_id = sender_clerk_id_param AND share_id = share_id_param;
+    
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- 4. get_sent_suggestions.sql
 DROP FUNCTION IF EXISTS suggest.get_sent_suggestions(TEXT);
 
 CREATE OR REPLACE FUNCTION suggest.get_sent_suggestions(

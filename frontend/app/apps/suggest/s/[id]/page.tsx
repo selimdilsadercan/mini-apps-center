@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       book: "Kitap 📚",
     };
 
-    const title = `${sender_username || "Bir arkadaşın"} sana bir ${categoryMap[suggestion.category] || "Öneri"} bıraktı!`;
-    const description = `"${suggestion.title}" ${suggestion.short_note ? `— "${suggestion.short_note}"` : ""}`;
+    const title = `${sender_username || "Bir arkadaşın"} sana bir tavsiye bıraktı!`;
+    const description = `24 saat dolmadan hemen tıkla ve arkadaşının senin için bıraktığı öneriyi gör.`;
 
     const ogImage = "/suggest-og.png";
 

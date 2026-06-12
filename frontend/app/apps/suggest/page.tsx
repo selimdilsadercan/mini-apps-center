@@ -294,6 +294,24 @@ function SuggestPageContent() {
     }
   };
 
+  const handleDeleteSentSuggestion = async (shareId: string) => {
+    if (!user) return;
+    try {
+      const confirmDelete = window.confirm("Bu öneriyi listenizden silmek istediğinize emin misiniz? (Alıcılarda görünmeye devam eder)");
+      if (!confirmDelete) return;
+
+      await client.suggest.deleteSentSuggestion({
+        senderClerkId: user.id,
+        shareId,
+      });
+      toast.success("Öneri listenizden kaldırıldı.");
+      fetchData();
+      setDetailSentSuggestion(null);
+    } catch (error) {
+      toast.error("Öneri silinemedi");
+    }
+  };
+
   const handleCreateSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -1190,8 +1208,14 @@ function SuggestPageContent() {
 
                   <div className="flex gap-2">
                     <button
+                      onClick={() => handleDeleteSentSuggestion(detailSentSuggestion.share_id)}
+                      className="w-1/3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-150 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
+                    >
+                      Sil
+                    </button>
+                    <button
                       onClick={() => setDetailSentSuggestion(null)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
+                      className="w-2/3 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
                     >
                       Kapat
                     </button>

@@ -90,6 +90,15 @@ interface UpdateStatusResponse {
   success: boolean;
 }
 
+interface DeleteSentRequest {
+  senderClerkId: string;
+  shareId: string;
+}
+
+interface DeleteSentResponse {
+  success: boolean;
+}
+
 interface InboxResponse {
   suggestions: InboxSuggestion[];
 }
@@ -313,6 +322,27 @@ export const updateStatus = api(
     if (error) {
       console.error("updateStatus error:", error);
       throw APIError.internal(`Failed to update status: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
+/**
+ * Gönderilen bir öneriyi gönderen için yumuşak siler (Inbox'ta ve linkte aktif kalır)
+ * POST /suggest/delete-sent
+ */
+export const deleteSentSuggestion = api(
+  { expose: true, method: "POST", path: "/suggest/delete-sent" },
+  async (req: DeleteSentRequest): Promise<DeleteSentResponse> => {
+    const { data, error } = await supabase.schema("suggest").rpc("delete_sent_suggestion", {
+      sender_clerk_id_param: req.senderClerkId,
+      share_id_param: req.shareId,
+    });
+
+    if (error) {
+      console.error("deleteSentSuggestion error:", error);
+      throw APIError.internal(`Failed to delete sent suggestion: ${error.message}`);
     }
 
     return { success: !!data };

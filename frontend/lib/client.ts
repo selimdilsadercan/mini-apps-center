@@ -2880,6 +2880,15 @@ export namespace suggest {
         timeLeftSeconds?: number
     }
 
+    export interface DeleteSentRequest {
+        senderClerkId: string
+        shareId: string
+    }
+
+    export interface DeleteSentResponse {
+        success: boolean
+    }
+
     export interface DetailResponse {
         suggestion: SuggestionDetail | null
     }
@@ -3033,6 +3042,7 @@ export namespace suggest {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.createSuggestion = this.createSuggestion.bind(this)
+            this.deleteSentSuggestion = this.deleteSentSuggestion.bind(this)
             this.getDailyStatus = this.getDailyStatus.bind(this)
             this.getInbox = this.getInbox.bind(this)
             this.getPublicSuggestion = this.getPublicSuggestion.bind(this)
@@ -3051,6 +3061,16 @@ export namespace suggest {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/suggest/create`, JSON.stringify(params))
             return await resp.json() as CreateSuggestionResponse
+        }
+
+        /**
+         * Gönderilen bir öneriyi gönderen için yumuşak siler (Inbox'ta ve linkte aktif kalır)
+         * POST /suggest/delete-sent
+         */
+        public async deleteSentSuggestion(params: DeleteSentRequest): Promise<DeleteSentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/delete-sent`, JSON.stringify(params))
+            return await resp.json() as DeleteSentResponse
         }
 
         /**
