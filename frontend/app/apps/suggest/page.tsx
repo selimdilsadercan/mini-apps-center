@@ -316,7 +316,9 @@ function SuggestPageContent() {
       if (res.shareId) {
         if (selectedFriends.length === 0) {
           const link = getShareLink(res.shareId);
-          const message = `Sana gizemli bir önerim var! 24 saat içinde açmazsan kaybolacak: ${link}`;
+          const categoryEmojis: Record<string, string> = { song: "şarkı 🎵", movie: "film 🎬", tv: "dizi 📺", video: "video 📹", place: "mekan 📍", book: "kitap 📚" };
+          const categoryText = categoryEmojis[formData.category] || "öneri";
+          const message = `Sana bir ${categoryText} bıraktım:\n👉 ${link}`;
           const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
           const newWindow = window.open(whatsappUrl, "_blank");
           if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
