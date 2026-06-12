@@ -1300,12 +1300,36 @@ function SuggestPageContent() {
                   </div>
 
                   <div className="space-y-4 mb-6">
-                    {detailSentSuggestion.image_url && (
-                      <img
-                        src={detailSentSuggestion.image_url}
-                        alt={detailSentSuggestion.title}
-                        className="w-full h-48 rounded-2xl object-cover border border-gray-100 shadow-sm"
-                      />
+                    {detailSentSuggestion.image_url ? (
+                      <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                        <img
+                          src={detailSentSuggestion.image_url}
+                          alt={detailSentSuggestion.title}
+                          className="w-full h-48 object-cover"
+                        />
+                        {detailSentSuggestion.category === "song" && detailSentSuggestion.preview_url && (
+                          <button
+                            type="button"
+                            onClick={() => togglePlay(detailSentSuggestion.preview_url!)}
+                            className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
+                          >
+                            {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      detailSentSuggestion.category === "song" && detailSentSuggestion.preview_url && (
+                        <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                          <span className="text-xs font-bold text-gray-500">Müzik Önizlemesi</span>
+                          <button
+                            type="button"
+                            onClick={() => togglePlay(detailSentSuggestion.preview_url!)}
+                            className="w-10 h-10 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-all cursor-pointer"
+                          >
+                            {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                          </button>
+                        </div>
+                      )
                     )}
                     <h2 className="text-2xl font-black text-gray-900 leading-snug tracking-tight">
                       {detailSentSuggestion.title}
@@ -1315,6 +1339,108 @@ function SuggestPageContent() {
                       <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mt-1 italic">Daily Pick</span>
                     )}
                   </div>
+
+                  {detailSentSuggestion.short_note && (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        {user?.imageUrl ? (
+                          <img
+                            src={user.imageUrl}
+                            alt="Siz"
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                            Siz
+                          </div>
+                        )}
+                        <span className="text-xs font-black text-gray-700">
+                          Notunuz:
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed italic">
+                        "{detailSentSuggestion.short_note}"
+                      </p>
+                    </div>
+                  )}
+
+                  {detailSentSuggestion.external_link && (
+                    <div className="mb-6">
+                      {detailSentSuggestion.category === "song" ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Spotify */}
+                          <a
+                            href={`https://open.spotify.com/search/${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <SpotifyLogo size={16} weight="fill" className="text-[#1DB954]" />
+                              <span>Spotify</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* Apple Music */}
+                          <a
+                            href={detailSentSuggestion.external_link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <MusicNotes size={16} weight="fill" className="text-[#FC3C44]" />
+                              <span>Apple Music</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* YouTube */}
+                          <a
+                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <YoutubeLogo size={16} weight="fill" className="text-[#FF0000]" />
+                              <span>YouTube</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* YouTube Music */}
+                          <a
+                            href={`https://music.youtube.com/search?q=${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <PlayCircle size={16} weight="fill" className="text-[#FF0000]" />
+                              <span>YT Music</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+                        </div>
+                      ) : (
+                        <a
+                          href={detailSentSuggestion.external_link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
+                        >
+                          <div className="flex items-center gap-2 text-indigo-600">
+                            {getExternalLinkButtonIcon(detailSentSuggestion.category, 18)}
+                            <span>{detailSentSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
+                          </div>
+                          <PaperPlaneTilt size={16} className="text-gray-400" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
 
                   {/* Recipient list with status and reaction */}
                   <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
