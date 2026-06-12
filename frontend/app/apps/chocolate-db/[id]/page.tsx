@@ -12,15 +12,7 @@ interface PageProps {
 
 // Generate static routes for build time
 export async function generateStaticParams() {
-  try {
-    const resp = await client.chocolate_db.listChocolates({ limit: 1000 });
-    return resp.chocolates.map((choco) => ({
-      id: choco.id,
-    }));
-  } catch (err) {
-    console.error("Failed to generate static params for chocolates:", err);
-    return [];
-  }
+  return [];
 }
 
 // Generate rich SEO metadata dynamically
