@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createBrowserClient } from "@/lib/api";
 
-export const revalidate = 3600; // Cache sitemap for 1 hour
+export const revalidate = 604800; // Cache sitemap for 7 days (1 week)
 
 export async function GET() {
   const baseUrl = "https://chocolatedb.allminiapps.com";

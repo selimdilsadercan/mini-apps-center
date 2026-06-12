@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { GAMES_DATA } from "../games-registry";
 
 export const dynamic = "force-static";
+export const revalidate = 604800; // Cache sitemap for 7 days (1 week)
 
 export async function GET() {
   const baseUrl = "https://cardgames.allminiapps.com";

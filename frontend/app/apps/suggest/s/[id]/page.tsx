@@ -323,7 +323,7 @@ export default function SuggestRecipientPage() {
             Gönderen kişiden sana tekrar atmasını isteyebilirsin!
           </p>
           <a
-            href="https://suggest.allminiapps.com"
+            href={`https://suggest.allminiapps.com?ref=suggest_expired&via=${encodeURIComponent(senderName || "")}`}
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-2xl font-bold text-xs shadow-md transition-all active:scale-95"
           >
             <span>Sen de bir öneri gönder</span>
@@ -340,7 +340,7 @@ export default function SuggestRecipientPage() {
         <div className="max-w-md w-full bg-white rounded-[2.5rem] border border-gray-150 p-8 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <h1 className="text-lg font-black mb-3">Öneri Bulunamadı</h1>
           <p className="text-xs text-gray-500 mb-6">Tıkladığın bağlantı geçersiz veya silinmiş olabilir.</p>
-          <a href="https://suggest.allminiapps.com" className="text-xs font-bold text-indigo-600 hover:underline">
+          <a href="https://suggest.allminiapps.com?ref=suggest_not_found" className="text-xs font-bold text-indigo-600 hover:underline">
             Suggest Ana Sayfasına Git
           </a>
         </div>
@@ -605,9 +605,8 @@ export default function SuggestRecipientPage() {
           </div>
         </div>
 
-        {/* Reply / Create Suggestion CTA */}
         <a
-          href="https://suggest.allminiapps.com"
+          href={`https://suggest.allminiapps.com?ref=suggest&via=${encodeURIComponent(senderName || "")}`}
           className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl font-black text-xs tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all"
         >
           <PaperPlaneTilt size={16} weight="fill" />
