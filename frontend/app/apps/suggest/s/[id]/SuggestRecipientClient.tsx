@@ -157,11 +157,27 @@ export default function SuggestRecipientClient({
     }
   };
 
+  // Re-fetch suggestion details when user logs in so that the backend automatically registers them as a recipient
   useEffect(() => {
+    const syncRecipientOnLogin = async () => {
+      if (!user?.id || !id) return;
+      try {
+        const res = await client.suggest.getPublicSuggestion(id, { userId: user.id });
+        if (res.suggestion) {
+          setSuggestion(res.suggestion);
+          setSelectedReaction(res.suggestion.reaction);
+        }
+      } catch (err) {
+        console.error("Error syncing recipient on login:", err);
+      }
+    };
+    
+    syncRecipientOnLogin();
+
     if (user?.id && senderClerkId) {
       checkFriendshipStatus(user.id, senderClerkId);
     }
-  }, [user?.id, senderClerkId]);
+  }, [user?.id, senderClerkId, id]);
 
   const handleAddFriend = async () => {
     if (!user?.id || !senderClerkId || friendshipLoading) return;
