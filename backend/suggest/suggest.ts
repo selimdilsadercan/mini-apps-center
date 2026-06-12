@@ -23,6 +23,7 @@ export interface RecipientInfo {
 
 export interface Suggestion {
   id: string;
+  share_id: string;
   category: SuggestionCategory;
   title: string;
   short_note: string | null;
@@ -75,6 +76,7 @@ interface CreateSuggestionRequest {
 interface CreateSuggestionResponse {
   success: boolean;
   suggestionId?: string;
+  shareId?: string;
   recipientsAdded?: number;
 }
 
@@ -202,6 +204,7 @@ export const createSuggestion = api(
     return {
       success: true,
       suggestionId: data?.suggestion_id,
+      shareId: data?.share_id,
       recipientsAdded: data?.recipients_added,
     };
   }
@@ -225,6 +228,7 @@ export const getInbox = api(
 
     const suggestions: InboxSuggestion[] = (data || []).map((row: any) => ({
       id: row.id,
+      share_id: row.share_id,
       suggestion_id: row.suggestion_id,
       category: row.category as SuggestionCategory,
       title: row.title,
@@ -267,6 +271,7 @@ export const getSent = api(
 
     const suggestions: SentSuggestion[] = (data || []).map((row: any) => ({
       id: row.id,
+      share_id: row.share_id,
       category: row.category as SuggestionCategory,
       title: row.title,
       short_note: row.short_note,
@@ -301,7 +306,7 @@ export const updateStatus = api(
   async (req: UpdateStatusRequest): Promise<UpdateStatusResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("update_recipient_status", {
       recipient_clerk_id_param: req.recipientClerkId,
-      suggestion_id_param: req.suggestionId,
+      share_id_param: req.suggestionId,
       status_param: req.status,
     });
 
@@ -323,7 +328,7 @@ export const getSuggestionDetail = api(
   async ({ id, userId }: DetailRequest): Promise<DetailResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("get_suggestion_detail", {
       clerk_id_param: userId,
-      suggestion_id_param: id,
+      share_id_param: id,
     });
 
     if (error) {
@@ -338,6 +343,7 @@ export const getSuggestionDetail = api(
     const row = data[0];
     const suggestion: SuggestionDetail = {
       id: row.id,
+      share_id: row.share_id,
       category: row.category as SuggestionCategory,
       title: row.title,
       short_note: row.short_note,
@@ -367,13 +373,13 @@ export const getSuggestionDetail = api(
  */
 export const getPublicSuggestion = api(
   { expose: true, method: "GET", path: "/suggest/public/:id" },
-  async ({ id }: { id: string }): Promise<PublicDetailResponse> => {
-    // 1. Fetch suggestion
+  async ({ id, userId }: { id: string; userId?: string }): Promise<PublicDetailResponse> => {
+    // 1. Fetch suggestion using share_id
     const { data, error } = await supabase
       .schema("suggest")
       .from("suggestions")
       .select("*")
-      .eq("id", id)
+      .eq("share_id", id)
       .single();
 
     if (error || !data) {
@@ -381,8 +387,34 @@ export const getPublicSuggestion = api(
       return { suggestion: null, sender_clerk_id: null, sender_username: null, sender_avatar: null, isExpired: false };
     }
 
+    // If userId is provided and is not the sender, add them as a recipient
+    if (userId && userId !== data.sender_clerk_id) {
+      const { data: recUser, error: recUserErr } = await supabase
+        .schema("public")
+        .from("users")
+        .select("id")
+        .eq("clerk_id", userId)
+        .single();
+
+      if (recUser && !recUserErr) {
+        await supabase
+          .schema("suggest")
+          .from("recipients")
+          .upsert(
+            {
+              suggestion_id: data.id,
+              recipient_id: recUser.id,
+              recipient_clerk_id: userId,
+              status: "pending",
+            },
+            { onConflict: "suggestion_id,recipient_clerk_id", ignoreDuplicates: true }
+          );
+      }
+    }
+
     const suggestion: Suggestion = {
       id: data.id,
+      share_id: data.share_id,
       category: data.category as SuggestionCategory,
       title: data.title,
       short_note: data.short_note,
@@ -409,7 +441,7 @@ export const getPublicSuggestion = api(
     // 3. Register opened state
     if (!suggestion.opened_at) {
       await supabase.schema("suggest").rpc("mark_suggestion_opened", {
-        suggestion_id_param: id,
+        share_id_param: id,
       });
       suggestion.opened_at = new Date().toISOString();
     }
@@ -441,7 +473,7 @@ export const submitReaction = api(
   { expose: true, method: "POST", path: "/suggest/reaction" },
   async (req: ReactionRequest): Promise<ReactionResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("update_suggestion_reaction", {
-      suggestion_id_param: req.suggestionId,
+      share_id_param: req.suggestionId,
       reaction_param: req.reaction,
     });
 

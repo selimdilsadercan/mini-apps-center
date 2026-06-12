@@ -18,6 +18,7 @@ RETURNS JSONB AS $$
 DECLARE
     v_sender_id UUID;
     v_suggestion_id UUID;
+    v_share_id TEXT;
     v_recipient_clerk TEXT;
     v_recipient_id UUID;
     v_recipient_count INT := 0;
@@ -29,11 +30,17 @@ BEGIN
         RAISE EXCEPTION 'Sender user not found for clerk_id %', sender_clerk_id_param;
     END IF;
 
+    -- Generate a unique short ID (YouTube-style, 11 chars base62)
+    LOOP
+        v_share_id := suggest.generate_short_id(11);
+        EXIT WHEN NOT EXISTS (SELECT 1 FROM suggest.suggestions WHERE share_id = v_share_id);
+    END LOOP;
+
     -- Insert suggestion
     INSERT INTO suggest.suggestions (
-        sender_id, sender_clerk_id, category, title, short_note, rating, external_link, image_url, expires_at, is_daily_pick, preview_url
+        sender_id, sender_clerk_id, category, title, short_note, rating, external_link, image_url, expires_at, is_daily_pick, preview_url, share_id
     ) VALUES (
-        v_sender_id, sender_clerk_id_param, category_param, title_param, short_note_param, rating_param, external_link_param, image_url_param, expires_at_param, is_daily_pick_param, preview_url_param
+        v_sender_id, sender_clerk_id_param, category_param, title_param, short_note_param, rating_param, external_link_param, image_url_param, expires_at_param, is_daily_pick_param, preview_url_param, v_share_id
     ) RETURNING id INTO v_suggestion_id;
 
     -- Insert recipients
@@ -58,6 +65,7 @@ BEGIN
 
     v_result := jsonb_build_object(
         'suggestion_id', v_suggestion_id,
+        'share_id', v_share_id,
         'recipients_added', v_recipient_count
     );
 

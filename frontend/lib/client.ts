@@ -2871,6 +2871,7 @@ export namespace suggest {
     export interface CreateSuggestionResponse {
         success: boolean
         suggestionId?: string
+        shareId?: string
         recipientsAdded?: number
     }
 
@@ -2895,6 +2896,7 @@ export namespace suggest {
         status: RecipientStatus
         "updated_at": string
         id: string
+        "share_id": string
         category: SuggestionCategory
         title: string
         "short_note": string | null
@@ -2951,6 +2953,7 @@ export namespace suggest {
     export interface SentSuggestion {
         recipients: RecipientInfo[]
         id: string
+        "share_id": string
         category: SuggestionCategory
         title: string
         "short_note": string | null
@@ -2976,6 +2979,7 @@ export namespace suggest {
 
     export interface Suggestion {
         id: string
+        "share_id": string
         category: SuggestionCategory
         title: string
         "short_note": string | null
@@ -2998,6 +3002,7 @@ export namespace suggest {
         "sender_avatar": string | null
         "recipient_status": RecipientStatus | null
         id: string
+        "share_id": string
         category: SuggestionCategory
         title: string
         "short_note": string | null
@@ -3073,9 +3078,16 @@ export namespace suggest {
          * Handles expiration check and registers "opened" state on first access.
          * GET /suggest/public/:id
          */
-        public async getPublicSuggestion(id: string): Promise<PublicDetailResponse> {
+        public async getPublicSuggestion(id: string, params: {
+    userId?: string
+}): Promise<PublicDetailResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/public/${encodeURIComponent(id)}`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/public/${encodeURIComponent(id)}`, undefined, {query})
             return await resp.json() as PublicDetailResponse
         }
 

@@ -313,9 +313,9 @@ function SuggestPageContent() {
         isDailyPick: true,
       });
 
-      if (res.suggestionId) {
+      if (res.shareId) {
         if (selectedFriends.length === 0) {
-          const link = getShareLink(res.suggestionId);
+          const link = getShareLink(res.shareId);
           const message = `Sana gizemli bir önerim var! 24 saat içinde açmazsan kaybolacak: ${link}`;
           const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
           const newWindow = window.open(whatsappUrl, "_blank");
@@ -1085,7 +1085,7 @@ function SuggestPageContent() {
                 <div className="flex gap-2">
                   {detailSuggestion.status !== "saved" && detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "saved")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "saved")}
                       className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <BookmarkSimple size={16} />
@@ -1094,7 +1094,7 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "completed")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "completed")}
                       className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
                     >
                       <CheckCircle size={16} />
@@ -1103,7 +1103,7 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "ignored" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "ignored")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "ignored")}
                       className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <XCircle size={16} />
@@ -1123,7 +1123,7 @@ function SuggestPageContent() {
           <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
           <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
             {detailSentSuggestion && (() => {
-              const link = getShareLink(detailSentSuggestion.id);
+              const link = getShareLink(detailSentSuggestion.share_id);
               const isExpired = detailSentSuggestion.expires_at ? new Date() > new Date(detailSentSuggestion.expires_at) : false;
               return (
                 <div className="p-6 overflow-y-auto">

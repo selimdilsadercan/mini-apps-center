@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION suggest.get_sent_suggestions(
 )
 RETURNS TABLE (
     id UUID,
+    share_id TEXT,
     category TEXT,
     title TEXT,
     short_note TEXT,
@@ -23,6 +24,7 @@ BEGIN
     RETURN QUERY
     SELECT 
         s.id,
+        s.share_id,
         s.category,
         s.title,
         s.short_note,

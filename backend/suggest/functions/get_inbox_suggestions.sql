@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION suggest.get_inbox_suggestions(
 RETURNS TABLE (
     id UUID,
     suggestion_id UUID,
+    share_id TEXT,
     category TEXT,
     title TEXT,
     short_note TEXT,
@@ -29,6 +30,7 @@ BEGIN
     SELECT 
         r.id,
         s.id AS suggestion_id,
+        s.share_id,
         s.category,
         s.title,
         s.short_note,
