@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const title = `${sender_username || "Bir arkadaşın"} sana bir ${categoryMap[suggestion.category] || "Öneri"} bıraktı!`;
     const description = `"${suggestion.title}" ${suggestion.short_note ? `— "${suggestion.short_note}"` : ""}`;
 
-    const ogImage = suggestion.image_url || "/suggest-og.png";
+    const ogImage = "/suggest-og.png";
 
     return {
       title,
