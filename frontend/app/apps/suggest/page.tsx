@@ -318,7 +318,10 @@ function SuggestPageContent() {
           const link = getShareLink(res.suggestionId);
           const message = `Sana gizemli bir önerim var! 24 saat içinde açmazsan kaybolacak: ${link}`;
           const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-          window.open(whatsappUrl, "_blank");
+          const newWindow = window.open(whatsappUrl, "_blank");
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+            window.location.href = whatsappUrl;
+          }
           toast.success("Öneriniz oluşturuldu ve WhatsApp'a yönlendiriliyorsunuz!");
         } else {
           toast.success("Öneriniz başarıyla gönderildi!");
