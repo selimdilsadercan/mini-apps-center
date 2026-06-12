@@ -1,6 +1,31 @@
-# 🚀 Mini Apps Center - Uygulama Durum Raporu
+# 🧠 Mini Apps Center - Görev ve Durum Raporu (Tasks)
 
-Bu dosya, platformdaki tüm mini uygulamaların teknik durumunu ve gelişim sürecini takip etmek için oluşturulmuştur.
+Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların geliştirme durumlarını tek bir yerden takip etmek amacıyla oluşturulmuştur.
+
+## 🛠️ Genel Altyapı & Yapılacaklar (Global Tasks)
+- [ ] Giriş yapma (Login) ekranı güncellemesi
+- [ ] Chat-like (sohbet arayüzü tarzında) interaktif onboarding süreci
+- [ ] Uygulamalar içerisindeki giriş (Auth/Clerk) modallarının güncellenmesi
+- [ ] **Bildirimler (Push):** Backend altyapısı ve frontend hook hazır. Global layout entegrasyonu ve izin yönetimi cilası bekliyor.
+- [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu ve kullanıcı yönetimi gerekiyor.
+- [ ] **Mobil Uyumluluk:** Sayfalar responsive tasarlandı. Capacitor/Native özelinde derinlemesine testler yapılacak.
+- [ ] **Performans:** Sayfa yükleme hızları iyi durumda. Görsel optimizasyonu ve bundle boyutu küçültme bekliyor.
+- [ ] **Analitik & Takip:** Google Analytics ve Search Console derin entegrasyonu.
+- [ ] **Geri Bildirim Sistemi:** Kullanıcıların hata bildirmesi veya uygulama önerisinde bulunması.
+- [ ] **Gelişmiş Paylaşım:** Uygulama içi içeriklerin (skorlar, listeler vb.) sosyal paylaşımı.
+- [x] **Kimlik Doğrulama (Auth):** Clerk entegrasyonu, Giriş/Kayıt sayfaları, Oturum yönetimi.
+- [x] **Ana Sayfa (Hub):** Sürükle-bırak uygulama düzenleme, uygulama kaldırma, kişiselleştirilmiş grid.
+- [x] **Keşfet (Discover):** Kategori bazlı uygulama listeleme, arama, uygulama ekleme (Get).
+- [x] **Profil & Ayarlar:** Kullanıcı istatistikleri, dil seçimi (TR/EN), çıkış yapma.
+- [x] **Sosyal Akış (Feed):** Arkadaş hareketlerini (aktivite, mekan vb.) görme ve etkileşim.
+- [x] **Arkadaşlık Sistemi:** Kullanıcı arama (exact match), istek gönderme/kabul/ret, arkadaş listesi.
+- [x] **AI Assistant:** Sohbet geçmişi, kalıcı depolama, akıllı uygulama kartları önerisi.
+- [x] **Dil Desteği (i18n):** Tüm core sayfalarda tam TR/EN desteği.
+- [x] **Giriş Sayfası (Landing):** Modern ve etkileyici karşılama sayfası.
+- [x] **SEO & Metadata:** Sitemap, Robots.txt, Meta etiketleri ve JSON-LD yapılandırması.
+- [x] **Deep Linking:** Uygulamalara ve içeriklere doğrudan URL üzerinden erişim.
+
+---
 
 ## 📱 Tüm Uygulamalar
 
@@ -70,7 +95,7 @@ Bu dosya, platformdaki tüm mini uygulamaların teknik durumunu ve gelişim sür
 
 ### Tutor Place
 - [x] Öğrenci kayıt sistemi
-- [x] Ödeme takip tabloları
+- [x] Ödeme takip takip tabloları
 - [ ] Kullanıcı akış testleri
 - [ ] Raporlama özellikleri
 
@@ -176,4 +201,4 @@ Sadece admin tarafından görülebilen, yayına alınmayacak uygulamalar.
 - [ ] Catan oyunu yardımcı aracı
 
 ---
-*Son Güncelleme: 9 Haziran 2026*
+*Son Güncelleme: 12 Haziran 2026*

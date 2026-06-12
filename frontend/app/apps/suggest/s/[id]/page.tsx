@@ -188,7 +188,7 @@ export default function SuggestRecipientPage() {
   const fetchSuggestion = async () => {
     try {
       setLoading(true);
-      const res = await client.suggest.getPublicSuggestion(id);
+      const res = await client.suggest.getPublicSuggestion(id, { userId: user?.id || undefined });
       
       if (res.isExpired) {
         setIsExpired(true);
