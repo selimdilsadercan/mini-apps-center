@@ -11,6 +11,11 @@ RETURNS TABLE (
     rating DECIMAL,
     external_link TEXT,
     image_url TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    opened_at TIMESTAMP WITH TIME ZONE,
+    reaction TEXT,
+    is_daily_pick BOOLEAN,
+    preview_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE,
     recipients JSONB
 ) AS $$
@@ -24,6 +29,11 @@ BEGIN
         s.rating,
         s.external_link,
         s.image_url,
+        s.expires_at,
+        s.opened_at,
+        s.reaction,
+        s.is_daily_pick,
+        s.preview_url,
         s.created_at,
         COALESCE(
             jsonb_agg(

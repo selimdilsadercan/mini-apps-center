@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS suggest.suggestions (
     rating DECIMAL CHECK (rating >= 0 AND rating <= 5),
     external_link TEXT,
     image_url TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    opened_at TIMESTAMP WITH TIME ZONE,
+    reaction TEXT CHECK (reaction IN ('loved', 'skull', 'saved', 'mid', 'perfect')),
+    is_daily_pick BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

@@ -419,12 +419,22 @@ export default function Discover() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    {betaApps.map(app => {
+                      const isInstalled = installedIds.includes(app.id);
                       const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
                       const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
                       return (
                         <div 
                           key={app.id} 
-                          className="flex items-center justify-between w-full gap-4 bg-white/40 p-4 rounded-[1.75rem] border border-gray-100/50 shadow-sm opacity-70 grayscale-[0.2] pointer-events-none"
+                          className={`flex items-center justify-between w-full gap-4 p-4 rounded-[1.75rem] border shadow-sm ${
+                            isAdmin 
+                              ? "bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer" 
+                              : "bg-white/40 border-gray-100/50 shadow-sm opacity-70 grayscale-[0.2] pointer-events-none"
+                          }`}
+                          onClick={() => {
+                            if (isAdmin) {
+                              handleAppClick(app);
+                            }
+                          }}
                         >
                           <div className="flex-1 flex items-center text-left gap-4 min-w-0">
                             <div 
@@ -442,9 +452,30 @@ export default function Discover() {
                               <p className="text-gray-500 text-xs truncate">{appDesc}</p>
                             </div>
                           </div>
-                          <div className="px-3 py-1 rounded-full font-black text-[9px] bg-gray-100 text-gray-400 uppercase tracking-widest shrink-0">
-                            {t("comingSoon")}
-                          </div>
+                          
+                          {isAdmin ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isInstalled) {
+                                  handleAppClick(app);
+                                } else {
+                                  handleGetApp(app.id, e);
+                                }
+                              }}
+                              className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 ${
+                                isInstalled
+                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                              }`}
+                            >
+                              {isInstalled ? t("open") : t("get")}
+                            </button>
+                          ) : (
+                            <div className="px-3 py-1 rounded-full font-black text-[9px] bg-gray-100 text-gray-400 uppercase tracking-widest shrink-0">
+                              {t("comingSoon")}
+                            </div>
+                          )}
                         </div>
                       );
                    })}

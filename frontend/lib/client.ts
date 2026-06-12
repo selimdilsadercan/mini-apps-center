@@ -2863,13 +2863,20 @@ export namespace suggest {
         rating?: number
         externalLink?: string
         imageUrl?: string
-        recipientClerkIds: string[]
+        recipientClerkIds?: string[]
+        isDailyPick?: boolean
+        previewUrl?: string
     }
 
     export interface CreateSuggestionResponse {
         success: boolean
         suggestionId?: string
         recipientsAdded?: number
+    }
+
+    export interface DailyStatusResponse {
+        canSendDailyPick: boolean
+        timeLeftSeconds?: number
     }
 
     export interface DetailResponse {
@@ -2894,7 +2901,29 @@ export namespace suggest {
         rating: number | null
         "external_link": string | null
         "image_url": string | null
+        "preview_url": string | null
+        "expires_at": string | null
+        "opened_at": string | null
+        reaction: string | null
+        "is_daily_pick": boolean
         "created_at": string
+    }
+
+    export interface PublicDetailResponse {
+        suggestion: Suggestion | null
+        "sender_clerk_id": string | null
+        "sender_username": string | null
+        "sender_avatar": string | null
+        isExpired: boolean
+    }
+
+    export interface ReactionRequest {
+        suggestionId: string
+        reaction: string | null
+    }
+
+    export interface ReactionResponse {
+        success: boolean
     }
 
     export interface RecipientInfo {
@@ -2928,6 +2957,11 @@ export namespace suggest {
         rating: number | null
         "external_link": string | null
         "image_url": string | null
+        "preview_url": string | null
+        "expires_at": string | null
+        "opened_at": string | null
+        reaction: string | null
+        "is_daily_pick": boolean
         "created_at": string
     }
 
@@ -2937,6 +2971,23 @@ export namespace suggest {
         artistName: string
         artworkUrl100: string
         trackViewUrl: string
+        previewUrl?: string
+    }
+
+    export interface Suggestion {
+        id: string
+        category: SuggestionCategory
+        title: string
+        "short_note": string | null
+        rating: number | null
+        "external_link": string | null
+        "image_url": string | null
+        "preview_url": string | null
+        "expires_at": string | null
+        "opened_at": string | null
+        reaction: string | null
+        "is_daily_pick": boolean
+        "created_at": string
     }
 
     export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "book"
@@ -2953,6 +3004,11 @@ export namespace suggest {
         rating: number | null
         "external_link": string | null
         "image_url": string | null
+        "preview_url": string | null
+        "expires_at": string | null
+        "opened_at": string | null
+        reaction: string | null
+        "is_daily_pick": boolean
         "created_at": string
     }
 
@@ -2972,21 +3028,34 @@ export namespace suggest {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.createSuggestion = this.createSuggestion.bind(this)
+            this.getDailyStatus = this.getDailyStatus.bind(this)
             this.getInbox = this.getInbox.bind(this)
+            this.getPublicSuggestion = this.getPublicSuggestion.bind(this)
             this.getSent = this.getSent.bind(this)
             this.getSuggestionDetail = this.getSuggestionDetail.bind(this)
             this.searchSong = this.searchSong.bind(this)
+            this.submitReaction = this.submitReaction.bind(this)
             this.updateStatus = this.updateStatus.bind(this)
         }
 
         /**
-         * Yeni bir öneri oluşturur ve alıcılara gönderir
+         * Yeni bir öneri oluşturur ve alıcılara gönderir (veya link paylaşımı için oluşturur)
          * POST /suggest/create
          */
         public async createSuggestion(params: CreateSuggestionRequest): Promise<CreateSuggestionResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/suggest/create`, JSON.stringify(params))
             return await resp.json() as CreateSuggestionResponse
+        }
+
+        /**
+         * Get daily suggestion pick status for a user
+         * GET /suggest/daily-status/:userId
+         */
+        public async getDailyStatus(userId: string): Promise<DailyStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/daily-status/${encodeURIComponent(userId)}`)
+            return await resp.json() as DailyStatusResponse
         }
 
         /**
@@ -3000,7 +3069,18 @@ export namespace suggest {
         }
 
         /**
-         * Kullanıcının gönderdiği tüm önerileri ve alıcıların durumunu listeler (Sent)
+         * Public endpoint to fetch suggestion detail (no authentication required)
+         * Handles expiration check and registers "opened" state on first access.
+         * GET /suggest/public/:id
+         */
+        public async getPublicSuggestion(id: string): Promise<PublicDetailResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/public/${encodeURIComponent(id)}`)
+            return await resp.json() as PublicDetailResponse
+        }
+
+        /**
+         * Kullanıcının gönderdiği tüm önerileri listeler (Sent)
          * GET /suggest/sent/:userId
          */
         public async getSent(userId: string): Promise<SentResponse> {
@@ -3032,6 +3112,16 @@ export namespace suggest {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/suggest/search/song`, undefined, {query})
             return await resp.json() as SearchSongResponse
+        }
+
+        /**
+         * Submit reaction for a suggestion publicly
+         * POST /suggest/reaction
+         */
+        public async submitReaction(params: ReactionRequest): Promise<ReactionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/reaction`, JSON.stringify(params))
+            return await resp.json() as ReactionResponse
         }
 
         /**
