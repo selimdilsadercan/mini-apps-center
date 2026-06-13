@@ -1037,7 +1037,7 @@ export namespace daily_weather {
         preferences: WeatherPreferences
     }
 
-    export type WeatherIcon = "sun" | "cloud" | "rain" | "partly"
+    export type WeatherIcon = "sun" | "cloud" | "rain" | "partly" | "snow"
 
     export interface WeatherNotificationPayload {
         title: string
@@ -1077,6 +1077,34 @@ export namespace daily_weather {
         icon: WeatherIcon
         weatherCode: number
         fetchedAt: string
+        maxPrecipitationProbability?: number
+        eveningTempC?: number
+        eveningPrecipitationProbability?: number
+        hourlyData?: {
+            time: string
+            tempC: number
+            precipProb: number
+            weatherCode: number
+        }[]
+        dailyForecast?: {
+            dayLabel: string
+            dateLabel: string
+            condition: string
+            tempC: number
+            tempMinC: number
+            tempMaxC: number
+            humidity: number
+            windKmh: number
+            maxPrecipitationProbability: number
+            icon: WeatherIcon
+            weatherCode: number
+            hourlyData: {
+                time: string
+                tempC: number
+                precipProb: number
+                weatherCode: number
+            }[]
+        }[]
     }
 
     export class ServiceClient {
