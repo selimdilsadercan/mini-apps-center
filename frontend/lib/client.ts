@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly assistant: assistant.ServiceClient
+    public readonly birikim: birikim.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
@@ -75,6 +76,7 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.assistant = new assistant.ServiceClient(base)
+        this.birikim = new birikim.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
@@ -250,6 +252,185 @@ export namespace assistant {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/assistant/conversations/upsert`, JSON.stringify(params))
             return await resp.json() as UpsertConversationResponse
+        }
+    }
+}
+
+export namespace birikim {
+    export interface Account {
+        id: string
+        "user_id": string
+        name: string
+        type: string
+        balance: number
+        currency: string
+        "created_at": string
+    }
+
+    export interface AddTransactionRequest {
+        userId: string
+        accountId?: string
+        targetId?: string
+        amount: number
+        type: string
+        description?: string
+    }
+
+    export interface AddTransactionResponse {
+        success: boolean
+        transactionId: string
+    }
+
+    export interface DeleteAccountRequest {
+        userId: string
+    }
+
+    export interface DeleteAccountResponse {
+        success: boolean
+    }
+
+    export interface DeleteTargetRequest {
+        userId: string
+    }
+
+    export interface DeleteTargetResponse {
+        success: boolean
+    }
+
+    export interface GetBirikimDataResponse {
+        accounts: Account[]
+        targets: Target[]
+        transactions: Transaction[]
+    }
+
+    export interface Target {
+        id: string
+        "user_id": string
+        title: string
+        "target_amount": number
+        "current_amount": number
+        currency: string
+        "target_date": string | null
+        "created_at": string
+    }
+
+    export interface Transaction {
+        id: string
+        "user_id": string
+        "account_id": string | null
+        "account_name": string | null
+        "target_id": string | null
+        "target_title": string | null
+        amount: number
+        type: string
+        description: string | null
+        "created_at": string
+    }
+
+    export interface UpsertAccountRequest {
+        id?: string
+        userId: string
+        name: string
+        type: string
+        balance: number
+        currency: string
+    }
+
+    export interface UpsertAccountResponse {
+        success: boolean
+        accountId: string
+    }
+
+    export interface UpsertTargetRequest {
+        id?: string
+        userId: string
+        title: string
+        targetAmount: number
+        currentAmount: number
+        currency: string
+        targetDate?: string
+    }
+
+    export interface UpsertTargetResponse {
+        success: boolean
+        targetId: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addTransaction = this.addTransaction.bind(this)
+            this.deleteAccount = this.deleteAccount.bind(this)
+            this.deleteTarget = this.deleteTarget.bind(this)
+            this.getBirikimData = this.getBirikimData.bind(this)
+            this.upsertAccount = this.upsertAccount.bind(this)
+            this.upsertTarget = this.upsertTarget.bind(this)
+        }
+
+        /**
+         * Logs a new transaction and automatically adjusts account/target balances
+         */
+        public async addTransaction(params: AddTransactionRequest): Promise<AddTransactionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/transaction`, JSON.stringify(params))
+            return await resp.json() as AddTransactionResponse
+        }
+
+        /**
+         * Deletes a savings account
+         */
+        public async deleteAccount(id: string, params: DeleteAccountRequest): Promise<DeleteAccountResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/birikim/account/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteAccountResponse
+        }
+
+        /**
+         * Deletes a savings target
+         */
+        public async deleteTarget(id: string, params: DeleteTargetRequest): Promise<DeleteTargetResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/birikim/target/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteTargetResponse
+        }
+
+        /**
+         * Fetches all savings data for a user (accounts, targets, transaction history)
+         */
+        public async getBirikimData(userId: string): Promise<GetBirikimDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/birikim/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetBirikimDataResponse
+        }
+
+        /**
+         * Creates or updates a savings account
+         */
+        public async upsertAccount(params: UpsertAccountRequest): Promise<UpsertAccountResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/account`, JSON.stringify(params))
+            return await resp.json() as UpsertAccountResponse
+        }
+
+        /**
+         * Creates or updates a savings target
+         */
+        public async upsertTarget(params: UpsertTargetRequest): Promise<UpsertTargetResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/target`, JSON.stringify(params))
+            return await resp.json() as UpsertTargetResponse
         }
     }
 }

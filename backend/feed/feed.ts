@@ -96,7 +96,17 @@ export const getFeed = api(
     }
 
     // 2. Fetch events matching query scope
-    let query = supabase.schema("public").from("feed_events").select("*");
+    let query = supabase
+      .schema("public")
+      .from("feed_events")
+      .select(`
+        *,
+        users!left (
+          username,
+          full_name,
+          avatar_url
+        )
+      `);
 
     if (req.scope === "friends") {
       if (friendIds.length === 0) {
@@ -120,16 +130,19 @@ export const getFeed = api(
       throw APIError.internal(`Failed to fetch feed: ${error.message}`);
     }
 
-    const events: FeedEvent[] = (rows || []).map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      username: row.username,
-      userAvatar: row.user_avatar,
-      appId: row.app_id,
-      eventType: row.event_type,
-      payload: row.payload,
-      createdAt: row.created_at,
-    }));
+    const events: FeedEvent[] = (rows || []).map((row: any) => {
+      const dbUser = row.users;
+      return {
+        id: row.id,
+        userId: row.user_id,
+        username: dbUser?.username || row.username || dbUser?.full_name || "Anonim",
+        userAvatar: dbUser?.avatar_url || row.user_avatar,
+        appId: row.app_id,
+        eventType: row.event_type,
+        payload: row.payload,
+        createdAt: row.created_at,
+      };
+    });
 
     return { events };
   }
@@ -150,7 +163,14 @@ export const getEventsByApp = api(
     const { data: rows, error } = await supabase
       .schema("public")
       .from("feed_events")
-      .select("*")
+      .select(`
+        *,
+        users!left (
+          username,
+          full_name,
+          avatar_url
+        )
+      `)
       .eq("app_id", appId)
       .order("created_at", { ascending: false });
 
@@ -159,16 +179,19 @@ export const getEventsByApp = api(
       throw APIError.internal(`Failed to fetch events for app ${appId}: ${error.message}`);
     }
 
-    const events: FeedEvent[] = (rows || []).map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      username: row.username,
-      userAvatar: row.user_avatar,
-      appId: row.app_id,
-      eventType: row.event_type,
-      payload: row.payload,
-      createdAt: row.created_at,
-    }));
+    const events: FeedEvent[] = (rows || []).map((row: any) => {
+      const dbUser = row.users;
+      return {
+        id: row.id,
+        userId: row.user_id,
+        username: dbUser?.username || row.username || dbUser?.full_name || "Anonim",
+        userAvatar: dbUser?.avatar_url || row.user_avatar,
+        appId: row.app_id,
+        eventType: row.event_type,
+        payload: row.payload,
+        createdAt: row.created_at,
+      };
+    });
 
     return { events };
   }

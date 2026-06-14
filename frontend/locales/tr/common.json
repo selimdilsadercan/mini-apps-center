@@ -222,6 +222,51 @@
     "tasarruf-challenges": {
       "name": "Tasarruf",
       "description": "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!"
+    },
+    "birikim": {
+      "name": "Birikim",
+      "description": "Birikim hedefleri koy, hesaplarını yönet ve tasarruflarını takip et!"
     }
+  },
+  "birikim": {
+    "title": "Birikim Takipçisi",
+    "subtitle": "Hesaplarını yönet, hedefler belirle ve birikimlerini kolayca takip et.",
+    "totalSavings": "Toplam Birikim",
+    "totalSavingsDesc": "Tüm hesap ve hedeflerin tahmini TRY karşılığı",
+    "accounts": "Birikim Hesapları",
+    "targets": "Birikim Hedefleri",
+    "history": "Son İşlemler",
+    "noAccounts": "Henüz birikim hesabı eklemediniz.",
+    "noTargets": "Henüz birikim hedefi eklemediniz.",
+    "noHistory": "Henüz işlem geçmişi yok.",
+    "addAccount": "Hesap Ekle",
+    "editAccount": "Hesabı Düzenle",
+    "addTarget": "Hedef Ekle",
+    "editTarget": "Hedefi Düzenle",
+    "logTransaction": "İşlem Kaydet",
+    "accountName": "Hesap Adı",
+    "accountType": "Hesap Türü",
+    "balance": "Mevcut Bakiye",
+    "currency": "Para Birimi",
+    "targetTitle": "Hedef Başlığı",
+    "targetAmount": "Hedef Miktar",
+    "targetDate": "Hedef Tarihi",
+    "currentAmount": "Mevcut Birikim",
+    "transactionType": "İşlem Türü",
+    "amount": "Miktar",
+    "description": "Açıklama (Opsiyonel)",
+    "deposit": "Para Yatırma",
+    "withdraw": "Para Çekme",
+    "targetAllocation": "Hedefe Aktarma",
+    "targetRefund": "Hedeften Geri Çekme",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "cancel": "İptal",
+    "selectAccount": "Hesap Seçin",
+    "selectTarget": "Hedef Seçin",
+    "successSave": "Başarıyla kaydedildi!",
+    "successDelete": "Başarıyla silindi!",
+    "successTx": "İşlem başarıyla gerçekleştirildi!",
+    "errorMsg": "Bir hata oluştu. Lütfen tekrar deneyin."
   }
 }

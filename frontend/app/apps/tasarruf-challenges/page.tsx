@@ -240,7 +240,7 @@ export default function TasarrufChallengesPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-black text-gray-900 truncate uppercase tracking-wider">{post.userName === "Anonim" ? t("anonymous") : post.userName}</div>
+                        <div className="text-xs font-black text-gray-900 truncate tracking-wider">{post.userName === "Anonim" ? t("anonymous") : post.userName}</div>
                         <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                           <Clock size={10} /> {new Date(post.createdAt).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US")}
                         </div>
@@ -265,7 +265,16 @@ export default function TasarrufChallengesPage() {
                     </div>
                     <p className="text-sm font-bold text-gray-700 leading-relaxed mb-3">{post.description}</p>
                     {post.category && (
-                      <div className="inline-block px-2.5 py-1 bg-gray-100 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg text-[9px] font-black text-gray-400 tracking-widest">
+                        <span>
+                          {(() => {
+                            for (const cat of SAVING_CHALLENGES) {
+                              const item = cat.items.find(i => i.label === post.category);
+                              if (item) return item.emoji;
+                            }
+                            return "✨";
+                          })()}
+                        </span>
                         {post.category}
                       </div>
                     )}
@@ -575,7 +584,7 @@ function AddPostForm({
       } else {
         await client.feed.createEvent({
           userId: user.id,
-          username: user.fullName || user.username || "Anonim",
+          username: user.username || user.fullName || "Anonim",
           userAvatar: user.imageUrl,
           appId: "tasarruf-challenges",
           eventType: "saving_achievement",

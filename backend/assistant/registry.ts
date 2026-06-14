@@ -28,8 +28,10 @@ import { kimGelirAssistant } from "../kim-gelir/assistant";
 import { feedAssistant } from "../feed/assistant";
 import { penaltyJarAssistant } from "../penalty-jar/assistant";
 import { campusConcertsAssistant } from "../campus-concerts/assistant";
+import { birikimAssistant } from "../birikim/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
+  birikimAssistant,
   kilerAssistant,
   subcenterAssistant,
   recipeAssistant,

@@ -226,6 +226,51 @@
     "tasarruf-challenges": {
       "name": "Savings Challenges",
       "description": "Track saving suggestions, reduce spending, and achieve your goals!"
+    },
+    "birikim": {
+      "name": "Savings",
+      "description": "Set savings goals, manage accounts, and track your progress!"
     }
+  },
+  "birikim": {
+    "title": "Savings Tracker",
+    "subtitle": "Manage your accounts, set targets, and track savings easily.",
+    "totalSavings": "Total Savings",
+    "totalSavingsDesc": "Estimated TRY equivalent of all accounts and targets",
+    "accounts": "Savings Accounts",
+    "targets": "Savings Goals",
+    "history": "Recent Transactions",
+    "noAccounts": "No savings accounts added yet.",
+    "noTargets": "No savings goals added yet.",
+    "noHistory": "No transaction history yet.",
+    "addAccount": "Add Account",
+    "editAccount": "Edit Account",
+    "addTarget": "Add Goal",
+    "editTarget": "Edit Goal",
+    "logTransaction": "Log Transaction",
+    "accountName": "Account Name",
+    "accountType": "Account Type",
+    "balance": "Current Balance",
+    "currency": "Currency",
+    "targetTitle": "Goal Title",
+    "targetAmount": "Target Amount",
+    "targetDate": "Target Date",
+    "currentAmount": "Current Savings",
+    "transactionType": "Transaction Type",
+    "amount": "Amount",
+    "description": "Description (Optional)",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "targetAllocation": "Allocate to Goal",
+    "targetRefund": "Refund from Goal",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "selectAccount": "Select Account",
+    "selectTarget": "Select Goal",
+    "successSave": "Saved successfully!",
+    "successDelete": "Deleted successfully!",
+    "successTx": "Transaction completed successfully!",
+    "errorMsg": "An error occurred. Please try again."
   }
 }

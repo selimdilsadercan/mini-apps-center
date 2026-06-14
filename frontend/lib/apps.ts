@@ -554,6 +554,18 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "melt",
   },
   {
+    id: "birikim",
+    name: "Birikim",
+    description: "Birikim hedefleri koy, hesaplarını yönet ve tasarruflarını takip et!",
+    icon: PiggyBank,
+    category: "Lifestyle",
+    color: "#6366F1",
+    href: "/apps/birikim",
+    isImplemented: true,
+    subdomain: "birikim",
+    isBeta: true,
+  },
+  {
     id: "tasarruf-challenges",
     name: "Tasarruf",
     description: "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!",
