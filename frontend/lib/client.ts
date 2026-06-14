@@ -751,9 +751,11 @@ export namespace budget {
         startDate: string | null
         endDate: string | null
         emoji: string
+        shareId: string
         createdAt: string
         memberCount?: number
         totalSpent?: number
+        userShare?: number
     }
 
     export interface ProjectDetailsResponse {
@@ -805,6 +807,7 @@ export namespace budget {
             this.createProject = this.createProject.bind(this)
             this.deleteExpense = this.deleteExpense.bind(this)
             this.getProjectDetails = this.getProjectDetails.bind(this)
+            this.getProjectDetailsByShareId = this.getProjectDetailsByShareId.bind(this)
             this.getUserProjects = this.getUserProjects.bind(this)
             this.updateExpense = this.updateExpense.bind(this)
             this.updateProject = this.updateProject.bind(this)
@@ -843,6 +846,15 @@ export namespace budget {
         public async getProjectDetails(projectId: string): Promise<ProjectDetailsResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/budget/projects/${encodeURIComponent(projectId)}`)
+            return await resp.json() as ProjectDetailsResponse
+        }
+
+        /**
+         * Gets details of a specific project by share ID
+         */
+        public async getProjectDetailsByShareId(shareId: string): Promise<ProjectDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/share/${encodeURIComponent(shareId)}`)
             return await resp.json() as ProjectDetailsResponse
         }
 

@@ -20,9 +20,11 @@ export interface Project {
   startDate: string | null;
   endDate: string | null;
   emoji: string;
+  shareId: string;
   createdAt: string;
   memberCount?: number;
   totalSpent?: number;
+  userShare?: number;
 }
 
 export interface Member {
@@ -158,10 +160,118 @@ export const getUserProjects = api(
         startDate: p.start_date,
         endDate: p.end_date,
         emoji: p.emoji,
+        shareId: p.share_id,
         createdAt: p.created_at,
         memberCount: p.member_count,
-        totalSpent: p.total_spent
+        totalSpent: p.total_spent,
+        userShare: p.user_share
       }))
+    };
+  }
+);
+
+/**
+ * Gets details of a specific project by share ID
+ */
+export const getProjectDetailsByShareId = api(
+  { expose: true, method: "GET", path: "/budget/share/:shareId" },
+  async ({ shareId }: { shareId: string }): Promise<ProjectDetailsResponse> => {
+    // 1. Fetch project info by share_id
+    const { data: projectData, error: projectError } = await supabase
+      .schema("budget")
+      .from("projects")
+      .select("*")
+      .eq("share_id", shareId)
+      .single();
+
+    if (projectError) {
+      console.error("getProjectDetailsByShareId project error:", projectError);
+      throw APIError.notFound(`Project not found: ${projectError.message}`);
+    }
+
+    const projectId = projectData.id;
+
+    // 2. Fetch members
+    const { data: membersData, error: membersError } = await supabase
+      .schema("budget")
+      .from("members")
+      .select("*")
+      .eq("project_id", projectId);
+
+    if (membersError) {
+      console.error("getProjectDetailsByShareId members error:", membersError);
+      throw APIError.internal(`Failed to load members: ${membersError.message}`);
+    }
+
+    // 3. Fetch expenses
+    const { data: expensesData, error: expensesError } = await supabase
+      .schema("budget")
+      .from("expenses")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("expense_date", { ascending: false });
+
+    if (expensesError) {
+      console.error("getProjectDetailsByShareId expenses error:", expensesError);
+      throw APIError.internal(`Failed to load expenses: ${expensesError.message}`);
+    }
+
+    // 4. Fetch shares of these expenses
+    const expenseIds = (expensesData || []).map((e: any) => e.id);
+    let sharesData: any[] = [];
+    if (expenseIds.length > 0) {
+      const { data, error: sharesError } = await supabase
+        .schema("budget")
+        .from("expense_shares")
+        .select("*")
+        .in("expense_id", expenseIds);
+
+      if (sharesError) {
+        console.error("getProjectDetailsByShareId shares error:", sharesError);
+        throw APIError.internal(`Failed to load expense shares: ${sharesError.message}`);
+      }
+      sharesData = data || [];
+    }
+
+    return {
+      project: {
+        id: projectData.id,
+        creatorId: projectData.creator_id,
+        name: projectData.name,
+        description: projectData.description,
+        currency: projectData.currency,
+        targetBudget: projectData.target_budget,
+        groupType: projectData.group_type,
+        startDate: projectData.start_date,
+        endDate: projectData.end_date,
+        emoji: projectData.emoji,
+        shareId: projectData.share_id,
+        createdAt: projectData.created_at
+      },
+      members: (membersData || []).map((m: any) => ({
+        id: m.id,
+        projectId: m.project_id,
+        name: m.name,
+        userId: m.user_id,
+        createdAt: m.created_at
+      })),
+      expenses: (expensesData || []).map((e: any) => ({
+        id: e.id,
+        projectId: e.project_id,
+        title: e.title,
+        amount: e.amount,
+        payerMemberId: e.payer_member_id,
+        expenseDate: e.expense_date,
+        category: e.category,
+        createdAt: e.created_at
+      })),
+      shares: (sharesData || []).map((s: any) => ({
+        id: s.id,
+        expenseId: s.expense_id,
+        memberId: s.member_id,
+        shareAmount: s.share_amount,
+        createdAt: s.created_at
+      })),
     };
   }
 );
@@ -239,6 +349,7 @@ export const getProjectDetails = api(
         startDate: projectData.start_date,
         endDate: projectData.end_date,
         emoji: projectData.emoji,
+        shareId: projectData.share_id,
         createdAt: projectData.created_at
       },
       members: (membersData || []).map((m: any) => ({

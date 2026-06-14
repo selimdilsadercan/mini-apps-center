@@ -2,7 +2,6 @@
 
 import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   Plus, 
@@ -19,9 +18,14 @@ import {
   PencilSimple,
   SquaresFour,
   Table,
-  ShareNetwork
+  ShareNetwork,
+  User,
+  Info,
+  Sparkle,
+  ArrowSquareOut,
+  Lock
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
@@ -73,7 +77,6 @@ const getProjectDays = (startStr: string, endStr: string, isTr: boolean) => {
   return days;
 };
 
-
 interface Transaction {
   from: string;
   fromId: string;
@@ -82,31 +85,22 @@ interface Transaction {
   amount: number;
 }
 
-export default function ProjectDetailsPage() {
-  const { user, isLoaded: isUserLoaded } = useUser();
-  const { projectId } = useParams() as { projectId: string };
+export default function SharedProjectPage() {
+  const { shareId } = useParams() as { shareId: string };
   const router = useRouter(); 
   const { locale } = useLanguage();
-
   const isTr = locale === "tr";
-
-  const handleShare = () => {
-    if (!project) return;
-    const shareUrl = `${window.location.origin}/apps/budget/s/${project.shareId}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success(isTr ? "Paylaşım linki kopyalandı!" : "Share link copied!");
-  };
 
   const [project, setProject] = useState<budget.Project | null>(null);
   const [members, setMembers] = useState<budget.Member[]>([]);
   const [expenses, setExpenses] = useState<budget.Expense[]>([]);
   const [shares, setShares] = useState<budget.ExpenseShare[]>([]);
   const [loading, setLoading] = useState(true);
-  const [internalUserId, setInternalUserId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [isIdentityModalOpen, setIsIdentityModalOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<"expenses" | "balances">("expenses");
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
-  const [isProjectEditOpen, setIsProjectEditOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [inlineSavingId, setInlineSavingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -120,31 +114,27 @@ export default function ProjectDetailsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    if (isUserLoaded && projectId) {
+    if (shareId) {
       fetchProjectDetails();
+      const savedMemberId = localStorage.getItem(`budget_member_${shareId}`);
+      if (savedMemberId) {
+        setSelectedMemberId(savedMemberId);
+      } else {
+        setIsIdentityModalOpen(true);
+      }
     }
-  }, [isUserLoaded, projectId, user]);
+  }, [shareId]);
 
   const fetchProjectDetails = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      
-      let currentUserId = internalUserId;
-      if (!currentUserId && user?.id) {
-        const userRes = await client.users.getUserByClerkId(user.id);
-        if (userRes.user) {
-          currentUserId = userRes.user.id;
-          setInternalUserId(currentUserId);
-        }
-      }
-
-      const res = await client.budget.getProjectDetails(projectId);
+      const res = await client.budget.getProjectDetailsByShareId(shareId);
       setProject(res.project);
       setMembers(res.members);
       setExpenses(res.expenses);
       setShares(res.shares);
 
-      calculateBalances(res.members, res.expenses, res.shares, currentUserId);
+      calculateBalances(res.members, res.expenses, res.shares, selectedMemberId);
     } catch (error) {
       console.error(error);
       toast.error(isTr ? "Proje detayları yüklenirken hata oluştu" : "Failed to load details");
@@ -153,24 +143,24 @@ export default function ProjectDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    if (members.length > 0 && expenses.length > 0) {
+      calculateBalances(members, expenses, shares, selectedMemberId);
+    }
+  }, [selectedMemberId, members, expenses, shares]);
+
   const calculateBalances = (
     currentMembers: budget.Member[],
     currentExpenses: budget.Expense[],
     currentShares: budget.ExpenseShare[],
-    userId: string | null
+    memberId: string | null
   ) => {
-    const myMember = currentMembers.find(m => m.userId === userId);
+    const myMember = currentMembers.find(m => m.id === memberId);
     
-    // Filter expenses: only show if it's shared with others, OR if I am the payer.
-    // If it's a private expense (paid by X, shared only with X), only X sees it.
     const visibleExpenses = currentExpenses.filter(e => {
       const expenseShares = currentShares.filter(s => s.expenseId === e.id);
       const otherSharers = expenseShares.filter(s => s.memberId !== e.payerMemberId);
-      
-      // If shared with others, it's public.
       if (otherSharers.length > 0) return true;
-      
-      // If only shared with payer, it's private. Only payer sees it.
       return myMember && e.payerMemberId === myMember.id;
     });
 
@@ -179,7 +169,6 @@ export default function ProjectDetailsPage() {
     
     if (myMember) {
       const myShares = currentShares.filter(s => s.memberId === myMember.id);
-      
       const myConsumableTotal = myShares
         .filter(s => {
           const exp = currentExpenses.find(e => e.id === s.expenseId);
@@ -221,7 +210,6 @@ export default function ProjectDetailsPage() {
 
     setMemberBalances(balances);
 
-    // Simplification Algorithm
     const debtors: { id: string; name: string; amount: number }[] = [];
     const creditors: { id: string; name: string; amount: number }[] = [];
 
@@ -244,7 +232,6 @@ export default function ProjectDetailsPage() {
     while (dIdx < debtors.length && cIdx < creditors.length) {
       const debtor = debtors[dIdx];
       const creditor = creditors[cIdx];
-
       const settleAmount = Math.min(debtor.amount, creditor.amount);
       
       if (settleAmount > 0.01) {
@@ -259,7 +246,6 @@ export default function ProjectDetailsPage() {
 
       debtor.amount -= settleAmount;
       creditor.amount -= settleAmount;
-
       if (debtor.amount <= 0.01) dIdx++;
       if (creditor.amount <= 0.01) cIdx++;
     }
@@ -267,20 +253,22 @@ export default function ProjectDetailsPage() {
     setTransactions(calculatedTransactions);
   };
 
-  const handleDeleteExpense = async (id: string) => {
-    try {
-      await client.budget.deleteExpense(id);
-      toast.success(isTr ? "Harcama silindi" : "Expense deleted");
-      fetchProjectDetails(true);
-    } catch (err) {
-      toast.error(isTr ? "Harcama silinemedi" : "Failed to delete expense");
-    }
+  const selectIdentity = (memberId: string) => {
+    setSelectedMemberId(memberId);
+    localStorage.setItem(`budget_member_${shareId}`, memberId);
+    setIsIdentityModalOpen(false);
+  };
+
+  const handleShare = () => {
+    if (!project) return;
+    const shareUrl = window.location.href;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success(isTr ? "Paylaşım linki kopyalandı!" : "Share link copied!");
   };
 
   const handleInlineSave = async (expense: budget.Expense, field: string, value: any) => {
     try {
       setInlineSavingId(expense.id);
-      
       let updatedTitle = expense.title;
       let updatedAmount = Number(expense.amount);
       let updatedPayerId = expense.payerMemberId;
@@ -293,7 +281,6 @@ export default function ProjectDetailsPage() {
       if (field === "category") updatedCategory = value;
       if (field === "expenseDate") updatedDate = value || null;
 
-      // Recalculate shares proportionally if amount changes
       let updatedSharesPayload: { member_id: string; share_amount: number }[] = [];
       const oldShares = shares.filter(s => s.expenseId === expense.id);
       const oldAmount = Number(expense.amount);
@@ -305,14 +292,12 @@ export default function ProjectDetailsPage() {
           share_amount: parseFloat((Number(s.shareAmount) * scaleRatio).toFixed(2))
         }));
       } else {
-        // Keep existing shares
         updatedSharesPayload = oldShares.map(s => ({
           member_id: s.memberId,
           share_amount: Number(s.shareAmount)
         }));
       }
 
-      // In case no shares exist (failsafe)
       if (updatedSharesPayload.length === 0) {
         if (members.length <= 1) {
           updatedSharesPayload = [{ member_id: members[0]?.id, share_amount: updatedAmount }];
@@ -342,14 +327,23 @@ export default function ProjectDetailsPage() {
     }
   };
 
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      await client.budget.deleteExpense(id);
+      toast.success(isTr ? "Harcama silindi" : "Expense deleted");
+      fetchProjectDetails(true);
+    } catch (err) {
+      toast.error(isTr ? "Harcama silinemedi" : "Failed to delete expense");
+    }
+  };
+
   const getPayerName = (payerId: string) => {
     return members.find(m => m.id === payerId)?.name || (isTr ? "Bilinmeyen" : "Unknown");
   };
 
   const getMyNetBalance = () => {
-    const myMember = members.find(m => m.userId === internalUserId);
-    if (!myMember) return 0;
-    return memberBalances[myMember.id] || 0;
+    if (!selectedMemberId) return 0;
+    return memberBalances[selectedMemberId] || 0;
   };
 
   const formatVal = (val: number) => {
@@ -409,16 +403,11 @@ export default function ProjectDetailsPage() {
   };
 
   const filteredExpenses = expenses.filter(e => {
-    // Visibility filter: Hide private expenses of others
-    const myMember = members.find(m => m.userId === internalUserId);
     const expenseShares = shares.filter(s => s.expenseId === e.id);
     const otherSharers = expenseShares.filter(s => s.memberId !== e.payerMemberId);
-    
     const isPrivate = otherSharers.length === 0;
-    const isMine = myMember && e.payerMemberId === myMember.id;
-    
+    const isMine = selectedMemberId && e.payerMemberId === selectedMemberId;
     if (isPrivate && !isMine) return false;
-
     if (categoryFilter === "all") return true;
     return e.category === categoryFilter;
   });
@@ -436,16 +425,119 @@ export default function ProjectDetailsPage() {
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-blue-100">
       <Toaster position="top-center" />
 
-      {/* Subtle Premium Background Blur (Light) */}
+      {/* Identity Selection Overlay */}
+      <AnimatePresence>
+        {isIdentityModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              className="bg-white rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl overflow-hidden"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4 text-3xl">
+                  👋
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                  {isTr ? "Hoş Geldin!" : "Welcome!"}
+                </h2>
+                <p className="text-gray-500 text-xs font-medium">
+                  {isTr ? "Devam etmek için gruptaki ismini seçer misin?" : "Please select your name to continue."}
+                </p>
+              </div>
+
+              {/* Instruction Banner */}
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 mb-6 text-white shadow-lg shadow-blue-200/50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10">
+                  <Sparkle size={48} weight="fill" />
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info size={16} weight="bold" className="text-blue-200" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-100">
+                      {isTr ? "Biliyor muydun?" : "Did you know?"}
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed mb-3">
+                    {isTr 
+                      ? "Burada sadece ortak değil, kimsenin görmediği kişisel harcamalarını da takip edebilirsin!" 
+                      : "You can track your private expenses here too, visible only to you!"}
+                  </p>
+                  <button 
+                    onClick={() => window.open(getAppRootUrl(), '_blank')}
+                    className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 transition-colors px-3 py-1.5 rounded-lg text-[10px] font-bold backdrop-blur-sm"
+                  >
+                    {isTr ? "Everything App'i Keşfet" : "Explore Everything App"}
+                    <ArrowSquareOut size={12} weight="bold" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-[35vh] overflow-y-auto pr-1 scrollbar-thin">
+                {members.map(member => {
+                  const isLinked = !!member.userId;
+                  return (
+                    <button
+                      key={member.id}
+                      disabled={isLinked}
+                      onClick={() => selectIdentity(member.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.98] group ${
+                        isLinked 
+                          ? "bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed" 
+                          : "bg-white border-gray-100 hover:bg-blue-50 hover:border-blue-100 shadow-sm"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] shadow-sm ${
+                          isLinked ? "bg-gray-200 text-gray-400" : "bg-blue-50 text-blue-500 group-hover:bg-white"
+                        }`}>
+                          {member.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className={`text-xs font-bold ${isLinked ? "text-gray-400" : "text-gray-700"}`}>
+                          {member.name}
+                        </span>
+                      </div>
+                      {isLinked && (
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md">
+                          <Lock size={10} weight="fill" />
+                          {isTr ? "BAĞLI" : "LINKED"}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                <p className="text-[10px] text-gray-400 font-medium mb-3">
+                  {isTr 
+                    ? "Daha fazla özellik için giriş yapabilirsin" 
+                    : "You can sign in for more features"}
+                </p>
+                <button 
+                  onClick={() => router.push('/apps/budget')}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  {isTr ? "Giriş Yap veya Kaydol" : "Sign In or Sign Up"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-1/4 -right-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-15 bg-blue-200" />
         <div className="absolute -bottom-1/4 -left-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-15 bg-pink-100" />
       </div>
 
       <main className={`flex-1 px-4 py-8 pb-36 mx-auto w-full flex flex-col relative z-10 transition-all duration-300 ${viewMode === "table" ? "max-w-md md:max-w-2xl lg:max-w-4xl" : "max-w-md"}`}>
-        {/* Navigation Wrapper - Always max-w-md */}
         <div className="w-full max-w-md mx-auto">
-          {/* Navigation */}
           <div className="flex items-center justify-between mb-6">
             <button 
               onClick={() => router.push("/apps/budget")}
@@ -455,7 +547,6 @@ export default function ProjectDetailsPage() {
             </button>
             {project && (
               <div className="flex items-center gap-2">
-                {/* View Mode Toggle */}
                 {expenses.length > 0 && activeTab === "expenses" && (
                   <div className="bg-white border border-gray-200 rounded-lg p-0.5 flex shadow-sm gap-0.5">
                     <button
@@ -484,14 +575,42 @@ export default function ProjectDetailsPage() {
                 </button>
 
                 <button 
-                  onClick={() => setIsProjectEditOpen(true)}
+                  onClick={() => setIsIdentityModalOpen(true)}
                   className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-900 border border-gray-200/60 transition-all active:scale-90 shadow-sm pointer-events-auto"
+                  title={isTr ? "Kimliği Değiştir" : "Change Identity"}
                 >
-                  <PencilSimple size={18} weight="bold" />
+                  <User size={18} weight="bold" />
                 </button>
               </div>
             )}
           </div>
+
+          {/* Sign-in CTA Banner */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border border-blue-100 rounded-2xl p-3 flex items-center justify-between shadow-sm shadow-blue-50 mb-8"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                <Sparkle size={18} weight="fill" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-900 leading-tight">
+                  {isTr ? "Kendi bütçelerini oluştur" : "Create your own budgets"}
+                </span>
+                <span className="text-[9px] text-gray-400 font-medium">
+                  {isTr ? "Tüm özellikler için giriş yap" : "Sign in for all features"}
+                </span>
+              </div>
+            </div>
+            <button 
+              onClick={() => router.push('/apps/budget')}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95"
+            >
+              {isTr ? "Giriş Yap" : "Sign In"}
+            </button>
+          </motion.div>
         </div>
 
         {loading ? (
@@ -500,9 +619,7 @@ export default function ProjectDetailsPage() {
           <div className="py-20 text-center text-red-500 font-bold">{isTr ? "Proje bulunamadı" : "Project not found"}</div>
         ) : (
           <>
-            {/* Header Content Wrapper - Always max-w-md centered */}
             <div className="w-full max-w-md mx-auto">
-              {/* Plaj şemsiyesi görseli ve Başlık */}
               <div className="flex flex-col items-center text-center mb-6">
                 <div className="w-20 h-20 rounded-full bg-white border border-gray-200/60 flex items-center justify-center text-4xl shadow-sm mb-3 select-none">
                   {project.emoji || "🏖️"}
@@ -510,10 +627,13 @@ export default function ProjectDetailsPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">
                   {project.name}
                 </h1>
+                {selectedMemberId && (
+                  <p className="text-xs text-blue-600 font-bold mt-1 uppercase tracking-widest">
+                    {members.find(m => m.id === selectedMemberId)?.name}
+                  </p>
+                )}
               </div>
 
-              {/* Custom Tab Bar exactly like Tricount screen */}
-              {/* Custom Tab Bar exactly like Tricount screen - show only if multiple participants */}
               {members.length > 1 && (
                 <div className="flex bg-white border border-gray-200 rounded-xl p-1 mb-6 shadow-sm">
                   <button 
@@ -531,7 +651,6 @@ export default function ProjectDetailsPage() {
                 </div>
               )}
 
-              {/* Top Summaries Header */}
               <div className="flex justify-around bg-white border border-gray-200 rounded-2xl py-4 px-2 mb-6 shadow-sm">
                 <div className="flex flex-col items-center justify-center text-center">
                   <span className="text-[10px] text-gray-400 font-semibold mb-1 uppercase tracking-wider">{t.myPaid}</span>
@@ -549,10 +668,8 @@ export default function ProjectDetailsPage() {
               </div>
             </div>
 
-            {/* TAB CONTENT: EXPENSES */}
             {activeTab === "expenses" && (
               <div className="flex-1 space-y-4">
-
                 {filteredExpenses.length === 0 ? (
                   <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-gray-300 flex flex-col items-center justify-center shadow-sm">
                     <Receipt size={32} className="text-gray-300 mb-4" />
@@ -563,13 +680,11 @@ export default function ProjectDetailsPage() {
                     {Object.entries(groupedExpenses).sort((a, b) => {
                       const dateA = a[1][0]?.expenseDate || "";
                       const dateB = b[1][0]?.expenseDate || "";
-                      
                       const getWeight = (dStr: string) => {
-                        if (!dStr) return 1; // Genel (General) is 1
-                        if (dStr.startsWith("1970-01-01")) return 0; // Kalıcı (Durable) is 0
+                        if (!dStr) return 1;
+                        if (dStr.startsWith("1970-01-01")) return 0;
                         return new Date(dStr).getTime() + 1000;
                       };
-                      
                       return getWeight(dateB) - getWeight(dateA);
                     }).map(([date, items]) => (
                       <div key={date} className="space-y-3">
@@ -596,12 +711,9 @@ export default function ProjectDetailsPage() {
                                     {(() => {
                                       const total = Number(expense.amount);
                                       const payerName = getPayerName(expense.payerMemberId);
-                                      const myMember = members.find(m => m.userId === internalUserId);
-                                      const isMePayer = expense.payerMemberId === myMember?.id;
-                                      
+                                      const isMePayer = expense.payerMemberId === selectedMemberId;
                                       const totalStr = `${getCurrencySymbol(project.currency)}${formatVal(total)}`;
                                       const payerStr = isMePayer ? (isTr ? "sen ödedin" : "you paid") : (isTr ? `${payerName} ödedi` : `paid by ${payerName}`);
-                                      
                                       return `${isTr ? "Toplam" : "Total"}: ${totalStr}, ${payerStr}`;
                                     })()}
                                   </p>
@@ -611,8 +723,7 @@ export default function ProjectDetailsPage() {
                               <div className="flex flex-col items-end justify-center min-h-[44px]">
                                 <span className="text-sm font-extrabold text-gray-900">
                                   {(() => {
-                                    const myMember = members.find(m => m.userId === internalUserId);
-                                    const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === myMember?.id);
+                                    const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === selectedMemberId);
                                     const myShareAmount = myShare ? Number(myShare.shareAmount) : 0;
                                     return `${getCurrencySymbol(project.currency)}${formatVal(myShareAmount)}`;
                                   })()}
@@ -625,7 +736,6 @@ export default function ProjectDetailsPage() {
                     ))}
                   </div>
                 ) : (
-                  /* Excel-like Table View */
                   <div className="bg-white border border-gray-200 rounded-[1.6rem] overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse text-xs">
@@ -643,10 +753,8 @@ export default function ProjectDetailsPage() {
                         <tbody className="divide-y divide-gray-100 font-medium text-gray-900">
                           {filteredExpenses.map((expense) => {
                             const isSaving = inlineSavingId === expense.id;
-                            
                             return (
                               <tr key={expense.id} className="hover:bg-gray-50/50 transition-all group/row">
-                                {/* Category select */}
                                 <td className="p-1.5 text-center">
                                   <select
                                     value={expense.category}
@@ -658,8 +766,6 @@ export default function ProjectDetailsPage() {
                                     ))}
                                   </select>
                                 </td>
-                                
-                                {/* Title Input */}
                                 <td className="p-1.5">
                                   <input
                                     type="text"
@@ -672,8 +778,6 @@ export default function ProjectDetailsPage() {
                                     className="bg-transparent border-none w-full p-1.5 focus:bg-white focus:ring-1 focus:ring-blue-500 rounded font-bold text-gray-800 text-xs focus:outline-none"
                                   />
                                 </td>
-                                
-                                {/* Amount Input */}
                                 <td className="p-1.5">
                                   <div className="flex items-center gap-0.5 bg-transparent border-none rounded">
                                     <span className="text-gray-400 font-bold text-[10px] pl-1">{getCurrencySymbol(project.currency)}</span>
@@ -693,20 +797,15 @@ export default function ProjectDetailsPage() {
                                     />
                                   </div>
                                 </td>
-
-                                {/* My Share */}
                                 <td className="p-1.5 text-right">
                                   <span className="text-gray-400 font-bold text-[10px] mr-1">{getCurrencySymbol(project.currency)}</span>
                                   <span className="font-extrabold text-gray-900 text-xs">
                                     {(() => {
-                                      const myMember = members.find(m => m.userId === internalUserId);
-                                      const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === myMember?.id);
+                                      const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === selectedMemberId);
                                       return formatVal(myShare ? Number(myShare.shareAmount) : 0);
                                     })()}
                                   </span>
                                 </td>
-                                
-                                {/* Payer Select */}
                                 <td className="p-1.5">
                                   <select
                                     value={expense.payerMemberId}
@@ -718,8 +817,6 @@ export default function ProjectDetailsPage() {
                                     ))}
                                   </select>
                                 </td>
-                                
-                                {/* Date/Day Select */}
                                 <td className="p-1.5">
                                   {project.startDate && project.endDate ? (
                                     <select
@@ -742,8 +839,6 @@ export default function ProjectDetailsPage() {
                                     />
                                   )}
                                 </td>
-                                
-                                {/* Quick Save / Delete Actions */}
                                 <td className="p-1.5 text-center">
                                   <div className="flex items-center justify-center">
                                     {isSaving ? (
@@ -770,10 +865,8 @@ export default function ProjectDetailsPage() {
               </div>
             )}
 
-            {/* TAB CONTENT: BALANCES */}
             {activeTab === "balances" && (
               <div className="flex-1 space-y-6">
-                {/* Net Debt/Receivable box at the top */}
                 <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
                     <div className="w-12 h-12 rounded-xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-3xl select-none shadow-inner">
                       💸
@@ -792,8 +885,6 @@ export default function ProjectDetailsPage() {
                     </div>
                   </div>
 
-
-                {/* Show suggested repayments link */}
                 {transactions.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
@@ -816,7 +907,6 @@ export default function ProjectDetailsPage() {
                   </div>
                 )}
 
-                {/* Balances List */}
                 <div className="space-y-3">
                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
                     {t.balances}
@@ -824,21 +914,13 @@ export default function ProjectDetailsPage() {
                   <div className="space-y-2">
                     {members.map(member => {
                       const bal = memberBalances[member.id] || 0;
-                      const isMe = member.userId === internalUserId;
+                      const isMe = member.id === selectedMemberId;
                       return (
                         <div key={member.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex justify-between items-center shadow-sm">
                           <div className="flex items-center gap-3">
-                            {isMe && user?.imageUrl ? (
-                              <img 
-                                src={user.imageUrl} 
-                                alt={member.name} 
-                                className="w-10 h-10 rounded-xl object-cover border border-gray-200" 
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-gray-400 text-xs select-none">
-                                {member.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-gray-400 text-xs select-none">
+                              {member.name.slice(0, 2).toUpperCase()}
+                            </div>
                             <div>
                               <h4 className="text-sm font-bold text-gray-900 tracking-tight">{member.name}</h4>
                               {isMe && (
@@ -846,7 +928,6 @@ export default function ProjectDetailsPage() {
                               )}
                             </div>
                           </div>
-
                           <span className={`text-sm font-extrabold ${Math.abs(bal) < 0.01 ? 'text-gray-400' : bal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                             {Math.abs(bal) < 0.01 
                               ? `${getCurrencySymbol(project.currency)}${formatVal(0)}`
@@ -865,14 +946,11 @@ export default function ProjectDetailsPage() {
         )}
       </main>
 
-      {/* FAB & Drawer: Gider Ekle */}
-      {!loading && project && (
+      {!loading && project && selectedMemberId && (
         <div className="fixed bottom-10 left-0 right-0 flex flex-col items-center justify-center pointer-events-none z-[50]">
           <Drawer.Root open={isExpenseOpen} onOpenChange={(open) => {
             setIsExpenseOpen(open);
-            if (!open) {
-              setEditingExpense(null);
-            }
+            if (!open) setEditingExpense(null);
           }}>
             <Drawer.Trigger asChild>
               <button 
@@ -896,9 +974,7 @@ export default function ProjectDetailsPage() {
                     {editingExpense && (
                       <button
                         onClick={async () => {
-                          const confirmDelete = window.confirm(
-                            isTr ? "Bu harcamayı silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this expense?"
-                          );
+                          const confirmDelete = window.confirm(isTr ? "Bu harcamayı silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this expense?");
                           if (confirmDelete) {
                             try {
                               await client.budget.deleteExpense(editingExpense.id);
@@ -930,6 +1006,7 @@ export default function ProjectDetailsPage() {
                       setEditingExpense(null);
                       fetchProjectDetails(true);
                     }} 
+                    defaultPayerId={selectedMemberId}
                   />
                 </div>
               </Drawer.Content>
@@ -937,193 +1014,7 @@ export default function ProjectDetailsPage() {
           </Drawer.Root>
         </div>
       )}
-      {/* Drawer: Proje Düzenle */}
-      {!loading && project && (
-        <Drawer.Root open={isProjectEditOpen} onOpenChange={setIsProjectEditOpen}>
-          <Drawer.Portal>
-            <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
-            <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-gray-200">
-              <div className="p-6 overflow-y-auto">
-                <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
-                <Drawer.Title className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <span>🏖️</span> {isTr ? "Seyahati Düzenle" : "Edit Trip"}
-                </Drawer.Title>
-                
-                <EditProjectForm 
-                  project={project} 
-                  isTr={isTr}
-                  onComplete={() => {
-                    setIsProjectEditOpen(false);
-                    fetchProjectDetails(true);
-                  }} 
-                />
-              </div>
-            </Drawer.Content>
-          </Drawer.Portal>
-        </Drawer.Root>
-      )}
     </div>
-  );
-}
-
-function EditProjectForm({
-  project,
-  onComplete,
-  isTr
-}: {
-  project: budget.Project;
-  onComplete: () => void;
-  isTr: boolean;
-}) {
-  const [formData, setFormData] = useState({
-    name: project.name || "",
-    currency: project.currency || "TRY",
-    groupType: project.groupType || "trip",
-    startDate: project.startDate ? project.startDate.split('T')[0] : "",
-    endDate: project.endDate ? project.endDate.split('T')[0] : "",
-    emoji: project.emoji || "🏖️",
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
-
-    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
-      toast.error(isTr ? "Başlangıç tarihi bitiş tarihinden sonra olamaz!" : "Start date cannot be after end date!");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await client.budget.updateProject({
-        projectId: project.id,
-        name: formData.name,
-        currency: formData.currency,
-        groupType: formData.groupType,
-        startDate: formData.startDate || undefined,
-        endDate: formData.endDate || undefined,
-        emoji: formData.emoji
-      });
-      toast.success(isTr ? "Seyahat güncellendi" : "Trip details updated");
-      onComplete();
-    } catch (err) {
-      console.error(err);
-      toast.error("Hata oluştu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
-      {/* Emoji Selection */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-          {isTr ? "İkon Seç" : "Select Icon"}
-        </label>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
-          {["🏖️", "🏠", "🎟️", "🚗", "🍔", "🛒", "🛍️", "🍿", "⛺", "💵", "🏔️", "✈️", "🚢", "🎉", "💼", "🎓", "🏥", "🚲", "🎸", "⚽"].map((emo) => (
-            <button
-              key={emo}
-              type="button"
-              onClick={() => setFormData({ ...formData, emoji: emo })}
-              className={`flex-shrink-0 w-12 h-12 rounded-xl border flex items-center justify-center text-2xl transition-all active:scale-90 ${
-                formData.emoji === emo 
-                  ? "bg-blue-50 border-blue-500 shadow-sm" 
-                  : "bg-gray-50 border-gray-100 grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
-              }`}
-            >
-              {emo}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Title */}
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-          {isTr ? "Başlık" : "Title"}
-        </label>
-        <input 
-          required 
-          value={formData.name} 
-          onChange={e => setFormData({...formData, name: e.target.value})} 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
-        />
-      </div>
-
-      {/* Currency & Type */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-            {isTr ? "Para Birimi" : "Currency"}
-          </label>
-          <select 
-            value={formData.currency} 
-            onChange={e => setFormData({...formData, currency: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
-          >
-            <option value="TRY">Türk Lirası (₺)</option>
-            <option value="USD">Dolar ($)</option>
-            <option value="EUR">Euro (€)</option>
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-            {isTr ? "Grup Tipi" : "Group Type"}
-          </label>
-          <select 
-            value={formData.groupType} 
-            onChange={e => setFormData({...formData, groupType: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
-          >
-            <option value="trip">{isTr ? "Seyahat" : "Trip"}</option>
-            <option value="home">{isTr ? "Ev Gideri" : "Home"}</option>
-            <option value="event">{isTr ? "Etkinlik" : "Event"}</option>
-            <option value="other">{isTr ? "Diğer" : "Other"}</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Date Range */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-            {isTr ? "Başlangıç Tarihi" : "Start Date"}
-          </label>
-          <input 
-            type="date" 
-            value={formData.startDate} 
-            onChange={e => setFormData({...formData, startDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
-            {isTr ? "Bitiş Tarihi" : "End Date"}
-          </label>
-          <input 
-            type="date" 
-            value={formData.endDate} 
-            onChange={e => setFormData({...formData, endDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
-          />
-        </div>
-      </div>
-
-      <motion.button 
-        disabled={loading} 
-        whileTap={{ scale: 0.98 }} 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
-      >
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-        ) : (
-          <span>{isTr ? "Değişiklikleri Kaydet" : "Save Changes"}</span>
-        )}
-      </motion.button>
-    </form>
   );
 }
 
@@ -1134,7 +1025,8 @@ function AddExpenseForm({
   editingExpense,
   onComplete,
   isTr,
-  getCurrencySymbol
+  getCurrencySymbol,
+  defaultPayerId
 }: { 
   project: budget.Project; 
   members: budget.Member[]; 
@@ -1143,11 +1035,12 @@ function AddExpenseForm({
   onComplete: () => void;
   isTr: boolean;
   getCurrencySymbol: (code?: string) => string;
+  defaultPayerId?: string;
 }) {
   const [formData, setFormData] = useState({
     title: editingExpense?.title || "",
     amount: editingExpense?.amount ? String(editingExpense.amount) : "",
-    payerId: editingExpense?.payerMemberId || members[0]?.id || "",
+    payerId: editingExpense?.payerMemberId || defaultPayerId || members[0]?.id || "",
     category: editingExpense?.category || "other",
     expenseDate: editingExpense?.expenseDate 
       ? editingExpense.expenseDate.split('T')[0] 
@@ -1159,6 +1052,7 @@ function AddExpenseForm({
           return isTodayInRange ? todayStr : (projectStart || todayStr);
         })(),
   });
+
   const dateRangeLabel = (() => {
     if (!project.startDate || !project.endDate) return "-";
     const start = new Date(project.startDate);
@@ -1172,6 +1066,7 @@ function AddExpenseForm({
     }
     return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
   })();
+
   const [selectedShares, setSelectedShares] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     if (editingExpense) {
@@ -1196,7 +1091,7 @@ function AddExpenseForm({
     setFormData({
       title: editingExpense?.title || "",
       amount: editingExpense?.amount ? String(editingExpense.amount) : "",
-      payerId: editingExpense?.payerMemberId || members[0]?.id || "",
+      payerId: editingExpense?.payerMemberId || defaultPayerId || members[0]?.id || "",
       category: editingExpense?.category || "other",
       expenseDate: editingExpense?.expenseDate 
         ? editingExpense.expenseDate.split('T')[0] 
@@ -1247,7 +1142,7 @@ function AddExpenseForm({
     } else {
       setSplitMode("equal");
     }
-  }, [editingExpense, members, projectShares]);
+  }, [editingExpense, members, projectShares, defaultPayerId]);
 
   const toggleShare = (memberId: string) => {
     setSelectedShares(prev => ({
@@ -1274,7 +1169,6 @@ function AddExpenseForm({
     const totalAmount = parseFloat(formData.amount) || 0;
     const activeRatios: Record<string, number> = {};
     let totalRatioSum = 0;
-
     members.forEach(m => {
       if (selectedShares[m.id]) {
         const rVal = parseFloat(ratios[m.id] ?? "1");
@@ -1285,7 +1179,6 @@ function AddExpenseForm({
         activeRatios[m.id] = 0;
       }
     });
-
     const calculated: Record<string, number> = {};
     members.forEach(m => {
       if (selectedShares[m.id] && totalRatioSum > 0) {
@@ -1324,29 +1217,21 @@ function AddExpenseForm({
     }
 
     let sharesPayload: { member_id: string; share_amount: number }[] = [];
-
     if (members.length <= 1) {
       if (members.length === 0) return;
-      sharesPayload = [{
-        member_id: members[0].id,
-        share_amount: amountVal
-      }];
+      sharesPayload = [{ member_id: members[0].id, share_amount: amountVal }];
     } else {
       const checkedCount = Object.values(selectedShares).filter(Boolean).length;
       if (checkedCount === 0) {
         toast.error(isTr ? "En az bir katılımcı seçmelisiniz" : "Must select at least one member for split");
         return;
       }
-
       if (splitMode === "equal") {
         const rawShare = amountVal / checkedCount;
         const shareAmount = parseFloat(rawShare.toFixed(2));
         sharesPayload = Object.entries(selectedShares)
           .filter(([_, selected]) => selected)
-          .map(([memberId]) => ({
-            member_id: memberId,
-            share_amount: shareAmount
-          }));
+          .map(([memberId]) => ({ member_id: memberId, share_amount: shareAmount }));
       } else if (splitMode === "ratio") {
         let totalRatioSum = 0;
         members.forEach(m => {
@@ -1355,41 +1240,28 @@ function AddExpenseForm({
             totalRatioSum += isNaN(rVal) || rVal < 0 ? 0 : rVal;
           }
         });
-
         if (totalRatioSum <= 0) {
           toast.error(isTr ? "Geçersiz pay oranları!" : "Invalid share ratios!");
           return;
         }
-
         sharesPayload = members
           .filter(m => selectedShares[m.id])
           .map(m => {
             const rVal = parseFloat(ratios[m.id] ?? "1");
             const r = isNaN(rVal) || rVal < 0 ? 0 : rVal;
             const shareAmount = parseFloat(((r / totalRatioSum) * amountVal).toFixed(2));
-            return {
-              member_id: m.id,
-              share_amount: shareAmount
-            };
+            return { member_id: m.id, share_amount: shareAmount };
           });
       } else if (splitMode === "amount") {
         if (Math.abs(sumOfAmounts - amountVal) > 0.02) {
-          toast.error(
-            isTr 
-              ? "Girilen tutarların toplamı gider tutarına eşit olmalıdır!" 
-              : "Sum of amounts must equal the total expense amount!"
-          );
+          toast.error(isTr ? "Girilen tutarların toplamı gider tutarına eşit olmalıdır!" : "Sum of amounts must equal the total expense amount!");
           return;
         }
-
         sharesPayload = members
           .filter(m => selectedShares[m.id])
           .map(m => {
             const shareVal = parseFloat(amounts[m.id] ?? "0");
-            return {
-              member_id: m.id,
-              share_amount: isNaN(shareVal) ? 0 : parseFloat(shareVal.toFixed(2))
-            };
+            return { member_id: m.id, share_amount: isNaN(shareVal) ? 0 : parseFloat(shareVal.toFixed(2)) };
           });
       }
     }
@@ -1430,7 +1302,6 @@ function AddExpenseForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
-      {/* Category selection */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
           {isTr ? "Kategori" : "Category"}
@@ -1444,9 +1315,7 @@ function AddExpenseForm({
                 type="button"
                 onClick={() => setFormData({ ...formData, category: cat.id })}
                 className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all active:scale-95 ${
-                  isSelected
-                    ? "bg-blue-50 border-blue-500 text-blue-600 shadow-sm font-semibold"
-                    : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                  isSelected ? "bg-blue-50 border-blue-500 text-blue-600 shadow-sm font-semibold" : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                 }`}
               >
                 <span className="text-2xl mb-1 select-none">{cat.emoji}</span>
@@ -1459,45 +1328,25 @@ function AddExpenseForm({
         </div>
       </div>
 
-      {/* Title */}
       <div className="space-y-1">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
           {isTr ? "Başlık" : "Title"}
         </label>
-        <input 
-          required 
-          placeholder={isTr ? "Örneğin: Pizza, Market..." : "e.g. Pizza, Fuel..."} 
-          value={formData.title} 
-          onChange={e => setFormData({...formData, title: e.target.value})} 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
-        />
+        <input required placeholder={isTr ? "Örneğin: Pizza, Market..." : "e.g. Pizza, Fuel..."} value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" />
       </div>
 
-      {/* Amount & Payer side-by-side */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
             {isTr ? "Tutar" : "Amount"} ({getCurrencySymbol(project.currency)})
           </label>
-          <input 
-            type="number" 
-            step="0.01"
-            required
-            placeholder="0.00" 
-            value={formData.amount} 
-            onChange={e => setFormData({...formData, amount: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
-          />
+          <input type="number" step="0.01" required placeholder="0.00" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" />
         </div>
         <div className="space-y-1">
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
             {isTr ? "Ödeyen" : "Who Paid?"}
           </label>
-          <select 
-            value={formData.payerId} 
-            onChange={e => setFormData({...formData, payerId: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
-          >
+          <select value={formData.payerId} onChange={e => setFormData({...formData, payerId: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold">
             {members.map(m => (
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
@@ -1505,7 +1354,6 @@ function AddExpenseForm({
         </div>
       </div>
 
-      {/* Date / Day selection */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
           {isTr ? "Tarih / Gün" : "Date / Day"}
@@ -1518,152 +1366,72 @@ function AddExpenseForm({
               const dateStrObj = new Date(day.dateStr);
               const dateText = dateStrObj.toLocaleDateString(isTr ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short' });
               return (
-                <button
-                  key={day.dateStr}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, expenseDate: day.dateStr })}
-                  className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
-                    isSelected
-                      ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                      : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
-                  }`}
-                >
+                <button key={day.dateStr} type="button" onClick={() => setFormData({ ...formData, expenseDate: day.dateStr })} className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${isSelected ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm" : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"}`}>
                   <span>{dayText}</span>
                   <span className="text-[10px] text-gray-400 font-medium mt-0.5">({dateText})</span>
                 </button>
               );
             })}
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, expenseDate: "" })}
-              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
-                formData.expenseDate === ""
-                  ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                  : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
-              }`}
-            >
+            <button type="button" onClick={() => setFormData({ ...formData, expenseDate: "" })} className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${formData.expenseDate === "" ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm" : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"}`}>
               <span>{isTr ? "Genel" : "General"}</span>
               <span className="text-[10px] text-gray-400 font-medium mt-0.5">{dateRangeLabel}</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, expenseDate: "1970-01-01" })}
-              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
-                formData.expenseDate === "1970-01-01"
-                  ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                  : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
-              }`}
-            >
+            <button type="button" onClick={() => setFormData({ ...formData, expenseDate: "1970-01-01" })} className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${formData.expenseDate === "1970-01-01" ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm" : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"}`}>
               <span>{isTr ? "Kalıcı" : "Durable"}</span>
               <span className="text-[10px] text-gray-400 font-medium mt-0.5">{isTr ? "Ekipman" : "Gear"}</span>
             </button>
           </div>
         ) : (
-          <input 
-            type="date" 
-            value={formData.expenseDate} 
-            onChange={e => setFormData({...formData, expenseDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer" 
-          />
+          <input type="date" value={formData.expenseDate} onChange={e => setFormData({...formData, expenseDate: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer" />
         )}
       </div>
 
-      {/* Split participants selection */}
       {members.length > 1 && (
         <div className="space-y-2.5">
           <div className="flex justify-between items-center pl-1">
             <label className="flex items-center gap-2.5 text-xs font-bold text-gray-950 select-none cursor-pointer">
-              <input 
-                type="checkbox"
-                checked={Object.values(selectedShares).every(Boolean)}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const updated: Record<string, boolean> = {};
-                  members.forEach(m => {
-                    updated[m.id] = checked;
-                  });
-                  setSelectedShares(updated);
-                }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-              />
+              <input type="checkbox" checked={Object.values(selectedShares).every(Boolean)} onChange={(e) => {
+                const checked = e.target.checked;
+                const updated: Record<string, boolean> = {};
+                members.forEach(m => { updated[m.id] = checked; });
+                setSelectedShares(updated);
+              }} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4" />
               <span>{isTr ? "Böl" : "Split"}</span>
             </label>
-
-            <select
-              value={splitMode}
-              onChange={(e) => setSplitMode(e.target.value as any)}
-              className="bg-transparent text-xs font-bold text-gray-500 border-none outline-none focus:ring-0 cursor-pointer hover:text-gray-900 transition-colors pr-6"
-            >
+            <select value={splitMode} onChange={(e) => setSplitMode(e.target.value as any)} className="bg-transparent text-xs font-bold text-gray-500 border-none outline-none focus:ring-0 cursor-pointer hover:text-gray-900 transition-colors pr-6">
               <option value="equal">{isTr ? "Eşit Olarak" : "Equally"}</option>
               <option value="ratio">{isTr ? "Paylara Göre" : "By Shares"}</option>
               <option value="amount">{isTr ? "Tutar Olarak" : "By Amounts"}</option>
             </select>
           </div>
-
           <div className="border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white">
             {members.map(m => {
               const isChecked = !!selectedShares[m.id];
               const amountVal = parseFloat(formData.amount) || 0;
               const checkedCount = Object.values(selectedShares).filter(Boolean).length;
               const equalSplitAmount = checkedCount > 0 ? amountVal / checkedCount : 0;
-              
               let displayValue = "";
               if (splitMode === "equal") {
                 displayValue = isChecked ? `${getCurrencySymbol(project.currency)}${formatVal(equalSplitAmount)}` : `${getCurrencySymbol(project.currency)}0,00`;
               }
-
               return (
                 <div key={m.id} className="flex justify-between items-center p-3.5 hover:bg-gray-50 transition-colors">
                   <label className="flex items-center gap-3 cursor-pointer select-none flex-1 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => toggleShare(m.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4.5 h-4.5"
-                    />
+                    <input type="checkbox" checked={isChecked} onChange={() => toggleShare(m.id)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4.5 h-4.5" />
                     <span className="text-xs font-bold text-gray-700 truncate">{m.name}</span>
                   </label>
-
                   <div className="flex items-center gap-2">
-                    {splitMode === "equal" && (
-                      <span className="text-xs font-bold text-gray-400">
-                        {displayValue}
-                      </span>
-                    )}
-
+                    {splitMode === "equal" && <span className="text-xs font-bold text-gray-400">{displayValue}</span>}
                     {splitMode === "ratio" && (
                       <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          disabled={!isChecked}
-                          min="0"
-                          step="any"
-                          placeholder="1"
-                          value={ratios[m.id] ?? (isChecked ? "1" : "0")}
-                          onChange={(e) => handleRatioChange(m.id, e.target.value)}
-                          className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40"
-                        />
-                        {isChecked && (
-                          <span className="text-[10px] text-gray-400 font-bold min-w-[50px] text-right">
-                            ({getCurrencySymbol(project.currency)}{formatVal(calculatedRatioAmounts[m.id] || 0)})
-                          </span>
-                        )}
+                        <input type="number" disabled={!isChecked} min="0" step="any" placeholder="1" value={ratios[m.id] ?? (isChecked ? "1" : "0")} onChange={(e) => handleRatioChange(m.id, e.target.value)} className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40" />
+                        {isChecked && <span className="text-[10px] text-gray-400 font-bold min-w-[50px] text-right">({getCurrencySymbol(project.currency)}{formatVal(calculatedRatioAmounts[m.id] || 0)})</span>}
                       </div>
                     )}
-
                     {splitMode === "amount" && (
                       <div className="flex items-center gap-1">
                         <span className="text-xs font-bold text-gray-400">{getCurrencySymbol(project.currency)}</span>
-                        <input
-                          type="number"
-                          disabled={!isChecked}
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={amounts[m.id] ?? ""}
-                          onChange={(e) => handleAmountChange(m.id, e.target.value)}
-                          className="w-20 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40"
-                        />
+                        <input type="number" disabled={!isChecked} min="0" step="0.01" placeholder="0.00" value={amounts[m.id] ?? ""} onChange={(e) => handleAmountChange(m.id, e.target.value)} className="w-20 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40" />
                       </div>
                     )}
                   </div>
@@ -1674,25 +1442,14 @@ function AddExpenseForm({
         </div>
       )}
 
-        {splitMode === "amount" && Math.abs(sumOfAmounts - (parseFloat(formData.amount) || 0)) > 0.02 && (
-          <p className="text-[10px] font-bold text-red-500 pl-1">
-            {isTr 
-              ? `Toplam tutar (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) ile girilen tutarların toplamı (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}) eşleşmiyor.`
-              : `Total amount (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) does not match sum of amounts (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}).`}
-          </p>
-        )}
+      {splitMode === "amount" && Math.abs(sumOfAmounts - (parseFloat(formData.amount) || 0)) > 0.02 && (
+        <p className="text-[10px] font-bold text-red-500 pl-1">
+          {isTr ? `Toplam tutar (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) ile girilen tutarların toplamı (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}) eşleşmiyor.` : `Total amount (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) does not match sum of amounts (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}).`}
+        </p>
+      )}
 
-      {/* Save Button */}
-      <motion.button 
-        disabled={loading} 
-        whileTap={{ scale: 0.98 }} 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
-      >
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-        ) : (
-          <span>{isTr ? "Kaydet" : "Save"}</span>
-        )}
+      <motion.button disabled={loading} whileTap={{ scale: 0.98 }} className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4">
+        {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>{isTr ? "Kaydet" : "Save"}</span>}
       </motion.button>
     </form>
   );

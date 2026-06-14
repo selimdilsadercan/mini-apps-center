@@ -137,11 +137,11 @@ RETURNS TABLE (
     end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE,
     emoji TEXT,
+    share_id TEXT,
     member_count BIGINT,
-    total_spent DECIMAL
+    total_spent DECIMAL,
+    user_share DECIMAL
 ) AS $$
-DECLARE
-    v_user_id UUID := public.get_internal_user_id(p_user_id);
 BEGIN
     RETURN QUERY
     SELECT 
@@ -156,12 +156,53 @@ BEGIN
         p.end_date,
         p.created_at,
         p.emoji,
+        p.share_id,
         (SELECT COUNT(*) FROM budget.members m WHERE m.project_id = p.id)::BIGINT as member_count,
-        COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent
+        COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent,
+        COALESCE((SELECT SUM(s.share_amount) FROM budget.expense_shares s JOIN budget.members m ON s.member_id = m.id JOIN public.users u2 ON m.user_id = u2.id WHERE m.project_id = p.id AND (u2.clerk_id = p_user_id OR u2.local_clerk_id = p_user_id)), 0)::DECIMAL as user_share
     FROM budget.projects p
-    WHERE p.creator_id = v_user_id
-       OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id)
+    JOIN public.users u ON p.creator_id = u.id OR p.id IN (SELECT project_id FROM budget.members m WHERE m.user_id = u.id)
+    WHERE u.clerk_id = p_user_id OR u.local_clerk_id = p_user_id
     ORDER BY p.created_at DESC;
+END;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+-- 5. Get Project By Share ID
+DROP FUNCTION IF EXISTS budget.get_project_by_share_id(TEXT);
+CREATE OR REPLACE FUNCTION budget.get_project_by_share_id(
+    p_share_id TEXT
+)
+RETURNS TABLE (
+    id UUID,
+    creator_id UUID,
+    name TEXT,
+    description TEXT,
+    currency TEXT,
+    target_budget DECIMAL,
+    group_type TEXT,
+    start_date DATE,
+    end_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE,
+    emoji TEXT,
+    share_id TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id,
+        p.creator_id,
+        p.name,
+        p.description,
+        p.currency,
+        p.target_budget,
+        p.group_type,
+        p.start_date,
+        p.end_date,
+        p.created_at,
+        p.emoji,
+        p.share_id
+    FROM budget.projects p
+    WHERE p.share_id = p_share_id;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 

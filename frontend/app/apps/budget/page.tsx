@@ -158,7 +158,11 @@ export default function BudgetDashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {projects.map((project) => {
+              {[...projects].sort((a, b) => {
+                const dateA = a.startDate || a.createdAt;
+                const dateB = b.startDate || b.createdAt;
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+              }).map((project) => {
                 const dateRange = getProjectRangeLabel(project.startDate, project.endDate);
                 return (
                   <div
@@ -191,11 +195,11 @@ export default function BudgetDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {/* Total spent badge */}
-                      {project.totalSpent !== undefined && Number(project.totalSpent) > 0 && (
+                      {/* User share badge */}
+                      {project.userShare !== undefined && Number(project.userShare) > 0 && (
                         <div className="text-right">
                           <span className="text-sm font-extrabold text-gray-900">
-                            {getCurrencySymbol(project.currency)}{formatVal(Number(project.totalSpent))}
+                            {getCurrencySymbol(project.currency)}{formatVal(Number(project.userShare))}
                           </span>
                         </div>
                       )}

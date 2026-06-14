@@ -43,6 +43,14 @@ BEGIN
     IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'budget' AND table_name = 'projects' AND column_name = 'emoji') THEN
         ALTER TABLE budget.projects ADD COLUMN emoji TEXT DEFAULT '🏖️';
     END IF;
+
+    -- Ensure share_id column exists
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'budget' AND table_name = 'projects' AND column_name = 'share_id') THEN
+        ALTER TABLE budget.projects ADD COLUMN share_id TEXT UNIQUE DEFAULT substring(md5(random()::text), 1, 8);
+        -- Backfill existing rows
+        UPDATE budget.projects SET share_id = substring(md5(random()::text), 1, 8) WHERE share_id IS NULL;
+        ALTER TABLE budget.projects ALTER COLUMN share_id SET NOT NULL;
+    END IF;
 END $$;
 
 --------------------------------------------------------------------------------
@@ -67,6 +75,7 @@ CREATE TABLE IF NOT EXISTS budget.projects (
     start_date DATE,
     end_date DATE,
     emoji TEXT DEFAULT '🏖️',
+    share_id TEXT UNIQUE DEFAULT substring(md5(random()::text), 1, 8),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
