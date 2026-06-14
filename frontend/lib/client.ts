@@ -1445,7 +1445,7 @@ export namespace daily_weather {
     }
 
     export interface WeatherPreferences {
-        "user_clerk_id": string
+        "user_id": string
         "notifications_enabled": boolean
         "notify_hour": number
         "notify_minute": number

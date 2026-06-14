@@ -141,7 +141,7 @@ export const addConcert = api(
       throw APIError.internal(`Failed to add concert: ${error.message}`);
     }
 
-    return { concert: data?.[0] || null };
+    return { concert: (data as Concert[] | null)?.[0] || null };
   }
 );
 
@@ -169,7 +169,7 @@ export const editConcert = api(
       throw APIError.internal(`Failed to edit concert: ${error.message}`);
     }
 
-    return { concert: data?.[0] || null };
+    return { concert: (data as Concert[] | null)?.[0] || null };
   }
 );
 

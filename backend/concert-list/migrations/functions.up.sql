@@ -1,4 +1,9 @@
 -- ConcertList RPC Functions
+-- 1. get_concerts(clerk_id_param TEXT)
+-- 2. add_concert(clerk_id_param TEXT, artist_param TEXT, date_param DATE, venue_param TEXT, notes_param TEXT, rating_param INTEGER, friend_ids_param TEXT[], image_url_param TEXT)
+-- 3. edit_concert(concert_id_param UUID, clerk_id_param TEXT, artist_param TEXT, date_param DATE, venue_param TEXT, notes_param TEXT, rating_param INTEGER, friend_ids_param TEXT[], image_url_param TEXT)
+-- 4. delete_concert(concert_id_param UUID, clerk_id_param TEXT)
+-- 5. bulk_import_concerts(clerk_id_param TEXT, p_concerts JSONB)
 
 -- 1. get_concerts
 DROP FUNCTION IF EXISTS concert_list.get_concerts(TEXT);
@@ -267,10 +272,7 @@ CREATE OR REPLACE FUNCTION concert_list.bulk_import_concerts(
     clerk_id_param TEXT,
     p_concerts JSONB
 )
-RETURNS INTEGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+RETURNS INTEGER AS $$
 DECLARE
     v_user_uuid UUID;
     v_concert JSONB;
@@ -309,8 +311,4 @@ BEGIN
 
     RETURN v_inserted_count;
 END;
-$$;
-
--- 6. Grants
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA concert_list TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA concert_list GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

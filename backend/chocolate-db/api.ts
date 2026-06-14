@@ -276,7 +276,7 @@ export const importProducts = api(
 export const addReview = api(
     { expose: true, method: "POST", path: "/chocolate/review" },
     async (params: AddReviewRequest): Promise<{ success: boolean }> => {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .schema("chocolate_db")
             .rpc("add_review", {
                 p_chocolate_id: params.chocolate_id,
@@ -290,7 +290,7 @@ export const addReview = api(
             throw APIError.internal(`Failed to add review: ${error.message}`);
         }
 
-        return { success: true };
+        return { success: !!data };
     }
 );
 
@@ -303,7 +303,7 @@ export interface DeleteReviewRequest {
 export const deleteReview = api(
     { expose: true, method: "POST", path: "/chocolate/review/delete" },
     async (params: DeleteReviewRequest): Promise<{ success: boolean }> => {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .schema("chocolate_db")
             .rpc("delete_review", {
                 p_chocolate_id: params.chocolate_id,
@@ -314,7 +314,7 @@ export const deleteReview = api(
             throw APIError.internal(`Failed to delete review: ${error.message}`);
         }
 
-        return { success: true };
+        return { success: !!data };
     }
 );
 
@@ -336,7 +336,7 @@ export interface SetUserStateRequest {
 export const setUserState = api(
     { expose: true, method: "POST", path: "/chocolate/state" },
     async (params: SetUserStateRequest): Promise<{ success: boolean }> => {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .schema("chocolate_db")
             .rpc("set_user_state", {
                 p_clerk_id: params.userId,
@@ -348,6 +348,6 @@ export const setUserState = api(
             throw APIError.internal(`Failed to set user state: ${error.message}`);
         }
 
-        return { success: true };
+        return { success: !!data };
     }
 );

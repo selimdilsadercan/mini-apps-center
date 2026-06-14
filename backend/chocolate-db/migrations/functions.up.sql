@@ -1,8 +1,13 @@
 -- ChocolateDB RPC Functions
+-- 1. get_chocolates(p_clerk_id TEXT)
+-- 2. add_review(p_chocolate_id TEXT, p_rating INTEGER, p_comment TEXT, p_reviewer_name TEXT, p_clerk_id TEXT)
+-- 3. set_user_state(p_clerk_id TEXT, p_chocolate_id TEXT, p_state TEXT)
+-- 4. get_chocolate_detail(p_id TEXT)
+-- 5. get_reviews_for_chocolate(p_chocolate_id TEXT)
+-- 6. delete_review(p_chocolate_id TEXT, p_clerk_id TEXT)
 
 -- 1. get_chocolates
 DROP FUNCTION IF EXISTS chocolate_db.get_chocolates(TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.get_chocolates(p_clerk_id TEXT)
 RETURNS TABLE (
     id TEXT,
@@ -10,10 +15,7 @@ RETURNS TABLE (
     review_count INTEGER,
     user_state TEXT,
     user_rating INTEGER
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+) AS $$
 DECLARE
     v_user_id UUID;
 BEGIN
@@ -48,11 +50,10 @@ BEGIN
         ON us.chocolate_id = cid.chocolate_id AND us.user_id = v_user_id
     ORDER BY avg_rating DESC, id ASC;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. add_review
 DROP FUNCTION IF EXISTS chocolate_db.add_review(TEXT, INTEGER, TEXT, TEXT, TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.add_review(
     p_chocolate_id TEXT,
     p_rating INTEGER,
@@ -60,12 +61,10 @@ CREATE OR REPLACE FUNCTION chocolate_db.add_review(
     p_reviewer_name TEXT,
     p_clerk_id TEXT
 )
-RETURNS VOID
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+RETURNS chocolate_db.reviews AS $$
 DECLARE
     v_user_id UUID;
+    v_result chocolate_db.reviews;
 BEGIN
     v_user_id := public.get_internal_user_id(p_clerk_id);
 
@@ -76,52 +75,52 @@ BEGIN
         rating = EXCLUDED.rating,
         comment = EXCLUDED.comment,
         reviewer_name = EXCLUDED.reviewer_name,
-        created_at = now();
+        created_at = now()
+    RETURNING * INTO v_result;
+
+    RETURN v_result;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. set_user_state
 DROP FUNCTION IF EXISTS chocolate_db.set_user_state(TEXT, TEXT, TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.set_user_state(
     p_clerk_id TEXT,
     p_chocolate_id TEXT,
     p_state TEXT
 )
-RETURNS VOID
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+RETURNS chocolate_db.user_states AS $$
 DECLARE
     v_user_id UUID;
+    v_result chocolate_db.user_states;
 BEGIN
     v_user_id := public.get_internal_user_id(p_clerk_id);
 
     IF p_state IS NULL OR p_state = '' THEN
         DELETE FROM chocolate_db.user_states
-        WHERE user_id = v_user_id AND chocolate_id = p_chocolate_id;
+        WHERE user_id = v_user_id AND chocolate_id = p_chocolate_id
+        RETURNING * INTO v_result;
     ELSE
         INSERT INTO chocolate_db.user_states (user_id, chocolate_id, state, updated_at)
         VALUES (v_user_id, p_chocolate_id, p_state, now())
         ON CONFLICT (user_id, chocolate_id)
-        DO UPDATE SET state = EXCLUDED.state, updated_at = now();
+        DO UPDATE SET state = EXCLUDED.state, updated_at = now()
+        RETURNING * INTO v_result;
     END IF;
+
+    RETURN v_result;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. get_chocolate_detail
 DROP FUNCTION IF EXISTS chocolate_db.get_chocolate_detail(TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.get_chocolate_detail(p_id TEXT)
 RETURNS TABLE (
     id TEXT,
     avg_rating DECIMAL,
     review_count INTEGER,
     reviews JSONB
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+) AS $$
 BEGIN
     RETURN QUERY
     SELECT
@@ -129,68 +128,51 @@ BEGIN
         COALESCE(ROUND(AVG(r.rating)::numeric, 2), 0) AS avg_rating,
         COUNT(r.id)::INTEGER AS review_count,
         COALESCE(
-            jsonb_agg(
+            (SELECT jsonb_agg(
                 jsonb_build_object(
-                    'id', r.id,
-                    'rating', r.rating,
-                    'comment', r.comment,
-                    'reviewer_name', r.reviewer_name,
-                    'created_at', r.created_at
-                ) ORDER BY r.created_at DESC
-            ),
+                    'id', rev.id,
+                    'rating', rev.rating,
+                    'comment', rev.comment,
+                    'reviewer_name', rev.reviewer_name,
+                    'created_at', rev.created_at
+                ) ORDER BY rev.created_at DESC
+            ) FROM chocolate_db.reviews rev WHERE rev.chocolate_id = p_id),
             '[]'::jsonb
         ) AS reviews
     FROM chocolate_db.reviews r
     WHERE r.chocolate_id = p_id;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. get_reviews_for_chocolate
 DROP FUNCTION IF EXISTS chocolate_db.get_reviews_for_chocolate(TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.get_reviews_for_chocolate(p_chocolate_id TEXT)
-RETURNS TABLE (
-    id UUID,
-    rating INTEGER,
-    comment TEXT,
-    reviewer_name TEXT,
-    created_at TIMESTAMPTZ
-)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-    SELECT 
-        r.id,
-        r.rating,
-        r.comment,
-        r.reviewer_name,
-        r.created_at
+RETURNS SETOF chocolate_db.reviews AS $$
+BEGIN
+    RETURN QUERY
+    SELECT *
     FROM chocolate_db.reviews r
     WHERE r.chocolate_id = p_chocolate_id
     ORDER BY r.created_at DESC;
-$$;
+END;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 -- 6. delete_review
 DROP FUNCTION IF EXISTS chocolate_db.delete_review(TEXT, TEXT);
-
 CREATE OR REPLACE FUNCTION chocolate_db.delete_review(
     p_chocolate_id TEXT,
     p_clerk_id TEXT
 )
-RETURNS VOID
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+RETURNS BOOLEAN AS $$
 DECLARE
     v_user_id UUID;
+    v_deleted BOOLEAN;
 BEGIN
     v_user_id := public.get_internal_user_id(p_clerk_id);
 
     DELETE FROM chocolate_db.reviews 
     WHERE chocolate_id = p_chocolate_id AND user_id = v_user_id;
-END;
-$$;
 
--- 7. Grants
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA chocolate_db TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA chocolate_db GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

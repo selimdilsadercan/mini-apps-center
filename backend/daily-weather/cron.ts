@@ -7,7 +7,7 @@ import {
   fetchWeatherSnapshot,
 } from "./weather_provider";
 import { getIstanbulClock, markNotifiedToday, sendWeatherPush } from "./push";
-import type { WeatherPreferences } from "./daily_weather";
+import type { WeatherPreferences } from "./api";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -22,7 +22,7 @@ export const dispatchMorningNotifications = api(
     const { data: rows, error } = await supabase
       .schema("daily_weather")
       .from("preferences")
-      .select("*")
+      .select("*, user:user_id(clerk_id)")
       .eq("notifications_enabled", true)
       .eq("notify_hour", hour)
       .eq("notify_minute", minute);
@@ -36,8 +36,10 @@ export const dispatchMorningNotifications = api(
     let skipped = 0;
 
     for (const row of rows ?? []) {
-      const prefs = row as WeatherPreferences & { last_notified_date?: string | null };
-      if (prefs.last_notified_date === dateKey) {
+      const prefs = row as any;
+      const clerkId = prefs.user?.clerk_id;
+
+      if (!clerkId || prefs.last_notified_date === dateKey) {
         skipped++;
         continue;
       }
@@ -66,15 +68,15 @@ export const dispatchMorningNotifications = api(
           },
         };
 
-        const { pushSent } = await sendWeatherPush(supabase, prefs.user_clerk_id, payload);
+        const { pushSent } = await sendWeatherPush(supabase, clerkId, payload);
         if (pushSent) {
-          await markNotifiedToday(supabase, prefs.user_clerk_id, dateKey);
+          await markNotifiedToday(supabase, prefs.user_id, dateKey);
           sent++;
         } else {
           skipped++;
         }
       } catch (err) {
-        console.error(`dispatchMorningNotifications user ${prefs.user_clerk_id}:`, err);
+        console.error(`dispatchMorningNotifications user ${prefs.user_id}:`, err);
         skipped++;
       }
     }

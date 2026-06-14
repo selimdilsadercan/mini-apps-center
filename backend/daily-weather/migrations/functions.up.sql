@@ -1,41 +1,24 @@
 -- DailyWeather RPC Functions
+-- 1. get_preferences(clerk_id_param TEXT)
+-- 2. upsert_preferences(clerk_id_param TEXT, notifications_enabled_param BOOLEAN, notify_hour_param INTEGER, notify_minute_param INTEGER, city_param TEXT)
 
 -- 1. get_preferences
 DROP FUNCTION IF EXISTS daily_weather.get_preferences(TEXT);
 CREATE OR REPLACE FUNCTION daily_weather.get_preferences(clerk_id_param TEXT)
-RETURNS TABLE (
-    user_id UUID,
-    notifications_enabled BOOLEAN,
-    notify_hour INTEGER,
-    notify_minute INTEGER,
-    city TEXT,
-    last_notified_date DATE,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-#variable_conflict use_column
+RETURNS daily_weather.preferences AS $$
 DECLARE
     v_user_uuid UUID;
+    v_result daily_weather.preferences;
 BEGIN
     v_user_uuid := public.get_internal_user_id(clerk_id_param);
 
-    RETURN QUERY
-    SELECT 
-        p.user_id,
-        p.notifications_enabled,
-        p.notify_hour,
-        p.notify_minute,
-        p.city,
-        p.last_notified_date,
-        p.created_at,
-        p.updated_at
+    SELECT * INTO v_result
     FROM daily_weather.preferences p
     WHERE p.user_id = v_user_uuid;
+    
+    RETURN v_result;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. upsert_preferences
 DROP FUNCTION IF EXISTS daily_weather.upsert_preferences(TEXT, BOOLEAN, INTEGER, INTEGER, TEXT);
@@ -46,26 +29,13 @@ CREATE OR REPLACE FUNCTION daily_weather.upsert_preferences(
     notify_minute_param INTEGER DEFAULT 0,
     city_param TEXT DEFAULT 'Istanbul'
 )
-RETURNS TABLE (
-    user_id UUID,
-    notifications_enabled BOOLEAN,
-    notify_hour INTEGER,
-    notify_minute INTEGER,
-    city TEXT,
-    last_notified_date DATE,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-#variable_conflict use_column
+RETURNS daily_weather.preferences AS $$
 DECLARE
     v_user_uuid UUID;
+    v_result daily_weather.preferences;
 BEGIN
     v_user_uuid := public.get_internal_user_id(clerk_id_param);
 
-    RETURN QUERY
     INSERT INTO daily_weather.preferences (
         user_id,
         notifications_enabled,
@@ -88,17 +58,11 @@ BEGIN
         notify_minute = EXCLUDED.notify_minute,
         city = EXCLUDED.city,
         updated_at = NOW()
-    RETURNING 
-        daily_weather.preferences.user_id,
-        daily_weather.preferences.notifications_enabled,
-        daily_weather.preferences.notify_hour,
-        daily_weather.preferences.notify_minute,
-        daily_weather.preferences.city,
-        daily_weather.preferences.last_notified_date,
-        daily_weather.preferences.created_at,
-        daily_weather.preferences.updated_at;
+    RETURNING * INTO v_result;
+
+    RETURN v_result;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. Grants
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA daily_weather TO anon, authenticated, service_role;

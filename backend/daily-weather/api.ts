@@ -16,7 +16,7 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface WeatherPreferences {
-  user_clerk_id: string;
+  user_id: string;
   notifications_enabled: boolean;
   notify_hour: number;
   notify_minute: number;
@@ -42,7 +42,7 @@ export interface WeatherNotificationPayload {
 }
 
 const DEFAULT_PREFERENCES = (userId: string): WeatherPreferences => ({
-  user_clerk_id: userId,
+  user_id: userId,
   notifications_enabled: true,
   notify_hour: 7,
   notify_minute: 0,
@@ -68,12 +68,11 @@ function validateNotifyTime(hour: number, minute: number) {
 }
 
 function normalizePreferences(
-  row: Record<string, unknown> | null,
+  row: WeatherPreferences | null,
   userId: string,
 ): WeatherPreferences {
   if (!row) return DEFAULT_PREFERENCES(userId);
-  const prefs = row as WeatherPreferences;
-  return { ...prefs, notify_minute: prefs.notify_minute ?? 0 };
+  return { ...row, notify_minute: row.notify_minute ?? 0 };
 }
 
 function buildNotificationPayload(
@@ -163,19 +162,16 @@ export const getWeather = api(
 export const getPreferences = api(
   { expose: true, method: "GET", path: "/daily-weather/preferences/:userId" },
   async ({ userId }: GetPreferencesRequest): Promise<GetPreferencesResponse> => {
-    const { data, error } = await supabase
-      .schema("daily_weather")
-      .from("preferences")
-      .select("*")
-      .eq("user_clerk_id", userId)
-      .maybeSingle();
+    const { data, error } = await supabase.schema("daily_weather").rpc("get_preferences", {
+      clerk_id_param: userId,
+    });
 
     if (error) {
       console.error("getPreferences error:", error);
       throw APIError.internal(`Failed to load preferences: ${error.message}`);
     }
 
-    return { preferences: normalizePreferences(data, userId) };
+    return { preferences: normalizePreferences(data as WeatherPreferences | null, userId) };
   },
 );
 
@@ -191,36 +187,20 @@ export const upsertPreferences = api(
     validateNotifyTime(notifyHour, notifyMinute);
     await ensurePublicUser(userId);
 
-    const baseRow = {
-      user_clerk_id: userId,
-      notifications_enabled: notificationsEnabled,
-      notify_hour: notifyHour,
-      city: city ?? "Istanbul",
-      updated_at: new Date().toISOString(),
-    };
-
-    let { data, error } = await supabase
-      .schema("daily_weather")
-      .from("preferences")
-      .upsert({ ...baseRow, notify_minute: notifyMinute }, { onConflict: "user_clerk_id" })
-      .select()
-      .single();
-
-    if (error?.message?.includes("notify_minute")) {
-      ({ data, error } = await supabase
-        .schema("daily_weather")
-        .from("preferences")
-        .upsert(baseRow, { onConflict: "user_clerk_id" })
-        .select()
-        .single());
-    }
+    const { data, error } = await supabase.schema("daily_weather").rpc("upsert_preferences", {
+      clerk_id_param: userId,
+      notifications_enabled_param: notificationsEnabled,
+      notify_hour_param: notifyHour,
+      notify_minute_param: notifyMinute,
+      city_param: city ?? "Istanbul",
+    });
 
     if (error) {
       console.error("upsertPreferences error:", error);
       throw APIError.internal(`Failed to save preferences: ${error.message}`);
     }
 
-    return { preferences: normalizePreferences(data, userId) };
+    return { preferences: normalizePreferences(data as WeatherPreferences | null, userId) };
   },
 );
 
@@ -230,16 +210,13 @@ export const sendTestNotification = api(
     const { userId } = req;
     const { data: prefRow, error: prefError } = await supabase
       .schema("daily_weather")
-      .from("preferences")
-      .select("*")
-      .eq("user_clerk_id", userId)
-      .maybeSingle();
+      .rpc("get_preferences", { clerk_id_param: userId });
 
     if (prefError) {
       throw APIError.internal(`Failed to load preferences: ${prefError.message}`);
     }
 
-    const prefs = normalizePreferences(prefRow, userId);
+    const prefs = normalizePreferences(prefRow as WeatherPreferences | null, userId);
     const lang = req.locale === "en" ? "en" : "tr";
     const weather = await fetchWeatherSnapshot(prefs.city, lang);
     const payload = buildNotificationPayload(prefs, weather, lang);
