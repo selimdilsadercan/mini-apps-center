@@ -14,8 +14,7 @@ export type HobbyStatus = "interested" | "in_progress" | "learned";
 
 export interface UserHobbyTrack {
   id: string;
-  user_id: string | null;
-  clerk_id: string;
+  user_id: string;
   hobby_id: string;
   status: HobbyStatus;
   notes: string;
@@ -64,7 +63,7 @@ export const getUserHobbies = api(
       throw APIError.internal(`Failed to load user hobbies: ${error.message}`);
     }
 
-    return { tracks: data || [] };
+    return { tracks: (data as UserHobbyTrack[]) || [] };
   }
 );
 
@@ -88,6 +87,6 @@ export const updateUserHobby = api(
       throw APIError.internal(`Failed to update user hobby track: ${error.message}`);
     }
 
-    return { track: data?.[0] || null };
+    return { track: (data as UserHobbyTrack) || null };
   }
 );

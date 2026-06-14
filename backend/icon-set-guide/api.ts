@@ -115,7 +115,7 @@ export const toggleFavorite = api(
       throw APIError.internal(`Failed to toggle favorite: ${error.message}`);
     }
 
-    return { is_favorited: !!data };
+    return { is_favorited: data as boolean };
   }
 );
 

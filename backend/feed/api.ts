@@ -46,35 +46,31 @@ export interface GetFeedResponse {
 export const createEvent = api(
   { expose: true, method: "POST", path: "/feed/event" },
   async (req: CreateEventRequest): Promise<CreateEventResponse> => {
-    const { data, error } = await supabase
-      .schema("public")
-      .from("feed_events")
-      .insert({
-        user_id: req.userId,
-        username: req.username || null,
-        user_avatar: req.userAvatar || null,
-        app_id: req.appId,
-        event_type: req.eventType,
-        payload: req.payload || {},
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc("create_feed_event", {
+      clerk_id_param: req.userId,
+      username_param: req.username || null,
+      user_avatar_param: req.userAvatar || null,
+      app_id_param: req.appId,
+      event_type_param: req.eventType,
+      payload_param: req.payload || {},
+    });
 
     if (error) {
       console.error("createEvent error:", error);
       throw APIError.internal(`Failed to create feed event: ${error.message}`);
     }
 
+    const event = data as any;
     return {
       event: {
-        id: data.id,
-        userId: data.user_id,
-        username: data.username,
-        userAvatar: data.user_avatar,
-        appId: data.app_id,
-        eventType: data.event_type,
-        payload: data.payload,
-        createdAt: data.created_at,
+        id: event.id,
+        userId: event.user_id,
+        username: event.username,
+        userAvatar: event.user_avatar,
+        appId: event.app_id,
+        eventType: event.event_type,
+        payload: event.payload,
+        createdAt: event.created_at,
       },
     };
   }
@@ -84,46 +80,23 @@ export const createEvent = api(
 export const getFeed = api(
   { expose: true, method: "GET", path: "/feed/:userId" },
   async (req: GetFeedRequest): Promise<GetFeedResponse> => {
-    // 1. Fetch friend list to get their clerk IDs if needed
-    let friendIds: string[] = [];
+    // 1. Fetch friend list to get their internal UUIDs
+    let friendUuids: string[] = [];
     if (req.scope !== "all") {
       try {
         const friendsRes = await friendship.getFriends({ userId: req.userId });
-        friendIds = (friendsRes.friends || []).map((f) => f.id);
+        friendUuids = (friendsRes.friends || []).map((f) => f.id);
       } catch (err) {
         console.error("Failed to fetch friends for feed:", err);
       }
     }
 
     // 2. Fetch events matching query scope
-    let query = supabase
-      .schema("public")
-      .from("feed_events")
-      .select(`
-        *,
-        users!left (
-          username,
-          full_name,
-          avatar_url
-        )
-      `);
-
-    if (req.scope === "friends") {
-      if (friendIds.length === 0) {
-        return { events: [] };
-      }
-      query = query.in("user_id", friendIds);
-    } else if (req.scope === "all") {
-      // All platform events - no user filter
-    } else {
-      // foryou (default) scope: userId + friends
-      const targetUserIds = [req.userId, ...friendIds];
-      query = query.in("user_id", targetUserIds);
-    }
-
-    const { data: rows, error } = await query
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const { data: rows, error } = await supabase.rpc("get_feed", {
+      clerk_id_param: req.userId,
+      scope_param: req.scope || "foryou",
+      friend_ids_param: friendUuids,
+    });
 
     if (error) {
       console.error("getFeed error:", error);
@@ -131,12 +104,11 @@ export const getFeed = api(
     }
 
     const events: FeedEvent[] = (rows || []).map((row: any) => {
-      const dbUser = row.users;
       return {
         id: row.id,
         userId: row.user_id,
-        username: dbUser?.username || row.username || dbUser?.full_name || "Anonim",
-        userAvatar: dbUser?.avatar_url || row.user_avatar,
+        username: row.creator_username || row.username || row.creator_full_name || "Anonim",
+        userAvatar: row.creator_avatar_url || row.user_avatar,
         appId: row.app_id,
         eventType: row.event_type,
         payload: row.payload,
@@ -160,19 +132,9 @@ export interface GetEventsByAppResponse {
 export const getEventsByApp = api(
   { expose: true, method: "GET", path: "/feed/app/:appId" },
   async ({ appId }: GetEventsByAppRequest): Promise<GetEventsByAppResponse> => {
-    const { data: rows, error } = await supabase
-      .schema("public")
-      .from("feed_events")
-      .select(`
-        *,
-        users!left (
-          username,
-          full_name,
-          avatar_url
-        )
-      `)
-      .eq("app_id", appId)
-      .order("created_at", { ascending: false });
+    const { data: rows, error } = await supabase.rpc("get_events_by_app", {
+      app_id_param: appId,
+    });
 
     if (error) {
       console.error("getEventsByApp error:", error);
@@ -180,12 +142,11 @@ export const getEventsByApp = api(
     }
 
     const events: FeedEvent[] = (rows || []).map((row: any) => {
-      const dbUser = row.users;
       return {
         id: row.id,
         userId: row.user_id,
-        username: dbUser?.username || row.username || dbUser?.full_name || "Anonim",
-        userAvatar: dbUser?.avatar_url || row.user_avatar,
+        username: row.creator_username || row.username || row.creator_full_name || "Anonim",
+        userAvatar: row.creator_avatar_url || row.user_avatar,
         appId: row.app_id,
         eventType: row.event_type,
         payload: row.payload,
@@ -207,20 +168,18 @@ export interface UpdateEventRequest {
 export const updateEvent = api(
   { expose: true, method: "PUT", path: "/feed/event/:id" },
   async (req: UpdateEventRequest): Promise<{ success: boolean }> => {
-    const { data, error } = await supabase
-      .schema("public")
-      .from("feed_events")
-      .update({ payload: req.payload })
-      .eq("id", req.id)
-      .eq("user_id", req.userId)
-      .select();
+    const { data, error } = await supabase.rpc("update_feed_event", {
+      id_param: req.id,
+      clerk_id_param: req.userId,
+      payload_param: req.payload,
+    });
 
     if (error) {
       console.error("updateEvent error:", error);
       throw APIError.internal(`Failed to update feed event: ${error.message}`);
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
       throw APIError.notFound("Feed event not found or unauthorized");
     }
 
@@ -237,20 +196,17 @@ export interface DeleteEventRequest {
 export const deleteEvent = api(
   { expose: true, method: "DELETE", path: "/feed/event/:id" },
   async (req: DeleteEventRequest): Promise<{ success: boolean }> => {
-    const { data, error } = await supabase
-      .schema("public")
-      .from("feed_events")
-      .delete()
-      .eq("id", req.id)
-      .eq("user_id", req.userId)
-      .select();
+    const { data, error } = await supabase.rpc("delete_feed_event", {
+      id_param: req.id,
+      clerk_id_param: req.userId,
+    });
 
     if (error) {
       console.error("deleteEvent error:", error);
       throw APIError.internal(`Failed to delete feed event: ${error.message}`);
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
       throw APIError.notFound("Feed event not found or unauthorized");
     }
 

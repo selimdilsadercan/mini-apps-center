@@ -14,7 +14,7 @@ export type StorageType = "fridge" | "freezer" | "pantry";
 
 export interface PantryItem {
   id: string;
-  user_id?: string | null;
+  user_id: string;
   name: string;
   amount: number;
   unit: string;
@@ -101,7 +101,7 @@ export const addItem = api(
       throw APIError.internal(`Failed to add pantry item: ${error.message}`);
     }
 
-    return { item: data?.[0] || null };
+    return { item: (data as PantryItem) || null };
   }
 );
 

@@ -62,8 +62,9 @@ export const memedexAssistant: AppAssistantModule = {
     },
   ],
   executors: {
-    list_memes: async ({ args }) => {
+    list_memes: async ({ userId, args }) => {
       const res = await memedex.getMemes({
+        userId,
         search: optionalString(args, "search") ?? "",
         tag: "",
         trend: "",
@@ -83,7 +84,7 @@ export const memedexAssistant: AppAssistantModule = {
         trendStatus: (optionalString(args, "trendStatus") as any) ?? "stable",
         mediaUrl: optionalString(args, "mediaUrl") ?? "",
         tags: (args.tags as any) ?? [],
-        createdBy: userId,
+        userId,
         parentId: undefined,
       });
       return res.meme ? [res.meme] : [];
@@ -103,9 +104,10 @@ export const memedexAssistant: AppAssistantModule = {
       });
       return res;
     },
-    like_meme: async ({ args }) => {
+    like_meme: async ({ userId, args }) => {
       const res = await memedex.likeMeme({
         id: requireString(args, "id"),
+        userId,
       });
       return res;
     },

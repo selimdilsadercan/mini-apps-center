@@ -1832,8 +1832,7 @@ export namespace hobby_center {
 
     export interface UserHobbyTrack {
         id: string
-        "user_id": string | null
-        "clerk_id": string
+        "user_id": string
         "hobby_id": string
         status: HobbyStatus
         notes: string
@@ -2118,13 +2117,13 @@ export namespace itu_yemekhane {
 
         /**
          * Get all disliked dishes for global display at the bottom via Supabase RPC.
-         * GET /disliked
+         * GET /itu-yemekhane/disliked/:userId
          */
-        public async getDislikedDishes(): Promise<{
+        public async getDislikedDishes(userId: string): Promise<{
     dishes: string[]
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/disliked`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/disliked/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     dishes: string[]
 }
@@ -2135,21 +2134,22 @@ export namespace itu_yemekhane {
          */
         public async getMenu(): Promise<MenuResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/menu`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/menu`)
             return await resp.json() as MenuResponse
         }
 
         /**
          * Toggles a dish (name) in the disliked library using Supabase RPC.
-         * POST /disliked
+         * POST /itu-yemekhane/disliked
          */
         public async toggleDislike(params: {
     dishName: string
+    userId: string
 }): Promise<{
     status: string
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/disliked`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/disliked`, JSON.stringify(params))
             return await resp.json() as {
     status: string
 }
@@ -2186,7 +2186,7 @@ export namespace kiler {
 
     export interface PantryItem {
         id: string
-        "user_id"?: string | null
+        "user_id": string
         name: string
         amount: number
         unit: string
@@ -2415,6 +2415,7 @@ export namespace kim_gelir {
  */
 export namespace map_tracker {
     export interface ImportRequest {
+        userId: string
         listName: string
         items: {
             name: string
@@ -2437,12 +2438,16 @@ export namespace map_tracker {
             this.toggleVisited = this.toggleVisited.bind(this)
         }
 
-        public async getData(): Promise<{
+        /**
+         * Get all lists and items for a user
+         * GET /map-tracker/data/:userId
+         */
+        public async getData(userId: string): Promise<{
     lists: any[]
     items: any[]
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     lists: any[]
     items: any[]
@@ -2450,13 +2455,19 @@ export namespace map_tracker {
         }
 
         /**
-         * Bulk import items
+         * Bulk import items for a user
+         * POST /map-tracker/import
          */
         public async importItems(params: ImportRequest): Promise<void> {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/import`, JSON.stringify(params))
         }
 
+        /**
+         * Toggle visited status for an item
+         * POST /map-tracker/toggle-visited
+         */
         public async toggleVisited(params: {
+    userId: string
     id: string
 }): Promise<void> {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/toggle-visited`, JSON.stringify(params))
@@ -2466,6 +2477,7 @@ export namespace map_tracker {
 
 export namespace memedex {
     export interface CreateMemeRequest {
+        userId: string
         title: string
         description?: string
         context?: string
@@ -2473,7 +2485,6 @@ export namespace memedex {
         trendStatus: string
         mediaUrl: string
         tags?: string[]
-        createdBy?: string
         parentId?: string
     }
 
@@ -2486,6 +2497,7 @@ export namespace memedex {
     }
 
     export interface GetMemesRequest {
+        userId?: string
         search?: string
         tag?: string
         trend?: string
@@ -2497,6 +2509,10 @@ export namespace memedex {
 
     export interface GetMemesResponse {
         memes: Meme[]
+    }
+
+    export interface LikeMemeRequest {
+        userId: string
     }
 
     export interface LikeMemeResponse {
@@ -2513,9 +2529,12 @@ export namespace memedex {
         "media_url": string
         tags: string[]
         "likes_count": number
-        "created_by": string
+        "creator_id": string | null
+        "creator_username": string | null
+        "creator_avatar": string | null
         "created_at": string
         "parent_id"?: string
+        "is_liked"?: boolean
     }
 
     export interface UpdateMemeRequest {
@@ -2574,6 +2593,7 @@ export namespace memedex {
                 search:      params.search,
                 tag:         params.tag,
                 trend:       params.trend,
+                userId:      params.userId,
             })
 
             // Now make the actual call to the API
@@ -2582,12 +2602,12 @@ export namespace memedex {
         }
 
         /**
-         * Like/Upvote a meme
+         * Like/Upvote a meme (toggles)
          * POST /memes/:id/like
          */
-        public async likeMeme(id: string): Promise<LikeMemeResponse> {
+        public async likeMeme(id: string, params: LikeMemeRequest): Promise<LikeMemeResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes/${encodeURIComponent(id)}/like`)
+            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes/${encodeURIComponent(id)}/like`, JSON.stringify(params))
             return await resp.json() as LikeMemeResponse
         }
 
@@ -2618,6 +2638,7 @@ export namespace movies_this_year {
         "vote_average": number
         popularity: number
         "genre_ids": number[]
+        "is_favorited"?: boolean
     }
 
     export class ServiceClient {
@@ -2629,11 +2650,12 @@ export namespace movies_this_year {
             this.getTopRatedMovies = this.getTopRatedMovies.bind(this)
             this.getUpcomingMovies = this.getUpcomingMovies.bind(this)
             this.syncMoviesThisYear = this.syncMoviesThisYear.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
         }
 
-        public async getMoviesThisYear(): Promise<GetMoviesResponse> {
+        public async getMoviesThisYear(userId: string): Promise<GetMoviesResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/discover`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/discover/${encodeURIComponent(userId)}`)
             return await resp.json() as GetMoviesResponse
         }
 
@@ -2668,6 +2690,23 @@ export namespace movies_this_year {
             const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/sync`)
             return await resp.json() as {
     count: number
+}
+        }
+
+        /**
+         * Toggles a movie in the user's favorites
+         * POST /movies-this-year/favorite
+         */
+        public async toggleFavorite(params: {
+    userId: string
+    movieId: number
+}): Promise<{
+    "is_favorited": boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/favorite`, JSON.stringify(params))
+            return await resp.json() as {
+    "is_favorited": boolean
 }
         }
     }

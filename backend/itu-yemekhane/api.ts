@@ -32,7 +32,7 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
  * Scrapes the ITU cafeteria menu from the provided external page.
  */
 export const getMenu = api(
-  { path: "/menu", expose: true, method: "GET" },
+  { path: "/itu-yemekhane/menu", expose: true, method: "GET" },
   async (): Promise<MenuResponse> => {
     const now = Date.now();
     if (cachedMenu && now - cacheTimestamp < CACHE_TTL) {
@@ -111,12 +111,13 @@ export const getMenu = api(
 
 /**
  * Toggles a dish (name) in the disliked library using Supabase RPC.
- * POST /disliked
+ * POST /itu-yemekhane/disliked
  */
 export const toggleDislike = api(
-  { path: "/disliked", expose: true, method: "POST" },
-  async (params: { dishName: string }): Promise<{ status: string }> => {
+  { path: "/itu-yemekhane/disliked", expose: true, method: "POST" },
+  async (params: { dishName: string; userId: string }): Promise<{ status: string }> => {
     const { data, error } = await supabase.schema("itu_yemekhane").rpc("toggle_dislike", {
+      clerk_id_param: params.userId,
       dish_name_param: params.dishName
     });
 
@@ -131,12 +132,14 @@ export const toggleDislike = api(
 
 /**
  * Get all disliked dishes for global display at the bottom via Supabase RPC.
- * GET /disliked
+ * GET /itu-yemekhane/disliked/:userId
  */
 export const getDislikedDishes = api(
-  { path: "/disliked", expose: true, method: "GET" },
-  async (): Promise<{ dishes: string[] }> => {
-    const { data, error } = await supabase.schema("itu_yemekhane").rpc("get_dislikes");
+  { path: "/itu-yemekhane/disliked/:userId", expose: true, method: "GET" },
+  async ({ userId }: { userId: string }): Promise<{ dishes: string[] }> => {
+    const { data, error } = await supabase.schema("itu_yemekhane").rpc("get_dislikes", {
+      clerk_id_param: userId
+    });
 
     if (error) {
       console.error("DEBUG: getDislikedDishes RPC error:", error);

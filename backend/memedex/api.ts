@@ -20,14 +20,18 @@ export interface Meme {
   media_url: string;
   tags: string[];
   likes_count: number;
-  created_by: string;
+  creator_id: string | null;
+  creator_username: string | null;
+  creator_avatar: string | null;
   created_at: string;
   parent_id?: string;
+  is_liked?: boolean;
 }
 
 // ==================== REQUEST/RESPONSE TYPES ====================
 
 interface GetMemesRequest {
+  userId?: string;
   search?: string;
   tag?: string;
   trend?: string;
@@ -42,6 +46,7 @@ interface GetMemesResponse {
 }
 
 interface CreateMemeRequest {
+  userId: string;
   title: string;
   description?: string;
   context?: string;
@@ -49,7 +54,6 @@ interface CreateMemeRequest {
   trendStatus: string;
   mediaUrl: string;
   tags?: string[];
-  createdBy?: string;
   parentId?: string;
 }
 
@@ -59,6 +63,7 @@ interface CreateMemeResponse {
 
 interface LikeMemeRequest {
   id: string;
+  userId: string;
 }
 
 interface LikeMemeResponse {
@@ -75,6 +80,7 @@ export const getMemes = api(
   { expose: true, method: "GET", path: "/memedex/memes" },
   async (params: GetMemesRequest): Promise<GetMemesResponse> => {
     const { data, error } = await supabase.schema("memedex").rpc("get_memes", {
+      clerk_id_param: params.userId || null,
       search_param: params.search || "",
       tag_param: params.tag || "",
       trend_param: params.trend || "",
@@ -101,6 +107,7 @@ export const createMeme = api(
   { expose: true, method: "POST", path: "/memedex/memes" },
   async (req: CreateMemeRequest): Promise<CreateMemeResponse> => {
     const { data, error } = await supabase.schema("memedex").rpc("create_meme", {
+      clerk_id_param: req.userId,
       title_param: req.title,
       description_param: req.description || "",
       context_param: req.context || "",
@@ -108,7 +115,6 @@ export const createMeme = api(
       trend_status_param: req.trendStatus,
       media_url_param: req.mediaUrl,
       tags_param: req.tags || [],
-      created_by_param: req.createdBy || "Anonymous",
       parent_id_param: req.parentId || null,
     });
 
@@ -117,19 +123,20 @@ export const createMeme = api(
       throw APIError.internal(`Failed to submit meme: ${error.message}`);
     }
 
-    return { meme: data?.[0] || null };
+    return { meme: (data as Meme) || null };
   }
 );
 
 /**
- * Like/Upvote a meme
+ * Like/Upvote a meme (toggles)
  * POST /memes/:id/like
  */
 export const likeMeme = api(
   { expose: true, method: "POST", path: "/memedex/memes/:id/like" },
-  async ({ id }: LikeMemeRequest): Promise<LikeMemeResponse> => {
+  async ({ id, userId }: LikeMemeRequest): Promise<LikeMemeResponse> => {
     const { data, error } = await supabase.schema("memedex").rpc("like_meme", {
       id_param: id,
+      clerk_id_param: userId,
     });
 
     if (error) {
@@ -179,7 +186,7 @@ export const updateMeme = api(
       throw APIError.internal(`Failed to update meme: ${error.message}`);
     }
 
-    return { meme: data?.[0] || null };
+    return { meme: (data as Meme) || null };
   }
 );
 
@@ -202,4 +209,3 @@ export const deleteMeme = api(
     return { success: !!data };
   }
 );
-

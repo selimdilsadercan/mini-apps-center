@@ -2,11 +2,19 @@ import { api, APIError } from "encore.dev/api";
 import log from "encore.dev/log";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { createSupabaseClient } from "../lib/supabase";
+import { secret } from "encore.dev/config";
 
 const API_KEY = "cb4898718f8913cfdfa5d7ca0f99344e";
 const BASE_URL = "https://api.themoviedb.org/3";
 // Encore build dizini yerine doğrudan kaynak dizinini hedefle
 const DATA_PATH = path.join(process.cwd(), "movies-this-year", "data", "movies_2026.json");
+
+// Supabase credentials as Encore secrets
+const supabaseUrl = secret("SupabaseUrl");
+const supabaseAnonKey = secret("SupabaseAnonKey");
+
+const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
 
@@ -20,6 +28,7 @@ export interface Movie {
   vote_average: number;
   popularity: number;
   genre_ids: number[];
+  is_favorited?: boolean;
 }
 
 export interface GetMoviesResponse {
@@ -83,12 +92,25 @@ export const syncMoviesThisYear = api(
 );
 
 export const getMoviesThisYear = api(
-  { expose: true, method: "GET", path: "/movies-this-year/discover" },
-  async (): Promise<GetMoviesResponse> => {
+  { expose: true, method: "GET", path: "/movies-this-year/discover/:userId" },
+  async ({ userId }: { userId: string }): Promise<GetMoviesResponse> => {
     try {
       log.info("Reading movies from data path", { path: DATA_PATH });
       const data = await fs.readFile(DATA_PATH, "utf-8");
       const movies: Movie[] = JSON.parse(data);
+
+      // Fetch user favorites
+      const { data: favorites, error } = await supabase
+        .schema("movies_this_year")
+        .rpc("get_favorites", { clerk_id_param: userId });
+
+      if (!error && favorites) {
+        const favoriteIds = new Set((favorites as any[]).map(f => f.movie_id));
+        movies.forEach(m => {
+          m.is_favorited = favoriteIds.has(m.id);
+        });
+      }
+
       return { movies };
     } catch (error: any) {
       log.error("Error reading movies JSON", { error: error.message, path: DATA_PATH });
@@ -117,6 +139,7 @@ export const getUpcomingMovies = api(
         backdrop_path: m.backdrop_path,
         release_date: m.release_date,
         vote_average: m.vote_average,
+        popularity: m.popularity,
         genre_ids: m.genre_ids,
       }));
 
@@ -147,6 +170,7 @@ export const getTopRatedMovies = api(
         backdrop_path: m.backdrop_path,
         release_date: m.release_date,
         vote_average: m.vote_average,
+        popularity: m.popularity,
         genre_ids: m.genre_ids,
       }));
 
@@ -154,5 +178,28 @@ export const getTopRatedMovies = api(
     } catch (error: any) {
       throw APIError.internal(`Failed to fetch top rated movies: ${error.message}`);
     }
+  }
+);
+
+/**
+ * Toggles a movie in the user's favorites
+ * POST /movies-this-year/favorite
+ */
+export const toggleFavorite = api(
+  { expose: true, method: "POST", path: "/movies-this-year/favorite" },
+  async ({ userId, movieId }: { userId: string; movieId: number }): Promise<{ is_favorited: boolean }> => {
+    const { data, error } = await supabase
+      .schema("movies_this_year")
+      .rpc("toggle_favorite", {
+        clerk_id_param: userId,
+        movie_id_param: movieId,
+      });
+
+    if (error) {
+      console.error("toggleFavorite error:", error);
+      throw APIError.internal(`Failed to toggle favorite: ${error.message}`);
+    }
+
+    return { is_favorited: data as boolean };
   }
 );

@@ -1,15 +1,15 @@
-import { api } from "encore.dev/api";
+import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 
 // Secrets
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
-const googleMapsApiKey = secret("GoogleMapsAPIKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 interface ImportRequest {
+  userId: string;
   listName: string;
   items: {
     name: string;
@@ -19,19 +19,6 @@ interface ImportRequest {
     longitude?: number;
     note?: string;
     metadata?: any;
-  }[];
-}
-
-interface GooglePlaceResponse {
-  status: string;
-  candidates?: {
-    geometry: {
-      location: {
-        lat: number;
-        lng: number;
-      };
-    };
-    formatted_address: string;
   }[];
 }
 
@@ -70,7 +57,10 @@ async function geocodeWithOSM(name: string, address?: string) {
   return null;
 }
 
-// Bulk import items
+/**
+ * Bulk import items for a user
+ * POST /map-tracker/import
+ */
 export const importItems = api(
   { expose: true, method: "POST", path: "/map-tracker/import" },
   async (req: ImportRequest): Promise<void> => {
@@ -78,7 +68,6 @@ export const importItems = api(
     const processedItems = await Promise.all(
       req.items.map(async (item) => {
         // Always try to geocode to get full metadata and precise coordinates
-        // even if some coordinates exist, Google's data is usually better.
         const geo = await geocodeWithOSM(item.name, item.address);
         
         if (geo) {
@@ -99,35 +88,55 @@ export const importItems = api(
     );
 
     const { error } = await supabase.schema("map_tracker").rpc("import_items", {
+      clerk_id_param: req.userId,
       p_list_name: req.listName,
       p_items: processedItems,
     });
 
     if (error) {
-      throw new Error(error.message);
+      console.error("importItems error:", error);
+      throw APIError.internal(`Failed to import items: ${error.message}`);
     }
   },
 );
 
+/**
+ * Get all lists and items for a user
+ * GET /map-tracker/data/:userId
+ */
 export const getData = api(
-  { expose: true, method: "GET", path: "/map-tracker/data" },
-  async (): Promise<{ lists: any[]; items: any[] }> => {
+  { expose: true, method: "GET", path: "/map-tracker/data/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ lists: any[]; items: any[] }> => {
     const { data, error } = await supabase
       .schema("map_tracker")
-      .rpc("get_data");
-    if (error) throw new Error(error.message);
+      .rpc("get_data", { clerk_id_param: userId });
+    
+    if (error) {
+      console.error("getData error:", error);
+      throw APIError.internal(`Failed to load map data: ${error.message}`);
+    }
+    
     return (data as any) || { lists: [], items: [] };
   },
 );
 
+/**
+ * Toggle visited status for an item
+ * POST /map-tracker/toggle-visited
+ */
 export const toggleVisited = api(
   { expose: true, method: "POST", path: "/map-tracker/toggle-visited" },
-  async (req: { id: string }): Promise<void> => {
+  async (req: { userId: string; id: string }): Promise<void> => {
     const { error } = await supabase
       .schema("map_tracker")
       .rpc("toggle_visited", {
-        p_id: req.id,
+        clerk_id_param: req.userId,
+        p_item_id: req.id,
       });
-    if (error) throw new Error(error.message);
+    
+    if (error) {
+      console.error("toggleVisited error:", error);
+      throw APIError.internal(`Failed to toggle visited status: ${error.message}`);
+    }
   },
 );

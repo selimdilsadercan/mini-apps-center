@@ -99,28 +99,22 @@ interface SaveNoteResponse {
 export const getGames = api(
   { expose: true, method: "GET", path: "/iskambil/games/:userId" },
   async ({ userId }: GetGamesRequest): Promise<GetGamesResponse> => {
-    // 1. Fetch user states from Supabase in parallel
-    const [favsResult, knownResult, notesResult] = await Promise.all([
-      supabase.schema("iskambil").from("favorites").select("game_id").eq("clerk_id", userId),
-      supabase.schema("iskambil").from("known_games").select("game_id").eq("clerk_id", userId),
-      supabase.schema("iskambil").from("notes").select("game_id, note").eq("clerk_id", userId),
-    ]);
+    // 1. Fetch user states from Supabase via RPC
+    const { data, error } = await supabase.schema("iskambil").rpc("get_user_game_states", {
+      clerk_id_param: userId,
+    });
 
-    if (favsResult.error || knownResult.error || notesResult.error) {
-      console.error("Failed to load user state:", {
-        favsError: favsResult.error,
-        knownError: knownResult.error,
-        notesError: notesResult.error
-      });
+    if (error) {
+      console.error("Failed to load user state:", error);
       throw APIError.internal("Failed to load user games state from database");
     }
 
-    // 2. Build fast lookup sets/maps
-    const favoritesSet = new Set((favsResult.data || []).map(f => f.game_id));
-    const knownSet = new Set((knownResult.data || []).map(k => k.game_id));
-    const notesMap = new Map((notesResult.data || []).map(n => [n.game_id, n.note]));
+    const state = data?.[0] || { favorites: [], known_games: [], notes: {} };
+    const favoritesSet = new Set(state.favorites || []);
+    const knownSet = new Set(state.known_games || []);
+    const notesMap = new Map(Object.entries(state.notes || {}));
 
-    // 3. Map local games JSON data and merge user states
+    // 2. Map local games JSON data and merge user states
     const games: Game[] = getGamesData().map((g: any) => ({
       id: g.id,
       name_tr: g.name_tr,
@@ -138,7 +132,7 @@ export const getGames = api(
       category_en: g.category_en,
       is_favorite: favoritesSet.has(g.id),
       is_known: knownSet.has(g.id),
-      user_note: notesMap.get(g.id) || null,
+      user_note: (notesMap.get(g.id) as string) || null,
       quick_rules_tr: g.quickRules_tr || null,
       quick_rules_en: g.quickRules_en || null,
       setup_tr: g.setup_tr || null,
@@ -161,7 +155,7 @@ export const getGames = api(
       })) : null,
     }));
 
-    // 4. Sort alphabetically by game name
+    // 3. Sort alphabetically by game name
     games.sort((a, b) => a.name_tr.localeCompare(b.name_tr, "tr"));
 
     return { games };
@@ -185,7 +179,7 @@ export const toggleFavorite = api(
       throw APIError.internal(`Failed to toggle favorite status: ${error.message}`);
     }
 
-    return { success: true, isFavorite: !!data };
+    return { success: true, isFavorite: data as boolean };
   }
 );
 
@@ -206,7 +200,7 @@ export const toggleKnown = api(
       throw APIError.internal(`Failed to toggle known status: ${error.message}`);
     }
 
-    return { success: true, isKnown: !!data };
+    return { success: true, isKnown: data as boolean };
   }
 );
 
@@ -229,8 +223,6 @@ export const saveNote = api(
       throw APIError.internal(`Failed to save note: ${error.message}`);
     }
 
-    return { success: true, note: data };
+    return { success: true, note: data as string | null };
   }
 );
-
-

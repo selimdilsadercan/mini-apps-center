@@ -10,7 +10,7 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 // ==================== TYPES ====================
 
 export interface ActivityInvite {
-  userId: string;
+  userId: string; // This is clerk_id returned from RPC
   username: string | null;
   avatar: string | null;
   status: 'gelirim' | 'belki' | 'gelemem' | 'bekliyor';
@@ -20,7 +20,7 @@ export interface ActivityInvite {
 
 export interface Activity {
   id: string;
-  creatorId: string;
+  creatorId: string; // This is clerk_id returned from RPC
   creatorUsername: string | null;
   creatorAvatar: string | null;
   title: string;
@@ -37,12 +37,12 @@ export interface Activity {
 // ==================== REQUEST/RESPONSE TYPES ====================
 
 export interface CreateActivityRequest {
-  creatorId: string;
+  creatorId: string; // clerk_id
   title: string;
   location: string;
   timeOption: string;
   customTime?: string;
-  invitedUserIds: string[];
+  invitedUserIds: string[]; // clerk_ids
   activityType?: string; // 'quick_invite', 'plan_poll', 'time_poll'
   options?: string[];
 }
@@ -53,7 +53,7 @@ export interface CreateActivityResponse {
 
 export interface RespondToActivityRequest {
   activityId: string;
-  userId: string;
+  userId: string; // clerk_id
   status?: string; // 'gelirim', 'belki', 'gelemem', 'bekliyor'
   selectedOptions?: string[];
 }
@@ -63,7 +63,7 @@ export interface RespondToActivityResponse {
 }
 
 export interface GetActivitiesRequest {
-  userId: string;
+  userId: string; // clerk_id
 }
 
 export interface GetActivitiesResponse {
@@ -80,14 +80,14 @@ export const createActivity = api(
   { expose: true, method: "POST", path: "/kim-gelir/create" },
   async (req: CreateActivityRequest): Promise<CreateActivityResponse> => {
     const { data, error } = await supabase.schema("kim_gelir").rpc("create_activity", {
-      p_creator_id: req.creatorId,
+      p_creator_clerk_id: req.creatorId,
       p_title: req.title,
       p_location: req.location,
       p_time_option: req.timeOption,
       p_custom_time: req.customTime || null,
-      p_invited_user_ids: req.invitedUserIds,
+      p_invited_clerk_ids: req.invitedUserIds,
       p_activity_type: req.activityType || 'quick_invite',
-      p_options: JSON.stringify(req.options || []),
+      p_options: req.options || [],
     });
 
     if (error) {
@@ -108,9 +108,9 @@ export const respondToActivity = api(
   async (req: RespondToActivityRequest): Promise<RespondToActivityResponse> => {
     const { data, error } = await supabase.schema("kim_gelir").rpc("respond_to_activity", {
       p_activity_id: req.activityId,
-      p_user_id: req.userId,
+      p_clerk_id: req.userId,
       p_status: req.status || 'bekliyor',
-      p_selected_options: JSON.stringify(req.selectedOptions || []),
+      p_selected_options: req.selectedOptions || [],
     });
 
     if (error) {
@@ -130,7 +130,7 @@ export const getActivities = api(
   { expose: true, method: "GET", path: "/kim-gelir/activities/:userId" },
   async ({ userId }: GetActivitiesRequest): Promise<GetActivitiesResponse> => {
     const { data, error } = await supabase.schema("kim_gelir").rpc("get_activities", {
-      p_user_id: userId,
+      p_clerk_id: userId,
     });
 
     if (error) {
@@ -140,7 +140,7 @@ export const getActivities = api(
 
     const activities: Activity[] = (data || []).map((row: any) => ({
       id: row.id,
-      creatorId: row.creator_id,
+      creatorId: row.creator_clerk_id,
       creatorUsername: row.creator_username,
       creatorAvatar: row.creator_avatar,
       title: row.title,
@@ -217,7 +217,7 @@ export const addActivityOption = api(
 
 export interface EditActivityRequest {
   activityId: string;
-  userId: string;
+  userId: string; // clerk_id
   title: string;
   location: string;
   timeOption: string;
@@ -235,6 +235,18 @@ export interface EditActivityResponse {
 export const editActivity = api(
   { expose: true, method: "POST", path: "/kim-gelir/edit" },
   async (req: EditActivityRequest): Promise<EditActivityResponse> => {
+    // Get internal user ID for the creator check
+    const { data: userData, error: userErr } = await supabase
+      .schema("public")
+      .from("users")
+      .select("id")
+      .or(`clerk_id.eq.${req.userId},local_clerk_id.eq.${req.userId}`)
+      .single();
+
+    if (userErr || !userData) {
+      throw APIError.notFound("User not found");
+    }
+
     const { error } = await supabase
       .schema("kim_gelir")
       .from("activities")
@@ -245,7 +257,7 @@ export const editActivity = api(
         custom_time: req.customTime || null,
       })
       .eq("id", req.activityId)
-      .eq("creator_id", req.userId);
+      .eq("creator_id", userData.id);
 
     if (error) {
       console.error("editActivity error:", error);
@@ -258,7 +270,7 @@ export const editActivity = api(
 
 export interface DeleteActivityRequest {
   activityId: string;
-  userId: string;
+  userId: string; // clerk_id
 }
 
 export interface DeleteActivityResponse {
@@ -272,12 +284,24 @@ export interface DeleteActivityResponse {
 export const deleteActivity = api(
   { expose: true, method: "POST", path: "/kim-gelir/delete" },
   async (req: DeleteActivityRequest): Promise<DeleteActivityResponse> => {
+    // Get internal user ID for the creator check
+    const { data: userData, error: userErr } = await supabase
+      .schema("public")
+      .from("users")
+      .select("id")
+      .or(`clerk_id.eq.${req.userId},local_clerk_id.eq.${req.userId}`)
+      .single();
+
+    if (userErr || !userData) {
+      throw APIError.notFound("User not found");
+    }
+
     const { error } = await supabase
       .schema("kim_gelir")
       .from("activities")
       .delete()
       .eq("id", req.activityId)
-      .eq("creator_id", req.userId);
+      .eq("creator_id", userData.id);
 
     if (error) {
       console.error("deleteActivity error:", error);
@@ -287,4 +311,3 @@ export const deleteActivity = api(
     return { success: true };
   }
 );
-
