@@ -44,6 +44,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. create_project
 DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[]);
 DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[], DATE, DATE);
+DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[], DATE, DATE, TEXT);
 
 CREATE OR REPLACE FUNCTION budget.create_project(
     creator_clerk_id_param TEXT,
@@ -54,7 +55,8 @@ CREATE OR REPLACE FUNCTION budget.create_project(
     group_type_param TEXT,
     member_names_param TEXT[],
     start_date_param DATE DEFAULT NULL,
-    end_date_param DATE DEFAULT NULL
+    end_date_param DATE DEFAULT NULL,
+    emoji_param TEXT DEFAULT '🏖️'
 )
 RETURNS UUID AS $$
 DECLARE
@@ -64,9 +66,9 @@ DECLARE
 BEGIN
     -- 1. Insert Project
     INSERT INTO budget.projects (
-        creator_clerk_id, name, description, currency, target_budget, group_type, start_date, end_date
+        creator_clerk_id, name, description, currency, target_budget, group_type, start_date, end_date, emoji
     ) VALUES (
-        creator_clerk_id_param, name_param, description_param, currency_param, target_budget_param, group_type_param, start_date_param, end_date_param
+        creator_clerk_id_param, name_param, description_param, currency_param, target_budget_param, group_type_param, start_date_param, end_date_param, emoji_param
     ) RETURNING id INTO v_project_id;
 
     -- 2. Fetch Creator's Name to auto-associate as a member
@@ -130,6 +132,7 @@ RETURNS TABLE (
     start_date DATE,
     end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE,
+    emoji TEXT,
     member_count BIGINT,
     total_spent DECIMAL
 ) AS $$
@@ -146,6 +149,7 @@ BEGIN
         p.start_date,
         p.end_date,
         p.created_at,
+        p.emoji,
         (SELECT COUNT(*) FROM budget.members m WHERE m.project_id = p.id)::BIGINT as member_count,
         COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent
     FROM budget.projects p
@@ -202,6 +206,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 6. update_project
 DROP FUNCTION IF EXISTS budget.update_project(UUID, TEXT, TEXT, TEXT, DECIMAL, TEXT, DATE, DATE);
+DROP FUNCTION IF EXISTS budget.update_project(UUID, TEXT, TEXT, TEXT, DECIMAL, TEXT, DATE, DATE, TEXT);
 
 CREATE OR REPLACE FUNCTION budget.update_project(
     project_id_param UUID,
@@ -211,7 +216,8 @@ CREATE OR REPLACE FUNCTION budget.update_project(
     target_budget_param DECIMAL,
     group_type_param TEXT,
     start_date_param DATE,
-    end_date_param DATE
+    end_date_param DATE,
+    emoji_param TEXT DEFAULT '🏖️'
 )
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -222,7 +228,8 @@ BEGIN
         target_budget = target_budget_param,
         group_type = group_type_param,
         start_date = start_date_param,
-        end_date = end_date_param
+        end_date = end_date_param,
+        emoji = emoji_param
     WHERE id = project_id_param;
     
     RETURN TRUE;

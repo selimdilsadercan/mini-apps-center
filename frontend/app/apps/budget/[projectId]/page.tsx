@@ -438,7 +438,7 @@ export default function ProjectDetailsPage() {
               {/* Plaj şemsiyesi görseli ve Başlık */}
               <div className="flex flex-col items-center text-center mb-6">
                 <div className="w-20 h-20 rounded-full bg-white border border-gray-200/60 flex items-center justify-center text-4xl shadow-sm mb-3 select-none">
-                  🏖️
+                  {project.emoji || "🏖️"}
                 </div>
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">
                   {project.name}
@@ -679,8 +679,7 @@ export default function ProjectDetailsPage() {
             {activeTab === "balances" && (
               <div className="flex-1 space-y-6">
                 {/* Net Debt/Receivable box at the top */}
-                {getMyNetBalance() !== 0 && (
-                  <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
                     <div className="w-12 h-12 rounded-xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-3xl select-none shadow-inner">
                       💸
                     </div>
@@ -688,14 +687,16 @@ export default function ProjectDetailsPage() {
                       <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                         {t.netStatus}
                       </h4>
-                      <p className={`text-base font-extrabold truncate ${getMyNetBalance() >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {getMyNetBalance() >= 0 
-                          ? `${isTr ? 'Alacağın Var' : 'You are owed'}: ${getCurrencySymbol(project.currency)}${formatVal(getMyNetBalance())}`
-                          : `${isTr ? 'Senin Borcun' : 'Your Debt'}: ${getCurrencySymbol(project.currency)}${formatVal(Math.abs(getMyNetBalance()))}`}
+                      <p className={`text-base font-extrabold truncate ${Math.abs(getMyNetBalance()) < 0.01 ? 'text-gray-400' : getMyNetBalance() > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {Math.abs(getMyNetBalance()) < 0.01
+                          ? (isTr ? 'Dengedesin' : 'You are settled up')
+                          : getMyNetBalance() > 0 
+                            ? `${isTr ? 'Alacağın Var' : 'You are owed'}: ${getCurrencySymbol(project.currency)}${formatVal(getMyNetBalance())}`
+                            : `${isTr ? 'Senin Borcun' : 'Your Debt'}: ${getCurrencySymbol(project.currency)}${formatVal(Math.abs(getMyNetBalance()))}`}
                       </p>
                     </div>
                   </div>
-                )}
+
 
                 {/* Show suggested repayments link */}
                 {transactions.length > 0 && (
@@ -750,8 +751,12 @@ export default function ProjectDetailsPage() {
                             </div>
                           </div>
 
-                          <span className={`text-sm font-extrabold ${bal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {bal >= 0 ? `+${getCurrencySymbol(project.currency)}${formatVal(bal)}` : `-${getCurrencySymbol(project.currency)}${formatVal(Math.abs(bal))}`}
+                          <span className={`text-sm font-extrabold ${Math.abs(bal) < 0.01 ? 'text-gray-400' : bal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            {Math.abs(bal) < 0.01 
+                              ? `${getCurrencySymbol(project.currency)}${formatVal(0)}`
+                              : bal > 0 
+                                ? `+${getCurrencySymbol(project.currency)}${formatVal(bal)}` 
+                                : `-${getCurrencySymbol(project.currency)}${formatVal(Math.abs(bal))}`}
                           </span>
                         </div>
                       );
@@ -880,6 +885,7 @@ function EditProjectForm({
     groupType: project.group_type || "trip",
     startDate: project.start_date ? project.start_date.split('T')[0] : "",
     endDate: project.end_date ? project.end_date.split('T')[0] : "",
+    emoji: project.emoji || "🏖️",
   });
   const [loading, setLoading] = useState(false);
 
@@ -900,7 +906,8 @@ function EditProjectForm({
         currency: formData.currency,
         groupType: formData.groupType,
         startDate: formData.startDate || undefined,
-        endDate: formData.endDate || undefined
+        endDate: formData.endDate || undefined,
+        emoji: formData.emoji
       });
       toast.success(isTr ? "Seyahat güncellendi" : "Trip details updated");
       onComplete();
@@ -914,6 +921,29 @@ function EditProjectForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
+      {/* Emoji Selection */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          {isTr ? "İkon Seç" : "Select Icon"}
+        </label>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
+          {["🏖️", "🏠", "🎟️", "🚗", "🍔", "🛒", "🛍️", "🍿", "⛺", "💵", "🏔️", "✈️", "🚢", "🎉", "💼", "🎓", "🏥", "🚲", "🎸", "⚽"].map((emo) => (
+            <button
+              key={emo}
+              type="button"
+              onClick={() => setFormData({ ...formData, emoji: emo })}
+              className={`flex-shrink-0 w-12 h-12 rounded-xl border flex items-center justify-center text-2xl transition-all active:scale-90 ${
+                formData.emoji === emo 
+                  ? "bg-blue-50 border-blue-500 shadow-sm" 
+                  : "bg-gray-50 border-gray-100 grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
+              }`}
+            >
+              {emo}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Title */}
       <div className="space-y-1">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">

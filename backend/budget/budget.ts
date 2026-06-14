@@ -20,6 +20,7 @@ export interface Project {
   start_date: string | null;
   end_date: string | null;
   created_at: string;
+  emoji: string;
   member_count?: number;
   total_spent?: number;
 }
@@ -71,6 +72,7 @@ interface CreateProjectRequest {
   memberNames: string[];
   startDate?: string;
   endDate?: string;
+  emoji?: string;
 }
 
 interface CreateProjectResponse {
@@ -117,6 +119,7 @@ export const createProject = api(
       member_names_param: req.memberNames,
       start_date_param: req.startDate || null,
       end_date_param: req.endDate || null,
+      emoji_param: req.emoji || '🏖️',
     });
 
     if (error) {
@@ -309,6 +312,7 @@ interface UpdateProjectRequest {
   groupType: string;
   startDate?: string;
   endDate?: string;
+  emoji?: string;
 }
 
 interface UpdateProjectResponse {
@@ -330,6 +334,7 @@ export const updateProject = api(
       group_type_param: req.groupType,
       start_date_param: req.startDate || null,
       end_date_param: req.endDate || null,
+      emoji_param: req.emoji || '🏖️',
     });
 
     if (error) {

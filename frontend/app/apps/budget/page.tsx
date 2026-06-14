@@ -159,7 +159,7 @@ export default function BudgetDashboard() {
                     <div className="flex items-center gap-4">
                       {/* Beach umbrella icon wrapper */}
                       <div className="w-14 h-14 rounded-2xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-3xl shadow-inner select-none">
-                        🏖️
+                        {project.emoji || "🏖️"}
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-base font-bold text-gray-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">
@@ -251,7 +251,8 @@ function CreateProjectForm({
     groupType: "trip",
     guestNameInput: "",
     startDate: "",
-    endDate: ""
+    endDate: "",
+    emoji: "🏖️"
   });
   
   // Explicitly seed the creator user as a member
@@ -351,7 +352,8 @@ function CreateProjectForm({
         groupType: formData.groupType,
         memberNames: finalGuests,
         startDate: formData.startDate || undefined,
-        endDate: formData.endDate || undefined
+        endDate: formData.endDate || undefined,
+        emoji: formData.emoji
       });
 
       toast.success(isTr ? "Bütçe başarıyla oluşturuldu" : "Budget created successfully");
@@ -366,6 +368,29 @@ function CreateProjectForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
+      {/* Emoji Selection */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          {isTr ? "İkon Seç" : "Select Icon"}
+        </label>
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
+          {["🏖️", "🏠", "🎟️", "🚗", "🍔", "🛒", "🛍️", "🍿", "⛺", "💵", "🏔️", "✈️", "🚢", "🎉", "💼", "🎓", "🏥", "🚲", "🎸", "⚽"].map((emo) => (
+            <button
+              key={emo}
+              type="button"
+              onClick={() => setFormData({ ...formData, emoji: emo })}
+              className={`flex-shrink-0 w-12 h-12 rounded-xl border flex items-center justify-center text-2xl transition-all active:scale-90 ${
+                formData.emoji === emo 
+                  ? "bg-blue-50 border-blue-500 shadow-sm" 
+                  : "bg-gray-50 border-gray-100 grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
+              }`}
+            >
+              {emo}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Title */}
       <div className="space-y-1">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">

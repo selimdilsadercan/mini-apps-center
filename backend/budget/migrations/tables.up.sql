@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS budget.projects (
     group_type TEXT NOT NULL DEFAULT 'trip', -- 'trip', 'home', 'event', 'other'
     start_date DATE,
     end_date DATE,
+    emoji TEXT DEFAULT '🏖️',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -59,3 +60,6 @@ GRANT ALL ON ALL TABLES IN SCHEMA budget TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA budget TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+
+-- 8. Migrations (Ensure existing tables are updated)
+ALTER TABLE budget.projects ADD COLUMN IF NOT EXISTS emoji TEXT DEFAULT '🏖️';

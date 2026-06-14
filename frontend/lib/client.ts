@@ -695,6 +695,7 @@ export namespace budget {
         memberNames: string[]
         startDate?: string
         endDate?: string
+        emoji?: string
     }
 
     export interface CreateProjectResponse {
@@ -748,6 +749,7 @@ export namespace budget {
         "start_date": string | null
         "end_date": string | null
         "created_at": string
+        emoji: string
         "member_count"?: number
         "total_spent"?: number
     }
@@ -785,6 +787,7 @@ export namespace budget {
         groupType: string
         startDate?: string
         endDate?: string
+        emoji?: string
     }
 
     export interface UpdateProjectResponse {

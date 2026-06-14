@@ -3,8 +3,7 @@ import { secret } from "encore.dev/config";
 import { appMeta } from "encore.dev";
 import { createSupabaseClient, User } from "../lib/supabase";
 
-const envType = appMeta().environment.type as string;
-const isLocal = envType === "local" || envType === "development";
+const isLocal = appMeta().environment.cloud === "local";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
