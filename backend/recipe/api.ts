@@ -41,14 +41,14 @@ interface GetRecipeByIdResponse {
 // ==================== API ENDPOINTS ====================
 
 /**
- * Belirli kullanıcının tariflerini getirir (RPC fonksiyonu kullanarak)
+ * Belirli kullanıcının tariflerini getirir
  * GET /recipe/user/:userId
  */
 export const getUserRecipes = api(
   { expose: true, method: "GET", path: "/recipe/user/:userId" },
   async ({ userId }: GetUserRecipesRequest): Promise<GetUserRecipesResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("get_user_recipes", {
-      user_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -61,7 +61,7 @@ export const getUserRecipes = api(
 );
 
 /**
- * Yeni tarif oluşturur (kullanıcı ID'si, malzemeler ve yapılış ile)
+ * Yeni tarif oluşturur
  * POST /recipe/create
  */
 export const createRecipe = api(
@@ -69,9 +69,9 @@ export const createRecipe = api(
   async ({ title, userId, ingredients, instructions }: CreateRecipeRequest): Promise<CreateRecipeResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("create", {
       title_param: title,
-      user_id_param: userId,
-      ingredients_param: ingredients || null,
-      instructions_param: instructions || null,
+      p_user_id: userId,
+      ingredients_param: ingredients || [],
+      instructions_param: instructions || [],
     });
 
     if (error) {
@@ -79,12 +79,23 @@ export const createRecipe = api(
       throw APIError.internal("Tarif oluşturulamadı");
     }
 
-    return { recipe: data?.[0] || null };
+    const row = data as any;
+    return { 
+      recipe: row ? {
+        id: row.id,
+        title: row.title,
+        image_url: row.image_url,
+        created_at: row.created_at,
+        created_user_id: row.created_user_id,
+        ingredients: row.ingredients,
+        instructions: row.instructions,
+      } : null 
+    };
   }
 );
 
 /**
- * Tek bir tarifin tüm detaylarını getirir (recipe ID ile)
+ * Tek bir tarifin tüm detaylarını getirir
  * GET /recipe/:recipeId
  */
 export const getRecipeById = api(
@@ -99,7 +110,18 @@ export const getRecipeById = api(
       return { recipe: null };
     }
 
-    return { recipe: data?.[0] || null };
+    const row = (data as any[])?.[0];
+    return { 
+      recipe: row ? {
+        id: row.id,
+        title: row.title,
+        image_url: row.image_url,
+        created_at: row.created_at,
+        created_user_id: row.created_user_id,
+        ingredients: row.ingredients,
+        instructions: row.instructions,
+      } : null 
+    };
   }
 );
 
@@ -115,7 +137,7 @@ interface DeleteRecipeResponse {
 }
 
 /**
- * Tarif siler (sadece tarifi oluşturan kullanıcı silebilir)
+ * Tarif siler
  * DELETE /recipe/:recipeId
  */
 export const deleteRecipe = api(
@@ -123,7 +145,7 @@ export const deleteRecipe = api(
   async ({ recipeId, userId }: DeleteRecipeRequest): Promise<DeleteRecipeResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("delete", {
       recipe_id_param: recipeId,
-      user_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -154,7 +176,7 @@ interface UpdateRecipeResponse {
 }
 
 /**
- * Tarifi günceller (sadece tarifi oluşturan kullanıcı güncelleyebilir)
+ * Tarifi günceller
  * PUT /recipe/:recipeId
  */
 export const updateRecipe = api(
@@ -162,10 +184,10 @@ export const updateRecipe = api(
   async ({ recipeId, userId, title, ingredients, instructions }: UpdateRecipeRequest): Promise<UpdateRecipeResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("update", {
       recipe_id_param: recipeId,
-      user_id_param: userId,
+      p_user_id: userId,
       title_param: title,
-      ingredients_param: ingredients || null,
-      instructions_param: instructions || null,
+      ingredients_param: ingredients || [],
+      instructions_param: instructions || [],
     });
 
     if (error) {
@@ -173,10 +195,21 @@ export const updateRecipe = api(
       throw APIError.internal("Tarif güncellenemedi");
     }
 
-    if (!data || data.length === 0) {
+    const row = data as any;
+    if (!row) {
       throw APIError.permissionDenied("Bu tarifi güncelleme yetkiniz yok");
     }
 
-    return { recipe: data[0] };
+    return { 
+      recipe: {
+        id: row.id,
+        title: row.title,
+        image_url: row.image_url,
+        created_at: row.created_at,
+        created_user_id: row.created_user_id,
+        ingredients: row.ingredients,
+        instructions: row.instructions,
+      }
+    };
   }
 );

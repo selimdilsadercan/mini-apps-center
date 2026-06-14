@@ -52,6 +52,7 @@ export default class Client {
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
+    public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
@@ -96,6 +97,7 @@ export default class Client {
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
+        this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
@@ -2936,6 +2938,56 @@ export namespace penalty_jar {
     }
 }
 
+export namespace pomodoro {
+    export interface GetSessionsResponse {
+        sessions: PomodoroSession[]
+    }
+
+    export interface PomodoroSession {
+        id: string
+        userId: string
+        type: "work" | "break"
+        durationMinutes: number
+        completedAt: string
+    }
+
+    export interface SaveSessionRequest {
+        userId: string
+        type: "work" | "break"
+        durationMinutes: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getSessions = this.getSessions.bind(this)
+            this.saveSession = this.saveSession.bind(this)
+        }
+
+        /**
+         * Gets all pomodoro sessions for a user
+         * GET /pomodoro/sessions/:userId
+         */
+        public async getSessions(userId: string): Promise<GetSessionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pomodoro/sessions/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetSessionsResponse
+        }
+
+        /**
+         * Saves a completed pomodoro session
+         * POST /pomodoro/session
+         */
+        public async saveSession(params: SaveSessionRequest): Promise<PomodoroSession> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pomodoro/session`, JSON.stringify(params))
+            return await resp.json() as PomodoroSession
+        }
+    }
+}
+
 /**
  * Recipe service - handles all recipe CRUD operations
  */
@@ -2991,7 +3043,7 @@ export namespace recipe {
         }
 
         /**
-         * Yeni tarif oluşturur (kullanıcı ID'si, malzemeler ve yapılış ile)
+         * Yeni tarif oluşturur
          * POST /recipe/create
          */
         public async createRecipe(params: CreateRecipeRequest): Promise<CreateRecipeResponse> {
@@ -3001,7 +3053,7 @@ export namespace recipe {
         }
 
         /**
-         * Tarif siler (sadece tarifi oluşturan kullanıcı silebilir)
+         * Tarif siler
          * DELETE /recipe/:recipeId
          */
         public async deleteRecipe(recipeId: string, params: DeleteRecipeRequest): Promise<DeleteRecipeResponse> {
@@ -3016,7 +3068,7 @@ export namespace recipe {
         }
 
         /**
-         * Tek bir tarifin tüm detaylarını getirir (recipe ID ile)
+         * Tek bir tarifin tüm detaylarını getirir
          * GET /recipe/:recipeId
          */
         public async getRecipeById(recipeId: string): Promise<GetRecipeByIdResponse> {
@@ -3026,7 +3078,7 @@ export namespace recipe {
         }
 
         /**
-         * Belirli kullanıcının tariflerini getirir (RPC fonksiyonu kullanarak)
+         * Belirli kullanıcının tariflerini getirir
          * GET /recipe/user/:userId
          */
         public async getUserRecipes(userId: string): Promise<GetUserRecipesResponse> {
@@ -3036,7 +3088,7 @@ export namespace recipe {
         }
 
         /**
-         * Tarifi günceller (sadece tarifi oluşturan kullanıcı güncelleyebilir)
+         * Tarifi günceller
          * PUT /recipe/:recipeId
          */
         public async updateRecipe(recipeId: string, params: UpdateRecipeRequest): Promise<UpdateRecipeResponse> {
@@ -3156,22 +3208,22 @@ export namespace subcenter {
     export interface GlobalPreset {
         id: string
         name: string
-        "plan_name": string
+        planName: string
         region: string
-        "avg_price": number
+        avgPrice: number
         currency: string
         category: string
         color: string
         icon: string
-        "usage_count": number
+        usageCount: number
         domain?: string
     }
 
     export interface Subscription {
         id: string
-        "user_id": string
+        userId: string
         name: string
-        "plan_name": string
+        planName: string
         region: string
         price: number
         currency: string
@@ -3179,10 +3231,10 @@ export namespace subcenter {
         category: string
         color: string
         icon: string
-        "start_date": string
-        "trial_duration": string | null
+        startDate: string
+        trialDuration: string | null
         website: string | null
-        "created_at": string
+        createdAt: string
     }
 
     export interface SubscriptionCategory {
@@ -3190,7 +3242,7 @@ export namespace subcenter {
         name: string
         icon: string
         color: string
-        "sort_order": number
+        sortOrder: number
     }
 
     export interface TcmbExchangeRate {
@@ -3354,33 +3406,33 @@ export namespace suggest {
     }
 
     export interface InboxSuggestion {
-        "suggestion_id": string
-        "sender_clerk_id": string
-        "sender_username": string | null
-        "sender_avatar": string | null
+        suggestionId: string
+        senderId: string
+        senderUsername: string | null
+        senderAvatar: string | null
         status: RecipientStatus
-        "updated_at": string
+        updatedAt: string
         id: string
-        "share_id": string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "preview_url": string | null
-        "expires_at": string | null
-        "opened_at": string | null
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
         reaction: string | null
-        "is_daily_pick": boolean
-        "created_at": string
+        isDailyPick: boolean
+        createdAt: string
     }
 
     export interface PublicDetailResponse {
         suggestion: Suggestion | null
-        "sender_clerk_id": string | null
-        "sender_username": string | null
-        "sender_avatar": string | null
+        senderId: string | null
+        senderUsername: string | null
+        senderAvatar: string | null
         isExpired: boolean
     }
 
@@ -3394,11 +3446,11 @@ export namespace suggest {
     }
 
     export interface RecipientInfo {
-        "recipient_clerk_id": string
-        "recipient_username": string | null
-        "recipient_avatar": string | null
+        recipientId: string
+        recipientUsername: string | null
+        recipientAvatar: string | null
         status: RecipientStatus
-        "updated_at": string
+        updatedAt: string
     }
 
     export type RecipientStatus = "pending" | "saved" | "completed" | "ignored"
@@ -3418,19 +3470,19 @@ export namespace suggest {
     export interface SentSuggestion {
         recipients: RecipientInfo[]
         id: string
-        "share_id": string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "preview_url": string | null
-        "expires_at": string | null
-        "opened_at": string | null
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
         reaction: string | null
-        "is_daily_pick": boolean
-        "created_at": string
+        isDailyPick: boolean
+        createdAt: string
     }
 
     export interface SongResult {
@@ -3444,42 +3496,42 @@ export namespace suggest {
 
     export interface Suggestion {
         id: string
-        "share_id": string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "preview_url": string | null
-        "expires_at": string | null
-        "opened_at": string | null
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
         reaction: string | null
-        "is_daily_pick": boolean
-        "created_at": string
+        isDailyPick: boolean
+        createdAt: string
     }
 
     export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "book"
 
     export interface SuggestionDetail {
-        "sender_clerk_id": string
-        "sender_username": string | null
-        "sender_avatar": string | null
-        "recipient_status": RecipientStatus | null
+        senderId: string
+        senderUsername: string | null
+        senderAvatar: string | null
+        recipientStatus: RecipientStatus | null
         id: string
-        "share_id": string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "preview_url": string | null
-        "expires_at": string | null
-        "opened_at": string | null
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
         reaction: string | null
-        "is_daily_pick": boolean
-        "created_at": string
+        isDailyPick: boolean
+        createdAt: string
     }
 
     export interface UpdateStatusRequest {
@@ -3510,8 +3562,7 @@ export namespace suggest {
         }
 
         /**
-         * Yeni bir öneri oluşturur ve alıcılara gönderir (veya link paylaşımı için oluşturur)
-         * POST /suggest/create
+         * Yeni bir öneri oluşturur ve alıcılara gönderir
          */
         public async createSuggestion(params: CreateSuggestionRequest): Promise<CreateSuggestionResponse> {
             // Now make the actual call to the API
@@ -3520,8 +3571,7 @@ export namespace suggest {
         }
 
         /**
-         * Gönderilen bir öneriyi gönderen için yumuşak siler (Inbox'ta ve linkte aktif kalır)
-         * POST /suggest/delete-sent
+         * Gönderilen bir öneriyi gönderen için yumuşak siler
          */
         public async deleteSentSuggestion(params: DeleteSentRequest): Promise<DeleteSentResponse> {
             // Now make the actual call to the API
@@ -3531,7 +3581,6 @@ export namespace suggest {
 
         /**
          * Get daily suggestion pick status for a user
-         * GET /suggest/daily-status/:userId
          */
         public async getDailyStatus(userId: string): Promise<DailyStatusResponse> {
             // Now make the actual call to the API
@@ -3541,7 +3590,6 @@ export namespace suggest {
 
         /**
          * Kullanıcıya gelen tüm önerileri listeler (Inbox)
-         * GET /suggest/inbox/:userId
          */
         public async getInbox(userId: string): Promise<InboxResponse> {
             // Now make the actual call to the API
@@ -3550,9 +3598,7 @@ export namespace suggest {
         }
 
         /**
-         * Public endpoint to fetch suggestion detail (no authentication required)
-         * Handles expiration check and registers "opened" state on first access.
-         * GET /suggest/public/:id
+         * Public endpoint to fetch suggestion detail
          */
         public async getPublicSuggestion(id: string, params: {
     userId?: string
@@ -3569,7 +3615,6 @@ export namespace suggest {
 
         /**
          * Kullanıcının gönderdiği tüm önerileri listeler (Sent)
-         * GET /suggest/sent/:userId
          */
         public async getSent(userId: string): Promise<SentResponse> {
             // Now make the actual call to the API
@@ -3578,8 +3623,7 @@ export namespace suggest {
         }
 
         /**
-         * Öneri detayını getirir (Gönderen veya Alıcı görebilir)
-         * GET /suggest/detail/:id/:userId
+         * Öneri detayını getirir
          */
         public async getSuggestionDetail(id: string, userId: string): Promise<DetailResponse> {
             // Now make the actual call to the API
@@ -3589,7 +3633,6 @@ export namespace suggest {
 
         /**
          * iTunes API üzerinden şarkı araması yapar
-         * GET /suggest/search/song
          */
         public async searchSong(params: SearchSongRequest): Promise<SearchSongResponse> {
             // Convert our params into the objects we need for the request
@@ -3604,7 +3647,6 @@ export namespace suggest {
 
         /**
          * Submit reaction for a suggestion publicly
-         * POST /suggest/reaction
          */
         public async submitReaction(params: ReactionRequest): Promise<ReactionResponse> {
             // Now make the actual call to the API
@@ -3613,8 +3655,7 @@ export namespace suggest {
         }
 
         /**
-         * Bir önerinin alıcı durumunu günceller (Save, Completed, Ignore, etc.)
-         * POST /suggest/status
+         * Bir önerinin alıcı durumunu günceller
          */
         public async updateStatus(params: UpdateStatusRequest): Promise<UpdateStatusResponse> {
             // Now make the actual call to the API
@@ -3665,7 +3706,7 @@ export namespace tasket {
 
     export interface TasketItem {
         id: string
-        clerkId: string
+        userId: string
         listId: string | null
         title: string | null
         content: string | null
@@ -3681,7 +3722,7 @@ export namespace tasket {
 
     export interface TasketList {
         id: string
-        clerkId: string
+        userId: string
         name: string
         content: any
         color: string | null
@@ -3765,14 +3806,14 @@ export namespace tasket {
 export namespace tournament {
     export interface Match {
         id: string
-        "tournament_id": string
+        tournamentId: string
         phase: "league" | "bracket"
         round: number
-        "player1_id": string | null
-        "player2_id": string | null
-        "player3_id"?: string | null
-        "player4_id"?: string | null
-        "winner_id": string | null
+        player1Id: string | null
+        player2Id: string | null
+        player3Id?: string | null
+        player4Id?: string | null
+        winnerId: string | null
         status: "upcoming" | "playing" | "finished" | "abandoned"
         scores?: { [key: string]: number }
         username1?: string
@@ -3791,8 +3832,8 @@ export namespace tournament {
 
     export interface Participant {
         id: string
-        "tournament_id": string
-        "user_id"?: string
+        tournamentId: string
+        userId?: string
         username: string
         avatar?: string
         points: number
@@ -3813,7 +3854,7 @@ export namespace tournament {
         slug: string
         icon?: string
         status: "upcoming" | "active" | "completed"
-        "admin_user_id": string
+        adminUserId: string
         capacity: number
         "advance_count": number
         "current_league_round": number
@@ -4216,69 +4257,69 @@ export namespace tutor_crm {
 
     export interface FollowedShare {
         id: string
-        "clerk_id": string
-        "share_id": string
+        userId: string
+        shareId: string
         alias?: string | null
-        "created_at": string
-        "is_active"?: boolean
+        createdAt: string
+        isActive?: boolean
     }
 
     export interface Homework {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
+        studentId: string
+        studentName?: string
+        userId: string
         task: string
-        "due_date"?: string | null
-        "is_completed": boolean
-        "created_at": string
+        dueDate?: string | null
+        isCompleted: boolean
+        createdAt: string
     }
 
     export interface Lesson {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
-        "lesson_date": string
-        "start_time": string
-        "end_time": string
+        studentId: string
+        studentName?: string
+        userId: string
+        lessonDate: string
+        startTime: string
+        endTime: string
         notes?: string | null
-        "next_lesson_plan"?: string | null
+        nextLessonPlan?: string | null
         status: "scheduled" | "completed" | "cancelled"
-        "created_at": string
+        createdAt: string
     }
 
     export interface Payment {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
+        studentId: string
+        studentName?: string
+        userId: string
         amount: number
-        "is_paid": boolean
-        "payment_date"?: string | null
-        "lesson_count": number
+        isPaid: boolean
+        paymentDate?: string | null
+        lessonCount: number
         month?: number | null
         year?: number | null
-        "created_at": string
+        createdAt: string
     }
 
     export interface Share {
         id: string
-        "clerk_id": string
-        "is_active": boolean
-        "allow_student_names": boolean
-        "created_at": string
+        userId: string
+        isActive: boolean
+        allowStudentNames: boolean
+        createdAt: string
     }
 
     export interface Student {
         id: string
-        "clerk_id": string
+        userId: string
         name: string
         subject: string
         level: string
-        "parent_contact"?: string | null
-        "hourly_rate": number
-        "created_at": string
+        parentContact?: string | null
+        hourlyRate: number
+        createdAt: string
     }
 
     export interface ToggleRequest {
@@ -4569,6 +4610,9 @@ export namespace users {
 
     export interface CreateUserRequest {
         clerkId: string
+        username?: string
+        fullName?: string
+        avatarUrl?: string
     }
 
     export interface CreateUserResponse {
@@ -4635,7 +4679,6 @@ export namespace users {
 
         /**
          * Clerk ID ile kullanıcının admin olup olmadığını sorgular
-         * GET /users/admin/check/:clerkId
          */
         public async checkAdmin(clerkId: string): Promise<CheckAdminResponse> {
             // Now make the actual call to the API
@@ -4645,7 +4688,6 @@ export namespace users {
 
         /**
          * Clerk ID ile yeni Supabase user oluşturur
-         * POST /identity/user/create
          */
         public async createUser(params: CreateUserRequest): Promise<CreateUserResponse> {
             // Now make the actual call to the API
@@ -4655,7 +4697,6 @@ export namespace users {
 
         /**
          * Clerk ID ile Supabase user'ı getirir, yoksa oluşturur
-         * POST /identity/user/get-or-create
          */
         public async getOrCreateUser(params: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> {
             // Now make the actual call to the API
@@ -4665,7 +4706,6 @@ export namespace users {
 
         /**
          * Clerk ID ile Supabase user'ı getirir
-         * GET /identity/user/clerk/:clerkId
          */
         public async getUserByClerkId(clerkId: string): Promise<GetUserByClerkIdResponse> {
             // Now make the actual call to the API
@@ -4675,7 +4715,6 @@ export namespace users {
 
         /**
          * Username ile Supabase user'ı getirir
-         * GET /users/user/username/:username
          */
         public async getUserByUsername(username: string): Promise<GetUserByUsernameResponse> {
             // Now make the actual call to the API
@@ -4685,7 +4724,6 @@ export namespace users {
 
         /**
          * Kullanıcının tercihlerini (sıralama vb.) getirir
-         * GET /users/preferences/:clerkId
          */
         public async getUserPreferences(clerkId: string): Promise<GetUserPreferencesResponse> {
             // Now make the actual call to the API
@@ -4695,7 +4733,6 @@ export namespace users {
 
         /**
          * Kullanıcının FCM token'ını kaydeder veya günceller
-         * POST /users/fcm-token
          */
         public async saveFcmToken(params: SaveFcmTokenRequest): Promise<SaveFcmTokenResponse> {
             // Now make the actual call to the API
@@ -4705,7 +4742,6 @@ export namespace users {
 
         /**
          * Kullanıcının uygulama sıralamasını günceller
-         * POST /users/app-order
          */
         public async updateAppOrder(params: UpdateAppOrderRequest): Promise<UpdateAppOrderResponse> {
             // Now make the actual call to the API
@@ -4791,7 +4827,7 @@ export namespace workplaces {
         parking: boolean
         "power_outlets": boolean
         "quiet_level": number
-        "suggested_by"?: string
+        userId?: string
         latitude?: number
         longitude?: number
         district?: string
@@ -5024,7 +5060,6 @@ export namespace lib {
 
     export interface User {
         id: string
-        "clerk_id": string
         username: string | null
         "full_name": string | null
         "avatar_url": string | null

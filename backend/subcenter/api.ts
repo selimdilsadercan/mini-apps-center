@@ -15,9 +15,9 @@ import { getUsdTryRateFromTcmb, type TcmbExchangeRate } from "./tcmb";
 
 export interface Subscription {
   id: string;
-  user_id: string;
+  userId: string;
   name: string;
-  plan_name: string;
+  planName: string;
   region: string;
   price: number;
   currency: string;
@@ -25,23 +25,23 @@ export interface Subscription {
   category: string;
   color: string;
   icon: string;
-  start_date: string;
-  trial_duration: string | null;
+  startDate: string;
+  trialDuration: string | null;
   website: string | null;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface GlobalPreset {
   id: string;
   name: string;
-  plan_name: string;
+  planName: string;
   region: string;
-  avg_price: number;
+  avgPrice: number;
   currency: string;
   category: string;
   color: string;
   icon: string;
-  usage_count: number;
+  usageCount: number;
   domain?: string;
 }
 
@@ -50,21 +50,21 @@ export interface SubscriptionCategory {
   name: string;
   icon: string;
   color: string;
-  sort_order: number;
+  sortOrder: number;
 }
 
 function loadPresets(): GlobalPreset[] {
   return (getPresetsData() as any[]).map((p, idx) => ({
     id: `${p.name.toLowerCase().replace(/\s+/g, "-")}-${p.plan_name.toLowerCase().replace(/\s+/g, "-")}-${p.region.toLowerCase()}`,
     name: p.name,
-    plan_name: p.plan_name,
+    planName: p.plan_name,
     region: p.region,
-    avg_price: p.price,
+    avgPrice: p.price,
     currency: p.currency,
     category: p.category,
     color: p.color,
     icon: p.icon,
-    usage_count: 1,
+    usageCount: 1,
     domain: p.domain
   }));
 }
@@ -158,31 +158,31 @@ export const getCategories = api(
     const presets = loadPresets();
     const names = Array.from(new Set(presets.map((p) => p.category)));
     const categories = names.map((name) => {
-      const meta: { icon: string; color: string; sort_order: number } = {
-        "Entertainment": { icon: "🎬", color: "#E50914", sort_order: 1 },
-        "Music": { icon: "🎵", color: "#1DB954", sort_order: 2 },
-        "AI": { icon: "🤖", color: "#10A37F", sort_order: 3 },
-        "Software": { icon: "💻", color: "#6366F1", sort_order: 4 },
-        "Design": { icon: "✨", color: "#00C4CC", sort_order: 5 },
-        "Social": { icon: "💬", color: "#1877F2", sort_order: 6 },
-        "Cloud Storage": { icon: "☁️", color: "#0284C7", sort_order: 7 },
-        "Dating": { icon: "❤️", color: "#EC4899", sort_order: 8 },
-        "Education": { icon: "🎓", color: "#F59E0B", sort_order: 9 },
-        "Finance": { icon: "💵", color: "#10B981", sort_order: 10 },
-        "Gaming": { icon: "🎮", color: "#8B5CF6", sort_order: 11 },
-        "Productivity": { icon: "⚡", color: "#3B82F6", sort_order: 12 },
-        "Security": { icon: "🛡️", color: "#14B8A6", sort_order: 13 },
-        "Shopping": { icon: "🛍️", color: "#EF4444", sort_order: 14 },
-        "Sports": { icon: "⚽", color: "#22C55E", sort_order: 15 },
-      }[name] || { icon: "📦", color: "#64748B", sort_order: 99 };
+      const meta: { icon: string; color: string; sortOrder: number } = {
+        "Entertainment": { icon: "🎬", color: "#E50914", sortOrder: 1 },
+        "Music": { icon: "🎵", color: "#1DB954", sortOrder: 2 },
+        "AI": { icon: "🤖", color: "#10A37F", sortOrder: 3 },
+        "Software": { icon: "💻", color: "#6366F1", sortOrder: 4 },
+        "Design": { icon: "✨", color: "#00C4CC", sortOrder: 5 },
+        "Social": { icon: "💬", color: "#1877F2", sortOrder: 6 },
+        "Cloud Storage": { icon: "☁️", color: "#0284C7", sortOrder: 7 },
+        "Dating": { icon: "❤️", color: "#EC4899", sortOrder: 8 },
+        "Education": { icon: "🎓", color: "#F59E0B", sortOrder: 9 },
+        "Finance": { icon: "💵", color: "#10B981", sortOrder: 10 },
+        "Gaming": { icon: "🎮", color: "#8B5CF6", sortOrder: 11 },
+        "Productivity": { icon: "⚡", color: "#3B82F6", sortOrder: 12 },
+        "Security": { icon: "🛡️", color: "#14B8A6", sortOrder: 13 },
+        "Shopping": { icon: "🛍️", color: "#EF4444", sortOrder: 14 },
+        "Sports": { icon: "⚽", color: "#22C55E", sortOrder: 15 },
+      }[name] || { icon: "📦", color: "#64748B", sortOrder: 99 };
       return {
         id: name.toLowerCase().replace(/\s+/g, "-"),
         name,
         icon: meta.icon,
         color: meta.color,
-        sort_order: meta.sort_order,
+        sortOrder: meta.sortOrder,
       };
-    }).sort((a, b) => a.sort_order - b.sort_order);
+    }).sort((a, b) => a.sortOrder - b.sortOrder);
 
     return { categories };
   }
@@ -207,7 +207,7 @@ export const getUserSubscriptions = api(
   { expose: true, method: "GET", path: "/subcenter/user/:userId" },
   async ({ userId }: GetUserSubscriptionsRequest): Promise<GetUserSubscriptionsResponse> => {
     const { data, error } = await supabase.schema("subcenter").rpc("get_user_items", {
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -215,7 +215,25 @@ export const getUserSubscriptions = api(
       throw APIError.internal(`Failed to load subscriptions: ${error.message}`);
     }
 
-    return { subscriptions: data || [] };
+    return { 
+      subscriptions: (data || []).map((i: any) => ({
+        id: i.id,
+        userId: i.user_id,
+        name: i.name,
+        planName: i.plan_name,
+        region: i.region,
+        price: i.price,
+        currency: i.currency,
+        cycle: i.cycle,
+        category: i.category,
+        color: i.color,
+        icon: i.icon,
+        startDate: i.start_date,
+        trialDuration: i.trial_duration,
+        website: i.website,
+        createdAt: i.created_at
+      }))
+    };
   }
 );
 
@@ -231,7 +249,7 @@ export const createSubscription = api(
 
     // 1. Save locally for the user
     const { data, error } = await supabase.schema("subcenter").rpc("create_item", {
-      clerk_id_param: userId,
+      p_user_id: userId,
       name_param: name,
       plan_name_param: finalPlanName,
       region_param: finalRegion,
@@ -251,7 +269,26 @@ export const createSubscription = api(
       throw APIError.internal(`Failed to create subscription: ${error.message}`);
     }
 
-    return { subscription: data?.[0] || null };
+    const i = data?.[0];
+    return { 
+      subscription: i ? {
+        id: i.id,
+        userId: i.user_id,
+        name: i.name,
+        planName: i.plan_name,
+        region: i.region,
+        price: i.price,
+        currency: i.currency,
+        cycle: i.cycle,
+        category: i.category,
+        color: i.color,
+        icon: i.icon,
+        startDate: i.start_date,
+        trialDuration: i.trial_duration,
+        website: i.website,
+        createdAt: i.created_at
+      } : null
+    };
   }
 );
 
@@ -264,7 +301,7 @@ export const deleteSubscription = api(
   async ({ id, userId }: DeleteSubscriptionRequest): Promise<DeleteSubscriptionResponse> => {
     const { data, error } = await supabase.schema("subcenter").rpc("delete_item", {
       item_id_param: id,
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -285,7 +322,7 @@ export const updateSubscription = api(
   async ({ id, userId, name, planName, region, price, currency, cycle, category, color, icon, startDate, trialDuration, website }: UpdateSubscriptionRequest): Promise<UpdateSubscriptionResponse> => {
     const { data, error } = await supabase.schema("subcenter").rpc("update_item", {
       item_id_param: id,
-      clerk_id_param: userId,
+      p_user_id: userId,
       name_param: name,
       plan_name_param: planName,
       region_param: region,
@@ -305,6 +342,25 @@ export const updateSubscription = api(
       throw APIError.internal(`Failed to update subscription: ${error.message}`);
     }
 
-    return { subscription: data?.[0] || null };
+    const i = data?.[0];
+    return { 
+      subscription: i ? {
+        id: i.id,
+        userId: i.user_id,
+        name: i.name,
+        planName: i.plan_name,
+        region: i.region,
+        price: i.price,
+        currency: i.currency,
+        cycle: i.cycle,
+        category: i.category,
+        color: i.color,
+        icon: i.icon,
+        startDate: i.start_date,
+        trialDuration: i.trial_duration,
+        website: i.website,
+        createdAt: i.created_at
+      } : null
+    };
   }
 );

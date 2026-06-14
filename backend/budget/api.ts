@@ -110,7 +110,7 @@ export const createProject = api(
   { expose: true, method: "POST", path: "/budget/projects" },
   async (req: CreateProjectRequest): Promise<CreateProjectResponse> => {
     const { data, error } = await supabase.schema("budget").rpc("create_project", {
-      creator_clerk_id_param: req.creatorClerkId,
+      p_user_id: req.creatorClerkId,
       name_param: req.name,
       description_param: req.description || null,
       currency_param: req.currency,
@@ -127,7 +127,7 @@ export const createProject = api(
       throw APIError.internal(`Failed to create project: ${error.message}`);
     }
 
-    return { projectId: data };
+    return { projectId: data as string };
   }
 );
 
@@ -138,7 +138,7 @@ export const getUserProjects = api(
   { expose: true, method: "GET", path: "/budget/user/:userId/projects" },
   async ({ userId }: { userId: string }): Promise<GetUserProjectsResponse> => {
     const { data, error } = await supabase.schema("budget").rpc("get_user_projects", {
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {

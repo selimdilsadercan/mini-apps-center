@@ -31,7 +31,6 @@ export interface RecipeSummary {
 
 export interface User {
   id: string;
-  clerk_id: string;
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;

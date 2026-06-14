@@ -2,7 +2,6 @@ import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 
-// Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
 
@@ -14,37 +13,37 @@ export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "
 export type RecipientStatus = "pending" | "saved" | "completed" | "ignored";
 
 export interface RecipientInfo {
-  recipient_clerk_id: string;
-  recipient_username: string | null;
-  recipient_avatar: string | null;
+  recipientId: string;
+  recipientUsername: string | null;
+  recipientAvatar: string | null;
   status: RecipientStatus;
-  updated_at: string;
+  updatedAt: string;
 }
 
 export interface Suggestion {
   id: string;
-  share_id: string;
+  shareId: string;
   category: SuggestionCategory;
   title: string;
-  short_note: string | null;
+  shortNote: string | null;
   rating: number | null;
-  external_link: string | null;
-  image_url: string | null;
-  preview_url: string | null;
-  expires_at: string | null;
-  opened_at: string | null;
+  externalLink: string | null;
+  imageUrl: string | null;
+  previewUrl: string | null;
+  expiresAt: string | null;
+  openedAt: string | null;
   reaction: string | null;
-  is_daily_pick: boolean;
-  created_at: string;
+  isDailyPick: boolean;
+  createdAt: string;
 }
 
 export interface InboxSuggestion extends Suggestion {
-  suggestion_id: string;
-  sender_clerk_id: string;
-  sender_username: string | null;
-  sender_avatar: string | null;
+  suggestionId: string;
+  senderId: string;
+  senderUsername: string | null;
+  senderAvatar: string | null;
   status: RecipientStatus;
-  updated_at: string;
+  updatedAt: string;
 }
 
 export interface SentSuggestion extends Suggestion {
@@ -52,10 +51,10 @@ export interface SentSuggestion extends Suggestion {
 }
 
 export interface SuggestionDetail extends Suggestion {
-  sender_clerk_id: string;
-  sender_username: string | null;
-  sender_avatar: string | null;
-  recipient_status: RecipientStatus | null;
+  senderId: string;
+  senderUsername: string | null;
+  senderAvatar: string | null;
+  recipientStatus: RecipientStatus | null;
 }
 
 // ==================== REQUEST / RESPONSE ====================
@@ -135,9 +134,9 @@ interface SearchSongResponse {
 
 interface PublicDetailResponse {
   suggestion: Suggestion | null;
-  sender_clerk_id: string | null;
-  sender_username: string | null;
-  sender_avatar: string | null;
+  senderId: string | null;
+  senderUsername: string | null;
+  senderAvatar: string | null;
   isExpired: boolean;
 }
 
@@ -159,7 +158,6 @@ interface DailyStatusResponse {
 
 /**
  * iTunes API üzerinden şarkı araması yapar
- * GET /suggest/search/song
  */
 export const searchSong = api(
   { expose: true, method: "GET", path: "/suggest/search/song" },
@@ -182,17 +180,15 @@ export const searchSong = api(
 );
 
 /**
- * Yeni bir öneri oluşturur ve alıcılara gönderir (veya link paylaşımı için oluşturur)
- * POST /suggest/create
+ * Yeni bir öneri oluşturur ve alıcılara gönderir
  */
 export const createSuggestion = api(
   { expose: true, method: "POST", path: "/suggest/create" },
   async (req: CreateSuggestionRequest): Promise<CreateSuggestionResponse> => {
-    // Default expiration is 24 hours from now for shareable links
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase.schema("suggest").rpc("create_suggestion", {
-      sender_clerk_id_param: req.senderClerkId,
+      p_user_id: req.senderClerkId,
       category_param: req.category,
       title_param: req.title,
       short_note_param: req.shortNote || null,
@@ -201,7 +197,7 @@ export const createSuggestion = api(
       image_url_param: req.imageUrl || null,
       recipient_clerk_ids: req.recipientClerkIds || [],
       expires_at_param: expiresAt,
-      is_daily_pick_param: true, // Always true since every suggestion is now a daily pick/special link
+      is_daily_pick_param: true,
       preview_url_param: req.previewUrl || null,
     });
 
@@ -210,24 +206,24 @@ export const createSuggestion = api(
       throw APIError.internal(`Failed to create suggestion: ${error.message}`);
     }
 
+    const res = data as any;
     return {
       success: true,
-      suggestionId: data?.suggestion_id,
-      shareId: data?.share_id,
-      recipientsAdded: data?.recipients_added,
+      suggestionId: res?.suggestion_id,
+      shareId: res?.share_id,
+      recipientsAdded: res?.recipients_added,
     };
   }
 );
 
 /**
  * Kullanıcıya gelen tüm önerileri listeler (Inbox)
- * GET /suggest/inbox/:userId
  */
 export const getInbox = api(
   { expose: true, method: "GET", path: "/suggest/inbox/:userId" },
   async ({ userId }: { userId: string }): Promise<InboxResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("get_inbox_suggestions", {
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -237,25 +233,25 @@ export const getInbox = api(
 
     const suggestions: InboxSuggestion[] = (data || []).map((row: any) => ({
       id: row.id,
-      share_id: row.share_id,
-      suggestion_id: row.suggestion_id,
+      shareId: row.share_id,
+      suggestionId: row.suggestion_id,
       category: row.category as SuggestionCategory,
       title: row.title,
-      short_note: row.short_note,
+      shortNote: row.short_note,
       rating: row.rating ? parseFloat(row.rating) : null,
-      external_link: row.external_link,
-      image_url: row.image_url,
-      preview_url: row.preview_url || null,
-      expires_at: row.expires_at || null,
-      opened_at: row.opened_at || null,
+      externalLink: row.external_link,
+      imageUrl: row.image_url,
+      previewUrl: row.preview_url || null,
+      expiresAt: row.expires_at || null,
+      openedAt: row.opened_at || null,
       reaction: row.reaction || null,
-      is_daily_pick: !!row.is_daily_pick,
-      created_at: row.created_at,
-      sender_clerk_id: row.sender_clerk_id,
-      sender_username: row.sender_username,
-      sender_avatar: row.sender_avatar,
+      isDailyPick: !!row.is_daily_pick,
+      createdAt: row.created_at,
+      senderId: row.sender_id,
+      senderUsername: row.sender_username,
+      senderAvatar: row.sender_avatar,
       status: row.status as RecipientStatus,
-      updated_at: row.updated_at,
+      updatedAt: row.updated_at,
     }));
 
     return { suggestions };
@@ -264,13 +260,12 @@ export const getInbox = api(
 
 /**
  * Kullanıcının gönderdiği tüm önerileri listeler (Sent)
- * GET /suggest/sent/:userId
  */
 export const getSent = api(
   { expose: true, method: "GET", path: "/suggest/sent/:userId" },
   async ({ userId }: { userId: string }): Promise<SentResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("get_sent_suggestions", {
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -280,25 +275,25 @@ export const getSent = api(
 
     const suggestions: SentSuggestion[] = (data || []).map((row: any) => ({
       id: row.id,
-      share_id: row.share_id,
+      shareId: row.share_id,
       category: row.category as SuggestionCategory,
       title: row.title,
-      short_note: row.short_note,
+      shortNote: row.short_note,
       rating: row.rating ? parseFloat(row.rating) : null,
-      external_link: row.external_link,
-      image_url: row.image_url,
-      preview_url: row.preview_url || null,
-      expires_at: row.expires_at || null,
-      opened_at: row.opened_at || null,
+      externalLink: row.external_link,
+      imageUrl: row.image_url,
+      previewUrl: row.preview_url || null,
+      expiresAt: row.expires_at || null,
+      openedAt: row.opened_at || null,
       reaction: row.reaction || null,
-      is_daily_pick: !!row.is_daily_pick,
-      created_at: row.created_at,
+      isDailyPick: !!row.is_daily_pick,
+      createdAt: row.created_at,
       recipients: (row.recipients || []).map((r: any) => ({
-        recipient_clerk_id: r.recipient_clerk_id,
-        recipient_username: r.recipient_username,
-        recipient_avatar: r.recipient_avatar,
+        recipientId: r.recipient_id,
+        recipientUsername: r.recipient_username,
+        recipientAvatar: r.recipient_avatar,
         status: r.status as RecipientStatus,
-        updated_at: r.updated_at,
+        updatedAt: r.updated_at,
       })),
     }));
 
@@ -307,14 +302,13 @@ export const getSent = api(
 );
 
 /**
- * Bir önerinin alıcı durumunu günceller (Save, Completed, Ignore, etc.)
- * POST /suggest/status
+ * Bir önerinin alıcı durumunu günceller
  */
 export const updateStatus = api(
   { expose: true, method: "POST", path: "/suggest/status" },
   async (req: UpdateStatusRequest): Promise<UpdateStatusResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("update_recipient_status", {
-      recipient_clerk_id_param: req.recipientClerkId,
+      p_user_id: req.recipientClerkId,
       share_id_param: req.suggestionId,
       status_param: req.status,
     });
@@ -329,14 +323,13 @@ export const updateStatus = api(
 );
 
 /**
- * Gönderilen bir öneriyi gönderen için yumuşak siler (Inbox'ta ve linkte aktif kalır)
- * POST /suggest/delete-sent
+ * Gönderilen bir öneriyi gönderen için yumuşak siler
  */
 export const deleteSentSuggestion = api(
   { expose: true, method: "POST", path: "/suggest/delete-sent" },
   async (req: DeleteSentRequest): Promise<DeleteSentResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("delete_sent_suggestion", {
-      sender_clerk_id_param: req.senderClerkId,
+      p_user_id: req.senderClerkId,
       share_id_param: req.shareId,
     });
 
@@ -350,14 +343,13 @@ export const deleteSentSuggestion = api(
 );
 
 /**
- * Öneri detayını getirir (Gönderen veya Alıcı görebilir)
- * GET /suggest/detail/:id/:userId
+ * Öneri detayını getirir
  */
 export const getSuggestionDetail = api(
   { expose: true, method: "GET", path: "/suggest/detail/:id/:userId" },
   async ({ id, userId }: DetailRequest): Promise<DetailResponse> => {
     const { data, error } = await supabase.schema("suggest").rpc("get_suggestion_detail", {
-      clerk_id_param: userId,
+      p_user_id: userId,
       share_id_param: id,
     });
 
@@ -373,23 +365,23 @@ export const getSuggestionDetail = api(
     const row = data[0];
     const suggestion: SuggestionDetail = {
       id: row.id,
-      share_id: row.share_id,
+      shareId: row.share_id,
       category: row.category as SuggestionCategory,
       title: row.title,
-      short_note: row.short_note,
+      shortNote: row.short_note,
       rating: row.rating ? parseFloat(row.rating) : null,
-      external_link: row.external_link,
-      image_url: row.image_url,
-      preview_url: row.preview_url || null,
-      expires_at: row.expires_at || null,
-      opened_at: row.opened_at || null,
+      externalLink: row.external_link,
+      imageUrl: row.image_url,
+      previewUrl: row.preview_url || null,
+      expiresAt: row.expires_at || null,
+      openedAt: row.opened_at || null,
       reaction: row.reaction || null,
-      is_daily_pick: !!row.is_daily_pick,
-      created_at: row.created_at,
-      sender_clerk_id: row.sender_clerk_id,
-      sender_username: row.sender_username,
-      sender_avatar: row.sender_avatar,
-      recipient_status: row.recipient_status as RecipientStatus | null,
+      isDailyPick: !!row.is_daily_pick,
+      createdAt: row.created_at,
+      senderId: row.sender_id,
+      senderUsername: row.sender_username,
+      senderAvatar: row.sender_avatar,
+      recipientStatus: row.recipient_status as RecipientStatus | null,
     };
 
     return { suggestion };
@@ -397,14 +389,11 @@ export const getSuggestionDetail = api(
 );
 
 /**
- * Public endpoint to fetch suggestion detail (no authentication required)
- * Handles expiration check and registers "opened" state on first access.
- * GET /suggest/public/:id
+ * Public endpoint to fetch suggestion detail
  */
 export const getPublicSuggestion = api(
   { expose: true, method: "GET", path: "/suggest/public/:id" },
   async ({ id, userId }: { id: string; userId?: string }): Promise<PublicDetailResponse> => {
-    // 1. Fetch suggestion using share_id
     const { data, error } = await supabase
       .schema("suggest")
       .from("suggestions")
@@ -414,90 +403,81 @@ export const getPublicSuggestion = api(
 
     if (error || !data) {
       console.error("getPublicSuggestion error:", error);
-      return { suggestion: null, sender_clerk_id: null, sender_username: null, sender_avatar: null, isExpired: false };
+      return { suggestion: null, senderId: null, senderUsername: null, senderAvatar: null, isExpired: false };
     }
 
-    // If userId is provided and is not the sender, add them as a recipient
-    if (userId && userId !== data.sender_clerk_id) {
-      const { data: recUser, error: recUserErr } = await supabase
-        .schema("public")
-        .from("users")
-        .select("id")
-        .eq("clerk_id", userId)
-        .single();
+    if (userId) {
+      const v_user_id = await supabase.rpc("get_internal_user_id", { clerk_id_param: userId });
+      const v_sender_id = data.sender_id;
 
-      if (recUser && !recUserErr) {
+      if (v_user_id.data && v_user_id.data !== v_sender_id) {
         await supabase
           .schema("suggest")
           .from("recipients")
           .upsert(
             {
               suggestion_id: data.id,
-              recipient_id: recUser.id,
-              recipient_clerk_id: userId,
+              recipient_id: v_user_id.data,
               status: "pending",
             },
-            { onConflict: "suggestion_id,recipient_clerk_id", ignoreDuplicates: true }
+            { onConflict: "suggestion_id,recipient_id", ignoreDuplicates: true }
           );
       }
     }
 
     const suggestion: Suggestion = {
       id: data.id,
-      share_id: data.share_id,
+      shareId: data.share_id,
       category: data.category as SuggestionCategory,
       title: data.title,
-      short_note: data.short_note,
+      shortNote: data.short_note,
       rating: data.rating ? parseFloat(data.rating) : null,
-      external_link: data.external_link,
-      image_url: data.image_url,
-      preview_url: data.preview_url || null,
-      expires_at: data.expires_at || null,
-      opened_at: data.opened_at || null,
+      externalLink: data.external_link,
+      imageUrl: data.image_url,
+      previewUrl: data.preview_url || null,
+      expiresAt: data.expires_at || null,
+      openedAt: data.opened_at || null,
       reaction: data.reaction || null,
-      is_daily_pick: !!data.is_daily_pick,
-      created_at: data.created_at,
+      isDailyPick: !!data.is_daily_pick,
+      createdAt: data.created_at,
     };
 
-    // 2. Check if expired
-    const isExpired = suggestion.expires_at 
-      ? new Date() > new Date(suggestion.expires_at)
+    const isExpired = suggestion.expiresAt 
+      ? new Date() > new Date(suggestion.expiresAt)
       : false;
 
     if (isExpired) {
-      return { suggestion: null, sender_clerk_id: null, sender_username: null, sender_avatar: null, isExpired: true };
+      return { suggestion: null, senderId: null, senderUsername: null, senderAvatar: null, isExpired: true };
     }
 
-    // 3. Register opened state
-    if (!suggestion.opened_at) {
+    if (!suggestion.openedAt) {
       await supabase.schema("suggest").rpc("mark_suggestion_opened", {
         share_id_param: id,
       });
-      suggestion.opened_at = new Date().toISOString();
+      suggestion.openedAt = new Date().toISOString();
     }
 
-    // 4. Resolve sender username/avatar
-    let sender_username = null;
-    let sender_avatar = null;
+    let senderUsername = null;
+    let senderAvatar = null;
+    let senderId = data.sender_id;
     const { data: userData, error: userError } = await supabase
       .schema("public")
       .from("users")
       .select("username, avatar_url")
-      .eq("clerk_id", data.sender_clerk_id)
+      .eq("id", data.sender_id)
       .single();
 
     if (userData && !userError) {
-      sender_username = userData.username;
-      sender_avatar = userData.avatar_url;
+      senderUsername = userData.username;
+      senderAvatar = userData.avatar_url;
     }
 
-    return { suggestion, sender_clerk_id: data.sender_clerk_id, sender_username, sender_avatar, isExpired: false };
+    return { suggestion, senderId, senderUsername, senderAvatar, isExpired: false };
   }
 );
 
 /**
  * Submit reaction for a suggestion publicly
- * POST /suggest/reaction
  */
 export const submitReaction = api(
   { expose: true, method: "POST", path: "/suggest/reaction" },
@@ -518,16 +498,21 @@ export const submitReaction = api(
 
 /**
  * Get daily suggestion pick status for a user
- * GET /suggest/daily-status/:userId
  */
 export const getDailyStatus = api(
   { expose: true, method: "GET", path: "/suggest/daily-status/:userId" },
   async ({ userId }: { userId: string }): Promise<DailyStatusResponse> => {
+    const v_user_id = await supabase.rpc("get_internal_user_id", { clerk_id_param: userId });
+    
+    if (!v_user_id.data) {
+      return { canSendDailyPick: true };
+    }
+
     const { data, error } = await supabase
       .schema("suggest")
       .from("suggestions")
       .select("created_at")
-      .eq("sender_clerk_id", userId)
+      .eq("sender_id", v_user_id.data)
       .eq("is_daily_pick", true)
       .order("created_at", { ascending: false })
       .limit(1);

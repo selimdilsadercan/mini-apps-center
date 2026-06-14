@@ -11,69 +11,69 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface Student {
     id: string;
-    clerk_id: string;
+    userId: string;
     name: string;
     subject: string;
     level: string;
-    parent_contact?: string | null;
-    hourly_rate: number;
-    created_at: string;
+    parentContact?: string | null;
+    hourlyRate: number;
+    createdAt: string;
 }
 
 export interface Lesson {
     id: string;
-    student_id: string;
-    student_name?: string;
-    clerk_id: string;
-    lesson_date: string;
-    start_time: string;
-    end_time: string;
+    studentId: string;
+    studentName?: string;
+    userId: string;
+    lessonDate: string;
+    startTime: string;
+    endTime: string;
     notes?: string | null;
-    next_lesson_plan?: string | null;
+    nextLessonPlan?: string | null;
     status: "scheduled" | "completed" | "cancelled";
-    created_at: string;
+    createdAt: string;
 }
 
 export interface Homework {
     id: string;
-    student_id: string;
-    student_name?: string;
-    clerk_id: string;
+    studentId: string;
+    studentName?: string;
+    userId: string;
     task: string;
-    due_date?: string | null;
-    is_completed: boolean;
-    created_at: string;
+    dueDate?: string | null;
+    isCompleted: boolean;
+    createdAt: string;
 }
 
 export interface Payment {
     id: string;
-    student_id: string;
-    student_name?: string;
-    clerk_id: string;
+    studentId: string;
+    studentName?: string;
+    userId: string;
     amount: number;
-    is_paid: boolean;
-    payment_date?: string | null;
-    lesson_count: number;
+    isPaid: boolean;
+    paymentDate?: string | null;
+    lessonCount: number;
     month?: number | null;
     year?: number | null;
-    created_at: string;
+    createdAt: string;
 }
 
 export interface Share {
     id: string;
-    clerk_id: string;
-    is_active: boolean;
-    allow_student_names: boolean;
-    created_at: string;
+    userId: string;
+    isActive: boolean;
+    allowStudentNames: boolean;
+    createdAt: string;
 }
 
 export interface FollowedShare {
     id: string;
-    clerk_id: string;
-    share_id: string;
+    userId: string;
+    shareId: string;
     alias?: string | null;
-    created_at: string;
-    is_active?: boolean;
+    createdAt: string;
+    isActive?: boolean;
 }
 
 // ==================== REQUEST/RESPONSE TYPES ====================
@@ -182,10 +182,21 @@ export const getStudents = api(
     { expose: true, method: "GET", path: "/tutor-crm/students/:userId" },
     async ({ userId }: GetItemsRequest): Promise<{ students: Student[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_students", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { students: data || [] };
+        return { 
+            students: (data || []).map((s: any) => ({
+                id: s.id,
+                userId: s.user_id,
+                name: s.name,
+                subject: s.subject,
+                level: s.level,
+                parentContact: s.parent_contact,
+                hourlyRate: s.hourly_rate,
+                createdAt: s.created_at
+            }))
+        };
     }
 );
 
@@ -193,15 +204,27 @@ export const addStudent = api(
     { expose: true, method: "POST", path: "/tutor-crm/students" },
     async (req: AddStudentRequest): Promise<{ student: Student }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("add_student", {
-            clerk_id_param: req.userId,
-            name_param: req.name,
-            subject_param: req.subject,
-            level_param: req.level,
-            parent_contact_param: req.parentContact || null,
-            hourly_rate_param: req.hourlyRate,
+            p_user_id: req.userId,
+            p_name: req.name,
+            p_subject: req.subject,
+            p_level: req.level,
+            p_parent_contact: req.parentContact || null,
+            p_hourly_rate: req.hourlyRate,
         });
         if (error) throw APIError.internal(error.message);
-        return { student: data?.[0] };
+        const s = data?.[0];
+        return { 
+            student: {
+                id: s.id,
+                userId: s.user_id,
+                name: s.name,
+                subject: s.subject,
+                level: s.level,
+                parentContact: s.parent_contact,
+                hourlyRate: s.hourly_rate,
+                createdAt: s.created_at
+            }
+        };
     }
 );
 
@@ -209,16 +232,28 @@ export const updateStudent = api(
     { expose: true, method: "PUT", path: "/tutor-crm/students" },
     async (req: UpdateStudentRequest): Promise<{ student: Student }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("update_student", {
-            student_id_param: req.studentId,
-            clerk_id_param: req.userId,
-            name_param: req.name,
-            subject_param: req.subject,
-            level_param: req.level,
-            parent_contact_param: req.parentContact || null,
-            hourly_rate_param: req.hourlyRate,
+            p_student_id: req.studentId,
+            p_user_id: req.userId,
+            p_name: req.name,
+            p_subject: req.subject,
+            p_level: req.level,
+            p_parent_contact: req.parentContact || null,
+            p_hourly_rate: req.hourlyRate,
         });
         if (error) throw APIError.internal(error.message);
-        return { student: data?.[0] };
+        const s = data?.[0];
+        return { 
+            student: {
+                id: s.id,
+                userId: s.user_id,
+                name: s.name,
+                subject: s.subject,
+                level: s.level,
+                parentContact: s.parent_contact,
+                hourlyRate: s.hourly_rate,
+                createdAt: s.created_at
+            }
+        };
     }
 );
 
@@ -226,8 +261,8 @@ export const deleteStudent = api(
     { expose: true, method: "DELETE", path: "/tutor-crm/students/:id" },
     async ({ id, userId }: DeleteRequest): Promise<{ success: boolean }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("delete_student", {
-            student_id_param: id,
-            clerk_id_param: userId,
+            p_student_id: id,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
@@ -238,10 +273,24 @@ export const getLessons = api(
     { expose: true, method: "GET", path: "/tutor-crm/lessons/:userId" },
     async ({ userId }: GetItemsRequest): Promise<{ lessons: Lesson[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_lessons", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { lessons: data || [] };
+        return { 
+            lessons: (data || []).map((l: any) => ({
+                id: l.id,
+                studentId: l.student_id,
+                studentName: l.student_name,
+                userId: l.user_id,
+                lessonDate: l.lesson_date,
+                startTime: l.start_time,
+                endTime: l.end_time,
+                notes: l.notes,
+                nextLessonPlan: l.next_lesson_plan,
+                status: l.status,
+                createdAt: l.created_at
+            }))
+        };
     }
 );
 
@@ -249,16 +298,30 @@ export const addLesson = api(
     { expose: true, method: "POST", path: "/tutor-crm/lessons" },
     async (req: AddLessonRequest): Promise<{ lesson: Lesson }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("add_lesson", {
-            clerk_id_param: req.userId,
-            student_id_param: req.studentId,
-            lesson_date_param: req.lessonDate,
-            start_time_param: req.startTime,
-            end_time_param: req.endTime,
-            notes_param: req.notes || null,
-            next_lesson_plan_param: req.nextLessonPlan || null,
+            p_user_id: req.userId,
+            p_student_id: req.studentId,
+            p_lesson_date: req.lessonDate,
+            p_start_time: req.startTime,
+            p_end_time: req.endTime,
+            p_notes: req.notes || null,
+            p_next_lesson_plan: req.nextLessonPlan || null,
         });
         if (error) throw APIError.internal(error.message);
-        return { lesson: data?.[0] };
+        const l = data?.[0];
+        return { 
+            lesson: {
+                id: l.id,
+                studentId: l.student_id,
+                userId: l.user_id,
+                lessonDate: l.lesson_date,
+                startTime: l.start_time,
+                endTime: l.end_time,
+                notes: l.notes,
+                nextLessonPlan: l.next_lesson_plan,
+                status: l.status,
+                createdAt: l.created_at
+            }
+        };
     }
 );
 
@@ -266,14 +329,28 @@ export const updateLesson = api(
     { expose: true, method: "PUT", path: "/tutor-crm/lessons" },
     async (req: UpdateLessonRequest): Promise<{ lesson: Lesson }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("update_lesson", {
-            lesson_id_param: req.lessonId,
-            clerk_id_param: req.userId,
-            lesson_date_param: req.lessonDate,
-            start_time_param: req.startTime,
-            end_time_param: req.endTime,
+            p_lesson_id: req.lessonId,
+            p_user_id: req.userId,
+            p_lesson_date: req.lessonDate,
+            p_start_time: req.startTime,
+            p_end_time: req.endTime,
         });
         if (error) throw APIError.internal(error.message);
-        return { lesson: data?.[0] };
+        const l = data?.[0];
+        return { 
+            lesson: {
+                id: l.id,
+                studentId: l.student_id,
+                userId: l.user_id,
+                lessonDate: l.lesson_date,
+                startTime: l.start_time,
+                endTime: l.end_time,
+                notes: l.notes,
+                nextLessonPlan: l.next_lesson_plan,
+                status: l.status,
+                createdAt: l.created_at
+            }
+        };
     }
 );
 
@@ -281,8 +358,8 @@ export const deleteLesson = api(
     { expose: true, method: "DELETE", path: "/tutor-crm/lessons/:id" },
     async ({ id, userId }: DeleteRequest): Promise<{ success: boolean }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("delete_lesson", {
-            lesson_id_param: id,
-            clerk_id_param: userId,
+            p_lesson_id: id,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
@@ -293,10 +370,21 @@ export const getHomeworks = api(
     { expose: true, method: "GET", path: "/tutor-crm/homeworks/:userId" },
     async ({ userId }: GetItemsRequest): Promise<{ homeworks: Homework[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_homeworks", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { homeworks: data || [] };
+        return { 
+            homeworks: (data || []).map((h: any) => ({
+                id: h.id,
+                studentId: h.student_id,
+                studentName: h.student_name,
+                userId: h.user_id,
+                task: h.task,
+                dueDate: h.due_date,
+                isCompleted: h.is_completed,
+                createdAt: h.created_at
+            }))
+        };
     }
 );
 
@@ -304,13 +392,24 @@ export const addHomework = api(
     { expose: true, method: "POST", path: "/tutor-crm/homeworks" },
     async (req: AddHomeworkRequest): Promise<{ homework: Homework }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("add_homework", {
-            clerk_id_param: req.userId,
-            student_id_param: req.studentId,
-            task_param: req.task,
-            due_date_param: req.dueDate || null,
+            p_user_id: req.userId,
+            p_student_id: req.studentId,
+            p_task: req.task,
+            p_due_date: req.dueDate || null,
         });
         if (error) throw APIError.internal(error.message);
-        return { homework: data?.[0] };
+        const h = data?.[0];
+        return { 
+            homework: {
+                id: h.id,
+                studentId: h.student_id,
+                userId: h.user_id,
+                task: h.task,
+                dueDate: h.due_date,
+                isCompleted: h.is_completed,
+                createdAt: h.created_at
+            }
+        };
     }
 );
 
@@ -318,8 +417,8 @@ export const toggleHomework = api(
     { expose: true, method: "POST", path: "/tutor-crm/homeworks/toggle" },
     async ({ id, userId }: ToggleRequest): Promise<{ success: boolean }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("toggle_homework", {
-            homework_id_param: id,
-            clerk_id_param: userId,
+            p_homework_id: id,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
@@ -330,10 +429,24 @@ export const getPayments = api(
     { expose: true, method: "GET", path: "/tutor-crm/payments/:userId" },
     async ({ userId }: GetItemsRequest): Promise<{ payments: Payment[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_payments", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { payments: data || [] };
+        return { 
+            payments: (data || []).map((p: any) => ({
+                id: p.id,
+                studentId: p.student_id,
+                studentName: p.student_name,
+                userId: p.user_id,
+                amount: p.amount,
+                isPaid: p.is_paid,
+                paymentDate: p.payment_date,
+                lessonCount: p.lesson_count,
+                month: p.month,
+                year: p.year,
+                createdAt: p.created_at
+            }))
+        };
     }
 );
 
@@ -341,17 +454,31 @@ export const addPayment = api(
     { expose: true, method: "POST", path: "/tutor-crm/payments" },
     async (req: AddPaymentRequest): Promise<{ payment: Payment }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("add_payment", {
-            clerk_id_param: req.userId,
-            student_id_param: req.studentId,
-            amount_param: req.amount,
-            is_paid_param: req.isPaid,
-            payment_date_param: req.paymentDate || null,
-            lesson_count_param: req.lessonCount,
-            month_param: req.month || null,
-            year_param: req.year || null,
+            p_user_id: req.userId,
+            p_student_id: req.studentId,
+            p_amount: req.amount,
+            p_is_paid: req.isPaid,
+            p_payment_date: req.paymentDate || null,
+            p_lesson_count: req.lessonCount,
+            p_month: req.month || null,
+            p_year: req.year || null,
         });
         if (error) throw APIError.internal(error.message);
-        return { payment: data?.[0] };
+        const p = data?.[0];
+        return { 
+            payment: {
+                id: p.id,
+                studentId: p.student_id,
+                userId: p.user_id,
+                amount: p.amount,
+                isPaid: p.is_paid,
+                paymentDate: p.payment_date,
+                lessonCount: p.lesson_count,
+                month: p.month,
+                year: p.year,
+                createdAt: p.created_at
+            }
+        };
     }
 );
 
@@ -359,8 +486,8 @@ export const togglePayment = api(
     { expose: true, method: "POST", path: "/tutor-crm/payments/toggle" },
     async ({ id, userId }: ToggleRequest): Promise<{ success: boolean }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("toggle_payment", {
-            payment_id_param: id,
-            clerk_id_param: userId,
+            p_payment_id: id,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
@@ -371,10 +498,19 @@ export const getShareSettings = api(
     { expose: true, method: "GET", path: "/tutor-crm/share/settings/:userId" },
     async ({ userId }: GetShareSettingsRequest): Promise<{ share: Share }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_share_settings", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { share: data?.[0] };
+        const s = data?.[0];
+        return { 
+            share: {
+                id: s.id,
+                userId: s.user_id,
+                isActive: s.is_active,
+                allowStudentNames: s.allow_student_names,
+                createdAt: s.created_at
+            }
+        };
     }
 );
 
@@ -382,12 +518,21 @@ export const toggleShare = api(
     { expose: true, method: "POST", path: "/tutor-crm/share/toggle" },
     async (req: ToggleShareRequest): Promise<{ share: Share }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("toggle_share", {
-            clerk_id_param: req.userId,
-            is_active_param: req.isActive,
-            allow_student_names_param: req.allowStudentNames,
+            p_user_id: req.userId,
+            p_is_active: req.isActive,
+            p_allow_student_names: req.allowStudentNames,
         });
         if (error) throw APIError.internal(error.message);
-        return { share: data?.[0] };
+        const s = data?.[0];
+        return { 
+            share: {
+                id: s.id,
+                userId: s.user_id,
+                isActive: s.is_active,
+                allowStudentNames: s.allow_student_names,
+                createdAt: s.created_at
+            }
+        };
     }
 );
 
@@ -395,10 +540,24 @@ export const getSharedLessons = api(
     { expose: true, method: "GET", path: "/tutor-crm/share/lessons/:shareId" },
     async ({ shareId }: GetSharedLessonsRequest): Promise<{ lessons: Lesson[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_shared_lessons", {
-            share_id_param: shareId,
+            p_share_id: shareId,
         });
         if (error) throw APIError.internal(error.message);
-        return { lessons: data || [] };
+        return { 
+            lessons: (data || []).map((l: any) => ({
+                id: l.id,
+                studentId: l.student_id,
+                studentName: l.student_name,
+                userId: l.user_id,
+                lessonDate: l.lesson_date,
+                startTime: l.start_time,
+                endTime: l.end_time,
+                notes: l.notes,
+                nextLessonPlan: l.next_lesson_plan,
+                status: l.status,
+                createdAt: l.created_at
+            }))
+        };
     }
 );
 
@@ -406,12 +565,21 @@ export const followShare = api(
     { expose: true, method: "POST", path: "/tutor-crm/share/follow" },
     async (req: FollowShareRequest): Promise<{ followed: FollowedShare }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("follow_share", {
-            clerk_id_param: req.userId,
-            share_id_param: req.shareId,
-            alias_param: req.alias,
+            p_user_id: req.userId,
+            p_share_id: req.shareId,
+            p_alias: req.alias,
         });
         if (error) throw APIError.internal(error.message);
-        return { followed: data?.[0] };
+        const f = data?.[0];
+        return { 
+            followed: {
+                id: f.id,
+                userId: f.user_id,
+                shareId: f.share_id,
+                alias: f.alias,
+                createdAt: f.created_at
+            }
+        };
     }
 );
 
@@ -419,8 +587,8 @@ export const unfollowShare = api(
     { expose: true, method: "POST", path: "/tutor-crm/share/unfollow" },
     async (req: UnfollowShareRequest): Promise<{ success: boolean }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("unfollow_share", {
-            clerk_id_param: req.userId,
-            share_id_param: req.shareId,
+            p_user_id: req.userId,
+            p_share_id: req.shareId,
         });
         if (error) throw APIError.internal(error.message);
         return { success: !!data };
@@ -431,9 +599,18 @@ export const getFollowedShares = api(
     { expose: true, method: "GET", path: "/tutor-crm/share/followed/:userId" },
     async ({ userId }: GetFollowedSharesRequest): Promise<{ followed: FollowedShare[] }> => {
         const { data, error } = await supabase.schema("tutor_crm").rpc("get_followed_shares", {
-            clerk_id_param: userId,
+            p_user_id: userId,
         });
         if (error) throw APIError.internal(error.message);
-        return { followed: data || [] };
+        return { 
+            followed: (data || []).map((f: any) => ({
+                id: f.id,
+                userId: f.user_id,
+                shareId: f.share_id,
+                alias: f.alias,
+                createdAt: f.created_at,
+                isActive: f.is_active
+            }))
+        };
     }
 );

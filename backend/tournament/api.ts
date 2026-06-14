@@ -14,7 +14,7 @@ export interface Tournament {
   slug: string;
   icon?: string;
   status: "upcoming" | "active" | "completed";
-  admin_user_id: string;
+  adminUserId: string;
   capacity: number;
   advance_count: number;
   current_league_round: number;
@@ -29,8 +29,8 @@ export interface Tournament {
 
 export interface Participant {
   id: string;
-  tournament_id: string;
-  user_id?: string;
+  tournamentId: string;
+  userId?: string;
   username: string;
   avatar?: string;
   points: number;
@@ -43,14 +43,14 @@ export interface Participant {
 
 export interface Match {
   id: string;
-  tournament_id: string;
+  tournamentId: string;
   phase: "league" | "bracket";
   round: number;
-  player1_id: string | null;
-  player2_id: string | null;
-  player3_id?: string | null;
-  player4_id?: string | null;
-  winner_id: string | null;
+  player1Id: string | null;
+  player2Id: string | null;
+  player3Id?: string | null;
+  player4Id?: string | null;
+  winnerId: string | null;
   status: "upcoming" | "playing" | "finished" | "abandoned";
   scores?: { [id: string]: number };
   username1?: string;
@@ -107,7 +107,11 @@ export const createTournament = api(
       throw new APIError(ErrCode.Internal, `Turnuva oluşturulamadı: ${error.message}`);
     }
 
-    return data?.[0] as Tournament;
+    const t = data?.[0];
+    return {
+      ...t,
+      adminUserId: t.admin_user_id
+    } as Tournament;
   }
 );
 
@@ -124,7 +128,12 @@ export const getTournaments = api(
       throw new APIError(ErrCode.Internal, "Turnuvalar getirilemedi");
     }
 
-    return { tournaments: data as Tournament[] };
+    return { 
+      tournaments: (data || []).map((t: any) => ({
+        ...t,
+        adminUserId: t.admin_user_id
+      })) as Tournament[] 
+    };
   }
 );
 
@@ -143,7 +152,11 @@ export const getTournamentDetails = api(
       throw new APIError(ErrCode.NotFound, "Turnuva bulunamadı");
     }
 
-    return data[0] as Tournament;
+    const t = data[0];
+    return {
+      ...t,
+      adminUserId: t.admin_user_id
+    } as Tournament;
   }
 );
 
@@ -322,7 +335,17 @@ export const getTournamentMatches = api(
       throw new APIError(ErrCode.Internal, `Maçlar getirilemedi: ${error.message}`);
     }
 
-    return { matches: data as Match[] };
+    return { 
+      matches: (data || []).map((m: any) => ({
+        ...m,
+        tournamentId: m.tournament_id,
+        player1Id: m.player1_id,
+        player2Id: m.player2_id,
+        player3Id: m.player3_id,
+        player4Id: m.player4_id,
+        winnerId: m.winner_id
+      })) as Match[] 
+    };
   }
 );
 
@@ -341,7 +364,13 @@ export const getStandings = api(
       throw new APIError(ErrCode.Internal, "Puan durumu getirilemedi");
     }
 
-    return { participants: (data as Participant[]) || [] };
+    return { 
+      participants: (data || []).map((p: any) => ({
+        ...p,
+        tournamentId: p.tournament_id,
+        userId: p.user_id
+      })) as Participant[] 
+    };
   }
 );
 

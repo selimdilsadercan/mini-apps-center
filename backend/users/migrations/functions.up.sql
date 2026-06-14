@@ -11,7 +11,6 @@ CREATE OR REPLACE FUNCTION public.users_create_user(
 )
 RETURNS TABLE (
   id UUID,
-  clerk_id TEXT,
   username TEXT,
   full_name TEXT,
   avatar_url TEXT,
@@ -26,7 +25,7 @@ AS $$
     username = COALESCE(EXCLUDED.username, public.users.username),
     full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
     avatar_url = COALESCE(EXCLUDED.avatar_url, public.users.avatar_url)
-  RETURNING id, clerk_id, username, full_name, avatar_url, created_at;
+  RETURNING id, username, full_name, avatar_url, created_at;
 $$;
 
 -- 2. users_get_user
@@ -38,7 +37,6 @@ CREATE OR REPLACE FUNCTION public.users_get_user(
 )
 RETURNS TABLE (
   id UUID,
-  clerk_id TEXT,
   username TEXT,
   full_name TEXT,
   avatar_url TEXT,
@@ -49,7 +47,6 @@ STABLE
 AS $$
   SELECT 
     id,
-    clerk_id,
     username,
     full_name,
     avatar_url,
@@ -66,7 +63,6 @@ DROP FUNCTION IF EXISTS public.users_get_user_by_username;
 CREATE OR REPLACE FUNCTION public.users_get_user_by_username(username_param TEXT)
 RETURNS TABLE (
   id UUID,
-  clerk_id TEXT,
   username TEXT,
   full_name TEXT,
   avatar_url TEXT,
@@ -77,7 +73,6 @@ STABLE
 AS $$
   SELECT 
     id,
-    clerk_id,
     username,
     full_name,
     avatar_url,

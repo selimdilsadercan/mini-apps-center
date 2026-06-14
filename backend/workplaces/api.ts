@@ -19,7 +19,7 @@ export interface Place {
   parking: boolean;
   power_outlets: boolean;
   quiet_level: number;
-  suggested_by?: string;
+  userId?: string;
   latitude?: number;
   longitude?: number;
   district?: string;
@@ -95,11 +95,17 @@ export interface ToggleVisitedResponse {
 }
 
 async function loadFavoritePlaceIds(userId: string): Promise<Set<string>> {
+  const { data: internalUserId } = await supabase.rpc("get_internal_user_id", {
+    clerk_id_param: userId,
+  });
+
+  if (!internalUserId) return new Set();
+
   const { data: rows, error: tableError } = await supabase
     .schema("workplaces")
     .from("favorites")
     .select("place_id")
-    .eq("clerk_id", userId);
+    .eq("user_id", internalUserId);
 
   if (!tableError) {
     return new Set((rows ?? []).map((r: { place_id: string }) => r.place_id));
@@ -108,7 +114,7 @@ async function loadFavoritePlaceIds(userId: string): Promise<Set<string>> {
   console.warn("favorites table read failed, trying RPC:", tableError.message);
   const { data, error } = await supabase
     .schema("workplaces")
-    .rpc("get_favorite_place_ids", { p_clerk_id: userId });
+    .rpc("get_favorite_place_ids", { p_user_id: userId });
 
   if (error) {
     console.error("loadFavoritePlaceIds error:", error);
@@ -119,11 +125,17 @@ async function loadFavoritePlaceIds(userId: string): Promise<Set<string>> {
 }
 
 async function loadVisitedPlaceIds(userId: string): Promise<Set<string>> {
+  const { data: internalUserId } = await supabase.rpc("get_internal_user_id", {
+    clerk_id_param: userId,
+  });
+
+  if (!internalUserId) return new Set();
+
   const { data: rows, error: tableError } = await supabase
     .schema("workplaces")
     .from("visited")
     .select("place_id")
-    .eq("clerk_id", userId);
+    .eq("user_id", internalUserId);
 
   if (!tableError) {
     return new Set((rows ?? []).map((r: { place_id: string }) => r.place_id));
@@ -131,6 +143,30 @@ async function loadVisitedPlaceIds(userId: string): Promise<Set<string>> {
 
   console.error("loadVisitedPlaceIds error:", tableError);
   return new Set();
+}
+
+function mapPlace(row: any): Place {
+  return {
+    id: row.id,
+    name: row.name,
+    note: row.note,
+    url: row.url,
+    tags: row.tags || [],
+    wifi: !!row.wifi,
+    parking: !!row.parking,
+    power_outlets: !!row.power_outlets,
+    quiet_level: row.quiet_level,
+    userId: row.user_id,
+    latitude: row.latitude ? Number(row.latitude) : undefined,
+    longitude: row.longitude ? Number(row.longitude) : undefined,
+    district: row.district,
+    image_url: row.image_url,
+    address: row.address,
+    rating: row.rating ? Number(row.rating) : undefined,
+    user_ratings_total: row.user_ratings_total,
+    metadata: row.metadata,
+    created_at: row.created_at,
+  };
 }
 
 function withUserFlags(
@@ -150,12 +186,20 @@ async function toggleRow(
   placeId: string,
   userId: string,
 ): Promise<boolean> {
+  const { data: internalUserId } = await supabase.rpc("get_internal_user_id", {
+    clerk_id_param: userId,
+  });
+
+  if (!internalUserId) {
+    throw APIError.notFound("user not found");
+  }
+
   const { data: existing, error: readError } = await supabase
     .schema("workplaces")
     .from(table)
     .select("id")
     .eq("place_id", placeId)
-    .eq("clerk_id", userId)
+    .eq("user_id", internalUserId)
     .maybeSingle();
 
   if (readError) {
@@ -168,7 +212,7 @@ async function toggleRow(
       .from(table)
       .delete()
       .eq("place_id", placeId)
-      .eq("clerk_id", userId);
+      .eq("user_id", internalUserId);
     if (deleteError) {
       throw APIError.internal(`Failed to toggle ${table}: ${deleteError.message}`);
     }
@@ -178,7 +222,7 @@ async function toggleRow(
   const { error: insertError } = await supabase
     .schema("workplaces")
     .from(table)
-    .insert({ place_id: placeId, clerk_id: userId });
+    .insert({ place_id: placeId, user_id: internalUserId });
   if (insertError) {
     throw APIError.internal(`Failed to toggle ${table}: ${insertError.message}`);
   }
@@ -190,7 +234,7 @@ async function loadAllPlaces(): Promise<Place[]> {
   if (error) {
     throw APIError.internal(`Failed to load places: ${error.message}`);
   }
-  return (data as Place[] | null) ?? [];
+  return (data || []).map(mapPlace);
 }
 
 async function loadPlacesForUser(userId?: string): Promise<Place[]> {
@@ -226,9 +270,9 @@ export const getPlace = api(
 
     const rpc = await supabase.schema("workplaces").rpc("get_place", { p_id: id });
     if (!rpc.error) {
-      const rows = rpc.data as Place[] | null;
+      const rows = rpc.data as any[] | null;
       if (rows?.length) {
-        place = rows[0];
+        place = mapPlace(rows[0]);
       }
     } else {
       console.warn("getPlace RPC unavailable, using get_places:", rpc.error.message);
@@ -276,7 +320,7 @@ export const toggleFavorite = api(
 
     const rpc = await supabase.schema("workplaces").rpc("toggle_favorite", {
       p_place_id: placeId,
-      p_clerk_id: userId,
+      p_user_id: userId,
     });
 
     if (!rpc.error) {
@@ -313,7 +357,7 @@ export const addPlace = api(
       p_parking: req.parking || false,
       p_power_outlets: req.power_outlets || false,
       p_quiet_level: req.quiet_level || 3,
-      p_suggested_by: req.suggested_by,
+      p_user_id: req.suggested_by,
       p_latitude: req.latitude,
       p_longitude: req.longitude,
       p_district: req.district,
@@ -327,7 +371,7 @@ export const addPlace = api(
       console.error("addPlace error:", error);
       throw APIError.internal(`Failed to add place: ${error.message}`);
     }
-    return { place: { ...data[0], is_favorite: false, is_visited: false } };
+    return { place: { ...mapPlace(data[0]), is_favorite: false, is_visited: false } };
   },
 );
 
@@ -417,34 +461,6 @@ async function requireAdmin(userId: string) {
 async function getEnrichedMetadata(googlePlaceId: string | undefined, existingMetadata: any): Promise<any> {
   const meta = { ...(existingMetadata || {}) };
   if (!googlePlaceId) return meta;
-
-  // TEMPORARILY DISABLED TO AVOID COSTS
-  /*
-  const apiKey = googleMapsApiKey();
-  if (!apiKey) return meta;
-
-  try {
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${googlePlaceId}&fields=formatted_phone_number,website,opening_hours,photos,types&key=${apiKey}`;
-    const response = await fetch(url);
-    const data = (await response.json()) as any;
-
-    if (data.result) {
-      const res = data.result;
-      meta.phone = res.formatted_phone_number;
-      meta.website = res.website;
-      meta.opening_hours = res.opening_hours;
-      meta.google_place_id = googlePlaceId;
-
-      if (res.photos && res.photos.length > 0) {
-        meta.photos = res.photos.map((photo: any) =>
-          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photoreference=${photo.photo_reference}&key=${apiKey}`
-        );
-      }
-    }
-  } catch (err) {
-    console.error("getEnrichedMetadata error:", err);
-  }
-  */
   return meta;
 }
 
@@ -453,7 +469,6 @@ export const updatePlace = api(
   async (req: UpdatePlaceRequest): Promise<UpdatePlaceResponse> => {
     await requireAdmin(req.userId);
 
-    // Fetch existing place to preserve details that are not in the update request
     const { data: currentRows, error: currentError } = await supabase
       .schema("workplaces")
       .from("places")
@@ -467,58 +482,16 @@ export const updatePlace = api(
 
     const existing = currentRows;
     const gId = req.google_place_id || existing.metadata?.google_place_id;
-    const apiKey = googleMapsApiKey();
-
-    let apiLat = undefined;
-    let apiLng = undefined;
-    let apiAddr = undefined;
-    let apiRating = undefined;
-    let apiRatingsTotal = undefined;
-    let apiImg = undefined;
-    let apiDistrict = undefined;
-
-    // Fetch details from Google Places API if coordinates or images are missing (TEMPORARILY DISABLED TO AVOID COSTS)
-    /*
-    if (gId && apiKey && (!existing.latitude || !existing.longitude || !existing.image_url || !existing.address)) {
-      try {
-        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${gId}&fields=geometry,formatted_address,rating,user_ratings_total,photos&key=${apiKey}`;
-        const response = await fetch(url);
-        const data = (await response.json()) as any;
-        if (data.result) {
-          const res = data.result;
-          apiLat = res.geometry?.location?.lat;
-          apiLng = res.geometry?.location?.lng;
-          apiAddr = res.formatted_address;
-          apiRating = res.rating;
-          apiRatingsTotal = res.user_ratings_total;
-
-          if (res.photos && res.photos.length > 0) {
-            apiImg = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${res.photos[0].photo_reference}&key=${apiKey}`;
-          }
-
-          if (res.formatted_address) {
-            const parts = res.formatted_address.split(",");
-            if (parts.length > 1) {
-              apiDistrict = parts[parts.length - 2].trim().split(" ")[0];
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Enrichment from details API during update failed:", err);
-      }
-    }
-    */
 
     const meta = await getEnrichedMetadata(gId, req.metadata || existing.metadata);
 
-    // Support merging new fields with existing fields fallback, or API-enriched fields
-    const finalLatitude = req.latitude !== undefined && req.latitude !== null ? req.latitude : (existing.latitude || apiLat);
-    const finalLongitude = req.longitude !== undefined && req.longitude !== null ? req.longitude : (existing.longitude || apiLng);
-    const finalDistrict = req.district !== undefined && req.district !== null ? req.district : (existing.district || apiDistrict);
-    const finalImageUrl = req.image_url !== undefined && req.image_url !== null ? req.image_url : (existing.image_url || apiImg);
-    const finalAddress = req.address !== undefined && req.address !== null ? req.address : (existing.address || apiAddr);
-    const finalRating = req.rating !== undefined && req.rating !== null ? req.rating : (existing.rating || apiRating);
-    const finalUserRatings = req.user_ratings_total !== undefined && req.user_ratings_total !== null ? req.user_ratings_total : (existing.user_ratings_total || apiRatingsTotal);
+    const finalLatitude = req.latitude !== undefined && req.latitude !== null ? req.latitude : existing.latitude;
+    const finalLongitude = req.longitude !== undefined && req.longitude !== null ? req.longitude : existing.longitude;
+    const finalDistrict = req.district !== undefined && req.district !== null ? req.district : existing.district;
+    const finalImageUrl = req.image_url !== undefined && req.image_url !== null ? req.image_url : existing.image_url;
+    const finalAddress = req.address !== undefined && req.address !== null ? req.address : existing.address;
+    const finalRating = req.rating !== undefined && req.rating !== null ? req.rating : existing.rating;
+    const finalUserRatings = req.user_ratings_total !== undefined && req.user_ratings_total !== null ? req.user_ratings_total : existing.user_ratings_total;
 
     const { data, error } = await supabase
       .schema("workplaces")
@@ -545,7 +518,7 @@ export const updatePlace = api(
       console.error("updatePlace error:", error);
       throw APIError.internal(`Failed to update place: ${error.message}`);
     }
-    return { place: { ...data[0], is_favorite: false, is_visited: false } };
+    return { place: { ...mapPlace(data[0]), is_favorite: false, is_visited: false } };
   }
 );
 
@@ -567,58 +540,6 @@ export const deletePlace = api(
 export const searchPlace = api(
   { expose: true, method: "GET", path: "/workplaces/search" },
   async ({ query }: SearchPlaceRequest): Promise<SearchPlaceResponse> => {
-    // TEMPORARILY DISABLED GOOGLE SEARCH TO AVOID COSTS
-    /*
-    const apiKey = googleMapsApiKey();
-    if (!apiKey) {
-      return { results: [] };
-    }
-
-    try {
-      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
-      const response = await fetch(url);
-      const data = (await response.json()) as any;
-
-      if (!data.results) {
-        return { results: [] };
-      }
-
-      const results = data.results.map((r: any) => {
-        let imageUrl = "";
-        if (r.photos && r.photos.length > 0) {
-          imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${r.photos[0].photo_reference}&key=${apiKey}`;
-        }
-
-        let district = "";
-        if (r.formatted_address) {
-          const parts = r.formatted_address.split(",");
-          if (parts.length > 1) {
-            district = parts[parts.length - 2].trim().split(" ")[0];
-          }
-        }
-
-        return {
-          name: r.name,
-          address: r.formatted_address,
-          url: r.place_id ? `https://www.google.com/maps/place/?q=place_id:${r.place_id}` : undefined,
-          latitude: r.geometry?.location?.lat,
-          longitude: r.geometry?.location?.lng,
-          rating: r.rating,
-          user_ratings_total: r.user_ratings_total,
-          image_url: imageUrl,
-          google_place_id: r.place_id,
-          district: district,
-        };
-      });
-
-      return { results };
-    } catch (err) {
-      console.error("searchPlace error:", err);
-      return { results: [] };
-    }
-    */
-
-    // USING OPENSTREETMAP (NOMINATIM) INSTEAD
     try {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=10`;
       const response = await fetch(url, {
@@ -666,7 +587,7 @@ export const listPendingPlaces = api(
       console.error("listPendingPlaces error:", error);
       throw APIError.internal(`Failed to list pending places: ${error.message}`);
     }
-    return { places: data || [] };
+    return { places: (data || []).map(mapPlace) };
   }
 );
 
@@ -681,6 +602,6 @@ export const approvePlace = api(
       console.error("approvePlace error:", error);
       throw APIError.internal(`Failed to approve place: ${error.message}`);
     }
-    return { place: { ...data[0], is_favorite: false, is_visited: false } };
+    return { place: { ...mapPlace(data[0]), is_favorite: false, is_visited: false } };
   }
 );

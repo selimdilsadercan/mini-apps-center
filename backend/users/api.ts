@@ -24,10 +24,6 @@ interface GetUserByClerkIdResponse {
 
 interface CreateUserRequest {
   clerkId: string;
-}
-
-interface CreateUserRequest {
-  clerkId: string;
   username?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -80,7 +76,6 @@ interface GetUserPreferencesResponse {
 
 /**
  * Clerk ID ile Supabase user'ı getirir
- * GET /identity/user/clerk/:clerkId
  */
 export const getUserByClerkId = api(
   { expose: true, method: "GET", path: "/users/user/clerk/:clerkId" },
@@ -95,14 +90,12 @@ export const getUserByClerkId = api(
       return { user: null };
     }
 
-    console.log("DB USER RETRIEVED:", data?.[0]);
     return { user: data?.[0] || null };
   }
 );
 
 /**
  * Clerk ID ile yeni Supabase user oluşturur
- * POST /identity/user/create
  */
 export const createUser = api(
   { expose: true, method: "POST", path: "/users/user/create" },
@@ -125,7 +118,6 @@ export const createUser = api(
 
 /**
  * Clerk ID ile Supabase user'ı getirir, yoksa oluşturur
- * POST /identity/user/get-or-create
  */
 export const getOrCreateUser = api(
   { expose: true, method: "POST", path: "/users/user/get-or-create" },
@@ -150,7 +142,7 @@ export const getOrCreateUser = api(
         (avatarUrl && existingUser.avatar_url !== avatarUrl)
       ) {
         const { data: updatedData, error: updateError } = await supabase.rpc("users_create_user", {
-          clerk_id_param: existingUser.clerk_id,
+          clerk_id_param: clerkId,
           username_param: username || existingUser.username,
           avatar_url_param: avatarUrl || existingUser.avatar_url,
           full_name_param: fullName || existingUser.full_name,
@@ -163,8 +155,6 @@ export const getOrCreateUser = api(
     }
 
     // Yoksa oluştur
-    console.log("Supabase user bulunamadı, yeni oluşturuluyor...");
-    
     const { data: newData, error: newError } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
       username_param: username || null,
@@ -177,20 +167,13 @@ export const getOrCreateUser = api(
       return { user: null, isNewUser: false };
     }
 
-    const newUser = newData?.[0] || null;
-
-    if (newUser) {
-      console.log("Yeni Supabase user oluşturuldu:", newUser.id);
-    }
-
-    return { user: newUser, isNewUser: true };
+    return { user: newData?.[0] || null, isNewUser: true };
   }
 );
 
 
 /**
  * Kullanıcının FCM token'ını kaydeder veya günceller
- * POST /users/fcm-token
  */
 export const saveFcmToken = api(
   { expose: true, method: "POST", path: "/users/fcm-token" },
@@ -218,7 +201,6 @@ export const saveFcmToken = api(
 
 /**
  * Kullanıcının uygulama sıralamasını günceller
- * POST /users/app-order
  */
 export const updateAppOrder = api(
   { expose: true, method: "POST", path: "/users/app-order" },
@@ -240,7 +222,6 @@ export const updateAppOrder = api(
 
 /**
  * Kullanıcının tercihlerini (sıralama vb.) getirir
- * GET /users/preferences/:clerkId
  */
 export const getUserPreferences = api(
   { expose: true, method: "GET", path: "/users/preferences/:clerkId" },
@@ -269,7 +250,6 @@ interface CheckAdminResponse {
 
 /**
  * Clerk ID ile kullanıcının admin olup olmadığını sorgular
- * GET /users/admin/check/:clerkId
  */
 export const checkAdmin = api(
   { expose: true, method: "GET", path: "/users/admin/check/:clerkId" },
@@ -309,7 +289,6 @@ interface GetUserByUsernameResponse {
 
 /**
  * Username ile Supabase user'ı getirir
- * GET /users/user/username/:username
  */
 export const getUserByUsername = api(
   { expose: true, method: "GET", path: "/users/user/username/:username" },
@@ -327,4 +306,3 @@ export const getUserByUsername = api(
     return { user: data?.[0] || null };
   }
 );
-

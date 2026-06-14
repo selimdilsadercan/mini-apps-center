@@ -16,7 +16,7 @@ export interface Rule {
 }
 
 export interface Member {
-  userId: string;
+  userId: string; // clerk_id
   username: string | null;
   avatar: string | null;
   points: number;
@@ -26,17 +26,17 @@ export interface Member {
 }
 
 export interface Vote {
-  userId: string;
+  userId: string; // clerk_id
   username: string | null;
   approve: boolean;
 }
 
 export interface Infraction {
   id: string;
-  reportedUserId: string;
+  reportedUserId: string; // clerk_id
   reportedUsername: string | null;
   reportedAvatar: string | null;
-  reporterUserId: string | null;
+  reporterUserId: string | null; // clerk_id
   reporterUsername: string | null;
   ruleName: string;
   penaltyAmount: number;
@@ -49,7 +49,7 @@ export interface Infraction {
 export interface Lobby {
   id: string;
   joinCode: string;
-  creatorId: string;
+  creatorId: string; // clerk_id
   name: string;
   penaltyType: 'points' | 'jar';
   currency: string;
@@ -64,7 +64,7 @@ export interface Lobby {
 // ==================== REQUEST / RESPONSE INTERFACES ====================
 
 export interface CreateLobbyRequest {
-  creatorId: string;
+  creatorId: string; // clerk_id
   name: string;
   penaltyType: 'points' | 'jar';
   currency?: string;
@@ -79,7 +79,7 @@ export interface CreateLobbyResponse {
 }
 
 export interface JoinLobbyRequest {
-  userId: string;
+  userId: string; // clerk_id
   joinCode: string;
 }
 
@@ -98,8 +98,8 @@ export interface GetLobbyResponse {
 
 export interface ReportInfractionRequest {
   lobbyId: string;
-  reportedUserId: string;
-  reporterUserId?: string;
+  reportedUserId: string; // clerk_id
+  reporterUserId?: string; // clerk_id
   ruleName: string;
   penaltyAmount: number;
   isSelfReport: boolean;
@@ -112,7 +112,7 @@ export interface ReportInfractionResponse {
 
 export interface VoteInfractionRequest {
   infractionId: string;
-  userId: string;
+  userId: string; // clerk_id
   approve: boolean;
 }
 
@@ -123,7 +123,7 @@ export interface VoteInfractionResponse {
 
 export interface LeaveLobbyRequest {
   lobbyId: string;
-  userId: string;
+  userId: string; // clerk_id
 }
 
 export interface LeaveLobbyResponse {
@@ -131,11 +131,11 @@ export interface LeaveLobbyResponse {
 }
 
 export interface GetUserLobbiesRequest {
-  userId: string;
+  userId: string; // clerk_id
 }
 
 export interface LobbyMemberBrief {
-  userId: string;
+  userId: string; // clerk_id
   username: string | null;
   avatar: string | null;
 }
@@ -176,13 +176,13 @@ export const createLobby = api(
     const joinCode = generateJoinCode();
     
     const { data, error } = await supabase.schema("penalty_jar").rpc("create_lobby", {
-      p_creator_id: req.creatorId,
+      p_creator_clerk_id: req.creatorId,
       p_name: req.name,
       p_penalty_type: req.penaltyType,
       p_currency: req.currency || "TL",
       p_point_start: req.pointStart !== undefined ? req.pointStart : 100,
       p_penalty_amount: req.penaltyAmount !== undefined ? req.penaltyAmount : 10,
-      p_rules: JSON.stringify(req.rules),
+      p_rules: req.rules,
       p_join_code: joinCode,
     });
 
@@ -191,7 +191,7 @@ export const createLobby = api(
       throw APIError.internal(`Failed to create lobby: ${error.message}`);
     }
 
-    return { lobbyId: data, joinCode };
+    return { lobbyId: data as string, joinCode };
   }
 );
 
@@ -203,7 +203,7 @@ export const joinLobby = api(
   { expose: true, method: "POST", path: "/penalty-jar/lobby/join" },
   async (req: JoinLobbyRequest): Promise<JoinLobbyResponse> => {
     const { data, error } = await supabase.schema("penalty_jar").rpc("join_lobby", {
-      p_user_id: req.userId,
+      p_clerk_id: req.userId,
       p_join_code: req.joinCode.toUpperCase(),
     });
 
@@ -212,7 +212,7 @@ export const joinLobby = api(
       throw APIError.notFound(`Failed to join lobby: ${error.message}`);
     }
 
-    return { lobbyId: data, success: true };
+    return { lobbyId: data as string, success: true };
   }
 );
 
@@ -227,16 +227,16 @@ export const getLobby = api(
       p_lobby_id: lobbyId,
     });
 
-    if (error || !data || data.length === 0) {
+    if (error || !data || (data as any[]).length === 0) {
       console.error("getLobby error:", error);
       throw APIError.notFound(`Lobby not found or error: ${error?.message}`);
     }
 
-    const row = data[0];
+    const row = (data as any[])[0];
     const lobby: Lobby = {
       id: row.id,
       joinCode: row.join_code,
-      creatorId: row.creator_id,
+      creatorId: row.creator_clerk_id,
       name: row.name,
       penaltyType: row.penalty_type,
       currency: row.currency,
@@ -261,8 +261,8 @@ export const reportInfraction = api(
   async (req: ReportInfractionRequest): Promise<ReportInfractionResponse> => {
     const { data, error } = await supabase.schema("penalty_jar").rpc("report_infraction", {
       p_lobby_id: req.lobbyId,
-      p_reported_user_id: req.reportedUserId,
-      p_reporter_user_id: req.isSelfReport ? null : (req.reporterUserId || null),
+      p_reported_clerk_id: req.reportedUserId,
+      p_reporter_clerk_id: req.isSelfReport ? null : (req.reporterUserId || null),
       p_rule_name: req.ruleName,
       p_penalty_amount: req.penaltyAmount,
       p_is_self_report: req.isSelfReport,
@@ -273,7 +273,7 @@ export const reportInfraction = api(
       throw APIError.internal(`Failed to report infraction: ${error.message}`);
     }
 
-    return { infractionId: data, success: true };
+    return { infractionId: data as string, success: true };
   }
 );
 
@@ -286,7 +286,7 @@ export const voteInfraction = api(
   async (req: VoteInfractionRequest): Promise<VoteInfractionResponse> => {
     const { data, error } = await supabase.schema("penalty_jar").rpc("vote_infraction", {
       p_infraction_id: req.infractionId,
-      p_user_id: req.userId,
+      p_clerk_id: req.userId,
       p_approve: req.approve,
     });
 
@@ -306,12 +306,24 @@ export const voteInfraction = api(
 export const leaveLobby = api(
   { expose: true, method: "POST", path: "/penalty-jar/lobby/leave" },
   async (req: LeaveLobbyRequest): Promise<LeaveLobbyResponse> => {
+    // Get internal user ID
+    const { data: userData, error: userErr } = await supabase
+      .schema("public")
+      .from("users")
+      .select("id")
+      .or(`clerk_id.eq.${req.userId},local_clerk_id.eq.${req.userId}`)
+      .single();
+
+    if (userErr || !userData) {
+      throw APIError.notFound("User not found");
+    }
+
     const { error } = await supabase
       .schema("penalty_jar")
       .from("lobby_members")
       .delete()
       .eq("lobby_id", req.lobbyId)
-      .eq("user_id", req.userId);
+      .eq("user_id", userData.id);
 
     if (error) {
       console.error("leaveLobby error:", error);
@@ -329,76 +341,25 @@ export const leaveLobby = api(
 export const getUserLobbies = api(
   { expose: true, method: "GET", path: "/penalty-jar/user-lobbies/:userId" },
   async ({ userId }: GetUserLobbiesRequest): Promise<GetUserLobbiesResponse> => {
-    const { data, error } = await supabase
-      .schema("penalty_jar")
-      .from("lobby_members")
-      .select(`
-        role,
-        joined_at,
-        lobbies (
-          id,
-          join_code,
-          name,
-          penalty_type
-        )
-      `)
-      .eq("user_id", userId);
+    const { data, error } = await supabase.schema("penalty_jar").rpc("get_user_lobbies", {
+      p_clerk_id: userId,
+    });
 
     if (error) {
       console.error("getUserLobbies error:", error);
       throw APIError.internal(`Failed to fetch user lobbies: ${error.message}`);
     }
 
-    const lobbies = [];
-    for (const row of (data || [])) {
-      const lobbyInfo = Array.isArray(row.lobbies) ? row.lobbies[0] : (row.lobbies as any);
-      if (!lobbyInfo) continue;
-
-      const { data: sumData } = await supabase
-        .schema("penalty_jar")
-        .from("lobby_members")
-        .select("money_owed")
-        .eq("lobby_id", lobbyInfo.id);
-        
-      const totalPoints = (sumData || []).reduce((sum: number, member: any) => sum + Number(member.money_owed), 0);
-      
-      // Fetch member IDs
-      const { data: membersData } = await supabase
-        .schema("penalty_jar")
-        .from("lobby_members")
-        .select("user_id")
-        .eq("lobby_id", lobbyInfo.id);
-
-      const membersList: LobbyMemberBrief[] = [];
-      if (membersData && membersData.length > 0) {
-        const userIds = membersData.map(m => m.user_id);
-        const { data: usersData } = await supabase
-          .from("users")
-          .select("clerk_id, username, avatar_url")
-          .in("clerk_id", userIds);
-          
-        if (usersData) {
-          for (const u of usersData) {
-            membersList.push({
-              userId: u.clerk_id,
-              username: u.username,
-              avatar: u.avatar_url,
-            });
-          }
-        }
-      }
-      
-      lobbies.push({
-        id: lobbyInfo.id,
-        joinCode: lobbyInfo.join_code,
-        name: lobbyInfo.name,
-        penaltyType: lobbyInfo.penalty_type,
-        role: row.role,
-        joinedAt: row.joined_at,
-        totalPoints: totalPoints,
-        members: membersList
-      });
-    }
+    const lobbies = (data as any[] || []).map(row => ({
+      id: row.id,
+      joinCode: row.join_code,
+      name: row.name,
+      penaltyType: row.penalty_type,
+      role: row.role,
+      joinedAt: row.joined_at,
+      totalPoints: Number(row.total_points || 0),
+      members: row.members || []
+    }));
 
     return { lobbies };
   }

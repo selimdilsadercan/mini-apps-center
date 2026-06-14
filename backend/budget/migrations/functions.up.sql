@@ -1,9 +1,14 @@
--- Budget RPC Functions
+-- FUNCTIONS
+-- 1. budget.add_expense
+-- 2. budget.create_project
+-- 3. budget.delete_expense
+-- 4. budget.get_user_projects
+-- 5. budget.update_expense
+-- 6. budget.update_project
 
--- 1. add_expense
+-- 1. Add Expense
 DROP FUNCTION IF EXISTS budget.add_expense(UUID, TEXT, DECIMAL, UUID, TEXT, JSONB);
 DROP FUNCTION IF EXISTS budget.add_expense(UUID, TEXT, DECIMAL, UUID, TEXT, JSONB, TIMESTAMP WITH TIME ZONE);
-
 CREATE OR REPLACE FUNCTION budget.add_expense(
     project_id_param UUID,
     title_param TEXT,
@@ -22,7 +27,7 @@ BEGIN
     INSERT INTO budget.expenses (
         project_id, title, amount, payer_member_id, category, expense_date
     ) VALUES (
-        project_id_param, title_param, amount_param, payer_member_id_param, category_param, expense_date_param
+        project_id_param, title_param, amount_param, payer_member_id_param, category_param, COALESCE(expense_date_param, NOW())
     ) RETURNING id INTO v_expense_id;
 
     -- 2. Insert Shares
@@ -41,13 +46,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. create_project
+-- 2. Create Project
 DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[]);
 DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[], DATE, DATE);
 DROP FUNCTION IF EXISTS budget.create_project(TEXT, TEXT, TEXT, TEXT, DECIMAL, TEXT, TEXT[], DATE, DATE, TEXT);
-
 CREATE OR REPLACE FUNCTION budget.create_project(
-    creator_clerk_id_param TEXT,
+    p_user_id TEXT,
     name_param TEXT,
     description_param TEXT,
     currency_param TEXT,
@@ -63,11 +67,8 @@ DECLARE
     v_project_id UUID;
     v_member_name TEXT;
     v_user_name TEXT;
-    v_creator_id UUID;
+    v_creator_id UUID := public.get_internal_user_id(p_user_id);
 BEGIN
-    -- Resolve internal ID
-    v_creator_id := public.get_internal_user_id(creator_clerk_id_param);
-    
     IF v_creator_id IS NULL THEN
         RAISE EXCEPTION 'Creator not found';
     END IF;
@@ -107,9 +108,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. delete_expense
+-- 3. Delete Expense
 DROP FUNCTION IF EXISTS budget.delete_expense(UUID);
-
 CREATE OR REPLACE FUNCTION budget.delete_expense(
     expense_id_param UUID
 )
@@ -120,11 +120,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. get_user_projects
+-- 4. Get User Projects
 DROP FUNCTION IF EXISTS budget.get_user_projects(TEXT);
-
 CREATE OR REPLACE FUNCTION budget.get_user_projects(
-    clerk_id_param TEXT
+    p_user_id TEXT
 )
 RETURNS TABLE (
     id UUID,
@@ -142,11 +141,8 @@ RETURNS TABLE (
     total_spent DECIMAL
 ) AS $$
 DECLARE
-    v_user_id UUID;
+    v_user_id UUID := public.get_internal_user_id(p_user_id);
 BEGIN
-    -- Resolve internal ID
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-
     RETURN QUERY
     SELECT 
         p.id,
@@ -167,12 +163,11 @@ BEGIN
        OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id)
     ORDER BY p.created_at DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
--- 5. update_expense
+-- 5. Update Expense
 DROP FUNCTION IF EXISTS budget.update_expense(UUID, TEXT, DECIMAL, UUID, TEXT, JSONB);
 DROP FUNCTION IF EXISTS budget.update_expense(UUID, TEXT, DECIMAL, UUID, TEXT, JSONB, TIMESTAMP WITH TIME ZONE);
-
 CREATE OR REPLACE FUNCTION budget.update_expense(
     expense_id_param UUID,
     title_param TEXT,
@@ -192,7 +187,7 @@ BEGIN
         amount = amount_param,
         payer_member_id = payer_member_id_param,
         category = category_param,
-        expense_date = expense_date_param
+        expense_date = COALESCE(expense_date_param, expense_date)
     WHERE id = expense_id_param;
 
     -- 2. Clear old shares
@@ -214,10 +209,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. update_project
+-- 6. Update Project
 DROP FUNCTION IF EXISTS budget.update_project(UUID, TEXT, TEXT, TEXT, DECIMAL, TEXT, DATE, DATE);
 DROP FUNCTION IF EXISTS budget.update_project(UUID, TEXT, TEXT, TEXT, DECIMAL, TEXT, DATE, DATE, TEXT);
-
 CREATE OR REPLACE FUNCTION budget.update_project(
     project_id_param UUID,
     name_param TEXT,

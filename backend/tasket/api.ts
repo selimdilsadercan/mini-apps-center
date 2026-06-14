@@ -9,17 +9,17 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface TasketList {
   id: string;
-  clerkId: string;
+  userId: string;
   name: string;
   content: any;
   color: string | null;
-  icon: string | null;
+  icon: string | null;    
   createdAt: string;
 }
 
 export interface TasketItem {
   id: string;
-  clerkId: string;
+  userId: string;
   listId: string | null;
   title: string | null;
   content: string | null;
@@ -35,7 +35,7 @@ export interface TasketItem {
 
 interface DbTaskList {
   id: string;
-  clerk_id: string;
+  user_id: string;
   name: string;
   content: any;
   color: string | null;
@@ -45,7 +45,7 @@ interface DbTaskList {
 
 interface DbTaskItem {
   id: string;
-  clerk_id: string;
+  user_id: string;
   list_id: string | null;
   title: string | null;
   content: string | null;
@@ -62,7 +62,7 @@ interface DbTaskItem {
 function mapList(row: DbTaskList): TasketList {
   return {
     id: row.id,
-    clerkId: row.clerk_id,
+    userId: row.user_id,
     name: row.name,
     content: row.content,
     color: row.color,
@@ -74,7 +74,7 @@ function mapList(row: DbTaskList): TasketList {
 function mapItem(row: DbTaskItem): TasketItem {
   return {
     id: row.id,
-    clerkId: row.clerk_id,
+    userId: row.user_id,
     listId: row.list_id,
     title: row.title,
     content: row.content,
@@ -102,7 +102,7 @@ export const getData = api(
   { expose: true, method: "GET", path: "/tasket/data/:userId" },
   async ({ userId }: GetDataRequest): Promise<GetDataResponse> => {
     const { data, error } = await supabase.schema("tasket").rpc("get_data", {
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -167,7 +167,7 @@ export const upsertList = api(
   async (params: UpsertListRequest): Promise<UpsertListResponse> => {
     const { data, error } = await supabase.schema("tasket").rpc("upsert_list", {
       id_param: params.id ?? null,
-      clerk_id_param: params.userId,
+      p_user_id: params.userId,
       name_param: params.name,
       content_param: params.content ?? null,
       color_param: params.color ?? null,
@@ -187,6 +187,15 @@ export const upsertList = api(
     if (params.content) {
       const extractedTasks = extractTasks(params.content);
       const listId = list.id;
+      
+      // Resolve internal user id for direct table operations
+      const { data: internalUserId } = await supabase.rpc("get_internal_user_id", {
+        clerk_id_param: params.userId,
+      });
+
+      if (!internalUserId) {
+        throw APIError.internal("User not found");
+      }
       
       // 1. Get current items for this list to know what to delete
       const { data: existingItems } = await supabase
@@ -212,7 +221,7 @@ export const upsertList = api(
       if (extractedTasks.length > 0) {
         const itemsToUpsert = extractedTasks.map(task => ({
           id: task.id || undefined,
-          clerk_id: params.userId,
+          user_id: internalUserId,
           list_id: listId,
           title: task.title,
           is_completed: task.isCompleted,
@@ -254,7 +263,7 @@ export const upsertItem = api(
   async (params: UpsertItemRequest): Promise<UpsertItemResponse> => {
     const { data, error } = await supabase.schema("tasket").rpc("upsert_item", {
       id_param: params.id ?? null,
-      clerk_id_param: params.userId,
+      p_user_id: params.userId,
       list_id_param: params.listId ?? null,
       title_param: params.title ?? null,
       content_param: params.content ?? null,
@@ -291,7 +300,7 @@ export const deleteList = api(
   async ({ id, userId }: DeleteListRequest): Promise<DeleteListResponse> => {
     const { data, error } = await supabase.schema("tasket").rpc("delete_list", {
       id_param: id,
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
@@ -316,7 +325,7 @@ export const deleteItem = api(
   async ({ id, userId }: DeleteItemRequest): Promise<DeleteItemResponse> => {
     const { data, error } = await supabase.schema("tasket").rpc("delete_item", {
       id_param: id,
-      clerk_id_param: userId,
+      p_user_id: userId,
     });
 
     if (error) {
