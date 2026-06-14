@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, UserCircle } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -11,6 +11,7 @@ const client = createBrowserClient();
 
 export function GreetingHandler() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const { permission, handleRequestPermission } = useNotifications();
   
   // greetingStep:
@@ -223,6 +224,14 @@ export function GreetingHandler() {
                 ) : (
                   "Kaydet ve Devam Et"
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="w-full text-gray-400 text-[10px] font-medium hover:text-red-500 transition-colors pt-2"
+              >
+                Çıkış Yap
               </button>
             </form>
           </motion.div>

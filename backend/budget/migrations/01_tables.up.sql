@@ -1,10 +1,10 @@
--- Budget Schema
+-- 1. Create Schema
 CREATE SCHEMA IF NOT EXISTS budget;
 
 -- Grant schema usage permissions
 GRANT USAGE ON SCHEMA budget TO anon, authenticated, service_role;
 
--- Projects Table
+-- 2. Projects Table
 CREATE TABLE IF NOT EXISTS budget.projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     creator_clerk_id TEXT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS budget.projects (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Members Table (either associated with a clerk user or simple guest names)
+-- 3. Members Table
 CREATE TABLE IF NOT EXISTS budget.members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES budget.projects(id) ON DELETE CASCADE,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS budget.members (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Expenses Table
+-- 4. Expenses Table
 CREATE TABLE IF NOT EXISTS budget.expenses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES budget.projects(id) ON DELETE CASCADE,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS budget.expenses (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Expense Shares Table
+-- 5. Expense Shares Table
 CREATE TABLE IF NOT EXISTS budget.expense_shares (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     expense_id UUID REFERENCES budget.expenses(id) ON DELETE CASCADE,
@@ -48,16 +48,14 @@ CREATE TABLE IF NOT EXISTS budget.expense_shares (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Indexes
+-- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_budget_projects_creator ON budget.projects(creator_clerk_id);
 CREATE INDEX IF NOT EXISTS idx_budget_members_project ON budget.members(project_id);
 CREATE INDEX IF NOT EXISTS idx_budget_expenses_project ON budget.expenses(project_id);
 CREATE INDEX IF NOT EXISTS idx_budget_shares_expense ON budget.expense_shares(expense_id);
 
--- Ensure all permissions are set up
+-- 7. Grants
 GRANT ALL ON ALL TABLES IN SCHEMA budget TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA budget TO anon, authenticated, service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA budget TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON TABLES TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;

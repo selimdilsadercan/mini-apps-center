@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS recipe.recipes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   image_url TEXT,
-  created_user_id UUID NOT NULL REFERENCES public.users(id),
+  created_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   ingredients JSONB,
   instructions JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

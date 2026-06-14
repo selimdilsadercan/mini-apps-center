@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS tournament.tournaments (
   slug TEXT UNIQUE NOT NULL,
   icon TEXT,
   status TEXT NOT NULL DEFAULT 'upcoming', -- upcoming, active, completed
-  admin_user_id UUID NOT NULL REFERENCES public.users(id),
+  admin_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   capacity INTEGER DEFAULT 16,
   advance_count INTEGER DEFAULT 4, -- How many people move to bracket
   current_league_round INTEGER DEFAULT 1,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tournament.tournaments (
 CREATE TABLE IF NOT EXISTS tournament.participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tournament_id UUID NOT NULL REFERENCES tournament.tournaments(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES public.users(id), -- Nullable for mock players
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE, -- Nullable for mock players
   username TEXT NOT NULL,
   avatar TEXT,
   joined_at TIMESTAMPTZ DEFAULT NOW(),

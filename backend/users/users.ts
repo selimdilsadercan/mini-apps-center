@@ -1,6 +1,9 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import { getMeta } from "encore.dev";
 import { createSupabaseClient, User } from "../lib/supabase";
+
+const isLocal = getMeta().Environment.Type === "local";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -276,7 +279,7 @@ export const checkAdmin = api(
       const { data, error: tableError } = await supabase
         .from("users")
         .select("role")
-        .eq("clerk_id", clerkId)
+        .or(`clerk_id.eq.${clerkId},local_clerk_id.eq.${clerkId}`)
         .maybeSingle();
 
       if (tableError || !data) {
