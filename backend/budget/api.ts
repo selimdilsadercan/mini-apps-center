@@ -11,45 +11,45 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface Project {
   id: string;
-  creator_id: string;
+  creatorId: string;
   name: string;
   description: string | null;
   currency: string;
-  target_budget: number | null;
-  group_type: string;
-  start_date: string | null;
-  end_date: string | null;
+  targetBudget: number | null;
+  groupType: string;
+  startDate: string | null;
+  endDate: string | null;
   emoji: string;
-  created_at: string;
-  member_count?: number;
-  total_spent?: number;
+  createdAt: string;
+  memberCount?: number;
+  totalSpent?: number;
 }
 
 export interface Member {
   id: string;
-  project_id: string;
+  projectId: string;
   name: string;
-  user_id: string | null;
-  created_at: string;
+  userId: string | null;
+  createdAt: string;
 }
 
 export interface ExpenseShare {
   id: string;
-  expense_id: string;
-  member_id: string;
-  share_amount: number;
-  created_at: string;
+  expenseId: string;
+  memberId: string;
+  shareAmount: number;
+  createdAt: string;
 }
 
 export interface Expense {
   id: string;
-  project_id: string;
+  projectId: string;
   title: string;
   amount: number;
-  payer_member_id: string;
-  expense_date: string;
+  payerMemberId: string;
+  expenseDate: string;
   category: string;
-  created_at: string;
+  createdAt: string;
   shares?: ExpenseShare[];
 }
 
@@ -146,7 +146,23 @@ export const getUserProjects = api(
       throw APIError.internal(`Failed to load user projects: ${error.message}`);
     }
 
-    return { projects: data || [] };
+    return { 
+      projects: (data || []).map((p: any) => ({
+        id: p.id,
+        creatorId: p.creator_id,
+        name: p.name,
+        description: p.description,
+        currency: p.currency,
+        targetBudget: p.target_budget,
+        groupType: p.group_type,
+        startDate: p.start_date,
+        endDate: p.end_date,
+        emoji: p.emoji,
+        createdAt: p.created_at,
+        memberCount: p.member_count,
+        totalSpent: p.total_spent
+      }))
+    };
   }
 );
 
@@ -212,10 +228,43 @@ export const getProjectDetails = api(
     }
 
     return {
-      project: projectData,
-      members: membersData || [],
-      expenses: expensesData || [],
-      shares: sharesData,
+      project: {
+        id: projectData.id,
+        creatorId: projectData.creator_id,
+        name: projectData.name,
+        description: projectData.description,
+        currency: projectData.currency,
+        targetBudget: projectData.target_budget,
+        groupType: projectData.group_type,
+        startDate: projectData.start_date,
+        endDate: projectData.end_date,
+        emoji: projectData.emoji,
+        createdAt: projectData.created_at
+      },
+      members: (membersData || []).map((m: any) => ({
+        id: m.id,
+        projectId: m.project_id,
+        name: m.name,
+        userId: m.user_id,
+        createdAt: m.created_at
+      })),
+      expenses: (expensesData || []).map((e: any) => ({
+        id: e.id,
+        projectId: e.project_id,
+        title: e.title,
+        amount: e.amount,
+        payerMemberId: e.payer_member_id,
+        expenseDate: e.expense_date,
+        category: e.category,
+        createdAt: e.created_at
+      })),
+      shares: (sharesData || []).map((s: any) => ({
+        id: s.id,
+        expenseId: s.expense_id,
+        memberId: s.member_id,
+        shareAmount: s.share_amount,
+        createdAt: s.created_at
+      })),
     };
   }
 );
@@ -345,4 +394,3 @@ export const updateProject = api(
     return { success: !!data };
   }
 );
-

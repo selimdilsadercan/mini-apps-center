@@ -27,6 +27,7 @@ export default function BudgetDashboard() {
   const [friends, setFriends] = useState<friendship.FriendUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [internalUserId, setInternalUserId] = useState<string | null>(null);
   const router = useRouter();
   const { locale } = useLanguage();
 
@@ -88,6 +89,15 @@ export default function BudgetDashboard() {
         setProjects([]);
         return;
       }
+
+      // Fetch internal user ID if not already fetched
+      if (!internalUserId) {
+        const userRes = await client.users.getUserByClerkId(user.id);
+        if (userRes.user) {
+          setInternalUserId(userRes.user.id);
+        }
+      }
+
       const response = await client.budget.getUserProjects(user.id);
       setProjects(response.projects);
     } catch (error) {
@@ -149,7 +159,7 @@ export default function BudgetDashboard() {
           ) : (
             <div className="space-y-3">
               {projects.map((project) => {
-                const dateRange = getProjectRangeLabel(project.start_date, project.end_date);
+                const dateRange = getProjectRangeLabel(project.startDate, project.endDate);
                 return (
                   <div
                     key={project.id}
@@ -168,7 +178,7 @@ export default function BudgetDashboard() {
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-400">
                           <span className="flex items-center gap-1">
                             <Users size={13} />
-                            {project.member_count || 1} {t.members}
+                            {project.memberCount || 1} {t.members}
                           </span>
                           {dateRange && (
                             <>
@@ -182,10 +192,10 @@ export default function BudgetDashboard() {
 
                     <div className="flex items-center gap-3">
                       {/* Total spent badge */}
-                      {project.total_spent !== undefined && Number(project.total_spent) > 0 && (
+                      {project.totalSpent !== undefined && Number(project.totalSpent) > 0 && (
                         <div className="text-right">
                           <span className="text-sm font-extrabold text-gray-900">
-                            {getCurrencySymbol(project.currency)}{formatVal(Number(project.total_spent))}
+                            {getCurrencySymbol(project.currency)}{formatVal(Number(project.totalSpent))}
                           </span>
                         </div>
                       )}

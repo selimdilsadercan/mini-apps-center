@@ -710,22 +710,22 @@ export namespace budget {
 
     export interface Expense {
         id: string
-        "project_id": string
+        projectId: string
         title: string
         amount: number
-        "payer_member_id": string
-        "expense_date": string
+        payerMemberId: string
+        expenseDate: string
         category: string
-        "created_at": string
+        createdAt: string
         shares?: ExpenseShare[]
     }
 
     export interface ExpenseShare {
         id: string
-        "expense_id": string
-        "member_id": string
-        "share_amount": number
-        "created_at": string
+        expenseId: string
+        memberId: string
+        shareAmount: number
+        createdAt: string
     }
 
     export interface GetUserProjectsResponse {
@@ -734,26 +734,26 @@ export namespace budget {
 
     export interface Member {
         id: string
-        "project_id": string
+        projectId: string
         name: string
-        "user_id": string | null
-        "created_at": string
+        userId: string | null
+        createdAt: string
     }
 
     export interface Project {
         id: string
-        "creator_id": string
+        creatorId: string
         name: string
         description: string | null
         currency: string
-        "target_budget": number | null
-        "group_type": string
-        "start_date": string | null
-        "end_date": string | null
+        targetBudget: number | null
+        groupType: string
+        startDate: string | null
+        endDate: string | null
         emoji: string
-        "created_at": string
-        "member_count"?: number
-        "total_spent"?: number
+        createdAt: string
+        memberCount?: number
+        totalSpent?: number
     }
 
     export interface ProjectDetailsResponse {
@@ -1235,17 +1235,17 @@ export namespace concert_list {
 
     export interface Concert {
         id: string
-        "user_id": string
-        "creator_username"?: string | null
-        "creator_avatar"?: string | null
+        userId: string
+        creatorUsername?: string | null
+        creatorAvatar?: string | null
         artist: string
         date: string
         venue?: string
         notes?: string
         rating?: number
-        "created_at": string
+        createdAt: string
         friends?: ConcertFriend[]
-        "image_url"?: string | null
+        imageUrl?: string | null
     }
 
     export interface ConcertFriend {

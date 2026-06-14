@@ -94,6 +94,7 @@ export default function ProjectDetailsPage() {
   const [expenses, setExpenses] = useState<budget.Expense[]>([]);
   const [shares, setShares] = useState<budget.ExpenseShare[]>([]);
   const [loading, setLoading] = useState(true);
+  const [internalUserId, setInternalUserId] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState<"expenses" | "balances">("expenses");
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
@@ -118,6 +119,15 @@ export default function ProjectDetailsPage() {
   const fetchProjectDetails = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
+      
+      // Fetch internal user ID if not already fetched
+      if (!internalUserId && user?.id) {
+        const userRes = await client.users.getUserByClerkId(user.id);
+        if (userRes.user) {
+          setInternalUserId(userRes.user.id);
+        }
+      }
+
       const res = await client.budget.getProjectDetails(projectId);
       setProject(res.project);
       setMembers(res.members);
@@ -141,11 +151,11 @@ export default function ProjectDetailsPage() {
     const total = currentExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
     setTotalSpent(total);
 
-    const myMember = currentMembers.find(m => m.clerk_id === user?.id);
+    const myMember = currentMembers.find(m => m.userId === internalUserId);
     
     if (myMember) {
       const myPaid = currentExpenses
-        .filter(e => e.payer_member_id === myMember.id)
+        .filter(e => e.payerMemberId === myMember.id)
         .reduce((sum, e) => sum + Number(e.amount), 0);
       setMySpent(myPaid);
     }
@@ -157,15 +167,15 @@ export default function ProjectDetailsPage() {
 
     currentExpenses.forEach(e => {
       const amount = Number(e.amount);
-      const payerId = e.payer_member_id;
+      const payerId = e.payerMemberId;
       if (balances[payerId] !== undefined) {
         balances[payerId] += amount;
       }
     });
 
     currentShares.forEach(s => {
-      const shareAmount = Number(s.share_amount);
-      const memberId = s.member_id;
+      const shareAmount = Number(s.shareAmount);
+      const memberId = s.memberId;
       if (balances[memberId] !== undefined) {
         balances[memberId] -= shareAmount;
       }
@@ -235,32 +245,32 @@ export default function ProjectDetailsPage() {
       
       let updatedTitle = expense.title;
       let updatedAmount = Number(expense.amount);
-      let updatedPayerId = expense.payer_member_id;
+      let updatedPayerId = expense.payerMemberId;
       let updatedCategory = expense.category;
-      let updatedDate = expense.expense_date;
+      let updatedDate = expense.expenseDate;
 
       if (field === "title") updatedTitle = value;
       if (field === "amount") updatedAmount = Number(value);
-      if (field === "payer_member_id") updatedPayerId = value;
+      if (field === "payerMemberId") updatedPayerId = value;
       if (field === "category") updatedCategory = value;
-      if (field === "expense_date") updatedDate = value || null;
+      if (field === "expenseDate") updatedDate = value || null;
 
       // Recalculate shares proportionally if amount changes
       let updatedSharesPayload: { member_id: string; share_amount: number }[] = [];
-      const oldShares = shares.filter(s => s.expense_id === expense.id);
+      const oldShares = shares.filter(s => s.expenseId === expense.id);
       const oldAmount = Number(expense.amount);
 
       if (field === "amount" && oldAmount > 0) {
         const scaleRatio = updatedAmount / oldAmount;
         updatedSharesPayload = oldShares.map(s => ({
-          member_id: s.member_id,
-          share_amount: parseFloat((Number(s.share_amount) * scaleRatio).toFixed(2))
+          member_id: s.memberId,
+          share_amount: parseFloat((Number(s.shareAmount) * scaleRatio).toFixed(2))
         }));
       } else {
         // Keep existing shares
         updatedSharesPayload = oldShares.map(s => ({
-          member_id: s.member_id,
-          share_amount: Number(s.share_amount)
+          member_id: s.memberId,
+          share_amount: Number(s.shareAmount)
         }));
       }
 
@@ -299,7 +309,7 @@ export default function ProjectDetailsPage() {
   };
 
   const getMyNetBalance = () => {
-    const myMember = members.find(m => m.clerk_id === user?.id);
+    const myMember = members.find(m => m.userId === internalUserId);
     if (!myMember) return 0;
     return memberBalances[myMember.id] || 0;
   };
@@ -329,8 +339,8 @@ export default function ProjectDetailsPage() {
       return isTr ? "Kalıcı" : "Durable";
     }
 
-    if (project?.start_date && project?.end_date) {
-      const days = getProjectDays(project.start_date, project.end_date, isTr);
+    if (project?.startDate && project?.endDate) {
+      const days = getProjectDays(project.startDate, project.endDate, isTr);
       const matchedDay = days.find(day => day.dateStr === simpleDateStr);
       if (matchedDay) {
         return matchedDay.label;
@@ -366,7 +376,7 @@ export default function ProjectDetailsPage() {
 
   const groupedExpenses: Record<string, budget.Expense[]> = {};
   filteredExpenses.forEach(exp => {
-    const dateKey = getFormattedDate(exp.expense_date);
+    const dateKey = getFormattedDate(exp.expenseDate);
     if (!groupedExpenses[dateKey]) {
       groupedExpenses[dateKey] = [];
     }
@@ -494,8 +504,8 @@ export default function ProjectDetailsPage() {
                 ) : viewMode === "cards" ? (
                   <div className="space-y-6">
                     {Object.entries(groupedExpenses).sort((a, b) => {
-                      const dateA = a[1][0]?.expense_date || "";
-                      const dateB = b[1][0]?.expense_date || "";
+                      const dateA = a[1][0]?.expenseDate || "";
+                      const dateB = b[1][0]?.expenseDate || "";
                       
                       const getWeight = (dStr: string) => {
                         if (!dStr) return 1; // Genel (General) is 1
@@ -526,7 +536,7 @@ export default function ProjectDetailsPage() {
                                     {expense.title}
                                   </h4>
                                   <p className="text-[10px] text-gray-400 font-medium">
-                                    {getPayerName(expense.payer_member_id)} {isTr ? "tarafından ödendi" : "paid"}
+                                    {getPayerName(expense.payerMemberId)} {isTr ? "tarafından ödendi" : "paid"}
                                   </p>
                                 </div>
                               </div>
@@ -614,8 +624,8 @@ export default function ProjectDetailsPage() {
                                 {/* Payer Select */}
                                 <td className="p-1.5">
                                   <select
-                                    value={expense.payer_member_id}
-                                    onChange={(e) => handleInlineSave(expense, "payer_member_id", e.target.value)}
+                                    value={expense.payerMemberId}
+                                    onChange={(e) => handleInlineSave(expense, "payerMemberId", e.target.value)}
                                     className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
                                   >
                                     {members.map(m => (
@@ -626,23 +636,23 @@ export default function ProjectDetailsPage() {
                                 
                                 {/* Date/Day Select */}
                                 <td className="p-1.5">
-                                  {project.start_date && project.end_date ? (
+                                  {project.startDate && project.endDate ? (
                                     <select
-                                      value={expense.expense_date ? expense.expense_date.split('T')[0] : ""}
-                                      onChange={(e) => handleInlineSave(expense, "expense_date", e.target.value)}
+                                      value={expense.expenseDate ? expense.expenseDate.split('T')[0] : ""}
+                                      onChange={(e) => handleInlineSave(expense, "expenseDate", e.target.value)}
                                       className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
                                     >
                                       <option value="">{isTr ? "Genel" : "General"}</option>
                                       <option value="1970-01-01">{isTr ? "Kalıcı" : "Durable"}</option>
-                                      {getProjectDays(project.start_date, project.end_date, isTr).map(day => (
+                                      {getProjectDays(project.startDate, project.endDate, isTr).map(day => (
                                         <option key={day.dateStr} value={day.dateStr}>{day.label}</option>
                                       ))}
                                     </select>
                                   ) : (
                                     <input
                                       type="date"
-                                      defaultValue={expense.expense_date ? expense.expense_date.split('T')[0] : ""}
-                                      onChange={(e) => handleInlineSave(expense, "expense_date", e.target.value)}
+                                      defaultValue={expense.expenseDate ? expense.expenseDate.split('T')[0] : ""}
+                                      onChange={(e) => handleInlineSave(expense, "expenseDate", e.target.value)}
                                       className="bg-transparent border-none w-full p-1 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
                                     />
                                   )}
@@ -729,10 +739,11 @@ export default function ProjectDetailsPage() {
                   <div className="space-y-2">
                     {members.map(member => {
                       const bal = memberBalances[member.id] || 0;
+                      const isMe = member.userId === internalUserId;
                       return (
                         <div key={member.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex justify-between items-center shadow-sm">
                           <div className="flex items-center gap-3">
-                            {member.clerk_id === user?.id && user?.imageUrl ? (
+                            {isMe && user?.imageUrl ? (
                               <img 
                                 src={user.imageUrl} 
                                 alt={member.name} 
@@ -745,7 +756,7 @@ export default function ProjectDetailsPage() {
                             )}
                             <div>
                               <h4 className="text-sm font-bold text-gray-900 tracking-tight">{member.name}</h4>
-                              {member.clerk_id === user?.id && (
+                              {isMe && (
                                 <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{isTr ? "BEN" : "ME"}</span>
                               )}
                             </div>
@@ -882,9 +893,9 @@ function EditProjectForm({
   const [formData, setFormData] = useState({
     name: project.name || "",
     currency: project.currency || "TRY",
-    groupType: project.group_type || "trip",
-    startDate: project.start_date ? project.start_date.split('T')[0] : "",
-    endDate: project.end_date ? project.end_date.split('T')[0] : "",
+    groupType: project.groupType || "trip",
+    startDate: project.startDate ? project.startDate.split('T')[0] : "",
+    endDate: project.endDate ? project.endDate.split('T')[0] : "",
     emoji: project.emoji || "🏖️",
   });
   const [loading, setLoading] = useState(false);
@@ -1051,14 +1062,14 @@ function AddExpenseForm({
   const [formData, setFormData] = useState({
     title: editingExpense?.title || "",
     amount: editingExpense?.amount ? String(editingExpense.amount) : "",
-    payerId: editingExpense?.payer_member_id || members[0]?.id || "",
+    payerId: editingExpense?.payerMemberId || members[0]?.id || "",
     category: editingExpense?.category || "other",
-    expenseDate: editingExpense?.expense_date ? editingExpense.expense_date.split('T')[0] : "",
+    expenseDate: editingExpense?.expenseDate ? editingExpense.expenseDate.split('T')[0] : "",
   });
   const dateRangeLabel = (() => {
-    if (!project.start_date || !project.end_date) return "-";
-    const start = new Date(project.start_date);
-    const end = new Date(project.end_date);
+    if (!project.startDate || !project.endDate) return "-";
+    const start = new Date(project.startDate);
+    const end = new Date(project.endDate);
     const startDay = start.getDate();
     const endDay = end.getDate();
     const startMonth = start.toLocaleDateString(isTr ? 'tr-TR' : 'en-US', { month: 'short' });
@@ -1071,9 +1082,9 @@ function AddExpenseForm({
   const [selectedShares, setSelectedShares] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     if (editingExpense) {
-      const expShares = projectShares.filter(s => s.expense_id === editingExpense.id);
+      const expShares = projectShares.filter(s => s.expenseId === editingExpense.id);
       members.forEach(m => {
-        initial[m.id] = expShares.some(s => s.member_id === m.id);
+        initial[m.id] = expShares.some(s => s.memberId === m.id);
       });
     } else {
       members.forEach(m => {
@@ -1092,16 +1103,16 @@ function AddExpenseForm({
     setFormData({
       title: editingExpense?.title || "",
       amount: editingExpense?.amount ? String(editingExpense.amount) : "",
-      payerId: editingExpense?.payer_member_id || members[0]?.id || "",
+      payerId: editingExpense?.payerMemberId || members[0]?.id || "",
       category: editingExpense?.category || "other",
-      expenseDate: editingExpense?.expense_date ? editingExpense.expense_date.split('T')[0] : "",
+      expenseDate: editingExpense?.expenseDate ? editingExpense.expenseDate.split('T')[0] : "",
     });
 
     const initialShares: Record<string, boolean> = {};
     if (editingExpense) {
-      const expShares = projectShares.filter(s => s.expense_id === editingExpense.id);
+      const expShares = projectShares.filter(s => s.expenseId === editingExpense.id);
       members.forEach(m => {
-        initialShares[m.id] = expShares.some(s => s.member_id === m.id);
+        initialShares[m.id] = expShares.some(s => s.memberId === m.id);
       });
     } else {
       members.forEach(m => {
@@ -1112,9 +1123,9 @@ function AddExpenseForm({
 
     const initialAmounts: Record<string, string> = {};
     if (editingExpense) {
-      const expShares = projectShares.filter(s => s.expense_id === editingExpense.id);
+      const expShares = projectShares.filter(s => s.expenseId === editingExpense.id);
       expShares.forEach(s => {
-        initialAmounts[s.member_id] = String(s.share_amount);
+        initialAmounts[s.memberId] = String(s.shareAmount);
       });
     }
     setAmounts(initialAmounts);
@@ -1126,10 +1137,10 @@ function AddExpenseForm({
     setRatios(initialRatios);
 
     if (editingExpense) {
-      const expShares = projectShares.filter(s => s.expense_id === editingExpense.id);
+      const expShares = projectShares.filter(s => s.expenseId === editingExpense.id);
       if (expShares.length > 0) {
-        const firstAmount = expShares[0].share_amount;
-        const allEqual = expShares.every(s => s.share_amount === firstAmount);
+        const firstAmount = expShares[0].shareAmount;
+        const allEqual = expShares.every(s => s.shareAmount === firstAmount);
         setSplitMode(allEqual ? "equal" : "amount");
       }
     } else {
@@ -1398,9 +1409,9 @@ function AddExpenseForm({
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
           {isTr ? "Tarih / Gün" : "Date / Day"}
         </label>
-        {project.start_date && project.end_date ? (
+        {project.startDate && project.endDate ? (
           <div className="flex gap-2 overflow-x-auto flex-nowrap pb-2 -mx-6 px-6 scrollbar-none">
-            {[...getProjectDays(project.start_date, project.end_date, isTr)].reverse().map((day) => {
+            {[...getProjectDays(project.startDate, project.endDate, isTr)].reverse().map((day) => {
               const isSelected = formData.expenseDate === day.dateStr;
               const dayText = isTr ? `${day.dayNum}. Gün` : `Day ${day.dayNum}`;
               const dateStrObj = new Date(day.dateStr);

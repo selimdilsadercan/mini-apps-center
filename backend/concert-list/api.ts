@@ -18,17 +18,17 @@ export interface ConcertFriend {
 
 export interface Concert {
   id: string;
-  user_id: string;
-  creator_username?: string | null;
-  creator_avatar?: string | null;
+  userId: string;
+  creatorUsername?: string | null;
+  creatorAvatar?: string | null;
   artist: string;
   date: string; // YYYY-MM-DD
   venue?: string;
   notes?: string;
   rating?: number;
-  created_at: string;
+  createdAt: string;
   friends?: ConcertFriend[];
-  image_url?: string | null;
+  imageUrl?: string | null;
 }
 
 // ==================== REQ/RES INTERFACES ====================
@@ -114,7 +114,22 @@ export const getConcerts = api(
       throw APIError.internal(`Failed to load concerts: ${error.message}`);
     }
 
-    return { concerts: data || [] };
+    return { 
+      concerts: (data || []).map((c: any) => ({
+        id: c.id,
+        userId: c.user_id,
+        creatorUsername: c.creator_username,
+        creatorAvatar: c.creator_avatar,
+        artist: c.artist,
+        date: c.date,
+        venue: c.venue,
+        notes: c.notes,
+        rating: c.rating,
+        createdAt: c.created_at,
+        friends: c.friends,
+        imageUrl: c.image_url
+      }))
+    };
   }
 );
 
@@ -141,7 +156,25 @@ export const addConcert = api(
       throw APIError.internal(`Failed to add concert: ${error.message}`);
     }
 
-    return { concert: (data as Concert[] | null)?.[0] || null };
+    const concert = (data as any[] | null)?.[0];
+    if (!concert) return { concert: null };
+
+    return { 
+      concert: {
+        id: concert.id,
+        userId: concert.user_id,
+        creatorUsername: concert.creator_username,
+        creatorAvatar: concert.creator_avatar,
+        artist: concert.artist,
+        date: concert.date,
+        venue: concert.venue,
+        notes: concert.notes,
+        rating: concert.rating,
+        createdAt: concert.created_at,
+        friends: concert.friends,
+        imageUrl: concert.image_url
+      }
+    };
   }
 );
 
@@ -169,7 +202,25 @@ export const editConcert = api(
       throw APIError.internal(`Failed to edit concert: ${error.message}`);
     }
 
-    return { concert: (data as Concert[] | null)?.[0] || null };
+    const concert = (data as any[] | null)?.[0];
+    if (!concert) return { concert: null };
+
+    return { 
+      concert: {
+        id: concert.id,
+        userId: concert.user_id,
+        creatorUsername: concert.creator_username,
+        creatorAvatar: concert.creator_avatar,
+        artist: concert.artist,
+        date: concert.date,
+        venue: concert.venue,
+        notes: concert.notes,
+        rating: concert.rating,
+        createdAt: concert.created_at,
+        friends: concert.friends,
+        imageUrl: concert.image_url
+      }
+    };
   }
 );
 
@@ -416,4 +467,3 @@ export const getArtistImages = api(
     return { imageUrls: urls };
   }
 );
-
