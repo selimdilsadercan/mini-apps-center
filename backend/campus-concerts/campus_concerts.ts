@@ -24,7 +24,7 @@ export interface CampusConcert {
   date: string; // YYYY-MM-DD
   description?: string | null;
   image_url?: string | null;
-  added_by_clerk_id?: string | null;
+  added_by_id?: string | null;
   creator_username?: string | null;
   creator_avatar?: string | null;
   created_at: string;

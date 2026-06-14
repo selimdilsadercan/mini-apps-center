@@ -1,53 +1,20 @@
--- BoardGameClubs Schema & Initial Tables
-CREATE SCHEMA IF NOT EXISTS board_game_clubs;
+-- BoardGameClubs RPC Functions
+-- 1. create_club(name_param TEXT, description_param TEXT, logo_url_param TEXT, owner_id_param TEXT)
+-- 2. get_user_clubs(owner_id_param TEXT)
+-- 3. get_club_details(club_id_param UUID)
+-- 4. add_club_game(club_id_param UUID, bgg_id_param INTEGER, title_param TEXT, image_url_param TEXT, min_players_param INTEGER, max_players_param INTEGER, playing_time_param INTEGER, description_param TEXT, condition_param TEXT, status_param TEXT, notes_param TEXT)
+-- 5. get_club_games(club_id_param UUID)
+-- 6. update_club_game(game_id_param UUID, title_param TEXT, image_url_param TEXT, min_players_param INTEGER, max_players_param INTEGER, playing_time_param INTEGER, description_param TEXT, condition_param TEXT, status_param TEXT, notes_param TEXT)
+-- 7. delete_club_game(game_id_param UUID)
 
--- Clubs Table
-CREATE TABLE IF NOT EXISTS board_game_clubs.clubs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  description TEXT,
-  logo_url TEXT,
-  owner_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Games Table
-CREATE TABLE IF NOT EXISTS board_game_clubs.games (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  club_id UUID NOT NULL REFERENCES board_game_clubs.clubs(id) ON DELETE CASCADE,
-  bgg_id INTEGER,
-  title TEXT NOT NULL,
-  image_url TEXT,
-  min_players INTEGER,
-  max_players INTEGER,
-  playing_time INTEGER,
-  description TEXT,
-  condition TEXT DEFAULT 'good' CHECK (condition IN ('new', 'good', 'worn', 'damaged')),
-  status TEXT DEFAULT 'available' CHECK (status IN ('available', 'borrowed', 'maintenance')),
-  notes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_bgc_clubs_owner ON board_game_clubs.clubs(owner_id);
-CREATE INDEX IF NOT EXISTS idx_bgc_games_club ON board_game_clubs.games(club_id);
-
--- Grants
-GRANT USAGE ON SCHEMA board_game_clubs TO anon, authenticated, service_role;
-GRANT ALL ON ALL TABLES IN SCHEMA board_game_clubs TO anon, authenticated, service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA board_game_clubs TO anon, authenticated, service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA board_game_clubs TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA board_game_clubs GRANT ALL ON TABLES TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA board_game_clubs GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA board_game_clubs GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
-
--- 1. create_club Function
+-- 1. create_club
 DROP FUNCTION IF EXISTS board_game_clubs.create_club(TEXT, TEXT, TEXT, UUID);
+DROP FUNCTION IF EXISTS board_game_clubs.create_club(TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION board_game_clubs.create_club(
   name_param TEXT,
   description_param TEXT,
   logo_url_param TEXT,
-  owner_id_param UUID
+  owner_id_param TEXT
 )
 RETURNS TABLE (
   id UUID,
@@ -57,17 +24,25 @@ RETURNS TABLE (
   owner_id UUID,
   created_at TIMESTAMPTZ
 )
-LANGUAGE sql
-VOLATILE
+LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
+DECLARE
+  v_owner_uuid UUID;
+BEGIN
+  v_owner_uuid := public.get_internal_user_id(owner_id_param);
+  
+  RETURN QUERY
   INSERT INTO board_game_clubs.clubs (name, description, logo_url, owner_id)
-  VALUES (name_param, description_param, logo_url_param, owner_id_param)
-  RETURNING id, name, description, logo_url, owner_id, created_at;
+  VALUES (name_param, description_param, logo_url_param, v_owner_uuid)
+  RETURNING board_game_clubs.clubs.id, board_game_clubs.clubs.name, board_game_clubs.clubs.description, board_game_clubs.clubs.logo_url, board_game_clubs.clubs.owner_id, board_game_clubs.clubs.created_at;
+END;
 $$;
 
--- 2. get_user_clubs Function
+-- 2. get_user_clubs
 DROP FUNCTION IF EXISTS board_game_clubs.get_user_clubs(UUID);
-CREATE OR REPLACE FUNCTION board_game_clubs.get_user_clubs(owner_id_param UUID)
+DROP FUNCTION IF EXISTS board_game_clubs.get_user_clubs(TEXT);
+CREATE OR REPLACE FUNCTION board_game_clubs.get_user_clubs(owner_id_param TEXT)
 RETURNS TABLE (
   id UUID,
   name TEXT,
@@ -76,16 +51,23 @@ RETURNS TABLE (
   owner_id UUID,
   created_at TIMESTAMPTZ
 )
-LANGUAGE sql
-STABLE
+LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
-  SELECT id, name, description, logo_url, owner_id, created_at
-  FROM board_game_clubs.clubs
-  WHERE owner_id = owner_id_param
-  ORDER BY name ASC;
+DECLARE
+  v_owner_uuid UUID;
+BEGIN
+  v_owner_uuid := public.get_internal_user_id(owner_id_param);
+
+  RETURN QUERY
+  SELECT c.id, c.name, c.description, c.logo_url, c.owner_id, c.created_at
+  FROM board_game_clubs.clubs c
+  WHERE c.owner_id = v_owner_uuid
+  ORDER BY c.name ASC;
+END;
 $$;
 
--- 3. get_club_details Function
+-- 3. get_club_details
 DROP FUNCTION IF EXISTS board_game_clubs.get_club_details(UUID);
 CREATE OR REPLACE FUNCTION board_game_clubs.get_club_details(club_id_param UUID)
 RETURNS TABLE (
@@ -98,13 +80,14 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
 AS $$
   SELECT id, name, description, logo_url, owner_id, created_at
   FROM board_game_clubs.clubs
   WHERE id = club_id_param;
 $$;
 
--- 4. add_club_game Function
+-- 4. add_club_game
 DROP FUNCTION IF EXISTS board_game_clubs.add_club_game(UUID, INTEGER, TEXT, TEXT, INTEGER, INTEGER, INTEGER, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION board_game_clubs.add_club_game(
   club_id_param UUID,
@@ -136,6 +119,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 VOLATILE
+SECURITY DEFINER
 AS $$
   INSERT INTO board_game_clubs.games (
     club_id, bgg_id, title, image_url, min_players, max_players, playing_time, description, condition, status, notes
@@ -146,7 +130,7 @@ AS $$
   RETURNING id, club_id, bgg_id, title, image_url, min_players, max_players, playing_time, description, condition, status, notes, created_at;
 $$;
 
--- 5. get_club_games Function
+-- 5. get_club_games
 DROP FUNCTION IF EXISTS board_game_clubs.get_club_games(UUID);
 CREATE OR REPLACE FUNCTION board_game_clubs.get_club_games(club_id_param UUID)
 RETURNS TABLE (
@@ -166,6 +150,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
+SECURITY DEFINER
 AS $$
   SELECT 
     id, club_id, bgg_id, title, image_url, min_players, max_players, playing_time, description, condition, status, notes, created_at
@@ -174,7 +159,7 @@ AS $$
   ORDER BY title ASC;
 $$;
 
--- 6. update_club_game Function
+-- 6. update_club_game
 DROP FUNCTION IF EXISTS board_game_clubs.update_club_game(UUID, TEXT, TEXT, INTEGER, INTEGER, INTEGER, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION board_game_clubs.update_club_game(
   game_id_param UUID,
@@ -205,6 +190,7 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 VOLATILE
+SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY
@@ -224,12 +210,13 @@ BEGIN
 END;
 $$;
 
--- 7. delete_club_game Function
+-- 7. delete_club_game
 DROP FUNCTION IF EXISTS board_game_clubs.delete_club_game(UUID);
 CREATE OR REPLACE FUNCTION board_game_clubs.delete_club_game(game_id_param UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 VOLATILE
+SECURITY DEFINER
 AS $$
 DECLARE
   deleted_rows INTEGER;

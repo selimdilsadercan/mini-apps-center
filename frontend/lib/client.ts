@@ -734,13 +734,13 @@ export namespace budget {
         id: string
         "project_id": string
         name: string
-        "clerk_id": string | null
+        "user_id": string | null
         "created_at": string
     }
 
     export interface Project {
         id: string
-        "creator_clerk_id": string
+        "creator_id": string
         name: string
         description: string | null
         currency: string
@@ -748,8 +748,8 @@ export namespace budget {
         "group_type": string
         "start_date": string | null
         "end_date": string | null
-        "created_at": string
         emoji: string
+        "created_at": string
         "member_count"?: number
         "total_spent"?: number
     }
@@ -901,7 +901,7 @@ export namespace campus_concerts {
         date: string
         description?: string | null
         "image_url"?: string | null
-        "added_by_clerk_id"?: string | null
+        "added_by_id"?: string | null
         "creator_username"?: string | null
         "creator_avatar"?: string | null
         "created_at": string
@@ -1233,7 +1233,7 @@ export namespace concert_list {
 
     export interface Concert {
         id: string
-        "user_clerk_id": string
+        "user_id": string
         "creator_username"?: string | null
         "creator_avatar"?: string | null
         artist: string

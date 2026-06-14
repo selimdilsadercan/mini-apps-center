@@ -31,6 +31,7 @@ export interface Conversation {
 
 interface DbConversation {
   id: string;
+  user_id: string;
   title: string;
   messages: StoredChatMessage[];
   created_at: string;
@@ -142,24 +143,11 @@ export const deleteConversation = api(
     }
 
     if (rpcError) {
-      console.warn("delete_conversation RPC failed, trying direct delete:", rpcError.message);
+      console.warn("delete_conversation RPC failed:", rpcError.message);
+      throw APIError.internal(`Failed to delete conversation: ${rpcError.message}`);
     }
 
-    const { data: deletedRows, error: deleteError } = await supabase
-      .schema("assistant")
-      .from("conversations")
-      .delete()
-      .eq("id", id)
-      .eq("user_clerk_id", userId)
-      .select("id");
-
-    if (deleteError) {
-      console.error("deleteConversation error:", deleteError);
-      throw APIError.internal(`Failed to delete conversation: ${deleteError.message}`);
-    }
-
-    const deleted = (deletedRows?.length ?? 0) > 0;
-    if (!deleted) {
+    if (rpcDeleted === 0 || rpcDeleted === false) {
       throw APIError.notFound("Conversation not found");
     }
 

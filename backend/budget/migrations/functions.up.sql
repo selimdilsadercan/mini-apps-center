@@ -63,25 +63,30 @@ DECLARE
     v_project_id UUID;
     v_member_name TEXT;
     v_user_name TEXT;
+    v_creator_id UUID;
 BEGIN
+    -- Resolve internal ID
+    v_creator_id := public.get_internal_user_id(creator_clerk_id_param);
+    
+    IF v_creator_id IS NULL THEN
+        RAISE EXCEPTION 'Creator not found';
+    END IF;
+
     -- 1. Insert Project
     INSERT INTO budget.projects (
-        creator_clerk_id, name, description, currency, target_budget, group_type, start_date, end_date, emoji
+        creator_id, name, description, currency, target_budget, group_type, start_date, end_date, emoji
     ) VALUES (
-        creator_clerk_id_param, name_param, description_param, currency_param, target_budget_param, group_type_param, start_date_param, end_date_param, emoji_param
+        v_creator_id, name_param, description_param, currency_param, target_budget_param, group_type_param, start_date_param, end_date_param, emoji_param
     ) RETURNING id INTO v_project_id;
 
     -- 2. Fetch Creator's Name to auto-associate as a member
-    SELECT COALESCE(username, 'Ben') INTO v_user_name FROM public.users WHERE clerk_id = creator_clerk_id_param;
-    IF v_user_name IS NULL OR v_user_name = '' THEN
-        v_user_name := 'Ben';
-    END IF;
-
+    SELECT COALESCE(username, 'Ben') INTO v_user_name FROM public.users WHERE id = v_creator_id;
+    
     -- Insert Creator as first member
     INSERT INTO budget.members (
-        project_id, name, clerk_id
+        project_id, name, user_id
     ) VALUES (
-        v_project_id, v_user_name, creator_clerk_id_param
+        v_project_id, v_user_name, v_creator_id
     );
 
     -- 3. Insert other members
@@ -123,7 +128,7 @@ CREATE OR REPLACE FUNCTION budget.get_user_projects(
 )
 RETURNS TABLE (
     id UUID,
-    creator_clerk_id TEXT,
+    creator_id UUID,
     name TEXT,
     description TEXT,
     currency TEXT,
@@ -136,11 +141,16 @@ RETURNS TABLE (
     member_count BIGINT,
     total_spent DECIMAL
 ) AS $$
+DECLARE
+    v_user_id UUID;
 BEGIN
+    -- Resolve internal ID
+    v_user_id := public.get_internal_user_id(clerk_id_param);
+
     RETURN QUERY
     SELECT 
         p.id,
-        p.creator_clerk_id,
+        p.creator_id,
         p.name,
         p.description,
         p.currency,
@@ -153,8 +163,8 @@ BEGIN
         (SELECT COUNT(*) FROM budget.members m WHERE m.project_id = p.id)::BIGINT as member_count,
         COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent
     FROM budget.projects p
-    WHERE p.creator_clerk_id = clerk_id_param
-       OR p.id IN (SELECT project_id FROM budget.members WHERE clerk_id = clerk_id_param)
+    WHERE p.creator_id = v_user_id
+       OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id)
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

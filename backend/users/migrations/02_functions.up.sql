@@ -158,5 +158,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 7. Grants
+-- 7. get_internal_user_id (Helper for other services)
+DROP FUNCTION IF EXISTS public.get_internal_user_id(TEXT);
+
+CREATE OR REPLACE FUNCTION public.get_internal_user_id(clerk_id_param TEXT)
+RETURNS UUID AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  SELECT id INTO v_user_id FROM public.users 
+  WHERE clerk_id = clerk_id_param OR local_clerk_id = clerk_id_param;
+  
+  RETURN v_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. Grants
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;

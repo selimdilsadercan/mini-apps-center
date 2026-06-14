@@ -11,7 +11,7 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface Project {
   id: string;
-  creator_clerk_id: string;
+  creator_id: string;
   name: string;
   description: string | null;
   currency: string;
@@ -19,8 +19,8 @@ export interface Project {
   group_type: string;
   start_date: string | null;
   end_date: string | null;
-  created_at: string;
   emoji: string;
+  created_at: string;
   member_count?: number;
   total_spent?: number;
 }
@@ -29,7 +29,7 @@ export interface Member {
   id: string;
   project_id: string;
   name: string;
-  clerk_id: string | null;
+  user_id: string | null;
   created_at: string;
 }
 

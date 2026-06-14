@@ -18,7 +18,7 @@ export interface ConcertFriend {
 
 export interface Concert {
   id: string;
-  user_clerk_id: string;
+  user_id: string;
   creator_username?: string | null;
   creator_avatar?: string | null;
   artist: string;
