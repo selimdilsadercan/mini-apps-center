@@ -589,4 +589,16 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "kavanoz",
     isBeta: true,
   },
+  {
+    id: "budget",
+    name: "Budget",
+    description: "Bireysel ve ortak bütçe takibi, arkadaşlarınla kolay borç bölüşümü!",
+    icon: CreditCard,
+    category: "Lifestyle",
+    color: "#EC4899",
+    href: "/apps/budget",
+    isImplemented: true,
+    subdomain: "budget",
+    isBeta: true,
+  },
 ];

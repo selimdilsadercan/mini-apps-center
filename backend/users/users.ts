@@ -91,6 +91,7 @@ export const getUserByClerkId = api(
       return { user: null };
     }
 
+    console.log("DB USER RETRIEVED:", data?.[0]);
     return { user: data?.[0] || null };
   }
 );
@@ -316,3 +317,4 @@ export const getUserByUsername = api(
     return { user: data?.[0] || null };
   }
 );
+

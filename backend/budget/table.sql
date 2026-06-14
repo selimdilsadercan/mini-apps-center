@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS budget.projects (
     currency TEXT NOT NULL DEFAULT 'TRY',
     target_budget DECIMAL,
     group_type TEXT NOT NULL DEFAULT 'trip', -- 'trip', 'home', 'event', 'other'
+    start_date DATE,
+    end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

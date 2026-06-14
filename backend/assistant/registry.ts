@@ -29,6 +29,7 @@ import { feedAssistant } from "../feed/assistant";
 import { penaltyJarAssistant } from "../penalty-jar/assistant";
 import { campusConcertsAssistant } from "../campus-concerts/assistant";
 import { birikimAssistant } from "../birikim/assistant";
+import { budgetAssistant } from "../budget/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   birikimAssistant,
@@ -57,6 +58,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   dailyWeatherAssistant,
   penaltyJarAssistant,
   campusConcertsAssistant,
+  budgetAssistant,
 ];
 
 const assistantByAppId = new Map(

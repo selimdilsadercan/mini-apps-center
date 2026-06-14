@@ -35,6 +35,7 @@ export default class Client {
     public readonly assistant: assistant.ServiceClient
     public readonly birikim: birikim.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
+    public readonly budget: budget.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
@@ -78,6 +79,7 @@ export default class Client {
         this.assistant = new assistant.ServiceClient(base)
         this.birikim = new birikim.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
+        this.budget = new budget.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
@@ -661,6 +663,209 @@ export namespace board_game_clubs {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/board-game-clubs/games/${encodeURIComponent(gameId)}`, JSON.stringify(params))
             return await resp.json() as UpdateClubGameResponse
+        }
+    }
+}
+
+export namespace budget {
+    export interface AddExpenseRequest {
+        projectId: string
+        title: string
+        amount: number
+        payerMemberId: string
+        category: string
+        shares: {
+            "member_id": string
+            "share_amount": number
+        }[]
+        expenseDate?: string
+    }
+
+    export interface AddExpenseResponse {
+        expenseId: string
+    }
+
+    export interface CreateProjectRequest {
+        creatorClerkId: string
+        name: string
+        description?: string
+        currency: string
+        targetBudget?: number
+        groupType: string
+        memberNames: string[]
+        startDate?: string
+        endDate?: string
+    }
+
+    export interface CreateProjectResponse {
+        projectId: string
+    }
+
+    export interface DeleteExpenseResponse {
+        success: boolean
+    }
+
+    export interface Expense {
+        id: string
+        "project_id": string
+        title: string
+        amount: number
+        "payer_member_id": string
+        "expense_date": string
+        category: string
+        "created_at": string
+        shares?: ExpenseShare[]
+    }
+
+    export interface ExpenseShare {
+        id: string
+        "expense_id": string
+        "member_id": string
+        "share_amount": number
+        "created_at": string
+    }
+
+    export interface GetUserProjectsResponse {
+        projects: Project[]
+    }
+
+    export interface Member {
+        id: string
+        "project_id": string
+        name: string
+        "clerk_id": string | null
+        "created_at": string
+    }
+
+    export interface Project {
+        id: string
+        "creator_clerk_id": string
+        name: string
+        description: string | null
+        currency: string
+        "target_budget": number | null
+        "group_type": string
+        "start_date": string | null
+        "end_date": string | null
+        "created_at": string
+        "member_count"?: number
+        "total_spent"?: number
+    }
+
+    export interface ProjectDetailsResponse {
+        project: Project
+        members: Member[]
+        expenses: Expense[]
+        shares: ExpenseShare[]
+    }
+
+    export interface UpdateExpenseRequest {
+        expenseId: string
+        title: string
+        amount: number
+        payerMemberId: string
+        category: string
+        shares: {
+            "member_id": string
+            "share_amount": number
+        }[]
+        expenseDate?: string
+    }
+
+    export interface UpdateExpenseResponse {
+        success: boolean
+    }
+
+    export interface UpdateProjectRequest {
+        projectId: string
+        name: string
+        description?: string
+        currency: string
+        targetBudget?: number
+        groupType: string
+        startDate?: string
+        endDate?: string
+    }
+
+    export interface UpdateProjectResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addExpense = this.addExpense.bind(this)
+            this.createProject = this.createProject.bind(this)
+            this.deleteExpense = this.deleteExpense.bind(this)
+            this.getProjectDetails = this.getProjectDetails.bind(this)
+            this.getUserProjects = this.getUserProjects.bind(this)
+            this.updateExpense = this.updateExpense.bind(this)
+            this.updateProject = this.updateProject.bind(this)
+        }
+
+        /**
+         * Adds an expense to a project
+         */
+        public async addExpense(params: AddExpenseRequest): Promise<AddExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/budget/expenses`, JSON.stringify(params))
+            return await resp.json() as AddExpenseResponse
+        }
+
+        /**
+         * Creates a new project with members
+         */
+        public async createProject(params: CreateProjectRequest): Promise<CreateProjectResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/budget/projects`, JSON.stringify(params))
+            return await resp.json() as CreateProjectResponse
+        }
+
+        /**
+         * Deletes an expense
+         */
+        public async deleteExpense(expenseId: string): Promise<DeleteExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/budget/expenses/${encodeURIComponent(expenseId)}`)
+            return await resp.json() as DeleteExpenseResponse
+        }
+
+        /**
+         * Gets details of a specific project (members, expenses, and expense shares)
+         */
+        public async getProjectDetails(projectId: string): Promise<ProjectDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/projects/${encodeURIComponent(projectId)}`)
+            return await resp.json() as ProjectDetailsResponse
+        }
+
+        /**
+         * Gets all projects of a user
+         */
+        public async getUserProjects(userId: string): Promise<GetUserProjectsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/user/${encodeURIComponent(userId)}/projects`)
+            return await resp.json() as GetUserProjectsResponse
+        }
+
+        /**
+         * Updates an existing expense
+         */
+        public async updateExpense(params: UpdateExpenseRequest): Promise<UpdateExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/expenses`, JSON.stringify(params))
+            return await resp.json() as UpdateExpenseResponse
+        }
+
+        /**
+         * Updates project details
+         */
+        public async updateProject(params: UpdateProjectRequest): Promise<UpdateProjectResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/projects`, JSON.stringify(params))
+            return await resp.json() as UpdateProjectResponse
         }
     }
 }
