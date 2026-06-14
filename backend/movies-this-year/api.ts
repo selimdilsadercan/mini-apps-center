@@ -22,13 +22,13 @@ export interface Movie {
   id: number;
   title: string;
   overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  release_date: string;
-  vote_average: number;
+  posterPath: string | null;
+  backdropPath: string | null;
+  releaseDate: string;
+  voteAverage: number;
   popularity: number;
-  genre_ids: number[];
-  is_favorited?: boolean;
+  genreIds: number[];
+  isFavorited?: boolean;
 }
 
 export interface GetMoviesResponse {
@@ -66,19 +66,19 @@ export const syncMoviesThisYear = api(
           id: m.id,
           title: m.title,
           overview: m.overview,
-          poster_path: m.poster_path,
-          backdrop_path: m.backdrop_path,
-          release_date: m.release_date,
-          vote_average: m.vote_average,
+          posterPath: m.poster_path,
+          backdropPath: m.backdrop_path,
+          releaseDate: m.release_date,
+          voteAverage: m.vote_average,
           popularity: m.popularity,
-          genre_ids: m.genre_ids,
+          genreIds: m.genre_ids,
         }));
 
       // Tekilleştir
       const uniqueMovies = Array.from(new Map(movies.map(m => [m.id, m])).values());
 
       // Tarihe göre sırala
-      uniqueMovies.sort((a, b) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime());
+      uniqueMovies.sort((a, b) => new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime());
 
       // JSON dosyasına yaz
       await fs.writeFile(DATA_PATH, JSON.stringify(uniqueMovies, null, 2), "utf-8");
@@ -107,7 +107,7 @@ export const getMoviesThisYear = api(
       if (!error && favorites) {
         const favoriteIds = new Set((favorites as any[]).map(f => f.movie_id));
         movies.forEach(m => {
-          m.is_favorited = favoriteIds.has(m.id);
+          m.isFavorited = favoriteIds.has(m.id);
         });
       }
 
@@ -135,12 +135,12 @@ export const getUpcomingMovies = api(
         id: m.id,
         title: m.title,
         overview: m.overview,
-        poster_path: m.poster_path,
-        backdrop_path: m.backdrop_path,
-        release_date: m.release_date,
-        vote_average: m.vote_average,
+        posterPath: m.poster_path,
+        backdropPath: m.backdrop_path,
+        releaseDate: m.release_date,
+        voteAverage: m.vote_average,
         popularity: m.popularity,
-        genre_ids: m.genre_ids,
+        genreIds: m.genre_ids,
       }));
 
       return { movies };
@@ -166,12 +166,12 @@ export const getTopRatedMovies = api(
         id: m.id,
         title: m.title,
         overview: m.overview,
-        poster_path: m.poster_path,
-        backdrop_path: m.backdrop_path,
-        release_date: m.release_date,
-        vote_average: m.vote_average,
+        posterPath: m.poster_path,
+        backdropPath: m.backdrop_path,
+        releaseDate: m.release_date,
+        voteAverage: m.vote_average,
         popularity: m.popularity,
-        genre_ids: m.genre_ids,
+        genreIds: m.genre_ids,
       }));
 
       return { movies };
@@ -187,7 +187,7 @@ export const getTopRatedMovies = api(
  */
 export const toggleFavorite = api(
   { expose: true, method: "POST", path: "/movies-this-year/favorite" },
-  async ({ userId, movieId }: { userId: string; movieId: number }): Promise<{ is_favorited: boolean }> => {
+  async ({ userId, movieId }: { userId: string; movieId: number }): Promise<{ isFavorited: boolean }> => {
     const { data, error } = await supabase
       .schema("movies_this_year")
       .rpc("toggle_favorite", {
@@ -200,6 +200,6 @@ export const toggleFavorite = api(
       throw APIError.internal(`Failed to toggle favorite: ${error.message}`);
     }
 
-    return { is_favorited: data as boolean };
+    return { isFavorited: data as boolean };
   }
 );

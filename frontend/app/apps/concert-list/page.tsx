@@ -31,6 +31,7 @@ export default function ConcertListPage() {
   const [concerts, setConcerts] = useState<concert_list.Concert[]>([]);
   const [friends, setFriends] = useState<friendship.FriendUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [internalUserId, setInternalUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRating, setSelectedRating] = useState<number | "all">("all");
   const [showAddDrawer, setShowAddDrawer] = useState(false);
@@ -63,6 +64,15 @@ export default function ConcertListPage() {
         setConcerts([]);
         return;
       }
+
+      // Fetch internal user ID if not already fetched
+      if (!internalUserId) {
+        const userRes = await client.users.getUserByClerkId(user.id);
+        if (userRes.user) {
+          setInternalUserId(userRes.user.id);
+        }
+      }
+
       const res = await client.concert_list.getConcerts(user.id);
       setConcerts(res.concerts || []);
     } catch (error) {
@@ -207,16 +217,17 @@ export default function ConcertListPage() {
                 <div className="space-y-6 pt-8">
                   {groupedByYear[year].map((concert) => {
                     const companions: { id: string; username: string | null; avatar: string | null }[] = [];
-                    if (concert.user_clerk_id !== user?.id) {
+                    const isMe = concert.userId === internalUserId;
+                    if (!isMe) {
                       companions.push({
-                        id: concert.user_clerk_id,
-                        username: concert.creator_username || "Arkadaş",
-                        avatar: concert.creator_avatar || null
+                        id: concert.userId,
+                        username: concert.creatorUsername || "Arkadaş",
+                        avatar: concert.creatorAvatar || null
                       });
                     }
                     if (concert.friends) {
                       concert.friends.forEach((f: any) => {
-                        if (f.id !== user?.id) {
+                        if (f.id !== internalUserId) {
                           companions.push(f);
                         }
                       });
@@ -235,7 +246,7 @@ export default function ConcertListPage() {
 
                         <div className="flex justify-between items-start gap-4">
                           <div className="flex items-center gap-3">
-                            <ArtistAvatar artistName={concert.artist} customImageUrl={concert.image_url} />
+                            <ArtistAvatar artistName={concert.artist} customImageUrl={concert.imageUrl} />
                             <div>
                               <h3 className="text-lg font-black text-white leading-tight group-hover:text-pink-300 transition-colors">
                                 {concert.artist}
@@ -329,7 +340,7 @@ export default function ConcertListPage() {
               </Drawer.Title>
               <Drawer.Description className="text-xs text-zinc-400 mb-6">
                 {selectedConcertForEdit
-                  ? (selectedConcertForEdit.user_clerk_id === user?.id
+                  ? (selectedConcertForEdit.userId === internalUserId
                     ? "Konser detaylarını ve katılan arkadaşlarını güncelleyebilirsiniz."
                     : "Bu konser arkadaşınız tarafından eklenmiştir, detaylar salt okunurdur.")
                   : "En son katıldığın canlı müzik deneyimini kaydet."}
@@ -337,6 +348,7 @@ export default function ConcertListPage() {
               <AddConcertForm
                 friends={friends}
                 initialConcert={selectedConcertForEdit}
+                internalUserId={internalUserId}
                 onComplete={() => { fetchConcerts(); setShowAddDrawer(false); setSelectedConcertForEdit(null); }}
                 onDelete={(id) => {
                   setDeleteTargetId(id);
@@ -399,11 +411,13 @@ export default function ConcertListPage() {
 function AddConcertForm({
   friends,
   initialConcert,
+  internalUserId,
   onComplete,
   onDelete
 }: {
   friends: friendship.FriendUser[];
   initialConcert?: concert_list.Concert | null;
+  internalUserId: string | null;
   onComplete: () => void;
   onDelete?: (id: string) => void;
 }) {
@@ -418,7 +432,7 @@ function AddConcertForm({
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>(
     initialConcert?.friends?.map(f => f.id) || []
   );
-  const [selectedImageUrl, setSelectedImageUrl] = useState(initialConcert?.image_url || "");
+  const [selectedImageUrl, setSelectedImageUrl] = useState(initialConcert?.imageUrl || "");
   const [imageOptions, setImageOptions] = useState<string[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -442,7 +456,7 @@ function AddConcertForm({
     );
   };
 
-  const isCreator = !initialConcert || initialConcert.user_clerk_id === user?.id;
+  const isCreator = !initialConcert || initialConcert.userId === internalUserId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -561,8 +575,6 @@ function AddConcertForm({
         />
       </div>
 
-
-
       {friends.length > 0 && (
         <div>
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Arkadaşlar</label>
@@ -616,7 +628,7 @@ function AddConcertForm({
           }}
           className="w-full h-12 bg-red-600/10 hover:bg-red-600/20 text-red-400 hover:text-red-300 font-bold rounded-xl flex items-center justify-center transition-all disabled:opacity-50 text-sm border border-red-500/20 mt-2"
         >
-          {initialConcert.user_clerk_id === user?.id ? "Konseri Sil" : "Konserden Ayrıl"}
+          {initialConcert.userId === internalUserId ? "Konseri Sil" : "Konserden Ayrıl"}
         </button>
       )}
     </form>

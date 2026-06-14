@@ -14,7 +14,7 @@ interface ImportRequest {
   items: {
     name: string;
     address?: string;
-    google_maps_url?: string;
+    googleMapsUrl?: string;
     latitude?: number;
     longitude?: number;
     note?: string;
@@ -72,10 +72,12 @@ export const importItems = api(
         
         if (geo) {
           return {
-            ...item,
+            name: item.name,
+            address: geo.address || item.address,
+            google_maps_url: item.googleMapsUrl,
             latitude: geo.lat,
             longitude: geo.lng,
-            address: geo.address || item.address,
+            note: item.note,
             // Merge CSV metadata with rich Google data
             metadata: {
               ...(item.metadata || {}),
@@ -83,7 +85,15 @@ export const importItems = api(
             }
           };
         }
-        return item;
+        return {
+          name: item.name,
+          address: item.address,
+          google_maps_url: item.googleMapsUrl,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          note: item.note,
+          metadata: item.metadata
+        };
       }),
     );
 
@@ -100,13 +110,39 @@ export const importItems = api(
   },
 );
 
+interface MapItem {
+  id: string;
+  listId: string;
+  name: string;
+  address: string | null;
+  googleMapsUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isVisited: boolean;
+  note: string | null;
+  createdAt: string;
+  metadata: any;
+}
+
+interface MapList {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: string;
+}
+
+interface DataResponse {
+  lists: MapList[];
+  items: MapItem[];
+}
+
 /**
  * Get all lists and items for a user
  * GET /map-tracker/data/:userId
  */
 export const getData = api(
   { expose: true, method: "GET", path: "/map-tracker/data/:userId" },
-  async ({ userId }: { userId: string }): Promise<{ lists: any[]; items: any[] }> => {
+  async ({ userId }: { userId: string }): Promise<DataResponse> => {
     const { data, error } = await supabase
       .schema("map_tracker")
       .rpc("get_data", { clerk_id_param: userId });
@@ -116,7 +152,28 @@ export const getData = api(
       throw APIError.internal(`Failed to load map data: ${error.message}`);
     }
     
-    return (data as any) || { lists: [], items: [] };
+    const rawData = data as any;
+    return {
+      lists: (rawData?.lists || []).map((l: any) => ({
+        id: l.id,
+        userId: l.user_id,
+        name: l.name,
+        createdAt: l.created_at
+      })),
+      items: (rawData?.items || []).map((i: any) => ({
+        id: i.id,
+        listId: i.list_id,
+        name: i.name,
+        address: i.address,
+        googleMapsUrl: i.google_maps_url,
+        latitude: i.latitude,
+        longitude: i.longitude,
+        isVisited: i.is_visited,
+        note: i.note,
+        createdAt: i.created_at,
+        metadata: i.metadata
+      }))
+    };
   },
 );
 

@@ -59,11 +59,11 @@ export default function SuggestRecipientClient({
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
-    if (!suggestion?.expires_at) return;
+    if (!suggestion?.expiresAt) return;
 
     const updateTimer = () => {
       const now = new Date().getTime();
-      const expires = new Date(suggestion.expires_at!).getTime();
+      const expires = new Date(suggestion.expiresAt!).getTime();
       const difference = expires - now;
 
       if (difference <= 0) {
@@ -85,7 +85,7 @@ export default function SuggestRecipientClient({
     updateTimer();
     const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
-  }, [suggestion?.expires_at]);
+  }, [suggestion?.expiresAt]);
 
   // Friendship state
   const { user } = useUser();
@@ -97,7 +97,7 @@ export default function SuggestRecipientClient({
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
-    if (!suggestion?.preview_url) return;
+    if (!suggestion?.previewUrl) return;
 
     if (isPlaying) {
       audio?.pause();
@@ -107,7 +107,7 @@ export default function SuggestRecipientClient({
         audio.play().catch(err => console.error("Error playing audio:", err));
         setIsPlaying(true);
       } else {
-        const newAudio = new Audio(suggestion.preview_url);
+        const newAudio = new Audio(suggestion.previewUrl);
         newAudio.loop = true;
         newAudio.play().catch(err => console.error("Error playing audio:", err));
         
@@ -404,8 +404,8 @@ export default function SuggestRecipientClient({
         <div 
           className="w-full aspect-square bg-gray-900 rounded-[2.25rem] border-[3px] sm:border-4 border-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden relative mb-4 rotate-[-0.5deg]"
         >
-          {suggestion.image_url ? (
-            <img src={suggestion.image_url} alt={suggestion.title} className="w-full h-full object-cover absolute inset-0" />
+          {suggestion.imageUrl ? (
+            <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover absolute inset-0" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900" />
           )}
@@ -427,7 +427,7 @@ export default function SuggestRecipientClient({
                 <div />
               )}
 
-              {suggestion.category === "song" && suggestion.preview_url && (
+              {suggestion.category === "song" && suggestion.previewUrl && (
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
@@ -458,14 +458,14 @@ export default function SuggestRecipientClient({
                 <h2 className="text-base sm:text-lg font-black leading-snug tracking-tight text-white">
                   {suggestion.title}
                 </h2>
-                {suggestion.short_note && (
+                {suggestion.shortNote && (
                   <p className="text-[10px] sm:text-xs text-gray-200/90 leading-relaxed italic line-clamp-2">
-                    "{suggestion.short_note}"
+                    "{suggestion.shortNote}"
                   </p>
                 )}
               </div>
 
-              {suggestion.external_link && (
+              {suggestion.externalLink && (
                 <div>
                   {suggestion.category === "song" ? (
                     <div className="grid grid-cols-2 gap-1.5">
@@ -485,7 +485,7 @@ export default function SuggestRecipientClient({
 
                       {/* Apple Music */}
                       <a
-                        href={suggestion.external_link}
+                        href={suggestion.externalLink}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/10 px-2.5 py-1.5 rounded-xl transition-all font-bold text-[10px] text-white"
@@ -527,7 +527,7 @@ export default function SuggestRecipientClient({
                     </div>
                   ) : (
                     <a
-                      href={suggestion.external_link}
+                      href={suggestion.externalLink}
                       target="_blank"
                       rel="noreferrer"
                       className="w-full flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/10 p-3 rounded-xl transition-all font-bold text-xs text-white"

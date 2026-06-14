@@ -332,7 +332,7 @@ function SuggestPageContent() {
         "Öneri yok sayıldı"
       );
       fetchData();
-      if (detailSuggestion?.suggestion_id === suggestionId) {
+      if (detailSuggestion?.suggestionId === suggestionId) {
         setDetailSuggestion(null);
       }
     } catch (error) {
@@ -465,7 +465,7 @@ function SuggestPageContent() {
 
   const getSentStatusBadge = (item: suggest.SentSuggestion) => {
     // Check if expired
-    const isExpired = item.expires_at ? new Date() > new Date(item.expires_at) : false;
+    const isExpired = item.expiresAt ? new Date() > new Date(item.expiresAt) : false;
 
     if (item.reaction) {
       const emojiMap: Record<string, string> = { loved: "🔥", skull: "💀", saved: "❤️", mid: "😐", perfect: "🎯" };
@@ -482,7 +482,7 @@ function SuggestPageContent() {
       return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gray-150 text-gray-500 border border-gray-200">Süresi Doldu</span>;
     }
 
-    if (item.opened_at) {
+    if (item.openedAt) {
       return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">Açıldı</span>;
     }
 
@@ -651,9 +651,9 @@ function SuggestPageContent() {
                         style={{ rotate: idx % 2 === 0 ? "-2deg" : "2deg" }}
                         className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group cursor-pointer active:scale-95 hover:scale-[1.02] z-10 hover:z-20"
                       >
-                        {item.image_url ? (
+                        {item.imageUrl ? (
                           <img
-                            src={item.image_url}
+                            src={item.imageUrl}
                             alt={item.title}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
@@ -689,17 +689,17 @@ function SuggestPageContent() {
 
                         <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-white p-1 rounded-lg shadow-lg border border-gray-100 rotate-2 z-20">
                           <img
-                            src={item.sender_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                            alt={item.sender_username || "Friend"}
+                            src={item.senderAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                            alt={item.senderUsername || "Friend"}
                             className="w-5 h-5 rounded-md object-cover"
                           />
                           <span className="text-[8px] font-black text-gray-900 truncate max-w-[50px]">
-                            {item.sender_username?.split(' ')[0] || "Arkadaş"}
+                            {item.senderUsername?.split(' ')[0] || "Arkadaş"}
                           </span>
                         </div>
 
                         <div className="absolute bottom-2 left-2 right-20 z-10">
-                          {item.is_daily_pick && (
+                          {item.isDailyPick && (
                             <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mb-1 italic">Daily Pick</span>
                           )}
                           <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
@@ -737,9 +737,9 @@ function SuggestPageContent() {
                         style={{ transform: `rotate(${idx % 2 === 0 ? "-2deg" : "2deg"})` }}
                         className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group active:scale-95 hover:scale-[1.02] z-10 hover:z-20 cursor-pointer"
                       >
-                        {item.image_url ? (
+                        {item.imageUrl ? (
                           <img
-                            src={item.image_url}
+                            src={item.imageUrl}
                             alt={item.title}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
@@ -766,7 +766,7 @@ function SuggestPageContent() {
                         </div>
 
                         <div className="absolute bottom-2 left-2 right-20 z-10">
-                          {item.is_daily_pick && (
+                          {item.isDailyPick && (
                             <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mb-1 italic">Daily Pick</span>
                           )}
                           <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
@@ -1125,17 +1125,17 @@ function SuggestPageContent() {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  {detailSuggestion.image_url && (
+                  {detailSuggestion.imageUrl && (
                     <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                       <img
-                        src={detailSuggestion.image_url}
+                        src={detailSuggestion.imageUrl}
                         alt={detailSuggestion.title}
                         className="w-full h-48 object-cover"
                       />
-                      {detailSuggestion.category === "song" && detailSuggestion.preview_url && (
+                      {detailSuggestion.category === "song" && detailSuggestion.previewUrl && (
                         <button
                           type="button"
-                          onClick={() => togglePlay(detailSuggestion.preview_url!)}
+                          onClick={() => togglePlay(detailSuggestion.previewUrl!)}
                           className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
                         >
                           {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
@@ -1151,20 +1151,20 @@ function SuggestPageContent() {
                 <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
                   <div className="flex items-center gap-2">
                     <img
-                      src={detailSuggestion.sender_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                      alt={detailSuggestion.sender_username || "Sender"}
+                      src={detailSuggestion.senderAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                      alt={detailSuggestion.senderUsername || "Sender"}
                       className="w-6 h-6 rounded-full object-cover"
                     />
                     <span className="text-xs font-black text-gray-700">
-                      {detailSuggestion.sender_username} tavsiyesi:
+                      {detailSuggestion.senderUsername} tavsiyesi:
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed italic">
-                    "{detailSuggestion.short_note || "Herhangi bir not eklenmemiş."}"
+                    "{detailSuggestion.shortNote || "Herhangi bir not eklenmemiş."}"
                   </p>
                 </div>
 
-                {detailSuggestion.external_link && (
+                {detailSuggestion.externalLink && (
                   <div className="mb-8">
                     {detailSuggestion.category === "song" ? (
                       <div className="grid grid-cols-2 gap-2">
@@ -1184,7 +1184,7 @@ function SuggestPageContent() {
 
                         {/* Apple Music */}
                         <a
-                          href={detailSuggestion.external_link}
+                          href={detailSuggestion.externalLink}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
@@ -1226,7 +1226,7 @@ function SuggestPageContent() {
                       </div>
                     ) : (
                       <a
-                        href={detailSuggestion.external_link}
+                        href={detailSuggestion.externalLink}
                         target="_blank"
                         rel="noreferrer"
                         className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
@@ -1244,7 +1244,7 @@ function SuggestPageContent() {
                 <div className="flex gap-2">
                   {detailSuggestion.status !== "saved" && detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "saved")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "saved")}
                       className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <BookmarkSimple size={16} />
@@ -1253,7 +1253,7 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "completed")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "completed")}
                       className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
                     >
                       <CheckCircle size={16} />
@@ -1262,7 +1262,7 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "ignored" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.share_id, "ignored")}
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "ignored")}
                       className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <XCircle size={16} />
@@ -1282,8 +1282,8 @@ function SuggestPageContent() {
           <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
           <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
             {detailSentSuggestion && (() => {
-              const link = getShareLink(detailSentSuggestion.share_id);
-              const isExpired = detailSentSuggestion.expires_at ? new Date() > new Date(detailSentSuggestion.expires_at) : false;
+              const link = getShareLink(detailSentSuggestion.shareId);
+              const isExpired = detailSentSuggestion.expiresAt ? new Date() > new Date(detailSentSuggestion.expiresAt) : false;
               return (
                 <div className="p-6 overflow-y-auto">
                   <Drawer.Title className="sr-only">Gönderilen Öneri Detayı</Drawer.Title>
@@ -1300,17 +1300,17 @@ function SuggestPageContent() {
                   </div>
 
                   <div className="space-y-4 mb-6">
-                    {detailSentSuggestion.image_url ? (
+                    {detailSentSuggestion.imageUrl ? (
                       <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                         <img
-                          src={detailSentSuggestion.image_url}
+                          src={detailSentSuggestion.imageUrl}
                           alt={detailSentSuggestion.title}
                           className="w-full h-48 object-cover"
                         />
-                        {detailSentSuggestion.category === "song" && detailSentSuggestion.preview_url && (
+                        {detailSentSuggestion.category === "song" && detailSentSuggestion.previewUrl && (
                           <button
                             type="button"
-                            onClick={() => togglePlay(detailSentSuggestion.preview_url!)}
+                            onClick={() => togglePlay(detailSentSuggestion.previewUrl!)}
                             className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
                           >
                             {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
@@ -1318,12 +1318,12 @@ function SuggestPageContent() {
                         )}
                       </div>
                     ) : (
-                      detailSentSuggestion.category === "song" && detailSentSuggestion.preview_url && (
+                      detailSentSuggestion.category === "song" && detailSentSuggestion.previewUrl && (
                         <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                           <span className="text-xs font-bold text-gray-500">Müzik Önizlemesi</span>
                           <button
                             type="button"
-                            onClick={() => togglePlay(detailSentSuggestion.preview_url!)}
+                            onClick={() => togglePlay(detailSentSuggestion.previewUrl!)}
                             className="w-10 h-10 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-all cursor-pointer"
                           >
                             {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
@@ -1335,12 +1335,12 @@ function SuggestPageContent() {
                       {detailSentSuggestion.title}
                     </h2>
                     
-                    {detailSentSuggestion.is_daily_pick && (
+                    {detailSentSuggestion.isDailyPick && (
                       <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mt-1 italic">Daily Pick</span>
                     )}
                   </div>
 
-                  {detailSentSuggestion.short_note && (
+                  {detailSentSuggestion.shortNote && (
                     <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
                       <div className="flex items-center gap-2">
                         {user?.imageUrl ? (
@@ -1359,12 +1359,12 @@ function SuggestPageContent() {
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed italic">
-                        "{detailSentSuggestion.short_note}"
+                        "{detailSentSuggestion.shortNote}"
                       </p>
                     </div>
                   )}
 
-                  {detailSentSuggestion.external_link && (
+                  {detailSentSuggestion.externalLink && (
                     <div className="mb-6">
                       {detailSentSuggestion.category === "song" ? (
                         <div className="grid grid-cols-2 gap-2">
@@ -1384,7 +1384,7 @@ function SuggestPageContent() {
 
                           {/* Apple Music */}
                           <a
-                            href={detailSentSuggestion.external_link}
+                            href={detailSentSuggestion.externalLink}
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
@@ -1426,7 +1426,7 @@ function SuggestPageContent() {
                         </div>
                       ) : (
                         <a
-                          href={detailSentSuggestion.external_link}
+                          href={detailSentSuggestion.externalLink}
                           target="_blank"
                           rel="noreferrer"
                           className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
@@ -1453,15 +1453,15 @@ function SuggestPageContent() {
                           const statusLabels: Record<string, string> = { pending: "Bekliyor", saved: "Kaydetti", completed: "Tamamladı", ignored: "Yok Saydı" };
                           
                           return (
-                            <div key={recipient.recipient_clerk_id} className={`flex items-center justify-between ${idx > 0 ? "pt-3" : ""}`}>
+                            <div key={recipient.recipientId} className={`flex items-center justify-between ${idx > 0 ? "pt-3" : ""}`}>
                               <div className="flex items-center gap-2">
                                 <img
-                                  src={recipient.recipient_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                                  alt={recipient.recipient_username || "Alıcı"}
+                                  src={recipient.recipientAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                  alt={recipient.recipientUsername || "Alıcı"}
                                   className="w-8 h-8 rounded-full object-cover border border-gray-150"
                                 />
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-bold text-gray-800">{recipient.recipient_username || "Bilinmeyen Kullanıcı"}</span>
+                                  <span className="text-xs font-bold text-gray-800">{recipient.recipientUsername || "Bilinmeyen Kullanıcı"}</span>
                                   <span className="text-[9px] font-bold text-gray-400 uppercase">{statusLabels[recipient.status] || recipient.status}</span>
                                 </div>
                               </div>
@@ -1501,7 +1501,7 @@ function SuggestPageContent() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleDeleteSentSuggestion(detailSentSuggestion.share_id)}
+                      onClick={() => handleDeleteSentSuggestion(detailSentSuggestion.shareId)}
                       className="w-1/3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-150 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
                     >
                       Sil

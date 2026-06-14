@@ -2416,18 +2416,44 @@ export namespace kim_gelir {
  * Map Tracker Service
  */
 export namespace map_tracker {
+    export interface DataResponse {
+        lists: MapList[]
+        items: MapItem[]
+    }
+
     export interface ImportRequest {
         userId: string
         listName: string
         items: {
             name: string
             address?: string
-            "google_maps_url"?: string
+            googleMapsUrl?: string
             latitude?: number
             longitude?: number
             note?: string
             metadata?: any
         }[]
+    }
+
+    export interface MapItem {
+        id: string
+        listId: string
+        name: string
+        address: string | null
+        googleMapsUrl: string | null
+        latitude: number | null
+        longitude: number | null
+        isVisited: boolean
+        note: string | null
+        createdAt: string
+        metadata: any
+    }
+
+    export interface MapList {
+        id: string
+        userId: string
+        name: string
+        createdAt: string
     }
 
     export class ServiceClient {
@@ -2444,16 +2470,10 @@ export namespace map_tracker {
          * Get all lists and items for a user
          * GET /map-tracker/data/:userId
          */
-        public async getData(userId: string): Promise<{
-    lists: any[]
-    items: any[]
-}> {
+        public async getData(userId: string): Promise<DataResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data/${encodeURIComponent(userId)}`)
-            return await resp.json() as {
-    lists: any[]
-    items: any[]
-}
+            return await resp.json() as DataResponse
         }
 
         /**
@@ -2634,13 +2654,13 @@ export namespace movies_this_year {
         id: number
         title: string
         overview: string
-        "poster_path": string | null
-        "backdrop_path": string | null
-        "release_date": string
-        "vote_average": number
+        posterPath: string | null
+        backdropPath: string | null
+        releaseDate: string
+        voteAverage: number
         popularity: number
-        "genre_ids": number[]
-        "is_favorited"?: boolean
+        genreIds: number[]
+        isFavorited?: boolean
     }
 
     export class ServiceClient {
@@ -2703,12 +2723,12 @@ export namespace movies_this_year {
     userId: string
     movieId: number
 }): Promise<{
-    "is_favorited": boolean
+    isFavorited: boolean
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/favorite`, JSON.stringify(params))
             return await resp.json() as {
-    "is_favorited": boolean
+    isFavorited: boolean
 }
         }
     }

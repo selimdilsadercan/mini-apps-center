@@ -104,7 +104,7 @@ export default function SharedPlanClient({ id }: { id: string }) {
       // If user is loaded, check if we already follow this plan
       if (user) {
         const followRes = await client.tutor_crm.getFollowedShares(user.id);
-        const exists = followRes.followed.some(f => f.share_id === shareId);
+        const exists = followRes.followed.some(f => f.shareId === shareId);
         setIsFollowing(exists);
       }
     } catch (err) {
@@ -332,7 +332,7 @@ export default function SharedPlanClient({ id }: { id: string }) {
 
                         {days.map((day, dayIdx) => {
                           const dateStr = formatDatePickerDate(day);
-                          const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
+                          const dayLessons = lessons.filter(l => l.lessonDate === dateStr);
                           
                           return (
                             <td key={dayIdx} className="p-0 relative border-r border-gray-100 last:border-r-0 bg-white">
@@ -351,11 +351,11 @@ export default function SharedPlanClient({ id }: { id: string }) {
                               {/* Lessons container */}
                               <div className="absolute inset-0 top-0 left-0 pointer-events-none">
                                 {dayLessons.map(lesson => {
-                                  const startIdx = timeSlots.indexOf(lesson.start_time.slice(0, 5));
-                                  const durationSlots = getLessonDurationSlots(lesson.start_time, lesson.end_time);
+                                  const startIdx = timeSlots.indexOf(lesson.startTime.slice(0, 5));
+                                  const durationSlots = getLessonDurationSlots(lesson.startTime, lesson.endTime);
                                   
-                                  const startStr = lesson.start_time.slice(0, 5);
-                                  const endStr = lesson.end_time.slice(0, 5);
+                                  const startStr = lesson.startTime.slice(0, 5);
+                                  const endStr = lesson.endTime.slice(0, 5);
 
                                   return (
                                     <div
@@ -371,13 +371,13 @@ export default function SharedPlanClient({ id }: { id: string }) {
                                       <div className="min-w-0">
                                         {durationSlots === 1 ? (
                                           <p className="font-bold text-gray-900 truncate leading-none text-[9px] flex items-center justify-between gap-1 w-full">
-                                            <span className="truncate">{lesson.student_name}</span>
+                                            <span className="truncate">{lesson.studentName}</span>
                                             <span className="text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
                                           </p>
                                         ) : (
                                           <>
                                             <p className="font-black text-gray-900 leading-tight truncate text-[10px] mb-0.5">
-                                              {lesson.student_name}
+                                              {lesson.studentName}
                                             </p>
                                             <p className="font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
                                               {startStr} - {endStr}
@@ -412,11 +412,11 @@ export default function SharedPlanClient({ id }: { id: string }) {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                            {new Date(lesson.lesson_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                            {new Date(lesson.lessonDate).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                           </p>
-                          <h3 className="font-black text-gray-900 text-lg mt-0.5">{lesson.student_name}</h3>
+                          <h3 className="font-black text-gray-900 text-lg mt-0.5">{lesson.studentName}</h3>
                           <p className="font-bold text-sm text-gray-600 mt-1 flex items-center gap-1.5">
-                            <Clock size={16} /> {lesson.start_time.slice(0, 5)} - {lesson.end_time.slice(0, 5)}
+                            <Clock size={16} /> {lesson.startTime.slice(0, 5)} - {lesson.endTime.slice(0, 5)}
                           </p>
                         </div>
                       </div>

@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
-    const { suggestion, sender_username } = res;
+    const { suggestion, senderUsername } = res;
     const categoryMap: Record<string, string> = {
       song: "Şarkı 🎵",
       movie: "Film 🎬",
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       book: "Kitap 📚",
     };
 
-    const title = `${sender_username || "Bir arkadaşın"} sana bir tavsiye bıraktı!`;
+    const title = `${senderUsername || "Bir arkadaşın"} sana bir tavsiye bıraktı!`;
     const description = `24 saat dolmadan hemen tıkla ve arkadaşının senin için bıraktığı öneriyi gör.`;
 
     const ogImage = "/suggest-og.png";
@@ -68,18 +68,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
   let suggestion = null;
-  let sender_username = null;
-  let sender_avatar = null;
-  let sender_clerk_id = null;
+  let senderUsername = null;
+  let senderAvatar = null;
+  let senderId = null;
   let isExpired = false;
 
   try {
     const client = await createServerClient();
     const res = await client.suggest.getPublicSuggestion(id, {});
     suggestion = res.suggestion;
-    sender_username = res.sender_username;
-    sender_avatar = res.sender_avatar;
-    sender_clerk_id = res.sender_clerk_id;
+    senderUsername = res.senderUsername;
+    senderAvatar = res.senderAvatar;
+    senderId = res.senderId;
     isExpired = res.isExpired;
   } catch (err) {
     console.error("Failed to load server suggestion:", err);
@@ -89,9 +89,9 @@ export default async function Page({ params }: PageProps) {
     <SuggestRecipientClient
       id={id}
       initialSuggestion={suggestion as any}
-      initialSenderName={sender_username}
-      initialSenderAvatar={sender_avatar}
-      initialSenderClerkId={sender_clerk_id}
+      initialSenderName={senderUsername}
+      initialSenderAvatar={senderAvatar}
+      initialSenderClerkId={senderId}
       initialIsExpired={isExpired}
     />
   );

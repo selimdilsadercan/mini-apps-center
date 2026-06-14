@@ -38,7 +38,7 @@ export default function ImportModal({ isOpen, onClose, onImport }: ImportModalPr
               return {
                 name: f.properties.location?.name || f.properties.name || "Adsız Mekan",
                 address: f.properties.location?.address || f.properties.address,
-                google_maps_url: url,
+                googleMapsUrl: url,
                 latitude: f.geometry?.coordinates?.[1] || coords.lat,
                 longitude: f.geometry?.coordinates?.[0] || coords.lng,
                 note: f.properties.note,
@@ -94,7 +94,7 @@ export default function ImportModal({ isOpen, onClose, onImport }: ImportModalPr
                 return {
                   name: row["Başlık"] || row["Title"] || row["Name"] || row["name"] || row["başlık"],
                   address: row["Adres"] || row["Address"] || row["address"] || row["adres"],
-                  google_maps_url: url,
+                  googleMapsUrl: url,
                   latitude: rawLat ? parseFloat(String(rawLat)) : coords.lat,
                   longitude: rawLng ? parseFloat(String(rawLng)) : coords.lng,
                   note: row["Not"] || row["Note"] || row["Comment"] || row["note"] || row["not"],
@@ -287,7 +287,7 @@ export default function ImportModal({ isOpen, onClose, onImport }: ImportModalPr
                           <div className="px-2 py-1 bg-[#FEFAE0] rounded-md border border-[#E9E5D9] flex items-center gap-1 shrink-0">
                             <Info size={12} className="text-[#D4A373]" />
                             <span className="text-[9px] font-bold text-[#D4A373]">
-                              {item.google_maps_url ? "Sadece Link" : "Konum Yok"}
+                              {item.googleMapsUrl ? "Sadece Link" : "Konum Yok"}
                             </span>
                           </div>
                         )}

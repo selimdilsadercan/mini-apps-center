@@ -370,7 +370,7 @@ export default function TutorCRMPage() {
     if (!user) return;
     try {
       await client.tutor_crm.toggleHomework({ id, userId: user.id });
-      setHomeworks(homeworks.map(h => h.id === id ? { ...h, is_completed: !h.is_completed } : h));
+      setHomeworks(homeworks.map(h => h.id === id ? { ...h, isCompleted: !h.isCompleted } : h));
       toast.success("Durum güncellendi");
     } catch (error) {
       toast.error("Hata oluştu");
@@ -381,7 +381,7 @@ export default function TutorCRMPage() {
     if (!user) return;
     try {
       await client.tutor_crm.togglePayment({ id, userId: user.id });
-      setPayments(payments.map(p => p.id === id ? { ...p, is_paid: !p.is_paid } : p));
+      setPayments(payments.map(p => p.id === id ? { ...p, isPaid: !p.isPaid } : p));
       toast.success("Ödeme durumu güncellendi");
     } catch (error) {
       toast.error("Hata oluştu");
@@ -461,13 +461,13 @@ export default function TutorCRMPage() {
 
   const getDayLessonsMap = (day: Date) => {
     const dateStr = formatDatePickerDate(day);
-    const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
+    const dayLessons = lessons.filter(l => l.lessonDate === dateStr);
     const map: Record<string, { lesson: tutor_crm.Lesson; rowSpan: number }> = {};
     const covered = new Set<string>();
 
     dayLessons.forEach(lesson => {
-      const startStr = lesson.start_time.slice(0, 5);
-      const endStr = lesson.end_time.slice(0, 5);
+      const startStr = lesson.startTime.slice(0, 5);
+      const endStr = lesson.endTime.slice(0, 5);
       const rowSpan = getLessonDurationSlots(startStr, endStr);
       map[startStr] = { lesson, rowSpan };
 
@@ -600,8 +600,8 @@ export default function TutorCRMPage() {
 
       setLessons(prev => prev.map(l => l.id === resizingLesson.lesson.id ? {
         ...l,
-        start_time: newStartTime,
-        end_time: newEndTime
+        startTime: newStartTime,
+        endTime: newEndTime
       } : l));
     };
 
@@ -615,14 +615,14 @@ export default function TutorCRMPage() {
       setResizingLesson(null);
 
       if (currentLesson) {
-        if (currentLesson.start_time !== resizingLesson.initialStartTime || currentLesson.end_time !== resizingLesson.initialEndTime) {
+        if (currentLesson.startTime !== resizingLesson.initialStartTime || currentLesson.endTime !== resizingLesson.initialEndTime) {
           try {
             await client.tutor_crm.updateLesson({
               lessonId: currentLesson.id,
               userId: user.id,
-              lessonDate: currentLesson.lesson_date,
-              startTime: currentLesson.start_time.slice(0, 5),
-              endTime: currentLesson.end_time.slice(0, 5)
+              lessonDate: currentLesson.lessonDate,
+              startTime: currentLesson.startTime.slice(0, 5),
+              endTime: currentLesson.endTime.slice(0, 5)
             });
             toast.success("Ders süresi güncellendi!");
           } catch (error) {
@@ -669,8 +669,8 @@ export default function TutorCRMPage() {
     setDragOverSlot(null);
     if (!draggedLesson || !user) return;
 
-    const startStr = draggedLesson.start_time.slice(0, 5);
-    const endStr = draggedLesson.end_time.slice(0, 5);
+    const startStr = draggedLesson.startTime.slice(0, 5);
+    const endStr = draggedLesson.endTime.slice(0, 5);
     const durationSlots = getLessonDurationSlots(startStr, endStr);
 
     const startIndex = timeSlots.indexOf(timeSlot);
@@ -689,9 +689,9 @@ export default function TutorCRMPage() {
       // Optimistically update frontend state
       setLessons(prev => prev.map(l => l.id === draggedLesson.id ? {
         ...l,
-        lesson_date: newDateStr,
-        start_time: timeSlot,
-        end_time: newEndTimeStr
+        lessonDate: newDateStr,
+        startTime: timeSlot,
+        endTime: newEndTimeStr
       } : l));
 
       await client.tutor_crm.updateLesson({
@@ -747,8 +747,8 @@ export default function TutorCRMPage() {
     if (!draggedLesson || !dragOverSlot) return false;
     if (formatDatePickerDate(day) !== formatDatePickerDate(dragOverSlot.day)) return false;
 
-    const startStr = draggedLesson.start_time.slice(0, 5);
-    const endStr = draggedLesson.end_time.slice(0, 5);
+    const startStr = draggedLesson.startTime.slice(0, 5);
+    const endStr = draggedLesson.endTime.slice(0, 5);
     const durationSlots = getLessonDurationSlots(startStr, endStr);
 
     const startIdx = timeSlots.indexOf(dragOverSlot.timeSlot);
@@ -1194,9 +1194,9 @@ JSON Şeması:
             className="relative p-1.5 hover:bg-gray-50 rounded-xl transition-colors text-gray-600 cursor-pointer"
           >
             <CalendarCheck size={16} weight="bold" />
-            {lessons.filter(l => l.lesson_date === formatDatePickerDate(new Date())).length > 0 && (
+            {lessons.filter(l => l.lessonDate === formatDatePickerDate(new Date())).length > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-blue-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
-                {lessons.filter(l => l.lesson_date === formatDatePickerDate(new Date())).length}
+                {lessons.filter(l => l.lessonDate === formatDatePickerDate(new Date())).length}
               </span>
             )}
           </button>
@@ -1236,7 +1236,7 @@ JSON Şeması:
                         >
                           <option value="">Benim Planım</option>
                           {followedShares.map(fs => (
-                            <option key={fs.share_id} value={fs.share_id}>
+                            <option key={fs.shareId} value={fs.shareId}>
                               {fs.alias || "Tutor"}
                             </option>
                           ))}
@@ -1337,7 +1337,7 @@ JSON Şeması:
                       <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center justify-between text-amber-800 text-xs font-semibold shadow-sm">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
-                          <span>Şu anda takip ettiğiniz <strong>{followedShares.find(f => f.share_id === activeFollowedShareId)?.alias || "Tutor"}</strong> planını görüntülüyorsunuz. (Salt Okunur)</span>
+                          <span>Şu anda takip ettiğiniz <strong>{followedShares.find(f => f.shareId === activeFollowedShareId)?.alias || "Tutor"}</strong> planını görüntülüyorsunuz. (Salt Okunur)</span>
                         </div>
                         <button
                           onClick={() => setActiveFollowedShareId(null)}
@@ -1366,7 +1366,7 @@ JSON Şeması:
                                 {days.map((day, idx) => {
                                   const isToday = formatDatePickerDate(day) === formatDatePickerDate(new Date());
                                   const dateStr = formatDatePickerDate(day);
-                                  const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
+                                  const dayLessons = lessons.filter(l => l.lessonDate === dateStr);
                                   return (
                                     <th key={idx} className={`sticky top-0 bg-white z-30 border-b border-gray-100 border-r border-gray-100 last:border-r-0 ${isCompact ? "py-1.5 px-0.5" : "py-4 px-3"}`}>
                                       <div className="flex flex-col items-center gap-0.5">
@@ -1412,19 +1412,19 @@ JSON Şeması:
                                 {/* Day Columns */}
                                 {days.map((day, dayIdx) => {
                                   const dateStr = formatDatePickerDate(day);
-                                  const dayLessons = lessons.filter(l => l.lesson_date === dateStr);
+                                  const dayLessons = lessons.filter(l => l.lessonDate === dateStr);
 
                                   // Group and calculate widths for overlapping lessons
-                                  const sortedLessons = [...dayLessons].sort((a, b) => a.start_time.localeCompare(b.start_time));
+                                  const sortedLessons = [...dayLessons].sort((a, b) => a.startTime.localeCompare(b.startTime));
                                   const clusters: tutor_crm.Lesson[][] = [];
                                   sortedLessons.forEach(lesson => {
                                     let placed = false;
                                     for (const cluster of clusters) {
                                       const overlaps = cluster.some(cLesson => {
-                                        const lStart = lesson.start_time.slice(0, 5);
-                                        const lEnd = lesson.end_time.slice(0, 5);
-                                        const cStart = cLesson.start_time.slice(0, 5);
-                                        const cEnd = cLesson.end_time.slice(0, 5);
+                                        const lStart = lesson.startTime.slice(0, 5);
+                                        const lEnd = lesson.endTime.slice(0, 5);
+                                        const cStart = cLesson.startTime.slice(0, 5);
+                                        const cEnd = cLesson.endTime.slice(0, 5);
                                         return lStart < cEnd && lEnd > cStart;
                                       });
                                       if (overlaps) {
@@ -1449,8 +1449,8 @@ JSON Şeması:
                                           break;
                                         }
                                         const lastLessonInCol = columns[colIndex][columns[colIndex].length - 1];
-                                        const lStart = lesson.start_time.slice(0, 5);
-                                        const lastEnd = lastLessonInCol.end_time.slice(0, 5);
+                                        const lStart = lesson.startTime.slice(0, 5);
+                                        const lastEnd = lastLessonInCol.endTime.slice(0, 5);
                                         if (lStart >= lastEnd) {
                                           columns[colIndex].push(lesson);
                                           break;
@@ -1487,8 +1487,8 @@ JSON Şeması:
                                           let dragPreviewEndTime = "";
 
                                           if (isDropPreview && draggedLesson && dragOverSlot) {
-                                            const startStr = draggedLesson.start_time.slice(0, 5);
-                                            const endStr = draggedLesson.end_time.slice(0, 5);
+                                            const startStr = draggedLesson.startTime.slice(0, 5);
+                                            const endStr = draggedLesson.endTime.slice(0, 5);
                                             const durationSlots = getLessonDurationSlots(startStr, endStr);
                                             const startIdx = timeSlots.indexOf(dragOverSlot.timeSlot);
                                             const currentIdx = timeSlots.indexOf(timeSlot);
@@ -1682,8 +1682,8 @@ JSON Şeması:
                                           );
                                         })()}
                                         {sortedLessons.map((lesson) => {
-                                          const startStr = lesson.start_time.slice(0, 5);
-                                          const endStr = lesson.end_time.slice(0, 5);
+                                          const startStr = lesson.startTime.slice(0, 5);
+                                          const endStr = lesson.endTime.slice(0, 5);
                                           const startIdx = timeSlots.indexOf(startStr);
                                           if (startIdx === -1) return null;
                                           const durationSlots = getLessonDurationSlots(startStr, endStr);
@@ -1730,8 +1730,8 @@ JSON Şeması:
                                                         lesson,
                                                         edge: "top",
                                                         startY: e.clientY,
-                                                        initialStartTime: lesson.start_time,
-                                                        initialEndTime: lesson.end_time,
+                                                        initialStartTime: lesson.startTime,
+                                                        initialEndTime: lesson.endTime,
                                                       });
                                                     }}
                                                     className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize z-20"
@@ -1741,13 +1741,13 @@ JSON Şeması:
                                                 <div className="min-w-0 py-1">
                                                   {durationSlots === 1 ? (
                                                     <p className="font-bold text-gray-955 leading-tight text-[9px] flex flex-col items-center justify-center gap-0.5 w-full">
-                                                      <span className="break-words whitespace-normal text-center w-full">{lesson.student_name}</span>
+                                                      <span className="break-words whitespace-normal text-center w-full">{lesson.studentName}</span>
                                                       <span className="hidden md:inline text-blue-600 shrink-0 font-extrabold text-[8px]">{startStr}</span>
                                                     </p>
                                                   ) : (
                                                     <>
                                                       <p className="font-black text-gray-955 leading-tight break-words whitespace-normal text-[10px] mb-0.5">
-                                                        {lesson.student_name}
+                                                        {lesson.studentName}
                                                       </p>
                                                       <p className="hidden md:block font-bold text-blue-600 uppercase tracking-wide leading-none text-[8px]">
                                                         {startStr} - {endStr}
@@ -1772,8 +1772,8 @@ JSON Şeması:
                                                         lesson,
                                                         edge: "bottom",
                                                         startY: e.clientY,
-                                                        initialStartTime: lesson.start_time,
-                                                        initialEndTime: lesson.end_time,
+                                                        initialStartTime: lesson.startTime,
+                                                        initialEndTime: lesson.endTime,
                                                       });
                                                     }}
                                                     className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize z-20"
@@ -1806,11 +1806,11 @@ JSON Şeması:
                                 </div>
                                 <div>
                                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    {new Date(lesson.lesson_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                    {new Date(lesson.lessonDate).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                   </p>
-                                  <h3 className="font-black text-gray-955 text-lg mt-0.5">{lesson.student_name}</h3>
+                                  <h3 className="font-black text-gray-955 text-lg mt-0.5">{lesson.studentName}</h3>
                                   <p className="font-bold text-sm text-gray-600 mt-1 flex items-center gap-1.5">
-                                    <Clock size={16} /> {lesson.start_time.slice(0, 5)} - {lesson.end_time.slice(0, 5)}
+                                    <Clock size={16} /> {lesson.startTime.slice(0, 5)} - {lesson.endTime.slice(0, 5)}
                                   </p>
                                   {lesson.notes && <p className="text-sm text-gray-400 mt-2 italic">"{lesson.notes}"</p>}
                                 </div>
@@ -1892,7 +1892,7 @@ JSON Şeması:
                                   <div className="border-t border-gray-100 pt-2.5 mt-3 flex items-center justify-between">
                                     <div>
                                       <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Saatlik Ücret</span>
-                                      <span className="font-black text-gray-950 text-sm">{student.hourly_rate}₺</span>
+                                      <span className="font-black text-gray-950 text-sm">{student.hourlyRate}₺</span>
                                     </div>
                                     <button
                                       onClick={(e) => {
@@ -1935,14 +1935,14 @@ JSON Şeması:
                           <div className="flex items-center gap-4">
                             <button
                               onClick={() => handleToggleHomework(hw.id)}
-                              className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${hw.is_completed ? "bg-green-500 border-green-500 text-white" : "border-gray-200 text-transparent hover:border-gray-300"
+                              className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${hw.isCompleted ? "bg-green-500 border-green-500 text-white" : "border-gray-200 text-transparent hover:border-gray-300"
                                 }`}
                             >
                               <Check size={16} weight="bold" />
                             </button>
                             <div>
-                              <h3 className={`font-black text-sm ${hw.is_completed ? "text-gray-400 line-through" : "text-gray-900"}`}>{hw.task}</h3>
-                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{hw.student_name} {hw.due_date && `• ${new Date(hw.due_date).toLocaleDateString('tr-TR')}`}</p>
+                              <h3 className={`font-black text-sm ${hw.isCompleted ? "text-gray-400 line-through" : "text-gray-900"}`}>{hw.task}</h3>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{hw.studentName} {hw.dueDate && `• ${new Date(hw.dueDate).toLocaleDateString('tr-TR')}`}</p>
                             </div>
                           </div>
                         </div>
@@ -1970,20 +1970,20 @@ JSON Şeması:
                       payments.map(payment => (
                         <div key={payment.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
                           <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${payment.is_paid ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${payment.isPaid ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
                               <Money size={24} weight="fill" />
                             </div>
                             <div>
                               <h3 className="font-black text-gray-900 text-lg">{payment.amount}₺</h3>
-                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{payment.student_name} • {payment.lesson_count} Ders</p>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{payment.studentName} • {payment.lessonCount} Ders</p>
                             </div>
                           </div>
                           <button
                             onClick={() => handleTogglePayment(payment.id)}
-                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${payment.is_paid ? "bg-green-500 text-white shadow-md shadow-green-150" : "bg-gray-100 text-gray-400 hover:bg-gray-250"
+                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${payment.isPaid ? "bg-green-500 text-white shadow-md shadow-green-150" : "bg-gray-100 text-gray-400 hover:bg-gray-250"
                               }`}
                           >
-                            {payment.is_paid ? "Ödendi" : "Bekliyor"}
+                            {payment.isPaid ? "Ödendi" : "Bekliyor"}
                           </button>
                         </div>
                       ))
@@ -2175,8 +2175,8 @@ JSON Şeması:
                         <p className="text-[10px] text-gray-500 font-medium mt-0.5">Planınızı dışarıya açık, salt okunur bir link ile paylaşır.</p>
                       </div>
                       <button
-                        onClick={() => handleToggleShare(!shareSettings?.is_active, shareSettings?.allow_student_names || false)}
-                        className={`w-12 h-6 rounded-full p-1 transition-all ${shareSettings?.is_active ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                        onClick={() => handleToggleShare(!shareSettings?.isActive, shareSettings?.allowStudentNames || false)}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${shareSettings?.isActive ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
                           }`}
                       >
                         <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
@@ -2189,10 +2189,10 @@ JSON Şeması:
                         <p className="text-[10px] text-gray-500 font-medium mt-0.5">Dışarıya açık planınızda öğrencilerin gerçek isimleri gösterilsin mi? (Kapalıyken "Ders" olarak maskelenir).</p>
                       </div>
                       <button
-                        disabled={!shareSettings?.is_active}
-                        onClick={() => handleToggleShare(shareSettings?.is_active || false, !shareSettings?.allow_student_names)}
-                        className={`w-12 h-6 rounded-full p-1 transition-all ${!shareSettings?.is_active ? "opacity-50 cursor-not-allowed" : ""
-                          } ${shareSettings?.allow_student_names ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
+                        disabled={!shareSettings?.isActive}
+                        onClick={() => handleToggleShare(shareSettings?.isActive || false, !shareSettings?.allowStudentNames)}
+                        className={`w-12 h-6 rounded-full p-1 transition-all ${!shareSettings?.isActive ? "opacity-50 cursor-not-allowed" : ""
+                          } ${shareSettings?.allowStudentNames ? "bg-blue-600 flex justify-end" : "bg-gray-300 flex justify-start"
                           }`}
                       >
                         <span className="w-4 h-4 bg-white rounded-full shadow-sm" />
@@ -2200,7 +2200,7 @@ JSON Şeması:
                     </div>
                   </div>
 
-                  {shareSettings?.is_active && (
+                  {shareSettings?.isActive && (
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Paylaşım Bağlantınız</label>
                       <div className="flex gap-2">
@@ -2273,15 +2273,15 @@ JSON Şeması:
                     ) : (
                       <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
                         {followedShares.map(fs => (
-                          <div key={fs.share_id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between hover:shadow-sm transition-all">
+                          <div key={fs.shareId} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between hover:shadow-sm transition-all">
                             <div>
                               <h5 className="font-black text-sm text-gray-900">{fs.alias || "Tutor"}</h5>
-                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider font-mono mt-0.5">{fs.share_id}</p>
+                              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider font-mono mt-0.5">{fs.shareId}</p>
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
-                                  setActiveFollowedShareId(fs.share_id);
+                                  setActiveFollowedShareId(fs.shareId);
                                   setIsShareModalOpen(false);
                                   toast.success(`${fs.alias} planı seçildi`);
                                 }}
@@ -2290,7 +2290,7 @@ JSON Şeması:
                                 Görüntüle
                               </button>
                               <button
-                                onClick={() => handleUnfollowPlan(fs.share_id)}
+                                onClick={() => handleUnfollowPlan(fs.shareId)}
                                 className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                               >
                                 <Trash size={16} />
@@ -2487,8 +2487,8 @@ JSON Şeması:
                             setEditStudentName(selectedStudent.name);
                             setEditStudentSubject(selectedStudent.subject);
                             setEditStudentLevel(selectedStudent.level);
-                            setEditStudentHourlyRate(selectedStudent.hourly_rate);
-                            setEditStudentParentContact(selectedStudent.parent_contact || "");
+                            setEditStudentHourlyRate(selectedStudent.hourlyRate);
+                            setEditStudentParentContact(selectedStudent.parentContact || "");
                             setIsEditingStudent(true);
                           }
                         }}
@@ -2563,11 +2563,11 @@ JSON Şeması:
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-gray-400 block">Saatlik Ücret</span>
-                          <span className="font-black text-gray-900">{selectedStudent.hourly_rate}₺</span>
+                          <span className="font-black text-gray-900">{selectedStudent.hourlyRate}₺</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-bold">Veli İletişim</span>
-                          <span className="font-bold text-gray-700 truncate block max-w-full">{selectedStudent.parent_contact || "Belirtilmemiş"}</span>
+                          <span className="font-bold text-gray-700 truncate block max-w-full">{selectedStudent.parentContact || "Belirtilmemiş"}</span>
                         </div>
                       </div>
                     )}
@@ -2576,19 +2576,19 @@ JSON Şeması:
                   <div className="space-y-2">
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider pl-1 block">Planlanmış Ders Geçmişi & Gelecek Planı</span>
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
-                      {lessons.filter(l => l.student_id === selectedStudent.id).length === 0 ? (
+                      {lessons.filter(l => l.studentId === selectedStudent.id).length === 0 ? (
                         <p className="text-[10px] font-bold text-gray-450 p-3 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
                           Henüz planlanmış ders bulunmamaktadır.
                         </p>
                       ) : (
                         lessons
-                          .filter(l => l.student_id === selectedStudent.id)
+                          .filter(l => l.studentId === selectedStudent.id)
                           .sort((a, b) => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
-                            const dateA = new Date(a.lesson_date);
+                            const dateA = new Date(a.lessonDate);
                             dateA.setHours(0, 0, 0, 0);
-                            const dateB = new Date(b.lesson_date);
+                            const dateB = new Date(b.lessonDate);
                             dateB.setHours(0, 0, 0, 0);
 
                             const diffA = Math.abs(dateA.getTime() - today.getTime());
@@ -2596,13 +2596,13 @@ JSON Şeması:
                             return diffA - diffB;
                           })
                           .map(l => {
-                            const relStr = getRelativeDateString(l.lesson_date);
+                            const relStr = getRelativeDateString(l.lessonDate);
                             return (
                               <div key={l.id} className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
                                 <div>
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <p className="font-black text-gray-900">
-                                      {new Date(l.lesson_date).toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
+                                      {new Date(l.lessonDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long" })}
                                     </p>
                                     <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-extrabold ${relStr === "Bugün"
                                         ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
@@ -2614,7 +2614,7 @@ JSON Şeması:
                                     </span>
                                   </div>
                                   <p className="text-[10px] text-blue-600 font-extrabold mt-0.5">
-                                    {l.start_time.slice(0, 5)} - {l.end_time.slice(0, 5)}
+                                    {l.startTime.slice(0, 5)} - {l.endTime.slice(0, 5)}
                                   </p>
                                 </div>
                                 {l.notes && (
@@ -2803,20 +2803,20 @@ JSON Şeması:
               <div className="space-y-4">
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <span className="text-[9px] font-black text-gray-400 uppercase block tracking-wider mb-1">Öğrenci</span>
-                  <span className="text-base font-black text-gray-900">{selectedLesson.student_name}</span>
+                  <span className="text-base font-black text-gray-900">{selectedLesson.studentName}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <span className="text-[9px] font-black text-gray-400 uppercase block tracking-wider mb-1">Tarih</span>
                     <span className="text-sm font-bold text-gray-900">
-                      {new Date(selectedLesson.lesson_date).toLocaleDateString('tr-TR')}
+                      {new Date(selectedLesson.lessonDate).toLocaleDateString('tr-TR')}
                     </span>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <span className="text-[9px] font-black text-gray-400 uppercase block tracking-wider mb-1">Saat Aralığı</span>
                     <span className="text-sm font-bold text-gray-900">
-                      {selectedLesson.start_time.slice(0, 5)} - {selectedLesson.end_time.slice(0, 5)}
+                      {selectedLesson.startTime.slice(0, 5)} - {selectedLesson.endTime.slice(0, 5)}
                     </span>
                   </div>
                 </div>
@@ -2828,10 +2828,10 @@ JSON Şeması:
                   </div>
                 )}
 
-                {selectedLesson.next_lesson_plan && (
+                {selectedLesson.nextLessonPlan && (
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <span className="text-[9px] font-black text-gray-400 uppercase block tracking-wider mb-1">Gelecek Ders Planı</span>
-                    <p className="text-sm text-gray-700 font-medium leading-relaxed">{selectedLesson.next_lesson_plan}</p>
+                    <p className="text-sm text-gray-700 font-medium leading-relaxed">{selectedLesson.nextLessonPlan}</p>
                   </div>
                 )}
               </div>
