@@ -2,6 +2,7 @@
 
 import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   Plus, 
@@ -31,6 +32,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { budget } from "@/lib/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 const client = createBrowserClient();
 
@@ -86,6 +88,7 @@ interface Transaction {
 }
 
 export default function SharedProjectPage() {
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { shareId } = useParams() as { shareId: string };
   const router = useRouter(); 
   const { locale } = useLanguage();
@@ -98,6 +101,8 @@ export default function SharedProjectPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [isIdentityModalOpen, setIsIdentityModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [internalUserId, setInternalUserId] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState<"expenses" | "balances">("expenses");
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
@@ -128,11 +133,60 @@ export default function SharedProjectPage() {
   const fetchProjectDetails = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
+
+      // Fetch internal user ID if signed in
+      let currentInternalUserId = internalUserId;
+      if (isUserLoaded && user?.id && !currentInternalUserId) {
+        const userRes = await client.users.getOrCreateUser({
+          clerkId: user.id,
+          username: user.username || user.firstName || "User",
+          fullName: user.fullName || undefined,
+          avatarUrl: user.imageUrl || undefined
+        });
+        if (userRes.user) {
+          currentInternalUserId = userRes.user.id;
+          setInternalUserId(currentInternalUserId);
+        }
+      }
+
       const res = await client.budget.getProjectDetailsByShareId(shareId);
       setProject(res.project);
       setMembers(res.members);
       setExpenses(res.expenses);
       setShares(res.shares);
+
+      // Auto-link logic: If signed in, check if already linked to a member
+      if (currentInternalUserId) {
+        const linkedMember = res.members.find(m => m.userId === currentInternalUserId);
+        if (linkedMember) {
+          setSelectedMemberId(linkedMember.id);
+          localStorage.setItem(`budget_member_${shareId}`, linkedMember.id);
+          setIsIdentityModalOpen(false);
+        } else {
+          // If not linked yet, but we have a selected identity from guest mode, link it!
+          const guestMemberId = localStorage.getItem(`budget_member_${shareId}`);
+          if (guestMemberId) {
+            const guestMember = res.members.find(m => m.id === guestMemberId);
+            if (guestMember && !guestMember.userId) {
+              try {
+                await client.budget.updateMemberUserId({
+                  memberId: guestMember.id,
+                  userId: currentInternalUserId
+                });
+                toast.success(isTr ? "Hesabın bu seyahatle eşleştirildi!" : "Account linked to this trip!");
+                // Update local state
+                setSelectedMemberId(guestMemberId);
+                setIsIdentityModalOpen(false);
+                // Refresh members to show it's linked
+                const updatedRes = await client.budget.getProjectDetailsByShareId(shareId);
+                setMembers(updatedRes.members);
+              } catch (err) {
+                console.error("Failed to auto-link member:", err);
+              }
+            }
+          }
+        }
+      }
 
       calculateBalances(res.members, res.expenses, res.shares, selectedMemberId);
     } catch (error) {
@@ -142,6 +196,12 @@ export default function SharedProjectPage() {
       if (!silent) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isUserLoaded) {
+      fetchProjectDetails(true);
+    }
+  }, [isUserLoaded, user]);
 
   useEffect(() => {
     if (members.length > 0 && expenses.length > 0) {
@@ -253,10 +313,27 @@ export default function SharedProjectPage() {
     setTransactions(calculatedTransactions);
   };
 
-  const selectIdentity = (memberId: string) => {
+  const selectIdentity = async (memberId: string) => {
     setSelectedMemberId(memberId);
     localStorage.setItem(`budget_member_${shareId}`, memberId);
     setIsIdentityModalOpen(false);
+
+    // If signed in but not linked, link this member to the account
+    if (isUserLoaded && user?.id && internalUserId) {
+      const member = members.find(m => m.id === memberId);
+      if (member && !member.userId) {
+        try {
+          await client.budget.updateMemberUserId({
+            memberId: member.id,
+            userId: internalUserId
+          });
+          toast.success(isTr ? "Hesabın bu seyahatle eşleştirildi!" : "Account linked to this trip!");
+          fetchProjectDetails(true);
+        } catch (err) {
+          console.error("Failed to link member:", err);
+        }
+      }
+    }
   };
 
   const handleShare = () => {
@@ -512,20 +589,6 @@ export default function SharedProjectPage() {
                   );
                 })}
               </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                <p className="text-[10px] text-gray-400 font-medium mb-3">
-                  {isTr 
-                    ? "Daha fazla özellik için giriş yapabilirsin" 
-                    : "You can sign in for more features"}
-                </p>
-                <button 
-                  onClick={() => router.push('/apps/budget')}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  {isTr ? "Giriş Yap veya Kaydol" : "Sign In or Sign Up"}
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         )}
@@ -584,33 +647,6 @@ export default function SharedProjectPage() {
               </div>
             )}
           </div>
-
-          {/* Sign-in CTA Banner */}
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-blue-100 rounded-2xl p-3 flex items-center justify-between shadow-sm shadow-blue-50 mb-8"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                <Sparkle size={18} weight="fill" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-900 leading-tight">
-                  {isTr ? "Kendi bütçelerini oluştur" : "Create your own budgets"}
-                </span>
-                <span className="text-[9px] text-gray-400 font-medium">
-                  {isTr ? "Tüm özellikler için giriş yap" : "Sign in for all features"}
-                </span>
-              </div>
-            </div>
-            <button 
-              onClick={() => router.push('/apps/budget')}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all active:scale-95"
-            >
-              {isTr ? "Giriş Yap" : "Sign In"}
-            </button>
-          </motion.div>
         </div>
 
         {loading ? (

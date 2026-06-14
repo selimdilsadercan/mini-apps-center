@@ -142,7 +142,12 @@ RETURNS TABLE (
     total_spent DECIMAL,
     user_share DECIMAL
 ) AS $$
+DECLARE
+    v_user_id UUID;
 BEGIN
+    -- Get internal user ID once
+    v_user_id := public.get_internal_user_id(p_user_id);
+
     RETURN QUERY
     SELECT 
         p.id,
@@ -159,10 +164,10 @@ BEGIN
         p.share_id,
         (SELECT COUNT(*) FROM budget.members m WHERE m.project_id = p.id)::BIGINT as member_count,
         COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent,
-        COALESCE((SELECT SUM(s.share_amount) FROM budget.expense_shares s JOIN budget.members m ON s.member_id = m.id JOIN public.users u2 ON m.user_id = u2.id WHERE m.project_id = p.id AND (u2.clerk_id = p_user_id OR u2.local_clerk_id = p_user_id)), 0)::DECIMAL as user_share
+        COALESCE((SELECT SUM(s.share_amount) FROM budget.expense_shares s JOIN budget.members m ON s.member_id = m.id WHERE m.project_id = p.id AND m.user_id = v_user_id), 0)::DECIMAL as user_share
     FROM budget.projects p
-    JOIN public.users u ON p.creator_id = u.id OR p.id IN (SELECT project_id FROM budget.members m WHERE m.user_id = u.id)
-    WHERE u.clerk_id = p_user_id OR u.local_clerk_id = p_user_id
+    WHERE p.creator_id = v_user_id
+       OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id)
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
@@ -281,6 +286,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 7. Grants
+-- 7. Update Member User ID (Linking)
+CREATE OR REPLACE FUNCTION budget.update_member_user_id(
+    member_id_param UUID,
+    user_id_param UUID
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE budget.members 
+    SET user_id = user_id_param
+    WHERE id = member_id_param;
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. Grants
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA budget TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA budget GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;

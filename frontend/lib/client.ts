@@ -782,6 +782,15 @@ export namespace budget {
         success: boolean
     }
 
+    export interface UpdateMemberUserIdRequest {
+        memberId: string
+        userId: string
+    }
+
+    export interface UpdateMemberUserIdResponse {
+        success: boolean
+    }
+
     export interface UpdateProjectRequest {
         projectId: string
         name: string
@@ -810,6 +819,7 @@ export namespace budget {
             this.getProjectDetailsByShareId = this.getProjectDetailsByShareId.bind(this)
             this.getUserProjects = this.getUserProjects.bind(this)
             this.updateExpense = this.updateExpense.bind(this)
+            this.updateMemberUserId = this.updateMemberUserId.bind(this)
             this.updateProject = this.updateProject.bind(this)
         }
 
@@ -874,6 +884,15 @@ export namespace budget {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/budget/expenses`, JSON.stringify(params))
             return await resp.json() as UpdateExpenseResponse
+        }
+
+        /**
+         * Links a member to a registered user account
+         */
+        public async updateMemberUserId(params: UpdateMemberUserIdRequest): Promise<UpdateMemberUserIdResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/members/link`, JSON.stringify(params))
+            return await resp.json() as UpdateMemberUserIdResponse
         }
 
         /**

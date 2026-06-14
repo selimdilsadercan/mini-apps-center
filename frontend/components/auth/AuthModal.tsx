@@ -33,9 +33,15 @@ export function AuthModal({
     if (!signIn) return;
 
     try {
+      const returnUrl = window.location.pathname + window.location.search;
+      // Save current URL to redirect back after login
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_return_url', returnUrl);
+      }
+
       const callbackUrl = isNative 
         ? `${SSO_CALLBACK_URL_BASE}?source=native` 
-        : `${window.location.origin}/sso-callback`;
+        : `${window.location.origin}/sso-callback?return_url=${encodeURIComponent(returnUrl)}`;
 
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
@@ -57,6 +63,9 @@ export function AuthModal({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-md px-6"
       >
+        {/* Clerk CAPTCHA element for bot protection in custom flows */}
+        <div id="clerk-captcha"></div>
+
         <motion.div
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}

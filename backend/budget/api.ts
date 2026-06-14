@@ -463,6 +463,35 @@ export const updateExpense = api(
   }
 );
 
+interface UpdateMemberUserIdRequest {
+  memberId: string;
+  userId: string;
+}
+
+interface UpdateMemberUserIdResponse {
+  success: boolean;
+}
+
+/**
+ * Links a member to a registered user account
+ */
+export const updateMemberUserId = api(
+  { expose: true, method: "PUT", path: "/budget/members/link" },
+  async (req: UpdateMemberUserIdRequest): Promise<UpdateMemberUserIdResponse> => {
+    const { data, error } = await supabase.schema("budget").rpc("update_member_user_id", {
+      member_id_param: req.memberId,
+      user_id_param: req.userId,
+    });
+
+    if (error) {
+      console.error("updateMemberUserId error:", error);
+      throw APIError.internal(`Failed to link member: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
 interface UpdateProjectRequest {
   projectId: string;
   name: string;
