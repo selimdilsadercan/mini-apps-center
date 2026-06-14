@@ -1,9 +1,10 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
-import { getMeta } from "encore.dev";
+import { appMeta } from "encore.dev";
 import { createSupabaseClient, User } from "../lib/supabase";
 
-const isLocal = getMeta().Environment.Type === "local";
+const envType = appMeta().environment.type as string;
+const isLocal = envType === "local" || envType === "development";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -87,6 +88,7 @@ export const getUserByClerkId = api(
   async ({ clerkId }: GetUserByClerkIdRequest): Promise<GetUserByClerkIdResponse> => {
     const { data, error } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
+      is_local_param: isLocal,
     });
 
     if (error) {
@@ -132,6 +134,7 @@ export const getOrCreateUser = api(
     // Önce mevcut user'ı ara
     const { data: existingData, error: existingError } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
+      is_local_param: isLocal,
     });
 
     if (existingError) {
@@ -148,7 +151,7 @@ export const getOrCreateUser = api(
         (avatarUrl && existingUser.avatar_url !== avatarUrl)
       ) {
         const { data: updatedData, error: updateError } = await supabase.rpc("users_create_user", {
-          clerk_id_param: clerkId,
+          clerk_id_param: existingUser.clerk_id,
           username_param: username || existingUser.username,
           avatar_url_param: avatarUrl || existingUser.avatar_url,
           full_name_param: fullName || existingUser.full_name,
@@ -224,6 +227,7 @@ export const updateAppOrder = api(
     const { error } = await supabase.rpc("update_user_app_order", {
       clerk_id_param: clerkId,
       app_order_param: appOrder,
+      is_local_param: isLocal,
     });
 
     if (error) {
@@ -244,6 +248,7 @@ export const getUserPreferences = api(
   async ({ clerkId }: GetUserPreferencesRequest): Promise<GetUserPreferencesResponse> => {
     const { data, error } = await supabase.rpc("get_user_preferences", {
       clerk_id_param: clerkId,
+      is_local_param: isLocal,
     });
 
     if (error) {
@@ -272,15 +277,18 @@ export const checkAdmin = api(
   async ({ clerkId }: CheckAdminRequest): Promise<CheckAdminResponse> => {
     const { data: isAdminRpc, error } = await supabase.rpc("is_admin", {
       p_clerk_id: clerkId,
+      is_local_param: isLocal,
     });
 
     if (error) {
       console.warn("checkAdmin is_admin RPC failed, checking table directly:", error.message);
-      const { data, error: tableError } = await supabase
-        .from("users")
-        .select("role")
-        .or(`clerk_id.eq.${clerkId},local_clerk_id.eq.${clerkId}`)
-        .maybeSingle();
+      const query = supabase.from("users").select("role");
+      if (isLocal) {
+        query.eq("local_clerk_id", clerkId);
+      } else {
+        query.eq("clerk_id", clerkId);
+      }
+      const { data, error: tableError } = await query.maybeSingle();
 
       if (tableError || !data) {
         return { isAdmin: false };
