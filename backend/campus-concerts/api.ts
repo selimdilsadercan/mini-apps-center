@@ -124,7 +124,7 @@ export const addConcert = api(
       throw APIError.internal(`Failed to add campus concert: ${error.message}`);
     }
 
-    return { concert: data?.[0] || null };
+    return { concert: (data as CampusConcert) || null };
   }
 );
 

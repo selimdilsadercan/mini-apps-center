@@ -8,6 +8,22 @@
 --    moved to a historical record if necessary.
 --------------------------------------------------------------------------------
 
+-- 1. Migration: Internal UUID Transition (owner_id TEXT -> owner_id UUID)
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'board_game_clubs' AND table_name = 'clubs' AND column_name = 'owner_id' AND data_type = 'text') THEN
+        ALTER TABLE board_game_clubs.clubs RENAME COLUMN owner_id TO owner_id_old;
+        ALTER TABLE board_game_clubs.clubs ADD COLUMN owner_id UUID REFERENCES public.users(id) ON DELETE CASCADE;
+        
+        UPDATE board_game_clubs.clubs c
+        SET owner_id = u.id
+        FROM public.users u
+        WHERE c.owner_id_old = u.clerk_id OR c.owner_id_old = u.local_clerk_id;
+        
+        ALTER TABLE board_game_clubs.clubs DROP COLUMN owner_id_old;
+    END IF;
+END $$;
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------

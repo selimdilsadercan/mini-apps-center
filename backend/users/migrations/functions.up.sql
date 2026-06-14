@@ -166,8 +166,14 @@ RETURNS UUID AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
+  -- 1. Try to match by clerk_id or local_clerk_id
   SELECT id INTO v_user_id FROM public.users 
   WHERE clerk_id = clerk_id_param OR local_clerk_id = clerk_id_param;
+  
+  -- 2. If not found, check if the input itself is a valid UUID and exists in users
+  IF v_user_id IS NULL AND clerk_id_param ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+    SELECT id INTO v_user_id FROM public.users WHERE id = clerk_id_param::UUID;
+  END IF;
   
   RETURN v_user_id;
 END;

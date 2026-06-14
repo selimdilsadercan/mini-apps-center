@@ -71,22 +71,13 @@ CREATE OR REPLACE FUNCTION campus_concerts.add_concert(
     image_url_param TEXT,
     added_by_clerk_id_param TEXT
 )
-RETURNS TABLE (
-    id UUID,
-    artist TEXT,
-    campus TEXT,
-    date DATE,
-    description TEXT,
-    image_url TEXT,
-    added_by_id UUID,
-    created_at TIMESTAMPTZ
-) AS $$
+RETURNS campus_concerts.concerts AS $$
 DECLARE
     v_added_by_uuid UUID;
+    v_result campus_concerts.concerts;
 BEGIN
     v_added_by_uuid := public.get_internal_user_id(added_by_clerk_id_param);
 
-    RETURN QUERY
     INSERT INTO campus_concerts.concerts (
         artist,
         campus,
@@ -102,15 +93,9 @@ BEGIN
         image_url_param,
         v_added_by_uuid
     )
-    RETURNING 
-        campus_concerts.concerts.id,
-        campus_concerts.concerts.artist,
-        campus_concerts.concerts.campus,
-        campus_concerts.concerts.date,
-        campus_concerts.concerts.description,
-        campus_concerts.concerts.image_url,
-        campus_concerts.concerts.added_by_id,
-        campus_concerts.concerts.created_at;
+    RETURNING * INTO v_result;
+
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -121,30 +106,18 @@ CREATE OR REPLACE FUNCTION campus_concerts.set_attendance(
     concert_id_param UUID,
     status_param TEXT
 )
-RETURNS TABLE (
-    id UUID,
-    user_id UUID,
-    concert_id UUID,
-    status TEXT,
-    created_at TIMESTAMPTZ
-) AS $$
+RETURNS campus_concerts.attendance AS $$
 DECLARE
     v_user_uuid UUID;
+    v_result campus_concerts.attendance;
 BEGIN
     v_user_uuid := public.get_internal_user_id(clerk_id_param);
 
     IF status_param IS NULL OR status_param = 'none' OR status_param = '' THEN
-        RETURN QUERY
         DELETE FROM campus_concerts.attendance
         WHERE campus_concerts.attendance.user_id = v_user_uuid AND campus_concerts.attendance.concert_id = concert_id_param
-        RETURNING 
-            campus_concerts.attendance.id,
-            campus_concerts.attendance.user_id,
-            campus_concerts.attendance.concert_id,
-            campus_concerts.attendance.status,
-            campus_concerts.attendance.created_at;
+        RETURNING * INTO v_result;
     ELSE
-        RETURN QUERY
         INSERT INTO campus_concerts.attendance (
             user_id,
             concert_id,
@@ -158,16 +131,9 @@ BEGIN
         DO UPDATE SET 
             status = EXCLUDED.status,
             created_at = NOW()
-        RETURNING 
-            campus_concerts.attendance.id,
-            campus_concerts.attendance.user_id,
-            campus_concerts.attendance.concert_id,
-            campus_concerts.attendance.status,
-            campus_concerts.attendance.created_at;
+        RETURNING * INTO v_result;
     END IF;
+
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 4. Grants
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA campus_concerts TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA campus_concerts GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;

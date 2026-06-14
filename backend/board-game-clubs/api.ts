@@ -198,7 +198,7 @@ export const createClub = api(
       throw APIError.internal("Kulüp oluşturulamadı");
     }
 
-    return { club: data?.[0] || null };
+    return { club: (data as Club) || null };
   }
 );
 
@@ -218,7 +218,7 @@ export const getClubDetails = api(
       return { club: null };
     }
 
-    return { club: data?.[0] || null };
+    return { club: (data as Club) || null };
   }
 );
 
@@ -302,7 +302,7 @@ export const addClubGame = api(
       throw APIError.internal("Oyun kütüphaneye eklenemedi");
     }
 
-    return { game: data?.[0] || null };
+    return { game: (data as ClubGame) || null };
   }
 );
 
@@ -342,7 +342,7 @@ export const updateClubGame = api(
       throw APIError.internal("Oyun güncellenemedi");
     }
 
-    return { game: data?.[0] || null };
+    return { game: (data as ClubGame) || null };
   }
 );
 
