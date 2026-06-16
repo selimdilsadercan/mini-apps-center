@@ -236,6 +236,5 @@ export function buildWeatherRecommendations(
 
   return items
     .sort((a, b) => b.priority - a.priority)
-    .slice(0, 5)
-    .map(({ priority: _p, ...rest }) => rest);
+    .slice(0, 5);
 }

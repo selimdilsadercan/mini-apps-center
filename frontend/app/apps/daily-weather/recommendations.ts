@@ -1,5 +1,5 @@
 import type { daily_weather } from "@/lib/client";
-import type { DailyWeatherSnapshot } from "./mock-weather";
+import type { DailyWeatherSnapshot } from "./page";
 
 type Locale = "tr" | "en";
 
@@ -110,6 +110,5 @@ export function buildLocalRecommendations(
 
   return items
     .sort((a, b) => b.priority - a.priority)
-    .slice(0, 5)
-    .map(({ priority: _p, ...rest }) => rest);
+    .slice(0, 5);
 }
