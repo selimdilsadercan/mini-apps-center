@@ -9,6 +9,7 @@ import {
   Download, 
   ArrowsOutCardinal, 
   CaretLeft,
+  CaretRight,
   Plus,
   Info,
   X,
@@ -18,7 +19,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PageSizes, rgb } from "pdf-lib";
 import {
   DndContext,
   closestCenter,
@@ -40,7 +41,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 // Types
-type ToolMode = "rearrange" | "image-pdf" | null;
+type ToolMode = "rearrange" | "image-pdf" | "6-to-1" | null;
 
 interface PdfPage {
   id: string; // unique id for dnd
@@ -221,58 +222,114 @@ export default function PdfToolsPage() {
     toast.success("Sayfa kaldırıldı.");
   };
 
+  const getModifiedPdf = async () => {
+    if (!pdfFile || pages.length === 0) return null;
+    
+    const arrayBuffer = await pdfFile.arrayBuffer();
+    const originalPdf = await PDFDocument.load(arrayBuffer);
+    const newPdf = await PDFDocument.create();
+    
+    if (mode === "rearrange") {
+      const pageIndices = pages.map(p => p.originalIndex);
+      const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
+      copiedPages.forEach((page) => newPdf.addPage(page));
+    } else if (mode === "6-to-1") {
+      const pageIndices = pages.map(p => p.originalIndex);
+      const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
+      
+      const A4 = PageSizes.A4;
+      const margin = (15 * 72) / 25.4;
+      const gap = (5 * 72) / 25.4;
+      const availableWidth = A4[0] - 2 * margin;
+      const availableHeight = A4[1] - 2 * margin;
+      const slotWidth = (availableWidth - gap) / 2;
+      const slotHeight = (availableHeight - 2 * gap) / 3;
+
+      for (let i = 0; i < copiedPages.length; i += 6) {
+        const newPage = newPdf.addPage(A4);
+        for (let j = 0; j < 6 && (i + j) < copiedPages.length; j++) {
+          const sourcePage = copiedPages[i + j];
+          const { width, height } = sourcePage.getSize();
+          
+          const col = j % 2;
+          const row = Math.floor(j / 2);
+          
+          const scale = Math.min(slotWidth / width, slotHeight / height);
+          const x = margin + col * (slotWidth + gap) + (slotWidth - width * scale) / 2;
+          const y = A4[1] - margin - (row + 1) * slotHeight - row * gap + (slotHeight - height * scale) / 2;
+          
+          const embeddedPage = await newPdf.embedPage(sourcePage);
+          newPage.drawPage(embeddedPage, {
+            x,
+            y,
+            width: width * scale,
+            height: height * scale,
+          });
+
+          // Add border around the page
+          newPage.drawRectangle({
+            x,
+            y,
+            width: width * scale,
+            height: height * scale,
+            borderColor: rgb(0.8, 0.8, 0.8),
+            borderWidth: 0.5,
+          });
+        }
+      }
+    } else if (mode === "image-pdf") {
+      if (!pdfjsLib) throw new Error("PDF.js not loaded");
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      for (let i = 0; i < pages.length; i++) {
+        const pageInfo = pages[i];
+        const page = await pdf.getPage(pageInfo.originalIndex + 1);
+        const viewport = page.getViewport({ scale: 2.0 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        
+        if (context) {
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          await page.render({ canvasContext: context, viewport: viewport }).promise;
+          const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          const imageBytes = await fetch(imageDataUrl).then(res => res.arrayBuffer());
+          const image = await newPdf.embedJpg(imageBytes);
+          const newPage = newPdf.addPage([viewport.width, viewport.height]);
+          newPage.drawImage(image, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+        }
+      }
+    }
+    
+    return await newPdf.save();
+  };
+
+  const applyAndContinue = async () => {
+    setIsLoading(true);
+    try {
+      const pdfBytes = await getModifiedPdf();
+      if (!pdfBytes) return;
+      
+      const newFile = new File([pdfBytes as any], pdfFile!.name, { type: "application/pdf" });
+      await processPdf(newFile);
+      setMode(null);
+      toast.success("Değişiklikler uygulandı, devam edebilirsiniz.");
+    } catch (err) {
+      console.error("Error applying changes:", err);
+      toast.error("Değişiklikler uygulanırken bir hata oluştu.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const downloadModifiedPdf = async () => {
     if (!pdfFile || pages.length === 0) return;
     
     setIsLoading(true);
     try {
-      const arrayBuffer = await pdfFile.arrayBuffer();
-      const originalPdf = await PDFDocument.load(arrayBuffer);
-      const newPdf = await PDFDocument.create();
+      const pdfBytes = await getModifiedPdf();
+      if (!pdfBytes) return;
       
-      if (mode === "rearrange") {
-        const pageIndices = pages.map(p => p.originalIndex);
-        const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
-        copiedPages.forEach((page) => newPdf.addPage(page));
-      } else if (mode === "image-pdf") {
-        // For each page, we'll render it as a high-quality image and embed it
-        if (!pdfjsLib) throw new Error("PDF.js not loaded");
-        
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        
-        for (let i = 0; i < pages.length; i++) {
-          const pageInfo = pages[i];
-          const page = await pdf.getPage(pageInfo.originalIndex + 1);
-          
-          // Higher scale for better quality in the final PDF
-          const viewport = page.getViewport({ scale: 2.0 });
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          
-          if (context) {
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            await page.render({
-              canvasContext: context,
-              viewport: viewport,
-            }).promise;
-            
-            const imageDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-            const imageBytes = await fetch(imageDataUrl).then(res => res.arrayBuffer());
-            const image = await newPdf.embedJpg(imageBytes);
-            
-            const newPage = newPdf.addPage([viewport.width, viewport.height]);
-            newPage.drawImage(image, {
-              x: 0,
-              y: 0,
-              width: viewport.width,
-              height: viewport.height,
-            });
-          }
-        }
-      }
-      
-      const pdfBytes = await newPdf.save();
       const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -331,6 +388,16 @@ export default function PdfToolsPage() {
               >
                 <X size={20} weight="bold" />
               </button>
+              {mode && (
+                <button
+                  onClick={applyAndContinue}
+                  disabled={isLoading || pages.length === 0}
+                  className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 shadow-lg active:scale-95 transition-all disabled:opacity-50"
+                >
+                  Devam Et
+                  <CaretRight size={18} weight="bold" />
+                </button>
+              )}
               <button
                 onClick={downloadModifiedPdf}
                 disabled={isLoading || pages.length === 0}
@@ -409,6 +476,19 @@ export default function PdfToolsPage() {
                   <p className="text-sm text-gray-500 font-medium leading-relaxed">Her sayfayı resme dönüştürüp tekrar birleştirir. Metin seçilemez hale gelir.</p>
                 </div>
               </button>
+
+              <button 
+                onClick={() => setMode("6-to-1")}
+                className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-emerald-500/20 transition-all group text-left flex flex-col gap-6"
+              >
+                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                  <SquaresFour size={32} weight="fill" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-gray-900 mb-2">6 Sayfa Tek Sayfa</h3>
+                  <p className="text-sm text-gray-500 font-medium leading-relaxed">6 sayfayı tek bir sayfada birleştirir (2x3 düzeni).</p>
+                </div>
+              </button>
             </div>
 
             <button 
@@ -423,14 +503,22 @@ export default function PdfToolsPage() {
             {/* File Info */}
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${mode === 'rearrange' ? 'bg-indigo-50 text-indigo-500' : 'bg-red-50 text-[#E03131]'}`}>
-                  {mode === 'rearrange' ? <SquaresFour size={28} weight="fill" /> : <ImageIcon size={28} weight="fill" />}
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                  mode === 'rearrange' ? 'bg-indigo-50 text-indigo-500' : 
+                  mode === '6-to-1' ? 'bg-emerald-50 text-emerald-500' :
+                  'bg-red-50 text-[#E03131]'
+                }`}>
+                  {mode === 'rearrange' ? <SquaresFour size={28} weight="fill" /> : 
+                   mode === '6-to-1' ? <SquaresFour size={28} weight="fill" /> :
+                   <ImageIcon size={28} weight="fill" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-black text-gray-900 truncate max-w-[150px] sm:max-w-md uppercase tracking-tight">{pdfFile.name}</h3>
                     <span className="text-[8px] font-black px-2 py-0.5 bg-gray-100 rounded-full text-gray-500 uppercase tracking-widest">
-                      {mode === 'rearrange' ? 'Düzenleme' : 'Görsel PDF'}
+                      {mode === 'rearrange' ? 'Düzenleme' : 
+                       mode === '6-to-1' ? '6 Sayfa' :
+                       'Görsel PDF'}
                     </span>
                   </div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -440,6 +528,16 @@ export default function PdfToolsPage() {
               </div>
               
               <div className="flex items-center gap-2">
+                {mode && (
+                  <button
+                    onClick={applyAndContinue}
+                    disabled={isLoading || pages.length === 0}
+                    className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-md active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    Uygula ve Devam Et
+                    <CaretRight size={16} weight="bold" />
+                  </button>
+                )}
                 <button
                   onClick={() => setMode(null)}
                   className="p-3 bg-gray-50 text-gray-600 rounded-2xl hover:bg-gray-100 transition-colors"
@@ -493,6 +591,48 @@ export default function PdfToolsPage() {
                   </DragOverlay>
                 </DndContext>
               )
+            ) : mode === "6-to-1" ? (
+              /* 6-to-1 Mode Preview */
+              <div className="space-y-8">
+                <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex gap-4">
+                  <div className="text-emerald-500 shrink-0"><Info size={24} weight="fill" /></div>
+                  <p className="text-xs font-bold text-emerald-900 uppercase tracking-wide leading-relaxed">
+                    Bu işlem her 6 sayfayı tek bir A4 sayfasına (2x3 düzeninde) yerleştirecektir. Sayfalara ince bir çerçeve eklenecektir.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-12">
+                  {Array.from({ length: Math.ceil(pages.length / 6) }).map((_, pageIdx) => (
+                    <div key={pageIdx} className="relative">
+                      <div className="absolute -top-6 left-0 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Yeni Sayfa {pageIdx + 1}
+                      </div>
+                      <div className="aspect-[1/1.414] bg-white rounded-2xl border border-gray-200 shadow-sm p-[5%] grid grid-cols-2 grid-rows-3 gap-[2%]">
+                        {pages.slice(pageIdx * 6, pageIdx * 6 + 6).map((page, idx) => (
+                          <div key={page.id} className="border border-[0.5px] border-gray-200 rounded-sm overflow-hidden flex items-center justify-center p-0.5">
+                            <img src={page.imageDataUrl} className="w-full h-full object-contain" alt="" />
+                          </div>
+                        ))}
+                        {/* Empty slots if less than 6 pages */}
+                        {Array.from({ length: Math.max(0, 6 - pages.slice(pageIdx * 6, pageIdx * 6 + 6).length) }).map((_, idx) => (
+                          <div key={`empty-${idx}`} className="border border-dashed border-gray-200 rounded-sm" />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="text-center py-12">
+                   <button 
+                    onClick={downloadModifiedPdf}
+                    disabled={isLoading}
+                    className="bg-gray-900 text-white px-12 py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-4 mx-auto"
+                   >
+                     {isLoading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <Download size={24} weight="bold" />}
+                     6-lı PDF Olarak İndir
+                   </button>
+                </div>
+              </div>
             ) : (
               /* Image PDF Mode Preview */
               <div className="space-y-6">

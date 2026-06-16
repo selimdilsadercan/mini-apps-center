@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createBrowserClient } from "@/lib/api";
 import Client from "@/lib/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUser } from "@clerk/clerk-react";
 import {
   ArrowLeft,
   ArrowUp,
@@ -37,8 +38,11 @@ interface Meme {
   media_url: string;
   tags: string[];
   likes_count: number;
-  created_by: string;
+  creator_id: string | null;
+  creator_username: string | null;
+  creator_avatar: string | null;
   created_at: string;
+  is_liked?: boolean;
 }
 
 // Smart parser for Giphy / Tenor / Custom media URLs
@@ -76,9 +80,12 @@ function isEmbeddable(url: string) {
 
 export default function MemedexPage() {
   const { locale } = useLanguage();
+  const { user } = useUser();
+  const userId = user?.id;
   
   // List State
   const [memes, setMemes] = useState<Meme[]>([]);
+  // ... (rest of the component)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -138,6 +145,7 @@ export default function MemedexPage() {
       setPage(0);
       // @ts-ignore - type generated dynamically by Encore
       const response = await client.memedex.getMemes({
+        userId: userId,
         search: search,
         tag: selectedTag,
         trend: selectedTrend,
@@ -164,6 +172,7 @@ export default function MemedexPage() {
       const nextOffset = (page + 1) * 32;
       // @ts-ignore
       const response = await client.memedex.getMemes({
+        userId: userId,
         search: search,
         tag: selectedTag,
         trend: selectedTrend,
@@ -193,6 +202,7 @@ export default function MemedexPage() {
         try {
           // @ts-ignore
           const response = await client.memedex.getMemes({
+            userId: userId,
             parentId: selectedMeme.id,
             onlyParents: false
           });
@@ -250,14 +260,15 @@ export default function MemedexPage() {
   // Handle Like/Upvote
   const handleLike = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    if (!userId) return;
     try {
       // @ts-ignore
-      const response = await client.memedex.likeMeme({ id });
+      const response = await client.memedex.likeMeme({ id, userId });
       
       // Update locally
-      setMemes(prev => prev.map(m => m.id === id ? { ...m, likes_count: response.likesCount } : m));
+      setMemes(prev => prev.map(m => m.id === id ? { ...m, likes_count: response.likesCount, is_liked: !m.is_liked } : m));
       if (selectedMeme && selectedMeme.id === id) {
-        setSelectedMeme(prev => prev ? { ...prev, likes_count: response.likesCount } : null);
+        setSelectedMeme(prev => prev ? { ...prev, likes_count: response.likesCount, is_liked: !prev.is_liked } : null);
       }
     } catch (err) {
       console.error("Like error:", err);
@@ -286,6 +297,7 @@ export default function MemedexPage() {
 
       // @ts-ignore
       await client.memedex.createMeme({
+        userId: userId || "Anonymous",
         title: newTitle,
         trendStatus: newTrend,
         mediaUrl: newMediaUrl,
@@ -293,7 +305,6 @@ export default function MemedexPage() {
         context: "",
         example: "",
         tags: [],
-        createdBy: "Anonymous",
         parentId: newParentId || undefined
       });
 
@@ -569,9 +580,9 @@ export default function MemedexPage() {
                          {/* Like button */}
                          <button
                            onClick={(e) => handleLike(e, meme.id)}
-                           className="flex items-center gap-1 px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border border-slate-700/50"
+                           className={`flex items-center gap-1 px-2 py-1 ${meme.is_liked ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'bg-slate-800/80 border-slate-700/50 text-slate-200'} hover:bg-slate-700 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border`}
                          >
-                           <ThumbsUp size={12} className="text-pink-500" />
+                           <ThumbsUp size={12} weight={meme.is_liked ? "fill" : "regular"} className={meme.is_liked ? "text-pink-500" : "text-pink-500/70"} />
                            <span className="text-[11px] md:text-xs font-semibold">{meme.likes_count}</span>
                          </button>
                        </div>
@@ -649,7 +660,7 @@ export default function MemedexPage() {
                   <p className="text-xs text-slate-500 flex items-center gap-4 flex-wrap">
                     <span className="flex items-center gap-1">
                       <User size={13} />
-                      {selectedMeme.created_by}
+                      {selectedMeme.creator_username || "Anonymous"}
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar size={13} />
@@ -701,9 +712,9 @@ export default function MemedexPage() {
 
                   <button
                     onClick={(e) => handleLike(e, selectedMeme.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-950/20 hover:shadow-pink-950/40 transition-all cursor-pointer"
+                    className={`flex items-center gap-1.5 px-4 py-2 ${selectedMeme.is_liked ? 'bg-gradient-to-r from-pink-700 to-rose-700' : 'bg-gradient-to-r from-pink-600 to-rose-600'} hover:from-pink-500 hover:to-rose-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-pink-950/20 hover:shadow-pink-950/40 transition-all cursor-pointer`}
                   >
-                    <ThumbsUp size={14} weight="fill" />
+                    <ThumbsUp size={14} weight={selectedMeme.is_liked ? "fill" : "regular"} />
                     <span>{selectedMeme.likes_count}</span>
                   </button>
                 </div>

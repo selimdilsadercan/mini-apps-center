@@ -9,6 +9,22 @@ import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 
 export default function SSOCallbackPage() {
   const [isNative, setIsNative] = useState<boolean | null>(null);
+  const [returnUrl, setReturnUrl] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryReturn = params.get("return_url");
+      if (queryReturn) return queryReturn;
+      
+      return localStorage.getItem('auth_return_url') || "/home";
+    }
+    return "/home";
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_return_url');
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -16,32 +32,7 @@ export default function SSOCallbackPage() {
     
     if (source === "native") {
       setIsNative(true);
-      
-      // Remove the 'source' parameter before forwarding to avoid confusion
-      params.delete("source");
-      const queryString = params.toString();
-
-      // Construct the deep link URL with all parameters
-      const appUrl = `com.recipe.app://oauth-native-callback?${queryString}`;
-
-      console.log("Forwarding to native app:", appUrl);
-
-      // Try multiple methods to open the native app
-      
-      // Method 1: Hidden Iframe (Standard approach)
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = appUrl;
-      document.body.appendChild(iframe);
-
-      // Method 2: Window location (Fallback)
-      setTimeout(() => {
-        window.location.href = appUrl;
-      }, 100);
-
-      return () => {
-        if (iframe.parentNode) document.body.removeChild(iframe);
-      };
+      // ...
     } else {
       // Web user - let Clerk handle it
       setIsNative(false);
@@ -78,14 +69,19 @@ export default function SSOCallbackPage() {
   }
 
   // Web user - let Clerk handle the callback and create session
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7]">
-       <AuthenticateWithRedirectCallback 
-         afterSignInUrl="/home"
-         afterSignUpUrl="/home"
-         signInUrl="/sign-in"
-         signUpUrl="/sign-up"
-       />
-    </div>
-  );  
+  if (isNative === false) {
+    console.log("SSO Callback - Rendering Clerk with afterSignInUrl:", returnUrl);
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7]">
+         <AuthenticateWithRedirectCallback 
+           afterSignInUrl={returnUrl}
+           afterSignUpUrl={returnUrl}
+           signInUrl="/sign-in"
+           signUpUrl="/sign-up"
+         />
+      </div>
+    );
+  }
+
+  return null;
 }

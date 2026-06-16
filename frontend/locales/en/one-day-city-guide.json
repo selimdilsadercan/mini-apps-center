@@ -1,0 +1,55 @@
+{
+  "title": "One Day City Guide",
+  "heroTitle": "Explore the City in One Day",
+  "heroDescription": "Limited time? Plan your day with our guides full of the best routes, local flavors, and hidden gems.",
+  "citiesTitle": "Cities",
+  "citiesCount": "{count} Cities",
+  "newCitiesTitle": "New Cities Coming Soon",
+  "newCitiesDescription": "Our team is working on new city routes. Istanbul, Izmir, and more will be here soon.",
+  "planning": {
+    "title": "Plan Your Trip",
+    "routeType": "Select Route Type",
+    "customizeStops": "Customize & Reorder Stops",
+    "startTour": "Start Tour ({count} Stops)",
+    "resetPlan": "Reset Plan",
+    "resetConfirm": "Are you sure you want to reset the entire plan?",
+    "walkingLevel": "{level} WALKING"
+  },
+  "active": {
+    "title": "Live Tour",
+    "status": "Tour in Progress",
+    "returnToPlan": "RETURN TO PLAN",
+    "currentStop": "Current Stop",
+    "stops": "STOPS",
+    "delay": "+{minutes} min delay",
+    "gain": "{minutes} min gain",
+    "tired": "A Bit Tired",
+    "hurry": "Let's Hurry",
+    "completed": "Completed",
+    "skip": "Skip",
+    "next": "DONE, NEXT",
+    "finish": "FINISH TOUR & RETURN TO PLAN",
+    "howToGetThere": "How to Get There?",
+    "whatToDo": "What to Do?",
+    "whatToTry": "What to Try",
+    "tips": "Tips",
+    "tourCompleted": "Tour Completed!",
+    "tourCompletedDesc": "It was a great day. You've visited all stops.",
+    "active": "ACTIVE",
+    "upcoming": "UPCOMING",
+    "walking": "{level} Walking"
+  },
+  "stats": {
+    "duration": "Duration",
+    "hours": "{count} Hours",
+    "start": "Start",
+    "tempo": "Tempo",
+    "walking": "Walking",
+    "current": "Current"
+  },
+  "walkingLevels": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  }
+}

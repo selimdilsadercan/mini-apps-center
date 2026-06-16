@@ -14,57 +14,73 @@ import {
   Cloud,
   CloudRain,
   Sun,
-  Lightbulb,
-  TShirt,
-  Umbrella,
-  PersonSimpleWalk,
-  Heart,
-  Car,
+  Sparkle,
+  Info,
+  Warning,
+  CloudSnow,
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
 import { useNotifications } from "@/hooks/use-notifications";
-import { getMockIstanbulWeather, type DailyWeatherSnapshot } from "./mock-weather";
-import { buildLocalRecommendations } from "./recommendations";
 import type { daily_weather } from "@/lib/client";
+import { getAppRootUrl } from "@/lib/apps";
+import { calculateSmartRecommendations } from "./suggestion";
 
-function RecommendationIcon({
-  category,
-}: {
-  category: daily_weather.RecommendationCategory;
-}) {
-  const className = "text-amber-300 shrink-0";
-  const size = 20;
-  switch (category) {
-    case "clothing":
-      return <TShirt size={size} weight="duotone" className={className} />;
-    case "gear":
-      return <Umbrella size={size} weight="duotone" className={className} />;
-    case "activity":
-      return <PersonSimpleWalk size={size} weight="duotone" className={className} />;
-    case "health":
-      return <Heart size={size} weight="duotone" className={className} />;
-    case "commute":
-      return <Car size={size} weight="duotone" className={className} />;
-    default:
-      return <Lightbulb size={size} weight="duotone" className={className} />;
-  }
+export interface DailyWeatherSnapshot {
+  city: string;
+  dateLabel: string;
+  condition: string;
+  tempC: number;
+  tempMinC: number;
+  tempMaxC: number;
+  humidity: number;
+  windKmh: number;
+  icon: "sun" | "cloud" | "rain" | "partly" | "snow";
+  maxPrecipitationProbability?: number;
+  eveningTempC?: number;
+  eveningPrecipitationProbability?: number;
+  hourlyData?: {
+    time: string;
+    tempC: number;
+    precipProb: number;
+    weatherCode: number;
+  }[];
+  dailyForecast?: {
+    dayLabel: string;
+    dateLabel: string;
+    condition: string;
+    tempC: number;
+    tempMinC: number;
+    tempMaxC: number;
+    humidity: number;
+    windKmh: number;
+    maxPrecipitationProbability: number;
+    icon: "sun" | "cloud" | "rain" | "partly" | "snow";
+    weatherCode: number;
+    hourlyData: {
+      time: string;
+      tempC: number;
+      precipProb: number;
+      weatherCode: number;
+    }[];
+  }[];
 }
 
-function WeatherIcon({ icon }: { icon: DailyWeatherSnapshot["icon"] }) {
-  const className = "text-sky-300";
-  const size = 72;
+function WeatherIcon({ icon, size = 72 }: { icon: DailyWeatherSnapshot["icon"]; size?: number }) {
+  const className = "text-sky-400 filter drop-shadow-sm";
   switch (icon) {
     case "sun":
-      return <Sun size={size} weight="duotone" className={className} />;
+      return <Sun size={size} weight="duotone" className="text-amber-400" />;
     case "cloud":
       return <Cloud size={size} weight="duotone" className={className} />;
     case "rain":
-      return <CloudRain size={size} weight="duotone" className={className} />;
+      return <CloudRain size={size} weight="duotone" className="text-blue-400" />;
+    case "snow":
+      return <CloudSnow size={size} weight="duotone" className="text-sky-300" />;
     default:
-      return <CloudSun size={size} weight="duotone" className={className} />;
+      return <CloudSun size={size} weight="duotone" className="text-amber-400" />;
   }
 }
 
@@ -83,8 +99,8 @@ export default function DailyWeatherPage() {
   const [prefsLoading, setPrefsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [weather, setWeather] = useState<DailyWeatherSnapshot | null>(null);
-  const [recommendations, setRecommendations] = useState<daily_weather.WeatherRecommendation[]>([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
   const lang = locale === "tr" ? "tr" : "en";
 
@@ -97,8 +113,35 @@ export default function DailyWeatherPage() {
     tempMaxC: w.tempMaxC,
     humidity: w.humidity,
     windKmh: w.windKmh,
-    icon: w.icon,
-    weatherCode: w.weatherCode,
+    icon: w.icon as "sun" | "cloud" | "rain" | "partly" | "snow",
+    maxPrecipitationProbability: w.maxPrecipitationProbability,
+    eveningTempC: w.eveningTempC,
+    eveningPrecipitationProbability: w.eveningPrecipitationProbability,
+    hourlyData: w.hourlyData ? w.hourlyData.map(h => ({
+      time: h.time,
+      tempC: h.tempC,
+      precipProb: h.precipProb,
+      weatherCode: h.weatherCode,
+    })) : undefined,
+    dailyForecast: w.dailyForecast ? w.dailyForecast.map(d => ({
+      dayLabel: d.dayLabel,
+      dateLabel: d.dateLabel || "",
+      condition: d.condition || "",
+      tempC: d.tempC ?? 0,
+      tempMinC: d.tempMinC,
+      tempMaxC: d.tempMaxC,
+      humidity: d.humidity ?? 0,
+      windKmh: d.windKmh ?? 0,
+      maxPrecipitationProbability: d.maxPrecipitationProbability ?? 0,
+      icon: d.icon as "sun" | "cloud" | "rain" | "partly" | "snow",
+      weatherCode: d.weatherCode ?? 2,
+      hourlyData: d.hourlyData ? d.hourlyData.map(h => ({
+        time: h.time,
+        tempC: h.tempC,
+        precipProb: h.precipProb,
+        weatherCode: h.weatherCode,
+      })) : [],
+    })) : undefined,
   });
 
   useEffect(() => {
@@ -113,15 +156,10 @@ export default function DailyWeatherPage() {
         });
         if (!cancelled) {
           setWeather(mapSnapshot(res.weather));
-          setRecommendations(res.recommendations ?? []);
+          setSelectedDayIndex(0);
         }
       } catch (err) {
         console.error("loadWeather:", err);
-        if (!cancelled) {
-          const mock = getMockIstanbulWeather(lang);
-          setWeather(mock);
-          setRecommendations(buildLocalRecommendations(mock, lang));
-        }
       } finally {
         if (!cancelled) setWeatherLoading(false);
       }
@@ -254,131 +292,241 @@ export default function DailyWeatherPage() {
     }
   };
 
+  const activeDay = (weather && weather.dailyForecast && weather.dailyForecast[selectedDayIndex])
+    ? weather.dailyForecast[selectedDayIndex]
+    : null;
+
+  const activeSnapshot: DailyWeatherSnapshot | null = weather && activeDay ? {
+    city: weather.city,
+    dateLabel: activeDay.dateLabel,
+    condition: activeDay.condition,
+    tempC: activeDay.tempC,
+    tempMinC: activeDay.tempMinC,
+    tempMaxC: activeDay.tempMaxC,
+    humidity: activeDay.humidity,
+    windKmh: activeDay.windKmh,
+    icon: activeDay.icon,
+    maxPrecipitationProbability: activeDay.maxPrecipitationProbability,
+    hourlyData: activeDay.hourlyData,
+  } : weather;
+
+  const recommendationsList = activeSnapshot
+    ? calculateSmartRecommendations(activeSnapshot, (key, variables) => t(key, variables))
+    : [];
+
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0c1929] via-[#0f2744] to-[#0a1628] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-tr from-[#FFF9E6] via-[#E6F3FF] to-[#F0E6FF] text-slate-700 flex flex-col font-sans">
       <Toaster position="top-center" />
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-sky-500/20 blur-[100px]" />
-        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-indigo-600/10 blur-[90px]" />
+        <div className="absolute top-10 left-10 h-80 w-80 rounded-full bg-amber-200/40 blur-[100px]" />
+        <div className="absolute bottom-20 right-10 h-80 w-80 rounded-full bg-sky-200/40 blur-[100px]" />
       </div>
 
       <header className="relative z-10 flex items-center gap-3 px-4 pt-6 pb-2 max-w-lg mx-auto w-full">
         <button
           type="button"
-          onClick={() => router.push("/home")}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/15 transition-colors"
+          onClick={() => {
+            window.location.href = getAppRootUrl();
+          }}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 border border-white/40 shadow-sm hover:bg-white/95 transition-colors text-slate-600"
           aria-label="Back"
         >
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <SunHorizon size={24} className="text-amber-300" weight="duotone" />
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2 text-slate-800">
+            <SunHorizon size={24} className="text-amber-500" weight="duotone" />
             {t("title")}
           </h1>
-          <p className="text-sm text-slate-400 truncate">{t("subtitle")}</p>
+          <p className="text-xs text-slate-500 font-medium truncate">{t("subtitle")}</p>
         </div>
       </header>
 
-      <main className="relative z-20 flex-1 px-4 pb-10 max-w-lg mx-auto w-full space-y-5 isolate">
+      <main className="relative z-20 flex-1 px-4 pb-10 max-w-lg mx-auto w-full space-y-4 isolate">
+        {/* Main Weather Card (Contains Info, Stats, and Recommendations inside) */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5"
+          className="rounded-2xl border border-white/50 bg-white/60 backdrop-blur-lg p-5 shadow-sm space-y-5"
         >
-          {weatherLoading || !weather ? (
+          {weatherLoading || !weather || !activeSnapshot ? (
             <div className="flex items-center justify-center py-16 text-slate-400 text-sm">
               {t("loadingWeather")}
             </div>
           ) : (
             <>
-              <p className="text-lg font-medium text-slate-200 capitalize mb-4">{weather.dateLabel}</p>
+              <div>
+                <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">{activeSnapshot.dateLabel}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <WeatherIcon icon={activeSnapshot.icon} />
+                    <div>
+                      <p className="text-5xl font-extrabold tracking-tight text-slate-850 tabular-nums">{activeSnapshot.tempC}°</p>
+                      <p className="text-slate-700 font-semibold mt-1">{activeSnapshot.condition}</p>
+                      <p className="text-sm text-slate-500 mt-0.5 font-medium">
+                        {activeSnapshot.tempMinC}° – {activeSnapshot.tempMaxC}°
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-4">
-                <WeatherIcon icon={weather.icon} />
-                <div>
-                  <p className="text-5xl font-light tabular-nums">{weather.tempC}°</p>
-                  <p className="text-slate-300 mt-1">{weather.condition}</p>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    {weather.tempMinC}° – {weather.tempMaxC}°
-                  </p>
+                  <div className="flex flex-row sm:flex-col gap-2.5 min-w-[12rem] flex-1 sm:flex-initial">
+                    <div className="rounded-xl bg-sky-50/50 border border-sky-100/50 px-3.5 py-2 flex items-center gap-2.5 flex-1 sm:flex-none">
+                      <Drop size={18} className="text-sky-500" />
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wide text-slate-400 font-bold">
+                          {t("stats.humidity")}
+                        </p>
+                        <p className="text-xs font-bold text-sky-850">{activeSnapshot.humidity}%</p>
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-amber-50/50 border border-amber-100/50 px-3.5 py-2 flex items-center gap-2.5 flex-1 sm:flex-none">
+                      <Wind size={18} className="text-amber-500" />
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wide text-slate-400 font-bold">
+                          {t("stats.wind")}
+                        </p>
+                        <p className="text-xs font-bold text-amber-850">{activeSnapshot.windKmh} km/h</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-black/20 px-3 py-2.5 flex items-center gap-2">
-                  <Drop size={18} className="text-sky-400" />
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wide text-slate-500">
-                      {t("stats.humidity")}
-                    </p>
-                    <p className="text-sm font-medium">{weather.humidity}%</p>
-                  </div>
+              {/* Smart Recommendations Section - Embedded inside Main Card under Stats */}
+              {recommendationsList.length > 0 && (
+                <div className="space-y-2.5 pt-4 border-t border-slate-200/50">
+                  {recommendationsList.map((rec) => (
+                    <div
+                       key={rec.id}
+                       className={`flex items-start gap-3 p-3.5 rounded-xl text-sm font-semibold border ${
+                        rec.id === "umbrella" || rec.id === "eveningRain" || rec.id === "storm" || rec.id === "snow"
+                          ? "bg-rose-50/70 border-rose-100/60 text-rose-900"
+                          : rec.id === "jacket" || rec.id === "eveningCold" || rec.id === "bigTempDiff" || rec.id === "veryCold" || rec.id === "cold" || rec.id === "windy" || rec.id === "veryWindy"
+                          ? "bg-violet-50/70 border-violet-100/60 text-violet-900"
+                          : "bg-emerald-50/70 border-emerald-100/60 text-emerald-900"
+                      }`}
+                    >
+                      <span className="mt-0.5 shrink-0">
+                        {rec.id === "umbrella" || rec.id === "eveningRain" || rec.id === "storm" || rec.id === "snow" ? (
+                          <Warning size={18} weight="fill" className="text-rose-500" />
+                        ) : rec.id === "hot" || rec.id === "moderate" || rec.id === "ideal" || rec.id === "extremeHot" ? (
+                          <Sparkle size={18} weight="fill" className="text-emerald-500" />
+                        ) : (
+                          <Info size={18} weight="fill" className="text-violet-500" />
+                        )}
+                      </span>
+                      <p className="leading-relaxed">{rec.text}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="rounded-xl bg-black/20 px-3 py-2.5 flex items-center gap-2">
-                  <Wind size={18} className="text-sky-400" />
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wide text-slate-500">
-                      {t("stats.wind")}
-                    </p>
-                    <p className="text-sm font-medium">{weather.windKmh} km/s</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </>
           )}
         </motion.section>
 
-        {!weatherLoading && recommendations.length > 0 && (
-          <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 space-y-3">
-            <h2 className="font-semibold flex items-center gap-2">
-              <Lightbulb size={20} className="text-amber-300" weight="duotone" />
-              {t("recommendations.title")}
-            </h2>
-            <p className="text-sm text-slate-400">{t("recommendations.subtitle")}</p>
-            <ul className="space-y-2.5">
-              {recommendations.map((rec) => (
-                <li
-                  key={rec.id}
-                  className="rounded-xl border border-white/5 bg-black/20 px-3.5 py-3 flex gap-3"
-                >
-                  <div className="mt-0.5">
-                    <RecommendationIcon category={rec.category} />
+        {/* Hourly Forecast Horizontal Scroll View (WITHOUT card layout, flat design) */}
+        {!weatherLoading && activeSnapshot && activeSnapshot.hourlyData && activeSnapshot.hourlyData.length > 0 && (
+          <div className="py-2">
+            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+              {(() => {
+                const currentHour = new Date().getHours();
+                const visibleHours = selectedDayIndex === 0
+                  ? activeSnapshot.hourlyData.filter(h => {
+                      const hVal = parseInt(h.time.split(":")[0]);
+                      return hVal >= currentHour;
+                    })
+                  : activeSnapshot.hourlyData;
+                const listToRender = visibleHours.length > 0 ? visibleHours : activeSnapshot.hourlyData;
+
+                return listToRender.map((hour, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center min-w-[3.4rem] py-2.5 px-2 rounded-xl bg-white/20 border border-white/10 text-slate-800"
+                  >
+                    <span className="text-[10px] font-bold text-slate-500">{hour.time}</span>
+                    <div className="my-1.5 h-6 flex items-center justify-center">
+                      {hour.precipProb > 10 ? (
+                        <span className="text-[9px] font-extrabold text-blue-500">
+                          %{hour.precipProb}
+                        </span>
+                      ) : hour.precipProb > 20 ? (
+                        <CloudRain size={18} weight="duotone" className="text-blue-400" />
+                      ) : hour.tempC > 22 ? (
+                        <Sun size={18} weight="duotone" className="text-amber-400" />
+                      ) : (
+                        <CloudSun size={18} weight="duotone" className="text-slate-400" />
+                      )}
+                    </div>
+                    <span className="text-xs font-bold text-slate-700">{hour.tempC}°</span>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-100">{rec.title}</p>
-                    <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{rec.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
+                ));
+              })()}
+            </div>
+          </div>
         )}
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 space-y-4 relative z-20">
+        {/* 5-Day Daily Forecast List Card */}
+        {!weatherLoading && weather && weather.dailyForecast && weather.dailyForecast.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="rounded-2xl border border-white/50 bg-white/60 backdrop-blur-lg p-2.5 shadow-sm"
+          >
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none justify-between">
+              {weather.dailyForecast.map((day, idx) => {
+                const isSelected = selectedDayIndex === idx;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedDayIndex(idx)}
+                    className={`flex-1 min-w-[3.6rem] flex flex-col items-center py-2 px-1 rounded-xl transition-all duration-200 border text-center gap-1 ${
+                      isSelected
+                        ? "bg-white/85 border-amber-300/80 shadow-xs font-bold"
+                        : "bg-transparent border-transparent hover:bg-white/20"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-slate-500 capitalize">{day.dayLabel}</span>
+                    <div className="my-0.5 flex items-center justify-center">
+                      <WeatherIcon icon={day.icon} size={20} />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-650">
+                      {day.tempMaxC}°/{day.tempMinC}°
+                    </span>
+                    {isSelected && (
+                      <div className="h-[2px] w-3 rounded-full bg-amber-400 mt-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
+
+        <section className="rounded-2xl border border-white/50 bg-white/60 backdrop-blur-lg p-5 space-y-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h2 className="font-semibold flex items-center gap-2">
-                <BellRinging size={20} className="text-amber-300" />
+              <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                <BellRinging size={20} className="text-amber-500" weight="duotone" />
                 {t("notifications.title")}
               </h2>
-              <p className="text-sm text-slate-400 mt-1">{t("notifications.description")}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">{t("notifications.description")}</p>
             </div>
             <button
               type="button"
               disabled={prefsLoading || saving || !user}
               onClick={handleToggle}
-              className={`shrink-0 relative h-8 w-14 rounded-full transition-colors ${
-                enabled ? "bg-sky-500" : "bg-slate-600"
+              className={`shrink-0 relative h-8 w-14 rounded-full transition-colors focus:outline-none ${
+                enabled ? "bg-amber-400" : "bg-slate-300"
               } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
               aria-pressed={enabled}
             >
               <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
                   enabled ? "left-7" : "left-1"
                 }`}
               />
@@ -386,7 +534,7 @@ export default function DailyWeatherPage() {
           </div>
 
           <div>
-            <p className="text-sm text-slate-300 mb-2">{t("notifications.hourLabel")}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("notifications.hourLabel")}</p>
             <div className="flex items-center gap-2">
               <select
                 aria-label={t("notifications.hourLabel")}
@@ -395,15 +543,15 @@ export default function DailyWeatherPage() {
                 onChange={(e) => {
                   void handleTimeChange(Number(e.target.value), notifyMinute);
                 }}
-                className="flex-1 max-w-[5.5rem] rounded-xl border border-white/10 bg-[#0f2744] px-3 py-3 text-lg font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/50 cursor-pointer appearance-auto"
+                className="flex-1 max-w-[5.5rem] rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-base font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer shadow-sm"
               >
                 {hourOptions.map((h) => (
-                  <option key={h} value={h} className="bg-[#0f2744] text-slate-100">
+                  <option key={h} value={h} className="bg-white text-slate-700">
                     {String(h).padStart(2, "0")}
                   </option>
                 ))}
               </select>
-              <span className="text-slate-400 text-xl font-bold">:</span>
+              <span className="text-slate-400 text-lg font-extrabold">:</span>
               <select
                 aria-label="Dakika"
                 value={notifyMinute}
@@ -411,10 +559,10 @@ export default function DailyWeatherPage() {
                 onChange={(e) => {
                   void handleTimeChange(notifyHour, Number(e.target.value));
                 }}
-                className="flex-1 max-w-[5.5rem] rounded-xl border border-white/10 bg-[#0f2744] px-3 py-3 text-lg font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500/50 cursor-pointer appearance-auto"
+                className="flex-1 max-w-[5.5rem] rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-base font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer shadow-sm"
               >
                 {minuteOptions.map((m) => (
-                  <option key={m} value={m} className="bg-[#0f2744] text-slate-100">
+                  <option key={m} value={m} className="bg-white text-slate-700">
                     {String(m).padStart(2, "0")}
                   </option>
                 ))}
@@ -427,21 +575,21 @@ export default function DailyWeatherPage() {
               type="button"
               disabled={testSending || (isNative && permission !== "granted")}
               onClick={() => void handleTestNotification()}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-100 font-semibold py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-100/30 hover:bg-amber-100/60 text-amber-800 font-bold py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
-              <Bell size={18} weight="fill" />
+              <Bell size={18} weight="fill" className="text-amber-500" />
               {testSending ? t("notifications.sendingTest") : t("notifications.sendTest")}
             </button>
           )}
 
           {isNative && permission !== "granted" && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
-              <p className="text-sm text-amber-100/90">{t("notifications.permissionHint")}</p>
+            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-2">
+              <p className="text-xs text-amber-900 leading-relaxed font-medium">{t("notifications.permissionHint")}</p>
               <button
                 type="button"
                 onClick={handleRequestPermission}
                 disabled={permissionLoading}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 text-slate-900 font-semibold py-2.5 text-sm hover:bg-amber-400 transition-colors disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-slate-900 font-bold py-2.5 text-sm hover:bg-amber-350 transition-colors disabled:opacity-60 shadow-sm"
               >
                 <Bell size={18} weight="fill" />
                 {t("notifications.requestPermission")}

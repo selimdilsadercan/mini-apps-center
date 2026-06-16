@@ -21,6 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Everything - Mini Apps Center",
   description: "One hub for all your daily digital needs - Games, Utilities, Productivity and more.",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

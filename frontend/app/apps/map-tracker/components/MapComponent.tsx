@@ -43,14 +43,14 @@ export default function MapComponent({ items, onToggleVisited }: MapComponentPro
               <p className="text-xs text-[#8D99AE] mb-2">{item.address}</p>
               <button 
                 onClick={() => onToggleVisited(item.id)}
-                className={`w-full py-1.5 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors ${item.is_visited ? "bg-[#A3B18A] text-white" : "bg-[#F1EDE2] text-[#4A4A4A]"}`}
+                className={`w-full py-1.5 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors ${item.isVisited ? "bg-[#A3B18A] text-white" : "bg-[#F1EDE2] text-[#4A4A4A]"}`}
               >
-                {item.is_visited ? <CheckCircle weight="fill" /> : <Circle />}
-                {item.is_visited ? "Gidildi" : "Gidilmedi"}
+                {item.isVisited ? <CheckCircle weight="fill" /> : <Circle />}
+                {item.isVisited ? "Gidildi" : "Gidilmedi"}
               </button>
-              {item.google_maps_url && (
+              {item.googleMapsUrl && (
                 <a 
-                  href={item.google_maps_url} 
+                  href={item.googleMapsUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="block mt-2 text-center text-xs text-blue-500 underline"

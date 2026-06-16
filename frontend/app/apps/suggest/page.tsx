@@ -4,11 +4,14 @@ import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
+  ArrowLeft,
   CaretLeft,
   Compass,
   FilmReel,
   Television,
-  GameController,
+  MusicNotes,
+  YoutubeLogo,
+  BookOpen,
   MapPin,
   PaperPlaneTilt,
   Plus,
@@ -20,8 +23,21 @@ import {
   Star,
   Users,
   Tray,
-  ChatCircle,
-  Eye
+  Eye,
+  WhatsappLogo,
+  Copy,
+  Clock,
+  Flame,
+  Heart,
+  SmileySad,
+  Check,
+  ShareNetwork,
+  Sparkle,
+  ArrowRight,
+  SpotifyLogo,
+  PlayCircle,
+  Play,
+  Pause
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -56,101 +72,184 @@ function SuggestPageContent() {
 
   // Form State
   const [formData, setFormData] = useState({
-    category: "movie" as suggest.SuggestionCategory,
+    category: "song" as suggest.SuggestionCategory,
     title: "",
     shortNote: "",
     rating: 5,
     externalLink: "",
     imageUrl: "",
+    previewUrl: "",
   });
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isDailyPick = true;
+
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Selected Suggestion for Detail view
   const [detailSuggestion, setDetailSuggestion] = useState<suggest.InboxSuggestion | null>(null);
+  const [detailSentSuggestion, setDetailSentSuggestion] = useState<suggest.SentSuggestion | null>(null);
 
-  // Wizard and Place Search States
+  // Audio Playback State for Detail views
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+  const togglePlay = (previewUrl: string) => {
+    if (!previewUrl) return;
+
+    if (isPlaying) {
+      audio?.pause();
+      setIsPlaying(false);
+    } else {
+      if (audio) {
+        audio.play().catch(err => console.error("Error playing audio:", err));
+        setIsPlaying(true);
+      } else {
+        const newAudio = new Audio(previewUrl);
+        newAudio.loop = true;
+        newAudio.play().catch(err => console.error("Error playing audio:", err));
+        newAudio.onended = () => setIsPlaying(false);
+        setAudio(newAudio);
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+      }
+    };
+  }, [audio]);
+
+  // Stop audio and reset state when switching drawers or closing
+  useEffect(() => {
+    if (audio) {
+      audio.pause();
+      setAudio(null);
+      setIsPlaying(false);
+    }
+  }, [detailSuggestion, detailSentSuggestion]);
+
+  // Wizard and Search States
   const [createStep, setCreateStep] = useState<1 | 2>(1);
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [placeResults, setPlaceResults] = useState<any[]>([]);
-  const [searchingPlaces, setSearchingPlaces] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Click Outside logic to clear place results
+  // Friends Search State
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
+
+  // Focus search input when step 2 opens
+  useEffect(() => {
+    if (isCreateOpen && createStep === 2 && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isCreateOpen, createStep]);
+
+  // Click Outside logic to clear search results
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setPlaceResults([]);
+        setSearchResults([]);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounced Place Search (runs only when category is place and selectedPlace is not locked)
+  // Debounced Search
   useEffect(() => {
-    if (formData.category !== "place" || !placeQuery.trim() || selectedPlace) {
-      setPlaceResults([]);
+    if (!formData.title.trim() || selectedItem) {
+      setSearchResults([]);
       return;
     }
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        setSearchingPlaces(true);
-        const res = await client.workplaces.searchPlace({ query: placeQuery });
-        setPlaceResults(res.results || []);
+        setIsSearching(true);
+        if (formData.category === "song") {
+          const res = await client.suggest.searchSong({ query: formData.title });
+          setSearchResults(res.results || []);
+        } else if (formData.category === "place") {
+          const res = await client.workplaces.searchPlace({ query: formData.title });
+          setSearchResults(res.results || []);
+        } else {
+          setSearchResults([]);
+        }
       } catch (err) {
-        console.error("Error searching places:", err);
+        console.error("Search error:", err);
       } finally {
-        setSearchingPlaces(false);
+        setIsSearching(false);
       }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [placeQuery, formData.category, selectedPlace]);
+  }, [formData.title, formData.category, selectedItem]);
 
   const closeCreateDrawer = () => {
     setIsCreateOpen(false);
     setCreateStep(1);
     setFormData({
-      category: "movie",
+      category: "song",
       title: "",
       shortNote: "",
       rating: 5,
       externalLink: "",
       imageUrl: "",
+      previewUrl: "",
     });
     setSelectedFriends([]);
-    setPlaceQuery("");
-    setPlaceResults([]);
-    setSelectedPlace(null);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedItem(null);
+
   };
 
   const handleSelectCategory = (category: suggest.SuggestionCategory) => {
     setFormData({ ...formData, category });
     setCreateStep(2);
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedItem(null);
   };
 
-  const handleSelectPlace = (place: any) => {
-    setSelectedPlace(place);
-    setFormData({
-      ...formData,
-      title: place.name,
-      externalLink: place.url || "",
-      imageUrl: place.image_url || "",
-    });
-    setPlaceQuery("");
-    setPlaceResults([]);
+  const handleSelectItem = (item: any) => {
+    setSelectedItem(item);
+    if (formData.category === "song") {
+      setFormData({
+        ...formData,
+        title: `${item.trackName} - ${item.artistName}`,
+        externalLink: item.trackViewUrl || "",
+        imageUrl: item.artworkUrl100?.replace('100x100bb', '600x600bb') || "",
+        previewUrl: item.previewUrl || "",
+      });
+    } else if (formData.category === "place") {
+      setFormData({
+        ...formData,
+        title: item.name,
+        externalLink: item.url || "",
+        imageUrl: item.image_url || "",
+      });
+    }
+    setSearchQuery("");
+    setSearchResults([]);
   };
 
-  const handleClearPlace = () => {
-    setSelectedPlace(null);
+  const handleClearItem = () => {
+    setSelectedItem(null);
     setFormData({
       ...formData,
       title: "",
       externalLink: "",
       imageUrl: "",
+      previewUrl: "",
     });
   };
 
@@ -171,8 +270,9 @@ function SuggestPageContent() {
         rating: 5,
         externalLink: suggestPlaceUrl || "",
         imageUrl: suggestPlaceImage || "",
+        previewUrl: "",
       });
-      setSelectedPlace({
+      setSelectedItem({
         name: suggestPlaceName,
         address: suggestPlaceAddress || "",
         url: suggestPlaceUrl || "",
@@ -188,7 +288,9 @@ function SuggestPageContent() {
     if (isUserLoaded) {
       fetchData();
       if (user) {
-        // Fetch friends list once so it's always ready for the suggestions drawer
+
+
+        // Fetch friends list
         client.friendship.getFriends(user.id).then(res => {
           setFriendsList(res.friends || []);
         }).catch(err => console.error("Error fetching friends:", err));
@@ -229,9 +331,8 @@ function SuggestPageContent() {
         status === "completed" ? "Tamamlandı olarak işaretlendi" : 
         "Öneri yok sayıldı"
       );
-      // Refresh list
       fetchData();
-      if (detailSuggestion?.suggestion_id === suggestionId) {
+      if (detailSuggestion?.suggestionId === suggestionId) {
         setDetailSuggestion(null);
       }
     } catch (error) {
@@ -239,19 +340,31 @@ function SuggestPageContent() {
     }
   };
 
+  const handleDeleteSentSuggestion = async (shareId: string) => {
+    if (!user) return;
+    try {
+      const confirmDelete = window.confirm("Bu öneriyi listenizden silmek istediğinize emin misiniz? (Alıcılarda görünmeye devam eder)");
+      if (!confirmDelete) return;
 
+      await client.suggest.deleteSentSuggestion({
+        senderClerkId: user.id,
+        shareId,
+      });
+      toast.success("Öneri listenizden kaldırıldı.");
+      fetchData();
+      setDetailSentSuggestion(null);
+    } catch (error) {
+      toast.error("Öneri silinemedi");
+    }
+  };
 
   const handleCreateSuggestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (selectedFriends.length === 0) {
-      toast.error("Lütfen en az bir arkadaş seçin");
-      return;
-    }
 
     try {
       setIsSubmitting(true);
-      await client.suggest.createSuggestion({
+      const res = await client.suggest.createSuggestion({
         senderClerkId: user.id,
         category: formData.category,
         title: formData.title,
@@ -259,33 +372,53 @@ function SuggestPageContent() {
         rating: formData.rating,
         externalLink: formData.externalLink || undefined,
         imageUrl: formData.imageUrl || undefined,
-        recipientClerkIds: selectedFriends,
+        previewUrl: formData.previewUrl || undefined,
+        recipientClerkIds: selectedFriends.length > 0 ? selectedFriends : undefined,
+        isDailyPick: true,
       });
 
-      toast.success("Öneriniz başarıyla gönderildi!");
+      if (res.shareId) {
+        if (selectedFriends.length === 0) {
+          const link = getShareLink(res.shareId);
+          const categoryEmojis: Record<string, string> = { song: "şarkı 🎵", movie: "film 🎬", tv: "dizi 📺", video: "video 📹", place: "mekan 📍", book: "kitap 📚" };
+          const categoryText = categoryEmojis[formData.category] || "öneri";
+          const message = `Sana bir ${categoryText} bıraktım:\n👉 ${link}`;
+          const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+          const newWindow = window.open(whatsappUrl, "_blank");
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+            window.location.href = whatsappUrl;
+          }
+          toast.success("Öneriniz oluşturuldu ve WhatsApp'a yönlendiriliyorsunuz!");
+        } else {
+          toast.success("Öneriniz başarıyla gönderildi!");
+        }
+      } else {
+        toast.success("Öneriniz başarıyla gönderildi!");
+      }
       
       // Reset form
       setFormData({
-        category: "movie",
+        category: "song",
         title: "",
         shortNote: "",
         rating: 5,
         externalLink: "",
         imageUrl: "",
+        previewUrl: "",
       });
       setSelectedFriends([]);
       setCreateStep(1);
-      setSelectedPlace(null);
-      setPlaceQuery("");
-      setPlaceResults([]);
+      setSelectedItem(null);
+      setSearchQuery("");
+      setSearchResults([]);
       setIsCreateOpen(false);
-      if (activeTab === "sent") {
-        fetchData();
-      } else {
-        setActiveTab("sent");
-      }
-    } catch (error) {
-      toast.error("Öneri gönderilemedi");
+
+      
+      // Refresh status and list
+      fetchData();
+
+    } catch (error: any) {
+      toast.error(error.message || "Öneri gönderilemedi");
     } finally {
       setIsSubmitting(false);
     }
@@ -293,20 +426,24 @@ function SuggestPageContent() {
 
   const getCategoryIcon = (category: string, size = 20) => {
     switch (category) {
+      case "song": return <MusicNotes size={size} weight="fill" className="text-pink-500" />;
       case "movie": return <FilmReel size={size} weight="fill" className="text-red-500" />;
       case "tv": return <Television size={size} weight="fill" className="text-violet-500" />;
-      case "game": return <GameController size={size} weight="fill" className="text-emerald-500" />;
+      case "video": return <YoutubeLogo size={size} weight="fill" className="text-red-600" />;
       case "place": return <MapPin size={size} weight="fill" className="text-amber-500" />;
+      case "book": return <BookOpen size={size} weight="fill" className="text-emerald-600" />;
       default: return <Compass size={size} weight="fill" />;
     }
   };
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
+      case "song": return "🎵 Şarkı";
       case "movie": return "🎬 Film";
       case "tv": return "📺 Dizi";
-      case "game": return "🎮 Oyun";
+      case "video": return "📹 Video";
       case "place": return "📍 Mekan";
+      case "book": return "📚 Kitap";
       default: return "💡 Öneri";
     }
   };
@@ -326,6 +463,84 @@ function SuggestPageContent() {
     }
   };
 
+  const getSentStatusBadge = (item: suggest.SentSuggestion) => {
+    // Check if expired
+    const isExpired = item.expiresAt ? new Date() > new Date(item.expiresAt) : false;
+
+    if (item.reaction) {
+      const emojiMap: Record<string, string> = { loved: "🔥", skull: "💀", saved: "❤️", mid: "😐", perfect: "🎯" };
+      const labelMap: Record<string, string> = { loved: "Çok İyi", skull: "Bu Ne?", saved: "Kaydettim", mid: "Orta", perfect: "Nokta Atışı" };
+      return (
+        <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center gap-1">
+          <span>{emojiMap[item.reaction]}</span>
+          <span>{labelMap[item.reaction]}</span>
+        </span>
+      );
+    }
+
+    if (isExpired) {
+      return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-gray-150 text-gray-500 border border-gray-200">Süresi Doldu</span>;
+    }
+
+    if (item.openedAt) {
+      return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">Açıldı</span>;
+    }
+
+    return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-blue-50 text-blue-600 border border-blue-200">Görülmedi</span>;
+  };
+
+  const getShareLink = (id: string) => {
+    if (typeof window === "undefined") return "";
+    const hostname = window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : "";
+    if (hostname.includes("localhost")) {
+      return `http://suggest.localhost${port}/s/${id}`;
+    }
+    const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+    return `https://suggest.${ROOT_DOMAIN}/s/${id}`;
+  };
+
+  const getExternalLinkButtonLabel = (category: string) => {
+    switch (category) {
+      case "song": return "Hemen Dinle";
+      case "place": return "Haritada Aç";
+      case "movie":
+      case "tv":
+      case "video":
+        return "Hemen İzle";
+      case "book": return "Hemen Oku";
+      default: return "Hemen İncele";
+    }
+  };
+
+  const getExternalLinkButtonIcon = (category: string, size = 18) => {
+    switch (category) {
+      case "song": return <MusicNotes size={size} weight="bold" />;
+      case "place": return <MapPin size={size} weight="bold" />;
+      case "movie":
+      case "tv":
+        return <FilmReel size={size} weight="bold" />;
+      case "video":
+        return <YoutubeLogo size={size} weight="bold" />;
+      case "book": return <BookOpen size={size} weight="bold" />;
+      default: return <Globe size={size} weight="bold" />;
+    }
+  };
+
+  const copyToClipboard = (link: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    toast.success("Bağlantı kopyalandı!");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const formatTimeLeft = (seconds?: number) => {
+    if (!seconds) return "";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours} saat ${minutes} dakika`;
+  };
+
   const toggleFriendSelection = (clerkId: string) => {
     if (selectedFriends.includes(clerkId)) {
       setSelectedFriends(selectedFriends.filter((id) => id !== clerkId));
@@ -334,9 +549,17 @@ function SuggestPageContent() {
     }
   };
 
+  const handleSelectAllFriends = () => {
+    if (selectedFriends.length === friendsList.length) {
+      setSelectedFriends([]);
+    } else {
+      setSelectedFriends(friendsList.map(f => f.id));
+    }
+  };
+
   const filteredInbox = inboxList.filter((item) => {
     if (activeTab === "saved") return item.status === "saved";
-    return true; // "inbox" tab shows all
+    return true;
   });
 
   return (
@@ -353,12 +576,12 @@ function SuggestPageContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
-              className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
+              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95"
             >
-              <CaretLeft size={24} color="#374151" />
+              <ArrowLeft size={20} weight="bold" className="text-gray-600" />
             </button>
             <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
-              Tavsiye <span className="text-indigo-600">Kutusu</span>
+              Suggest
             </h1>
           </div>
 
@@ -419,102 +642,73 @@ function SuggestPageContent() {
                     </p>
                   </div>
                 ) : (
-                  filteredInbox.map((item) => (
-                    <motion.div
-                      layoutId={item.id}
-                      key={item.id}
-                      className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col gap-4"
-                    >
-                      {/* Top Header */}
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(item.category)}
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">
-                            {getCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                        {getStatusBadge(item.status)}
-                      </div>
-
-                      {/* Content Row */}
-                      <div className="flex gap-4 items-start">
-                        {item.image_url && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {filteredInbox.map((item, idx) => (
+                      <motion.div
+                        layoutId={item.id}
+                        key={item.id}
+                        onClick={() => setDetailSuggestion(item)}
+                        style={{ rotate: idx % 2 === 0 ? "-2deg" : "2deg" }}
+                        className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group cursor-pointer active:scale-95 hover:scale-[1.02] z-10 hover:z-20"
+                      >
+                        {item.imageUrl ? (
                           <img
-                            src={item.image_url}
+                            src={item.imageUrl}
                             alt={item.title}
-                            className="w-16 h-20 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+                            className="absolute inset-0 w-full h-full object-cover"
                           />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-indigo-50 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
+                              {getCategoryIcon(item.category, 32)}
+                            </div>
+                            <span className="text-[10px] font-black text-indigo-900/40 uppercase tracking-widest line-clamp-2">
+                              {item.title}
+                            </span>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-black tracking-tight text-gray-900 leading-snug">
-                            {item.title}
-                          </h3>
-                          {item.short_note && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                              {item.short_note}
-                            </p>
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60" />
+
+                        <div className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-white shadow-md flex items-center justify-center border border-gray-100 -rotate-3">
+                          {getCategoryIcon(item.category, 14)}
+                        </div>
+
+                        <div className="absolute top-2 right-2 rotate-3">
+                          {item.status === "saved" && (
+                            <div className="w-7 h-7 rounded-lg bg-amber-400 text-white flex items-center justify-center shadow-md border border-white">
+                              <BookmarkSimple size={14} weight="fill" />
+                            </div>
                           )}
-                          {item.rating && (
-                            <div className="flex items-center gap-1 mt-2 text-amber-500">
-                              <Star size={12} weight="fill" />
-                              <span className="text-[10px] font-black">{item.rating}/5</span>
+                          {item.status === "completed" && (
+                            <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-md border border-white">
+                              <CheckCircle size={14} weight="fill" />
                             </div>
                           )}
                         </div>
-                      </div>
 
-                      {/* Sender Info & Footer Buttons */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                        <div className="flex items-center gap-2">
+                        <div className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-white p-1 rounded-lg shadow-lg border border-gray-100 rotate-2 z-20">
                           <img
-                            src={item.sender_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                            alt={item.sender_username || "Friend"}
-                            className="w-6 h-6 rounded-full object-cover border border-gray-100"
+                            src={item.senderAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                            alt={item.senderUsername || "Friend"}
+                            className="w-5 h-5 rounded-md object-cover"
                           />
-                          <span className="text-[10px] font-black text-gray-600">
-                            {item.sender_username || "Bir Arkadaş"}
+                          <span className="text-[8px] font-black text-gray-900 truncate max-w-[50px]">
+                            {item.senderUsername?.split(' ')[0] || "Arkadaş"}
                           </span>
                         </div>
 
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setDetailSuggestion(item)}
-                            className="p-2 hover:bg-gray-50 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                            title="Detaylar"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          {item.status !== "saved" && item.status !== "completed" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "saved")}
-                              className="p-2 hover:bg-amber-50 hover:text-amber-600 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                              title="Kaydet"
-                            >
-                              <BookmarkSimple size={16} />
-                            </button>
+                        <div className="absolute bottom-2 left-2 right-20 z-10">
+                          {item.isDailyPick && (
+                            <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mb-1 italic">Daily Pick</span>
                           )}
-                          {item.status !== "completed" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "completed")}
-                              className="p-2 hover:bg-green-50 hover:text-green-600 rounded-xl text-gray-500 border border-gray-100 active:scale-95 transition-all"
-                              title="Tamamladım"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                          )}
-                          {item.status !== "ignored" && (
-                            <button
-                              onClick={() => handleUpdateStatus(item.suggestion_id, "ignored")}
-                              className="p-2 hover:bg-red-50 hover:text-red-600 rounded-xl text-gray-400 hover:border-red-100 active:scale-95 transition-all"
-                              title="Yok Say"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          )}
+                          <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
+                            {item.title}
+                          </h3>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))
+                      </motion.div>
+                    ))}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -535,78 +729,56 @@ function SuggestPageContent() {
                     </p>
                   </div>
                 ) : (
-                  sentList.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm flex flex-col gap-4"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(item.category)}
-                          <span className="text-[10px] font-bold text-gray-500 uppercase">
-                            {getCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                        <span className="text-[9px] text-gray-400 font-mono">
-                          {new Date(item.created_at).toLocaleDateString("tr-TR")}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-4 items-start">
-                        {item.image_url && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {sentList.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setDetailSentSuggestion(item)}
+                        style={{ transform: `rotate(${idx % 2 === 0 ? "-2deg" : "2deg"})` }}
+                        className="aspect-square bg-white rounded-2xl border-4 border-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all relative overflow-hidden group active:scale-95 hover:scale-[1.02] z-10 hover:z-20 cursor-pointer"
+                      >
+                        {item.imageUrl ? (
                           <img
-                            src={item.image_url}
+                            src={item.imageUrl}
                             alt={item.title}
-                            className="w-14 h-18 rounded-xl object-cover border border-gray-100 flex-shrink-0"
+                            className="absolute inset-0 w-full h-full object-cover"
                           />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-indigo-50 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
+                              {getCategoryIcon(item.category, 32)}
+                            </div>
+                            <span className="text-[10px] font-black text-indigo-900/40 uppercase tracking-widest line-clamp-2">
+                              {item.title}
+                            </span>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-black text-gray-900 tracking-tight leading-snug">
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60" />
+
+                        <div className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-white shadow-md flex items-center justify-center border border-gray-100 -rotate-3">
+                          {getCategoryIcon(item.category, 14)}
+                        </div>
+
+                        {/* Custom status indicator for shareable links */}
+                        <div className="absolute top-2 right-2 rotate-3 z-20">
+                          {getSentStatusBadge(item)}
+                        </div>
+
+                        <div className="absolute bottom-2 left-2 right-20 z-10">
+                          {item.isDailyPick && (
+                            <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mb-1 italic">Daily Pick</span>
+                          )}
+                          <h3 className="text-[10px] font-black text-white leading-tight line-clamp-1 drop-shadow-md italic uppercase tracking-tighter">
                             {item.title}
                           </h3>
-                          {item.short_note && (
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                              {item.short_note}
-                            </p>
-                          )}
                         </div>
                       </div>
-
-                      {/* Recipient Tracking */}
-                      <div className="pt-3 border-t border-gray-50 space-y-2">
-                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
-                          Alıcı Durumları:
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {item.recipients.map((rec) => (
-                            <div
-                              key={rec.recipient_clerk_id}
-                              className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-full pl-1.5 pr-2.5 py-1"
-                            >
-                              <img
-                                src={rec.recipient_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                                alt={rec.recipient_username || "Friend"}
-                                className="w-4 h-4 rounded-full object-cover"
-                              />
-                              <span className="text-[9px] font-bold text-gray-600">
-                                {rec.recipient_username || "Arkadaş"}
-                              </span>
-                              <div className="w-1.5 h-1.5 rounded-full ml-1" style={{
-                                backgroundColor: rec.status === 'completed' ? '#10b981' : 
-                                                 rec.status === 'saved' ? '#f59e0b' : 
-                                                 rec.status === 'ignored' ? '#ef4444' : '#3b82f6'
-                              }} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </motion.div>
             )}
-
-
           </AnimatePresence>
         )}
       </main>
@@ -617,7 +789,7 @@ function SuggestPageContent() {
       }}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[94dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
             <div className="p-6 overflow-y-auto flex-1 flex flex-col">
               <div className="mx-auto w-12 h-1.5 flex-shrink-0 bg-gray-200 rounded-full mb-6" />
               
@@ -633,12 +805,6 @@ function SuggestPageContent() {
                   )}
                   <span>{createStep === 1 ? "Ne Öneriyorsun?" : "Detaylar"}</span>
                 </Drawer.Title>
-                <button
-                  onClick={closeCreateDrawer}
-                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
-                >
-                  <XCircle size={24} className="text-gray-400" />
-                </button>
               </header>
 
               <AnimatePresence mode="wait">
@@ -648,25 +814,32 @@ function SuggestPageContent() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="space-y-6 flex-1 flex flex-col justify-center py-6"
+                    className="space-y-6 flex-1 flex flex-col justify-center pb-6"
                   >
-                    <div className="grid grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: "movie", label: "Film", emoji: "🎬", color: "bg-red-50 text-red-600 hover:bg-red-100/50" },
-                        { id: "tv", label: "Dizi", emoji: "📺", color: "bg-violet-50 text-violet-600 hover:bg-violet-100/50" },
-                        { id: "game", label: "Oyun", emoji: "🎮", color: "bg-emerald-50 text-emerald-600 hover:bg-emerald-100/50" },
-                        { id: "place", label: "Mekan", emoji: "📍", color: "bg-amber-50 text-amber-600 hover:bg-amber-100/50" },
-                      ].map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => handleSelectCategory(cat.id as suggest.SuggestionCategory)}
-                          className={`py-4 px-2 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 transform active:scale-95 cursor-pointer shadow-sm ${cat.color}`}
-                        >
-                          <span className="text-2xl">{cat.emoji}</span>
-                          <span className="text-[10px] font-black uppercase tracking-wider">{cat.label}</span>
-                        </button>
-                      ))}
+                        { id: "song", label: "Şarkı", icon: MusicNotes, color: "text-pink-500", bg: "bg-pink-100/80" },
+                        { id: "movie", label: "Film", icon: FilmReel, color: "text-red-500", bg: "bg-red-100/80" },
+                        { id: "tv", label: "Dizi", icon: Television, color: "text-violet-500", bg: "bg-violet-100/80" },
+                        { id: "video", label: "Video", icon: YoutubeLogo, color: "text-red-600", bg: "bg-red-100/80" },
+                        { id: "place", label: "Mekan", icon: MapPin, color: "text-amber-500", bg: "bg-amber-100/80" },
+                        { id: "book", label: "Kitap", icon: BookOpen, color: "text-emerald-600", bg: "bg-emerald-100/80" },
+                      ].map((cat) => {
+                        const Icon = cat.icon;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleSelectCategory(cat.id as suggest.SuggestionCategory)}
+                            className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 cursor-pointer bg-white border border-gray-100/50 shadow-[0_8px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] group`}
+                          >
+                            <div className={`w-12 h-12 rounded-xl ${cat.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                              <Icon size={24} weight="fill" className={cat.color} />
+                            </div>
+                            <span className="text-[10px] font-black tracking-tight text-gray-900">{cat.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 ) : (
@@ -679,207 +852,247 @@ function SuggestPageContent() {
                   >
                     <form onSubmit={handleCreateSuggestion} className="space-y-6 pb-6 flex-1">
                       
-                      {/* Place-specific autocomplete search block */}
-                      {formData.category === "place" ? (
+                      {/* Simple Title Input */}
+                      {!selectedItem && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Mekan Ara (Google Haritalar)
-                          </label>
-                          
-                          {selectedPlace ? (
-                            <div className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
-                              <div className="flex-1 min-w-0">
-                                <span className="text-xs font-black text-indigo-900 block truncate">{selectedPlace.name}</span>
-                                <span className="text-[10px] text-indigo-700/70 block truncate">{selectedPlace.address}</span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={handleClearPlace}
-                                className="ml-3 text-[10px] font-black text-red-600 hover:text-red-700 uppercase tracking-wider"
-                              >
-                                Temizle
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="relative" ref={searchContainerRef}>
+                          <label className="text-[10px] font-black text-gray-400 tracking-widest pl-1">Öneri Adı</label>
+                          <div className="relative" ref={searchContainerRef}>
+                            <div className="flex gap-2">
                               <input
                                 required
                                 type="text"
-                                placeholder="Kafe, restoran veya mekan adı girin..."
-                                value={placeQuery}
-                                onChange={(e) => setPlaceQuery(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
+                                placeholder={`${getCategoryLabel(formData.category)} adını yazın...`}
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const isSearchCategory = formData.category === "song" || formData.category === "place";
+                                    if (!isSearchCategory && formData.title.trim()) {
+                                      setSelectedItem({ name: formData.title });
+                                    }
+                                  }
+                                }}
+                                className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
                               />
-                              {searchingPlaces && (
-                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                                  <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                                </div>
-                              )}
-                              
-                              {placeResults.length > 0 && (
-                                <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-gray-100">
-                                  {placeResults.map((place, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => handleSelectPlace(place)}
-                                      className="w-full text-left p-3 hover:bg-indigo-50/30 transition-all active:bg-indigo-50 flex flex-col gap-0.5"
-                                    >
-                                      <span className="text-xs font-bold text-gray-900 block truncate">{place.name}</span>
-                                      <span className="text-[10px] text-gray-400 block truncate">{place.address}</span>
-                                    </button>
-                                  ))}
-                                </div>
+                              {(formData.category !== "song" && formData.category !== "place") && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (formData.title.trim()) {
+                                      setSelectedItem({ name: formData.title });
+                                    }
+                                  }}
+                                  disabled={!formData.title.trim()}
+                                  className="px-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs rounded-2xl transition-all"
+                                >
+                                  Seç
+                                </button>
                               )}
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        /* Title input for other types */
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Başlık
-                          </label>
-                          <input
-                            required
-                            type="text"
-                            placeholder="Film, dizi veya oyun adı..."
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                          />
-                        </div>
-                      )}
 
-                      {/* Conditionally show remaining fields for place type only after a place is chosen */}
-                      {(formData.category !== "place" || !!selectedPlace) && (
-                        <>
-                          {/* Short Note */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Neden Tavsiye Ediyorsun?
-                            </label>
-                            <textarea
-                              placeholder="Arkadaşın neden bunu denemeli?"
-                              rows={3}
-                              value={formData.shortNote}
-                              onChange={(e) => setFormData({ ...formData, shortNote: e.target.value })}
-                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300 resize-none"
-                            />
-                          </div>
+                            {isSearching && (
+                              <div className="absolute right-20 top-1/2 -translate-y-1/2">
+                                <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                              </div>
+                            )}
 
-                          {/* Score & Rating */}
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center pl-1">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                Puanın
-                              </label>
-                              <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
-                                {formData.rating} / 5
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={5}
-                              step={0.5}
-                              value={formData.rating}
-                              onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-                              className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {/* Non-Mekan Links */}
-                      {formData.category !== "place" && (
-                        <>
-                          {/* External Link */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Dış Link (IMDb, YouTube vb.)
-                            </label>
-                            <input
-                              type="url"
-                              placeholder="https://example.com"
-                              value={formData.externalLink}
-                              onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
-                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                            />
-                          </div>
-
-                          {/* Image Url */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                              Görsel Linki (Opsiyonel)
-                            </label>
-                            <input
-                              type="url"
-                              placeholder="Görsel adresi..."
-                              value={formData.imageUrl}
-                              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3.5 text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {/* Friend Multi-Select */}
-                      {(formData.category !== "place" || !!selectedPlace) && (
-                        <div className="space-y-2 pt-2">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                            Gönderilecek Arkadaşlar ({selectedFriends.length})
-                          </label>
-                          {friendsList.length === 0 ? (
-                            <div className="py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                Arkadaş listeniz boş. Önce arkadaş ekleyin!
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50">
-                              {friendsList.map((friend) => {
-                                const isSelected = selectedFriends.includes(friend.id);
-                                return (
+                            {searchResults.length > 0 && (
+                              <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-150 rounded-2xl shadow-xl z-50 max-h-[250px] overflow-y-auto divide-y divide-gray-100">
+                                {searchResults.map((item, idx) => (
                                   <button
-                                    key={friend.id}
+                                    key={idx}
                                     type="button"
-                                    onClick={() => toggleFriendSelection(friend.id)}
-                                    className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
-                                      isSelected ? "bg-indigo-600 text-white" : "hover:bg-gray-100"
-                                    }`}
+                                    onClick={() => handleSelectItem(item)}
+                                    className="w-full text-left p-4 hover:bg-indigo-50/30 transition-all active:bg-indigo-50 flex items-center gap-4"
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <img
-                                        src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                                        alt={friend.username || "Friend"}
-                                        className="w-6 h-6 rounded-full object-cover border border-gray-200"
-                                      />
-                                      <span className="text-xs font-bold">{friend.username || "Arkadaş"}</span>
+                                    {formData.category === "song" && (
+                                      <img src={item.artworkUrl100} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
+                                    )}
+                                    <div className="flex flex-col gap-1 min-w-0">
+                                      <span className="text-sm font-bold text-gray-900 block truncate">
+                                        {formData.category === "song" ? item.trackName : item.name}
+                                      </span>
+                                      <span className="text-xs text-gray-400 block truncate">
+                                        {formData.category === "song" ? item.artistName : item.address}
+                                      </span>
                                     </div>
-                                    {isSelected && <CheckCircle size={16} weight="fill" />}
                                   </button>
-                                );
-                              })}
-                            </div>
-                          )}
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 
-                      {/* Submit Button */}
-                      <button
-                        disabled={isSubmitting || !formData.title.trim() || selectedFriends.length === 0}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-                      >
-                        {isSubmitting ? (
-                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <PaperPlaneTilt size={16} weight="fill" />
-                            <span>Öneriyi Gönder</span>
-                          </>
-                        )}
-                      </button>
+                      {/* Dynamic Card Teaser Preview */}
+                      {selectedItem && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-400 tracking-widest pl-1">Öneri Önizlemesi</label>
+                          <div className="aspect-square w-1/2 mx-auto bg-gradient-to-br from-indigo-50/50 to-purple-50/30 border border-indigo-100 rounded-[2rem] p-4 shadow-md relative flex flex-col items-center justify-center text-center overflow-hidden rotate-[-1deg]">
+                            {/* Close/Clear Button (Çarpı) */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedItem(null);
+                              }}
+                              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-gray-500 hover:text-gray-800 flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition-all z-20 cursor-pointer"
+                            >
+                              <XCircle size={18} weight="bold" />
+                            </button>
+
+                            {/* Expire / One-time Badge */}
+                            <div className="absolute top-3 left-3 flex items-center gap-0.5 bg-amber-400 text-white px-1.5 py-0.5 rounded-md shadow-sm border border-white rotate-[-2deg] z-10">
+                              <Clock size={8} weight="fill" />
+                              <span className="text-[6px] font-black uppercase tracking-wider">24s</span>
+                            </div>
+
+                            {/* Large Image or Icon */}
+                            <div className="mb-2.5 mt-2">
+                              {formData.imageUrl ? (
+                                <img src={formData.imageUrl} className="w-20 h-20 rounded-2xl object-cover border border-white shadow-md" />
+                              ) : (
+                                <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                  {getCategoryIcon(formData.category, 36)}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Text details */}
+                            <div className="w-full px-1">
+                              <span className="text-[9px] font-black text-gray-400 block uppercase tracking-widest mb-0.5">{getCategoryLabel(formData.category)}</span>
+                              <span className="text-xs font-[1000] text-gray-900 block truncate leading-tight uppercase italic tracking-tight">{formData.title}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sharing Methods & In-App Friends list */}
+                      {selectedItem && (
+                        <div className="space-y-6">
+                          {/* Sharing Methods */}
+                          <div className="space-y-4 pt-2">
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black text-gray-400 tracking-widest pl-1">WhatsApp ile Gönder</label>
+                              <button
+                                type="button"
+                                onClick={handleCreateSuggestion}
+                                disabled={!formData.title.trim()}
+                                className="w-full flex items-center justify-between p-4 bg-green-50/50 hover:bg-green-50 border border-green-200 text-green-700 rounded-2xl transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center shadow-sm">
+                                    <WhatsappLogo size={20} weight="fill" />
+                                  </div>
+                                  <div className="text-left">
+                                    <span className="text-xs font-black block">WhatsApp / DM ile Paylaş</span>
+                                    <span className="text-[9px] text-green-600/80 font-bold block">İstediğin kişiye göndermek için link oluşturur</span>
+                                  </div>
+                                </div>
+                                <ArrowRight size={16} weight="bold" />
+                              </button>
+                            </div>
+
+                            {/* Friends list selection */}
+                            <div className="pt-2">
+                              <div className="flex items-center justify-between pl-1 mb-2">
+                                <label className="text-[10px] font-black text-gray-400 tracking-widest">
+                                  Veya Uygulama İçi Arkadaşına Gönder ({selectedFriends.length})
+                                </label>
+                                {friendsList.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={handleSelectAllFriends}
+                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                                  >
+                                    {selectedFriends.length === friendsList.length ? "Seçimi Kaldır" : "Tümünü Seç"}
+                                  </button>
+                                )}
+                              </div>
+
+                              {friendsList.length > 0 && (
+                                <input
+                                  type="text"
+                                  placeholder="Arkadaş ara..."
+                                  value={friendSearchQuery}
+                                  onChange={(e) => setFriendSearchQuery(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') e.preventDefault();
+                                  }}
+                                  className="w-full bg-gray-50 border border-gray-105 rounded-xl px-3 py-2 text-[10px] font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all placeholder:text-gray-300 mb-2"
+                                />
+                              )}
+
+                              {friendsList.length === 0 ? (
+                                <div className="py-4 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4">
+                                  <p className="text-[9px] text-gray-400 font-bold tracking-wider">
+                                    Arkadaş listeniz boş. Sadece üstteki WhatsApp seçeneğini kullanabilirsiniz.
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="overflow-y-auto border border-gray-100 rounded-2xl p-2 space-y-1 bg-gray-50 max-h-[160px]">
+                                  {friendsList
+                                    .filter(f => f.username?.toLowerCase().includes(friendSearchQuery.toLowerCase()))
+                                    .map((friend) => {
+                                      const isSelected = selectedFriends.includes(friend.id);
+                                      return (
+                                        <button
+                                          key={friend.id}
+                                          type="button"
+                                          onClick={() => toggleFriendSelection(friend.id)}
+                                          className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all border ${
+                                            isSelected 
+                                              ? "bg-indigo-50/50 border-indigo-200 text-indigo-900 shadow-sm" 
+                                              : "hover:bg-gray-100 bg-white border-gray-50 text-gray-700"
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2.5">
+                                            <img
+                                              src={friend.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                              alt={friend.username || "Friend"}
+                                              className={`w-7 h-7 rounded-lg object-cover border transition-all ${isSelected ? "border-indigo-200 shadow-sm" : "border-gray-200"}`}
+                                            />
+                                            <span className={`text-[11px] font-bold transition-colors ${isSelected ? "text-indigo-900" : "text-gray-700"}`}>
+                                              {friend.username || "Arkadaş"}
+                                            </span>
+                                          </div>
+                                          <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
+                                            isSelected 
+                                              ? "bg-indigo-600 border-indigo-600 text-white" 
+                                              : "bg-white border-gray-200 text-transparent"
+                                          }`}>
+                                            <CheckCircle size={12} weight="fill" />
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* App Friends Send Button */}
+                            {selectedFriends.length > 0 && (
+                              <div className="pt-2">
+                                <button
+                                  type="submit"
+                                  disabled={isSubmitting || !formData.title.trim()}
+                                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-xs tracking-wider shadow-lg shadow-indigo-600/20 active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {isSubmitting ? (
+                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <PaperPlaneTilt size={16} weight="fill" />
+                                      <span>Öneriyi Arkadaşlarına Gönder</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                     </form>
                   </motion.div>
                 )}
@@ -889,86 +1102,150 @@ function SuggestPageContent() {
         </Drawer.Portal>
       </Drawer.Root>
 
-      {/* Suggestion Detail Drawer */}
+
+
+      {/* Suggestion Detail Drawer (Inbox view) */}
       <Drawer.Root open={!!detailSuggestion} onOpenChange={(open) => !open && setDetailSuggestion(null)}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
           <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
             {detailSuggestion && (
               <div className="p-6 overflow-y-auto">
+                <Drawer.Title className="sr-only">Öneri Detayı</Drawer.Title>
                 <div className="mx-auto w-12 h-1 bg-gray-200 rounded-full mb-6" />
                 
-                {/* Category & Status */}
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-2">
                     {getCategoryIcon(detailSuggestion.category, 24)}
-                    <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
-                      {getCategoryLabel(detailSuggestion.category)}
+                    <span className="text-xs font-black text-gray-500 tracking-wider">
+                    {getCategoryLabel(detailSuggestion.category)}
                     </span>
                   </div>
                   {getStatusBadge(detailSuggestion.status)}
                 </div>
 
-                {/* Cover & Title */}
                 <div className="space-y-4 mb-6">
-                  {detailSuggestion.image_url && (
-                    <img
-                      src={detailSuggestion.image_url}
-                      alt={detailSuggestion.title}
-                      className="w-full h-48 rounded-2xl object-cover border border-gray-100 shadow-sm"
-                    />
+                  {detailSuggestion.imageUrl && (
+                    <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                      <img
+                        src={detailSuggestion.imageUrl}
+                        alt={detailSuggestion.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      {detailSuggestion.category === "song" && detailSuggestion.previewUrl && (
+                        <button
+                          type="button"
+                          onClick={() => togglePlay(detailSuggestion.previewUrl!)}
+                          className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
+                        >
+                          {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                        </button>
+                      )}
+                    </div>
                   )}
                   <h2 className="text-2xl font-black text-gray-900 leading-snug tracking-tight">
                     {detailSuggestion.title}
                   </h2>
-                  
-                  {detailSuggestion.rating && (
-                    <div className="flex items-center gap-1 text-amber-500">
-                      <Star size={16} weight="fill" />
-                      <span className="text-sm font-black">{detailSuggestion.rating}/5</span>
-                    </div>
-                  )}
                 </div>
 
-                {/* Sender note section */}
                 <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
                   <div className="flex items-center gap-2">
                     <img
-                      src={detailSuggestion.sender_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                      alt={detailSuggestion.sender_username || "Sender"}
+                      src={detailSuggestion.senderAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                      alt={detailSuggestion.senderUsername || "Sender"}
                       className="w-6 h-6 rounded-full object-cover"
                     />
                     <span className="text-xs font-black text-gray-700">
-                      {detailSuggestion.sender_username} tavsiyesi:
+                      {detailSuggestion.senderUsername} tavsiyesi:
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed italic">
-                    "{detailSuggestion.short_note || "Herhangi bir not eklenmemiş."}"
+                    "{detailSuggestion.shortNote || "Herhangi bir not eklenmemiş."}"
                   </p>
                 </div>
 
-                {/* External Link */}
-                {detailSuggestion.external_link && (
-                  <a
-                    href={detailSuggestion.external_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl mb-8 active:scale-98 transition-all font-bold text-xs shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 text-indigo-600">
-                      <Globe size={18} />
-                      <span>{detailSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
-                    </div>
-                    <PaperPlaneTilt size={16} className="text-gray-400" />
-                  </a>
+                {detailSuggestion.externalLink && (
+                  <div className="mb-8">
+                    {detailSuggestion.category === "song" ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Spotify */}
+                        <a
+                          href={`https://open.spotify.com/search/${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <SpotifyLogo size={16} weight="fill" className="text-[#1DB954]" />
+                            <span>Spotify</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* Apple Music */}
+                        <a
+                          href={detailSuggestion.externalLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <MusicNotes size={16} weight="fill" className="text-[#FC3C44]" />
+                            <span>Apple Music</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* YouTube */}
+                        <a
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <YoutubeLogo size={16} weight="fill" className="text-[#FF0000]" />
+                            <span>YouTube</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+
+                        {/* YouTube Music */}
+                        <a
+                          href={`https://music.youtube.com/search?q=${encodeURIComponent(detailSuggestion.title)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <PlayCircle size={16} weight="fill" className="text-[#FF0000]" />
+                            <span>YT Music</span>
+                          </div>
+                          <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                        </a>
+                      </div>
+                    ) : (
+                      <a
+                        href={detailSuggestion.externalLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 text-indigo-600">
+                          {getExternalLinkButtonIcon(detailSuggestion.category, 18)}
+                          <span>{detailSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
+                        </div>
+                        <PaperPlaneTilt size={16} className="text-gray-400" />
+                      </a>
+                    )}
+                  </div>
                 )}
 
-                {/* Actions inside drawer */}
                 <div className="flex gap-2">
                   {detailSuggestion.status !== "saved" && detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "saved")}
-                      className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "saved")}
+                      className="flex-1 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-200 text-gray-700 hover:text-amber-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <BookmarkSimple size={16} />
                       <span>Kaydet</span>
@@ -976,8 +1253,8 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "completed" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "completed")}
-                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "completed")}
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
                     >
                       <CheckCircle size={16} />
                       <span>Tamamladım</span>
@@ -985,8 +1262,8 @@ function SuggestPageContent() {
                   )}
                   {detailSuggestion.status !== "ignored" && (
                     <button
-                      onClick={() => handleUpdateStatus(detailSuggestion.suggestion_id, "ignored")}
-                      className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                      onClick={() => handleUpdateStatus(detailSuggestion.shareId, "ignored")}
+                      className="flex-1 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <XCircle size={16} />
                       <span>Yok Say</span>
@@ -999,6 +1276,249 @@ function SuggestPageContent() {
         </Drawer.Portal>
       </Drawer.Root>
 
+      {/* Suggestion Sent Detail Drawer */}
+      <Drawer.Root open={!!detailSentSuggestion} onOpenChange={(open) => !open && setDetailSentSuggestion(null)}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-[#FAF9F7] flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-white shadow-2xl">
+            {detailSentSuggestion && (() => {
+              const link = getShareLink(detailSentSuggestion.shareId);
+              const isExpired = detailSentSuggestion.expiresAt ? new Date() > new Date(detailSentSuggestion.expiresAt) : false;
+              return (
+                <div className="p-6 overflow-y-auto">
+                  <Drawer.Title className="sr-only">Gönderilen Öneri Detayı</Drawer.Title>
+                  <div className="mx-auto w-12 h-1 bg-gray-200 rounded-full mb-6" />
+                  
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2">
+                      {getCategoryIcon(detailSentSuggestion.category, 24)}
+                      <span className="text-xs font-black text-gray-500 tracking-wider">
+                        {getCategoryLabel(detailSentSuggestion.category)}
+                      </span>
+                    </div>
+                    {getSentStatusBadge(detailSentSuggestion)}
+                  </div>
+
+                  <div className="space-y-4 mb-6">
+                    {detailSentSuggestion.imageUrl ? (
+                      <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                        <img
+                          src={detailSentSuggestion.imageUrl}
+                          alt={detailSentSuggestion.title}
+                          className="w-full h-48 object-cover"
+                        />
+                        {detailSentSuggestion.category === "song" && detailSentSuggestion.previewUrl && (
+                          <button
+                            type="button"
+                            onClick={() => togglePlay(detailSentSuggestion.previewUrl!)}
+                            className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-lg active:scale-95 hover:scale-105 transition-all cursor-pointer"
+                          >
+                            {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      detailSentSuggestion.category === "song" && detailSentSuggestion.previewUrl && (
+                        <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                          <span className="text-xs font-bold text-gray-500">Müzik Önizlemesi</span>
+                          <button
+                            type="button"
+                            onClick={() => togglePlay(detailSentSuggestion.previewUrl!)}
+                            className="w-10 h-10 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-all cursor-pointer"
+                          >
+                            {isPlaying ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+                          </button>
+                        </div>
+                      )
+                    )}
+                    <h2 className="text-2xl font-black text-gray-900 leading-snug tracking-tight">
+                      {detailSentSuggestion.title}
+                    </h2>
+                    
+                    {detailSentSuggestion.isDailyPick && (
+                      <span className="text-[7px] font-black bg-amber-400 text-white px-1 py-0.5 rounded uppercase tracking-wider block w-max mt-1 italic">Daily Pick</span>
+                    )}
+                  </div>
+
+                  {detailSentSuggestion.shortNote && (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        {user?.imageUrl ? (
+                          <img
+                            src={user.imageUrl}
+                            alt="Siz"
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                            Siz
+                          </div>
+                        )}
+                        <span className="text-xs font-black text-gray-700">
+                          Notunuz:
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed italic">
+                        "{detailSentSuggestion.shortNote}"
+                      </p>
+                    </div>
+                  )}
+
+                  {detailSentSuggestion.externalLink && (
+                    <div className="mb-6">
+                      {detailSentSuggestion.category === "song" ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Spotify */}
+                          <a
+                            href={`https://open.spotify.com/search/${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <SpotifyLogo size={16} weight="fill" className="text-[#1DB954]" />
+                              <span>Spotify</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* Apple Music */}
+                          <a
+                            href={detailSentSuggestion.externalLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <MusicNotes size={16} weight="fill" className="text-[#FC3C44]" />
+                              <span>Apple Music</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* YouTube */}
+                          <a
+                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <YoutubeLogo size={16} weight="fill" className="text-[#FF0000]" />
+                              <span>YouTube</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+
+                          {/* YouTube Music */}
+                          <a
+                            href={`https://music.youtube.com/search?q=${encodeURIComponent(detailSentSuggestion.title)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white hover:bg-gray-50 border border-gray-150 px-3 py-2.5 rounded-xl transition-all font-bold text-xs text-gray-800 shadow-sm"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <PlayCircle size={16} weight="fill" className="text-[#FF0000]" />
+                              <span>YT Music</span>
+                            </div>
+                            <ArrowRight size={12} weight="bold" className="text-gray-400" />
+                          </a>
+                        </div>
+                      ) : (
+                        <a
+                          href={detailSentSuggestion.externalLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full flex items-center justify-between bg-white border border-gray-100 hover:bg-gray-50 p-4 rounded-2xl active:scale-98 transition-all font-bold text-xs shadow-sm"
+                        >
+                          <div className="flex items-center gap-2 text-indigo-600">
+                            {getExternalLinkButtonIcon(detailSentSuggestion.category, 18)}
+                            <span>{detailSentSuggestion.category === "place" ? "Haritada / Adreste Aç" : "Dış Platformda Göster"}</span>
+                          </div>
+                          <PaperPlaneTilt size={16} className="text-gray-400" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+
+                  {/* Recipient list with status and reaction */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-3 mb-6 shadow-sm">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-0.5">Alıcılar & Durumları</span>
+                    {detailSentSuggestion.recipients && detailSentSuggestion.recipients.length > 0 ? (
+                      <div className="space-y-3 divide-y divide-gray-50">
+                        {detailSentSuggestion.recipients.map((recipient, idx) => {
+                          const emojiMap: Record<string, string> = { loved: "🔥", skull: "💀", saved: "❤️", mid: "😐", perfect: "🎯" };
+                          const labelMap: Record<string, string> = { loved: "Çok İyi", skull: "Bu Ne?", saved: "Kaydettim", mid: "Orta", perfect: "Nokta Atışı" };
+                          const statusLabels: Record<string, string> = { pending: "Bekliyor", saved: "Kaydetti", completed: "Tamamladı", ignored: "Yok Saydı" };
+                          
+                          return (
+                            <div key={recipient.recipientId} className={`flex items-center justify-between ${idx > 0 ? "pt-3" : ""}`}>
+                              <div className="flex items-center gap-2">
+                                <img
+                                  src={recipient.recipientAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+                                  alt={recipient.recipientUsername || "Alıcı"}
+                                  className="w-8 h-8 rounded-full object-cover border border-gray-150"
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-gray-800">{recipient.recipientUsername || "Bilinmeyen Kullanıcı"}</span>
+                                  <span className="text-[9px] font-bold text-gray-400 uppercase">{statusLabels[recipient.status] || recipient.status}</span>
+                                </div>
+                              </div>
+                              {detailSentSuggestion.reaction && (
+                                <div className="flex items-center gap-1 bg-indigo-50/50 border border-indigo-100/50 px-2 py-1 rounded-xl">
+                                  <span className="text-xs">{emojiMap[detailSentSuggestion.reaction]}</span>
+                                  <span className="text-[8px] font-black uppercase text-indigo-600 tracking-tight">{labelMap[detailSentSuggestion.reaction]}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic pl-0.5">Paylaşım linki ile gönderilmiş (Alıcı henüz giriş yapmadı).</p>
+                    )}
+                  </div>
+
+                  {/* Share link controls inside sent details */}
+                  <div className="space-y-3 mb-8">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-0.5">Paylaşım Bağlantısı</span>
+                    <div className="w-full bg-white border border-gray-150 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                      <span className="text-xs font-bold text-gray-600 truncate mr-3 select-all">{link}</span>
+                      <button
+                        onClick={() => copyToClipboard(link)}
+                        disabled={isExpired}
+                        className="px-3 py-2 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 rounded-xl font-black text-[10px] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {copiedLink ? <Check size={12} weight="bold" /> : <Copy size={12} weight="bold" />}
+                        <span>{copiedLink ? "Kopyalandı" : "Kopyala"}</span>
+                      </button>
+                    </div>
+                    {isExpired && (
+                      <p className="text-[9px] text-red-500 font-bold pl-0.5">⚠️ Bu önerinin süresi dolduğu için bağlantı artık aktif değildir.</p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDeleteSentSuggestion(detailSentSuggestion.shareId)}
+                      className="w-1/3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-150 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
+                    >
+                      Sil
+                    </button>
+                    <button
+                      onClick={() => setDetailSentSuggestion(null)}
+                      className="w-2/3 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl text-[10px] font-black tracking-wider transition-all"
+                    >
+                      Kapat
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
 }

@@ -27,22 +27,52 @@ export interface Category {
 
 export const SAVING_CHALLENGES: Category[] = [
   {
+    "category": "Ek Kazanç",
+    "emoji": "💰",
+    "items": [
+      {
+        "id": "extra_income_general",
+        "label": "Ek kazanç elde ettim",
+        "emoji": "💸",
+        "type": "earning",
+        "description": "Normal gelirim dışında bir işten veya satıştan ek gelir elde ettim.",
+        "primaryMetric": {
+          "key": "incomeSource",
+          "label": "Nereden kazandın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Freelance iş, satış, anket..."
+        },
+        "secondaryMetrics": [
+          {
+            "key": "amountEarned",
+            "label": "Kazanılan para",
+            "unit": "TL",
+            "inputType": "money",
+            "placeholder": "500"
+          }
+        ],
+        "postTemplate": "{incomeSource} yoluyla {amountEarned} TL ek kazanç elde ettim.",
+        "shareTitle": "Ek kazanç elde ettim"
+      }
+    ]
+  },
+  {
     "category": "Yiyecek & İçecek",
     "emoji": "🍽️",
     "items": [
       {
-        "id": "coffee_skipped",
-        "label": "Kahve almadım",
+        "id": "home_made_beverage",
+        "label": "İçeceğimi kendim hazırladım",
         "emoji": "☕",
         "type": "saving",
-        "description": "Dışarıdan kahve almak yerine evde yaptım ya da hiç almadım.",
-        "unitValue": 95,
+        "description": "Dışarıdan almak yerine kahve veya çayımı kendim hazırladım.",
         "primaryMetric": {
-          "key": "count",
-          "label": "Kaç kahve almadın?",
-          "unit": "adet",
-          "inputType": "number",
-          "placeholder": "1"
+          "key": "beverageName",
+          "label": "Ne hazırladın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Filtre kahve, soğuk çay..."
         },
         "secondaryMetrics": [
           {
@@ -53,60 +83,8 @@ export const SAVING_CHALLENGES: Category[] = [
             "placeholder": "95"
           }
         ],
-        "postTemplate": "{count} kahve almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Bugün kahve parasını cebimde tuttum"
-      },
-      {
-        "id": "tea_skipped",
-        "label": "Çay almadım",
-        "emoji": "🍵",
-        "type": "saving",
-        "description": "Dışarıdan çay almak yerine evden götürdüm veya poşet çay kullandım.",
-        "unitValue": 25,
-        "primaryMetric": {
-          "key": "count",
-          "label": "Kaç çay almadın?",
-          "unit": "adet",
-          "inputType": "number",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": [
-          {
-            "key": "amountSaved",
-            "label": "Cepte kalan para",
-            "unit": "TL",
-            "inputType": "money",
-            "placeholder": "25"
-          }
-        ],
-        "postTemplate": "{count} çay almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Küçük harcama yapmadım"
-      },
-      {
-        "id": "food_delivery_skipped",
-        "label": "Yemek söylemedim",
-        "emoji": "🥡",
-        "type": "saving",
-        "description": "Dışarıdan yemek söylemek yerine evde yemek yaptım.",
-        "unitValue": 220,
-        "primaryMetric": {
-          "key": "mealCount",
-          "label": "Kaç öğün?",
-          "unit": "öğün",
-          "inputType": "number",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": [
-          {
-            "key": "amountSaved",
-            "label": "Cepte kalan para",
-            "unit": "TL",
-            "inputType": "money",
-            "placeholder": "220"
-          }
-        ],
-        "postTemplate": "{mealCount} öğün dışarıdan söylemedim, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Bugün yemek siparişi vermedim"
+        "postTemplate": "Dışarıdan almak yerine {beverageName} hazırladım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "İçeceğimi kendim hazırladım"
       },
       {
         "id": "lunch_from_home",
@@ -136,14 +114,14 @@ export const SAVING_CHALLENGES: Category[] = [
       },
       {
         "id": "water_bottle_refill",
-        "label": "Su almadım",
+        "label": "Mataramı yanıma aldım",
         "emoji": "💧",
         "type": "saving",
-        "description": "Dışarıdan su almak yerine matara kullandım.",
+        "description": "Dışarıdan su almak yerine mataramı kullandım.",
         "unitValue": 15,
         "primaryMetric": {
           "key": "bottleCount",
-          "label": "Kaç şişe su almadın?",
+          "label": "Kaç kez doldurdun?",
           "unit": "adet",
           "inputType": "number",
           "placeholder": "1"
@@ -157,8 +135,8 @@ export const SAVING_CHALLENGES: Category[] = [
             "placeholder": "15"
           }
         ],
-        "postTemplate": "{bottleCount} şişe su almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Matara kullandım"
+        "postTemplate": "Dışarıdan su almak yerine mataramı kullandım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Mataramı kullandım"
       }
     ]
   },
@@ -475,22 +453,52 @@ export const SAVING_CHALLENGES: Category[] = [
     ]
   },
   {
+    "category": "Seyahat",
+    "emoji": "✈️",
+    "items": [
+      {
+        "id": "accommodation_saving",
+        "label": "Konaklamadan tasarruf ettim",
+        "emoji": "🏨",
+        "type": "saving",
+        "description": "Otel yerine arkadaşta kaldım, kamp yaptım veya daha uygun bir seçenek buldum.",
+        "primaryMetric": {
+          "key": "stayType",
+          "label": "Nerede kaldın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Arkadaş evi, kamp, hostel..."
+        },
+        "secondaryMetrics": [
+          {
+            "key": "amountSaved",
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "inputType": "money",
+            "placeholder": "2000"
+          }
+        ],
+        "postTemplate": "Otel yerine {stayType} tercih ettim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Konaklamadan tasarruf ettim"
+      }
+    ]
+  },
+  {
     "category": "Market & Ev",
     "emoji": "🛒",
     "items": [
       {
-        "id": "home_grown_onion",
-        "label": "Taze soğan yetiştirdim",
-        "emoji": "🌱",
+        "id": "borrowed_item",
+        "label": "Ödünç aldım",
+        "emoji": "🤝",
         "type": "saving",
-        "description": "Marketten almak yerine evde kendi taze soğanımı yetiştirdim.",
-        "unitValue": 15,
+        "description": "Satın almak yerine bir arkadaştan veya komşudan ödünç aldım.",
         "primaryMetric": {
-          "key": "count",
-          "label": "Kaç demet?",
-          "unit": "demet",
-          "inputType": "number",
-          "placeholder": "1"
+          "key": "itemName",
+          "label": "Ne ödünç aldın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Matkap"
         },
         "secondaryMetrics": [
           {
@@ -498,25 +506,24 @@ export const SAVING_CHALLENGES: Category[] = [
             "label": "Cepte kalan para",
             "unit": "TL",
             "inputType": "money",
-            "placeholder": "15"
+            "placeholder": "1500"
           }
         ],
-        "postTemplate": "Evde {count} demet taze soğan yetiştirdim, {amountSaved} TL tasarruf ettim.",
-        "shareTitle": "Kendi sebzemi yetiştiriyorum"
+        "postTemplate": "{itemName} satın almak yerine ödünç aldım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Satın almak yerine ödünç aldım"
       },
       {
-        "id": "home_grown_herbs",
-        "label": "Yeşillik yetiştirdim",
-        "emoji": "🌿",
+        "id": "home_grown_general",
+        "label": "Kendim yetiştirdim",
+        "emoji": "🌱",
         "type": "saving",
-        "description": "Nane, fesleğen veya maydanoz gibi yeşillikleri evde yetiştirdim.",
-        "unitValue": 20,
+        "description": "Marketten almak yerine evde/bahçede kendi sebze veya meyvemi yetiştirdim.",
         "primaryMetric": {
-          "key": "count",
-          "label": "Kaç saksı/demet?",
-          "unit": "adet",
-          "inputType": "number",
-          "placeholder": "1"
+          "key": "itemName",
+          "label": "Ne yetiştirdin?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Domates, biber, nane..."
         },
         "secondaryMetrics": [
           {
@@ -524,11 +531,61 @@ export const SAVING_CHALLENGES: Category[] = [
             "label": "Cepte kalan para",
             "unit": "TL",
             "inputType": "money",
-            "placeholder": "20"
+            "placeholder": "50"
           }
         ],
-        "postTemplate": "Evde {count} adet yeşillik yetiştirdim, {amountSaved} TL tasarruf ettim.",
-        "shareTitle": "Taze ve bedava yeşillik"
+        "postTemplate": "Evde {itemName} yetiştirdim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Kendi ürünümü yetiştiriyorum"
+      },
+      {
+        "id": "home_produced",
+        "label": "Kendim ürettim",
+        "emoji": "🛠️",
+        "type": "saving",
+        "description": "Satın almak yerine ihtiyacım olan bir şeyi kendim ürettim veya yaptım.",
+        "primaryMetric": {
+          "key": "itemName",
+          "label": "Ne ürettin/yaptın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Puzzle çerçevesi, ekmek, sabun..."
+        },
+        "secondaryMetrics": [
+          {
+            "key": "amountSaved",
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "inputType": "money",
+            "placeholder": "200"
+          }
+        ],
+        "postTemplate": "{itemName} satın almak yerine kendim ürettim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Satın almadım, kendim ürettim"
+      },
+      {
+        "id": "self_service",
+        "label": "Hizmet almadım, kendim yaptım",
+        "emoji": "🧹",
+        "type": "saving",
+        "description": "Dışarıdan hizmet almak yerine (boya, temizlik, bakım vb.) işi kendim hallettim.",
+        "primaryMetric": {
+          "key": "serviceName",
+          "label": "Hangi işi kendin yaptın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Ev boyama, temizlik, araç bakımı..."
+        },
+        "secondaryMetrics": [
+          {
+            "key": "amountSaved",
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "inputType": "money",
+            "placeholder": "2500"
+          }
+        ],
+        "postTemplate": "{serviceName} işini dışarıdan hizmet almak yerine kendim yaptım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Hizmet almadım, kendim yaptım"
       },
       {
         "id": "reusable_bag_used",
@@ -631,6 +688,37 @@ export const SAVING_CHALLENGES: Category[] = [
         ],
         "postTemplate": "Artan yemeği {mealCount} öğün değerlendirdim, {amountSaved} TL cepte kaldı.",
         "shareTitle": "Yemek israfını azalttım"
+      }
+    ]
+  },
+  {
+    "category": "Diğer",
+    "emoji": "✨",
+    "items": [
+      {
+        "id": "custom_saving",
+        "label": "Kendi tasarrufumu ekle",
+        "emoji": "✍️",
+        "type": "saving",
+        "description": "Listede olmayan farklı bir tasarruf yöntemini buraya yazabilirsin.",
+        "primaryMetric": {
+          "key": "customTitle",
+          "label": "Ne yaptın?",
+          "unit": "",
+          "inputType": "text",
+          "placeholder": "Örn: Kendi saçımı kestim"
+        },
+        "secondaryMetrics": [
+          {
+            "key": "amountSaved",
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "inputType": "money",
+            "placeholder": "200"
+          }
+        ],
+        "postTemplate": "{customTitle} yaptım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Kendi tasarrufumu yaptım"
       }
     ]
   }

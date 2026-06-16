@@ -27,8 +27,8 @@ export const moviesThisYearAssistant: AppAssistantModule = {
     },
   ],
   executors: {
-    list_movies: async () => {
-      const res = await movies_this_year.getMoviesThisYear();
+    list_movies: async ({ userId }) => {
+      const res = await movies_this_year.getMoviesThisYear({ userId });
       return { movies: res.movies };
     },
     list_upcoming: async () => {

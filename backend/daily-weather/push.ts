@@ -110,14 +110,14 @@ export async function sendWeatherPush(
 
 export async function markNotifiedToday(
   supabase: SupabaseClient,
-  clerkId: string,
+  userId: string,
   dateKey: string,
 ): Promise<void> {
   const { error } = await supabase
     .schema("daily_weather")
     .from("preferences")
     .update({ last_notified_date: dateKey, updated_at: new Date().toISOString() })
-    .eq("user_clerk_id", clerkId);
+    .eq("user_id", userId);
 
   if (error?.message?.includes("last_notified_date")) {
     console.warn("markNotifiedToday: last_notified_date column missing — run migration 03");

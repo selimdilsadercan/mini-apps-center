@@ -12,12 +12,14 @@ import {
   X,
   Star,
   TrendUp,
-  Fire
+  Fire,
+  Prohibit
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { getUserPreferencesAction, updateAppOrderAction } from "../home/actions";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { createBrowserClient } from "@/lib/api";
 
 const CATEGORIES: AppCategory[] = ['Lifestyle', 'Utilities', 'Entertainment', 'Board Games & Fun', 'Developer Tools', 'Simulations', 'Local Services'];
 
@@ -117,7 +119,7 @@ function AppSection({
                     {/* Content */}
                     <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
                           {appName}
                         </h3>
                       </div>
@@ -165,9 +167,27 @@ export default function Discover() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [installedIds, setInstalledIds] = useState<string[]>([]);
   const [isPrefLoading, setIsPrefLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
 
-  const implementedApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented), []);
+  const implementedApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented && !a.isBeta && !a.isCancelled), []);
+  const betaApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented && a.isBeta && !a.isCancelled), []);
+  const cancelledApps = useMemo(() => MINI_APPS.filter(a => a.isCancelled), []);
+
+  // Check admin status
+  useEffect(() => {
+    async function checkAdmin() {
+      if (!isLoaded || !user?.id) return;
+      try {
+        const client = createBrowserClient();
+        const res = await client.users.checkAdmin(user.id);
+        setIsAdmin(res.isAdmin);
+      } catch (err) {
+        console.error("Failed to check admin status:", err);
+      }
+    }
+    checkAdmin();
+  }, [isLoaded, user?.id]);
 
   // Load installed apps
   useEffect(() => {
@@ -213,7 +233,7 @@ export default function Discover() {
   
   const filteredApps = useMemo(() => {
     if (!searchQuery) return [];
-    return implementedApps.filter(app => {
+    return MINI_APPS.filter(app => app.isImplemented && !app.isCancelled).filter(app => {
       const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
       const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
       return (
@@ -321,10 +341,10 @@ export default function Discover() {
                   return (
                     <div 
                       key={app.id} 
-                      className="flex items-center justify-between w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
+                      className={`flex items-center justify-between w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group ${app.isBeta ? "opacity-60 pointer-events-none" : ""}`}
                     >
                       <button 
-                        onClick={() => handleAppClick(app)}
+                        onClick={() => !app.isBeta && handleAppClick(app)}
                         className="flex-1 flex items-center text-left gap-4"
                       >
                         <div 
@@ -336,13 +356,16 @@ export default function Discover() {
                           <app.icon size={24} color="white" weight="fill" className="relative z-10" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-900 truncate">{appName}</h3>
+                          <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
+                            {appName}
+                          </h3>
                           <p className="text-gray-500 text-sm truncate">{appDesc}</p>
                         </div>
                       </button>
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (app.isBeta) return;
                           if (isInstalled) {
                             handleAppClick(app);
                           } else {
@@ -350,12 +373,14 @@ export default function Discover() {
                           }
                         }}
                         className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer ${
-                          isInstalled
-                            ? "bg-green-100 text-green-600 hover:bg-green-200"
-                            : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                          app.isBeta
+                            ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                            : isInstalled
+                              ? "bg-green-100 text-green-600 hover:bg-green-200"
+                              : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
                         }`}
                       >
-                        {isInstalled ? t("open") : t("get")}
+                        {app.isBeta ? (t("comingSoon") || "Yakında") : isInstalled ? t("open") : t("get")}
                       </button>
                     </div>
                   );
@@ -379,6 +404,131 @@ export default function Discover() {
             <AppSection title={t("categories.Developer Tools")} apps={implementedApps.filter(a => a.category === 'Developer Tools').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+
+            {/* Beta / In Development Section */}
+            {betaApps.length > 0 && (
+              <div className="mt-16 pb-10 border-t border-gray-100 pt-10">
+                <div className="px-1 mb-6">
+                  <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight flex items-center gap-2">
+                    <Sparkle size={24} weight="fill" className="text-amber-500" />
+                    {t("betaTitle")}
+                  </h2>
+                  <p className="text-gray-500 text-sm font-medium mt-1">
+                    {t("betaSubtitle")}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   {betaApps.map(app => {
+                      const isInstalled = installedIds.includes(app.id);
+                      const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+                      const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
+                      return (
+                        <div 
+                          key={app.id} 
+                          className={`flex items-center justify-between w-full gap-4 p-4 rounded-[1.75rem] border shadow-sm ${
+                            isAdmin 
+                              ? "bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer" 
+                              : "bg-white/40 border-gray-100/50 shadow-sm opacity-70 grayscale-[0.2] pointer-events-none"
+                          }`}
+                          onClick={() => {
+                            if (isAdmin) {
+                              handleAppClick(app);
+                            }
+                          }}
+                        >
+                          <div className="flex-1 flex items-center text-left gap-4 min-w-0">
+                            <div 
+                              className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
+                              style={{ backgroundColor: app.color }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
+                              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+                              <app.icon size={24} color="white" weight="fill" className="relative z-10" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
+                                {appName}
+                              </h3>
+                              <p className="text-gray-500 text-xs truncate">{appDesc}</p>
+                            </div>
+                          </div>
+                          
+                          {isAdmin ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isInstalled) {
+                                  handleAppClick(app);
+                                } else {
+                                  handleGetApp(app.id, e);
+                                }
+                              }}
+                              className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 ${
+                                isInstalled
+                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                              }`}
+                            >
+                              {isInstalled ? t("open") : t("get")}
+                            </button>
+                          ) : (
+                            <div className="px-3 py-1 rounded-full font-black text-[9px] bg-gray-100 text-gray-400 uppercase tracking-widest shrink-0">
+                              {t("comingSoon")}
+                            </div>
+                          )}
+                        </div>
+                      );
+                   })}
+                </div>
+              </div>
+            )}
+
+            {/* Cancelled Section (Admin Only) */}
+            {isAdmin && cancelledApps.length > 0 && (
+              <div className="mt-16 pb-20 border-t border-gray-100 pt-10">
+                <div className="px-1 mb-6">
+                  <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight flex items-center gap-2">
+                    <Prohibit size={24} weight="fill" className="text-red-500" />
+                    İptal Edilenler
+                  </h2>
+                  <p className="text-gray-500 text-sm font-medium mt-1">
+                    Bu uygulamalar yayından kaldırıldı veya iptal edildi. Sadece adminler görebilir.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   {cancelledApps.map(app => {
+                      const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+                      const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
+                      return (
+                        <div 
+                          key={app.id} 
+                          className="flex items-center justify-between w-full gap-4 bg-red-50/30 p-4 rounded-[1.75rem] border border-red-100/50 shadow-sm opacity-60 grayscale-[0.5] pointer-events-none"
+                        >
+                          <div className="flex-1 flex items-center text-left gap-4 min-w-0">
+                            <div 
+                              className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md grayscale" 
+                              style={{ backgroundColor: app.color }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
+                              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
+                              <app.icon size={24} color="white" weight="fill" className="relative z-10" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
+                                {appName}
+                              </h3>
+                              <p className="text-gray-500 text-xs truncate">{appDesc}</p>
+                            </div>
+                          </div>
+                          <div className="px-3 py-1 rounded-full font-black text-[9px] bg-red-100 text-red-600 uppercase tracking-widest shrink-0">
+                            İptal
+                          </div>
+                        </div>
+                      );
+                   })}
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>

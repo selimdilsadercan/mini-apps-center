@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Speed Controller</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <svg class="rocket-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C12 2 15 6 15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10C9 6 12 2 12 2Z" fill="url(#grad)" />
+          <path d="M12 13V22" stroke="url(#grad)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 17C7 17 5 18.5 5 20.5C5 21 5.5 21.5 6 21.5H18C18.5 21.5 19 21 19 20.5C19 18.5 17 17 15 17" stroke="url(#grad)" stroke-width="2" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#8b5cf6" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>Hız Kontrolü</h1>
+      </div>
+      <span class="status-badge" id="video-status">Video Yok</span>
+    </header>
+
+    <!-- Speed Display -->
+    <section class="speed-display-section">
+      <div class="speed-value-container">
+        <span id="speed-val">1.00</span><span class="x-label">x</span>
+      </div>
+      <div class="subtitle">Oynatma Hızı</div>
+    </section>
+
+    <!-- Controls -->
+    <section class="controls-section">
+      <!-- Slider -->
+      <div class="slider-container">
+        <input type="range" id="speed-slider" min="0.1" max="4.0" step="0.05" value="1.0">
+        <div class="slider-labels">
+          <span>0.1x</span>
+          <span>1.0x</span>
+          <span>4.0x</span>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="presets-grid">
+        <button class="preset-btn" data-speed="1.0">1.0x</button>
+        <button class="preset-btn" data-speed="1.25">1.25x</button>
+        <button class="preset-btn" data-speed="1.5">1.5x</button>
+        <button class="preset-btn" data-speed="1.75">1.75x</button>
+        <button class="preset-btn" data-speed="2.0">2.0x</button>
+        <button class="preset-btn" data-speed="2.5">2.5x</button>
+        <button class="preset-btn" data-speed="3.0">3.0x</button>
+        <button class="preset-btn" data-speed="4.0">4.0x</button>
+      </div>
+    </section>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

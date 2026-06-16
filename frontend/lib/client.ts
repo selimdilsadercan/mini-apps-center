@@ -33,7 +33,10 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  */
 export default class Client {
     public readonly assistant: assistant.ServiceClient
+    public readonly birikim: birikim.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
+    public readonly budget: budget.ServiceClient
+    public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
@@ -48,8 +51,11 @@ export default class Client {
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
+    public readonly penalty_jar: penalty_jar.ServiceClient
+    public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
+    public readonly stamp_card: stamp_card.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
@@ -73,7 +79,10 @@ export default class Client {
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
         this.assistant = new assistant.ServiceClient(base)
+        this.birikim = new birikim.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
+        this.budget = new budget.ServiceClient(base)
+        this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
@@ -88,8 +97,11 @@ export default class Client {
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
+        this.penalty_jar = new penalty_jar.ServiceClient(base)
+        this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
+        this.stamp_card = new stamp_card.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
@@ -246,6 +258,185 @@ export namespace assistant {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/assistant/conversations/upsert`, JSON.stringify(params))
             return await resp.json() as UpsertConversationResponse
+        }
+    }
+}
+
+export namespace birikim {
+    export interface Account {
+        id: string
+        "user_id": string
+        name: string
+        type: string
+        balance: number
+        currency: string
+        "created_at": string
+    }
+
+    export interface AddTransactionRequest {
+        userId: string
+        accountId?: string
+        targetId?: string
+        amount: number
+        type: string
+        description?: string
+    }
+
+    export interface AddTransactionResponse {
+        success: boolean
+        transactionId: string
+    }
+
+    export interface DeleteAccountRequest {
+        userId: string
+    }
+
+    export interface DeleteAccountResponse {
+        success: boolean
+    }
+
+    export interface DeleteTargetRequest {
+        userId: string
+    }
+
+    export interface DeleteTargetResponse {
+        success: boolean
+    }
+
+    export interface GetBirikimDataResponse {
+        accounts: Account[]
+        targets: Target[]
+        transactions: Transaction[]
+    }
+
+    export interface Target {
+        id: string
+        "user_id": string
+        title: string
+        "target_amount": number
+        "current_amount": number
+        currency: string
+        "target_date": string | null
+        "created_at": string
+    }
+
+    export interface Transaction {
+        id: string
+        "user_id": string
+        "account_id": string | null
+        "account_name": string | null
+        "target_id": string | null
+        "target_title": string | null
+        amount: number
+        type: string
+        description: string | null
+        "created_at": string
+    }
+
+    export interface UpsertAccountRequest {
+        id?: string
+        userId: string
+        name: string
+        type: string
+        balance: number
+        currency: string
+    }
+
+    export interface UpsertAccountResponse {
+        success: boolean
+        accountId: string
+    }
+
+    export interface UpsertTargetRequest {
+        id?: string
+        userId: string
+        title: string
+        targetAmount: number
+        currentAmount: number
+        currency: string
+        targetDate?: string
+    }
+
+    export interface UpsertTargetResponse {
+        success: boolean
+        targetId: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addTransaction = this.addTransaction.bind(this)
+            this.deleteAccount = this.deleteAccount.bind(this)
+            this.deleteTarget = this.deleteTarget.bind(this)
+            this.getBirikimData = this.getBirikimData.bind(this)
+            this.upsertAccount = this.upsertAccount.bind(this)
+            this.upsertTarget = this.upsertTarget.bind(this)
+        }
+
+        /**
+         * Logs a new transaction and automatically adjusts account/target balances
+         */
+        public async addTransaction(params: AddTransactionRequest): Promise<AddTransactionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/transaction`, JSON.stringify(params))
+            return await resp.json() as AddTransactionResponse
+        }
+
+        /**
+         * Deletes a savings account
+         */
+        public async deleteAccount(id: string, params: DeleteAccountRequest): Promise<DeleteAccountResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/birikim/account/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteAccountResponse
+        }
+
+        /**
+         * Deletes a savings target
+         */
+        public async deleteTarget(id: string, params: DeleteTargetRequest): Promise<DeleteTargetResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/birikim/target/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteTargetResponse
+        }
+
+        /**
+         * Fetches all savings data for a user (accounts, targets, transaction history)
+         */
+        public async getBirikimData(userId: string): Promise<GetBirikimDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/birikim/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetBirikimDataResponse
+        }
+
+        /**
+         * Creates or updates a savings account
+         */
+        public async upsertAccount(params: UpsertAccountRequest): Promise<UpsertAccountResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/account`, JSON.stringify(params))
+            return await resp.json() as UpsertAccountResponse
+        }
+
+        /**
+         * Creates or updates a savings target
+         */
+        public async upsertTarget(params: UpsertTargetRequest): Promise<UpsertTargetResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/target`, JSON.stringify(params))
+            return await resp.json() as UpsertTargetResponse
         }
     }
 }
@@ -480,6 +671,392 @@ export namespace board_game_clubs {
     }
 }
 
+export namespace budget {
+    export interface AddExpenseRequest {
+        projectId: string
+        title: string
+        amount: number
+        payerMemberId: string
+        category: string
+        shares: {
+            "member_id": string
+            "share_amount": number
+        }[]
+        expenseDate?: string
+    }
+
+    export interface AddExpenseResponse {
+        expenseId: string
+    }
+
+    export interface CreateProjectRequest {
+        creatorClerkId: string
+        name: string
+        description?: string
+        currency: string
+        targetBudget?: number
+        groupType: string
+        memberNames: string[]
+        startDate?: string
+        endDate?: string
+        emoji?: string
+    }
+
+    export interface CreateProjectResponse {
+        projectId: string
+    }
+
+    export interface DeleteExpenseResponse {
+        success: boolean
+    }
+
+    export interface Expense {
+        id: string
+        projectId: string
+        title: string
+        amount: number
+        payerMemberId: string
+        expenseDate: string
+        category: string
+        createdAt: string
+        shares?: ExpenseShare[]
+    }
+
+    export interface ExpenseShare {
+        id: string
+        expenseId: string
+        memberId: string
+        shareAmount: number
+        createdAt: string
+    }
+
+    export interface GetUserProjectsResponse {
+        projects: Project[]
+    }
+
+    export interface Member {
+        id: string
+        projectId: string
+        name: string
+        userId: string | null
+        createdAt: string
+    }
+
+    export interface Project {
+        id: string
+        creatorId: string
+        name: string
+        description: string | null
+        currency: string
+        targetBudget: number | null
+        groupType: string
+        startDate: string | null
+        endDate: string | null
+        emoji: string
+        shareId: string
+        createdAt: string
+        memberCount?: number
+        totalSpent?: number
+        userShare?: number
+    }
+
+    export interface ProjectDetailsResponse {
+        project: Project
+        members: Member[]
+        expenses: Expense[]
+        shares: ExpenseShare[]
+    }
+
+    export interface UpdateExpenseRequest {
+        expenseId: string
+        title: string
+        amount: number
+        payerMemberId: string
+        category: string
+        shares: {
+            "member_id": string
+            "share_amount": number
+        }[]
+        expenseDate?: string
+    }
+
+    export interface UpdateExpenseResponse {
+        success: boolean
+    }
+
+    export interface UpdateMemberUserIdRequest {
+        memberId: string
+        userId: string
+    }
+
+    export interface UpdateMemberUserIdResponse {
+        success: boolean
+    }
+
+    export interface UpdateProjectRequest {
+        projectId: string
+        name: string
+        description?: string
+        currency: string
+        targetBudget?: number
+        groupType: string
+        startDate?: string
+        endDate?: string
+        emoji?: string
+    }
+
+    export interface UpdateProjectResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addExpense = this.addExpense.bind(this)
+            this.createProject = this.createProject.bind(this)
+            this.deleteExpense = this.deleteExpense.bind(this)
+            this.getProjectDetails = this.getProjectDetails.bind(this)
+            this.getProjectDetailsByShareId = this.getProjectDetailsByShareId.bind(this)
+            this.getUserProjects = this.getUserProjects.bind(this)
+            this.updateExpense = this.updateExpense.bind(this)
+            this.updateMemberUserId = this.updateMemberUserId.bind(this)
+            this.updateProject = this.updateProject.bind(this)
+        }
+
+        /**
+         * Adds an expense to a project
+         */
+        public async addExpense(params: AddExpenseRequest): Promise<AddExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/budget/expenses`, JSON.stringify(params))
+            return await resp.json() as AddExpenseResponse
+        }
+
+        /**
+         * Creates a new project with members
+         */
+        public async createProject(params: CreateProjectRequest): Promise<CreateProjectResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/budget/projects`, JSON.stringify(params))
+            return await resp.json() as CreateProjectResponse
+        }
+
+        /**
+         * Deletes an expense
+         */
+        public async deleteExpense(expenseId: string): Promise<DeleteExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/budget/expenses/${encodeURIComponent(expenseId)}`)
+            return await resp.json() as DeleteExpenseResponse
+        }
+
+        /**
+         * Gets details of a specific project (members, expenses, and expense shares)
+         */
+        public async getProjectDetails(projectId: string): Promise<ProjectDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/projects/${encodeURIComponent(projectId)}`)
+            return await resp.json() as ProjectDetailsResponse
+        }
+
+        /**
+         * Gets details of a specific project by share ID
+         */
+        public async getProjectDetailsByShareId(shareId: string): Promise<ProjectDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/share/${encodeURIComponent(shareId)}`)
+            return await resp.json() as ProjectDetailsResponse
+        }
+
+        /**
+         * Gets all projects of a user
+         */
+        public async getUserProjects(userId: string): Promise<GetUserProjectsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/budget/user/${encodeURIComponent(userId)}/projects`)
+            return await resp.json() as GetUserProjectsResponse
+        }
+
+        /**
+         * Updates an existing expense
+         */
+        public async updateExpense(params: UpdateExpenseRequest): Promise<UpdateExpenseResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/expenses`, JSON.stringify(params))
+            return await resp.json() as UpdateExpenseResponse
+        }
+
+        /**
+         * Links a member to a registered user account
+         */
+        public async updateMemberUserId(params: UpdateMemberUserIdRequest): Promise<UpdateMemberUserIdResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/members/link`, JSON.stringify(params))
+            return await resp.json() as UpdateMemberUserIdResponse
+        }
+
+        /**
+         * Updates project details
+         */
+        public async updateProject(params: UpdateProjectRequest): Promise<UpdateProjectResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/budget/projects`, JSON.stringify(params))
+            return await resp.json() as UpdateProjectResponse
+        }
+    }
+}
+
+export namespace campus_concerts {
+    export interface AddConcertRequest {
+        userId: string
+        artist: string
+        campus: string
+        date: string
+        description?: string
+        imageUrl?: string
+    }
+
+    export interface AddConcertResponse {
+        concert: CampusConcert | null
+    }
+
+    export interface Attendee {
+        "clerk_id": string
+        username: string | null
+        "avatar_url": string | null
+        status: string
+    }
+
+    export interface CampusConcert {
+        id: string
+        artist: string
+        campus: string
+        date: string
+        description?: string | null
+        "image_url"?: string | null
+        "added_by_id"?: string | null
+        "creator_username"?: string | null
+        "creator_avatar"?: string | null
+        "created_at": string
+        "user_status"?: string | null
+        attendees?: Attendee[]
+    }
+
+    export interface GetArtistImageRequest {
+        artist: string
+    }
+
+    export interface GetArtistImageResponse {
+        imageUrl: string
+    }
+
+    export interface GetArtistImagesRequest {
+        artist: string
+    }
+
+    export interface GetArtistImagesResponse {
+        imageUrls: string[]
+    }
+
+    export interface GetConcertsRequest {
+        userId?: string
+    }
+
+    export interface GetConcertsResponse {
+        concerts: CampusConcert[]
+    }
+
+    export interface SetAttendanceRequest {
+        userId: string
+        concertId: string
+        status: string
+    }
+
+    export interface SetAttendanceResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addConcert = this.addConcert.bind(this)
+            this.getArtistImage = this.getArtistImage.bind(this)
+            this.getArtistImages = this.getArtistImages.bind(this)
+            this.getConcerts = this.getConcerts.bind(this)
+            this.setAttendance = this.setAttendance.bind(this)
+        }
+
+        /**
+         * Add a new campus concert
+         * POST /campus-concerts/concerts/add
+         */
+        public async addConcert(params: AddConcertRequest): Promise<AddConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-concerts/concerts/add`, JSON.stringify(params))
+            return await resp.json() as AddConcertResponse
+        }
+
+        /**
+         * Fetch artist image from YouTube / Wikipedia / iTunes
+         * GET /campus-concerts/artist-image
+         */
+        public async getArtistImage(params: GetArtistImageRequest): Promise<GetArtistImageResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/artist-image`, undefined, {query})
+            return await resp.json() as GetArtistImageResponse
+        }
+
+        /**
+         * Fetch multiple potential artist images
+         * GET /campus-concerts/artist-images
+         */
+        public async getArtistImages(params: GetArtistImagesRequest): Promise<GetArtistImagesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/artist-images`, undefined, {query})
+            return await resp.json() as GetArtistImagesResponse
+        }
+
+        /**
+         * Get all campus concerts. Optionally provides requesting user's status.
+         * GET /campus-concerts/concerts
+         */
+        public async getConcerts(params: GetConcertsRequest): Promise<GetConcertsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-concerts/concerts`, undefined, {query})
+            return await resp.json() as GetConcertsResponse
+        }
+
+        /**
+         * Set user attendance status for a concert
+         * POST /campus-concerts/attendance/set
+         */
+        public async setAttendance(params: SetAttendanceRequest): Promise<SetAttendanceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-concerts/attendance/set`, JSON.stringify(params))
+            return await resp.json() as SetAttendanceResponse
+        }
+    }
+}
+
 export namespace chocolate_db {
     export interface AddReviewRequest {
         "chocolate_id": string
@@ -525,6 +1102,7 @@ export namespace chocolate_db {
 
     export interface ListChocolatesResponse {
         chocolates: Chocolate[]
+        totalCount: number
     }
 
     export interface Review {
@@ -609,9 +1187,15 @@ export namespace chocolate_db {
          */
         public async listChocolates(params: {
     userId?: string
+    page?: number
+    limit?: number
+    query?: string
 }): Promise<ListChocolatesResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                page:   params.page === undefined ? undefined : String(params.page),
+                query:  params.query,
                 userId: params.userId,
             })
 
@@ -659,6 +1243,8 @@ export namespace concert_list {
         venue?: string
         notes?: string
         rating?: number
+        friendIds?: string[]
+        imageUrl?: string
     }
 
     export interface AddConcertResponse {
@@ -682,17 +1268,59 @@ export namespace concert_list {
 
     export interface Concert {
         id: string
-        "user_clerk_id": string
+        userId: string
+        creatorUsername?: string | null
+        creatorAvatar?: string | null
         artist: string
         date: string
         venue?: string
         notes?: string
         rating?: number
-        "created_at": string
+        createdAt: string
+        friends?: ConcertFriend[]
+        imageUrl?: string | null
+    }
+
+    export interface ConcertFriend {
+        id: string
+        username: string | null
+        avatar: string | null
     }
 
     export interface DeleteConcertResponse {
         success: boolean
+    }
+
+    export interface EditConcertRequest {
+        id: string
+        userId: string
+        artist: string
+        date: string
+        venue?: string
+        notes?: string
+        rating?: number
+        friendIds?: string[]
+        imageUrl?: string
+    }
+
+    export interface EditConcertResponse {
+        concert: Concert | null
+    }
+
+    export interface GetArtistImageRequest {
+        artist: string
+    }
+
+    export interface GetArtistImageResponse {
+        imageUrl: string
+    }
+
+    export interface GetArtistImagesRequest {
+        artist: string
+    }
+
+    export interface GetArtistImagesResponse {
+        imageUrls: string[]
     }
 
     export interface GetConcertsResponse {
@@ -707,6 +1335,9 @@ export namespace concert_list {
             this.addConcert = this.addConcert.bind(this)
             this.bulkImportConcerts = this.bulkImportConcerts.bind(this)
             this.deleteConcert = this.deleteConcert.bind(this)
+            this.editConcert = this.editConcert.bind(this)
+            this.getArtistImage = this.getArtistImage.bind(this)
+            this.getArtistImages = this.getArtistImages.bind(this)
             this.getConcerts = this.getConcerts.bind(this)
         }
 
@@ -738,6 +1369,46 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/concert-list/concerts/${encodeURIComponent(id)}/${encodeURIComponent(userId)}`)
             return await resp.json() as DeleteConcertResponse
+        }
+
+        /**
+         * Edit an existing concert
+         * POST /concert-list/concerts/edit
+         */
+        public async editConcert(params: EditConcertRequest): Promise<EditConcertResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/concert-list/concerts/edit`, JSON.stringify(params))
+            return await resp.json() as EditConcertResponse
+        }
+
+        /**
+         * Fetch artist image from Wikipedia API
+         * GET /concert-list/artist-image
+         */
+        public async getArtistImage(params: GetArtistImageRequest): Promise<GetArtistImageResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/artist-image`, undefined, {query})
+            return await resp.json() as GetArtistImageResponse
+        }
+
+        /**
+         * Fetch multiple potential artist images from YouTube, Wikipedia, and iTunes
+         * GET /concert-list/artist-images
+         */
+        public async getArtistImages(params: GetArtistImagesRequest): Promise<GetArtistImagesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                artist: params.artist,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/artist-images`, undefined, {query})
+            return await resp.json() as GetArtistImagesResponse
         }
 
         /**
@@ -800,7 +1471,7 @@ export namespace daily_weather {
         preferences: WeatherPreferences
     }
 
-    export type WeatherIcon = "sun" | "cloud" | "rain" | "partly"
+    export type WeatherIcon = "sun" | "cloud" | "rain" | "partly" | "snow"
 
     export interface WeatherNotificationPayload {
         title: string
@@ -819,7 +1490,7 @@ export namespace daily_weather {
     }
 
     export interface WeatherPreferences {
-        "user_clerk_id": string
+        "user_id": string
         "notifications_enabled": boolean
         "notify_hour": number
         "notify_minute": number
@@ -840,6 +1511,34 @@ export namespace daily_weather {
         icon: WeatherIcon
         weatherCode: number
         fetchedAt: string
+        maxPrecipitationProbability?: number
+        eveningTempC?: number
+        eveningPrecipitationProbability?: number
+        hourlyData?: {
+            time: string
+            tempC: number
+            precipProb: number
+            weatherCode: number
+        }[]
+        dailyForecast?: {
+            dayLabel: string
+            dateLabel: string
+            condition: string
+            tempC: number
+            tempMinC: number
+            tempMaxC: number
+            humidity: number
+            windKmh: number
+            maxPrecipitationProbability: number
+            icon: WeatherIcon
+            weatherCode: number
+            hourlyData: {
+                time: string
+                tempC: number
+                precipProb: number
+                weatherCode: number
+            }[]
+        }[]
     }
 
     export class ServiceClient {
@@ -1178,8 +1877,7 @@ export namespace hobby_center {
 
     export interface UserHobbyTrack {
         id: string
-        "user_id": string | null
-        "clerk_id": string
+        "user_id": string
         "hobby_id": string
         status: HobbyStatus
         notes: string
@@ -1464,13 +2162,13 @@ export namespace itu_yemekhane {
 
         /**
          * Get all disliked dishes for global display at the bottom via Supabase RPC.
-         * GET /disliked
+         * GET /itu-yemekhane/disliked/:userId
          */
-        public async getDislikedDishes(): Promise<{
+        public async getDislikedDishes(userId: string): Promise<{
     dishes: string[]
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/disliked`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/disliked/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     dishes: string[]
 }
@@ -1481,21 +2179,22 @@ export namespace itu_yemekhane {
          */
         public async getMenu(): Promise<MenuResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/menu`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/menu`)
             return await resp.json() as MenuResponse
         }
 
         /**
          * Toggles a dish (name) in the disliked library using Supabase RPC.
-         * POST /disliked
+         * POST /itu-yemekhane/disliked
          */
         public async toggleDislike(params: {
     dishName: string
+    userId: string
 }): Promise<{
     status: string
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/disliked`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/disliked`, JSON.stringify(params))
             return await resp.json() as {
     status: string
 }
@@ -1532,7 +2231,7 @@ export namespace kiler {
 
     export interface PantryItem {
         id: string
-        "user_id"?: string | null
+        "user_id": string
         name: string
         amount: number
         unit: string
@@ -1760,17 +2459,44 @@ export namespace kim_gelir {
  * Map Tracker Service
  */
 export namespace map_tracker {
+    export interface DataResponse {
+        lists: MapList[]
+        items: MapItem[]
+    }
+
     export interface ImportRequest {
+        userId: string
         listName: string
         items: {
             name: string
             address?: string
-            "google_maps_url"?: string
+            googleMapsUrl?: string
             latitude?: number
             longitude?: number
             note?: string
             metadata?: any
         }[]
+    }
+
+    export interface MapItem {
+        id: string
+        listId: string
+        name: string
+        address: string | null
+        googleMapsUrl: string | null
+        latitude: number | null
+        longitude: number | null
+        isVisited: boolean
+        note: string | null
+        createdAt: string
+        metadata: any
+    }
+
+    export interface MapList {
+        id: string
+        userId: string
+        name: string
+        createdAt: string
     }
 
     export class ServiceClient {
@@ -1783,26 +2509,30 @@ export namespace map_tracker {
             this.toggleVisited = this.toggleVisited.bind(this)
         }
 
-        public async getData(): Promise<{
-    lists: any[]
-    items: any[]
-}> {
+        /**
+         * Get all lists and items for a user
+         * GET /map-tracker/data/:userId
+         */
+        public async getData(userId: string): Promise<DataResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data`)
-            return await resp.json() as {
-    lists: any[]
-    items: any[]
-}
+            const resp = await this.baseClient.callTypedAPI("GET", `/map-tracker/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as DataResponse
         }
 
         /**
-         * Bulk import items
+         * Bulk import items for a user
+         * POST /map-tracker/import
          */
         public async importItems(params: ImportRequest): Promise<void> {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/import`, JSON.stringify(params))
         }
 
+        /**
+         * Toggle visited status for an item
+         * POST /map-tracker/toggle-visited
+         */
         public async toggleVisited(params: {
+    userId: string
     id: string
 }): Promise<void> {
             await this.baseClient.callTypedAPI("POST", `/map-tracker/toggle-visited`, JSON.stringify(params))
@@ -1812,6 +2542,7 @@ export namespace map_tracker {
 
 export namespace memedex {
     export interface CreateMemeRequest {
+        userId: string
         title: string
         description?: string
         context?: string
@@ -1819,7 +2550,6 @@ export namespace memedex {
         trendStatus: string
         mediaUrl: string
         tags?: string[]
-        createdBy?: string
         parentId?: string
     }
 
@@ -1832,6 +2562,7 @@ export namespace memedex {
     }
 
     export interface GetMemesRequest {
+        userId?: string
         search?: string
         tag?: string
         trend?: string
@@ -1843,6 +2574,10 @@ export namespace memedex {
 
     export interface GetMemesResponse {
         memes: Meme[]
+    }
+
+    export interface LikeMemeRequest {
+        userId: string
     }
 
     export interface LikeMemeResponse {
@@ -1859,9 +2594,12 @@ export namespace memedex {
         "media_url": string
         tags: string[]
         "likes_count": number
-        "created_by": string
+        "creator_id": string | null
+        "creator_username": string | null
+        "creator_avatar": string | null
         "created_at": string
         "parent_id"?: string
+        "is_liked"?: boolean
     }
 
     export interface UpdateMemeRequest {
@@ -1920,6 +2658,7 @@ export namespace memedex {
                 search:      params.search,
                 tag:         params.tag,
                 trend:       params.trend,
+                userId:      params.userId,
             })
 
             // Now make the actual call to the API
@@ -1928,12 +2667,12 @@ export namespace memedex {
         }
 
         /**
-         * Like/Upvote a meme
+         * Like/Upvote a meme (toggles)
          * POST /memes/:id/like
          */
-        public async likeMeme(id: string): Promise<LikeMemeResponse> {
+        public async likeMeme(id: string, params: LikeMemeRequest): Promise<LikeMemeResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes/${encodeURIComponent(id)}/like`)
+            const resp = await this.baseClient.callTypedAPI("POST", `/memedex/memes/${encodeURIComponent(id)}/like`, JSON.stringify(params))
             return await resp.json() as LikeMemeResponse
         }
 
@@ -1958,12 +2697,13 @@ export namespace movies_this_year {
         id: number
         title: string
         overview: string
-        "poster_path": string | null
-        "backdrop_path": string | null
-        "release_date": string
-        "vote_average": number
+        posterPath: string | null
+        backdropPath: string | null
+        releaseDate: string
+        voteAverage: number
         popularity: number
-        "genre_ids": number[]
+        genreIds: number[]
+        isFavorited?: boolean
     }
 
     export class ServiceClient {
@@ -1975,11 +2715,12 @@ export namespace movies_this_year {
             this.getTopRatedMovies = this.getTopRatedMovies.bind(this)
             this.getUpcomingMovies = this.getUpcomingMovies.bind(this)
             this.syncMoviesThisYear = this.syncMoviesThisYear.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
         }
 
-        public async getMoviesThisYear(): Promise<GetMoviesResponse> {
+        public async getMoviesThisYear(userId: string): Promise<GetMoviesResponse> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/discover`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/movies-this-year/discover/${encodeURIComponent(userId)}`)
             return await resp.json() as GetMoviesResponse
         }
 
@@ -2015,6 +2756,297 @@ export namespace movies_this_year {
             return await resp.json() as {
     count: number
 }
+        }
+
+        /**
+         * Toggles a movie in the user's favorites
+         * POST /movies-this-year/favorite
+         */
+        public async toggleFavorite(params: {
+    userId: string
+    movieId: number
+}): Promise<{
+    isFavorited: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/favorite`, JSON.stringify(params))
+            return await resp.json() as {
+    isFavorited: boolean
+}
+        }
+    }
+}
+
+/**
+ * Penalty Jar service - tracks rule violations and peer approvals
+ */
+export namespace penalty_jar {
+    export interface CreateLobbyRequest {
+        creatorId: string
+        name: string
+        penaltyType: "points" | "jar"
+        currency?: string
+        pointStart?: number
+        penaltyAmount?: number
+        rules: Rule[]
+    }
+
+    export interface CreateLobbyResponse {
+        lobbyId: string
+        joinCode: string
+    }
+
+    export interface GetLobbyResponse {
+        lobby: Lobby
+    }
+
+    export interface GetUserLobbiesResponse {
+        lobbies: {
+            id: string
+            joinCode: string
+            name: string
+            penaltyType: "points" | "jar"
+            role: string
+            joinedAt: string
+            totalPoints: number
+            members: LobbyMemberBrief[]
+        }[]
+    }
+
+    export interface Infraction {
+        id: string
+        reportedUserId: string
+        reportedUsername: string | null
+        reportedAvatar: string | null
+        reporterUserId: string | null
+        reporterUsername: string | null
+        ruleName: string
+        penaltyAmount: number
+        isSelfReport: boolean
+        status: "pending" | "approved" | "rejected"
+        createdAt: string
+        votes: Vote[]
+    }
+
+    export interface JoinLobbyRequest {
+        userId: string
+        joinCode: string
+    }
+
+    export interface JoinLobbyResponse {
+        lobbyId: string
+        success: boolean
+    }
+
+    export interface LeaveLobbyRequest {
+        lobbyId: string
+        userId: string
+    }
+
+    export interface LeaveLobbyResponse {
+        success: boolean
+    }
+
+    export interface Lobby {
+        id: string
+        joinCode: string
+        creatorId: string
+        name: string
+        penaltyType: "points" | "jar"
+        currency: string
+        pointStart: number
+        penaltyAmount: number
+        rules: Rule[]
+        createdAt: string
+        members: Member[]
+        infractions: Infraction[]
+    }
+
+    export interface LobbyMemberBrief {
+        userId: string
+        username: string | null
+        avatar: string | null
+    }
+
+    export interface Member {
+        userId: string
+        username: string | null
+        avatar: string | null
+        points: number
+        moneyOwed: number
+        role: string
+        joinedAt: string
+    }
+
+    export interface ReportInfractionRequest {
+        lobbyId: string
+        reportedUserId: string
+        reporterUserId?: string
+        ruleName: string
+        penaltyAmount: number
+        isSelfReport: boolean
+    }
+
+    export interface ReportInfractionResponse {
+        infractionId: string
+        success: boolean
+    }
+
+    export interface Rule {
+        id: string
+        name: string
+        penalty: number
+    }
+
+    export interface Vote {
+        userId: string
+        username: string | null
+        approve: boolean
+    }
+
+    export interface VoteInfractionRequest {
+        infractionId: string
+        userId: string
+        approve: boolean
+    }
+
+    export interface VoteInfractionResponse {
+        status: "pending" | "approved" | "rejected"
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createLobby = this.createLobby.bind(this)
+            this.getLobby = this.getLobby.bind(this)
+            this.getUserLobbies = this.getUserLobbies.bind(this)
+            this.joinLobby = this.joinLobby.bind(this)
+            this.leaveLobby = this.leaveLobby.bind(this)
+            this.reportInfraction = this.reportInfraction.bind(this)
+            this.voteInfraction = this.voteInfraction.bind(this)
+        }
+
+        /**
+         * Creates a new lobby
+         * POST /penalty-jar/lobby/create
+         */
+        public async createLobby(params: CreateLobbyRequest): Promise<CreateLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/create`, JSON.stringify(params))
+            return await resp.json() as CreateLobbyResponse
+        }
+
+        /**
+         * Fetches all details of a lobby (members, scoreboard, infractions, and rules)
+         * GET /penalty-jar/lobby/:lobbyId
+         */
+        public async getLobby(lobbyId: string): Promise<GetLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/penalty-jar/lobby/${encodeURIComponent(lobbyId)}`)
+            return await resp.json() as GetLobbyResponse
+        }
+
+        /**
+         * Gets all lobbies that a user is currently a member of
+         * GET /penalty-jar/user-lobbies/:userId
+         */
+        public async getUserLobbies(userId: string): Promise<GetUserLobbiesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/penalty-jar/user-lobbies/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserLobbiesResponse
+        }
+
+        /**
+         * Joins a lobby using a join code
+         * POST /penalty-jar/lobby/join
+         */
+        public async joinLobby(params: JoinLobbyRequest): Promise<JoinLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/join`, JSON.stringify(params))
+            return await resp.json() as JoinLobbyResponse
+        }
+
+        /**
+         * Leaves a lobby
+         * POST /penalty-jar/lobby/leave
+         */
+        public async leaveLobby(params: LeaveLobbyRequest): Promise<LeaveLobbyResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/lobby/leave`, JSON.stringify(params))
+            return await resp.json() as LeaveLobbyResponse
+        }
+
+        /**
+         * Reports a new rule infraction (either caught or self-reported)
+         * POST /penalty-jar/infraction/report
+         */
+        public async reportInfraction(params: ReportInfractionRequest): Promise<ReportInfractionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/infraction/report`, JSON.stringify(params))
+            return await resp.json() as ReportInfractionResponse
+        }
+
+        /**
+         * Votes on a pending infraction (friends voting to verify a caught incident)
+         * POST /penalty-jar/infraction/vote
+         */
+        public async voteInfraction(params: VoteInfractionRequest): Promise<VoteInfractionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/infraction/vote`, JSON.stringify(params))
+            return await resp.json() as VoteInfractionResponse
+        }
+    }
+}
+
+export namespace pomodoro {
+    export interface GetSessionsResponse {
+        sessions: PomodoroSession[]
+    }
+
+    export interface PomodoroSession {
+        id: string
+        userId: string
+        type: "work" | "break"
+        durationMinutes: number
+        completedAt: string
+    }
+
+    export interface SaveSessionRequest {
+        userId: string
+        type: "work" | "break"
+        durationMinutes: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getSessions = this.getSessions.bind(this)
+            this.saveSession = this.saveSession.bind(this)
+        }
+
+        /**
+         * Gets all pomodoro sessions for a user
+         * GET /pomodoro/sessions/:userId
+         */
+        public async getSessions(userId: string): Promise<GetSessionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/pomodoro/sessions/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetSessionsResponse
+        }
+
+        /**
+         * Saves a completed pomodoro session
+         * POST /pomodoro/session
+         */
+        public async saveSession(params: SaveSessionRequest): Promise<PomodoroSession> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/pomodoro/session`, JSON.stringify(params))
+            return await resp.json() as PomodoroSession
         }
     }
 }
@@ -2074,7 +3106,7 @@ export namespace recipe {
         }
 
         /**
-         * Yeni tarif oluşturur (kullanıcı ID'si, malzemeler ve yapılış ile)
+         * Yeni tarif oluşturur
          * POST /recipe/create
          */
         public async createRecipe(params: CreateRecipeRequest): Promise<CreateRecipeResponse> {
@@ -2084,7 +3116,7 @@ export namespace recipe {
         }
 
         /**
-         * Tarif siler (sadece tarifi oluşturan kullanıcı silebilir)
+         * Tarif siler
          * DELETE /recipe/:recipeId
          */
         public async deleteRecipe(recipeId: string, params: DeleteRecipeRequest): Promise<DeleteRecipeResponse> {
@@ -2099,7 +3131,7 @@ export namespace recipe {
         }
 
         /**
-         * Tek bir tarifin tüm detaylarını getirir (recipe ID ile)
+         * Tek bir tarifin tüm detaylarını getirir
          * GET /recipe/:recipeId
          */
         public async getRecipeById(recipeId: string): Promise<GetRecipeByIdResponse> {
@@ -2109,7 +3141,7 @@ export namespace recipe {
         }
 
         /**
-         * Belirli kullanıcının tariflerini getirir (RPC fonksiyonu kullanarak)
+         * Belirli kullanıcının tariflerini getirir
          * GET /recipe/user/:userId
          */
         public async getUserRecipes(userId: string): Promise<GetUserRecipesResponse> {
@@ -2119,7 +3151,7 @@ export namespace recipe {
         }
 
         /**
-         * Tarifi günceller (sadece tarifi oluşturan kullanıcı güncelleyebilir)
+         * Tarifi günceller
          * PUT /recipe/:recipeId
          */
         public async updateRecipe(recipeId: string, params: UpdateRecipeRequest): Promise<UpdateRecipeResponse> {
@@ -2191,6 +3223,165 @@ export namespace scrape {
 }
 
 /**
+ * Stamp Card service - handles digital loyalty cards and rewards
+ */
+export namespace stamp_card {
+    export interface AddStampRequest {
+        userId: string
+        businessId: string
+        pin: string
+    }
+
+    export interface AddStampResponse {
+        success: boolean
+        "stamps_count"?: number
+        "completed_count"?: number
+        "reward_created"?: boolean
+        "new_reward_id"?: string
+        error?: string
+    }
+
+    export interface Business {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "stamp_limit": number
+        "reward_title": string
+        "created_at": string
+    }
+
+    export interface CreateBusinessRequest {
+        userId: string
+        name: string
+        description: string
+        logoUrl: string
+        stampLimit: number
+        rewardTitle: string
+        pinCode: string
+    }
+
+    export interface CreateBusinessResponse {
+        business: Business | null
+    }
+
+    export interface GetUserDataResponse {
+        cards: UserCard[]
+        rewards: RedeemedReward[]
+        "my_businesses": UserOwnedBusiness[]
+    }
+
+    export interface RedeemedReward {
+        id: string
+        "business_id": string
+        "reward_title": string
+        "is_used": boolean
+        "redeemed_at": string
+        "business_name": string
+        "business_logo": string | null
+    }
+
+    export interface UseRewardRequest {
+        userId: string
+        rewardId: string
+    }
+
+    export interface UseRewardResponse {
+        success: boolean
+    }
+
+    export interface UserCard {
+        id: string
+        "business_id": string
+        "stamps_count": number
+        "completed_count": number
+        "updated_at": string
+        "business_name": string
+        "business_logo": string | null
+        "business_reward": string
+        "stamp_limit": number
+    }
+
+    export interface UserOwnedBusiness {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "stamp_limit": number
+        "reward_title": string
+        "pin_code": string
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addStamp = this.addStamp.bind(this)
+            this.createBusiness = this.createBusiness.bind(this)
+            this.getBusinesses = this.getBusinesses.bind(this)
+            this.getUserData = this.getUserData.bind(this)
+            this.useReward = this.useReward.bind(this)
+        }
+
+        /**
+         * Add stamp to a card (validate PIN code)
+         * POST /stamp-card/stamp
+         */
+        public async addStamp(params: AddStampRequest): Promise<AddStampResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/stamp`, JSON.stringify(params))
+            return await resp.json() as AddStampResponse
+        }
+
+        /**
+         * Create a new business
+         * POST /stamp-card/business/create
+         */
+        public async createBusiness(params: CreateBusinessRequest): Promise<CreateBusinessResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/business/create`, JSON.stringify(params))
+            return await resp.json() as CreateBusinessResponse
+        }
+
+        /**
+         * Get all available businesses
+         * GET /stamp-card/businesses
+         */
+        public async getBusinesses(): Promise<{
+    businesses: Business[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/stamp-card/businesses`)
+            return await resp.json() as {
+    businesses: Business[]
+}
+        }
+
+        /**
+         * Get all user-specific data (cards, rewards, user owned businesses)
+         * GET /stamp-card/data/:userId
+         */
+        public async getUserData(userId: string): Promise<GetUserDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/stamp-card/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserDataResponse
+        }
+
+        /**
+         * Mark a redeemed reward as used
+         * POST /stamp-card/reward/use
+         */
+        public async useReward(params: UseRewardRequest): Promise<UseRewardResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/reward/use`, JSON.stringify(params))
+            return await resp.json() as UseRewardResponse
+        }
+    }
+}
+
+/**
  * Subscription Center service - handles subscription tracking
  */
 export namespace subcenter {
@@ -2239,22 +3430,22 @@ export namespace subcenter {
     export interface GlobalPreset {
         id: string
         name: string
-        "plan_name": string
+        planName: string
         region: string
-        "avg_price": number
+        avgPrice: number
         currency: string
         category: string
         color: string
         icon: string
-        "usage_count": number
+        usageCount: number
         domain?: string
     }
 
     export interface Subscription {
         id: string
-        "user_id": string
+        userId: string
         name: string
-        "plan_name": string
+        planName: string
         region: string
         price: number
         currency: string
@@ -2262,10 +3453,10 @@ export namespace subcenter {
         category: string
         color: string
         icon: string
-        "start_date": string
-        "trial_duration": string | null
+        startDate: string
+        trialDuration: string | null
         website: string | null
-        "created_at": string
+        createdAt: string
     }
 
     export interface SubscriptionCategory {
@@ -2273,7 +3464,7 @@ export namespace subcenter {
         name: string
         icon: string
         color: string
-        "sort_order": number
+        sortOrder: number
     }
 
     export interface TcmbExchangeRate {
@@ -2402,13 +3593,30 @@ export namespace suggest {
         rating?: number
         externalLink?: string
         imageUrl?: string
-        recipientClerkIds: string[]
+        recipientClerkIds?: string[]
+        isDailyPick?: boolean
+        previewUrl?: string
     }
 
     export interface CreateSuggestionResponse {
         success: boolean
         suggestionId?: string
+        shareId?: string
         recipientsAdded?: number
+    }
+
+    export interface DailyStatusResponse {
+        canSendDailyPick: boolean
+        timeLeftSeconds?: number
+    }
+
+    export interface DeleteSentRequest {
+        senderClerkId: string
+        shareId: string
+    }
+
+    export interface DeleteSentResponse {
+        success: boolean
     }
 
     export interface DetailResponse {
@@ -2420,31 +3628,62 @@ export namespace suggest {
     }
 
     export interface InboxSuggestion {
-        "suggestion_id": string
-        "sender_clerk_id": string
-        "sender_username": string | null
-        "sender_avatar": string | null
+        suggestionId: string
+        senderId: string
+        senderUsername: string | null
+        senderAvatar: string | null
         status: RecipientStatus
-        "updated_at": string
+        updatedAt: string
         id: string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "created_at": string
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
+        reaction: string | null
+        isDailyPick: boolean
+        createdAt: string
+    }
+
+    export interface PublicDetailResponse {
+        suggestion: Suggestion | null
+        senderId: string | null
+        senderUsername: string | null
+        senderAvatar: string | null
+        isExpired: boolean
+    }
+
+    export interface ReactionRequest {
+        suggestionId: string
+        reaction: string | null
+    }
+
+    export interface ReactionResponse {
+        success: boolean
     }
 
     export interface RecipientInfo {
-        "recipient_clerk_id": string
-        "recipient_username": string | null
-        "recipient_avatar": string | null
+        recipientId: string
+        recipientUsername: string | null
+        recipientAvatar: string | null
         status: RecipientStatus
-        "updated_at": string
+        updatedAt: string
     }
 
     export type RecipientStatus = "pending" | "saved" | "completed" | "ignored"
+
+    export interface SearchSongRequest {
+        query: string
+    }
+
+    export interface SearchSongResponse {
+        results: SongResult[]
+    }
 
     export interface SentResponse {
         suggestions: SentSuggestion[]
@@ -2453,30 +3692,68 @@ export namespace suggest {
     export interface SentSuggestion {
         recipients: RecipientInfo[]
         id: string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "created_at": string
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
+        reaction: string | null
+        isDailyPick: boolean
+        createdAt: string
     }
 
-    export type SuggestionCategory = "movie" | "tv" | "game" | "place"
+    export interface SongResult {
+        trackId: number
+        trackName: string
+        artistName: string
+        artworkUrl100: string
+        trackViewUrl: string
+        previewUrl?: string
+    }
 
-    export interface SuggestionDetail {
-        "sender_clerk_id": string
-        "sender_username": string | null
-        "sender_avatar": string | null
-        "recipient_status": RecipientStatus | null
+    export interface Suggestion {
         id: string
+        shareId: string
         category: SuggestionCategory
         title: string
-        "short_note": string | null
+        shortNote: string | null
         rating: number | null
-        "external_link": string | null
-        "image_url": string | null
-        "created_at": string
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
+        reaction: string | null
+        isDailyPick: boolean
+        createdAt: string
+    }
+
+    export type SuggestionCategory = "song" | "movie" | "tv" | "video" | "place" | "book"
+
+    export interface SuggestionDetail {
+        senderId: string
+        senderUsername: string | null
+        senderAvatar: string | null
+        recipientStatus: RecipientStatus | null
+        id: string
+        shareId: string
+        category: SuggestionCategory
+        title: string
+        shortNote: string | null
+        rating: number | null
+        externalLink: string | null
+        imageUrl: string | null
+        previewUrl: string | null
+        expiresAt: string | null
+        openedAt: string | null
+        reaction: string | null
+        isDailyPick: boolean
+        createdAt: string
     }
 
     export interface UpdateStatusRequest {
@@ -2495,15 +3772,19 @@ export namespace suggest {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.createSuggestion = this.createSuggestion.bind(this)
+            this.deleteSentSuggestion = this.deleteSentSuggestion.bind(this)
+            this.getDailyStatus = this.getDailyStatus.bind(this)
             this.getInbox = this.getInbox.bind(this)
+            this.getPublicSuggestion = this.getPublicSuggestion.bind(this)
             this.getSent = this.getSent.bind(this)
             this.getSuggestionDetail = this.getSuggestionDetail.bind(this)
+            this.searchSong = this.searchSong.bind(this)
+            this.submitReaction = this.submitReaction.bind(this)
             this.updateStatus = this.updateStatus.bind(this)
         }
 
         /**
          * Yeni bir öneri oluşturur ve alıcılara gönderir
-         * POST /suggest/create
          */
         public async createSuggestion(params: CreateSuggestionRequest): Promise<CreateSuggestionResponse> {
             // Now make the actual call to the API
@@ -2512,8 +3793,25 @@ export namespace suggest {
         }
 
         /**
+         * Gönderilen bir öneriyi gönderen için yumuşak siler
+         */
+        public async deleteSentSuggestion(params: DeleteSentRequest): Promise<DeleteSentResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/delete-sent`, JSON.stringify(params))
+            return await resp.json() as DeleteSentResponse
+        }
+
+        /**
+         * Get daily suggestion pick status for a user
+         */
+        public async getDailyStatus(userId: string): Promise<DailyStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/daily-status/${encodeURIComponent(userId)}`)
+            return await resp.json() as DailyStatusResponse
+        }
+
+        /**
          * Kullanıcıya gelen tüm önerileri listeler (Inbox)
-         * GET /suggest/inbox/:userId
          */
         public async getInbox(userId: string): Promise<InboxResponse> {
             // Now make the actual call to the API
@@ -2522,8 +3820,23 @@ export namespace suggest {
         }
 
         /**
-         * Kullanıcının gönderdiği tüm önerileri ve alıcıların durumunu listeler (Sent)
-         * GET /suggest/sent/:userId
+         * Public endpoint to fetch suggestion detail
+         */
+        public async getPublicSuggestion(id: string, params: {
+    userId?: string
+}): Promise<PublicDetailResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/public/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as PublicDetailResponse
+        }
+
+        /**
+         * Kullanıcının gönderdiği tüm önerileri listeler (Sent)
          */
         public async getSent(userId: string): Promise<SentResponse> {
             // Now make the actual call to the API
@@ -2532,8 +3845,7 @@ export namespace suggest {
         }
 
         /**
-         * Öneri detayını getirir (Gönderen veya Alıcı görebilir)
-         * GET /suggest/detail/:id/:userId
+         * Öneri detayını getirir
          */
         public async getSuggestionDetail(id: string, userId: string): Promise<DetailResponse> {
             // Now make the actual call to the API
@@ -2542,8 +3854,30 @@ export namespace suggest {
         }
 
         /**
-         * Bir önerinin alıcı durumunu günceller (Save, Completed, Ignore, etc.)
-         * POST /suggest/status
+         * iTunes API üzerinden şarkı araması yapar
+         */
+        public async searchSong(params: SearchSongRequest): Promise<SearchSongResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/suggest/search/song`, undefined, {query})
+            return await resp.json() as SearchSongResponse
+        }
+
+        /**
+         * Submit reaction for a suggestion publicly
+         */
+        public async submitReaction(params: ReactionRequest): Promise<ReactionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/suggest/reaction`, JSON.stringify(params))
+            return await resp.json() as ReactionResponse
+        }
+
+        /**
+         * Bir önerinin alıcı durumunu günceller
          */
         public async updateStatus(params: UpdateStatusRequest): Promise<UpdateStatusResponse> {
             // Now make the actual call to the API
@@ -2594,7 +3928,7 @@ export namespace tasket {
 
     export interface TasketItem {
         id: string
-        clerkId: string
+        userId: string
         listId: string | null
         title: string | null
         content: string | null
@@ -2610,7 +3944,7 @@ export namespace tasket {
 
     export interface TasketList {
         id: string
-        clerkId: string
+        userId: string
         name: string
         content: any
         color: string | null
@@ -2694,14 +4028,14 @@ export namespace tasket {
 export namespace tournament {
     export interface Match {
         id: string
-        "tournament_id": string
+        tournamentId: string
         phase: "league" | "bracket"
         round: number
-        "player1_id": string | null
-        "player2_id": string | null
-        "player3_id"?: string | null
-        "player4_id"?: string | null
-        "winner_id": string | null
+        player1Id: string | null
+        player2Id: string | null
+        player3Id?: string | null
+        player4Id?: string | null
+        winnerId: string | null
         status: "upcoming" | "playing" | "finished" | "abandoned"
         scores?: { [key: string]: number }
         username1?: string
@@ -2720,8 +4054,8 @@ export namespace tournament {
 
     export interface Participant {
         id: string
-        "tournament_id": string
-        "user_id"?: string
+        tournamentId: string
+        userId?: string
         username: string
         avatar?: string
         points: number
@@ -2742,7 +4076,7 @@ export namespace tournament {
         slug: string
         icon?: string
         status: "upcoming" | "active" | "completed"
-        "admin_user_id": string
+        adminUserId: string
         capacity: number
         "advance_count": number
         "current_league_round": number
@@ -3145,69 +4479,69 @@ export namespace tutor_crm {
 
     export interface FollowedShare {
         id: string
-        "clerk_id": string
-        "share_id": string
+        userId: string
+        shareId: string
         alias?: string | null
-        "created_at": string
-        "is_active"?: boolean
+        createdAt: string
+        isActive?: boolean
     }
 
     export interface Homework {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
+        studentId: string
+        studentName?: string
+        userId: string
         task: string
-        "due_date"?: string | null
-        "is_completed": boolean
-        "created_at": string
+        dueDate?: string | null
+        isCompleted: boolean
+        createdAt: string
     }
 
     export interface Lesson {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
-        "lesson_date": string
-        "start_time": string
-        "end_time": string
+        studentId: string
+        studentName?: string
+        userId: string
+        lessonDate: string
+        startTime: string
+        endTime: string
         notes?: string | null
-        "next_lesson_plan"?: string | null
+        nextLessonPlan?: string | null
         status: "scheduled" | "completed" | "cancelled"
-        "created_at": string
+        createdAt: string
     }
 
     export interface Payment {
         id: string
-        "student_id": string
-        "student_name"?: string
-        "clerk_id": string
+        studentId: string
+        studentName?: string
+        userId: string
         amount: number
-        "is_paid": boolean
-        "payment_date"?: string | null
-        "lesson_count": number
+        isPaid: boolean
+        paymentDate?: string | null
+        lessonCount: number
         month?: number | null
         year?: number | null
-        "created_at": string
+        createdAt: string
     }
 
     export interface Share {
         id: string
-        "clerk_id": string
-        "is_active": boolean
-        "allow_student_names": boolean
-        "created_at": string
+        userId: string
+        isActive: boolean
+        allowStudentNames: boolean
+        createdAt: string
     }
 
     export interface Student {
         id: string
-        "clerk_id": string
+        userId: string
         name: string
         subject: string
         level: string
-        "parent_contact"?: string | null
-        "hourly_rate": number
-        "created_at": string
+        parentContact?: string | null
+        hourlyRate: number
+        createdAt: string
     }
 
     export interface ToggleRequest {
@@ -3498,6 +4832,9 @@ export namespace users {
 
     export interface CreateUserRequest {
         clerkId: string
+        username?: string
+        fullName?: string
+        avatarUrl?: string
     }
 
     export interface CreateUserResponse {
@@ -3564,7 +4901,6 @@ export namespace users {
 
         /**
          * Clerk ID ile kullanıcının admin olup olmadığını sorgular
-         * GET /users/admin/check/:clerkId
          */
         public async checkAdmin(clerkId: string): Promise<CheckAdminResponse> {
             // Now make the actual call to the API
@@ -3574,7 +4910,6 @@ export namespace users {
 
         /**
          * Clerk ID ile yeni Supabase user oluşturur
-         * POST /identity/user/create
          */
         public async createUser(params: CreateUserRequest): Promise<CreateUserResponse> {
             // Now make the actual call to the API
@@ -3584,7 +4919,6 @@ export namespace users {
 
         /**
          * Clerk ID ile Supabase user'ı getirir, yoksa oluşturur
-         * POST /identity/user/get-or-create
          */
         public async getOrCreateUser(params: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> {
             // Now make the actual call to the API
@@ -3594,7 +4928,6 @@ export namespace users {
 
         /**
          * Clerk ID ile Supabase user'ı getirir
-         * GET /identity/user/clerk/:clerkId
          */
         public async getUserByClerkId(clerkId: string): Promise<GetUserByClerkIdResponse> {
             // Now make the actual call to the API
@@ -3604,7 +4937,6 @@ export namespace users {
 
         /**
          * Username ile Supabase user'ı getirir
-         * GET /users/user/username/:username
          */
         public async getUserByUsername(username: string): Promise<GetUserByUsernameResponse> {
             // Now make the actual call to the API
@@ -3614,7 +4946,6 @@ export namespace users {
 
         /**
          * Kullanıcının tercihlerini (sıralama vb.) getirir
-         * GET /users/preferences/:clerkId
          */
         public async getUserPreferences(clerkId: string): Promise<GetUserPreferencesResponse> {
             // Now make the actual call to the API
@@ -3624,7 +4955,6 @@ export namespace users {
 
         /**
          * Kullanıcının FCM token'ını kaydeder veya günceller
-         * POST /users/fcm-token
          */
         public async saveFcmToken(params: SaveFcmTokenRequest): Promise<SaveFcmTokenResponse> {
             // Now make the actual call to the API
@@ -3634,7 +4964,6 @@ export namespace users {
 
         /**
          * Kullanıcının uygulama sıralamasını günceller
-         * POST /users/app-order
          */
         public async updateAppOrder(params: UpdateAppOrderRequest): Promise<UpdateAppOrderResponse> {
             // Now make the actual call to the API
@@ -3720,7 +5049,7 @@ export namespace workplaces {
         parking: boolean
         "power_outlets": boolean
         "quiet_level": number
-        "suggested_by"?: string
+        userId?: string
         latitude?: number
         longitude?: number
         district?: string
@@ -3953,7 +5282,6 @@ export namespace lib {
 
     export interface User {
         id: string
-        "clerk_id": string
         username: string | null
         "full_name": string | null
         "avatar_url": string | null

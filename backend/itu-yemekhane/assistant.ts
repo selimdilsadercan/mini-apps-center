@@ -37,14 +37,15 @@ export const ituYemekhaneAssistant: AppAssistantModule = {
     get_menu: async () => {
       return await itu_yemekhane.getMenu();
     },
-    toggle_dislike: async ({ args }) => {
+    toggle_dislike: async ({ userId, args }) => {
       const res = await itu_yemekhane.toggleDislike({
+        userId,
         dishName: requireString(args, "dishName"),
       });
       return res;
     },
-    list_disliked: async () => {
-      const res = await itu_yemekhane.getDislikedDishes();
+    list_disliked: async ({ userId }) => {
+      const res = await itu_yemekhane.getDislikedDishes({ userId });
       // Map string[] to object array to match static-chat expected structure
       return res.dishes.map(name => ({ dish_name: name }));
     },

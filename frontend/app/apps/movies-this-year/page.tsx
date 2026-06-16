@@ -11,6 +11,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { movies_this_year } from "@/lib/client";
+import { useUser } from "@clerk/clerk-react";
 
 const client = createBrowserClient();
 
@@ -23,6 +24,7 @@ const MONTHS = [
 const DAYS = ["PZT", "SALI", "ÇRS", "PRS", "CUMA", "CMT", "PAZ"];
 
 export default function MoviesThisYear() {
+  const { user, isLoaded: isUserLoaded } = useUser();
   const [movies, setMovies] = useState<movies_this_year.Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,13 +32,18 @@ export default function MoviesThisYear() {
   const [currentYear] = useState(2026);
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    if (isUserLoaded && user) {
+      fetchMovies();
+    } else if (isUserLoaded && !user) {
+      setLoading(false);
+    }
+  }, [isUserLoaded, user]);
 
   const fetchMovies = async () => {
     try {
+      if (!user) return;
       setLoading(true);
-      const response = await client.movies_this_year.getMoviesThisYear();
+      const response = await client.movies_this_year.getMoviesThisYear(user.id);
       setMovies(response.movies);
     } catch (err: any) {
       console.error("Fetch error:", err);
@@ -62,7 +69,7 @@ export default function MoviesThisYear() {
   // Group movies by day for the current month
   const getMoviesForDay = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return movies.filter(m => m.release_date === dateStr);
+    return movies.filter(m => m.releaseDate === dateStr);
   };
 
   if (loading) {
@@ -145,7 +152,7 @@ export default function MoviesThisYear() {
               const isToday = new Date().getDate() === dayNum && new Date().getMonth() === currentMonth;
 
               // Mode Selection: If < 7 movies in month, use "Preview Mode"
-              const monthMoviesRaw = movies.filter(m => new Date(m.release_date).getMonth() === currentMonth);
+              const monthMoviesRaw = movies.filter(m => new Date(m.releaseDate).getMonth() === currentMonth);
               const isPreviewMode = monthMoviesRaw.length < 7;
               
               let monthMovies: movies_this_year.Movie[] = [];
@@ -210,14 +217,14 @@ export default function MoviesThisYear() {
                               exit={{ opacity: 0, scale: 0.5, x: 0, y: 0, transition: { duration: 0.2 } }}
                               className="absolute bg-white border-[4px] border-red-600 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5 w-[140px] md:w-[170px] pointer-events-auto"
                             >
-                              <img 
-                                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
-                                alt={movie.title}
-                                className="w-full h-auto aspect-[2/3] object-cover"
-                              />
-                              <div className="absolute -top-4 -right-4 w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-black rotate-12 border-[3px] border-white shadow-xl">
-                                {movie.vote_average.toFixed(1)}
-                              </div>
+                            <img 
+                              src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`} 
+                              alt={movie.title}
+                              className="w-full h-auto aspect-[2/3] object-cover"
+                            />
+                            <div className="absolute -top-4 -right-4 w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-black rotate-12 border-[3px] border-white shadow-xl">
+                              {movie.voteAverage.toFixed(1)}
+                            </div>
                               <div className="bg-red-600 text-white text-[8px] md:text-[10px] font-black uppercase p-2 mt-1 leading-tight border-t-2 border-white min-h-[30px] flex items-center justify-center text-center">
                                 <span className="line-clamp-2">{movie.title}</span>
                               </div>
@@ -241,7 +248,7 @@ export default function MoviesThisYear() {
                         >
                           <div className={`bg-white border-white rounded shadow-2xl overflow-hidden ring-red-600/40 ${isPreviewMode ? 'border-[8px] ring-[4px]' : 'border-[6px] ring-[2px]'}`}>
                             <img 
-                              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                              src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
                               alt={movie.title}
                               className="w-full aspect-[2/3] object-cover grayscale-[0.2] contrast-[1.1]"
                             />

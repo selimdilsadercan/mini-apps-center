@@ -42,9 +42,9 @@ const client = createBrowserClient();
 
 interface Subscription {
   id: string;
-  user_id: string;
+  userId: string;
   name: string;
-  plan_name: string;
+  planName: string;
   region: string;
   price: number;
   currency: string;
@@ -52,23 +52,23 @@ interface Subscription {
   category: string;
   color: string;
   icon: string;
-  start_date: string;
-  trial_duration: string | null;
+  startDate: string;
+  trialDuration: string | null;
   website: string | null;
-  created_at: string;
+  createdAt: string;
 }
 
 interface GlobalPreset {
   id: string;
   name: string;
-  plan_name: string;
+  planName: string;
   region: string;
-  avg_price: number;
+  avgPrice: number;
   currency: string;
   category: string;
   color: string;
   icon: string;
-  usage_count: number;
+  usageCount: number;
   domain?: string;
 }
 
@@ -137,7 +137,7 @@ function getTrialInfo(startDateStr: string, trialDuration: string | null, locale
 
 const EMPTY_SUB_FORM: Partial<Subscription> = {
   name: "",
-  plan_name: "Standard",
+  planName: "Standard",
   region: "TR",
   price: 0,
   cycle: "monthly",
@@ -145,8 +145,8 @@ const EMPTY_SUB_FORM: Partial<Subscription> = {
   color: "#6366F1",
   icon: "💳",
   currency: "TRY",
-  start_date: new Date().toISOString().split("T")[0],
-  trial_duration: null,
+  startDate: new Date().toISOString().split("T")[0],
+  trialDuration: null,
   website: "",
 };
 
@@ -190,7 +190,7 @@ function brandsForCategory(presets: GlobalPreset[], categoryName: string, search
     brands = brands.filter(
       (b) =>
         b.name.toLowerCase().includes(q) ||
-        b.plans.some((p) => p.plan_name.toLowerCase().includes(q))
+        b.plans.some((p) => p.planName.toLowerCase().includes(q))
     );
   }
   return brands;
@@ -531,15 +531,15 @@ export default function SubscriptionCenter() {
   const applyPreset = (preset: GlobalPreset) => {
     setNewSub({
       name: preset.name,
-      plan_name: preset.plan_name,
+      planName: preset.planName,
       region: preset.region,
-      price: preset.avg_price,
+      price: preset.avgPrice,
       currency: preset.currency,
       cycle: "monthly",
       category: preset.category,
       color: preset.color,
       icon: preset.icon,
-      start_date: new Date().toISOString().split("T")[0],
+      startDate: new Date().toISOString().split("T")[0],
       website: preset.domain || "",
     });
   };
@@ -641,7 +641,7 @@ export default function SubscriptionCenter() {
     setEditingId(sub.id);
     setNewSub({
       name: sub.name,
-      plan_name: sub.plan_name,
+      planName: sub.planName,
       region: sub.region,
       price: sub.price,
       cycle: sub.cycle,
@@ -649,8 +649,8 @@ export default function SubscriptionCenter() {
       color: sub.color,
       icon: sub.icon,
       currency: sub.currency,
-      start_date: new Date(sub.start_date).toISOString().split("T")[0],
-      trial_duration: sub.trial_duration,
+      startDate: new Date(sub.startDate).toISOString().split("T")[0],
+      trialDuration: sub.trialDuration,
       website: sub.website,
     });
     setAddModalStep("form");
@@ -665,7 +665,7 @@ export default function SubscriptionCenter() {
         const resp = await client.subcenter.updateSubscription(editingId, {
           userId: user.id,
           name: newSub.name,
-          planName: newSub.plan_name || "Standard",
+          planName: newSub.planName || "Standard",
           region: newSub.region || "TR",
           price: newSub.price,
           currency: newSub.currency || "TRY",
@@ -673,8 +673,8 @@ export default function SubscriptionCenter() {
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
-          startDate: newSub.start_date || new Date().toISOString().split("T")[0],
-          trialDuration: newSub.trial_duration || null,
+          startDate: newSub.startDate || new Date().toISOString().split("T")[0],
+          trialDuration: newSub.trialDuration || null,
           website: newSub.website || null,
         });
 
@@ -685,16 +685,16 @@ export default function SubscriptionCenter() {
         const resp = await client.subcenter.createSubscription({
           userId: user.id,
           name: newSub.name,
-          planName: newSub.plan_name,
-          region: newSub.region,
+          planName: newSub.planName || "Standard",
+          region: newSub.region || "TR",
           price: newSub.price,
           currency: newSub.currency || "TRY",
           cycle: newSub.cycle || "monthly",
           category: newSub.category || "Other",
           color: newSub.color || "#6366F1",
           icon: newSub.icon || "💳",
-          startDate: newSub.start_date || new Date().toISOString().split("T")[0],
-          trialDuration: newSub.trial_duration || null,
+          startDate: newSub.startDate || new Date().toISOString().split("T")[0],
+          trialDuration: newSub.trialDuration || null,
           website: newSub.website || null,
         });
 
@@ -733,7 +733,7 @@ export default function SubscriptionCenter() {
     const trials: Subscription[] = [];
     const activeSubs: Subscription[] = [];
     for (const sub of subscriptions) {
-      const trialInfo = getTrialInfo(sub.start_date, sub.trial_duration, locale);
+      const trialInfo = getTrialInfo(sub.startDate, sub.trialDuration, locale);
       if (trialInfo?.isActive) {
         trials.push(sub);
       } else {
@@ -742,22 +742,22 @@ export default function SubscriptionCenter() {
     }
     // Sort trials: closest to ending first
     trials.sort((a, b) => {
-      const aInfo = getTrialInfo(a.start_date, a.trial_duration, locale);
-      const bInfo = getTrialInfo(b.start_date, b.trial_duration, locale);
+      const aInfo = getTrialInfo(a.startDate, a.trialDuration, locale);
+      const bInfo = getTrialInfo(b.startDate, b.trialDuration, locale);
       return (aInfo?.daysLeft ?? 0) - (bInfo?.daysLeft ?? 0);
     });
     // Sort active subs: closest renewal date first
     activeSubs.sort((a, b) => {
-      const aRenewal = getRenewalDisplayDate(a.start_date, a.cycle).getTime();
-      const bRenewal = getRenewalDisplayDate(b.start_date, b.cycle).getTime();
+      const aRenewal = getRenewalDisplayDate(a.startDate, a.cycle).getTime();
+      const bRenewal = getRenewalDisplayDate(b.startDate, b.cycle).getTime();
       return aRenewal - bRenewal;
     });
     return { trials, activeSubs };
   }, [subscriptions, locale]);
 
   const renderSubscriptionCard = (sub: Subscription) => {
-    const trialInfo = getTrialInfo(sub.start_date, sub.trial_duration, locale);
-    const renewalDate = getRenewalDisplayDate(sub.start_date, sub.cycle);
+    const trialInfo = getTrialInfo(sub.startDate, sub.trialDuration, locale);
+    const renewalDate = getRenewalDisplayDate(sub.startDate, sub.cycle);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const end = new Date(renewalDate.getFullYear(), renewalDate.getMonth(), renewalDate.getDate());
@@ -1159,23 +1159,23 @@ export default function SubscriptionCenter() {
                   <div className="space-y-2">
                     {plansForSelectedBrand.map((preset, i) => (
                       <button
-                        key={`${preset.plan_name}-${i}`}
+                        key={`${preset.planName}-${i}`}
                         onClick={() => selectPlan(preset)}
-                        className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer text-left ${newSub.plan_name === preset.plan_name
+                        className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all cursor-pointer text-left ${newSub.planName === preset.planName
                           ? "bg-slate-900 border-slate-900 text-white"
                           : "bg-slate-50/50 border-slate-100 hover:bg-white hover:border-slate-200"
                           }`}
                       >
                         <div className="min-w-0">
-                          <p className={`text-sm font-bold truncate ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-800"}`}>
-                            {preset.plan_name}
+                          <p className={`text-sm font-bold truncate ${newSub.planName === preset.planName ? "text-white" : "text-slate-800"}`}>
+                            {preset.planName}
                           </p>
-                          <p className={`text-[10px] font-medium uppercase tracking-wide ${newSub.plan_name === preset.plan_name ? "text-slate-300" : "text-slate-400"}`}>
+                          <p className={`text-[10px] font-medium uppercase tracking-wide ${newSub.planName === preset.planName ? "text-slate-300" : "text-slate-400"}`}>
                             {preset.region}
                           </p>
                         </div>
-                        <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${newSub.plan_name === preset.plan_name ? "text-white" : "text-slate-700"}`}>
-                          {formatPriceDisplay(preset.avg_price, preset.currency)}
+                        <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${newSub.planName === preset.planName ? "text-white" : "text-slate-700"}`}>
+                          {formatPriceDisplay(preset.avgPrice, preset.currency)}
                         </span>
                       </button>
                     ))}
@@ -1195,8 +1195,8 @@ export default function SubscriptionCenter() {
                               onClick={() =>
                                 setNewSub({
                                   ...newSub,
-                                  plan_name: p.plan_name,
-                                  price: p.avg_price,
+                                  planName: p.planName,
+                                  price: p.avgPrice,
                                   region: p.region,
                                   currency: p.currency,
                                   category: p.category,
@@ -1205,12 +1205,12 @@ export default function SubscriptionCenter() {
                                   website: p.domain || "",
                                 })
                               }
-                              className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${newSub.plan_name === p.plan_name
+                              className={`flex-shrink-0 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${newSub.planName === p.planName
                                 ? "bg-slate-900 text-white border-slate-900"
                                 : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
                                 }`}
                             >
-                              {p.plan_name}
+                              {p.planName}
                             </button>
                           ))}
                       </div>
@@ -1271,8 +1271,8 @@ export default function SubscriptionCenter() {
                       type="text"
                       placeholder={t("planPlaceholder")}
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
-                      value={newSub.plan_name}
-                      onChange={(e) => setNewSub({ ...newSub, plan_name: e.target.value })}
+                      value={newSub.planName}
+                      onChange={(e) => setNewSub({ ...newSub, planName: e.target.value })}
                     />
                   </div>
 
@@ -1293,8 +1293,8 @@ export default function SubscriptionCenter() {
                       <input
                         type="date"
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
-                        value={newSub.start_date}
-                        onChange={(e) => setNewSub({ ...newSub, start_date: e.target.value })}
+                        value={newSub.startDate}
+                        onChange={(e) => setNewSub({ ...newSub, startDate: e.target.value })}
                       />
                     </div>
                   </div>
@@ -1306,9 +1306,9 @@ export default function SubscriptionCenter() {
                         <button
                           key={opt.label}
                           type="button"
-                          onClick={() => setNewSub({ ...newSub, trial_duration: opt.value })}
+                          onClick={() => setNewSub({ ...newSub, trialDuration: opt.value })}
                           className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
-                            (newSub.trial_duration || null) === opt.value
+                            (newSub.trialDuration || null) === opt.value
                               ? "bg-slate-900 text-white border-slate-900"
                               : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
                           }`}

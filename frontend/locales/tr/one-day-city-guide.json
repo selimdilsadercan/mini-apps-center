@@ -1,0 +1,55 @@
+{
+  "title": "One Day City Guide",
+  "heroTitle": "Şehri Bir Günde Keşfet",
+  "heroDescription": "Kısıtlı zamanın mı var? En iyi rotalar, yerel lezzetler ve gizli kalmış mekanlarla dolu rehberlerimizle gününü planla.",
+  "citiesTitle": "Şehirler",
+  "citiesCount": "{count} Şehir",
+  "newCitiesTitle": "Yeni Şehirler Yolda",
+  "newCitiesDescription": "Ekibimiz yeni şehir rotaları üzerinde çalışıyor. Yakında İstanbul, İzmir ve daha fazlası burada olacak.",
+  "planning": {
+    "title": "Geziyi Planla",
+    "routeType": "Rota Türü Seç",
+    "customizeStops": "Durakları Özelleştir & Sırala",
+    "startTour": "Geziyi Başlat ({count} Durak)",
+    "resetPlan": "Planı Sıfırla",
+    "resetConfirm": "Tüm planı sıfırlamak istediğine emin misin?",
+    "walkingLevel": "{level} YÜRÜYÜŞ"
+  },
+  "active": {
+    "title": "Canlı Gezi",
+    "status": "Tur Devam Ediyor",
+    "returnToPlan": "PLANA DÖN",
+    "currentStop": "Şu Anki Durak",
+    "stops": "DURAKLAR",
+    "delay": "+{minutes} dk gecikme",
+    "gain": "{minutes} dk kazanç",
+    "tired": "Biraz Yorgunum",
+    "hurry": "Hızlanalım",
+    "completed": "Tamamladım",
+    "skip": "Atla",
+    "next": "TAMAM, SIRADAKİ",
+    "finish": "GEZİYİ BİTİR VE PLANA DÖN",
+    "howToGetThere": "Buraya Nasıl Gidilir?",
+    "whatToDo": "Neler Yapılır?",
+    "whatToTry": "Tadılacaklar",
+    "tips": "İpuçları",
+    "tourCompleted": "Gezi Tamamlandı!",
+    "tourCompletedDesc": "Harika bir gündü. Tüm durakları gezdin.",
+    "active": "AKTİF",
+    "upcoming": "SIRADAKİ",
+    "walking": "{level} Yürüyüş"
+  },
+  "stats": {
+    "duration": "Süre",
+    "hours": "{count} Saat",
+    "start": "Başlangıç",
+    "tempo": "Tempo",
+    "walking": "Yürüyüş",
+    "current": "Şu An"
+  },
+  "walkingLevels": {
+    "low": "Az",
+    "medium": "Orta",
+    "high": "Yorucu"
+  }
+}

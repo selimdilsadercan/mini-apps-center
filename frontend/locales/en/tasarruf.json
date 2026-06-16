@@ -56,16 +56,73 @@
       "Satış & İkinci El": "Sales & Second Hand",
       "Ulaşım": "Transportation",
       "Abonelik & Dijital": "Subscription & Digital",
-      "Market & Ev": "Market & Home"
+      "Market & Ev": "Market & Home",
+      "Seyahat": "Travel",
+      "Ek Kazanç": "Extra Income",
+      "Diğer": "Other"
     },
     "challenges": {
-      "coffee_skipped": {
-        "label": "Did not buy coffee",
-        "description": "Made coffee at home or skipped it instead of buying from outside.",
+      "custom_saving": {
+        "label": "Add my own saving",
+        "description": "You can write a different saving method here that is not in the list.",
         "primaryMetric": {
-          "label": "How many coffees did you skip?",
-          "unit": "pcs",
-          "placeholder": "1"
+          "label": "What did you do?",
+          "unit": "",
+          "placeholder": "E.g., I cut my own hair"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "200"
+          }
+        },
+        "postTemplate": "I did {customTitle}, saved {amountSaved} TL.",
+        "shareTitle": "I made my own saving"
+      },
+      "extra_income_general": {
+        "label": "Earned extra income",
+        "description": "Earned extra income from a side job or sale outside of my normal income.",
+        "primaryMetric": {
+          "label": "Where did you earn it from?",
+          "unit": "",
+          "placeholder": "Freelance work, sale, survey..."
+        },
+        "secondaryMetrics": {
+          "amountEarned": {
+            "label": "Earned amount",
+            "unit": "TL",
+            "placeholder": "500"
+          }
+        },
+        "postTemplate": "Earned {amountEarned} TL extra income through {incomeSource}.",
+        "shareTitle": "Earned extra income"
+      },
+      "accommodation_saving": {
+        "label": "Saved on accommodation",
+        "description": "Stayed with a friend, camped, or found a more affordable option instead of a hotel.",
+        "primaryMetric": {
+          "label": "Where did you stay?",
+          "unit": "",
+          "placeholder": "Friend's house, camping, hostel..."
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "2000"
+          }
+        },
+        "postTemplate": "I chose {stayType} instead of a hotel, saved {amountSaved} TL.",
+        "shareTitle": "Saved on accommodation"
+      },
+      "home_made_beverage": {
+        "label": "Prepared my own drink",
+        "description": "Prepared my own coffee or tea instead of buying from outside.",
+        "primaryMetric": {
+          "label": "What did you prepare?",
+          "unit": "",
+          "placeholder": "Filter coffee, iced tea..."
         },
         "secondaryMetrics": {
           "amountSaved": {
@@ -74,44 +131,8 @@
             "placeholder": "95"
           }
         },
-        "postTemplate": "I skipped {count} coffee, kept {amountSaved} TL in my pocket.",
-        "shareTitle": "Kept my coffee money in my pocket today"
-      },
-      "tea_skipped": {
-        "label": "Did not buy tea",
-        "description": "Brought tea from home or used tea bags instead of buying tea from outside.",
-        "primaryMetric": {
-          "label": "How many teas did you skip?",
-          "unit": "pcs",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": {
-          "amountSaved": {
-            "label": "Saved amount",
-            "unit": "TL",
-            "placeholder": "25"
-          }
-        },
-        "postTemplate": "I skipped {count} tea, kept {amountSaved} TL in my pocket.",
-        "shareTitle": "Avoided small expenses"
-      },
-      "food_delivery_skipped": {
-        "label": "Did not order food",
-        "description": "Cooked at home instead of ordering food delivery.",
-        "primaryMetric": {
-          "label": "How many meals?",
-          "unit": "meals",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": {
-          "amountSaved": {
-            "label": "Saved amount",
-            "unit": "TL",
-            "placeholder": "220"
-          }
-        },
-        "postTemplate": "I skipped ordering food for {mealCount} meals, saved {amountSaved} TL.",
-        "shareTitle": "Did not order food delivery today"
+        "postTemplate": "Prepared {beverageName} instead of buying, saved {amountSaved} TL.",
+        "shareTitle": "Prepared my own drink"
       },
       "lunch_from_home": {
         "label": "Brought lunch from home",
@@ -132,10 +153,10 @@
         "shareTitle": "Saved money by bringing lunch from home"
       },
       "water_bottle_refill": {
-        "label": "Did not buy bottled water",
-        "description": "Used a reusable bottle instead of buying bottled water outside.",
+        "label": "Brought my reusable bottle",
+        "description": "Used my reusable bottle instead of buying bottled water outside.",
         "primaryMetric": {
-          "label": "How many bottles of water did you skip?",
+          "label": "How many times did you refill?",
           "unit": "pcs",
           "placeholder": "1"
         },
@@ -146,8 +167,8 @@
             "placeholder": "15"
           }
         },
-        "postTemplate": "I skipped {bottleCount} bottles of water, saved {amountSaved} TL.",
-        "shareTitle": "Used my reusable water bottle"
+        "postTemplate": "Used my reusable bottle instead of buying water, saved {amountSaved} TL.",
+        "shareTitle": "Used my reusable bottle"
       },
       "bottle_return": {
         "label": "Recycled bottles/cans",
@@ -352,41 +373,59 @@
         "postTemplate": "Switched to a cheaper plan for {serviceName}, will save {monthlySaved} TL monthly.",
         "shareTitle": "Switched to a cheaper plan"
       },
-      "home_grown_onion": {
-        "label": "Grew green onions",
-        "description": "Grew my own green onions at home instead of buying from the market.",
+      "home_grown_general": {
+        "label": "Grew it myself",
+        "description": "Grew my own fruits or vegetables at home/garden instead of buying from the market.",
         "primaryMetric": {
-          "label": "How many bunches?",
-          "unit": "bunches",
-          "placeholder": "1"
+          "label": "What did you grow?",
+          "unit": "",
+          "placeholder": "Tomatoes, peppers, mint..."
         },
         "secondaryMetrics": {
           "amountSaved": {
             "label": "Saved amount",
             "unit": "TL",
-            "placeholder": "15"
+            "placeholder": "50"
           }
         },
-        "postTemplate": "Grew {count} bunches of green onions at home, saved {amountSaved} TL.",
-        "shareTitle": "Growing my own veggies"
+        "postTemplate": "Grew {itemName} at home, saved {amountSaved} TL.",
+        "shareTitle": "Growing my own produce"
       },
-      "home_grown_herbs": {
-        "label": "Grew herbs",
-        "description": "Grew greens like mint, basil, or parsley at home.",
+      "home_produced": {
+        "label": "Produced it myself",
+        "description": "Produced or made something I needed myself instead of buying it.",
         "primaryMetric": {
-          "label": "How many pots/bunches?",
-          "unit": "pcs",
-          "placeholder": "1"
+          "label": "What did you produce/make?",
+          "unit": "",
+          "placeholder": "Puzzle frame, bread, soap..."
         },
         "secondaryMetrics": {
           "amountSaved": {
             "label": "Saved amount",
             "unit": "TL",
-            "placeholder": "20"
+            "placeholder": "200"
           }
         },
-        "postTemplate": "Grew {count} herbs at home, saved {amountSaved} TL.",
-        "shareTitle": "Fresh and free herbs"
+        "postTemplate": "Produced {itemName} myself instead of buying, saved {amountSaved} TL.",
+        "shareTitle": "Did not buy, produced it myself"
+      },
+      "self_service": {
+        "label": "Did it myself instead of service",
+        "description": "Handled a task myself (painting, cleaning, maintenance, etc.) instead of getting outside service.",
+        "primaryMetric": {
+          "label": "What task did you do yourself?",
+          "unit": "",
+          "placeholder": "House painting, cleaning, car maintenance..."
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "2500"
+          }
+        },
+        "postTemplate": "Did {serviceName} task myself instead of getting outside service, saved {amountSaved} TL.",
+        "shareTitle": "Did not get service, did it myself"
       },
       "reusable_bag_used": {
         "label": "Did not buy plastic bags",
@@ -441,6 +480,24 @@
         },
         "postTemplate": "Did {repairName} repair myself, saved {amountSaved} TL.",
         "shareTitle": "Avoided service fee"
+      },
+      "borrowed_item": {
+        "label": "Borrowed instead of buying",
+        "description": "Borrowed from a friend or neighbor instead of buying.",
+        "primaryMetric": {
+          "label": "What did you borrow?",
+          "unit": "",
+          "placeholder": "Drill"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Saved amount",
+            "unit": "TL",
+            "placeholder": "1500"
+          }
+        },
+        "postTemplate": "Borrowed {itemName} instead of buying, saved {amountSaved} TL.",
+        "shareTitle": "Borrowed instead of buying"
       },
       "leftovers_used": {
         "label": "Ate leftovers",

@@ -103,16 +103,17 @@ export function ClerkProviderWrapper({
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
     if (isLocal) {
-      const isSub = hostname !== "localhost" && hostname !== "127.0.0.1";
+      const primaryHost = `my.localhost`;
+      const isSub = hostname !== primaryHost && hostname !== "localhost" && hostname !== "127.0.0.1";
       setIsSatellite(isSub);
-      // For localhost dev, set the domain to the primary host so it maps correctly
-      setDomain(port ? `localhost:${port}` : "localhost");
-      setSignInUrl(`${protocol}//localhost:${port || "3000"}/sign-in`);
+      setDomain(port ? `${primaryHost}:${port}` : primaryHost);
+      setSignInUrl(`${protocol}//${primaryHost}:${port || "3000"}/sign-in`);
     } else {
-      const isSub = hostname !== rootDomain;
+      const primaryHost = `my.${rootDomain}`;
+      const isSub = hostname !== primaryHost && hostname !== rootDomain;
       setIsSatellite(isSub);
-      setDomain(rootDomain);
-      setSignInUrl(`${protocol}//${rootDomain}/sign-in`);
+      setDomain(primaryHost);
+      setSignInUrl(`${protocol}//${primaryHost}/sign-in`);
     }
   }, []);
 

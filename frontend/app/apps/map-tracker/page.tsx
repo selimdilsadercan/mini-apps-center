@@ -19,6 +19,7 @@ import dynamic from "next/dynamic";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import ImportModal from "./components/ImportModal";
+import { useUser } from "@clerk/clerk-react";
 
 // Dynamic import for MapComponent to avoid window is not defined error
 const MapComponent = dynamic(
@@ -33,6 +34,7 @@ const client = createBrowserClient();
 
 export default function MapTrackerPage() {
   const router = useRouter();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const [view, setView] = useState<"map" | "list">("map");
   const [data, setData] = useState<{ lists: any[]; items: any[] }>({ lists: [], items: [] });
   const [selectedListId, setSelectedListId] = useState<string | "all">("all");
@@ -40,12 +42,17 @@ export default function MapTrackerPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isUserLoaded && user) {
+      fetchData();
+    } else if (isUserLoaded && !user) {
+      setIsLoading(false);
+    }
+  }, [isUserLoaded, user]);
 
   const fetchData = async () => {
     try {
-      const res = await client.map_tracker.getData();
+      if (!user) return;
+      const res = await client.map_tracker.getData(user.id);
       setData({
         lists: res?.lists || [],
         items: res?.items || []
@@ -60,11 +67,12 @@ export default function MapTrackerPage() {
 
   const handleToggleVisited = async (id: string) => {
     try {
-      await client.map_tracker.toggleVisited({ id });
+      if (!user) return;
+      await client.map_tracker.toggleVisited({ userId: user.id, id });
       setData(prev => ({
         ...prev,
         items: (prev?.items || []).map(item => 
-          item.id === id ? { ...item, is_visited: !item.is_visited } : item
+          item.id === id ? { ...item, isVisited: !item.isVisited } : item
         )
       }));
     } catch (err) {
@@ -74,7 +82,8 @@ export default function MapTrackerPage() {
 
   const handleImport = async (listName: string, items: any[]) => {
     try {
-      await client.map_tracker.importItems({ listName, items });
+      if (!user) return;
+      await client.map_tracker.importItems({ userId: user.id, listName, items });
       toast.success(`${listName} başarıyla içe aktarıldı`);
       fetchData();
     } catch (err) {
@@ -85,7 +94,7 @@ export default function MapTrackerPage() {
 
   const filteredItems = useMemo(() => {
     if (selectedListId === "all") return data?.items || [];
-    return (data?.items || []).filter(item => item.list_id === selectedListId);
+    return (data?.items || []).filter(item => item.listId === selectedListId);
   }, [data.items, selectedListId]);
 
   return (
@@ -194,9 +203,9 @@ export default function MapTrackerPage() {
                     >
                       <button 
                         onClick={() => handleToggleVisited(item.id)}
-                        className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${item.is_visited ? "bg-[#A3B18A] text-white" : "bg-[#F1EDE2] text-[#8D99AE]"}`}
+                        className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${item.isVisited ? "bg-[#A3B18A] text-white" : "bg-[#F1EDE2] text-[#8D99AE]"}`}
                       >
-                        {item.is_visited ? <CheckCircle size={24} weight="fill" /> : <Circle size={24} />}
+                        {item.isVisited ? <CheckCircle size={24} weight="fill" /> : <Circle size={24} />}
                       </button>
                       
                       <div className="flex-1 min-w-0">
@@ -205,7 +214,7 @@ export default function MapTrackerPage() {
                       </div>
 
                       <a 
-                        href={item.google_maps_url} 
+                        href={item.googleMapsUrl || "#"} 
                         target="_blank"
                         className="shrink-0 w-8 h-8 rounded-full bg-[#FDFCF8] flex items-center justify-center border border-[#F1EDE2] text-[#8D99AE] hover:text-[#3D405B] transition-colors"
                       >

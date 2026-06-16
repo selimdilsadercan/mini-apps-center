@@ -56,16 +56,73 @@
       "Satış & İkinci El": "Satış & İkinci El",
       "Ulaşım": "Ulaşım",
       "Abonelik & Dijital": "Abonelik & Dijital",
-      "Market & Ev": "Market & Ev"
+      "Market & Ev": "Market & Ev",
+      "Seyahat": "Seyahat",
+      "Ek Kazanç": "Ek Kazanç",
+      "Diğer": "Diğer"
     },
     "challenges": {
-      "coffee_skipped": {
-        "label": "Kahve almadım",
-        "description": "Dışarıdan kahve almak yerine evde yaptım ya da hiç almadım.",
+      "custom_saving": {
+        "label": "Kendi tasarrufumu ekle",
+        "description": "Listede olmayan farklı bir tasarruf yöntemini buraya yazabilirsin.",
         "primaryMetric": {
-          "label": "Kaç kahve almadın?",
-          "unit": "adet",
-          "placeholder": "1"
+          "label": "Ne yaptın?",
+          "unit": "",
+          "placeholder": "Örn: Kendi saçımı kestim"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "200"
+          }
+        },
+        "postTemplate": "{customTitle} yaptım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Kendi tasarrufumu yaptım"
+      },
+      "extra_income_general": {
+        "label": "Ek kazanç elde ettim",
+        "description": "Normal gelirim dışında bir işten veya satıştan ek gelir elde ettim.",
+        "primaryMetric": {
+          "label": "Nereden kazandın?",
+          "unit": "",
+          "placeholder": "Freelance iş, satış, anket..."
+        },
+        "secondaryMetrics": {
+          "amountEarned": {
+            "label": "Kazanılan para",
+            "unit": "TL",
+            "placeholder": "500"
+          }
+        },
+        "postTemplate": "{incomeSource} yoluyla {amountEarned} TL ek kazanç elde ettim.",
+        "shareTitle": "Ek kazanç elde ettim"
+      },
+      "accommodation_saving": {
+        "label": "Konaklamadan tasarruf ettim",
+        "description": "Otel yerine arkadaşta kaldım, kamp yaptım veya daha uygun bir seçenek buldum.",
+        "primaryMetric": {
+          "label": "Nerede kaldın?",
+          "unit": "",
+          "placeholder": "Arkadaş evi, kamp, hostel..."
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "2000"
+          }
+        },
+        "postTemplate": "Otel yerine {stayType} tercih ettim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Konaklamadan tasarruf ettim"
+      },
+      "home_made_beverage": {
+        "label": "İçeceğimi kendim hazırladım",
+        "description": "Dışarıdan almak yerine kahve veya çayımı kendim hazırladım.",
+        "primaryMetric": {
+          "label": "Ne hazırladın?",
+          "unit": "",
+          "placeholder": "Filtre kahve, soğuk çay..."
         },
         "secondaryMetrics": {
           "amountSaved": {
@@ -74,44 +131,8 @@
             "placeholder": "95"
           }
         },
-        "postTemplate": "{count} kahve almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Bugün kahve parasını cebimde tuttum"
-      },
-      "tea_skipped": {
-        "label": "Çay almadım",
-        "description": "Dışarıdan çay almak yerine evden götürdüm veya poşet çay kullandım.",
-        "primaryMetric": {
-          "label": "Kaç çay almadın?",
-          "unit": "adet",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": {
-          "amountSaved": {
-            "label": "Cepte kalan para",
-            "unit": "TL",
-            "placeholder": "25"
-          }
-        },
-        "postTemplate": "{count} çay almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Küçük harcama yapmadım"
-      },
-      "food_delivery_skipped": {
-        "label": "Yemek söylemedim",
-        "description": "Dışarıdan yemek söylemek yerine evde yemek yaptım.",
-        "primaryMetric": {
-          "label": "Kaç öğün?",
-          "unit": "öğün",
-          "placeholder": "1"
-        },
-        "secondaryMetrics": {
-          "amountSaved": {
-            "label": "Cepte kalan para",
-            "unit": "TL",
-            "placeholder": "220"
-          }
-        },
-        "postTemplate": "{mealCount} öğün dışarıdan söylemedim, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Bugün yemek siparişi vermedim"
+        "postTemplate": "Dışarıdan almak yerine {beverageName} hazırladım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "İçeceğimi kendim hazırladım"
       },
       "lunch_from_home": {
         "label": "Evden yemek götürdüm",
@@ -132,10 +153,10 @@
         "shareTitle": "Evden yemek götürerek tasarruf ettim"
       },
       "water_bottle_refill": {
-        "label": "Su almadım",
-        "description": "Dışarıdan su almak yerine matara kullandım.",
+        "label": "Mataramı yanıma aldım",
+        "description": "Dışarıdan su almak yerine mataramı kullandım.",
         "primaryMetric": {
-          "label": "Kaç şişe su almadın?",
+          "label": "Kaç kez doldurdun?",
           "unit": "adet",
           "placeholder": "1"
         },
@@ -146,8 +167,8 @@
             "placeholder": "15"
           }
         },
-        "postTemplate": "{bottleCount} şişe su almadım, {amountSaved} TL cepte kaldı.",
-        "shareTitle": "Matara kullandım"
+        "postTemplate": "Dışarıdan su almak yerine mataramı kullandım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Mataramı kullandım"
       },
       "bottle_return": {
         "label": "Şişe/kutu iade ettim",
@@ -352,41 +373,59 @@
         "postTemplate": "{serviceName} için daha ucuz plana geçtim, ayda {monthlySaved} TL tasarruf edeceğim.",
         "shareTitle": "Daha ucuz plana geçtim"
       },
-      "home_grown_onion": {
-        "label": "Taze soğan yetiştirdim",
-        "description": "Marketten almak yerine evde kendi taze soğanımı yetiştirdim.",
+      "home_grown_general": {
+        "label": "Kendim yetiştirdim",
+        "description": "Marketten almak yerine evde/bahçede kendi sebze veya meyvemi yetiştirdim.",
         "primaryMetric": {
-          "label": "Kaç demet?",
-          "unit": "demet",
-          "placeholder": "1"
+          "label": "Ne yetiştirdin?",
+          "unit": "",
+          "placeholder": "Domates, biber, nane..."
         },
         "secondaryMetrics": {
           "amountSaved": {
             "label": "Cepte kalan para",
             "unit": "TL",
-            "placeholder": "15"
+            "placeholder": "50"
           }
         },
-        "postTemplate": "Evde {count} demet taze soğan yetiştirdim, {amountSaved} TL tasarruf ettim.",
-        "shareTitle": "Kendi sebzemi yetiştiriyorum"
+        "postTemplate": "Evde {itemName} yetiştirdim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Kendi ürünümü yetiştiriyorum"
       },
-      "home_grown_herbs": {
-        "label": "Yeşillik yetiştirdim",
-        "description": "Nane, fesleğen veya maydanoz gibi yeşillikleri evde yetiştirdim.",
+      "home_produced": {
+        "label": "Kendim ürettim",
+        "description": "Satın almak yerine ihtiyacım olan bir şeyi kendim ürettim veya yaptım.",
         "primaryMetric": {
-          "label": "Kaç saksı/demet?",
-          "unit": "adet",
-          "placeholder": "1"
+          "label": "Ne ürettin/yaptın?",
+          "unit": "",
+          "placeholder": "Puzzle çerçevesi, ekmek, sabun..."
         },
         "secondaryMetrics": {
           "amountSaved": {
             "label": "Cepte kalan para",
             "unit": "TL",
-            "placeholder": "20"
+            "placeholder": "200"
           }
         },
-        "postTemplate": "Evde {count} adet yeşillik yetiştirdim, {amountSaved} TL tasarruf ettim.",
-        "shareTitle": "Taze ve bedava yeşillik"
+        "postTemplate": "{itemName} satın almak yerine kendim ürettim, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Satın almadım, kendim ürettim"
+      },
+      "self_service": {
+        "label": "Hizmet almadım, kendim yaptım",
+        "description": "Dışarıdan hizmet almak yerine (boya, temizlik, bakım vb.) işi kendim hallettim.",
+        "primaryMetric": {
+          "label": "Hangi işi kendin yaptın?",
+          "unit": "",
+          "placeholder": "Ev boyama, temizlik, araç bakımı..."
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "2500"
+          }
+        },
+        "postTemplate": "{serviceName} işini dışarıdan hizmet almak yerine kendim yaptım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Hizmet almadım, kendim yaptım"
       },
       "reusable_bag_used": {
         "label": "Poşet almadım",
@@ -441,6 +480,24 @@
         },
         "postTemplate": "{repairName} tamirini kendim yaptım, {amountSaved} TL cepte kaldı.",
         "shareTitle": "Servis parası vermedim"
+      },
+      "borrowed_item": {
+        "label": "Ödünç aldım",
+        "description": "Satın almak yerine bir arkadaştan veya komşudan ödünç aldım.",
+        "primaryMetric": {
+          "label": "Ne ödünç aldın?",
+          "unit": "",
+          "placeholder": "Matkap"
+        },
+        "secondaryMetrics": {
+          "amountSaved": {
+            "label": "Cepte kalan para",
+            "unit": "TL",
+            "placeholder": "1500"
+          }
+        },
+        "postTemplate": "{itemName} satın almak yerine ödünç aldım, {amountSaved} TL tasarruf ettim.",
+        "shareTitle": "Satın almak yerine ödünç aldım"
       },
       "leftovers_used": {
         "label": "Artan yemeği değerlendirdim",

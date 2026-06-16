@@ -26,8 +26,14 @@ import { boardGameClubsAssistant } from "../board-game-clubs/assistant";
 import { pomodoroAssistant } from "../pomodoro/assistant";
 import { kimGelirAssistant } from "../kim-gelir/assistant";
 import { feedAssistant } from "../feed/assistant";
+import { penaltyJarAssistant } from "../penalty-jar/assistant";
+import { campusConcertsAssistant } from "../campus-concerts/assistant";
+import { birikimAssistant } from "../birikim/assistant";
+import { budgetAssistant } from "../budget/assistant";
+import { stampCardAssistant } from "../stamp-card/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
+  birikimAssistant,
   kilerAssistant,
   subcenterAssistant,
   recipeAssistant,
@@ -51,6 +57,10 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   kimGelirAssistant,
   feedAssistant,
   dailyWeatherAssistant,
+  penaltyJarAssistant,
+  campusConcertsAssistant,
+  budgetAssistant,
+  stampCardAssistant,
 ];
 
 const assistantByAppId = new Map(

@@ -3,7 +3,7 @@ import { requireString, optionalString, requireNumber, optionalNumber } from "..
 
 export const tools: Record<string, any> = {
   get_inbox_suggestions: {
-    description: "Get all film, series, game or place suggestions sent to the current user (Inbox)",
+    description: "Get all song, movie, series, video, book or place suggestions sent to the current user (Inbox)",
     parameters: {
       type: "object",
       properties: {
@@ -35,12 +35,12 @@ export const tools: Record<string, any> = {
   },
 
   create_suggestion: {
-    description: "Send a new recommendation of a movie, show, game, or venue to one or more friends.",
+    description: "Send a new recommendation of a song, movie, show, video, book, or venue to one or more friends.",
     parameters: {
       type: "object",
       properties: {
         senderClerkId: { type: "string", description: "Clerk ID of the sender user" },
-        category: { type: "string", enum: ["movie", "tv", "game", "place"], description: "Category of suggestion" },
+        category: { type: "string", enum: ["song", "movie", "tv", "video", "place", "book"], description: "Category of suggestion" },
         title: { type: "string", description: "Title of the item being recommended" },
         shortNote: { type: "string", description: "Short descriptive note or recommendation comment" },
         rating: { type: "number", description: "Rating score from 0 to 5" },
