@@ -1440,13 +1440,6 @@ export namespace daily_weather {
 
     export type RecommendationCategory = "clothing" | "gear" | "activity" | "health" | "commute"
 
-    export interface WeatherRecommendation {
-        id: string
-        category: RecommendationCategory
-        title: string
-        detail: string
-    }
-
     export interface TestNotificationRequest {
         userId: string
         locale?: string
@@ -1497,6 +1490,14 @@ export namespace daily_weather {
         city: string
         "created_at": string
         "updated_at": string
+    }
+
+    export interface WeatherRecommendation {
+        id: string
+        category: RecommendationCategory
+        title: string
+        detail: string
+        priority: number
     }
 
     export interface WeatherSnapshot {
