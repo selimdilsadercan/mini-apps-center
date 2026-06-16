@@ -9,6 +9,10 @@
     "humidity": "Nem",
     "wind": "Rüzgâr"
   },
+  "recommendations": {
+    "title": "Bugün için öneriler",
+    "subtitle": "Sıcaklık, yağış ve rüzgâra göre kişiselleştirilmiş ipuçları."
+  },
   "notifications": {
     "title": "Sabah bildirimi",
     "description": "Seçtiğin saatte günlük hava özetini al.",

@@ -9,6 +9,10 @@
     "humidity": "Humidity",
     "wind": "Wind"
   },
+  "recommendations": {
+    "title": "Today's tips",
+    "subtitle": "Personalized advice based on temperature, rain, and wind."
+  },
   "notifications": {
     "title": "Morning notification",
     "description": "Get a daily weather summary at your chosen time.",

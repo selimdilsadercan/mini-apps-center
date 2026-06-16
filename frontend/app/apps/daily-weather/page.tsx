@@ -14,6 +14,12 @@ import {
   Cloud,
   CloudRain,
   Sun,
+  Lightbulb,
+  TShirt,
+  Umbrella,
+  PersonSimpleWalk,
+  Heart,
+  Car,
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
@@ -21,7 +27,31 @@ import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
 import { useNotifications } from "@/hooks/use-notifications";
 import { getMockIstanbulWeather, type DailyWeatherSnapshot } from "./mock-weather";
+import { buildLocalRecommendations } from "./recommendations";
 import type { daily_weather } from "@/lib/client";
+
+function RecommendationIcon({
+  category,
+}: {
+  category: daily_weather.RecommendationCategory;
+}) {
+  const className = "text-amber-300 shrink-0";
+  const size = 20;
+  switch (category) {
+    case "clothing":
+      return <TShirt size={size} weight="duotone" className={className} />;
+    case "gear":
+      return <Umbrella size={size} weight="duotone" className={className} />;
+    case "activity":
+      return <PersonSimpleWalk size={size} weight="duotone" className={className} />;
+    case "health":
+      return <Heart size={size} weight="duotone" className={className} />;
+    case "commute":
+      return <Car size={size} weight="duotone" className={className} />;
+    default:
+      return <Lightbulb size={size} weight="duotone" className={className} />;
+  }
+}
 
 function WeatherIcon({ icon }: { icon: DailyWeatherSnapshot["icon"] }) {
   const className = "text-sky-300";
@@ -53,6 +83,7 @@ export default function DailyWeatherPage() {
   const [prefsLoading, setPrefsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [weather, setWeather] = useState<DailyWeatherSnapshot | null>(null);
+  const [recommendations, setRecommendations] = useState<daily_weather.WeatherRecommendation[]>([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
 
   const lang = locale === "tr" ? "tr" : "en";
@@ -67,6 +98,7 @@ export default function DailyWeatherPage() {
     humidity: w.humidity,
     windKmh: w.windKmh,
     icon: w.icon,
+    weatherCode: w.weatherCode,
   });
 
   useEffect(() => {
@@ -81,11 +113,14 @@ export default function DailyWeatherPage() {
         });
         if (!cancelled) {
           setWeather(mapSnapshot(res.weather));
+          setRecommendations(res.recommendations ?? []);
         }
       } catch (err) {
         console.error("loadWeather:", err);
         if (!cancelled) {
-          setWeather(getMockIstanbulWeather(lang));
+          const mock = getMockIstanbulWeather(lang);
+          setWeather(mock);
+          setRecommendations(buildLocalRecommendations(mock, lang));
         }
       } finally {
         if (!cancelled) setWeatherLoading(false);
@@ -297,6 +332,32 @@ export default function DailyWeatherPage() {
             </>
           )}
         </motion.section>
+
+        {!weatherLoading && recommendations.length > 0 && (
+          <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 space-y-3">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Lightbulb size={20} className="text-amber-300" weight="duotone" />
+              {t("recommendations.title")}
+            </h2>
+            <p className="text-sm text-slate-400">{t("recommendations.subtitle")}</p>
+            <ul className="space-y-2.5">
+              {recommendations.map((rec) => (
+                <li
+                  key={rec.id}
+                  className="rounded-xl border border-white/5 bg-black/20 px-3.5 py-3 flex gap-3"
+                >
+                  <div className="mt-0.5">
+                    <RecommendationIcon category={rec.category} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-100">{rec.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{rec.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 space-y-4 relative z-20">
           <div className="flex items-start justify-between gap-3">

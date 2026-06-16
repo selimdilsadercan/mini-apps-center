@@ -22,6 +22,15 @@ export const dailyWeatherAssistant: AppAssistantModule = {
         locale: { type: "string", description: "tr veya en" },
       },
     },
+    {
+      name: "get_weather_recommendations",
+      description: "Hava durumuna göre giyim, aktivite ve sağlık önerilerini getirir.",
+      permission: "read",
+      parameters: {
+        city: { type: "string", description: "Şehir adı (varsayılan Istanbul)" },
+        locale: { type: "string", description: "tr veya en" },
+      },
+    },
   ],
   executors: {
     get_weather_preferences: async ({ userId }) => {
@@ -34,6 +43,13 @@ export const dailyWeatherAssistant: AppAssistantModule = {
         locale: args?.locale === "en" ? "en" : "tr",
       });
       return res.weather;
+    },
+    get_weather_recommendations: async ({ args }) => {
+      const res = await daily_weather.getWeather({
+        city: typeof args?.city === "string" ? args.city : "Istanbul",
+        locale: args?.locale === "en" ? "en" : "tr",
+      });
+      return res.recommendations;
     },
   },
 };

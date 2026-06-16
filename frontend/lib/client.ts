@@ -764,6 +764,16 @@ export namespace daily_weather {
 
     export interface GetWeatherResponse {
         weather: WeatherSnapshot
+        recommendations: WeatherRecommendation[]
+    }
+
+    export type RecommendationCategory = "clothing" | "gear" | "activity" | "health" | "commute"
+
+    export interface WeatherRecommendation {
+        id: string
+        category: RecommendationCategory
+        title: string
+        detail: string
     }
 
     export interface TestNotificationRequest {

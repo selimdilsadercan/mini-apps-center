@@ -8,6 +8,7 @@ import {
   type WeatherSnapshot,
 } from "./weather_provider";
 import { sendWeatherPush } from "./push";
+import { buildWeatherRecommendations, type WeatherRecommendation } from "./recommendations";
 
 export type { WeatherSnapshot } from "./weather_provider";
 
@@ -124,6 +125,8 @@ interface UpsertPreferencesResponse {
   preferences: WeatherPreferences;
 }
 
+export type { WeatherRecommendation } from "./recommendations";
+
 interface GetWeatherRequest {
   city?: string;
   locale?: string;
@@ -131,6 +134,7 @@ interface GetWeatherRequest {
 
 interface GetWeatherResponse {
   weather: WeatherSnapshot;
+  recommendations: WeatherRecommendation[];
 }
 
 interface TestNotificationRequest {
@@ -151,7 +155,8 @@ export const getWeather = api(
     const lang = locale === "en" ? "en" : "tr";
     try {
       const weather = await fetchWeatherSnapshot(city ?? "Istanbul", lang);
-      return { weather };
+      const recommendations = buildWeatherRecommendations(weather, lang);
+      return { weather, recommendations };
     } catch (err) {
       if (err instanceof APIError) throw err;
       console.error("getWeather error:", err);

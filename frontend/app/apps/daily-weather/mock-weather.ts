@@ -8,6 +8,7 @@ export interface DailyWeatherSnapshot {
   humidity: number;
   windKmh: number;
   icon: "sun" | "cloud" | "rain" | "partly";
+  weatherCode?: number;
 }
 
 export function getMockIstanbulWeather(locale: "tr" | "en"): DailyWeatherSnapshot {
@@ -28,6 +29,7 @@ export function getMockIstanbulWeather(locale: "tr" | "en"): DailyWeatherSnapsho
     humidity: 62,
     windKmh: 14,
     icon: "partly",
+    weatherCode: 2,
   };
 }
 
