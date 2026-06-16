@@ -42,6 +42,8 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   oneday: "/apps/one-day-city-guide",
   budget: "/apps/budget",
   stampcard: "/apps/stamp-card",
+  esles: "/apps/esles",
+  campusevent: "/apps/campus-event",
 };
 
 /**

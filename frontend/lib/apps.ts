@@ -27,6 +27,7 @@ import {
   PiggyBank,
   Warning,
   PaperPlaneTilt,
+  Buildings,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -611,6 +612,30 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/stamp-card",
     isImplemented: true,
     subdomain: "stampcard",
+    isBeta: true,
+  },
+  {
+    id: "esles",
+    name: "Eşleş",
+    description: "Online oyun arkadaşı bul! İlan oluştur, oyuncu ara ve hemen takıma katıl.",
+    icon: GameController,
+    category: "Board Games & Fun",
+    color: "#7C3AED",
+    href: "/apps/esles",
+    isImplemented: true,
+    subdomain: "esles",
+    isBeta: true,
+  },
+  {
+    id: "campus-event",
+    name: "Campus Event",
+    description: "Üniversite kulüplerinin etkinliklerini keşfet. Konserler, workshoplar, turnuvalar ve daha fazlası!",
+    icon: Buildings,
+    category: "Lifestyle",
+    color: "#0D9488",
+    href: "/apps/campus-event",
+    isImplemented: true,
+    subdomain: "campusevent",
     isBeta: true,
   },
 ];
