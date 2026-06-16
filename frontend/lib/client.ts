@@ -55,6 +55,7 @@ export default class Client {
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
+    public readonly stamp_card: stamp_card.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
@@ -100,6 +101,7 @@ export default class Client {
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
+        this.stamp_card = new stamp_card.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
@@ -3206,6 +3208,165 @@ export namespace scrape {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/scrape/youtube/shorts`, JSON.stringify(params))
             return await resp.json() as ScrapeYouTubeShortResponse
+        }
+    }
+}
+
+/**
+ * Stamp Card service - handles digital loyalty cards and rewards
+ */
+export namespace stamp_card {
+    export interface AddStampRequest {
+        userId: string
+        businessId: string
+        pin: string
+    }
+
+    export interface AddStampResponse {
+        success: boolean
+        "stamps_count"?: number
+        "completed_count"?: number
+        "reward_created"?: boolean
+        "new_reward_id"?: string
+        error?: string
+    }
+
+    export interface Business {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "stamp_limit": number
+        "reward_title": string
+        "created_at": string
+    }
+
+    export interface CreateBusinessRequest {
+        userId: string
+        name: string
+        description: string
+        logoUrl: string
+        stampLimit: number
+        rewardTitle: string
+        pinCode: string
+    }
+
+    export interface CreateBusinessResponse {
+        business: Business | null
+    }
+
+    export interface GetUserDataResponse {
+        cards: UserCard[]
+        rewards: RedeemedReward[]
+        "my_businesses": UserOwnedBusiness[]
+    }
+
+    export interface RedeemedReward {
+        id: string
+        "business_id": string
+        "reward_title": string
+        "is_used": boolean
+        "redeemed_at": string
+        "business_name": string
+        "business_logo": string | null
+    }
+
+    export interface UseRewardRequest {
+        userId: string
+        rewardId: string
+    }
+
+    export interface UseRewardResponse {
+        success: boolean
+    }
+
+    export interface UserCard {
+        id: string
+        "business_id": string
+        "stamps_count": number
+        "completed_count": number
+        "updated_at": string
+        "business_name": string
+        "business_logo": string | null
+        "business_reward": string
+        "stamp_limit": number
+    }
+
+    export interface UserOwnedBusiness {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "stamp_limit": number
+        "reward_title": string
+        "pin_code": string
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addStamp = this.addStamp.bind(this)
+            this.createBusiness = this.createBusiness.bind(this)
+            this.getBusinesses = this.getBusinesses.bind(this)
+            this.getUserData = this.getUserData.bind(this)
+            this.useReward = this.useReward.bind(this)
+        }
+
+        /**
+         * Add stamp to a card (validate PIN code)
+         * POST /stamp-card/stamp
+         */
+        public async addStamp(params: AddStampRequest): Promise<AddStampResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/stamp`, JSON.stringify(params))
+            return await resp.json() as AddStampResponse
+        }
+
+        /**
+         * Create a new business
+         * POST /stamp-card/business/create
+         */
+        public async createBusiness(params: CreateBusinessRequest): Promise<CreateBusinessResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/business/create`, JSON.stringify(params))
+            return await resp.json() as CreateBusinessResponse
+        }
+
+        /**
+         * Get all available businesses
+         * GET /stamp-card/businesses
+         */
+        public async getBusinesses(): Promise<{
+    businesses: Business[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/stamp-card/businesses`)
+            return await resp.json() as {
+    businesses: Business[]
+}
+        }
+
+        /**
+         * Get all user-specific data (cards, rewards, user owned businesses)
+         * GET /stamp-card/data/:userId
+         */
+        public async getUserData(userId: string): Promise<GetUserDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/stamp-card/data/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserDataResponse
+        }
+
+        /**
+         * Mark a redeemed reward as used
+         * POST /stamp-card/reward/use
+         */
+        public async useReward(params: UseRewardRequest): Promise<UseRewardResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/reward/use`, JSON.stringify(params))
+            return await resp.json() as UseRewardResponse
         }
     }
 }

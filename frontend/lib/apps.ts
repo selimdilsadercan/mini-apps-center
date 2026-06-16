@@ -601,4 +601,16 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "budget",
     isBeta: true,
   },
+  {
+    id: "stamp-card",
+    name: "Stamp Card",
+    description: "Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan!",
+    icon: Cards,
+    category: "Lifestyle",
+    color: "#F59E0B",
+    href: "/apps/stamp-card",
+    isImplemented: true,
+    subdomain: "stampcard",
+    isBeta: true,
+  },
 ];

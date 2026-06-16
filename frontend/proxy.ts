@@ -41,6 +41,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   kavanoz: "/apps/penalty-jar",
   oneday: "/apps/one-day-city-guide",
   budget: "/apps/budget",
+  stampcard: "/apps/stamp-card",
 };
 
 /**
