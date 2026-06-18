@@ -120,6 +120,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- 3b. Delete Project (Soft Delete)
+DROP FUNCTION IF EXISTS budget.delete_project(UUID);
+CREATE OR REPLACE FUNCTION budget.delete_project(
+    project_id_param UUID
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE budget.projects SET is_active = FALSE WHERE id = project_id_param;
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 4. Get User Projects
 DROP FUNCTION IF EXISTS budget.get_user_projects(TEXT);
 CREATE OR REPLACE FUNCTION budget.get_user_projects(
@@ -166,8 +178,9 @@ BEGIN
         COALESCE((SELECT SUM(amount) FROM budget.expenses e WHERE e.project_id = p.id), 0)::DECIMAL as total_spent,
         COALESCE((SELECT SUM(s.share_amount) FROM budget.expense_shares s JOIN budget.members m ON s.member_id = m.id WHERE m.project_id = p.id AND m.user_id = v_user_id), 0)::DECIMAL as user_share
     FROM budget.projects p
-    WHERE p.creator_id = v_user_id
-       OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id)
+    WHERE (p.creator_id = v_user_id
+       OR p.id IN (SELECT project_id FROM budget.members WHERE user_id = v_user_id))
+       AND p.is_active = TRUE
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;

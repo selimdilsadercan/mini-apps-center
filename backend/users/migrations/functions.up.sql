@@ -141,15 +141,52 @@ CREATE OR REPLACE FUNCTION public.get_user_preferences(
   is_local_param BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (
-  app_order JSONB
+  app_order JSONB,
+  selected_university TEXT
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT up.app_order
+  SELECT up.app_order, up.selected_university
   FROM public.user_preferences up
   JOIN public.users u ON up.user_id = u.id
   WHERE (is_local_param AND u.local_clerk_id = clerk_id_param)
      OR (NOT is_local_param AND u.clerk_id = clerk_id_param);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6b. update_user_university
+DROP FUNCTION IF EXISTS public.update_user_university;
+
+CREATE OR REPLACE FUNCTION public.update_user_university(
+  clerk_id_param TEXT,
+  university_param TEXT,
+  is_local_param BOOLEAN DEFAULT FALSE
+)
+RETURNS VOID AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- Get user id
+  SELECT id INTO v_user_id FROM public.users 
+  WHERE (is_local_param AND local_clerk_id = clerk_id_param)
+     OR (NOT is_local_param AND clerk_id = clerk_id_param);
+  
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found';
+  END IF;
+
+  -- Update users table
+  UPDATE public.users 
+  SET selected_university = university_param
+  WHERE id = v_user_id;
+
+  -- Update user_preferences table
+  INSERT INTO public.user_preferences (user_id, selected_university, updated_at)
+  VALUES (v_user_id, university_param, NOW())
+  ON CONFLICT (user_id)
+  DO UPDATE SET 
+    selected_university = EXCLUDED.selected_university,
+    updated_at = NOW();
 END;
 $$ LANGUAGE plpgsql;
 

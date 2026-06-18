@@ -53,8 +53,8 @@ export default function Home() {
         // Try backend first if user is logged in
         if (user?.id) {
           const { data, error } = await getUserPreferencesAction(user.id);
-          if (data && data.length > 0) {
-            orderIds = data;
+          if (data?.appOrder && data.appOrder.length > 0) {
+            orderIds = data.appOrder;
           }
         }
 

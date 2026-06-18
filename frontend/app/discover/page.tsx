@@ -199,8 +199,8 @@ export default function Discover() {
         // Try backend first
         if (user?.id) {
           const { data } = await getUserPreferencesAction(user.id);
-          if (data && data.length > 0) {
-            orderIds = data;
+          if (data?.appOrder && data.appOrder.length > 0) {
+            orderIds = data.appOrder;
           }
         }
 
@@ -497,16 +497,26 @@ export default function Discover() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    {cancelledApps.map(app => {
+                      const isInstalled = installedIds.includes(app.id);
                       const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
                       const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
                       return (
                         <div 
                           key={app.id} 
-                          className="flex items-center justify-between w-full gap-4 bg-red-50/30 p-4 rounded-[1.75rem] border border-red-100/50 shadow-sm opacity-60 grayscale-[0.5] pointer-events-none"
+                          className={`flex items-center justify-between w-full gap-4 p-4 rounded-[1.75rem] border shadow-sm ${
+                            isAdmin 
+                              ? "bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer" 
+                              : "bg-red-50/30 border-red-100/50 opacity-60 grayscale-[0.5] pointer-events-none"
+                          }`}
+                          onClick={() => {
+                            if (isAdmin) {
+                              handleAppClick(app);
+                            }
+                          }}
                         >
                           <div className="flex-1 flex items-center text-left gap-4 min-w-0">
                             <div 
-                              className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md grayscale" 
+                              className={`w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md ${!isAdmin ? "grayscale" : ""}`} 
                               style={{ backgroundColor: app.color }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
@@ -520,9 +530,30 @@ export default function Discover() {
                               <p className="text-gray-500 text-xs truncate">{appDesc}</p>
                             </div>
                           </div>
-                          <div className="px-3 py-1 rounded-full font-black text-[9px] bg-red-100 text-red-600 uppercase tracking-widest shrink-0">
-                            İptal
-                          </div>
+                          
+                          {isAdmin ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isInstalled) {
+                                  handleAppClick(app);
+                                } else {
+                                  handleGetApp(app.id, e);
+                                }
+                              }}
+                              className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 ${
+                                isInstalled
+                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
+                                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                              }`}
+                            >
+                              {isInstalled ? t("open") : t("get")}
+                            </button>
+                          ) : (
+                            <div className="px-3 py-1 rounded-full font-black text-[9px] bg-red-100 text-red-600 uppercase tracking-widest shrink-0">
+                              İptal
+                            </div>
+                          )}
                         </div>
                       );
                    })}

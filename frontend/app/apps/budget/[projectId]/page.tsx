@@ -21,12 +21,13 @@ import {
   Table,
   ShareNetwork
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { budget } from "@/lib/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const client = createBrowserClient();
 
@@ -104,6 +105,7 @@ export default function ProjectDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [internalUserId, setInternalUserId] = useState<string | null>(null);
   
+  const { confirm } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<"expenses" | "balances">("expenses");
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
   const [isProjectEditOpen, setIsProjectEditOpen] = useState(false);
@@ -111,6 +113,35 @@ export default function ProjectDetailsPage() {
   const [inlineSavingId, setInlineSavingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [editingExpense, setEditingExpense] = useState<budget.Expense | null>(null);
+
+  const executeDelete = async () => {
+    if (!project) return;
+    const confirmed = await confirm({
+      title: isTr ? "Seyahati Sil" : "Delete Trip",
+      description: isTr 
+        ? "Bu seyahati silmek istediğinizden emin misiniz? (Harcama geçmişi ve detayları korunur, seyahat listenizden kaldırılır)" 
+        : "Are you sure you want to delete this trip? (Expense history and details are kept, but the trip is removed from your list)",
+      confirmText: isTr ? "Sil" : "Delete",
+      cancelText: isTr ? "Vazgeç" : "Cancel",
+      variant: "danger",
+      icon: <Trash size={20} weight="fill" />
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await client.budget.deleteProject(project.id);
+      toast.success(isTr ? "Seyahat silindi (pasif yapıldı)" : "Trip deleted (archived)");
+      setIsProjectEditOpen(false);
+      router.push("/apps/budget");
+    } catch (err) {
+      console.error(err);
+      toast.error(isTr ? "Hata oluştu" : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculations
   const [totalSpent, setTotalSpent] = useState(0);
@@ -825,6 +856,13 @@ export default function ProjectDetailsPage() {
                     {members.map(member => {
                       const bal = memberBalances[member.id] || 0;
                       const isMe = member.userId === internalUserId;
+                      const spentAmount = shares
+                        .filter(s => s.memberId === member.id)
+                        .reduce((sum, s) => sum + Number(s.shareAmount), 0);
+                      const paidAmount = expenses
+                        .filter(e => e.payerMemberId === member.id)
+                        .reduce((sum, e) => sum + Number(e.amount), 0);
+
                       return (
                         <div key={member.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex justify-between items-center shadow-sm">
                           <div className="flex items-center gap-3">
@@ -840,10 +878,17 @@ export default function ProjectDetailsPage() {
                               </div>
                             )}
                             <div>
-                              <h4 className="text-sm font-bold text-gray-900 tracking-tight">{member.name}</h4>
-                              {isMe && (
-                                <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{isTr ? "BEN" : "ME"}</span>
-                              )}
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-bold text-gray-900 tracking-tight">{member.name}</h4>
+                                {isMe && (
+                                  <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{isTr ? "BEN" : "ME"}</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                                {isTr ? "Harcadı" : "Spent"}: {getCurrencySymbol(project.currency)}{formatVal(spentAmount)}
+                                {" • "}
+                                {isTr ? "Ödedi" : "Paid"}: {getCurrencySymbol(project.currency)}{formatVal(paidAmount)}
+                              </p>
                             </div>
                           </div>
 
@@ -956,6 +1001,7 @@ export default function ProjectDetailsPage() {
                     setIsProjectEditOpen(false);
                     fetchProjectDetails(true);
                   }} 
+                  onDelete={executeDelete}
                 />
               </div>
             </Drawer.Content>
@@ -966,13 +1012,16 @@ export default function ProjectDetailsPage() {
   );
 }
 
+
 function EditProjectForm({
   project,
   onComplete,
+  onDelete,
   isTr
 }: {
   project: budget.Project;
   onComplete: () => void;
+  onDelete: () => void;
   isTr: boolean;
 }) {
   const [formData, setFormData] = useState({
@@ -984,6 +1033,10 @@ function EditProjectForm({
     emoji: project.emoji || "🏖️",
   });
   const [loading, setLoading] = useState(false);
+
+  const handleDeleteProject = () => {
+    onDelete();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1112,17 +1165,30 @@ function EditProjectForm({
         </div>
       </div>
 
-      <motion.button 
-        disabled={loading} 
-        whileTap={{ scale: 0.98 }} 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
-      >
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-        ) : (
-          <span>{isTr ? "Değişiklikleri Kaydet" : "Save Changes"}</span>
-        )}
-      </motion.button>
+      <div className="flex gap-3 mt-4">
+        <button
+          type="button"
+          disabled={loading}
+          onClick={handleDeleteProject}
+          className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 p-4 rounded-xl font-bold h-12 flex items-center justify-center gap-2 active:scale-95 transition-all"
+        >
+          <Trash size={18} weight="bold" />
+          <span>{isTr ? "Sil" : "Delete"}</span>
+        </button>
+
+        <motion.button 
+          type="submit"
+          disabled={loading} 
+          whileTap={{ scale: 0.98 }} 
+          className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all"
+        >
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+          ) : (
+            <span>{isTr ? "Değişiklikleri Kaydet" : "Save Changes"}</span>
+          )}
+        </motion.button>
+      </div>
     </form>
   );
 }

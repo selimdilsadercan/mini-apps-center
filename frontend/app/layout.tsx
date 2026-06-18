@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { GreetingHandler } from "@/components/GreetingHandler";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import trMessages from "@/locales/tr/index";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +37,12 @@ export default function RootLayout({
       >
         <LanguageProvider messages={trMessages}>
           <ClerkProviderWrapper>
-            <NotificationHandler />
-            <GreetingHandler />
-            {children}
-            <Toaster position="top-center" />
+            <ConfirmDialogProvider>
+              <NotificationHandler />
+              <GreetingHandler />
+              {children}
+              <Toaster position="top-center" />
+            </ConfirmDialogProvider>
           </ClerkProviderWrapper>
         </LanguageProvider>
       </body>

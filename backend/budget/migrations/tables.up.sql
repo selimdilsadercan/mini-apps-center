@@ -51,6 +51,11 @@ BEGIN
         UPDATE budget.projects SET share_id = substring(md5(random()::text), 1, 8) WHERE share_id IS NULL;
         ALTER TABLE budget.projects ALTER COLUMN share_id SET NOT NULL;
     END IF;
+
+    -- Ensure is_active column exists
+    IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'budget' AND table_name = 'projects' AND column_name = 'is_active') THEN
+        ALTER TABLE budget.projects ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
+    END IF;
 END $$;
 
 --------------------------------------------------------------------------------
@@ -76,6 +81,7 @@ CREATE TABLE IF NOT EXISTS budget.projects (
     end_date DATE,
     emoji TEXT DEFAULT '🏖️',
     share_id TEXT UNIQUE DEFAULT substring(md5(random()::text), 1, 8),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

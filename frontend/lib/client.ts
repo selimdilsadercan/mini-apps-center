@@ -38,6 +38,7 @@ export default class Client {
     public readonly budget: budget.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly campus_event: campus_event.ServiceClient
+    public readonly campus_events: campus_events.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
@@ -86,6 +87,7 @@ export default class Client {
         this.budget = new budget.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.campus_event = new campus_event.ServiceClient(base)
+        this.campus_events = new campus_events.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
@@ -714,6 +716,10 @@ export namespace budget {
         success: boolean
     }
 
+    export interface DeleteProjectResponse {
+        success: boolean
+    }
+
     export interface Expense {
         id: string
         projectId: string
@@ -821,6 +827,7 @@ export namespace budget {
             this.addExpense = this.addExpense.bind(this)
             this.createProject = this.createProject.bind(this)
             this.deleteExpense = this.deleteExpense.bind(this)
+            this.deleteProject = this.deleteProject.bind(this)
             this.getProjectDetails = this.getProjectDetails.bind(this)
             this.getProjectDetailsByShareId = this.getProjectDetailsByShareId.bind(this)
             this.getUserProjects = this.getUserProjects.bind(this)
@@ -854,6 +861,15 @@ export namespace budget {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/budget/expenses/${encodeURIComponent(expenseId)}`)
             return await resp.json() as DeleteExpenseResponse
+        }
+
+        /**
+         * Deletes (soft-deletes) project details
+         */
+        public async deleteProject(projectId: string): Promise<DeleteProjectResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/budget/projects/${encodeURIComponent(projectId)}`)
+            return await resp.json() as DeleteProjectResponse
         }
 
         /**
@@ -1180,6 +1196,113 @@ export namespace campus_event {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/campus-event/universities`)
             return await resp.json() as GetUniversitiesResponse
+        }
+    }
+}
+
+export namespace campus_events {
+    export interface AddEventRequest {
+        userId: string
+        title: string
+        description?: string
+        university: string
+        location?: string
+        eventDate: string
+        imageUrl?: string
+        organizerClub?: string
+    }
+
+    export interface AddEventResponse {
+        event: CampusEvent | null
+    }
+
+    export interface Attendee {
+        "user_id": string
+        username: string | null
+        "avatar_url": string | null
+        status: string
+    }
+
+    export interface CampusEvent {
+        id: string
+        title: string
+        description?: string | null
+        university: string
+        location?: string | null
+        "event_date": string
+        "image_url"?: string | null
+        "organizer_club"?: string | null
+        "added_by_id"?: string | null
+        "creator_username"?: string | null
+        "creator_avatar"?: string | null
+        "created_at": string
+        "user_status"?: string | null
+        attendees?: Attendee[]
+    }
+
+    export interface GetEventsRequest {
+        userId?: string
+        university: string
+    }
+
+    export interface GetEventsResponse {
+        events: CampusEvent[]
+    }
+
+    export interface SetAttendanceRequest {
+        userId: string
+        eventId: string
+        status: string
+    }
+
+    export interface SetAttendanceResponse {
+        success: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addEvent = this.addEvent.bind(this)
+            this.getEvents = this.getEvents.bind(this)
+            this.setAttendance = this.setAttendance.bind(this)
+        }
+
+        /**
+         * Add a new campus event
+         * POST /campus-events/events/add
+         */
+        public async addEvent(params: AddEventRequest): Promise<AddEventResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/events/add`, JSON.stringify(params))
+            return await resp.json() as AddEventResponse
+        }
+
+        /**
+         * Get all events for a specific university
+         * GET /campus-events/events
+         */
+        public async getEvents(params: GetEventsRequest): Promise<GetEventsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                university: params.university,
+                userId:     params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-events/events`, undefined, {query})
+            return await resp.json() as GetEventsResponse
+        }
+
+        /**
+         * Set user attendance status for an event
+         * POST /campus-events/attendance/set
+         */
+        public async setAttendance(params: SetAttendanceRequest): Promise<SetAttendanceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/attendance/set`, JSON.stringify(params))
+            return await resp.json() as SetAttendanceResponse
         }
     }
 }
@@ -5088,6 +5211,7 @@ export namespace users {
 
     export interface GetUserPreferencesResponse {
         appOrder: string[] | null
+        selectedUniversity?: string | null
     }
 
     export interface SaveFcmTokenRequest {
@@ -5109,6 +5233,15 @@ export namespace users {
         success: boolean
     }
 
+    export interface UpdateUniversityRequest {
+        clerkId: string
+        university: string
+    }
+
+    export interface UpdateUniversityResponse {
+        success: boolean
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -5122,6 +5255,7 @@ export namespace users {
             this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
+            this.updateUniversity = this.updateUniversity.bind(this)
         }
 
         /**
@@ -5169,9 +5303,6 @@ export namespace users {
             return await resp.json() as GetUserByUsernameResponse
         }
 
-        /**
-         * Kullanıcının tercihlerini (sıralama vb.) getirir
-         */
         public async getUserPreferences(clerkId: string): Promise<GetUserPreferencesResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/users/preferences/${encodeURIComponent(clerkId)}`)
@@ -5194,6 +5325,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/app-order`, JSON.stringify(params))
             return await resp.json() as UpdateAppOrderResponse
+        }
+
+        /**
+         * Kullanıcının seçtiği üniversiteyi günceller
+         */
+        public async updateUniversity(params: UpdateUniversityRequest): Promise<UpdateUniversityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/university`, JSON.stringify(params))
+            return await resp.json() as UpdateUniversityResponse
         }
     }
 }

@@ -534,3 +534,26 @@ export const updateProject = api(
     return { success: !!data };
   }
 );
+
+interface DeleteProjectResponse {
+  success: boolean;
+}
+
+/**
+ * Deletes (soft-deletes) project details
+ */
+export const deleteProject = api(
+  { expose: true, method: "DELETE", path: "/budget/projects/:projectId" },
+  async ({ projectId }: { projectId: string }): Promise<DeleteProjectResponse> => {
+    const { data, error } = await supabase.schema("budget").rpc("delete_project", {
+      project_id_param: projectId,
+    });
+
+    if (error) {
+      console.error("deleteProject error:", error);
+      throw APIError.internal(`Failed to delete project: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);

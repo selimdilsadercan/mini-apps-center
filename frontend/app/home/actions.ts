@@ -99,22 +99,46 @@ export async function updateAppOrderAction(
   }
 }
 
-/**
- * Kullanıcının uygulama tercihlerini getirir
- */
 export async function getUserPreferencesAction(
   clerkId: string
-): Promise<ActionResponse<string[]>> {
+): Promise<ActionResponse<{ appOrder: string[] | null; selectedUniversity?: string | null }>> {
   try {
     const client = createBrowserClient();
     const response = await client.users.getUserPreferences(clerkId);
     
     return {
-      data: response.appOrder,
+      data: {
+        appOrder: response.appOrder,
+        selectedUniversity: response.selectedUniversity
+      },
       error: null
     };
   } catch (error) {
     console.error("Failed to get user preferences:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error)
+    };
+  }
+}
+
+/**
+ * Kullanıcının üniversite tercihini günceller
+ */
+export async function updateUniversityAction(
+  clerkId: string,
+  university: string
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.users.updateUniversity({ clerkId, university });
+    
+    return {
+      data: response.success,
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to update university preference:", error);
     return {
       data: null,
       error: getErrorMessage(error)

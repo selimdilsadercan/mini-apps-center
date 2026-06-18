@@ -1,0 +1,589 @@
+"use client";
+
+import { getAppRootUrl } from "@/lib/apps";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
+import {
+  Megaphone,
+  Plus,
+  Calendar,
+  MapPin,
+  CaretLeft,
+  MagnifyingGlass,
+  GraduationCap
+} from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Drawer } from "vaul";
+import { toast, Toaster } from "react-hot-toast";
+import { createBrowserClient } from "@/lib/api";
+import { campus_events } from "@/lib/client";
+import { getUserPreferencesAction, updateUniversityAction } from "../../home/actions";
+
+const client = createBrowserClient();
+
+const UNIVERSITIES = [
+  { id: "itu", name: "İstanbul Teknik Üniversitesi", shortName: "İTÜ" },
+  { id: "boun", name: "Boğaziçi Üniversitesi", shortName: "BOUN" },
+  { id: "odtu", name: "Orta Doğu Teknik Üniversitesi", shortName: "ODTÜ" },
+  { id: "ytu", name: "Yıldız Teknik Üniversitesi", shortName: "YTÜ" },
+  { id: "bilkent", name: "Bilkent Üniversitesi", shortName: "Bilkent" },
+  { id: "koc", name: "Koç Üniversitesi", shortName: "Koç" },
+  { id: "sabanci", name: "Sabancı Üniversitesi", shortName: "Sabancı" }
+];
+
+export default function CampusEventsPage() {
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const [events, setEvents] = useState<campus_events.CampusEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUni, setSelectedUni] = useState<string>("");
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const [showUniSelect, setShowUniSelect] = useState(false);
+
+  // Load user university preference & events
+  useEffect(() => {
+    async function loadUserPreference() {
+      if (!isUserLoaded) return;
+      
+      let uni = "";
+      if (user?.id) {
+        try {
+          const { data } = await getUserPreferencesAction(user.id);
+          if (data?.selectedUniversity) {
+            uni = data.selectedUniversity;
+          }
+        } catch (e) {
+          console.error("Error loading university preference", e);
+        }
+      }
+
+      // Fallback to localStorage
+      if (!uni) {
+        uni = localStorage.getItem(`selected_uni_${user?.id || "guest"}`) || "";
+      }
+
+      if (uni) {
+        setSelectedUni(uni);
+      } else {
+        setShowUniSelect(true); // Open select overlay if no university is selected yet
+      }
+    }
+
+    loadUserPreference();
+  }, [isUserLoaded, user?.id]);
+
+  // Load events once university is selected
+  useEffect(() => {
+    if (selectedUni) {
+      fetchEvents();
+    }
+  }, [selectedUni, user?.id]);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const res = await client.campus_events.getEvents({
+        userId: user?.id || undefined,
+        university: selectedUni
+      });
+      setEvents(res.events || []);
+    } catch (error) {
+      console.error("fetchEvents error:", error);
+      toast.error("Etkinlikler yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUniversitySelect = async (uniId: string) => {
+    setSelectedUni(uniId);
+    setShowUniSelect(false);
+    localStorage.setItem(`selected_uni_${user?.id || "guest"}`, uniId);
+    
+    if (user?.id) {
+      try {
+        await updateUniversityAction(user.id, uniId);
+      } catch (e) {
+        console.error("Failed to save university to backend", e);
+      }
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const dateFormatted = d.toLocaleDateString("tr-TR", { 
+      day: "numeric", 
+      month: "short", 
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    return dateFormatted;
+  };
+
+  const filteredEvents = events.filter((e) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      e.title.toLowerCase().includes(query) ||
+      (e.description && e.description.toLowerCase().includes(query)) ||
+      (e.location && e.location.toLowerCase().includes(query)) ||
+      (e.organizer_club && e.organizer_club.toLowerCase().includes(query))
+    );
+  });
+
+  const activeUni = UNIVERSITIES.find(u => u.id === selectedUni);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          style: {
+            background: '#ffffff',
+            color: '#0f172a',
+            border: '1px solid rgba(0,0,0,0.05)',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
+          }
+        }} 
+      />
+
+      {/* Brand Header */}
+      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => (window.location.href = getAppRootUrl())}
+              className="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors flex items-center justify-center border border-slate-200/60 shadow-xs"
+              title="Geri"
+            >
+              <CaretLeft size={18} weight="bold" />
+            </button>
+            <button
+              onClick={() => (window.location.href = getAppRootUrl())}
+              className="flex items-center gap-1.5 group"
+            >
+              <span className="text-xl font-[900] text-slate-800 tracking-tight flex items-center gap-1">
+                Campus<span className="text-[#00aeef]">Events</span>
+                <span className="text-[#00aeef] inline-block group-hover:scale-110 transition-transform">💙</span>
+              </span>
+            </button>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-slate-500 ml-4">
+              <span className="text-[#00aeef] cursor-pointer">Etkinlikler</span>
+            </nav>
+          </div>
+
+          <div className="flex gap-2.5">
+            {selectedUni && (
+              <button
+                onClick={() => setShowUniSelect(true)}
+                className="bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-extrabold px-3.5 py-2.5 rounded-full active:scale-95 transition-all flex items-center gap-1.5"
+              >
+                <GraduationCap size={16} weight="fill" className="text-[#00aeef]" />
+                <span>{activeUni?.shortName || "Uni Değiştir"}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (!user) {
+                  toast.error("Etkinlik eklemek için giriş yapmalısınız.");
+                  return;
+                }
+                setShowAddDrawer(true);
+              }}
+              className="bg-[#00aeef] hover:bg-[#009bcf] text-white text-xs font-black px-4.5 py-2.5 rounded-full active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+            >
+              <Plus size={14} weight="bold" />
+              <span>Etkinlik Paylaş</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-10 pb-32 max-w-4xl mx-auto w-full">
+        
+
+
+        {activeUni && (
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-[900] text-slate-800 tracking-tight">
+              🎓 {activeUni.name} Etkinlikleri
+            </h2>
+          </div>
+        )}
+
+        {selectedUni && (
+          <>
+            {/* Search Bar */}
+            <div className="relative mb-8 shadow-sm rounded-2xl">
+              <MagnifyingGlass size={18} className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Etkinlik başlığı, topluluk veya salon ara..."
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-slate-400 text-slate-800 font-semibold"
+              />
+            </div>
+
+            {/* Events Grid View */}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-4">
+                <div className="w-8 h-8 border-2 border-slate-200 border-t-[#00aeef] rounded-full animate-spin" />
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="text-center py-20 bg-white border border-slate-200/60 rounded-[2.5rem] flex flex-col items-center justify-center p-8 shadow-sm">
+                <Megaphone size={42} className="text-slate-300 mb-4" />
+                <p className="text-sm font-bold text-slate-500">Eşleşen etkinlik bulunamadı.</p>
+                <p className="text-xs text-slate-400 mt-1">İlk etkinliği siz paylaşarak topluluğa katkıda bulunabilirsiniz!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredEvents.map((event) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={event.id}
+                    className="group bg-white border border-slate-200/60 hover:border-slate-300/80 rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+                  >
+                    <div>
+                      {/* Image header if available */}
+                      {event.image_url ? (
+                        <div className="w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative">
+                          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
+                          <div className="absolute top-3 left-3 bg-white/95 shadow-sm backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black tracking-wider text-[#00aeef] uppercase border border-slate-100">
+                            {event.organizer_club ? event.organizer_club : "Topluluk"}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-1.5 bg-[#00aeef]/60 rounded-full mb-4" />
+                      )}
+
+                      <h3 className="text-lg font-[800] text-slate-800 leading-snug mb-3 group-hover:text-[#00aeef] transition-colors">
+                        {event.title}
+                      </h3>
+
+                      <div className="grid grid-cols-1 gap-2 mb-4 text-xs font-semibold text-slate-500">
+                        <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          <Calendar size={15} className="text-[#00aeef] shrink-0" />
+                          <span>{formatDate(event.event_date)}</span>
+                        </div>
+                        {event.location && (
+                          <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <MapPin size={15} className="text-[#00aeef] shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {event.description && (
+                        <p className="text-xs text-slate-500 leading-relaxed font-medium mb-4 line-clamp-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          {event.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4 pt-3.5 border-t border-slate-100">
+                      {event.creator_username ? (
+                        <span className="text-[10px] text-slate-500 font-extrabold bg-slate-100 px-2.5 py-1 rounded-full">
+                          @{event.creator_username}
+                        </span>
+                      ) : <span />}
+
+                      {/* Attendance Selector Button */}
+                      <AttendanceButton 
+                        event={event} 
+                        isUserLoaded={isUserLoaded}
+                        user={user}
+                        onRefresh={fetchEvents}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      {/* University Selection Overlay */}
+      <AnimatePresence>
+        {showUniSelect && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-sm bg-white border border-slate-200 rounded-[2.5rem] p-6 shadow-2xl flex flex-col max-h-[85vh] relative overflow-hidden"
+            >
+              <div className="text-center mb-6 relative z-10">
+                <div className="mx-auto w-14 h-14 rounded-full bg-[#00aeef]/10 flex items-center justify-center text-[#00aeef] mb-4">
+                  <GraduationCap size={28} weight="fill" />
+                </div>
+                <h3 className="text-xl font-[800] text-slate-900">Üniversiteni Seç</h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  Kampüsündeki topluluk etkinliklerini keşfetmek için üniversite seçimi yapın.
+                </p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1 relative z-10 scrollbar-none">
+                {UNIVERSITIES.map((uni) => (
+                  <button
+                    key={uni.id}
+                    onClick={() => handleUniversitySelect(uni.id)}
+                    className={`w-full text-left p-4 rounded-2xl border text-xs font-black transition-all flex items-center justify-between active:scale-[0.99] ${
+                      selectedUni === uni.id
+                        ? "bg-[#00aeef]/10 border-[#00aeef]/30 text-[#00aeef]"
+                        : "bg-slate-50 border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>{uni.name}</span>
+                    <span className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-500 uppercase tracking-widest">{uni.shortName}</span>
+                  </button>
+                ))}
+              </div>
+              
+              {selectedUni && (
+                <button
+                  onClick={() => setShowUniSelect(false)}
+                  className="w-full mt-4 h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-2xl transition-all border border-slate-200"
+                >
+                  Kapat
+                </button>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Suggest Event Drawer */}
+      <Drawer.Root open={showAddDrawer} onOpenChange={setShowAddDrawer}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[60]" />
+          <Drawer.Content className="bg-white text-slate-800 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
+            <div className="p-6 overflow-y-auto flex-1 scrollbar-none">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-6" />
+              <Drawer.Title className="text-xl font-[800] mb-1 tracking-tight text-slate-900">
+                Etkinlik Ekle
+              </Drawer.Title>
+              <Drawer.Description className="text-xs text-slate-400 mb-6 font-medium">
+                Üniversite topluluğun adına veya kampüsteki genel bir etkinliği buraya gir.
+              </Drawer.Description>
+              <SuggestEventForm
+                selectedUni={selectedUni}
+                onComplete={() => {
+                  fetchEvents();
+                  setShowAddDrawer(false);
+                }}
+              />
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    </div>
+  );
+}
+
+// Attendance Action Button Component
+function AttendanceButton({
+  event,
+  isUserLoaded,
+  user,
+  onRefresh
+}: {
+  event: campus_events.CampusEvent;
+  isUserLoaded: boolean;
+  user: any;
+  onRefresh: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleToggleAttendance = async (status: string) => {
+    if (!isUserLoaded || !user) {
+      toast.error("Katılım işaretlemek için giriş yapmalısınız.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await client.campus_events.setAttendance({
+        userId: user.id,
+        eventId: event.id,
+        status: event.user_status === status ? "none" : status
+      });
+      onRefresh();
+    } catch (e) {
+      console.error(e);
+      toast.error("Katılım güncellenirken bir hata oluştu.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const isGoing = event.user_status === "going";
+  const isInterested = event.user_status === "interested";
+
+  return (
+    <div className="flex gap-1.5">
+      <button
+        onClick={() => handleToggleAttendance("interested")}
+        disabled={submitting}
+        className={`px-3.5 py-2 rounded-full text-[10px] font-black border transition-all ${
+          isInterested 
+            ? "bg-[#00aeef]/10 border-[#00aeef]/20 text-[#00aeef]"
+            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+        }`}
+      >
+        İlgileniyorum
+      </button>
+      <button
+        onClick={() => handleToggleAttendance("going")}
+        disabled={submitting}
+        className={`px-3.5 py-2 rounded-full text-[10px] font-black border transition-all ${
+          isGoing 
+            ? "bg-[#00aeef] border-[#00aeef] text-white shadow-sm"
+            : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+        }`}
+      >
+        Katılıyorum
+      </button>
+    </div>
+  );
+}
+
+// Event Suggestion Form Component
+function SuggestEventForm({
+  selectedUni,
+  onComplete
+}: {
+  selectedUni: string;
+  onComplete: () => void;
+}) {
+  const { user } = useUser();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    location: "",
+    eventDate: new Date(Date.now() + 86400000).toISOString().slice(0, 16), // tomorrow local datetime-local formatted
+    organizerClub: "",
+    imageUrl: ""
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Giriş yapmalısınız.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      // Convert datetime-local to ISO string
+      const isoDate = new Date(formData.eventDate).toISOString();
+      await client.campus_events.addEvent({
+        userId: user.id,
+        title: formData.title,
+        university: selectedUni,
+        description: formData.description || undefined,
+        location: formData.location || undefined,
+        eventDate: isoDate,
+        organizerClub: formData.organizerClub || undefined,
+        imageUrl: formData.imageUrl || undefined
+      });
+      toast.success("Etkinlik başarıyla paylaşıldı!");
+      onComplete();
+    } catch (err) {
+      console.error(err);
+      toast.error("Etkinlik eklenirken bir hata oluştu.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 pb-8 font-semibold text-slate-700">
+      {/* Title */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
+        <input
+          required
+          type="text"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="Örn: Python Giriş Workshop'ı"
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+        />
+      </div>
+
+      {/* Organizer Club */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Düzenleyen Topluluk</label>
+        <input
+          type="text"
+          value={formData.organizerClub}
+          onChange={(e) => setFormData({ ...formData, organizerClub: e.target.value })}
+          placeholder="Örn: İTÜ Veri Analitiği Kulübü"
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+        />
+      </div>
+
+      {/* Date */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Tarih & Saat</label>
+        <input
+          required
+          type="datetime-local"
+          value={formData.eventDate}
+          onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+        />
+      </div>
+
+      {/* Location */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Konum / Salon</label>
+        <input
+          type="text"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          placeholder="Örn: EEB İlkan Seminer Salonu"
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+        />
+      </div>
+
+      {/* Image URL */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Afiş / Görsel Linki (Opsiyonel)</label>
+        <input
+          type="url"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          placeholder="Örn: https://example.com/banner.png"
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Açıklama / Detaylar</label>
+        <textarea
+          rows={3}
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Etkinlik içeriği ve katılım şartları hakkında bilgi girin..."
+          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold resize-none"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="w-full h-12 bg-[#00aeef] hover:bg-[#009bcf] text-white font-bold rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-sm"
+      >
+        {submitting ? "Ekleniyor..." : "Etkinlik Paylaş"}
+      </button>
+    </form>
+  );
+}

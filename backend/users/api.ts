@@ -70,6 +70,16 @@ interface GetUserPreferencesRequest {
 
 interface GetUserPreferencesResponse {
   appOrder: string[] | null;
+  selectedUniversity?: string | null;
+}
+
+interface UpdateUniversityRequest {
+  clerkId: string;
+  university: string;
+}
+
+interface UpdateUniversityResponse {
+  success: boolean;
 }
 
 // ==================== API ENDPOINTS ====================
@@ -220,9 +230,6 @@ export const updateAppOrder = api(
   }
 );
 
-/**
- * Kullanıcının tercihlerini (sıralama vb.) getirir
- */
 export const getUserPreferences = api(
   { expose: true, method: "GET", path: "/users/preferences/:clerkId" },
   async ({ clerkId }: GetUserPreferencesRequest): Promise<GetUserPreferencesResponse> => {
@@ -233,10 +240,34 @@ export const getUserPreferences = api(
 
     if (error) {
       console.error("getUserPreferences error:", error);
-      return { appOrder: null };
+      return { appOrder: null, selectedUniversity: null };
     }
 
-    return { appOrder: data?.[0]?.app_order || null };
+    return { 
+      appOrder: data?.[0]?.app_order || null,
+      selectedUniversity: data?.[0]?.selected_university || null
+    };
+  }
+);
+
+/**
+ * Kullanıcının seçtiği üniversiteyi günceller
+ */
+export const updateUniversity = api(
+  { expose: true, method: "POST", path: "/users/university" },
+  async ({ clerkId, university }: UpdateUniversityRequest): Promise<UpdateUniversityResponse> => {
+    const { error } = await supabase.rpc("update_user_university", {
+      clerk_id_param: clerkId,
+      university_param: university,
+      is_local_param: isLocal,
+    });
+
+    if (error) {
+      console.error("updateUniversity error:", error);
+      return { success: false };
+    }
+
+    return { success: true };
   }
 );
 

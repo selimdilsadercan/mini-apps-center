@@ -28,6 +28,7 @@ import {
   Warning,
   PaperPlaneTilt,
   Buildings,
+  Megaphone,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -78,25 +79,21 @@ export function getAppHref(app: MiniApp): string {
   }
 
   const hostname = window.location.hostname;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return app.href;
-  }
-  const port = window.location.port;
-  const protocol = window.location.protocol;
-
   const isLocal =
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
     hostname.endsWith(".localhost");
 
-  if (app.subdomain && !isLocal) {
-    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-    return `${protocol}//${app.subdomain}.${rootDomain}`;
-  }
+  const port = window.location.port;
+  const protocol = window.location.protocol;
 
   if (isLocal) {
-    const primary = port ? `localhost:${port}` : "localhost";
-    return `${protocol}//${primary}${app.href}`;
+    return app.href;
+  }
+
+  if (app.subdomain) {
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+    return `${protocol}//${app.subdomain}.${rootDomain}`;
   }
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
@@ -174,7 +171,6 @@ export function getAppRootUrl(): string {
 }
 
 export const MINI_APPS: MiniApp[] = [
-  // Utilities
   {
     id: "icon-set-guide",
     name: "Icon Set Guide",
@@ -186,6 +182,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "iconguide",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "subcenter",
@@ -244,7 +241,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/pdf-tools",
     isImplemented: true,
     subdomain: "pdf",
-    isBeta: true,
   },
 
   // Games
@@ -283,6 +279,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "gamecompanion",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "tournament-manager",
@@ -295,6 +292,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tournaments",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "board-game-clubs",
@@ -307,6 +305,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "bgc",
     isBeta: true,
+    isCancelled: true,
   },
 
   // Entertainment
@@ -333,6 +332,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "ytdb",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "film-graph",
@@ -345,6 +345,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "filmgraph",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "movies-this-year",
@@ -357,6 +358,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "movies",
     isBeta: true,
+    isCancelled: true,
   },
 
   // Dev & Design
@@ -374,7 +376,7 @@ export const MINI_APPS: MiniApp[] = [
   },
   {
     id: "itu-yemekhane",
-    name: "İTÜ Yemekhane",
+    name: "Campus Meals",
     description: "Günün menüsünü takip et ve bildirim al",
     icon: ChefHat,
     category: "Local Services",
@@ -396,6 +398,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "sticker",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "kim-gelir",
@@ -432,6 +435,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "kiler",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "map-tracker",
@@ -444,6 +448,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "maptracker",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "chocolate-db",
@@ -467,6 +472,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "recipe",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "ne-yapsam",
@@ -502,7 +508,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/concert-list",
     isImplemented: true,
     subdomain: "concerts",
-    isBeta: true,
   },
   {
     id: "campus-concerts",
@@ -539,6 +544,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tasket",
     isBeta: true,
+    isCancelled: true,
   },
 
   {
@@ -553,6 +559,7 @@ export const MINI_APPS: MiniApp[] = [
     isLocal: true,
     isBeta: true,
     subdomain: "melt",
+    isCancelled: true,
   },
   {
     id: "birikim",
@@ -589,6 +596,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "kavanoz",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "budget",
@@ -613,6 +621,19 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "stampcard",
     isBeta: true,
+    isCancelled: true,
+  },
+  {
+    id: "campus-events",
+    name: "Campus Events",
+    description: "Üniversite topluluk etkinliklerini keşfet ve katıl",
+    icon: Megaphone,
+    category: "Lifestyle",
+    color: "#3B82F6",
+    href: "/apps/campus-events",
+    isImplemented: true,
+    subdomain: "campusevents",
+    isBeta: true,
   },
   {
     id: "esles",
@@ -624,18 +645,6 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/esles",
     isImplemented: true,
     subdomain: "esles",
-    isBeta: true,
-  },
-  {
-    id: "campus-event",
-    name: "Campus Event",
-    description: "Üniversite kulüplerinin etkinliklerini keşfet. Konserler, workshoplar, turnuvalar ve daha fazlası!",
-    icon: Buildings,
-    category: "Lifestyle",
-    color: "#0D9488",
-    href: "/apps/campus-event",
-    isImplemented: true,
-    subdomain: "campusevent",
     isBeta: true,
   },
 ];
