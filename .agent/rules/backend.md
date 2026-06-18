@@ -26,21 +26,16 @@ backend yapısı sürekli değişiyor o yüzden burda yazanların yanında mevcu
     ```
 
 
-### 1.2. Table Management
-- **Root Table Definition**: Each service directory must contain a `table.sql` file that represents the **ideal/latest state** of the database structure for that service.
-- **Migrations**: 
-  - Yeni bir özellik (feature) veya tablo yapısı değişikliği (tablo oluşturma, kolon ekleme/çıkarma vb.) eklendiğinde kullanılabilir.
-  - Yeni bir özellik eklendiğinde oluşturulan yeni migrasyon dosyası (örn: `04_setup_sharing.up.sql`) hem yeni tabloları hem de bu özelliğe ait yeni RPC fonksiyonlarını içermelidir.
-  - Migration dosyaları `migrations/` klasöründe `01_description.up.sql` formatında olmalıdır.
-  - **Kritik Kural**: Yeni bir servis oluşturulurken, `01_init.up.sql` dosyası hem tablo yapılarını hem de başlangıçtaki tüm RPC fonksiyonlarını içermelidir.
-  - **Fonksiyon Güncellemeleri**: Varolan fonksiyonlardaki mantıksal değişiklikler için yeni migrasyon dosyası oluşturulmamalıdır; doğrudan `functions/` altındaki ilgili dosya güncellenmelidir.
-
-### 1.3. Function Management (RPC)
-- **Location**: Tüm RPC fonksiyonları servis dizini altındaki `functions/` klasöründe tutulmalıdır.
-- **Dosyalama**: Her fonksiyon, kendi ismini taşıyan bağımsız bir `.sql` dosyasında bulunmalıdır.
-- **Logic Değişiklikleri**: Fonksiyonlardaki mantıksal değişiklikler migrasyon gerektirmez; doğrudan ilgili `.sql` dosyası üzerinden güncellenir.
-- **Cleanup Requirement**: Her fonksiyon dosyası mutlaka `DROP FUNCTION IF EXISTS ...` ile başlamalıdır.
-- **Schema Qualification**: Fonksiyonlar servis şemasında oluşturulmalı ve tablolara şema ismiyle (örn: `kiler.items`) referans vermelidir.
+### 1.2. Migration & Database Management
+- **Tables and Schema Definition**: Her servisin veritabanı şeması ve tabloları, `migrations/tables.up.sql` dosyası içerisinde tanımlanmalıdır. Bu dosya, servisin güncel veritabanı şema ve tablo yapısını gösteren ana dosyadır.
+  - **Tables Header Rule**: `tables.up.sql` dosyasının en üstünde mutlaka "LATEST MIGRATIONS & STRUCTURAL UPDATES" şablonu (yeni kolon ekleme, veri taşıma vb. geçici migrasyonlar için) ve altında "IDEAL STATE (Current Schema)" şablonu (tabloların en güncel ideal tanımı için) bulunmalıdır.
+- **Functions (RPC) Definition**: Servise ait tüm PostgreSQL fonksiyonları (RPC) tek bir dosya altında, `migrations/functions.up.sql` içinde tutulmalıdır. Servis kökünde ayrı bir `functions/` dizini veya ayrı SQL dosyaları **kullanılmamalıdır**.
+  - **Functions Header Rule**: `functions.up.sql` dosyasının en üstünde mutlaka `-- FUNCTIONS` ile başlayan ve altında sırayla tanımlı tüm fonksiyonları (örn: `-- 1. schema.func_name`) listeleyen bir index bulunmalıdır.
+- **Logic & Function Updates**: Fonksiyonlardaki mantıksal değişiklikler doğrudan `migrations/functions.up.sql` dosyasındaki ilgili fonksiyon güncellenerek (veya `DROP` / `CREATE OR REPLACE` yardımıyla) yapılır. Mantıksal fonksiyon değişiklikleri için ayrı bir migrasyon dosyası oluşturulmaz.
+- **Initialization**: Yeni bir servis oluşturulurken, `migrations/` klasörü altında mutlaka hem `tables.up.sql` hem de `functions.up.sql` dosyaları oluşturulmalı ve veritabanı yapısı bu dosyalar aracılığıyla kurulmalıdır.
+- **Grants & Permissions**: `tables.up.sql` dosyasının sonunda şema, tablolar ve diziler için `anon`, `authenticated`, `service_role` rollerine yetkiler (`GRANT`) mutlaka verilmelidir.
+- **Function Cleanup**: `functions.up.sql` dosyasındaki her fonksiyon tanımından önce `DROP FUNCTION IF EXISTS [şema].[fonksiyon_adı]([parametre_tipleri])` ifadesi yer almalıdır.
+- **Schema Qualification**: Tüm SQL sorguları ve fonksiyon tanımları ilgili servis şeması (örn: `budget.projects`, `budget.get_user_projects`) ile nitelenmelidir.
 
 ## 2. Backend Logic (Encore.dev)
 

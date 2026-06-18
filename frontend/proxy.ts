@@ -44,6 +44,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   stampcard: "/apps/stamp-card",
   esles: "/apps/esles",
   campusevents: "/apps/campus-events",
+  basvuru: "/apps/apply-tracker",
 };
 
 /**

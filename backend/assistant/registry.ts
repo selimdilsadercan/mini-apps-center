@@ -31,6 +31,7 @@ import { campusConcertsAssistant } from "../campus-concerts/assistant";
 import { birikimAssistant } from "../birikim/assistant";
 import { budgetAssistant } from "../budget/assistant";
 import { stampCardAssistant } from "../stamp-card/assistant";
+import { applyTrackerAssistant } from "../apply-tracker/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   birikimAssistant,
@@ -61,6 +62,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   campusConcertsAssistant,
   budgetAssistant,
   stampCardAssistant,
+  applyTrackerAssistant,
 ];
 
 const assistantByAppId = new Map(

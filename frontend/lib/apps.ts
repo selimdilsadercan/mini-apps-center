@@ -230,6 +230,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tutorplace",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "pdf-tools",
@@ -485,6 +486,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "neyapsam",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "hobby-center",
@@ -493,7 +495,7 @@ export const MINI_APPS: MiniApp[] = [
     icon: Compass,
     category: "Lifestyle",
     color: "#D4AF37",
-    href: "/apps/hobby-center",
+    href: "/apps/hobby-center", 
     isImplemented: true,
     subdomain: "hobby",
     isBeta: true,
@@ -572,6 +574,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "birikim",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "tasarruf-challenges",
@@ -645,6 +648,19 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/esles",
     isImplemented: true,
     subdomain: "esles",
+    isBeta: true,
+    isCancelled: true,
+  },
+  {
+    id: "apply-tracker",
+    name: "Başvuru Takip",
+    description: "İş başvurularını, ilan linklerini ve süreç durumlarını takip et.",
+    icon: Buildings,
+    category: "Utilities",
+    color: "#6366f1",
+    href: "/apps/apply-tracker",
+    isImplemented: true,
+    subdomain: "basvuru",
     isBeta: true,
   },
 ];

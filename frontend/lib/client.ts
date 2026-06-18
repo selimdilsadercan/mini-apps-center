@@ -32,6 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
+    public readonly apply_tracker: apply_tracker.ServiceClient
     public readonly assistant: assistant.ServiceClient
     public readonly birikim: birikim.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
@@ -80,6 +81,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.apply_tracker = new apply_tracker.ServiceClient(base)
         this.assistant = new assistant.ServiceClient(base)
         this.birikim = new birikim.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
@@ -142,6 +144,150 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+export namespace apply_tracker {
+    export interface AddApplicationRequest {
+        userId: string
+        companyName: string
+        roleTitle?: string
+        url?: string
+        status: ApplicationStatus
+        priority: ApplicationPriority
+        notes?: string
+        cvHtml?: string
+    }
+
+    export interface AddApplicationResponse {
+        application: Application | null
+    }
+
+    export interface AppImportItem {
+        "company_name": string
+        "role_title"?: string
+        url?: string
+        status?: ApplicationStatus
+        priority?: ApplicationPriority
+        notes?: string
+    }
+
+    export interface Application {
+        id: string
+        "user_id": string
+        "company_name": string
+        "role_title": string | null
+        url: string | null
+        status: ApplicationStatus
+        priority: ApplicationPriority
+        notes: string | null
+        "cv_html": string | null
+        "created_at": string
+        "updated_at": string
+    }
+
+    export type ApplicationPriority = "low" | "medium" | "high"
+
+    export type ApplicationStatus = "to_apply" | "applied" | "accepted" | "rejected" | "withdrawn"
+
+    export interface BulkImportRequest {
+        userId: string
+        applications: AppImportItem[]
+    }
+
+    export interface BulkImportResponse {
+        success: boolean
+    }
+
+    export interface DeleteApplicationRequest {
+        userId: string
+    }
+
+    export interface DeleteApplicationResponse {
+        success: boolean
+    }
+
+    export interface GetApplicationsResponse {
+        applications: Application[]
+    }
+
+    export interface UpdateApplicationRequest {
+        userId: string
+        id: string
+        companyName: string
+        roleTitle?: string
+        url?: string
+        status: ApplicationStatus
+        priority: ApplicationPriority
+        notes?: string
+        cvHtml?: string
+    }
+
+    export interface UpdateApplicationResponse {
+        application: Application | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addApplication = this.addApplication.bind(this)
+            this.bulkImport = this.bulkImport.bind(this)
+            this.deleteApplication = this.deleteApplication.bind(this)
+            this.getApplications = this.getApplications.bind(this)
+            this.updateApplication = this.updateApplication.bind(this)
+        }
+
+        /**
+         * Yeni bir iş başvurusu ekler
+         */
+        public async addApplication(params: AddApplicationRequest): Promise<AddApplicationResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/apply-tracker/add`, JSON.stringify(params))
+            return await resp.json() as AddApplicationResponse
+        }
+
+        /**
+         * Birden fazla iş başvurusunu toplu olarak içeri aktarır
+         */
+        public async bulkImport(params: BulkImportRequest): Promise<BulkImportResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/apply-tracker/bulk-import`, JSON.stringify(params))
+            return await resp.json() as BulkImportResponse
+        }
+
+        /**
+         * İş başvurusunu siler
+         */
+        public async deleteApplication(id: string, params: DeleteApplicationRequest): Promise<DeleteApplicationResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/apply-tracker/delete/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteApplicationResponse
+        }
+
+        /**
+         * Kullanıcının tüm iş başvurularını getirir
+         */
+        public async getApplications(userId: string): Promise<GetApplicationsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/apply-tracker/applications/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetApplicationsResponse
+        }
+
+        /**
+         * İş başvurusunu günceller
+         */
+        public async updateApplication(params: UpdateApplicationRequest): Promise<UpdateApplicationResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/apply-tracker/update`, JSON.stringify(params))
+            return await resp.json() as UpdateApplicationResponse
+        }
+    }
 }
 
 export namespace assistant {

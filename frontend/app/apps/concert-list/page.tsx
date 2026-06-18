@@ -16,6 +16,7 @@ import {
   TrendUp,
   FramerLogo,
   PencilSimple,
+  ArrowSquareIn,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -35,6 +36,7 @@ export default function ConcertListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRating, setSelectedRating] = useState<number | "all">("all");
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const [showImportDrawer, setShowImportDrawer] = useState(false);
   const [selectedConcertForEdit, setSelectedConcertForEdit] = useState<concert_list.Concert | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const router = useRouter();
@@ -144,16 +146,25 @@ export default function ConcertListPage() {
           </button>
 
           {user && (
-            <button
-              onClick={() => {
-                setSelectedConcertForEdit(null);
-                setShowAddDrawer(true);
-              }}
-              className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-pink-900/10"
-            >
-              <Plus size={14} weight="bold" />
-              <span>Yeni Konser</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowImportDrawer(true)}
+                className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-zinc-800"
+              >
+                <ArrowSquareIn size={14} weight="bold" />
+                <span>İçe Aktar</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedConcertForEdit(null);
+                  setShowAddDrawer(true);
+                }}
+                className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-pink-900/10"
+              >
+                <Plus size={14} weight="bold" />
+                <span>Yeni Konser</span>
+              </button>
+            </div>
           )}
         </div>
 
@@ -239,7 +250,11 @@ export default function ConcertListPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={concert.id}
-                        className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/5 relative group hover:border-pink-500/20 transition-all"
+                        className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/5 relative group hover:border-pink-500/20 hover:bg-white/10 active:scale-[0.99] transition-all cursor-pointer"
+                        onClick={() => {
+                          setSelectedConcertForEdit(concert);
+                          setShowAddDrawer(true);
+                        }}
                       >
                         {/* Timeline node dot */}
                         <div className="absolute left-[-33px] top-6 w-3 h-3 rounded-full bg-pink-500 ring-4 ring-pink-500/20" />
@@ -264,20 +279,6 @@ export default function ConcertListPage() {
                                 )}
                               </div>
                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {/* Edit Button */}
-                            <button
-                              onClick={() => {
-                                setSelectedConcertForEdit(concert);
-                                setShowAddDrawer(true);
-                              }}
-                              className="text-zinc-500 hover:text-pink-400 p-1.5 rounded-lg transition-colors hover:bg-zinc-800/50"
-                              aria-label="Düzenle"
-                            >
-                              <Sliders size={14} />
-                            </button>
                           </div>
                         </div>
 
@@ -353,6 +354,33 @@ export default function ConcertListPage() {
                 onDelete={(id) => {
                   setDeleteTargetId(id);
                   setShowAddDrawer(false);
+                }}
+              />
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      {/* 2. Bulk Import Drawer */}
+      <Drawer.Root
+        open={showImportDrawer}
+        onOpenChange={setShowImportDrawer}
+      >
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-[#09090b] text-white flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-zinc-800">
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="mx-auto w-12 h-1 rounded-full bg-zinc-800 mb-6" />
+              <Drawer.Title className="text-2xl font-black mb-1 uppercase tracking-tight">
+                Metinden Konser Aktar
+              </Drawer.Title>
+              <Drawer.Description className="text-xs text-zinc-400 mb-6">
+                Her satıra bir konser gelecek şekilde listenizi yapıştırın.
+              </Drawer.Description>
+              <BulkImportForm
+                onComplete={() => {
+                  fetchConcerts();
+                  setShowImportDrawer(false);
                 }}
               />
             </div>
@@ -723,6 +751,116 @@ function ArtistAvatar({ artistName, customImageUrl, size = "sm" }: { artistName:
       ) : (
         artistName.trim() ? artistName.trim().charAt(0) : <MusicNotes size={iconSize} />
       )}
+    </div>
+  );
+}
+
+// Bulk Import Form
+function BulkImportForm({ onComplete }: { onComplete: () => void }) {
+  const { user } = useUser();
+  const [text, setText] = useState("");
+  const [parsed, setParsed] = useState<{ artist: string; date: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Client side parser for 'DD.MM.YY Artist Name'
+  useEffect(() => {
+    if (!text.trim()) {
+      setParsed([]);
+      return;
+    }
+
+    const lines = text.split("\n");
+    const results: { artist: string; date: string }[] = [];
+
+    // Pattern matching: DD.MM.YY or DD.MM.YYYY, optionally trailing quotes, then artist name
+    // e.g. "10.05.26 Arem Arman"
+    // e.g. "19.05.25' Redd"
+    const lineRegex = /^(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{2,4})['"]?\s+(.+)$/;
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+
+      // Skip lines indicating metadata/headers
+      if (trimmed.startsWith("Created At") || trimmed.startsWith("File Path") || trimmed.startsWith("Completed At")) {
+        return;
+      }
+
+      const match = trimmed.match(lineRegex);
+      if (match) {
+        const day = match[1].padStart(2, "0");
+        const month = match[2].padStart(2, "0");
+        let year = match[3];
+        const artist = match[4].trim();
+
+        // Convert 2 digit year to 4 digit
+        if (year.length === 2) {
+          const numYear = Number(year);
+          year = numYear < 50 ? `20${year}` : `19${year}`;
+        }
+
+        const isoDate = `${year}-${month}-${day}`;
+        results.push({ artist, date: isoDate });
+      }
+    });
+
+    setParsed(results);
+  }, [text]);
+
+  const handleImport = async () => {
+    if (!user || parsed.length === 0) return;
+    try {
+      setLoading(true);
+      const res = await client.concert_list.bulkImportConcerts({
+        userId: user.id,
+        concerts: parsed.map((item) => ({
+          artist: item.artist,
+          date: item.date,
+          rating: 5, // Default rating for imports
+        })),
+      });
+
+      toast.success(`${res.importedCount} yeni konser başarıyla aktarıldı!`);
+      onComplete();
+    } catch (err) {
+      toast.error("Aktarma sırasında hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div>
+        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Konser Listesi Metni</label>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`Örnek Format:\n10.05.26 Pinhani\n09.05.26 Fatma Turgut\n19.05.25' Redd`}
+          rows={8}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-pink-500/40 outline-none font-mono"
+        />
+      </div>
+
+      {parsed.length > 0 && (
+        <div className="bg-white/5 border border-white/5 rounded-xl p-4 max-h-48 overflow-y-auto space-y-2">
+          <div className="text-xs font-bold text-pink-400 mb-2">Çözümlenen Konserler ({parsed.length}):</div>
+          {parsed.map((item, idx) => (
+            <div key={idx} className="flex justify-between items-center text-xs text-gray-300">
+              <span className="font-bold">{item.artist}</span>
+              <span className="text-gray-500">{item.date}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        onClick={handleImport}
+        disabled={loading || parsed.length === 0}
+        className="w-full h-12 bg-gradient-to-r from-pink-500 to-violet-600 text-white font-bold rounded-xl flex items-center justify-center transition-all disabled:opacity-40 text-sm gap-2"
+      >
+        {loading ? "Aktarılıyor..." : `İçeri Aktar (${parsed.length} Konser)`}
+      </button>
     </div>
   );
 }
