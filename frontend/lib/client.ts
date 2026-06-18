@@ -37,7 +37,6 @@ export default class Client {
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly budget: budget.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
-    public readonly campus_event: campus_event.ServiceClient
     public readonly campus_events: campus_events.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
@@ -86,7 +85,6 @@ export default class Client {
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.budget = new budget.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
-        this.campus_event = new campus_event.ServiceClient(base)
         this.campus_events = new campus_events.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
@@ -1073,129 +1071,6 @@ export namespace campus_concerts {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/campus-concerts/attendance/set`, JSON.stringify(params))
             return await resp.json() as SetAttendanceResponse
-        }
-    }
-}
-
-export namespace campus_event {
-    export interface AddEventRequest {
-        userId: string
-        title: string
-        university: string
-        eventDate: string
-        description?: string
-        clubName?: string
-        location?: string
-        category?: EventCategory
-        eventTime?: string
-        imageUrl?: string
-    }
-
-    export interface AddEventResponse {
-        eventId: string
-    }
-
-    export interface CampusEvent {
-        id: string
-        title: string
-        description: string | null
-        university: string
-        clubId: string | null
-        clubName: string | null
-        location: string | null
-        category: EventCategory
-        eventDate: string
-        eventTime: string | null
-        imageUrl: string | null
-        creatorUsername: string | null
-        creatorAvatar: string | null
-        createdAt: string
-    }
-
-    export interface DeleteEventRequest {
-        userId: string
-        eventId: string
-    }
-
-    export interface DeleteEventResponse {
-        success: boolean
-    }
-
-    export type EventCategory = "Konser" | "Workshop" | "Turnuva" | "Sosyal" | "Kariyer" | "Spor" | "Diğer"
-
-    export interface GetEventsRequest {
-        university?: string
-        category?: string
-    }
-
-    export interface GetEventsResponse {
-        events: CampusEvent[]
-    }
-
-    export interface GetUniversitiesResponse {
-        universities: UniversityInfo[]
-    }
-
-    export interface UniversityInfo {
-        university: string
-        eventCount: number
-    }
-
-    export class ServiceClient {
-        private baseClient: BaseClient
-
-        constructor(baseClient: BaseClient) {
-            this.baseClient = baseClient
-            this.addEvent = this.addEvent.bind(this)
-            this.deleteEvent = this.deleteEvent.bind(this)
-            this.getEvents = this.getEvents.bind(this)
-            this.getUniversities = this.getUniversities.bind(this)
-        }
-
-        /**
-         * Yeni etkinlik ekler (sadece admin)
-         * POST /campus-event/events
-         */
-        public async addEvent(params: AddEventRequest): Promise<AddEventResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/campus-event/events`, JSON.stringify(params))
-            return await resp.json() as AddEventResponse
-        }
-
-        /**
-         * Etkinliği siler (sadece admin)
-         * POST /campus-event/events/delete
-         */
-        public async deleteEvent(params: DeleteEventRequest): Promise<DeleteEventResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/campus-event/events/delete`, JSON.stringify(params))
-            return await resp.json() as DeleteEventResponse
-        }
-
-        /**
-         * Tüm etkinlikleri listeler (üniversite ve kategori filtresi opsiyonel)
-         * GET /campus-event/events
-         */
-        public async getEvents(params: GetEventsRequest): Promise<GetEventsResponse> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                category:   params.category,
-                university: params.university,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/campus-event/events`, undefined, {query})
-            return await resp.json() as GetEventsResponse
-        }
-
-        /**
-         * Üniversite listesini döner (etkinlik sayısıyla birlikte)
-         * GET /campus-event/universities
-         */
-        public async getUniversities(): Promise<GetUniversitiesResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/campus-event/universities`)
-            return await resp.json() as GetUniversitiesResponse
         }
     }
 }
