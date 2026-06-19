@@ -45,6 +45,8 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   esles: "/apps/esles",
   campusevents: "/apps/campus-events",
   basvuru: "/apps/apply-tracker",
+  seriestrack: "/apps/series-track",
+  weather: "/apps/daily-weather",
 };
 
 /**
