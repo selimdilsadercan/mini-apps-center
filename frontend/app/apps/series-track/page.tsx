@@ -28,7 +28,7 @@ const client = createBrowserClient();
 
 // ==================== FRONTEND CACHE ====================
 const CACHE_KEYS = {
-  DETAILS: 'seriestrack_details_cache',
+  DETAILS: 'seriestrack_details_cache_v2',
   SEASONS: 'seriestrack_seasons_cache',
 };
 
@@ -132,7 +132,7 @@ export default function SeriesTrackPage() {
   const getNextEpisode = (seriesId: string) => {
     const progress = allSeriesProgress[seriesId] || [];
     const details = allSeriesDetails[seriesId];
-    if (!details || !details.seasons) return { season: 1, episode: 1, totalLeft: 0 };
+    if (!details || !details.seasons) return { season: 1, episode: 1, totalLeft: 0, isAired: true, airDate: "", isFinished: false };
 
     // Find the highest watched episode
     let lastSeason = 0;
@@ -145,28 +145,67 @@ export default function SeriesTrackPage() {
       }
     });
 
-    if (lastSeason === 0) return { season: 1, episode: 1, totalLeft: details.number_of_episodes };
+    if (lastSeason === 0) {
+      // Check if first episode is aired
+      let isAired = true;
+      let airDate = "";
+      const nextToAir = details.next_episode_to_air;
+      const lastAired = details.last_episode_to_air;
+      if (lastAired) {
+        if (1 > lastAired.season_number || (1 === lastAired.season_number && 1 > lastAired.episode_number)) {
+          isAired = false;
+          if (nextToAir && nextToAir.season_number === 1 && nextToAir.episode_number === 1) {
+            airDate = nextToAir.air_date;
+          }
+        }
+      }
+      return { season: 1, episode: 1, totalLeft: details.number_of_episodes, isAired, airDate, isFinished: false };
+    }
 
     // Find next episode in the same season or next season
+    let nextSeasonNum = 0;
+    let nextEpisodeNum = 0;
     const currentSeason = details.seasons.find((s: any) => s.season_number === lastSeason);
+    
     if (currentSeason && lastEpisode < currentSeason.episode_count) {
-      return { 
-        season: lastSeason, 
-        episode: lastEpisode + 1, 
-        totalLeft: details.number_of_episodes - progress.length 
-      };
+      nextSeasonNum = lastSeason;
+      nextEpisodeNum = lastEpisode + 1;
     } else {
       const nextSeason = details.seasons.find((s: any) => s.season_number === lastSeason + 1);
       if (nextSeason) {
-        return { 
-          season: lastSeason + 1, 
-          episode: 1, 
-          totalLeft: details.number_of_episodes - progress.length 
-        };
+        nextSeasonNum = lastSeason + 1;
+        nextEpisodeNum = 1;
       }
     }
 
-    return { season: lastSeason, episode: lastEpisode, isFinished: true, totalLeft: 0 };
+    if (nextSeasonNum === 0 || nextEpisodeNum === 0) {
+      return { season: lastSeason, episode: lastEpisode, isFinished: true, totalLeft: 0, isAired: true, airDate: "" };
+    }
+
+    // Check if aired
+    let isAired = true;
+    let airDate = "";
+    const lastAired = details.last_episode_to_air;
+    const nextToAir = details.next_episode_to_air;
+
+    if (lastAired) {
+      if (nextSeasonNum > lastAired.season_number || 
+         (nextSeasonNum === lastAired.season_number && nextEpisodeNum > lastAired.episode_number)) {
+        isAired = false;
+        if (nextToAir && nextSeasonNum === nextToAir.season_number && nextEpisodeNum === nextToAir.episode_number) {
+          airDate = nextToAir.air_date;
+        }
+      }
+    }
+
+    return { 
+      season: nextSeasonNum, 
+      episode: nextEpisodeNum, 
+      totalLeft: details.number_of_episodes - progress.length,
+      isAired,
+      airDate,
+      isFinished: false
+    };
   };
 
   const getNextEpisodeName = (seriesId: string, season: number, episode: number) => {
@@ -286,29 +325,33 @@ export default function SeriesTrackPage() {
     }
   };
 
-  const toggleWatched = async (seasonNum: number, episodeNum: number) => {
-    if (!user || !selectedSeries) return;
+  const toggleWatched = async (seriesId: string, seasonNum: number, episodeNum: number) => {
+    if (!user) return;
     try {
       const res = await client.series_track.toggleEpisodeWatched({
         userId: user.id,
-        seriesId: selectedSeries.id,
+        seriesId: seriesId,
         seasonNumber: seasonNum,
         episodeNumber: episodeNum,
       });
       
       if (res.isWatched) {
-        setUserProgress(prev => [...prev, { season_number: seasonNum, episode_number: episodeNum, watched_at: new Date().toISOString() }]);
+        if (selectedSeries?.id === seriesId) {
+          setUserProgress(prev => [...prev, { season_number: seasonNum, episode_number: episodeNum, watched_at: new Date().toISOString() }]);
+        }
         // Update allSeriesProgress for the main list
         setAllSeriesProgress(prev => ({
           ...prev,
-          [selectedSeries.id]: [...(prev[selectedSeries.id] || []), { season_number: seasonNum, episode_number: episodeNum, watched_at: new Date().toISOString() }]
+          [seriesId]: [...(prev[seriesId] || []), { season_number: seasonNum, episode_number: episodeNum, watched_at: new Date().toISOString() }]
         }));
       } else {
-        setUserProgress(prev => prev.filter(p => !(p.season_number === seasonNum && p.episode_number === episodeNum)));
+        if (selectedSeries?.id === seriesId) {
+          setUserProgress(prev => prev.filter(p => !(p.season_number === seasonNum && p.episode_number === episodeNum)));
+        }
         // Update allSeriesProgress for the main list
         setAllSeriesProgress(prev => ({
           ...prev,
-          [selectedSeries.id]: (prev[selectedSeries.id] || []).filter(p => !(p.season_number === seasonNum && p.episode_number === episodeNum))
+          [seriesId]: (prev[seriesId] || []).filter(p => !(p.season_number === seasonNum && p.episode_number === episodeNum))
         }));
       }
     } catch (error) {
@@ -414,7 +457,7 @@ export default function SeriesTrackPage() {
     if (!dateStr) return "";
     try {
       const date = new Date(dateStr);
-      return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+      return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' }).format(date);
     } catch (e) {
       return dateStr;
     }
@@ -560,7 +603,7 @@ export default function SeriesTrackPage() {
                       
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-black tracking-tighter text-white">
-                          S{nextEp.season} E{nextEp.episode}
+                          {nextEp.isFinished ? "Bitti" : `S${nextEp.season} E${nextEp.episode}`}
                         </span>
                         {nextEp.totalLeft > 0 && (
                           <span className="text-sm font-bold text-indigo-400">+{nextEp.totalLeft}</span>
@@ -568,38 +611,47 @@ export default function SeriesTrackPage() {
                       </div>
                       
                       <p className="text-xs text-zinc-500 mt-2 truncate font-medium">
-                        Sıradaki: Sezon {nextEp.season}, Bölüm {nextEp.episode}
+                        {nextEp.isFinished 
+                          ? "Tüm bölümleri izledin." 
+                          : `Sıradaki: Sezon ${nextEp.season}, Bölüm ${nextEp.episode}`}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center justify-end mt-4">
                       <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${STATUS_LABELS[series.status]?.bg} ${STATUS_LABELS[series.status]?.color}`}>
-                          {STATUS_LABELS[series.status]?.label}
-                        </span>
-                      </div>
+                        {nextEp.isFinished ? (
+                          <div className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                            Tamamlandı 🎉
+                          </div>
+                        ) : nextEp.isAired ? (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleWatch(series, nextEp.season, nextEp.episode);
+                              }}
+                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 cursor-pointer"
+                            >
+                              <Play size={14} weight="fill" />
+                              <span>İZLE</span>
+                            </button>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleWatch(series, nextEp.season, nextEp.episode);
-                          }}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95"
-                        >
-                          <Play size={14} weight="fill" />
-                          <span>İZLE</span>
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleWatched(nextEp.season, nextEp.episode);
-                          }}
-                          className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-emerald-500/20 border border-zinc-700 hover:border-emerald-500/50 flex items-center justify-center transition-all group/btn"
-                        >
-                          <CheckCircle size={20} weight="bold" className="text-zinc-500 group-hover/btn:text-emerald-500" />
-                        </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleWatched(series.id, nextEp.season, nextEp.episode);
+                              }}
+                              className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-emerald-500/20 border border-zinc-700 hover:border-emerald-500/50 flex items-center justify-center transition-all group/btn cursor-pointer"
+                            >
+                              <CheckCircle size={20} weight="bold" className="text-zinc-500 group-hover/btn:text-emerald-500" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10px] font-black text-amber-500">
+                            <Calendar size={14} weight="bold" className="shrink-0" />
+                            <span>{nextEp.airDate ? formatDateTurkish(nextEp.airDate) : "YAKINDA"}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -724,7 +776,7 @@ export default function SeriesTrackPage() {
                       <div className="w-40 md:w-56 aspect-[2/3] rounded-[2rem] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.4)] border border-white/5 shrink-0">
                         <img src={`https://image.tmdb.org/t/p/w500${seriesDetails.poster_path}`} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex-1 pt-4 md:pt-48">
+                      <div className="flex-1 pt-4 md:pt-6">
                         <Drawer.Title className="text-3xl md:text-5xl font-black tracking-tighter mb-4 leading-tight">{seriesDetails.name}</Drawer.Title>
                         <Drawer.Description className="sr-only">
                           {seriesDetails.name} dizi detayları ve bölüm takibi.
@@ -825,7 +877,7 @@ export default function SeriesTrackPage() {
                                         toast.error("Bu bölüm henüz yayınlanmadı.");
                                         return;
                                       }
-                                      toggleWatched(activeSeason, ep.episode_number);
+                                      if (selectedSeries) toggleWatched(selectedSeries.id, activeSeason, ep.episode_number);
                                     }}
                                     className={`group cursor-pointer flex items-center gap-5 py-4 border-b border-zinc-800/30 hover:bg-white/[0.01] transition-all px-3 rounded-2xl -mx-3 ${!aired ? 'opacity-40' : ''}`}
                                   >
@@ -850,16 +902,7 @@ export default function SeriesTrackPage() {
                                         <span className={`text-lg font-bold truncate tracking-tight ${watched ? 'text-zinc-700' : 'text-zinc-200'}`}>
                                           {ep.name}
                                         </span>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (selectedSeries) handleWatch(selectedSeries, activeSeason, ep.episode_number);
-                                          }}
-                                          className="ml-2 w-8 h-8 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-lg flex items-center justify-center transition-all active:scale-90"
-                                          title="Bölümü İzle"
-                                        >
-                                          <Play size={16} weight="fill" />
-                                        </button>
+
                                       </div>
 
                                       <div className="flex flex-col items-end shrink-0">

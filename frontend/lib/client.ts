@@ -3679,6 +3679,18 @@ export namespace series_track {
             name: string
             "poster_path": string | null
         }[]
+        "next_episode_to_air"?: {
+            "air_date": string
+            "episode_number": number
+            "season_number": number
+            name: string
+        } | null
+        "last_episode_to_air"?: {
+            "air_date": string
+            "episode_number": number
+            "season_number": number
+            name: string
+        } | null
     }
 
     export interface ToggleEpisodeWatchedRequest {
