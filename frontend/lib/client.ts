@@ -58,6 +58,7 @@ export default class Client {
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly scrape: scrape.ServiceClient
+    public readonly series_track: series_track.ServiceClient
     public readonly stamp_card: stamp_card.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
@@ -107,6 +108,7 @@ export default class Client {
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
+        this.series_track = new series_track.ServiceClient(base)
         this.stamp_card = new stamp_card.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
@@ -156,6 +158,7 @@ export namespace apply_tracker {
         priority: ApplicationPriority
         notes?: string
         cvHtml?: string
+        appliedAt?: string
     }
 
     export interface AddApplicationResponse {
@@ -181,6 +184,7 @@ export namespace apply_tracker {
         priority: ApplicationPriority
         notes: string | null
         "cv_html": string | null
+        "applied_at": string | null
         "created_at": string
         "updated_at": string
     }
@@ -220,6 +224,7 @@ export namespace apply_tracker {
         priority: ApplicationPriority
         notes?: string
         cvHtml?: string
+        appliedAt?: string
     }
 
     export interface UpdateApplicationResponse {
@@ -3587,6 +3592,288 @@ export namespace scrape {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/scrape/youtube/shorts`, JSON.stringify(params))
             return await resp.json() as ScrapeYouTubeShortResponse
+        }
+    }
+}
+
+export namespace series_track {
+    export interface AddUserSeriesRequest {
+        userId: string
+        tmdbId: number
+        title: string
+        posterPath?: string
+        backdropPath?: string
+        status?: SeriesStatus
+        watchUrlSlug?: string
+    }
+
+    export interface GetUserProgressResponse {
+        progress: UserProgress[]
+    }
+
+    export interface GetUserSeriesResponse {
+        series: UserSeries[]
+    }
+
+    export interface MarkAllEpisodesWatchedRequest {
+        userId: string
+        seriesId: string
+        seasonsData: {
+            season: number
+            count: number
+        }[]
+    }
+
+    export interface MarkEpisodesWatchedRequest {
+        userId: string
+        seriesId: string
+        seasonNumber: number
+        episodeNumbers: number[]
+    }
+
+    export interface SearchSeriesRequest {
+        query: string
+    }
+
+    export type SeriesStatus = "watching" | "plan_to_watch" | "completed" | "dropped"
+
+    export interface TmdbSearchResponse {
+        results: {
+            id: number
+            name: string
+            "poster_path": string | null
+            "backdrop_path": string | null
+            "first_air_date": string
+            overview: string
+            "vote_average": number
+        }[]
+    }
+
+    export interface TmdbSeasonDetails {
+        id: number
+        "season_number": number
+        episodes: {
+            id: number
+            "episode_number": number
+            name: string
+            overview: string
+            "still_path": string | null
+            "vote_average": number
+            "air_date": string
+        }[]
+    }
+
+    export interface TmdbSeriesDetails {
+        id: number
+        name: string
+        "poster_path": string | null
+        "backdrop_path": string | null
+        "first_air_date": string
+        overview: string
+        "vote_average": number
+        "number_of_seasons": number
+        "number_of_episodes": number
+        seasons: {
+            "season_number": number
+            "episode_count": number
+            name: string
+            "poster_path": string | null
+        }[]
+    }
+
+    export interface ToggleEpisodeWatchedRequest {
+        userId: string
+        seriesId: string
+        seasonNumber: number
+        episodeNumber: number
+    }
+
+    export interface ToggleEpisodeWatchedResponse {
+        isWatched: boolean
+    }
+
+    export interface UpdateUserSeriesStatusRequest {
+        userId: string
+        seriesId: string
+        status: SeriesStatus
+    }
+
+    export interface UserProgress {
+        "season_number": number
+        "episode_number": number
+        "watched_at": string
+    }
+
+    export interface UserSeries {
+        id: string
+        "tmdb_id": number
+        title: string
+        "poster_path": string | null
+        "backdrop_path": string | null
+        status: SeriesStatus
+        "watch_url_slug": string | null
+        "created_at": string
+        "updated_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addUserSeries = this.addUserSeries.bind(this)
+            this.deleteUserSeries = this.deleteUserSeries.bind(this)
+            this.getSeasonDetails = this.getSeasonDetails.bind(this)
+            this.getSeriesDetails = this.getSeriesDetails.bind(this)
+            this.getUserProgress = this.getUserProgress.bind(this)
+            this.getUserSeries = this.getUserSeries.bind(this)
+            this.markAllEpisodesWatched = this.markAllEpisodesWatched.bind(this)
+            this.markEpisodesWatched = this.markEpisodesWatched.bind(this)
+            this.searchSeries = this.searchSeries.bind(this)
+            this.testTmdbKey = this.testTmdbKey.bind(this)
+            this.toggleEpisodeWatched = this.toggleEpisodeWatched.bind(this)
+            this.updateUserSeriesStatus = this.updateUserSeriesStatus.bind(this)
+        }
+
+        /**
+         * Kullanıcının listesine yeni dizi ekler
+         */
+        public async addUserSeries(params: AddUserSeriesRequest): Promise<{
+    series: UserSeries | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/series/add`, JSON.stringify(params))
+            return await resp.json() as {
+    series: UserSeries | null
+}
+        }
+
+        /**
+         * Diziyi listeden siler
+         */
+        public async deleteUserSeries(userId: string, seriesId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/series-track/series/${encodeURIComponent(userId)}/${encodeURIComponent(seriesId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * TMDB üzerinden sezon detaylarını (bölümleri) getirir
+         */
+        public async getSeasonDetails(tmdbId: number, seasonNumber: number): Promise<TmdbSeasonDetails> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/season/${encodeURIComponent(tmdbId)}/${encodeURIComponent(seasonNumber)}`)
+            return await resp.json() as TmdbSeasonDetails
+        }
+
+        /**
+         * TMDB üzerinden dizi detaylarını getirir
+         */
+        public async getSeriesDetails(tmdbId: number): Promise<TmdbSeriesDetails> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/details/${encodeURIComponent(tmdbId)}`)
+            return await resp.json() as TmdbSeriesDetails
+        }
+
+        /**
+         * Kullanıcının bir dizi için izleme ilerlemesini getirir
+         */
+        public async getUserProgress(userId: string, seriesId: string): Promise<GetUserProgressResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/progress/${encodeURIComponent(userId)}/${encodeURIComponent(seriesId)}`)
+            return await resp.json() as GetUserProgressResponse
+        }
+
+        /**
+         * Kullanıcının listesindeki tüm dizileri getirir
+         */
+        public async getUserSeries(userId: string): Promise<GetUserSeriesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/series/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserSeriesResponse
+        }
+
+        /**
+         * Tüm diziyi izlendi olarak işaretler
+         */
+        public async markAllEpisodesWatched(params: MarkAllEpisodesWatchedRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/progress/mark-all-watched`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Birden fazla bölümü izlendi olarak işaretler
+         */
+        public async markEpisodesWatched(params: MarkEpisodesWatchedRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/progress/mark-watched`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * TMDB üzerinden dizi arar
+         */
+        public async searchSeries(params: SearchSeriesRequest): Promise<TmdbSearchResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/search`, undefined, {query})
+            return await resp.json() as TmdbSearchResponse
+        }
+
+        /**
+         * API Key test endpoint
+         */
+        public async testTmdbKey(): Promise<{
+    status: number
+    body: string
+    keyLength: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/test-key`)
+            return await resp.json() as {
+    status: number
+    body: string
+    keyLength: number
+}
+        }
+
+        /**
+         * Bir bölümün izlenme durumunu değiştirir (toggle)
+         */
+        public async toggleEpisodeWatched(params: ToggleEpisodeWatchedRequest): Promise<ToggleEpisodeWatchedResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/progress/toggle`, JSON.stringify(params))
+            return await resp.json() as ToggleEpisodeWatchedResponse
+        }
+
+        /**
+         * Dizinin izleme durumunu günceller
+         */
+        public async updateUserSeriesStatus(params: UpdateUserSeriesStatusRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/series-track/series/status`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
     }
 }

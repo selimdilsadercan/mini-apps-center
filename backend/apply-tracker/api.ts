@@ -22,6 +22,7 @@ export interface Application {
   priority: ApplicationPriority;
   notes: string | null;
   cv_html: string | null;
+  applied_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +55,7 @@ interface AddApplicationRequest {
   priority: ApplicationPriority;
   notes?: string;
   cvHtml?: string;
+  appliedAt?: string;
 }
 
 interface AddApplicationResponse {
@@ -70,6 +72,7 @@ interface UpdateApplicationRequest {
   priority: ApplicationPriority;
   notes?: string;
   cvHtml?: string;
+  appliedAt?: string;
 }
 
 interface UpdateApplicationResponse {
@@ -130,6 +133,7 @@ export const addApplication = api(
       priority_param: req.priority,
       notes_param: req.notes || null,
       cv_html_param: req.cvHtml || null,
+      applied_at_param: req.appliedAt || null,
     });
 
     if (error) {
@@ -157,6 +161,7 @@ export const updateApplication = api(
       priority_param: req.priority,
       notes_param: req.notes || null,
       cv_html_param: req.cvHtml || null,
+      applied_at_param: req.appliedAt || null,
     });
 
     if (error) {

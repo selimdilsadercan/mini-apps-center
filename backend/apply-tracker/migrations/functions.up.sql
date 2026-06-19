@@ -21,7 +21,6 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. add_application
-DROP FUNCTION IF EXISTS apply_tracker.add_application(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS apply_tracker.add_application(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION apply_tracker.add_application(
     clerk_id_param TEXT,
@@ -31,7 +30,8 @@ CREATE OR REPLACE FUNCTION apply_tracker.add_application(
     status_param TEXT,
     priority_param TEXT,
     notes_param TEXT,
-    cv_html_param TEXT DEFAULT NULL
+    cv_html_param TEXT DEFAULT NULL,
+    applied_at_param TIMESTAMPTZ DEFAULT NULL
 )
 RETURNS apply_tracker.applications AS $$
 DECLARE
@@ -44,9 +44,9 @@ BEGIN
     END IF;
 
     INSERT INTO apply_tracker.applications (
-        user_id, company_name, role_title, url, status, priority, notes, cv_html
+        user_id, company_name, role_title, url, status, priority, notes, cv_html, applied_at
     ) VALUES (
-        v_user_id, company_name_param, role_title_param, url_param, status_param, priority_param, notes_param, cv_html_param
+        v_user_id, company_name_param, role_title_param, url_param, status_param, priority_param, notes_param, cv_html_param, applied_at_param
     ) RETURNING * INTO v_new_app;
 
     RETURN v_new_app;
@@ -54,7 +54,6 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. update_application
-DROP FUNCTION IF EXISTS apply_tracker.update_application(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS apply_tracker.update_application(TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION apply_tracker.update_application(
     clerk_id_param TEXT,
@@ -65,7 +64,8 @@ CREATE OR REPLACE FUNCTION apply_tracker.update_application(
     status_param TEXT,
     priority_param TEXT,
     notes_param TEXT,
-    cv_html_param TEXT DEFAULT NULL
+    cv_html_param TEXT DEFAULT NULL,
+    applied_at_param TIMESTAMPTZ DEFAULT NULL
 )
 RETURNS apply_tracker.applications AS $$
 DECLARE
@@ -85,6 +85,7 @@ BEGIN
         priority = priority_param,
         notes = notes_param,
         cv_html = cv_html_param,
+        applied_at = applied_at_param,
         updated_at = NOW()
     WHERE id = id_param AND user_id = v_user_id
     RETURNING * INTO v_updated_app;
@@ -139,10 +140,12 @@ BEGIN
         url TEXT,
         status TEXT,
         priority TEXT,
-        notes TEXT
+        notes TEXT,
+        cv_html TEXT,
+        applied_at TIMESTAMPTZ
     ) LOOP
         INSERT INTO apply_tracker.applications (
-            user_id, company_name, role_title, url, status, priority, notes
+            user_id, company_name, role_title, url, status, priority, notes, cv_html, applied_at
         ) VALUES (
             v_user_id,
             v_app.company_name,
@@ -150,7 +153,9 @@ BEGIN
             v_app.url,
             COALESCE(v_app.status, 'to_apply'),
             COALESCE(v_app.priority, 'medium'),
-            v_app.notes
+            v_app.notes,
+            v_app.cv_html,
+            v_app.applied_at
         );
     END LOOP;
 

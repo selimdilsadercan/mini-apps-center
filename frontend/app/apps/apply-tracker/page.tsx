@@ -20,6 +20,9 @@ import {
   SquaresFour,
   FileText,
   Printer,
+  MagnifyingGlassPlus,
+  MagnifyingGlassMinus,
+  ArrowsClockwise,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -53,10 +56,11 @@ export default function ApplyTrackerPage() {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [showImportDrawer, setShowImportDrawer] = useState(false);
   const [selectedAppForEdit, setSelectedAppForEdit] = useState<apply_tracker.Application | null>(null);
+  const [selectedAppForCv, setSelectedAppForCv] = useState<apply_tracker.Application | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban'); // Default to kanban for SSR/desktop initial state
   const [draggedOverCol, setDraggedOverCol] = useState<string | null>(null);
-  const [selectedCvApp, setSelectedCvApp] = useState<apply_tracker.Application | null>(null);
+  const [showCvEditor, setShowCvEditor] = useState(false);
 
   // Detect screen size on mount to set initial view mode
   useEffect(() => {
@@ -121,7 +125,8 @@ export default function ApplyTrackerPage() {
         url: target.url || undefined,
         status: newStatus,
         priority: target.priority,
-        notes: target.notes || undefined
+        notes: target.notes || undefined,
+        appliedAt: newStatus === 'applied' ? new Date().toISOString() : (target.applied_at || undefined)
       });
       toast.success("Durum güncellendi.");
     } catch (err) {
@@ -153,6 +158,12 @@ export default function ApplyTrackerPage() {
     } catch {
       return null;
     }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   };
 
   return (
@@ -388,6 +399,12 @@ export default function ApplyTrackerPage() {
                                 {app.role_title && (
                                   <div className="text-[10px] text-zinc-500 truncate mt-0.5">{app.role_title}</div>
                                 )}
+                                {app.applied_at && (
+                                  <div className="text-[9px] text-indigo-600 font-bold mt-1 flex items-center gap-1">
+                                    <FileText size={10} weight="bold" />
+                                    <span>{formatDate(app.applied_at)} tarihinde başvuruldu</span>
+                                  </div>
+                                )}
                               </div>
                               
                               <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded shrink-0 ${PRIORITY_LABELS[app.priority]?.color}`}>
@@ -418,16 +435,14 @@ export default function ApplyTrackerPage() {
                               </div>
 
                               <div className="flex items-center gap-1.5">
-                                {app.cv_html && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedCvApp(app)}
-                                    className="text-indigo-650 hover:text-indigo-800 p-0.5 rounded transition-all bg-indigo-50 hover:bg-indigo-100/60"
-                                    title="CV'yi Görüntüle"
-                                  >
-                                    <FileText size={12} weight="fill" />
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedAppForCv(app)}
+                                  className={`p-0.5 rounded transition-all ${app.cv_html ? 'text-indigo-650 bg-indigo-50 hover:bg-indigo-100/60' : 'text-zinc-400 hover:text-indigo-600 bg-zinc-50 hover:bg-zinc-100'}`}
+                                  title={app.cv_html ? "CV'yi Düzenle / Görüntüle" : "CV Oluştur"}
+                                >
+                                  <FileText size={12} weight={app.cv_html ? "fill" : "bold"} />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -516,6 +531,13 @@ export default function ApplyTrackerPage() {
                             <span className="truncate">{app.role_title}</span>
                           </div>
                         )}
+
+                        {app.applied_at && (
+                          <div className="text-[10px] text-indigo-600 font-bold mt-1.5 flex items-center gap-1.5">
+                            <FileText size={12} weight="bold" />
+                            <span>{formatDate(app.applied_at)} tarihinde başvuruldu</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -554,15 +576,13 @@ export default function ApplyTrackerPage() {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-1">
-                      {app.cv_html && (
-                        <button
-                          onClick={() => setSelectedCvApp(app)}
-                          className="text-indigo-655 hover:text-indigo-800 hover:bg-indigo-50 p-2 rounded-xl border border-transparent hover:border-indigo-100 transition-all active:scale-90"
-                          title="CV'yi Görüntüle"
-                        >
-                          <FileText size={14} weight="fill" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setSelectedAppForCv(app)}
+                        className={`p-2 rounded-xl border border-transparent transition-all active:scale-90 ${app.cv_html ? 'text-indigo-655 bg-indigo-50 hover:text-indigo-800 hover:bg-indigo-100/60 hover:border-indigo-100' : 'text-zinc-400 hover:text-indigo-600 hover:bg-zinc-50 hover:border-zinc-100'}`}
+                        title={app.cv_html ? "CV'yi Düzenle / Görüntüle" : "CV Oluştur"}
+                      >
+                        <FileText size={14} weight={app.cv_html ? "fill" : "bold"} />
+                      </button>
                       <button
                         onClick={() => {
                           setSelectedAppForEdit(app);
@@ -659,6 +679,53 @@ export default function ApplyTrackerPage() {
         </Drawer.Portal>
       </Drawer.Root>
 
+      {/* 3. CV Editor Drawer */}
+      <Drawer.Root
+        direction="right"
+        open={!!selectedAppForCv}
+        onOpenChange={(open) => {
+          if (!open) setSelectedAppForCv(null);
+        }}
+      >
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[60]" />
+          <Drawer.Content className="bg-white text-zinc-950 flex flex-col md:rounded-l-[2rem] rounded-t-[2rem] fixed md:top-0 md:right-0 md:bottom-0 md:left-auto bottom-0 left-0 right-0 md:w-[85vw] md:max-w-4xl max-h-[96dvh] md:max-h-screen outline-none z-[70] max-w-2xl mx-auto border-t md:border-t-0 md:border-l border-zinc-200 shadow-2xl">
+            <div className="p-6 overflow-y-auto flex-1 flex flex-col">
+              <div className="mx-auto w-10 h-1 rounded-full bg-zinc-200 mb-6 shrink-0 md:hidden" />
+              <div className="flex justify-between items-center mb-6 shrink-0">
+                <div>
+                  <Drawer.Title className="text-xl font-extrabold tracking-tight flex items-center gap-2 text-zinc-900">
+                    <FileText size={24} className="text-indigo-600" weight="fill" />
+                    <span>{selectedAppForCv?.company_name} - CV Düzenleyici</span>
+                  </Drawer.Title>
+                  <Drawer.Description className="text-xs text-zinc-500 mt-1">
+                    Bu başvuruya özel CV'nizi HTML/CSS ile hazırlayın ve PDF olarak indirin.
+                  </Drawer.Description>
+                </div>
+                <button
+                  onClick={() => setSelectedAppForCv(null)}
+                  className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-500 transition-all"
+                >
+                  <CaretLeft size={20} weight="bold" className="rotate-180" />
+                </button>
+              </div>
+              
+              {selectedAppForCv && (
+                <div className="flex-1 min-h-0">
+                  <CvEditorForm
+                    app={selectedAppForCv}
+                    onComplete={() => {
+                      fetchApplications();
+                      setSelectedAppForCv(null);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteTargetId && (
@@ -702,65 +769,6 @@ export default function ApplyTrackerPage() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* CV Preview & Print Modal */}
-      <AnimatePresence>
-        {selectedCvApp && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45 backdrop-blur-[2px]">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="w-full max-w-4xl bg-white border border-zinc-200 rounded-3xl p-6 shadow-2xl space-y-4 text-zinc-900 flex flex-col h-[90vh]"
-            >
-              <div className="flex justify-between items-center border-b border-zinc-150 pb-3 shrink-0">
-                <div>
-                  <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                    <FileText size={20} className="text-indigo-650" weight="fill" />
-                    <span>{selectedCvApp.company_name} - CV Önizleme</span>
-                  </h3>
-                  {selectedCvApp.role_title && (
-                    <p className="text-xs text-zinc-500 mt-0.5">{selectedCvApp.role_title}</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const iframe = document.getElementById('cv-preview-iframe') as HTMLIFrameElement;
-                      if (iframe && iframe.contentWindow) {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                      }
-                    }}
-                    className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow flex items-center gap-1.5 active:scale-95"
-                  >
-                    <Printer size={14} weight="bold" />
-                    <span>Yazdır / PDF Kaydet</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCvApp(null)}
-                    className="h-9 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-xl transition-all border border-zinc-200 active:scale-95"
-                  >
-                    Kapat
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 min-h-0 bg-zinc-50 rounded-2xl p-2 border border-zinc-200 shadow-inner">
-                <iframe
-                  id="cv-preview-iframe"
-                  title="CV Preview"
-                  srcDoc={selectedCvApp.cv_html || "<html><body style='font-family:sans-serif; text-align:center; padding-top:40px; color:#71717a;'><h3>CV içeriği boş.</h3></body></html>"}
-                  className="w-full h-full border-0 rounded-xl bg-white"
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -769,34 +777,46 @@ const DEFAULT_CV_TEMPLATE = `<!DOCTYPE html>
 <html>
 <head>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; color: #1f2937; line-height: 1.5; margin: 0; padding: 25px; background: #ffffff; }
-  h1 { font-size: 24px; margin-bottom: 5px; color: #111827; font-weight: 800; text-align: center; }
-  .subtitle { color: #4b5563; font-size: 13px; margin-bottom: 25px; text-align: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
-  .section { margin-bottom: 25px; }
-  .section-title { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #4f46e5; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 12px; letter-spacing: 0.05em; }
-  .item { margin-bottom: 18px; }
-  .item-header { font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; color: #111827; }
-  .item-sub { color: #6b7280; font-size: 12px; margin-top: 2px; display: flex; justify-content: space-between; }
-  .item-desc { font-size: 13px; color: #374151; margin-top: 6px; padding-left: 10px; border-left: 2px solid #e5e7eb; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1f2937; line-height: 1.6; margin: 0; padding: 40px; background: #ffffff; }
+  h1 { font-size: 32px; margin-bottom: 8px; color: #111827; font-weight: 800; text-align: left; letter-spacing: -0.02em; }
+  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 30px; text-align: left; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; }
+  .section { margin-bottom: 35px; break-inside: auto; }
+  .section-title { font-size: 16px; font-weight: 800; text-transform: uppercase; color: #4f46e5; border-bottom: 2px solid #eef2ff; padding-bottom: 8px; margin-bottom: 20px; letter-spacing: 0.05em; break-after: avoid; }
+  .item { margin-bottom: 24px; break-inside: avoid; page-break-inside: avoid; }
+  .item-header { font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; color: #111827; }
+  .item-sub { color: #6b7280; font-size: 14px; margin-top: 4px; display: flex; justify-content: space-between; font-weight: 500; }
+  .item-desc { font-size: 14px; color: #4b5563; margin-top: 10px; padding-left: 15px; border-left: 3px solid #f3f4f6; }
+  .skills-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .skill-tag { background: #f9fafb; border: 1px solid #f3f4f6; padding: 4px 12px; rounded: 6px; font-size: 13px; color: #374151; font-weight: 500; }
 </style>
 </head>
 <body>
   <h1>AD SOYAD</h1>
-  <div class="subtitle">E-posta: email@example.com | Telefon: +90 555 555 5555 | GitHub: github.com/username</div>
+  <div class="subtitle">
+    <span>📧 email@example.com</span>
+    <span>📱 +90 555 555 5555</span>
+    <span>🔗 github.com/username</span>
+  </div>
   
   <div class="section">
     <div class="section-title">Deneyim</div>
     <div class="item">
-      <div class="item-header"><span>Senior Frontend Developer</span> <span>2022 - Günümüz</span></div>
-      <div class="item-sub"><span>Şirket Adı A.Ş.</span> <span>İstanbul, Türkiye</span></div>
-      <div class="item-desc">Next.js, TypeScript ve modern CSS mimarileri ile yüksek performanslı web uygulamaları geliştirdim.</div>
+      <div class="item-header"><span>Senior Frontend Developer</span> <span>2022 — Günümüz</span></div>
+      <div class="item-sub"><span>Şirket Adı A.Ş.</span> <span>İstanbul, TR</span></div>
+      <div class="item-desc">Next.js, TypeScript ve modern CSS mimarileri ile yüksek performanslı web uygulamaları geliştirdim. Ekip liderliği ve mimari kararlarda aktif rol aldım.</div>
     </div>
   </div>
 
   <div class="section">
     <div class="section-title">Yetenekler</div>
-    <div class="item" style="font-size: 13px; color: #374151;">
-      <strong>Teknolojiler:</strong> JavaScript, TypeScript, React, Next.js, HTML5, CSS3, Tailwind CSS, PostgreSQL, Git
+    <div class="skills-list">
+      <span class="skill-tag">JavaScript</span>
+      <span class="skill-tag">TypeScript</span>
+      <span class="skill-tag">React</span>
+      <span class="skill-tag">Next.js</span>
+      <span class="skill-tag">Tailwind CSS</span>
+      <span class="skill-tag">PostgreSQL</span>
+      <span class="skill-tag">Git</span>
     </div>
   </div>
 </body>
@@ -811,7 +831,6 @@ function AddAppForm({
   onComplete: () => void;
 }) {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState<'info' | 'cv'>('info');
   const [formData, setFormData] = useState({
     companyName: initialApp?.company_name || "",
     roleTitle: initialApp?.role_title || "",
@@ -819,7 +838,6 @@ function AddAppForm({
     status: initialApp?.status || "to_apply" as apply_tracker.ApplicationStatus,
     priority: initialApp?.priority || "medium" as apply_tracker.ApplicationPriority,
     notes: initialApp?.notes || "",
-    cvHtml: initialApp?.cv_html || "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -843,7 +861,7 @@ function AddAppForm({
           status: formData.status,
           priority: formData.priority,
           notes: formData.notes.trim() || undefined,
-          cvHtml: formData.cvHtml.trim() || undefined,
+          appliedAt: formData.status === 'applied' ? (initialApp.applied_at || new Date().toISOString()) : undefined,
         });
         toast.success("Başvuru güncellendi.");
       } else {
@@ -855,7 +873,7 @@ function AddAppForm({
           status: formData.status,
           priority: formData.priority,
           notes: formData.notes.trim() || undefined,
-          cvHtml: formData.cvHtml.trim() || undefined,
+          appliedAt: formData.status === 'applied' ? new Date().toISOString() : undefined,
         });
         toast.success("Yeni başvuru kaydedildi.");
       }
@@ -868,130 +886,80 @@ function AddAppForm({
     }
   };
 
-  const loadTemplate = () => {
-    setFormData({ ...formData, cvHtml: DEFAULT_CV_TEMPLATE });
-    toast.success("Hazır CV şablonu yüklendi.");
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-8">
-      {/* Tabs Switcher */}
-      <div className="flex bg-zinc-100 p-1 rounded-xl border border-zinc-200 mb-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('info')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'info' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
-        >
-          Genel Bilgiler
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('cv')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'cv' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
-        >
-          HTML CV / Özgeçmiş
-        </button>
+      <div>
+        <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Şirket Adı *</label>
+        <input
+          required
+          type="text"
+          value={formData.companyName}
+          onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+          placeholder="Örn: Google, Notion, Figma"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
+        />
       </div>
 
-      {activeTab === 'info' ? (
-        <>
-          <div>
-            <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Şirket Adı *</label>
-            <input
-              required
-              type="text"
-              value={formData.companyName}
-              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-              placeholder="Örn: Google, Notion, Figma"
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
-            />
-          </div>
+      <div>
+        <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Pozisyon / Rol</label>
+        <input
+          type="text"
+          value={formData.roleTitle}
+          onChange={(e) => setFormData({ ...formData, roleTitle: e.target.value })}
+          placeholder="Örn: Full-Stack Engineer, Product Manager"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
+        />
+      </div>
 
-          <div>
-            <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Pozisyon / Rol</label>
-            <input
-              type="text"
-              value={formData.roleTitle}
-              onChange={(e) => setFormData({ ...formData, roleTitle: e.target.value })}
-              placeholder="Örn: Full-Stack Engineer, Product Manager"
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
-            />
-          </div>
+      <div>
+        <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">İlan Linki (URL)</label>
+        <input
+          type="url"
+          value={formData.url}
+          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          placeholder="https://..."
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
+        />
+      </div>
 
-          <div>
-            <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">İlan Linki (URL)</label>
-            <input
-              type="url"
-              value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-              placeholder="https://..."
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Durum</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as apply_tracker.ApplicationStatus })}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 cursor-pointer"
-              >
-                {Object.entries(STATUS_LABELS).map(([key, val]) => (
-                  <option key={key} value={key}>{val.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Öncelik</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as apply_tracker.ApplicationPriority })}
-                className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 cursor-pointer"
-              >
-                <option value="low">Düşük</option>
-                <option value="medium">Orta</option>
-                <option value="high">Yüksek</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Notlar</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Görüşme tarihleri veya önemli detaylar..."
-              rows={3}
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400 resize-none"
-            />
-          </div>
-        </>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider block">HTML CV Kodu</label>
-            <button
-              type="button"
-              onClick={loadTemplate}
-              className="text-[10px] text-indigo-600 hover:text-indigo-850 font-bold bg-indigo-50 border border-indigo-100 rounded px-2.5 py-1 transition-all active:scale-95"
-            >
-              Hazır Şablon Yükle
-            </button>
-          </div>
-          <p className="text-[10px] text-zinc-500 leading-normal">
-            Bu işe özel hazırladığınız CV'nizin HTML/CSS kodlarını buraya yapıştırabilirsiniz. Daha sonra doğrudan yazdırabilir veya PDF olarak kaydedebilirsiniz.
-          </p>
-          <textarea
-            value={formData.cvHtml}
-            onChange={(e) => setFormData({ ...formData, cvHtml: e.target.value })}
-            placeholder="<html>&#10;  <head><style>...</style></head>&#10;  <body>...</body>&#10;</html>"
-            rows={12}
-            className="w-full bg-zinc-900 text-zinc-100 font-mono rounded-xl px-4 py-3 text-xs focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700 outline-none transition-all placeholder:text-zinc-650 resize-none"
-          />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Durum</label>
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as apply_tracker.ApplicationStatus })}
+            className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 cursor-pointer"
+          >
+            {Object.entries(STATUS_LABELS).map(([key, val]) => (
+              <option key={key} value={key}>{val.label}</option>
+            ))}
+          </select>
         </div>
-      )}
+
+        <div>
+          <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Öncelik</label>
+          <select
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value as apply_tracker.ApplicationPriority })}
+            className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 cursor-pointer"
+          >
+            <option value="low">Düşük</option>
+            <option value="medium">Orta</option>
+            <option value="high">Yüksek</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider mb-1.5 block">Notlar</label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          placeholder="Görüşme tarihleri veya önemli detaylar..."
+          rows={3}
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-400 outline-none text-zinc-900 transition-all placeholder:text-zinc-400 resize-none"
+        />
+      </div>
 
       <button
         type="submit"
@@ -1001,6 +969,364 @@ function AddAppForm({
         {loading ? "Kaydediliyor..." : initialApp ? "Değişiklikleri Kaydet" : "Başvuruyu Ekle"}
       </button>
     </form>
+  );
+}
+
+// Dedicated CV Editor Form
+function CvEditorForm({
+  app,
+  onComplete,
+}: {
+  app: apply_tracker.Application;
+  onComplete: () => void;
+}) {
+  const { user } = useUser();
+  const [cvHtml, setCvHtml] = useState(app.cv_html || "");
+  const [loading, setLoading] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(0.6);
+  const [contentScale, setContentScale] = useState(0.8); // Internal density scale
+
+  // Auto-adjust zoom on mount or preview mode change
+  useEffect(() => {
+    if (previewMode && typeof window !== 'undefined') {
+      const container = document.getElementById('cv-scroll-container');
+      if (container) {
+        const availableWidth = container.clientWidth - 64; // 32px padding each side
+        const a4WidthPx = 210 * 3.78; // 210mm to pixels (approx 96dpi)
+        const fitZoom = Math.min(availableWidth / a4WidthPx, 1);
+        setZoomLevel(Math.floor(fitZoom * 10) / 10);
+      }
+    }
+  }, [previewMode]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      await client.apply_tracker.updateApplication({
+        userId: user.id,
+        id: app.id,
+        companyName: app.company_name,
+        roleTitle: app.role_title || undefined,
+        url: app.url || undefined,
+        status: app.status,
+        priority: app.priority,
+        notes: app.notes || undefined,
+        cvHtml: cvHtml.trim() || undefined,
+        appliedAt: app.applied_at || undefined,
+      });
+      toast.success("CV başarıyla kaydedildi.");
+      onComplete();
+    } catch (err) {
+      console.error(err);
+      toast.error("CV kaydedilirken hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTemplate = () => {
+    setCvHtml(DEFAULT_CV_TEMPLATE);
+    toast.success("Hazır CV şablonu yüklendi.");
+  };
+
+  const handleDownloadPdf = async () => {
+    // @ts-ignore
+    const html2pdf = (await import('html2pdf.js')).default;
+    
+    try {
+      toast.loading("PDF oluşturuluyor...", { id: "pdf-gen" });
+
+      // Create a temporary hidden iframe to completely isolate styles from Tailwind 4
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '210mm';
+      iframe.style.height = '1000mm'; // Large enough to avoid initial clipping
+      iframe.style.left = '-9999px';
+      iframe.style.top = '-9999px';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentWindow?.document;
+      if (!iframeDoc) throw new Error("Iframe document not found");
+
+      // Set the content with the scale applied
+      iframeDoc.open();
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { margin: 0; padding: 0; width: 210mm; }
+              #wrapper { 
+                width: ${100 / contentScale}%; 
+                transform: scale(${contentScale}); 
+                transform-origin: top left; 
+              }
+            </style>
+          </head>
+          <body>
+            <div id="wrapper">
+              ${cvHtml || ""}
+            </div>
+          </body>
+        </html>
+      `);
+      iframeDoc.close();
+
+      // Give it a moment to render
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const opt = {
+        margin: 0,
+        filename: `${app.company_name.replace(/\s+/g, '_')}_CV.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      // Target the body of the iframe
+      await html2pdf().set(opt).from(iframeDoc.body).save();
+      
+      document.body.removeChild(iframe);
+      toast.success("PDF başarıyla indirildi.", { id: "pdf-gen" });
+    } catch (err) {
+      console.error(err);
+      toast.error("PDF oluşturulurken hata oluştu.", { id: "pdf-gen" });
+    }
+  };
+
+  const handlePrint = () => {
+    const iframe = document.getElementById('cv-preview-iframe') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full space-y-4 pb-8">
+      <div className="flex items-center justify-between bg-zinc-100 p-1 rounded-xl border border-zinc-200">
+        <button
+          type="button"
+          onClick={() => setPreviewMode(false)}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${!previewMode ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+        >
+          HTML Düzenle
+        </button>
+        <button
+          type="button"
+          onClick={() => setPreviewMode(true)}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${previewMode ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'}`}
+        >
+          Önizleme
+        </button>
+      </div>
+
+      <div className="flex-1 flex gap-4 min-h-0">
+        <div className="flex-1 flex flex-col min-h-0">
+          {!previewMode ? (
+            <div className="flex-1 flex flex-col space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">HTML / CSS Kodu</label>
+                <button
+                  type="button"
+                  onClick={loadTemplate}
+                  className="text-[10px] text-indigo-600 hover:text-indigo-850 font-bold bg-indigo-50 border border-indigo-100 rounded px-2.5 py-1 transition-all active:scale-95"
+                >
+                  Şablon Yükle
+                </button>
+              </div>
+              <textarea
+                value={cvHtml}
+                onChange={(e) => setCvHtml(e.target.value)}
+                placeholder="<html>..."
+                className="flex-1 w-full bg-zinc-900 text-zinc-100 font-mono rounded-xl px-4 py-3 text-xs focus:border-zinc-700 outline-none transition-all resize-none min-h-[400px]"
+              />
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <label className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider">CV Önizleme</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-zinc-100 rounded-lg p-0.5 border border-zinc-200" title="Görünüm Yakınlaştırma">
+                      <button 
+                        onClick={() => setZoomLevel(Math.max(0.1, zoomLevel - 0.1))}
+                        className="p-1 hover:bg-white rounded-md transition-all text-zinc-500 hover:text-zinc-900"
+                      >
+                        <MagnifyingGlassMinus size={14} weight="bold" />
+                      </button>
+                      <span className="text-[10px] font-bold px-2 text-zinc-600 min-w-[40px] text-center">
+                        %{Math.round(zoomLevel * 100)}
+                      </span>
+                      <button 
+                        onClick={() => setZoomLevel(Math.min(2, zoomLevel + 0.1))}
+                        className="p-1 hover:bg-white rounded-md transition-all text-zinc-500 hover:text-zinc-900"
+                      >
+                        <MagnifyingGlassPlus size={14} weight="bold" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center bg-indigo-50 rounded-lg p-0.5 border border-indigo-100" title="İçerik Yoğunluğu (Yazı Boyutu Oranı)">
+                      <button 
+                        onClick={() => setContentScale(Math.max(0.5, contentScale - 0.05))}
+                        className="p-1 hover:bg-white rounded-md transition-all text-indigo-500 hover:text-indigo-900"
+                      >
+                        <Rows size={14} weight="bold" />
+                      </button>
+                      <span className="text-[10px] font-bold px-2 text-indigo-600 min-w-[45px] text-center">
+                        {contentScale.toFixed(2)}x
+                      </span>
+                      <button 
+                        onClick={() => setContentScale(Math.min(1.5, contentScale + 0.05))}
+                        className="p-1 hover:bg-white rounded-md transition-all text-indigo-500 hover:text-indigo-900"
+                      >
+                        <SquaresFour size={14} weight="bold" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCvHtml(cvHtml)} // Trigger re-render of iframe
+                    className="text-[10px] text-zinc-600 hover:text-zinc-900 font-bold bg-zinc-100 border border-zinc-200 rounded px-2.5 py-1 transition-all active:scale-95 flex items-center gap-1"
+                  >
+                    <ArrowsClockwise size={12} weight="bold" />
+                    <span>Yenile</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="text-[10px] text-indigo-600 hover:text-indigo-850 font-bold bg-indigo-50 border border-indigo-100 rounded px-2.5 py-1 transition-all active:scale-95 flex items-center gap-1"
+                  >
+                    <Printer size={12} weight="bold" />
+                    <span>Yazdır</span>
+                  </button>
+                </div>
+              </div>
+              
+            <div 
+              id="cv-scroll-container"
+              className="flex-1 bg-zinc-200/50 border border-zinc-200 rounded-xl overflow-auto shadow-inner min-h-[500px] relative flex justify-center p-8 bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:20px_20px]"
+            >
+              <div 
+                style={{ 
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'top center',
+                  width: '210mm',
+                  minHeight: '297mm',
+                  backgroundColor: 'white',
+                  boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1)',
+                  marginBottom: '100px',
+                  position: 'relative',
+                }}
+                className="shrink-0 transition-transform duration-200 ease-out"
+              >
+                {/* Visual Page Break Indicators */}
+                <div className="absolute top-[297mm] left-0 right-0 border-t-2 border-dashed border-indigo-200/50 z-10 pointer-events-none">
+                  <span className="absolute right-0 -top-5 text-[10px] font-bold text-indigo-300 bg-white px-2 rounded-tl-md border-l border-t border-indigo-100">2. Sayfa Başlangıcı</span>
+                </div>
+                <div className="absolute top-[594mm] left-0 right-0 border-t-2 border-dashed border-indigo-200/50 z-10 pointer-events-none">
+                  <span className="absolute right-0 -top-5 text-[10px] font-bold text-indigo-300 bg-white px-2 rounded-tl-md border-l border-t border-indigo-100">3. Sayfa Başlangıcı</span>
+                </div>
+
+                <iframe
+                  id="cv-preview-iframe"
+                  title="CV Preview"
+                  className="w-full h-full border-0 origin-top-left"
+                  style={{ 
+                    width: `${100 / contentScale}%`,
+                    height: `${100 / contentScale}%`,
+                    transform: `scale(${contentScale})`,
+                    minHeight: '1000mm', // Allow iframe to be long
+                  }}
+                  srcDoc={`
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <style>
+                          body { margin: 0; padding: 0; background: white; }
+                          /* Ensure no scrollbars inside iframe */
+                          html, body { overflow: hidden; }
+                        </style>
+                      </head>
+                      <body>
+                        ${cvHtml || "<html><body style='font-family:sans-serif; text-align:center; padding-top:40px; color:#71717a;'><h3>CV içeriği boş.</h3></body></html>"}
+                      </body>
+                    </html>
+                  `}
+                />
+              </div>
+            </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Sidebar Actions */}
+        <div className="hidden md:flex flex-col gap-3 shrink-0 pt-7">
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            className="w-14 h-14 bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-200 font-bold rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-sm active:scale-95 group"
+            title="PDF İndir"
+          >
+            <FileText size={20} weight="bold" className="text-indigo-600 group-hover:scale-110 transition-transform" />
+            <span className="text-[8px] uppercase tracking-tighter">İndir</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading}
+            className="w-14 h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-2xl flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-50 shadow active:scale-95 group"
+            title="CV'yi Kaydet"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+            ) : (
+              <>
+                <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                </div>
+                <span className="text-[8px] uppercase tracking-tighter">Kaydet</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Actions */}
+      <div className="grid grid-cols-2 gap-3 pt-2 md:hidden">
+        <button
+          type="button"
+          onClick={handleDownloadPdf}
+          className="h-12 bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all text-sm shadow-sm active:scale-98"
+        >
+          <FileText size={18} weight="bold" className="text-indigo-600" />
+          <span>PDF İndir</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={loading}
+          className="h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-xl flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow active:scale-98"
+        >
+          {loading ? "Kaydediliyor..." : "CV'yi Kaydet"}
+        </button>
+      </div>
+    </div>
   );
 }
 

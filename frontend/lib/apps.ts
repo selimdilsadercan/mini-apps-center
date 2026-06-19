@@ -663,4 +663,16 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "basvuru",
     isBeta: true,
   },
+  {
+    id: "series-track",
+    name: "SeriesTrack",
+    description: "İzlediğin dizileri takip et, bölümleri işaretle ve ilerlemeni gör.",
+    icon: VideoCamera,
+    category: "Entertainment",
+    color: "#E50914",
+    href: "/apps/series-track",
+    isImplemented: true,
+    subdomain: "seriestrack",
+    isBeta: true,
+  },
 ];

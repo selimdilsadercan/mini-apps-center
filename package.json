@@ -13,6 +13,7 @@
     "clean": "cd frontend && bun run clean",
     "mobile": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run mobile",
     "store": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run store",
-    "apk": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run apk"
+    "apk": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run apk",
+    "secret": "cd backend && encore secret set --type local,dev,prod"
   }
 }

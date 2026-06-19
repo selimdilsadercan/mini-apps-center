@@ -9,6 +9,14 @@
 --------------------------------------------------------------------------------
 
 ALTER TABLE apply_tracker.applications ADD COLUMN IF NOT EXISTS cv_html TEXT;
+ALTER TABLE apply_tracker.applications ADD COLUMN IF NOT EXISTS applied_at TIMESTAMPTZ;
+
+-- Fix check constraints in case they are outdated
+ALTER TABLE apply_tracker.applications DROP CONSTRAINT IF EXISTS applications_status_check;
+ALTER TABLE apply_tracker.applications ADD CONSTRAINT applications_status_check CHECK (status IN ('to_apply', 'applied', 'accepted', 'rejected', 'withdrawn'));
+
+ALTER TABLE apply_tracker.applications DROP CONSTRAINT IF EXISTS applications_priority_check;
+ALTER TABLE apply_tracker.applications ADD CONSTRAINT applications_priority_check CHECK (priority IN ('low', 'medium', 'high'));
 
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
@@ -27,12 +35,15 @@ CREATE TABLE IF NOT EXISTS apply_tracker.applications (
     company_name TEXT NOT NULL,
     role_title TEXT,
     url TEXT,
-    status TEXT NOT NULL CHECK (status IN ('to_apply', 'applied', 'accepted', 'rejected', 'withdrawn')) DEFAULT 'to_apply',
-    priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
+    status TEXT NOT NULL DEFAULT 'to_apply',
+    priority TEXT NOT NULL DEFAULT 'medium',
     notes TEXT,
     cv_html TEXT,
+    applied_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    CONSTRAINT applications_status_check CHECK (status IN ('to_apply', 'applied', 'accepted', 'rejected', 'withdrawn')),
+    CONSTRAINT applications_priority_check CHECK (priority IN ('low', 'medium', 'high'))
 );
 
 -- Index
