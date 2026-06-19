@@ -115,8 +115,8 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 
 - [x] Sayfa silme özelliği
 - [x] Sayfa sıralama arayüzü
-- [ ] PDF birleştirme aracı
-- [ ] PDF sıkıştırma özelliği
+- [x] PDF birleştirme aracı
+- [x] PDF sıkıştırma özelliği
 
 ### Sticker Maker
 
