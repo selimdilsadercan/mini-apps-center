@@ -1,13 +1,15 @@
 -- Users RPC Functions with Environment Specific Lookup
 
 -- 1. users_create_user
-DROP FUNCTION IF EXISTS public.users_create_user;
+DROP FUNCTION IF EXISTS public.users_create_user(TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS public.users_create_user(TEXT, TEXT, TEXT, TEXT, BOOLEAN);
 
 CREATE OR REPLACE FUNCTION public.users_create_user(
   clerk_id_param TEXT,
   username_param TEXT DEFAULT NULL,
   avatar_url_param TEXT DEFAULT NULL,
-  full_name_param TEXT DEFAULT NULL
+  full_name_param TEXT DEFAULT NULL,
+  is_local_param BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (
   id UUID,
@@ -16,16 +18,46 @@ RETURNS TABLE (
   avatar_url TEXT,
   created_at TIMESTAMPTZ
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 VOLATILE
 AS $$
-  INSERT INTO public.users (clerk_id, username, avatar_url, full_name)
-  VALUES (clerk_id_param, username_param, avatar_url_param, full_name_param)
-  ON CONFLICT (clerk_id) DO UPDATE SET 
-    username = COALESCE(EXCLUDED.username, public.users.username),
-    full_name = COALESCE(EXCLUDED.full_name, public.users.full_name),
-    avatar_url = COALESCE(EXCLUDED.avatar_url, public.users.avatar_url)
-  RETURNING id, username, full_name, avatar_url, created_at;
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- 1. Check if user already exists
+  IF is_local_param THEN
+    SELECT u.id INTO v_user_id FROM public.users u WHERE u.local_clerk_id = clerk_id_param;
+  ELSE
+    SELECT u.id INTO v_user_id FROM public.users u WHERE u.clerk_id = clerk_id_param;
+  END IF;
+
+  -- 2. If exists, update
+  IF v_user_id IS NOT NULL THEN
+    UPDATE public.users u
+    SET 
+      username = COALESCE(username_param, u.username),
+      full_name = COALESCE(full_name_param, u.full_name),
+      avatar_url = COALESCE(avatar_url_param, u.avatar_url)
+    WHERE u.id = v_user_id;
+  ELSE
+    -- 3. If not exists, insert new user
+    IF is_local_param THEN
+      -- On local, clerk_id is NOT NULL so we set both clerk_id and local_clerk_id to clerk_id_param
+      INSERT INTO public.users (clerk_id, local_clerk_id, username, avatar_url, full_name)
+      VALUES (clerk_id_param, clerk_id_param, username_param, avatar_url_param, full_name_param)
+      RETURNING u.id INTO v_user_id;
+    ELSE
+      INSERT INTO public.users (clerk_id, username, avatar_url, full_name)
+      VALUES (clerk_id_param, username_param, avatar_url_param, full_name_param)
+      RETURNING u.id INTO v_user_id;
+    END IF;
+  END IF;
+
+  RETURN QUERY
+  SELECT u.id, u.username, u.full_name, u.avatar_url, u.created_at
+  FROM public.users u
+  WHERE u.id = v_user_id;
+END;
 $$;
 
 -- 2. users_get_user

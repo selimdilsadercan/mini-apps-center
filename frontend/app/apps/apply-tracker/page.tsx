@@ -182,10 +182,10 @@ export default function ApplyTrackerPage() {
         <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => window.location.href = getAppRootUrl()}
-            className="group flex items-center gap-2 text-zinc-650 text-xs font-semibold hover:text-zinc-900 transition-all bg-white hover:bg-zinc-100/50 px-3.5 py-2 rounded-xl border border-zinc-200 shadow-sm active:scale-95"
+            className="flex items-center gap-2 text-zinc-650 hover:text-zinc-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-zinc-200 shadow-sm h-9"
           >
-            <CaretLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-            <span>Katalog</span>
+            <SquaresFour size={16} weight="fill" className="text-zinc-800 shrink-0" />
+            <span className="text-xs font-bold">Geri Dön</span>
           </button>
 
           {user && (
@@ -380,6 +380,22 @@ export default function ApplyTrackerPage() {
                             <div className="flex justify-between items-start gap-2">
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5 min-w-0">
+                                  {/* Company Logo or Icon */}
+                                  <div className="w-5 h-5 rounded-md bg-zinc-50 border border-zinc-200/60 flex items-center justify-center text-zinc-500 font-bold text-[9px] uppercase shrink-0 overflow-hidden relative shadow-sm">
+                                    {favicon ? (
+                                      <img
+                                        src={favicon}
+                                        alt={app.company_name}
+                                        className="w-3.5 h-3.5 object-contain"
+                                        onError={(e) => {
+                                          (e.target as HTMLElement).style.display = 'none';
+                                        }}
+                                      />
+                                    ) : (
+                                      app.company_name.charAt(0)
+                                    )}
+                                  </div>
+
                                   {app.url ? (
                                     <a
                                       href={app.url}

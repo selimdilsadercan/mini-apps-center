@@ -9,7 +9,8 @@ import {
   CaretRight,
   Trash,
   UserPlus,
-  Users
+  Users,
+  SquaresFour
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
@@ -72,7 +73,7 @@ export default function BudgetDashboard() {
     titlePlaceholder: isTr ? "Örneğin: Şehir Gezisi, Yılbaşı" : "e.g. City trip, Camp",
     membersInput: isTr ? "Katılımcılar" : "Participants",
     save: isTr ? "Bütçe Oluştur" : "Create Budget",
-    back: isTr ? "Katalog" : "Catalog"
+    back: isTr ? "Geri Dön" : "Go Back"
   };
 
   useEffect(() => {
@@ -134,9 +135,10 @@ export default function BudgetDashboard() {
         <div className="flex items-center justify-between mb-8">
           <button 
             onClick={() => window.location.href = getAppRootUrl()}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-900 border border-gray-200/60 transition-all active:scale-90 shadow-sm"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm"
           >
-            <CaretLeft size={20} weight="bold" />
+            <SquaresFour size={16} weight="fill" className="text-blue-500 shrink-0" />
+            <span className="text-xs font-bold">{t.back}</span>
           </button>
         </div>
 

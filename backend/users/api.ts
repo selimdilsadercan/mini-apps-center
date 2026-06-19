@@ -115,6 +115,7 @@ export const createUser = api(
       username_param: username || null,
       avatar_url_param: avatarUrl || null,
       full_name_param: fullName || null,
+      is_local_param: isLocal,
     });
 
     if (error) {
@@ -156,6 +157,7 @@ export const getOrCreateUser = api(
           username_param: username || existingUser.username,
           avatar_url_param: avatarUrl || existingUser.avatar_url,
           full_name_param: fullName || existingUser.full_name,
+          is_local_param: isLocal,
         });
         if (!updateError && updatedData?.[0]) {
           return { user: updatedData[0], isNewUser: false };
@@ -170,6 +172,7 @@ export const getOrCreateUser = api(
       username_param: username || null,
       avatar_url_param: avatarUrl || null,
       full_name_param: fullName || null,
+      is_local_param: isLocal,
     });
 
     if (newError) {

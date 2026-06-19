@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   CaretLeft,
+  SquaresFour,
   MagnifyingGlass,
   Plus,
   CheckCircle,
@@ -468,10 +469,10 @@ export default function SeriesTrackPage() {
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={() => window.location.href = getAppRootUrl()}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-all bg-zinc-900/50 px-3 py-2 rounded-xl border border-zinc-800"
+            className="flex items-center gap-2 text-zinc-400 hover:text-white transition-all bg-zinc-900/50 px-3.5 py-2 rounded-xl border border-zinc-800 h-9"
           >
-            <CaretLeft size={16} />
-            <span className="text-xs font-bold">Katalog</span>
+            <SquaresFour size={16} weight="fill" className="text-indigo-400 shrink-0" />
+            <span className="text-xs font-bold">Geri Dön</span>
           </button>
 
           <div className="flex items-center gap-3">
