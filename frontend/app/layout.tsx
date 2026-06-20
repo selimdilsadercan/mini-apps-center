@@ -38,7 +38,7 @@ export default function RootLayout({
         <LanguageProvider messages={trMessages}>
           <ClerkProviderWrapper>
             <ConfirmDialogProvider>
-              <NotificationHandler />
+              {/* <NotificationHandler /> */}
               <GreetingHandler />
               {children}
               <Toaster position="top-center" />

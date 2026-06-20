@@ -35,6 +35,8 @@ export function useNotifications() {
   };
 
   const setupFirebaseMessaging = async () => {
+    // Bildirimler geçici olarak devre dışı
+    return;
     // Capacitor kontrolü - sadece mobilde çalış
     const isNative = typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.();
     if (!isNative) {
@@ -96,6 +98,8 @@ export function useNotifications() {
   }, [user]);
 
   const handleRequestPermission = async () => {
+    // Bildirimler geçici olarak devre dışı
+    return;
     setLoading(true);
     console.log("[Push] Kullanıcıdan manuel izin isteniyor...");
     try {

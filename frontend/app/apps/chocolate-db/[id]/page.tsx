@@ -12,7 +12,7 @@ interface PageProps {
 
 // Generate static routes for build time
 export async function generateStaticParams() {
-  return [];
+  return [{ id: "dummy" }];
 }
 
 // Generate rich SEO metadata dynamically

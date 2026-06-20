@@ -2,6 +2,10 @@ import { Metadata } from "next";
 import { createServerClient } from "@/lib/api";
 import SuggestRecipientClient from "./SuggestRecipientClient";
 
+export function generateStaticParams() {
+  return [{ id: "dummy" }];
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }

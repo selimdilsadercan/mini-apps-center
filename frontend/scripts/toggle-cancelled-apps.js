@@ -51,6 +51,18 @@ if (mode === 'hide') {
       console.log(`Path not found or already hidden: ${originalPath}`);
     }
   });
+
+  // Also hide dashboard during mobile build as it contains dynamic routes that break static export
+  const dashboardPath = path.join(__dirname, '../app/dashboard');
+  const hiddenDashboardPath = path.join(__dirname, '../app/_dashboard');
+  if (fs.existsSync(dashboardPath)) {
+    try {
+      fs.renameSync(dashboardPath, hiddenDashboardPath);
+      console.log('Renamed: dashboard -> _dashboard');
+    } catch (e) {
+      console.error('Failed to rename dashboard:', e.message);
+    }
+  }
 } else if (mode === 'restore') {
   console.log('Restoring cancelled apps after build...');
   cancelledAppIds.forEach(appId => {
@@ -68,6 +80,18 @@ if (mode === 'hide') {
       console.log(`Hidden path not found or already restored: ${hiddenPath}`);
     }
   });
+
+  // Restore dashboard
+  const dashboardPath = path.join(__dirname, '../app/dashboard');
+  const hiddenDashboardPath = path.join(__dirname, '../app/_dashboard');
+  if (fs.existsSync(hiddenDashboardPath)) {
+    try {
+      fs.renameSync(hiddenDashboardPath, dashboardPath);
+      console.log('Restored: _dashboard -> dashboard');
+    } catch (e) {
+      console.error('Failed to restore dashboard:', e.message);
+    }
+  }
 } else {
   console.error('Invalid mode. Use "hide" or "restore".');
   process.exit(1);

@@ -15,6 +15,7 @@ export interface Business {
   description: string | null;
   logo_url: string | null;
   theme_color: string;
+  font_family: string;
   created_at: string;
 }
 

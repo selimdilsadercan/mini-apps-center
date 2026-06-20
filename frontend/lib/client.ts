@@ -4323,6 +4323,7 @@ export namespace stamp_card {
         "logo_url": string | null
         "stamp_limit": number
         "reward_title": string
+        "font_family": string
         "created_at": string
     }
 

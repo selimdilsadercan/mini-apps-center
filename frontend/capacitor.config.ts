@@ -11,9 +11,6 @@ const config: CapacitorConfig = {
     },
     App: {
       // Enable deep linking
-    },
-    FirebaseMessaging: {
-      presentationOptions: ["badge", "sound", "alert"]
     }
   },
   android: {
