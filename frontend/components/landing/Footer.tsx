@@ -29,7 +29,7 @@ const Footer: React.FC = () => {
       { text: t("linkTexts.contact"), url: "#" },
     ],
     legal: [
-      { text: t("linkTexts.privacy"), url: "#" },
+      { text: t("linkTexts.privacy"), url: "/privacy" },
       { text: t("linkTexts.terms"), url: "#" },
       { text: t("linkTexts.cookies"), url: "#" },
     ],
