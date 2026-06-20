@@ -32,7 +32,20 @@ export default function SSOCallbackPage() {
     
     if (source === "native") {
       setIsNative(true);
-      // ...
+      
+      // Get all current params to forward them
+      const code = params.get("code");
+      const state = params.get("state");
+      
+      if (code && state) {
+        // Redirect back to the app using Deep Link
+        // Scheme must match what's in Info.plist / AndroidManifest
+        const appScheme = "com.everything.app";
+        const deepLinkUrl = `${appScheme}://oauth-native-callback?code=${code}&state=${state}`;
+        
+        console.log("Redirecting to app via deep link:", deepLinkUrl);
+        window.location.href = deepLinkUrl;
+      }
     } else {
       // Web user - let Clerk handle it
       setIsNative(false);
@@ -77,7 +90,7 @@ export default function SSOCallbackPage() {
            afterSignInUrl={returnUrl}
            afterSignUpUrl={returnUrl}
            signInUrl="/sign-in"
-           signUpUrl="/sign-up"
+           signUpUrl="/sign-in"
          />
       </div>
     );

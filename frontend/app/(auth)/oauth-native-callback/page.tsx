@@ -1,11 +1,12 @@
 "use client";
 
 import { useAuth, useClerk } from "@clerk/clerk-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from "react";
 
-export default function OAuthNativeCallbackPage() {
+function OAuthNativeCallbackContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isSignedIn, isLoaded } = useAuth();
   const { handleRedirectCallback } = useClerk();
 
@@ -21,14 +22,25 @@ export default function OAuthNativeCallbackPage() {
     const processParams = async () => {
       if (isSignedIn) return;
       
-      const params = new URLSearchParams(window.location.search);
-      if (!params.get('code')) return;
+      const code = searchParams.get("code");
+      const state = searchParams.get("state");
+      
+      if (!code) {
+        console.log("No code param found in URL yet");
+        return;
+      }
 
       try {
+        console.log("Exchanging code for session...");
         await handleRedirectCallback({
-           redirectUrl: "https://my.allminiapps.com/sso-callback"
+           redirectUrl: "https://my.allminiapps.com/sso-callback?source=native"
         });
         console.log("Silent verification success");
+        
+        // Başarılı olduktan sonra home'a yönlendir
+        setTimeout(() => {
+          router.push("/home");
+        }, 1000);
       } catch (err) {
         console.error("Silent verification error:", err);
       }
@@ -36,27 +48,32 @@ export default function OAuthNativeCallbackPage() {
 
     if (isLoaded) {
         processParams();
-        handleComplete();
     }
-  }, [handleRedirectCallback, isSignedIn, isLoaded]);
-
-  const handleComplete = () => {
-    // Sayfayı yenileyerek sunucudan güncel oturum bilgisini al
-    window.location.reload();
-  };
+  }, [handleRedirectCallback, isSignedIn, isLoaded, searchParams, router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-        
         <div className="mb-8">
+            <div className="w-16 h-16 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">Google Girişi Başarılı!</h1>
             <p className="text-gray-600">
               Giriş Yapılıyor...
             </p>
         </div>
-
       </div>
     </div>
+  );
+}
+
+export default function OAuthNativeCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6">
+        <div className="w-12 h-12 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    }>
+      <OAuthNativeCallbackContent />
+    </Suspense>
   );
 }

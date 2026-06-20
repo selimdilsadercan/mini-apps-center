@@ -6,13 +6,17 @@ import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 
-const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const isNative = Capacitor.isNativePlatform();
+const isCapacitorBuild = process.env.NEXT_PUBLIC_CAPACITOR === "true";
+
+// Build sırasında veya native platformda PROD anahtarını kullan
+const PUBLISHABLE_KEY = (isCapacitorBuild || isNative)
+  ? (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY_PROD || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+  : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
-  console.warn("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY - Auth will not work");
+  console.warn("Missing Clerk Publishable Key - Auth will not work");
 }
-
-const isNative = Capacitor.isNativePlatform();
 
 function DeepLinkHandler({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -96,9 +100,11 @@ export function ClerkProviderWrapper({
     const protocol = window.location.protocol;
 
     const isLocal =
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname.endsWith(".localhost");
+      !isCapacitorBuild && !isNative && (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.endsWith(".localhost")
+      );
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
 
@@ -108,6 +114,13 @@ export function ClerkProviderWrapper({
       setIsSatellite(isSub);
       setDomain(port ? `${primaryHost}:${port}` : primaryHost);
       setSignInUrl(`${protocol}//${primaryHost}:${port || "3000"}/sign-in`);
+    } else if (isNative || isCapacitorBuild) {
+      // Native app (Capacitor) - Standalone mode, no satellite/domain needed
+      setIsSatellite(false);
+      setDomain("");
+      // Sign-in URL still points to the central auth portal
+      const primaryHost = `my.${rootDomain}`;
+      setSignInUrl(`${protocol}//${primaryHost}/sign-in`);
     } else {
       const primaryHost = `my.${rootDomain}`;
       const isSub = hostname !== primaryHost && hostname !== rootDomain;
@@ -117,16 +130,20 @@ export function ClerkProviderWrapper({
     }
   }, []);
 
+  // Clerk props'larını any olarak tanımlıyoruz çünkü isSatellite true olduğunda 
+  // TypeScript proxyUrl'i zorunlu tutabiliyor, ancak biz domain kullanıyoruz.
+  const clerkProps: any = {
+    publishableKey: PUBLISHABLE_KEY || "",
+    afterSignOutUrl: "/",
+    routerPush: (to: string) => router.push(to),
+    routerReplace: (to: string) => router.replace(to),
+    isSatellite: isSatellite,
+    domain: domain || undefined,
+    signInUrl: signInUrl,
+  };
+
   return (
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY || ""}
-      afterSignOutUrl="/"
-      routerPush={(to) => router.push(to)}
-      routerReplace={(to) => router.replace(to)}
-      isSatellite={isSatellite}
-      domain={domain}
-      signInUrl={signInUrl}
-    >
+    <ClerkProvider {...clerkProps}>
       <DeepLinkHandler>
         {children}
       </DeepLinkHandler>

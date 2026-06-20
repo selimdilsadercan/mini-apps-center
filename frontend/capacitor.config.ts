@@ -4,6 +4,16 @@ const config: CapacitorConfig = {
   appId: 'com.everything.app',
   appName: 'Everything',
   webDir: 'out',
+  server: {
+    hostname: 'allminiapps.com',
+    iosScheme: 'https',
+    allowNavigation: [
+      'clerk.allminiapps.com',
+      '*.clerk.accounts.dev',
+      'allminiapps.com',
+      '*.allminiapps.com',
+    ]
+  },
   plugins: {
     StatusBar: {
       backgroundColor: '#FAF9F7',
@@ -11,6 +21,9 @@ const config: CapacitorConfig = {
     },
     App: {
       // Enable deep linking
+    },
+    CapacitorHttp: {
+      enabled: true
     }
   },
   android: {

@@ -24,6 +24,7 @@ export function AuthModal({
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useAuth();
   const [isNative, setIsNative] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsNative(Capacitor.isNativePlatform());
@@ -31,6 +32,7 @@ export function AuthModal({
 
   const signInWithGoogle = async () => {
     if (!signIn) return;
+    setIsLoading(true);
 
     try {
       const returnUrl = window.location.pathname + window.location.search;
@@ -43,13 +45,30 @@ export function AuthModal({
         ? `${SSO_CALLBACK_URL_BASE}?source=native` 
         : `${window.location.origin}/sso-callback?return_url=${encodeURIComponent(returnUrl)}`;
 
-      await signIn.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: callbackUrl,
-        redirectUrlComplete: callbackUrl,
-      });
+      if (isNative) {
+        // Native platformda doğrudan Google giriş URL'ini alıp tarayıcıda açıyoruz.
+        // Google domainleri allowNavigation listesinden çıkarıldığı için bu yönlendirme dış tarayıcıda açılır.
+        const { firstFactorVerification } = await signIn.create({
+          strategy: "oauth_google",
+          redirectUrl: callbackUrl,
+        });
+
+        const authUrl = firstFactorVerification?.externalVerificationRedirectURL;
+        
+        if (authUrl) {
+          window.location.href = authUrl.toString();
+        }
+        setIsLoading(false);
+      } else {
+        await signIn.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: callbackUrl,
+          redirectUrlComplete: callbackUrl,
+        });
+      }
     } catch (err) {
       console.error("OAuth error:", err);
+      setIsLoading(false);
     }
   };
 
@@ -94,11 +113,18 @@ export function AuthModal({
 
           <button
             onClick={signInWithGoogle}
-            disabled={!isLoaded}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-100 py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
+            disabled={!isLoaded || isLoading}
+            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-100 py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <GoogleLogo size={24} weight="bold" className="text-red-500" />
-            <span>Google ile Devam Et</span>
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <GoogleLogo size={24} weight="bold" className="text-red-500" />
+            )}
+            <span>{isLoading ? "Bağlanıyor..." : "Google ile Devam Et"}</span>
           </button>
 
           <p className="mt-6 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
