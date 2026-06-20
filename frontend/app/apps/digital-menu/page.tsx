@@ -13,7 +13,8 @@ import {
   Eye,
   MagnifyingGlass,
   Notebook,
-  SquaresFour
+  SquaresFour,
+  CaretUp
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
@@ -110,6 +111,7 @@ export default function DigitalMenuPage() {
 
   // Favorites state (stored in localStorage)
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Active Menu State for customer
   const [menuCategories, setMenuCategories] = useState<digital_menu.Category[]>([]);
@@ -167,6 +169,14 @@ export default function DigitalMenuPage() {
     }
     loadFavorites();
   }, [user]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch specific business when scanned by QR
   const fetchSpecificBusiness = async (bizId: string) => {
@@ -306,6 +316,16 @@ export default function DigitalMenuPage() {
   const currentFontClass = selectedBusiness ? getFontClass(selectedBusiness.font_family) : "font-sans";
   const currentThemeColor = selectedBusiness?.theme_color || "#EF4444";
 
+  // Helper to shuffle array
+  const shuffle = <T,>(array: T[]): T[] => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
+
   const scrollToCategory = (categoryId: string) => {
     setViewMode("list");
     setActiveCategory(categoryId);
@@ -365,7 +385,91 @@ export default function DigitalMenuPage() {
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
           <div className="space-y-6">
-            {/* ... (existing business list code) ... */}
+            {/* Favorites List */}
+            {favoriteBusinesses.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-xs font-black text-amber-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                  <Star size={15} weight="fill" />
+                  Favori İşletmelerim
+                </h2>
+                <div className="space-y-2.5">
+                  {favoriteBusinesses.map((biz) => (
+                    <div
+                      key={biz.id}
+                      onClick={() => handleSelectBusiness(biz)}
+                      className="bg-white p-4 rounded-[2rem] border border-amber-300 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
+                    >
+                      <div className="w-11 h-11 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                        {biz.logo_url ? (
+                          <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                        ) : (
+                          biz.name.slice(0, 2).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-sm text-stone-850 truncate">{biz.name}</h3>
+                        <p className="text-[10px] text-stone-400 truncate mt-0.5">{biz.description}</p>
+                      </div>
+                      <button
+                        onClick={(e) => toggleFavorite(biz.id, e)}
+                        className="p-2 text-amber-500 hover:text-amber-600 transition-colors"
+                      >
+                        <Star size={20} weight="fill" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* General Restaurants List */}
+            <div className="space-y-3">
+              <h2 className="text-xs font-black text-stone-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                <Storefront size={15} className="text-red-500" />
+                {favoriteBusinesses.length > 0 ? "Diğer İşletmeler" : "Tüm İşletmeler"}
+              </h2>
+
+              {loading ? (
+                <div className="py-20 text-center text-stone-400 text-xs font-bold animate-pulse uppercase tracking-widest">
+                  Yükleniyor...
+                </div>
+              ) : allBusinesses.length === 0 ? (
+                <div className="py-14 text-center bg-white rounded-[2.5rem] border border-dashed border-stone-250 flex flex-col items-center justify-center p-8 shadow-sm">
+                  <p className="text-stone-850 text-xs font-black uppercase tracking-wider mb-2">Henüz İşletme Yok</p>
+                  <p className="text-stone-400 text-[10px] max-w-[200px] leading-relaxed">
+                    Sistemde henüz kayıtlı bir dijital menü işletmesi bulunmuyor.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {normalBusinesses.map((biz) => (
+                    <div
+                      key={biz.id}
+                      onClick={() => handleSelectBusiness(biz)}
+                      className="bg-white p-4 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
+                    >
+                      <div className="w-11 h-11 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                        {biz.logo_url ? (
+                          <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                        ) : (
+                          biz.name.slice(0, 2).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-sm text-stone-850 truncate">{biz.name}</h3>
+                        <p className="text-[10px] text-stone-400 truncate mt-0.5">{biz.description}</p>
+                      </div>
+                      <button
+                        onClick={(e) => toggleFavorite(biz.id, e)}
+                        className="p-2 text-stone-300 hover:text-amber-500 transition-colors"
+                      >
+                        <Star size={20} weight="bold" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           // ACTIVE RESTAURANT MENU VIEW
@@ -456,7 +560,7 @@ export default function DigitalMenuPage() {
                 const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
                 if (allGroupedItems.length === 0) return null;
 
-                const featuredItems = allGroupedItems.filter(group => group.image_url);
+                const featuredItems = shuffle(allGroupedItems.filter(group => group.image_url));
 
                 return (
                   <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-24 space-y-8">
@@ -468,71 +572,55 @@ export default function DigitalMenuPage() {
                       <div className="h-[1px] flex-1 bg-stone-200/60" />
                     </div>
 
-                    {/* Featured Items Horizontal Scroll (Only if there are items with images) */}
-                    {featuredItems.length > 0 && (
-                      <div className="-mx-4 px-4">
-                        <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar scroll-smooth">
-                          {featuredItems.map((group) => (
-                            <div 
-                              key={`featured-${group.baseName}`}
-                              className="w-40 shrink-0 bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden flex flex-col"
-                            >
-                              <div className="h-28 w-full relative">
-                                <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
-                              </div>
-                              <div className="p-3">
-                                <h4 className="font-serif font-black text-[10px] uppercase tracking-wide text-stone-800 line-clamp-2 leading-tight">
+                    {/* Standard List with Integrated Images */}
+                    <div className="space-y-12 px-1">
+                      {allGroupedItems.map((group) => (
+                        <div key={group.baseName} className={`flex items-center gap-4 ${!group.is_available ? "opacity-60" : ""}`}>
+                          {group.image_url && (
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
+                              <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="flex-1 space-y-1.5">
+                            <div className="flex justify-between items-center gap-4">
+                              <div className="flex-1">
+                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800">
                                   {group.baseName}
                                 </h4>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Standard Text List for All Items */}
-                    <div className="space-y-10 px-1">
-                      {allGroupedItems.map((group) => (
-                        <div key={group.baseName} className={`space-y-2 ${!group.is_available ? "opacity-60" : ""}`}>
-                          <div className="flex justify-between items-start gap-4">
-                            <div className="flex-1">
-                              <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800">
-                                {group.baseName}
-                              </h4>
-                            </div>
-                            
-                            <div className="flex items-center gap-3 shrink-0">
-                              {group.variations.length === 1 && !group.variations[0].optionName && (
-                                <span className="font-serif font-black text-sm" style={{ color: currentThemeColor }}>
-                                  {group.variations[0].price.toFixed(2)} ₺
-                                </span>
-                              )}
-                              <div className="flex gap-1">
-                                {group.dietary_flags.map((flag) => (
-                                  <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
-                                ))}
+                              
+                              <div className="flex items-center gap-3 shrink-0">
+                                {group.variations.length === 1 && !group.variations[0].optionName && (
+                                  <span className="font-serif font-black text-sm" style={{ color: currentThemeColor }}>
+                                    {group.variations[0].price.toFixed(2)} ₺
+                                  </span>
+                                )}
+                                <div className="flex gap-1">
+                                  {group.dietary_flags.map((flag) => (
+                                    <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
+
+                            {group.description && (
+                              <p className="text-[11px] text-stone-500 font-serif leading-relaxed italic pr-4 line-clamp-2">
+                                {group.description}
+                              </p>
+                            )}
+
+                            {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
+                              <div className="space-y-1.5 pt-1">
+                                {group.variations.map((v) => (
+                                  <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
+                                    <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
+                                    <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
+                                    <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-
-                          {group.description && (
-                            <p className="text-[11px] text-stone-500 font-serif leading-relaxed italic pr-8">
-                              {group.description}
-                            </p>
-                          )}
-
-                          {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
-                            <div className="space-y-2 pt-2">
-                              {group.variations.map((v) => (
-                                <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
-                                  <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
-                                  <div className="flex-1 border-b border-dashed border-stone-200 h-3.5 mx-1" />
-                                  <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -547,6 +635,17 @@ export default function DigitalMenuPage() {
         )}
 
       </main>
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`fixed bottom-8 right-6 z-50 p-4 rounded-full bg-white border border-stone-200 shadow-2xl transition-all duration-300 active:scale-90 ${
+          showScrollTop ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
+        }`}
+        style={{ color: currentThemeColor }}
+      >
+        <CaretUp size={24} weight="bold" />
+      </button>
 
     </div>
   );
