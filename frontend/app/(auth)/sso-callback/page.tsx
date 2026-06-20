@@ -9,6 +9,7 @@ import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 
 export default function SSOCallbackPage() {
   const [isNative, setIsNative] = useState<boolean | null>(null);
+  const [deepLinkUrl, setDeepLinkUrl] = useState<string>("");
   const [returnUrl, setReturnUrl] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -33,18 +34,17 @@ export default function SSOCallbackPage() {
     if (source === "native") {
       setIsNative(true);
       
-      // Get all current params to forward them
-      const code = params.get("code");
-      const state = params.get("state");
+      // Forward all parameters received from Clerk/Google back to the app
+      const searchParamsString = params.toString();
       
-      if (code && state) {
-        // Redirect back to the app using Deep Link
-        // Scheme must match what's in Info.plist / AndroidManifest
+      if (searchParamsString) {
         const appScheme = "com.everything.app";
-        const deepLinkUrl = `${appScheme}://oauth-native-callback?code=${code}&state=${state}`;
+        const targetUrl = `${appScheme}://oauth-native-callback?${searchParamsString}`;
+        setDeepLinkUrl(targetUrl);
         
-        console.log("Redirecting to app via deep link:", deepLinkUrl);
-        window.location.href = deepLinkUrl;
+        console.log("Redirecting to app via deep link:", targetUrl);
+        // Try automatic redirect
+        window.location.href = targetUrl;
       }
     } else {
       // Web user - let Clerk handle it
@@ -66,16 +66,26 @@ export default function SSOCallbackPage() {
     );
   }
 
-  // Native app - show redirecting UI
+  // Native app - show redirecting UI with a manual fallback button
   if (isNative) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6">
-        <div className="text-center">
+        <div className="text-center max-w-sm w-full bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
           <div className="mb-6">
              <div className="w-16 h-16 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Uygulamaya Dönülüyor</h1>
-          <p className="text-gray-600">Lütfen bekleyin...</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Uygulamaya Dönülüyor</h1>
+          <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+            Giriş başarılı oldu. Otomatik olarak yönlendirilmezseniz lütfen aşağıdaki butona tıklayın.
+          </p>
+          {deepLinkUrl && (
+            <a 
+              href={deepLinkUrl}
+              className="inline-flex items-center justify-center w-full bg-[#FF6B35] text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:bg-[#e05a26] active:scale-95 transition-all text-center cursor-pointer"
+            >
+              Uygulamayı Aç
+            </a>
+          )}
         </div>
       </div>
     );

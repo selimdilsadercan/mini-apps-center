@@ -9,10 +9,8 @@ import { App } from "@capacitor/app";
 const isNative = Capacitor.isNativePlatform();
 const isCapacitorBuild = process.env.NEXT_PUBLIC_CAPACITOR === "true";
 
-// Build sırasında veya native platformda PROD anahtarını kullan
-const PUBLISHABLE_KEY = (isCapacitorBuild || isNative)
-  ? (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY_PROD || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
-  : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+// Google onayı beklenirken native ortamda da TEST (dev) anahtarını kullanıyoruz
+export const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
   console.warn("Missing Clerk Publishable Key - Auth will not work");
@@ -38,6 +36,14 @@ function DeepLinkHandler({ children }: { children: React.ReactNode }) {
           
           if (url.host === 'oauth-native-callback' || path.includes('oauth-native-callback')) {
             console.log('OAuth callback received, navigating to handler...');
+            
+            // Close the system browser window on native devices
+            try {
+              const { Browser } = await import("@capacitor/browser");
+              await Browser.close();
+            } catch (browserErr) {
+              console.error("Failed to close system browser:", browserErr);
+            }
             
             // Construct the internal route path with query params
             // Ensure we keep the 'code' and 'state' parameters!

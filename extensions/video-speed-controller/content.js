@@ -1,48 +1,47 @@
 let currentSpeed = 1.0;
 
-function showIndicator(text) {
-  const fullscreenEl = document.fullscreenElement || 
-                       document.webkitFullscreenElement || 
-                       document.mozFullScreenElement || 
-                       document.msFullscreenElement;
-  
-  const targetContainer = fullscreenEl || document.body;
+function showIndicator(video, text) {
+  const container = video.closest('.html5-video-player') || video.parentElement;
+  if (!container) return;
 
-  let indicator = document.getElementById('video-speed-indicator');
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'video-speed-indicator';
+  // Ensure the container has positioning context if it's not YouTube's player
+  if (!video.closest('.html5-video-player')) {
+    const style = window.getComputedStyle(container);
+    if (style.position === 'static') {
+      container.style.position = 'relative';
+    }
   }
 
-  // Move indicator to current fullscreen element or body if needed
-  if (indicator.parentNode !== targetContainer) {
-    targetContainer.appendChild(indicator);
+  // Find or create the inline indicator
+  let indicator = container.querySelector('.video-speed-indicator-inline');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.className = 'video-speed-indicator-inline';
+    container.appendChild(indicator);
   }
 
   indicator.innerText = text;
   indicator.classList.add('show');
-  
-  clearTimeout(window.speedIndicatorTimeout);
-  window.speedIndicatorTimeout = setTimeout(() => {
+
+  clearTimeout(video.indicatorTimeout);
+  video.indicatorTimeout = setTimeout(() => {
     indicator.classList.remove('show');
   }, 1000);
 }
 
 function updateVideoSpeed(delta) {
   const videos = document.querySelectorAll('video');
-  
-  // Update currentSpeed based on the first video found, or default to 1.0
+
   if (videos.length > 0) {
     currentSpeed = videos[0].playbackRate;
   }
 
   currentSpeed = Math.max(0.1, currentSpeed + delta);
-  
+
   videos.forEach(video => {
     video.playbackRate = currentSpeed;
+    showIndicator(video, `${currentSpeed.toFixed(2)}x`);
   });
-  
-  showIndicator(`${currentSpeed.toFixed(2)}x`);
 
   // Broadcast speed change to popup if it is open
   try {
@@ -54,7 +53,7 @@ function updateVideoSpeed(delta) {
       duration: videos[0] ? videos[0].duration : 0
     });
   } catch (err) {
-    // Popup is closed, ignore error
+    // Popup is closed, ignore
   }
 }
 
@@ -64,11 +63,10 @@ function seekVideo(seconds) {
 
   videos.forEach(video => {
     video.currentTime = Math.max(0, Math.min(video.duration || Infinity, video.currentTime + seconds));
+    showIndicator(video, seconds > 0 ? `+${seconds}sn` : `${seconds}sn`);
   });
 
-  showIndicator(seconds > 0 ? `+${seconds}sn` : `${seconds}sn`);
-
-  // Broadcast change to popup if open (to refresh remaining time stats)
+  // Broadcast change to popup if open
   try {
     chrome.runtime.sendMessage({
       action: "speedChanged",
@@ -78,12 +76,11 @@ function seekVideo(seconds) {
       duration: videos[0].duration || 0
     });
   } catch (err) {
-    // Popup is closed, ignore error
+    // Popup is closed, ignore
   }
 }
 
 document.addEventListener('keydown', (e) => {
-  // Ignore if user is typing in an input/textarea
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
     return;
   }
@@ -126,8 +123,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       currentSpeed = targetSpeed;
       videos.forEach(video => {
         video.playbackRate = currentSpeed;
+        showIndicator(video, `${currentSpeed.toFixed(2)}x`);
       });
-      showIndicator(`${currentSpeed.toFixed(2)}x`);
 
       let duration = 0;
       let currentTime = 0;
@@ -146,5 +143,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: false });
     }
   }
-  return true; // Keep message port open for async response
+  return true;
 });
+
+

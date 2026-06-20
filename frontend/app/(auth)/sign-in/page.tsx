@@ -4,8 +4,10 @@ import { useSignIn, useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
+import { PUBLISHABLE_KEY } from "@/components/ClerkProvider";
 
-// OAuth callback URL - Vercel'de host ediliyor
+// OAuth callback URL - Vercel'de tek bir yönlendirme köprüsü olarak my.allminiapps.com kullanılıyor
 const SSO_CALLBACK_URL_BASE = "https://my.allminiapps.com/sso-callback";
 
 export default function SignInPage() {
@@ -39,8 +41,7 @@ export default function SignInPage() {
       console.log("OAuth starting with callbackUrl:", callbackUrl);
 
       if (isNative) {
-        // Native platformda doğrudan Google giriş URL'ini alıp tarayıcıda açıyoruz.
-        // Google domainleri allowNavigation listesinden çıkarıldığı için bu yönlendirme dış tarayıcıda açılır.
+        // Native platformda doğrudan Google giriş URL'ini alıp sistem tarayıcısında açıyoruz.
         const { firstFactorVerification } = await signIn.create({
           strategy: "oauth_google",
           redirectUrl: callbackUrl,
@@ -49,7 +50,7 @@ export default function SignInPage() {
         const authUrl = firstFactorVerification?.externalVerificationRedirectURL;
         
         if (authUrl) {
-          window.location.href = authUrl.toString();
+          await Browser.open({ url: authUrl.toString() });
         }
         setIsLoading(false);
       } else {

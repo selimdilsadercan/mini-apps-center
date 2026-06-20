@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleLogo, X, LockKey } from "@phosphor-icons/react";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
+import { PUBLISHABLE_KEY } from "@/components/ClerkProvider";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface AuthModalProps {
   subtitle?: string;
 }
 
+// OAuth callback URL - Vercel'de tek bir yönlendirme köprüsü olarak my.allminiapps.com kullanılıyor
 const SSO_CALLBACK_URL_BASE = "https://my.allminiapps.com/sso-callback";
 
 export function AuthModal({ 
@@ -46,8 +49,7 @@ export function AuthModal({
         : `${window.location.origin}/sso-callback?return_url=${encodeURIComponent(returnUrl)}`;
 
       if (isNative) {
-        // Native platformda doğrudan Google giriş URL'ini alıp tarayıcıda açıyoruz.
-        // Google domainleri allowNavigation listesinden çıkarıldığı için bu yönlendirme dış tarayıcıda açılır.
+        // Native platformda doğrudan Google giriş URL'ini alıp sistem tarayıcısında açıyoruz.
         const { firstFactorVerification } = await signIn.create({
           strategy: "oauth_google",
           redirectUrl: callbackUrl,
@@ -56,7 +58,7 @@ export function AuthModal({
         const authUrl = firstFactorVerification?.externalVerificationRedirectURL;
         
         if (authUrl) {
-          window.location.href = authUrl.toString();
+          await Browser.open({ url: authUrl.toString() });
         }
         setIsLoading(false);
       } else {
