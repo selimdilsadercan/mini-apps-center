@@ -6,11 +6,7 @@
 
     -- 2. Create Tables
     CREATE TABLE IF NOT EXISTS stamp_card.businesses (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        owner_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-        name TEXT NOT NULL,
-        description TEXT,
-        logo_url TEXT,
+        id UUID PRIMARY KEY REFERENCES business.businesses(id) ON DELETE CASCADE,
         stamp_limit INTEGER DEFAULT 8 NOT NULL,
         reward_title TEXT NOT NULL,
         pin_code VARCHAR(4) NOT NULL DEFAULT '1234',
@@ -38,7 +34,6 @@
     );
 
     -- 3. Indexes
-    CREATE INDEX IF NOT EXISTS idx_businesses_owner ON stamp_card.businesses(owner_user_id);
     CREATE INDEX IF NOT EXISTS idx_user_cards_user ON stamp_card.user_cards(user_id);
     CREATE INDEX IF NOT EXISTS idx_redeemed_rewards_user ON stamp_card.redeemed_rewards(user_id);
 
@@ -65,8 +60,9 @@
     ) AS $$
     BEGIN
         RETURN QUERY
-        SELECT b.id, b.name, b.description, b.logo_url, b.stamp_limit, b.reward_title, b.created_at
-        FROM stamp_card.businesses b
+        SELECT sb.id, b.name, b.description, b.logo_url, sb.stamp_limit, sb.reward_title, sb.created_at
+        FROM stamp_card.businesses sb
+        JOIN business.businesses b ON sb.id = b.id
         ORDER BY b.name ASC;
     END;
     $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -90,12 +86,13 @@
             'updated_at', uc.updated_at,
             'business_name', b.name,
             'business_logo', b.logo_url,
-            'business_reward', b.reward_title,
-            'stamp_limit', b.stamp_limit
+            'business_reward', sb.reward_title,
+            'stamp_limit', sb.stamp_limit
         )), '[]'::jsonb)
         INTO v_cards
         FROM stamp_card.user_cards uc
-        JOIN stamp_card.businesses b ON uc.business_id = b.id
+        JOIN stamp_card.businesses sb ON uc.business_id = sb.id
+        JOIN business.businesses b ON sb.id = b.id
         WHERE uc.user_id = v_user_id;
 
         -- Get redeemed rewards
@@ -110,22 +107,24 @@
         ) ORDER BY rr.redeemed_at DESC), '[]'::jsonb)
         INTO v_rewards
         FROM stamp_card.redeemed_rewards rr
-        JOIN stamp_card.businesses b ON rr.business_id = b.id
+        JOIN stamp_card.businesses sb ON rr.business_id = sb.id
+        JOIN business.businesses b ON sb.id = b.id
         WHERE rr.user_id = v_user_id;
 
         -- Get user's owned businesses
         SELECT COALESCE(jsonb_agg(jsonb_build_object(
-            'id', b.id,
+            'id', sb.id,
             'name', b.name,
             'description', b.description,
             'logo_url', b.logo_url,
-            'stamp_limit', b.stamp_limit,
-            'reward_title', b.reward_title,
-            'pin_code', b.pin_code,
-            'created_at', b.created_at
+            'stamp_limit', sb.stamp_limit,
+            'reward_title', sb.reward_title,
+            'pin_code', sb.pin_code,
+            'created_at', sb.created_at
         )), '[]'::jsonb)
         INTO v_my_businesses
-        FROM stamp_card.businesses b
+        FROM stamp_card.businesses sb
+        JOIN business.businesses b ON sb.id = b.id
         WHERE b.owner_user_id = v_user_id;
 
         RETURN jsonb_build_object(
@@ -160,7 +159,7 @@
         WHERE id = p_business_id;
 
         IF v_correct_pin IS NULL THEN
-            RETURN jsonb_build_object('success', FALSE, 'error', 'Business not found');
+             RETURN jsonb_build_object('success', FALSE, 'error', 'Business not found');
         END IF;
 
         -- Validate PIN
@@ -225,35 +224,26 @@
     END;
     $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-    -- Create Business
+    -- Create Business / Campaign
     DROP FUNCTION IF EXISTS stamp_card.create_business(TEXT, TEXT, TEXT, TEXT, INTEGER, TEXT, TEXT);
+    DROP FUNCTION IF EXISTS stamp_card.create_business(UUID, INTEGER, TEXT, TEXT);
     CREATE OR REPLACE FUNCTION stamp_card.create_business(
-        p_user_id TEXT,
-        p_name TEXT,
-        p_description TEXT,
-        p_logo_url TEXT,
+        p_business_id UUID,
         p_stamp_limit INTEGER,
         p_reward_title TEXT,
         p_pin_code TEXT
     )
     RETURNS stamp_card.businesses AS $$
     DECLARE
-        v_user_id UUID := public.get_internal_user_id(p_user_id);
         v_result stamp_card.businesses;
     BEGIN
         INSERT INTO stamp_card.businesses (
-            owner_user_id,
-            name,
-            description,
-            logo_url,
+            id,
             stamp_limit,
             reward_title,
             pin_code
         ) VALUES (
-            v_user_id,
-            p_name,
-            p_description,
-            p_logo_url,
+            p_business_id,
             p_stamp_limit,
             p_reward_title,
             p_pin_code

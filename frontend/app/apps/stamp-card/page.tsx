@@ -899,17 +899,23 @@ function CreateBusinessForm({ onComplete }: { onComplete: () => void }) {
 
     try {
       setLoading(true);
-      await client.stamp_card.createBusiness({
+      const res = await client.business.createBusiness({
         userId: user.id,
         name: formData.name,
         description: formData.description,
         logoUrl: formData.logoUrl || "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=150&auto=format&fit=crop&q=80",
-        stampLimit: formData.stampLimit,
-        rewardTitle: formData.rewardTitle,
-        pinCode: formData.pinCode
+        themeColor: "#F59E0B"
       });
-      toast.success("Kampanya başarıyla oluşturuldu!");
-      onComplete();
+      if (res.business) {
+        await client.stamp_card.createBusiness({
+          businessId: res.business.id,
+          stampLimit: formData.stampLimit,
+          rewardTitle: formData.rewardTitle,
+          pinCode: formData.pinCode
+        });
+        toast.success("Kampanya başarıyla oluşturuldu!");
+        onComplete();
+      }
     } catch (err) {
       console.error(err);
       toast.error("Hata oluştu.");

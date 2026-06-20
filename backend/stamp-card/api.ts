@@ -85,17 +85,14 @@ interface UseRewardResponse {
 }
 
 interface CreateBusinessRequest {
-  userId: string;
-  name: string;
-  description: string;
-  logoUrl: string;
+  businessId: string;
   stampLimit: number;
   rewardTitle: string;
   pinCode: string;
 }
 
 interface CreateBusinessResponse {
-  business: Business | null;
+  success: boolean;
 }
 
 // ==================== ENDPOINTS ====================
@@ -194,10 +191,7 @@ export const createBusiness = api(
   { expose: true, method: "POST", path: "/stamp-card/business/create" },
   async (req: CreateBusinessRequest): Promise<CreateBusinessResponse> => {
     const { data, error } = await supabase.schema("stamp_card").rpc("create_business", {
-      p_user_id: req.userId,
-      p_name: req.name,
-      p_description: req.description,
-      p_logo_url: req.logoUrl,
+      p_business_id: req.businessId,
       p_stamp_limit: req.stampLimit,
       p_reward_title: req.rewardTitle,
       p_pin_code: req.pinCode,
@@ -208,6 +202,6 @@ export const createBusiness = api(
       throw APIError.internal(`Failed to create business: ${error.message}`);
     }
 
-    return { business: (data as Business) || null };
+    return { success: !!data };
   }
 );

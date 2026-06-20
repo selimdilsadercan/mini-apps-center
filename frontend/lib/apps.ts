@@ -661,6 +661,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "basvuru",
     isBeta: true,
+    isCancelled: true,
   },
   {
     id: "series-track",
@@ -672,6 +673,18 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/series-track",
     isImplemented: true,
     subdomain: "seriestrack",
+    isBeta: true,
+  },
+  {
+    id: "digital-menu",
+    name: "Dijital Menü",
+    description: "Kafelerin QR menülerini görüntüle, siparişini planla ve masadan garson çağır!",
+    icon: ChefHat,
+    category: "Local Services",
+    color: "#EF4444",
+    href: "/apps/digital-menu",
+    isImplemented: true,
+    subdomain: "menu",
     isBeta: true,
   },
 ];

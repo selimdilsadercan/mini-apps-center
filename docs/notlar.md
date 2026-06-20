@@ -1,5 +1,5 @@
 ## Paketler
-### Everything for Cafês
+### Everything for Local Businesses
 ### Everything for Campus Students
 ### Everything for Developers
 ### Everything for StartUps
@@ -13,6 +13,10 @@
 - 8 tane kahve alana 1i bedava olayı kartını sağlyan bir platform
 ### QR Menü
 - işletmelere qr menü servisi
+### Eşlikçi
+- oyun eşlikçisi 101 cafelerinin paketine dahil edilebilir
+### Link Page
+- genel herkese yönelik link düzeneleme uygulaması, paketlere dahil edilebilir
 
 ## Pazarlama Kanalları
 ### Selim Ercan Dev Hesabı

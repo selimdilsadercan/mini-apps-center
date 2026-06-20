@@ -47,6 +47,8 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   basvuru: "/apps/apply-tracker",
   seriestrack: "/apps/series-track",
   weather: "/apps/daily-weather",
+  menu: "/apps/digital-menu",
+  dashboard: "/dashboard",
 };
 
 /**
@@ -133,7 +135,7 @@ export function proxy(request: NextRequest) {
 
   // If trying to access application paths directly on the root domain,
   // redirect to the personal 'my' subdomain.
-  const APP_ROUTES = ["/home", "/discover", "/profile", "/friends", "/ai-chat", "/sign-in", "/sign-up", "/apps"];
+  const APP_ROUTES = ["/home", "/discover", "/profile", "/friends", "/ai-chat", "/sign-in", "/sign-up", "/apps", "/business"];
   const isAppRoute = APP_ROUTES.some(route => originalPath.startsWith(route));
 
   if (isAppRoute) {

@@ -37,11 +37,13 @@ export default class Client {
     public readonly birikim: birikim.ServiceClient
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly budget: budget.ServiceClient
+    public readonly business: business.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly campus_events: campus_events.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
+    public readonly digital_menu: digital_menu.ServiceClient
     public readonly esles: esles.ServiceClient
     public readonly feed: feed.ServiceClient
     public readonly friendship: friendship.ServiceClient
@@ -87,11 +89,13 @@ export default class Client {
         this.birikim = new birikim.ServiceClient(base)
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.budget = new budget.ServiceClient(base)
+        this.business = new business.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.campus_events = new campus_events.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
+        this.digital_menu = new digital_menu.ServiceClient(base)
         this.esles = new esles.ServiceClient(base)
         this.feed = new feed.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
@@ -1077,6 +1081,81 @@ export namespace budget {
     }
 }
 
+/**
+ * Centralized Business service - manages base business profiles for merchants.
+ */
+export namespace business {
+    export interface Business {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "theme_color": string
+        "created_at": string
+    }
+
+    export interface CreateBusinessRequest {
+        userId: string
+        name: string
+        description: string
+        logoUrl: string
+        themeColor: string
+    }
+
+    export interface CreateBusinessResponse {
+        business: Business | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createBusiness = this.createBusiness.bind(this)
+            this.getBusiness = this.getBusiness.bind(this)
+            this.getOwnedBusinesses = this.getOwnedBusinesses.bind(this)
+        }
+
+        /**
+         * Create a new business profile
+         * POST /business/create
+         */
+        public async createBusiness(params: CreateBusinessRequest): Promise<CreateBusinessResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business/create`, JSON.stringify(params))
+            return await resp.json() as CreateBusinessResponse
+        }
+
+        /**
+         * Get specific business details
+         * GET /business/get/:id
+         */
+        public async getBusiness(id: string): Promise<{
+    business: Business | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/business/get/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    business: Business | null
+}
+        }
+
+        /**
+         * Get all businesses owned by a specific user
+         * GET /business/owned/:userId
+         */
+        public async getOwnedBusinesses(userId: string): Promise<{
+    businesses: Business[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/business/owned/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    businesses: Business[]
+}
+        }
+    }
+}
+
 export namespace campus_concerts {
     export interface AddConcertRequest {
         userId: string
@@ -1857,6 +1936,265 @@ export namespace daily_weather {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/daily-weather/preferences`, JSON.stringify(params))
             return await resp.json() as UpsertPreferencesResponse
+        }
+    }
+}
+
+/**
+ * Digital Menu service - manages digital QR menus, menu categories, menu items, and waiter calls.
+ */
+export namespace digital_menu {
+    export interface AddCategoryRequest {
+        businessId: string
+        name: string
+    }
+
+    export interface AddCategoryResponse {
+        category: Category | null
+    }
+
+    export interface AddMenuItemRequest {
+        categoryId: string
+        name: string
+        description: string
+        price: number
+        imageUrl: string
+        dietaryFlags: string[]
+    }
+
+    export interface AddMenuItemResponse {
+        item: MenuItem | null
+    }
+
+    export interface Business {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "theme_color": string
+        "created_at": string
+    }
+
+    export interface CallWaiterRequest {
+        businessId: string
+        tableNumber: string
+    }
+
+    export interface CallWaiterResponse {
+        success: boolean
+        call: WaiterCall | null
+    }
+
+    export interface Category {
+        id: string
+        name: string
+        "order_index": number
+    }
+
+    export interface GetMenuDataResponse {
+        categories: Category[]
+        items: MenuItem[]
+    }
+
+    export interface MenuItem {
+        id: string
+        "category_id": string
+        name: string
+        description: string | null
+        price: number
+        "image_url": string | null
+        "is_available": boolean
+        "dietary_flags": string[]
+        "order_index": number
+    }
+
+    export interface ResolveWaiterCallRequest {
+        callId: string
+    }
+
+    export interface ResolveWaiterCallResponse {
+        success: boolean
+    }
+
+    export interface ToggleFavoriteRequest {
+        userId: string
+        businessId: string
+    }
+
+    export interface ToggleFavoriteResponse {
+        isFavorited: boolean
+    }
+
+    export interface WaiterCall {
+        id: string
+        "table_number": string
+        status: string
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addCategory = this.addCategory.bind(this)
+            this.addMenuItem = this.addMenuItem.bind(this)
+            this.callWaiter = this.callWaiter.bind(this)
+            this.getAllBusinesses = this.getAllBusinesses.bind(this)
+            this.getBusiness = this.getBusiness.bind(this)
+            this.getMenuData = this.getMenuData.bind(this)
+            this.getOwnedBusinesses = this.getOwnedBusinesses.bind(this)
+            this.getUserFavorites = this.getUserFavorites.bind(this)
+            this.getWaiterCalls = this.getWaiterCalls.bind(this)
+            this.resolveWaiterCall = this.resolveWaiterCall.bind(this)
+            this.toggleAvailability = this.toggleAvailability.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
+        }
+
+        /**
+         * Add a category to a business
+         * POST /digital-menu/category/add
+         */
+        public async addCategory(params: AddCategoryRequest): Promise<AddCategoryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/category/add`, JSON.stringify(params))
+            return await resp.json() as AddCategoryResponse
+        }
+
+        /**
+         * Add a menu item to a category
+         * POST /digital-menu/item/add
+         */
+        public async addMenuItem(params: AddMenuItemRequest): Promise<AddMenuItemResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/item/add`, JSON.stringify(params))
+            return await resp.json() as AddMenuItemResponse
+        }
+
+        /**
+         * Call a waiter from a table
+         * POST /digital-menu/waiter/call
+         */
+        public async callWaiter(params: CallWaiterRequest): Promise<CallWaiterResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/waiter/call`, JSON.stringify(params))
+            return await resp.json() as CallWaiterResponse
+        }
+
+        /**
+         * Get all available businesses (public list)
+         * GET /digital-menu/all-businesses
+         */
+        public async getAllBusinesses(): Promise<{
+    businesses: Business[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/all-businesses`)
+            return await resp.json() as {
+    businesses: Business[]
+}
+        }
+
+        /**
+         * Get specific business details
+         * GET /digital-menu/business/:businessId
+         */
+        public async getBusiness(businessId: string): Promise<{
+    business: Business | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/business/${encodeURIComponent(businessId)}`)
+            return await resp.json() as {
+    business: Business | null
+}
+        }
+
+        /**
+         * Get complete menu hierarchy for a business
+         * GET /digital-menu/menu/:businessId
+         */
+        public async getMenuData(businessId: string): Promise<GetMenuDataResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/menu/${encodeURIComponent(businessId)}`)
+            return await resp.json() as GetMenuDataResponse
+        }
+
+        /**
+         * Get all user owned businesses
+         * GET /digital-menu/businesses/:userId
+         */
+        public async getOwnedBusinesses(userId: string): Promise<{
+    businesses: Business[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/businesses/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    businesses: Business[]
+}
+        }
+
+        /**
+         * Get user favorites
+         * GET /digital-menu/favorites/:userId
+         */
+        public async getUserFavorites(userId: string): Promise<{
+    businessIds: string[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/favorites/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    businessIds: string[]
+}
+        }
+
+        /**
+         * Get active waiter calls for a business
+         * GET /digital-menu/waiter/calls/:businessId
+         */
+        public async getWaiterCalls(businessId: string): Promise<{
+    calls: WaiterCall[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/waiter/calls/${encodeURIComponent(businessId)}`)
+            return await resp.json() as {
+    calls: WaiterCall[]
+}
+        }
+
+        /**
+         * Resolve an active waiter call
+         * POST /digital-menu/waiter/resolve
+         */
+        public async resolveWaiterCall(params: ResolveWaiterCallRequest): Promise<ResolveWaiterCallResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/waiter/resolve`, JSON.stringify(params))
+            return await resp.json() as ResolveWaiterCallResponse
+        }
+
+        /**
+         * Toggle menu item availability
+         * POST /digital-menu/item/toggle/:itemId
+         */
+        public async toggleAvailability(itemId: string): Promise<{
+    success: boolean
+    isAvailable: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/item/toggle/${encodeURIComponent(itemId)}`)
+            return await resp.json() as {
+    success: boolean
+    isAvailable: boolean
+}
+        }
+
+        /**
+         * Toggle favorite status
+         * POST /digital-menu/favorites/toggle
+         */
+        public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/favorites/toggle`, JSON.stringify(params))
+            return await resp.json() as ToggleFavoriteResponse
         }
     }
 }
@@ -3920,17 +4258,14 @@ export namespace stamp_card {
     }
 
     export interface CreateBusinessRequest {
-        userId: string
-        name: string
-        description: string
-        logoUrl: string
+        businessId: string
         stampLimit: number
         rewardTitle: string
         pinCode: string
     }
 
     export interface CreateBusinessResponse {
-        business: Business | null
+        success: boolean
     }
 
     export interface GetUserDataResponse {
