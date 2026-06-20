@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/toggle-cancelled-apps.js hide && node scripts/sync-games.js && next build && node scripts/toggle-cancelled-apps.js restore",
+    "build": "node scripts/sync-games.js && next build",
     "start": "next start",
     "lint": "eslint",
     "generate": "bunx tsx scripts/generate-types.ts",
