@@ -624,7 +624,6 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "stampcard",
     isBeta: true,
-    isCancelled: true,
   },
   {
     id: "campus-events",
