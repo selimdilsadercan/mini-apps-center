@@ -6,7 +6,7 @@
 
     -- 2. Create Tables
     CREATE TABLE IF NOT EXISTS stamp_card.businesses (
-        id UUID PRIMARY KEY REFERENCES business.businesses(id) ON DELETE CASCADE,
+        id TEXT PRIMARY KEY REFERENCES business.businesses(id) ON DELETE CASCADE,
         stamp_limit INTEGER DEFAULT 8 NOT NULL,
         reward_title TEXT NOT NULL,
         pin_code VARCHAR(4) NOT NULL DEFAULT '1234',
@@ -16,7 +16,7 @@
     CREATE TABLE IF NOT EXISTS stamp_card.user_cards (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-        business_id UUID NOT NULL REFERENCES stamp_card.businesses(id) ON DELETE CASCADE,
+        business_id TEXT NOT NULL REFERENCES stamp_card.businesses(id) ON DELETE CASCADE,
         stamps_count INTEGER DEFAULT 0 NOT NULL,
         completed_count INTEGER DEFAULT 0 NOT NULL,
         updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -27,7 +27,7 @@
     CREATE TABLE IF NOT EXISTS stamp_card.redeemed_rewards (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-        business_id UUID NOT NULL REFERENCES stamp_card.businesses(id) ON DELETE CASCADE,
+        business_id TEXT NOT NULL REFERENCES stamp_card.businesses(id) ON DELETE CASCADE,
         reward_title TEXT NOT NULL,
         is_used BOOLEAN DEFAULT FALSE NOT NULL,
         redeemed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -50,7 +50,7 @@
     DROP FUNCTION IF EXISTS stamp_card.get_businesses();
     CREATE OR REPLACE FUNCTION stamp_card.get_businesses()
     RETURNS TABLE (
-        id UUID,
+        id TEXT,
         name TEXT,
         description TEXT,
         logo_url TEXT,
@@ -137,9 +137,10 @@
 
     -- Add stamp to a card
     DROP FUNCTION IF EXISTS stamp_card.add_stamp(TEXT, UUID, TEXT);
+    DROP FUNCTION IF EXISTS stamp_card.add_stamp(TEXT, TEXT, TEXT);
     CREATE OR REPLACE FUNCTION stamp_card.add_stamp(
         p_user_id TEXT,
-        p_business_id UUID,
+        p_business_id TEXT,
         p_pin TEXT
     )
     RETURNS JSONB AS $$
@@ -227,8 +228,9 @@
     -- Create Business / Campaign
     DROP FUNCTION IF EXISTS stamp_card.create_business(TEXT, TEXT, TEXT, TEXT, INTEGER, TEXT, TEXT);
     DROP FUNCTION IF EXISTS stamp_card.create_business(UUID, INTEGER, TEXT, TEXT);
+    DROP FUNCTION IF EXISTS stamp_card.create_business(TEXT, INTEGER, TEXT, TEXT);
     CREATE OR REPLACE FUNCTION stamp_card.create_business(
-        p_business_id UUID,
+        p_business_id TEXT,
         p_stamp_limit INTEGER,
         p_reward_title TEXT,
         p_pin_code TEXT

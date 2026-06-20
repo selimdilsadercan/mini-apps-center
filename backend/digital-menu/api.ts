@@ -362,3 +362,69 @@ export const toggleFavorite = api(
     return { isFavorited: !!data };
   }
 );
+
+interface UpdateMenuItemRequest {
+  itemId: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  dietaryFlags: string[];
+}
+
+interface UpdateMenuItemResponse {
+  item: MenuItem | null;
+}
+
+/**
+ * Update an existing menu item
+ * POST /digital-menu/item/update
+ */
+export const updateMenuItem = api(
+  { expose: true, method: "POST", path: "/digital-menu/item/update" },
+  async (req: UpdateMenuItemRequest): Promise<UpdateMenuItemResponse> => {
+    const { data, error } = await supabase.schema("digital_menu").rpc("update_menu_item", {
+      p_item_id: req.itemId,
+      p_category_id: req.categoryId,
+      p_name: req.name,
+      p_description: req.description,
+      p_price: req.price,
+      p_image_url: req.imageUrl,
+      p_dietary_flags: req.dietaryFlags,
+    });
+
+    if (error) {
+      console.error("updateMenuItem error:", error);
+      throw APIError.internal(`Failed to update menu item: ${error.message}`);
+    }
+
+    return { item: (data as MenuItem) || null };
+  }
+);
+
+/**
+ * Proxy Unsplash search requests to bypass browser CORS policy
+ * GET /digital-menu/unsplash/search
+ */
+export const searchUnsplash = api(
+  { expose: true, method: "GET", path: "/digital-menu/unsplash/search" },
+  async ({ query }: { query: string }): Promise<{ urls: string[] }> => {
+    try {
+      const response = await fetch(
+        `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=9`
+      );
+      if (!response.ok) {
+        throw new Error(`Unsplash returned status ${response.status}`);
+      }
+      const data = (await response.json()) as any;
+      const urls = (data.results || []).map((img: any) => img.urls.regular);
+      return { urls };
+    } catch (error: any) {
+      console.error("searchUnsplash error:", error);
+      throw APIError.internal(`Failed to search Unsplash: ${error.message}`);
+    }
+  }
+);
+
+

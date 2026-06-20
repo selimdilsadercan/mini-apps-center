@@ -15,6 +15,7 @@ export interface Business {
   description: string | null;
   logo_url: string | null;
   theme_color: string;
+  font_family: string;
   created_at: string;
 }
 
@@ -28,7 +29,16 @@ interface CreateBusinessRequest {
   themeColor: string;
 }
 
-interface CreateBusinessResponse {
+interface UpdateBusinessRequest {
+  businessId: string;
+  name: string;
+  description: string;
+  logoUrl: string;
+  themeColor: string;
+  fontFamily: string;
+}
+
+interface BusinessResponse {
   business: Business | null;
 }
 
@@ -40,7 +50,7 @@ interface CreateBusinessResponse {
  */
 export const createBusiness = api(
   { expose: true, method: "POST", path: "/business/create" },
-  async (req: CreateBusinessRequest): Promise<CreateBusinessResponse> => {
+  async (req: CreateBusinessRequest): Promise<BusinessResponse> => {
     const { data, error } = await supabase.schema("business").rpc("create_business", {
       p_user_id: req.userId,
       p_name: req.name,
@@ -52,6 +62,31 @@ export const createBusiness = api(
     if (error) {
       console.error("createBusiness error:", error);
       throw APIError.internal(`Failed to create business: ${error.message}`);
+    }
+
+    return { business: (data as Business) || null };
+  }
+);
+
+/**
+ * Update business details
+ * POST /business/update
+ */
+export const updateBusiness = api(
+  { expose: true, method: "POST", path: "/business/update" },
+  async (req: UpdateBusinessRequest): Promise<BusinessResponse> => {
+    const { data, error } = await supabase.schema("business").rpc("update_business", {
+      p_business_id: req.businessId,
+      p_name: req.name,
+      p_description: req.description,
+      p_logo_url: req.logoUrl,
+      p_theme_color: req.themeColor,
+      p_font_family: req.fontFamily,
+    });
+
+    if (error) {
+      console.error("updateBusiness error:", error);
+      throw APIError.internal(`Failed to update business: ${error.message}`);
     }
 
     return { business: (data as Business) || null };

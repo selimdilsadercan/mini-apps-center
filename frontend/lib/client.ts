@@ -1091,7 +1091,12 @@ export namespace business {
         description: string | null
         "logo_url": string | null
         "theme_color": string
+        "font_family": string
         "created_at": string
+    }
+
+    export interface BusinessResponse {
+        business: Business | null
     }
 
     export interface CreateBusinessRequest {
@@ -1102,8 +1107,13 @@ export namespace business {
         themeColor: string
     }
 
-    export interface CreateBusinessResponse {
-        business: Business | null
+    export interface UpdateBusinessRequest {
+        businessId: string
+        name: string
+        description: string
+        logoUrl: string
+        themeColor: string
+        fontFamily: string
     }
 
     export class ServiceClient {
@@ -1114,16 +1124,17 @@ export namespace business {
             this.createBusiness = this.createBusiness.bind(this)
             this.getBusiness = this.getBusiness.bind(this)
             this.getOwnedBusinesses = this.getOwnedBusinesses.bind(this)
+            this.updateBusiness = this.updateBusiness.bind(this)
         }
 
         /**
          * Create a new business profile
          * POST /business/create
          */
-        public async createBusiness(params: CreateBusinessRequest): Promise<CreateBusinessResponse> {
+        public async createBusiness(params: CreateBusinessRequest): Promise<BusinessResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/business/create`, JSON.stringify(params))
-            return await resp.json() as CreateBusinessResponse
+            return await resp.json() as BusinessResponse
         }
 
         /**
@@ -1152,6 +1163,16 @@ export namespace business {
             return await resp.json() as {
     businesses: Business[]
 }
+        }
+
+        /**
+         * Update business details
+         * POST /business/update
+         */
+        public async updateBusiness(params: UpdateBusinessRequest): Promise<BusinessResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business/update`, JSON.stringify(params))
+            return await resp.json() as BusinessResponse
         }
     }
 }
@@ -1972,6 +1993,7 @@ export namespace digital_menu {
         description: string | null
         "logo_url": string | null
         "theme_color": string
+        "font_family": string
         "created_at": string
     }
 
@@ -2025,6 +2047,20 @@ export namespace digital_menu {
         isFavorited: boolean
     }
 
+    export interface UpdateMenuItemRequest {
+        itemId: string
+        categoryId: string
+        name: string
+        description: string
+        price: number
+        imageUrl: string
+        dietaryFlags: string[]
+    }
+
+    export interface UpdateMenuItemResponse {
+        item: MenuItem | null
+    }
+
     export interface WaiterCall {
         id: string
         "table_number": string
@@ -2047,8 +2083,10 @@ export namespace digital_menu {
             this.getUserFavorites = this.getUserFavorites.bind(this)
             this.getWaiterCalls = this.getWaiterCalls.bind(this)
             this.resolveWaiterCall = this.resolveWaiterCall.bind(this)
+            this.searchUnsplash = this.searchUnsplash.bind(this)
             this.toggleAvailability = this.toggleAvailability.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
+            this.updateMenuItem = this.updateMenuItem.bind(this)
         }
 
         /**
@@ -2172,6 +2210,27 @@ export namespace digital_menu {
         }
 
         /**
+         * Proxy Unsplash search requests to bypass browser CORS policy
+         * GET /digital-menu/unsplash/search
+         */
+        public async searchUnsplash(params: {
+    query: string
+}): Promise<{
+    urls: string[]
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/digital-menu/unsplash/search`, undefined, {query})
+            return await resp.json() as {
+    urls: string[]
+}
+        }
+
+        /**
          * Toggle menu item availability
          * POST /digital-menu/item/toggle/:itemId
          */
@@ -2195,6 +2254,16 @@ export namespace digital_menu {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/favorites/toggle`, JSON.stringify(params))
             return await resp.json() as ToggleFavoriteResponse
+        }
+
+        /**
+         * Update an existing menu item
+         * POST /digital-menu/item/update
+         */
+        public async updateMenuItem(params: UpdateMenuItemRequest): Promise<UpdateMenuItemResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/item/update`, JSON.stringify(params))
+            return await resp.json() as UpdateMenuItemResponse
         }
     }
 }

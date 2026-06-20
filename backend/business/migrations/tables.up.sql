@@ -15,12 +15,13 @@ GRANT USAGE ON SCHEMA business TO anon, authenticated, service_role;
 
 -- 2. Businesses Table
 CREATE TABLE IF NOT EXISTS business.businesses (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY DEFAULT substring(md5(random()::text), 1, 8),
     owner_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     logo_url TEXT,
     theme_color TEXT DEFAULT '#EF4444' NOT NULL,
+    font_family TEXT DEFAULT 'sans' NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 

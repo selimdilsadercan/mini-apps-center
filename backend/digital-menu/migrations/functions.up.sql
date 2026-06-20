@@ -8,10 +8,12 @@
 -- 7. digital_menu.resolve_waiter_call
 -- 8. digital_menu.get_user_favorites
 -- 9. digital_menu.toggle_favorite
+-- 10. digital_menu.update_menu_item
 
 -- 1. Get menu data
 DROP FUNCTION IF EXISTS digital_menu.get_menu_data(UUID);
-CREATE OR REPLACE FUNCTION digital_menu.get_menu_data(p_business_id UUID)
+DROP FUNCTION IF EXISTS digital_menu.get_menu_data(TEXT);
+CREATE OR REPLACE FUNCTION digital_menu.get_menu_data(p_business_id TEXT)
 RETURNS JSONB AS $$
 DECLARE
     v_categories JSONB;
@@ -50,8 +52,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. Add Category
 DROP FUNCTION IF EXISTS digital_menu.add_category(UUID, TEXT);
+DROP FUNCTION IF EXISTS digital_menu.add_category(TEXT, TEXT);
 CREATE OR REPLACE FUNCTION digital_menu.add_category(
-    p_business_id UUID,
+    p_business_id TEXT,
     p_name TEXT
 )
 RETURNS digital_menu.categories AS $$
@@ -136,8 +139,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. Call Waiter
 DROP FUNCTION IF EXISTS digital_menu.call_waiter(UUID, TEXT);
+DROP FUNCTION IF EXISTS digital_menu.call_waiter(TEXT, TEXT);
 CREATE OR REPLACE FUNCTION digital_menu.call_waiter(
-    p_business_id UUID,
+    p_business_id TEXT,
     p_table_number TEXT
 )
 RETURNS digital_menu.waiter_calls AS $$
@@ -160,7 +164,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 6. Get Waiter Calls
 DROP FUNCTION IF EXISTS digital_menu.get_waiter_calls(UUID);
-CREATE OR REPLACE FUNCTION digital_menu.get_waiter_calls(p_business_id UUID)
+DROP FUNCTION IF EXISTS digital_menu.get_waiter_calls(TEXT);
+CREATE OR REPLACE FUNCTION digital_menu.get_waiter_calls(p_business_id TEXT)
 RETURNS TABLE (
     id UUID,
     table_number TEXT,
@@ -196,7 +201,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP FUNCTION IF EXISTS digital_menu.get_user_favorites(TEXT);
 CREATE OR REPLACE FUNCTION digital_menu.get_user_favorites(p_user_id TEXT)
 RETURNS TABLE (
-    business_id UUID
+    business_id TEXT
 ) AS $$
 DECLARE
     v_user_id UUID := public.get_internal_user_id(p_user_id);
@@ -210,9 +215,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 9. Toggle Favorite
 DROP FUNCTION IF EXISTS digital_menu.toggle_favorite(TEXT, UUID);
+DROP FUNCTION IF EXISTS digital_menu.toggle_favorite(TEXT, TEXT);
 CREATE OR REPLACE FUNCTION digital_menu.toggle_favorite(
     p_user_id TEXT,
-    p_business_id UUID
+    p_business_id TEXT
 )
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -233,5 +239,34 @@ BEGIN
         VALUES (v_user_id, p_business_id);
         RETURN TRUE;
     END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 10. Update Menu Item
+DROP FUNCTION IF EXISTS digital_menu.update_menu_item(UUID, UUID, TEXT, TEXT, NUMERIC, TEXT, TEXT[]);
+CREATE OR REPLACE FUNCTION digital_menu.update_menu_item(
+    p_item_id UUID,
+    p_category_id UUID,
+    p_name TEXT,
+    p_description TEXT,
+    p_price NUMERIC,
+    p_image_url TEXT,
+    p_dietary_flags TEXT[]
+)
+RETURNS digital_menu.items AS $$
+DECLARE
+    v_result digital_menu.items;
+BEGIN
+    UPDATE digital_menu.items
+    SET category_id = p_category_id,
+        name = p_name,
+        description = p_description,
+        price = p_price,
+        image_url = p_image_url,
+        dietary_flags = p_dietary_flags
+    WHERE id = p_item_id
+    RETURNING * INTO v_result;
+
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

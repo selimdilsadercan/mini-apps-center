@@ -51,12 +51,40 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. Get Specific Business
 DROP FUNCTION IF EXISTS business.get_business(UUID);
-CREATE OR REPLACE FUNCTION business.get_business(p_business_id UUID)
+DROP FUNCTION IF EXISTS business.get_business(TEXT);
+CREATE OR REPLACE FUNCTION business.get_business(p_business_id TEXT)
 RETURNS SETOF business.businesses AS $$
 BEGIN
     RETURN QUERY
     SELECT * FROM business.businesses
     WHERE id = p_business_id
     LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 4. Update Business
+DROP FUNCTION IF EXISTS business.update_business(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT);
+CREATE OR REPLACE FUNCTION business.update_business(
+    p_business_id TEXT,
+    p_name TEXT,
+    p_description TEXT,
+    p_logo_url TEXT,
+    p_theme_color TEXT,
+    p_font_family TEXT
+)
+RETURNS business.businesses AS $$
+DECLARE
+    v_result business.businesses;
+BEGIN
+    UPDATE business.businesses
+    SET name = p_name,
+        description = p_description,
+        logo_url = p_logo_url,
+        theme_color = p_theme_color,
+        font_family = p_font_family
+    WHERE id = p_business_id
+    RETURNING * INTO v_result;
+
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

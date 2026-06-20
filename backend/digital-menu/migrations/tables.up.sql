@@ -16,7 +16,7 @@ GRANT USAGE ON SCHEMA digital_menu TO anon, authenticated, service_role;
 -- 2. Create Tables
 CREATE TABLE IF NOT EXISTS digital_menu.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    business_id UUID NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
+    business_id TEXT NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     order_index INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS digital_menu.items (
 
 CREATE TABLE IF NOT EXISTS digital_menu.tables (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    business_id UUID NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
+    business_id TEXT NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
     table_number TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(business_id, table_number)
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS digital_menu.tables (
 
 CREATE TABLE IF NOT EXISTS digital_menu.waiter_calls (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    business_id UUID NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
+    business_id TEXT NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
     table_number TEXT NOT NULL,
     status TEXT DEFAULT 'pending' NOT NULL, -- 'pending', 'resolved'
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS digital_menu.waiter_calls (
 CREATE TABLE IF NOT EXISTS digital_menu.user_favorites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    business_id UUID NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
+    business_id TEXT NOT NULL REFERENCES business.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     UNIQUE(user_id, business_id)
 );
