@@ -91,6 +91,13 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const subdomain = getSubdomain(host);
 
+  // ── Special 'updates' subdomain → DO NOT HANDLE IN NEXT.JS ────────────────
+  // This should be handled by Cloudflare R2. If it hits here, we just pass it through
+  // without any rewrites or redirects to avoid showing the landing page.
+  if (subdomain === "updates") {
+    return NextResponse.next();
+  }
+
   // ── Special 'my' subdomain → serves the main application ─────────────────
   if (subdomain === "my") {
     // Let all app routes and root path '/' (original auth logic) pass through
@@ -119,7 +126,7 @@ export function proxy(request: NextRequest) {
   }
 
   // ── Unknown subdomain → redirect to my.[domain]/home ─────────────────────
-  if (subdomain && subdomain !== "my" && subdomain !== "updates" && !SUBDOMAIN_ROUTES[subdomain]) {
+  if (subdomain && subdomain !== "my" && !SUBDOMAIN_ROUTES[subdomain]) {
     const appUrl = request.nextUrl.clone();
     const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
     const isLocal = host.startsWith("localhost") || host.includes(".localhost");
