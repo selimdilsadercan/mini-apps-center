@@ -81,6 +81,13 @@ function getSubdomain(host: string): string | null {
 }
 
 export function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // API proxy — must not be rewritten to /apps/<subdomain>/encore-api/...
+  if (pathname.startsWith("/encore-api")) {
+    return NextResponse.next();
+  }
+
   const host = request.headers.get("host") ?? "";
   const subdomain = getSubdomain(host);
 
