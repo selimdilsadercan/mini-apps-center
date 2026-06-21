@@ -13,7 +13,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const buildGradlePath = path.join(__dirname, "..", "android", "app", "build.gradle");
+const configPath = path.join(__dirname, "..", "lib", "config.ts");
 const outputDir = path.join(__dirname, "..", "versions");
+
+function syncConfigWithGradle(buildNumber: string, version: string) {
+  let configContent = fs.readFileSync(configPath, "utf8");
+  configContent = configContent.replace(/version:\s*"[^"]+"/, `version: "${version}"`);
+  configContent = configContent.replace(/buildNumber:\s*\d+/, `buildNumber: ${buildNumber}`);
+  fs.writeFileSync(configPath, configContent, "utf8");
+  console.log(`🔁 config.ts senkronize edildi: v${version} (Build: ${buildNumber})`);
+}
 
 async function main() {
   try {
@@ -38,17 +47,26 @@ async function main() {
     const fileName = `everything_v${version}_b${buildNumber}.zip`;
     const fullPath = path.join(outputDir, fileName);
 
+    syncConfigWithGradle(buildNumber, version);
+
     console.log(`🚀 Build başlatılıyor: v${version} (Build: ${buildNumber})`);
 
     // 3. Next.js Build
     console.log("🏗️ Next.js export ediliyor...");
     
     try {
+      // Build öncesi .next klasörünü temizle (stale type hatalarını önlemek için)
+      console.log("🧹 .next klasörü temizleniyor...");
+      const nextDir = path.join(__dirname, "..", ".next");
+      if (fs.existsSync(nextDir)) {
+        fs.rmSync(nextDir, { recursive: true, force: true });
+      }
+
       // Build öncesi iptal edilen app'leri ve dashboard'u gizle
       console.log("🙈 İptal edilen uygulamalar gizleniyor...");
       execSync("node scripts/toggle-cancelled-apps.js hide", { stdio: "inherit", cwd: path.join(__dirname, "..") });
 
-      execSync("npm run build", { stdio: "inherit", cwd: path.join(__dirname, "..") });
+      execSync("NEXT_PUBLIC_CAPACITOR=true npm run build", { stdio: "inherit", cwd: path.join(__dirname, "..") });
     } finally {
       // Build bittikten sonra (hata alsa bile) her şeyi geri getir
       console.log("👀 Uygulamalar geri getiriliyor...");

@@ -46,6 +46,7 @@ export default class Client {
     public readonly digital_menu: digital_menu.ServiceClient
     public readonly esles: esles.ServiceClient
     public readonly feed: feed.ServiceClient
+    public readonly feedback: feedback.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly icon_set_guide: icon_set_guide.ServiceClient
@@ -99,6 +100,7 @@ export default class Client {
         this.digital_menu = new digital_menu.ServiceClient(base)
         this.esles = new esles.ServiceClient(base)
         this.feed = new feed.ServiceClient(base)
+        this.feedback = new feedback.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
@@ -2489,6 +2491,82 @@ export namespace feed {
             return await resp.json() as {
     success: boolean
 }
+        }
+    }
+}
+
+export namespace feedback {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addFeedback = this.addFeedback.bind(this)
+            this.deleteFeedback = this.deleteFeedback.bind(this)
+            this.getFeedbacks = this.getFeedbacks.bind(this)
+            this.toggleVote = this.toggleVote.bind(this)
+            this.updateFeedback = this.updateFeedback.bind(this)
+            this.updateStatus = this.updateStatus.bind(this)
+        }
+
+        /**
+         * Yeni bir feedback ekler
+         */
+        public async addFeedback(params: feedback_board.AddFeedbackRequest): Promise<feedback_board.AddFeedbackResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/feedback/add`, JSON.stringify(params))
+            return await resp.json() as feedback_board.AddFeedbackResponse
+        }
+
+        /**
+         * Feedback'i siler
+         */
+        public async deleteFeedback(id: string, params: feedback_board.DeleteFeedbackRequest): Promise<feedback_board.DeleteFeedbackResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/feedback/delete/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as feedback_board.DeleteFeedbackResponse
+        }
+
+        /**
+         * İşletmeye ait feedbackleri getirir
+         */
+        public async getFeedbacks(userId: string, businessId: string): Promise<feedback_board.GetFeedbacksResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/feedback/feedbacks/${encodeURIComponent(userId)}/${encodeURIComponent(businessId)}`)
+            return await resp.json() as feedback_board.GetFeedbacksResponse
+        }
+
+        /**
+         * Feedback için oy verir veya oyu geri çeker
+         */
+        public async toggleVote(params: feedback_board.ToggleVoteRequest): Promise<feedback_board.ToggleVoteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/feedback/toggle-vote`, JSON.stringify(params))
+            return await resp.json() as feedback_board.ToggleVoteResponse
+        }
+
+        /**
+         * Feedback içeriğini günceller (Sadece yazar)
+         */
+        public async updateFeedback(params: feedback_board.UpdateFeedbackRequest): Promise<feedback_board.UpdateFeedbackResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/feedback/update`, JSON.stringify(params))
+            return await resp.json() as feedback_board.UpdateFeedbackResponse
+        }
+
+        /**
+         * Feedback durumunu günceller (Sadece işletme sahibi)
+         */
+        public async updateStatus(params: feedback_board.UpdateStatusRequest): Promise<feedback_board.UpdateStatusResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/feedback/update-status`, JSON.stringify(params))
+            return await resp.json() as feedback_board.UpdateStatusResponse
         }
     }
 }
@@ -6455,6 +6533,82 @@ export namespace workplaces {
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/update`, JSON.stringify(params))
             return await resp.json() as UpdatePlaceResponse
         }
+    }
+}
+
+export namespace feedback_board {
+    export interface AddFeedbackRequest {
+        userId: string
+        businessId: string
+        title: string
+        description?: string
+        category?: string
+    }
+
+    export interface AddFeedbackResponse {
+        feedback: Feedback | null
+    }
+
+    export interface DeleteFeedbackRequest {
+        userId: string
+    }
+
+    export interface DeleteFeedbackResponse {
+        success: boolean
+    }
+
+    export interface Feedback {
+        id: string
+        "user_id": string
+        "business_id": string
+        title: string
+        description: string | null
+        category: string | null
+        status: FeedbackStatus
+        "created_at": string
+        "updated_at": string
+        "vote_count": number
+        "has_voted": boolean
+        "is_owner": boolean
+        "author_name": string | null
+        "author_avatar": string | null
+    }
+
+    export type FeedbackStatus = "pending" | "planned" | "in-progress" | "completed"
+
+    export interface GetFeedbacksResponse {
+        feedbacks: Feedback[]
+    }
+
+    export interface ToggleVoteRequest {
+        userId: string
+        feedbackId: string
+    }
+
+    export interface ToggleVoteResponse {
+        hasVoted: boolean
+    }
+
+    export interface UpdateFeedbackRequest {
+        userId: string
+        feedbackId: string
+        title: string
+        description?: string
+        category?: string
+    }
+
+    export interface UpdateFeedbackResponse {
+        feedback: Feedback | null
+    }
+
+    export interface UpdateStatusRequest {
+        userId: string
+        feedbackId: string
+        status: FeedbackStatus
+    }
+
+    export interface UpdateStatusResponse {
+        feedback: Feedback | null
     }
 }
 

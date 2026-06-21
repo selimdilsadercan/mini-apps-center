@@ -29,6 +29,7 @@ import {
   PaperPlaneTilt,
   Buildings,
   Megaphone,
+  ChatTeardropDots,
 } from "@phosphor-icons/react";
 import React from "react";
 

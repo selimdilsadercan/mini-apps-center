@@ -5,139 +5,141 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { createBrowserClient } from "@/lib/api";
 import { APP_CONFIG } from "@/lib/config";
-import { Loader2, Download, CheckCircle2, Terminal } from "lucide-react";
+import { Loader2, Download, CheckCircle2 } from "lucide-react";
 
 interface OTAState {
-  isChecking: boolean;
   isDownloading: boolean;
   progress: number;
   isReady: boolean;
-  error: string | null;
-  logs: string[];
+}
+
+const OTA_BUILD_STORAGE_KEY = "ota_installed_build_number";
+
+function formatCapgoVersion(version: string, buildNumber: number) {
+  return `${version}-b${buildNumber}`;
+}
+
+function parseBuildFromCapgoVersion(version: string): number | null {
+  const match = version.match(/-b(\d+)$/);
+  if (!match) return null;
+  const parsed = parseInt(match[1], 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+async function getEffectiveBuildNumber(): Promise<number> {
+  let build = Number(APP_CONFIG.buildNumber);
+
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(OTA_BUILD_STORAGE_KEY);
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!Number.isNaN(parsed)) {
+        build = Math.max(build, parsed);
+      }
+    }
+  }
+
+  try {
+    const { bundle } = await CapacitorUpdater.current();
+    if (bundle.id !== "builtin") {
+      const capgoBuild = parseBuildFromCapgoVersion(bundle.version);
+      if (capgoBuild !== null) {
+        build = Math.max(build, capgoBuild);
+      }
+    }
+  } catch {
+    // Capgo current() bazen ilk açılışta hazır olmayabilir
+  }
+
+  return build;
+}
+
+function persistInstalledBuild(buildNumber: number) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(OTA_BUILD_STORAGE_KEY, String(buildNumber));
 }
 
 export default function OTAProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<OTAState>({
-    isChecking: false,
     isDownloading: false,
     progress: 0,
     isReady: false,
-    error: null,
-    logs: []
   });
 
-  // useRef ile koruma — closure sorunlarından etkilenmez
   const isUpdatingRef = useRef(false);
 
-  const addLog = (msg: string) => {
-    setState((s) => ({ ...s, logs: [msg, ...s.logs].slice(0, 10) }));
-  };
-
   const checkAndApplyUpdates = async () => {
-    // Ref-based koruma: closure'dan bağımsız çalışır
-    if (isUpdatingRef.current) {
-      addLog("⏳ Güncelleme zaten devam ediyor, kontrol atlanıyor.");
-      return;
-    }
-
-    // Son yüklenen bundle versiyonunu kontrol et — aynı bundle'ı tekrar indirmeyi engelle
-    const lastInstalledVersion = sessionStorage.getItem("ota_last_installed_version");
-
-    addLog(`🚀 Kontrol başlatılıyor... Build: ${APP_CONFIG.buildNumber}`);
+    if (isUpdatingRef.current) return;
 
     try {
       isUpdatingRef.current = true;
-      setState((s) => ({ ...s, isChecking: true }));
       const platform = Capacitor.getPlatform();
-      const currentBuildNumber = APP_CONFIG.buildNumber;
-
-      addLog(`📡 Sunucuya soruluyor (${platform})...`);
-
+      const currentBuildNumber = await getEffectiveBuildNumber();
       const api = createBrowserClient();
 
-      // 1. Check backend using standard client
       const result = await api.ota.checkUpdate({
         platform,
-        currentBuildNumber: currentBuildNumber
+        currentBuildNumber,
       });
 
-      addLog(`✅ Sunucu cevabı: ${result.updateAvailable ? "YENİ SÜRÜM VAR" : "GÜNCELSİN"}`);
-
       if (result.updateAvailable && result.latestBundle) {
-        // Aynı versiyonu tekrar indirmeyi engelle (döngü koruması)
-        if (lastInstalledVersion === result.latestBundle.version) {
-          addLog(`🔄 Bu versiyon (${result.latestBundle.version}) zaten yüklendi, atlanıyor.`);
-          setState((s) => ({ ...s, isChecking: false }));
+        const latestBuild = result.latestBundle.build_number;
+
+        if (latestBuild <= currentBuildNumber) {
           isUpdatingRef.current = false;
           return;
         }
 
-        addLog(`📦 Yeni paket: ${result.latestBundle.version}`);
-        setState((s) => ({ ...s, isChecking: false, isDownloading: true }));
+        const capgoVersion = formatCapgoVersion(result.latestBundle.version, latestBuild);
+        setState((s) => ({ ...s, isDownloading: true }));
 
         const listener = await CapacitorUpdater.addListener("download", (data) => {
           setState((s) => ({ ...s, progress: data.percent }));
         });
 
         try {
-          addLog("⬇️ İndirme başladı...");
           const downloadPromise = CapacitorUpdater.download({
             url: result.latestBundle.bundle_url,
-            version: result.latestBundle.version
+            version: capgoVersion,
           });
 
-          // 60 saniye timeout ekleyelim
-          const timeoutPromise = new Promise((_, reject) => 
+          const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("İndirme zaman aşımına uğradı (60sn)")), 60000)
           );
 
-          const bundle = await Promise.race([downloadPromise, timeoutPromise]) as any;
+          const bundle = (await Promise.race([downloadPromise, timeoutPromise])) as Awaited<
+            ReturnType<typeof CapacitorUpdater.download>
+          >;
 
-          addLog("💾 Paket cihaza hazırlandı.");
           setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
 
-          // Küçük bir gecikme ki kullanıcı "TAMAMLANDI" ekranını görebilsin
-          await new Promise(r => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 1000));
 
-          // KRİTİK: set() çağrısı ZATEN otomatik reload yapıyor.
-          // Bu yüzden sessionStorage flag'lerini set()'ten ÖNCE koymalıyız.
           sessionStorage.setItem("ota_reloaded", "true");
-          sessionStorage.setItem("ota_last_installed_version", result.latestBundle.version);
-
-          addLog("♻️ Bundle set ediliyor (otomatik reload olacak)...");
+          persistInstalledBuild(latestBuild);
           await CapacitorUpdater.set(bundle);
         } finally {
           listener.remove();
         }
       } else {
-        setState((s) => ({ ...s, isChecking: false }));
         isUpdatingRef.current = false;
       }
-    } catch (error: any) {
-      addLog(`❌ HATA: ${error.message || "Bilinmeyen hata"}`);
+    } catch (error) {
       console.error("[OTA] Kritik Hata:", error);
-      setState((s) => ({ ...s, isChecking: false, isDownloading: false, error: error.message }));
+      setState((s) => ({ ...s, isDownloading: false, isReady: false, progress: 0 }));
       isUpdatingRef.current = false;
     }
   };
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) {
-      addLog("💻 Web platformu: OTA pasif.");
-      return;
-    }
+    if (!Capacitor.isNativePlatform()) return;
 
-    // EN KRİTİK ADIM: Capgo'ya hemen "uygulama çalışıyor" de.
-    // Bu çağrı yapılmazsa, Capgo timeout sonrası otomatik rollback yapar → beyaz ekran.
     const initOTA = async () => {
       try {
-        if (Capacitor.getPlatform() !== 'web') {
-          addLog("📱 Mobil platform: notifyAppReady çağrılıyor...");
+        if (Capacitor.getPlatform() !== "web") {
           await CapacitorUpdater.notifyAppReady();
-          addLog("✅ notifyAppReady başarılı!");
         }
-      } catch (e: any) {
-        addLog(`⚠️ notifyAppReady hatası: ${e.message}`);
+      } catch (e) {
         console.error("[OTA] notifyAppReady failed:", e);
       }
     };
@@ -147,66 +149,53 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
     const hasReloaded = sessionStorage.getItem("ota_reloaded");
 
     if (hasReloaded) {
-      addLog("ℹ️ Uygulama az önce güncellendi. Stabilize olması bekleniyor...");
       sessionStorage.removeItem("ota_reloaded");
     } else {
-      addLog("🚀 Normal başlangıç: 3sn sonra güncelleme kontrolü...");
       setTimeout(() => {
         checkAndApplyUpdates();
       }, 3000);
     }
 
-    // Global event listener for manual installs from Admin UI
-    const handleForceInstall = async (e: any) => {
-      const bundle = e.detail;
+    const handleForceInstall = async (e: Event) => {
+      const bundle = (e as CustomEvent).detail;
       if (!bundle) return;
 
-      addLog(`🎯 Manuel kurulum tetiklendi: v${bundle.version}`);
       setState((s) => ({ ...s, isDownloading: true, progress: 0, isReady: false }));
 
-      let dlListener: any = null;
+      let dlListener: Awaited<ReturnType<typeof CapacitorUpdater.addListener>> | null = null;
       try {
         dlListener = await CapacitorUpdater.addListener("download", (data) => {
           setState((s) => ({ ...s, progress: data.percent }));
         });
 
-        addLog("⬇️ İndiriliyor...");
+        const capgoVersion = formatCapgoVersion(bundle.version, bundle.build_number);
         const result = await CapacitorUpdater.download({
           url: bundle.bundle_url,
-          version: bundle.version
+          version: capgoVersion,
         });
 
-        addLog("💾 Hazırlandı, uygulanıyor...");
         setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
 
         sessionStorage.setItem("ota_reloaded", "true");
-        addLog("♻️ Bundle set ediliyor (otomatik reload olacak)...");
+        persistInstalledBuild(bundle.build_number);
         await CapacitorUpdater.set(result);
-      } catch (err: any) {
-        addLog(`❌ Hata: ${err.message}`);
-        setState((s) => ({ ...s, isDownloading: false }));
+      } catch (err) {
+        console.error("[OTA] Manuel kurulum hatası:", err);
+        setState((s) => ({ ...s, isDownloading: false, isReady: false, progress: 0 }));
       } finally {
-        if (dlListener) dlListener.remove();
+        dlListener?.remove();
       }
     };
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("ota-force-install", handleForceInstall as any);
-    }
+    window.addEventListener("ota-force-install", handleForceInstall);
 
     return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("ota-force-install", handleForceInstall as any);
-      }
+      window.removeEventListener("ota-force-install", handleForceInstall);
     };
   }, []);
 
-  // Debug Modu veya İndirme Ekranı
-  const showDebugPanel = process.env.NODE_ENV === "development";
-
   return (
     <>
-      {/* İndirme Overlay (Kritik Durumda) */}
       {(state.isDownloading || state.isReady) && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/90 backdrop-blur-md px-4">
           <div className="max-w-xs w-full px-6 py-8 bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl text-center">
@@ -235,7 +224,7 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
                 </div>
                 <p className="text-emerald-400 text-[10px] font-bold mt-2 uppercase tracking-[0.2em]">Yükleniyor: %{Math.round(state.progress)}</p>
               </>
-            ) : (
+              ) : (
               <>
                 <CheckCircle2 className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
                 <h2 className="text-xl font-black text-white mb-2 italic">TAMAMLANDI</h2>
@@ -243,24 +232,6 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
                 <Loader2 className="w-6 h-6 text-emerald-500 animate-spin mx-auto mt-4" />
               </>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Daimi Debug Paneli (Sadece test aşamasında, ekranın en altında) */}
-      {showDebugPanel && (
-        <div className="fixed bottom-24 left-4 right-4 z-[9998] pointer-events-none opacity-80 overflow-hidden rounded-xl border border-slate-700/50 bg-slate-900/40 backdrop-blur-sm">
-          <div className="p-2 border-b border-white/5 flex items-center gap-2">
-            <Terminal className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] font-bold text-white/50 tracking-tighter">OTA DEBUG LOG</span>
-          </div>
-          <div className="p-3 font-mono text-[9px] text-emerald-300 flex flex-col gap-1">
-            {state.logs.map((log, i) => (
-              <div key={i} className={i === 0 ? "opacity-100 font-bold" : "opacity-40"}>
-                {log}
-              </div>
-            ))}
-            {state.error && <div className="text-red-400 font-bold">❌ Error: {state.error}</div>}
           </div>
         </div>
       )}

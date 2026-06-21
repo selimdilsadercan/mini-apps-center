@@ -1,35 +1,26 @@
-# 🧠 Mini Apps Center - Görev ve Durum Raporu (Tasks)
+## 🛠️ Genel Altyapı & Yapılacaklar
 
-Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların geliştirme durumlarını tek bir yerden takip etmek amacıyla oluşturulmuştur.
-
-## 🛠️ Genel Altyapı & Yapılacaklar (Global Tasks)
-
-- [ ] Giriş yapma (Login) ekranı güncellemesi
-- [ ] Chat-like (sohbet arayüzü tarzında) interaktif onboarding süreci
-- [ ] Uygulamalar içerisindeki giriş (Auth/Clerk) modallarının güncellenmesi
+- [ ] **Onboarding (Chat):** Chat-like (sohbet arayüzü tarzında) interaktif onboarding süreci. 🔵 Aktif
+- [ ] **Giriş Ekranı (Login):** Giriş yapma ekranı güncellemesi.
+- [ ] **Auth Modalleri (Clerk):** Uygulamalar içerisindeki giriş modallarının güncellenmesi.
 - [ ] **Bildirimler (Push):** Backend altyapısı ve frontend hook hazır. Global layout entegrasyonu ve izin yönetimi cilası bekliyor.
-- [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu ve kullanıcı yönetimi gerekiyor.
-- [x] **Mobil Uyumluluk:** Sayfalar responsive tasarlandı. Capacitor/Native özelinde derinlemesine testler yapıldı, ikonlar ve splash screen'ler eklendi.
-- [x] **Store Readiness:** App Store & Play Store uyumluluğu (Gizlilik Politikası, Kullanım Şartları, Hesap Silme, Apple Sign-In).
-- [ ] **Performans:** Sayfa yükleme hızları iyi durumda. Görsel optimizasyonu ve bundle boyutu küçültme bekliyor.
-- [ ] **Analitik & Takip:** Google Analytics ve Search Console derin entegrasyonu.
-- [ ] **Geri Bildirim Sistemi:** Kullanıcıların hata bildirmesi veya uygulama önerisinde bulunması.
-- [ ] **Gelişmiş Paylaşım:** Uygulama içi içeriklerin (skorlar, listeler vb.) sosyal paylaşımı.
-- [x] **Kimlik Doğrulama (Auth):** Clerk entegrasyonu, Giriş/Kayıt sayfaları, Oturum yönetimi.
-- [x] **Ana Sayfa (Hub):** Sürükle-bırak uygulama düzenleme, uygulama kaldırma, kişiselleştirilmiş grid.
-- [x] **Keşfet (Discover):** Kategori bazlı uygulama listeleme, arama, uygulama ekleme (Get).
-- [x] **Profil & Ayarlar:** Kullanıcı istatistikleri, dil seçimi (TR/EN), çıkış yapma.
-- [x] **Sosyal Akış (Feed):** Arkadaş hareketlerini (aktivite, mekan vb.) görme ve etkileşim.
-- [x] **Arkadaşlık Sistemi:** Kullanıcı arama (exact match), istek gönderme/kabul/ret, arkadaş listesi.
-- [x] **AI Assistant:** Sohbet geçmişi, kalıcı depolama, akıllı uygulama kartları önerisi.
-- [x] **Dil Desteği (i18n):** Tüm core sayfalarda tam TR/EN desteği.
-- [x] **Giriş Sayfası (Landing):** Modern ve etkileyici karşılama sayfası.
-- [x] **SEO & Metadata:** Sitemap, Robots.txt, Meta etiketleri ve JSON-LD yapılandırması.
-- [x] **Deep Linking:** Uygulamalara ve içeriklere doğrudan URL üzerinden erişim.
-
----
+- [ ] **Notification Altyapısı:** Uygulama içi bildirim merkezi, aktivite akışı ve push notification entegrasyonu. 🔵 Aktif
+- [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu gerekiyor. Kullanıcıalr sayfası ve businesslar sayfaları eklencek
+- [ ] **Uygulama Kategorileri:** Discover ve hub'daki uygulama kategorilerinin düzenlenmesi.
 
 ## 📱 Tüm Uygulamalar
+
+### Feedback & Changelog
+
+- [ ] Kullanıcı geri bildirimi ve sürüm notları uygulaması yapılacak. 🔵 Aktif
+
+### Digital Menu
+
+- [ ] Görsel yükleme altyapısı (ürün ve logo için dosya upload, R2/storage entegrasyonu). 🔵 Aktif
+- [ ] Yönetim paneli düzeltmeleri (dashboard layout, sidebar, form akışları). 🔵 Aktif
+- [ ] QR kod oluşturma ve indirme (paylaşım sayfası şu an placeholder). 🔵 Aktif
+- [ ] Kategori sıralama (sürükle-bırak)
+- [ ] Müşteri menüsü UI cilası 
 
 ### Suggest
 
@@ -40,7 +31,7 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 - [ ] Kitap API entegrasyonu
 - [ ] Video/YouTube API entegrasyonu
 
-### Card Game Codex (İskambil)
+### Card Game Codex
 
 - [x] Geniş oyun arşivi
 - [x] Arama ve filtreleme
@@ -101,7 +92,7 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 ### Daily Weather
 
 - [x] Hava durumu verisi çekme
-- [-] Bildirim altyapısı (Kaldırıldı)
+- [ ] Bildirim altyapısı (Kaldırıldı)
 - [ ] UI cilası ve son dokunuşlar
 - [ ] Kapsamlı test süreci
 
@@ -146,7 +137,7 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 - [ ] İçerik girişi ve kaynak linkleri
 - [ ] İlerleme takibi sistemi
 
-### Eşlikçi (Board Game Companion)
+### Board Game Companion
 
 - [x] Masa oyunu puan takibi
 - [x] Yardımcı araçlar (zar, sayaç vb.)
@@ -223,10 +214,6 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 
 - [x] Çikolata arşivi altyapısı
 - [x] Veri girişi ve kullanıcı puanlamaları
-
-## 🔴 İptal Edilenler / Gizli (Cancelled)
-
-Sadece admin tarafından görülebilen, yayına alınmayacak uygulamalar.
 
 ### Meme Sorts
 

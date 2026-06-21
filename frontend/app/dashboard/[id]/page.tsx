@@ -9,7 +9,8 @@ import {
   Check,
   CaretLeft,
   CaretRight,
-  GraduationCap
+  GraduationCap,
+  ChatTeardropDots
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
@@ -56,7 +57,7 @@ export default function BusinessDetailPage() {
       // Check if they have a stamp card campaign
       const stampRes = await client.stamp_card.getUserData(user.id);
       const matchedStamp = (stampRes.my_businesses || []).find(
-        (b) => b.id === id || b.name.toLowerCase() === name.toLowerCase()
+        (b) => b.id === id || (b.name && name && b.name.toLowerCase() === name.toLowerCase())
       );
 
       if (matchedStamp) {
@@ -183,6 +184,25 @@ export default function BusinessDetailPage() {
               </div>
             </div>
             <CaretRight size={18} weight="bold" className="text-stone-400 group-hover:text-indigo-500 transition-colors ml-2" />
+          </div>
+
+          {/* CARD 4: FEEDBACK BOARD */}
+          <div
+            onClick={() => router.push(`/dashboard/${id}/feedback-board`)}
+            className="bg-white p-5 rounded-[2.2rem] border border-stone-200/80 hover:border-violet-300 transition-all cursor-pointer flex items-center justify-between group shadow-sm active:scale-[0.98]"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 rounded-[1.2rem] bg-violet-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-violet-600/10">
+                <ChatTeardropDots size={24} weight="fill" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-black text-stone-900 text-sm">Feedback Board</h3>
+                <p className="text-stone-450 text-[11px] font-medium leading-tight mt-1 line-clamp-1">
+                  Müşteri önerilerini ve oylamalarını takip et!
+                </p>
+              </div>
+            </div>
+            <CaretRight size={18} weight="bold" className="text-stone-400 group-hover:text-violet-600 transition-colors ml-2" />
           </div>
         </div>
       </main>

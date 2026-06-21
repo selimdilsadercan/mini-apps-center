@@ -292,7 +292,8 @@ export default function Discover() {
         <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
       </div>
 
-      <main className="flex-1 px-5 pb-32 overflow-y-auto max-w-4xl mx-auto w-full">
+      <main className="flex-1 w-full overflow-y-auto">
+        <div className="max-w-4xl mx-auto w-full px-5 pb-32">
         {/* Header Section */}
         <header className="pt-8 pb-4">
           <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-1.5">
@@ -562,6 +563,7 @@ export default function Discover() {
             )}
           </>
         )}
+        </div>
       </main>
 
       <AppBar activePage={ActivePage.DISCOVER} />

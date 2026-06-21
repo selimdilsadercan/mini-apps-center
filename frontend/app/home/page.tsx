@@ -181,13 +181,13 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col bg-[#FAF9F7] selection:bg-indigo-100 overflow-hidden">
-      <main className="flex-1 px-6 pb-28 overflow-y-auto max-w-lg mx-auto w-full pt-10">
-        {/* Background Decorative Gradient */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 blur-[120px] rounded-full"></div>
-          <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
-        </div>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
+      </div>
 
+      <main className="flex-1 w-full overflow-y-auto">
+        <div className="max-w-lg mx-auto w-full px-6 pb-28 pt-10">
         {/* Header / Edit Mode Toggle */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">
@@ -261,6 +261,7 @@ export default function Home() {
             </button>
           </div>
         )}
+        </div>
       </main>
 
       <AppBar activePage={ActivePage.HUB} />

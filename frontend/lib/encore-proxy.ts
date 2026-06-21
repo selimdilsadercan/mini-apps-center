@@ -8,7 +8,7 @@ export function getEncoreProxyTarget(): string {
   const environment =
     process.env.NEXT_PUBLIC_ENCORE_ENVIRONMENT ||
     process.env.ENCORE_ENVIRONMENT ||
-    "staging";
+    (process.env.NODE_ENV === "development" ? "local" : "staging");
 
   if (environment === "local") {
     return Local;

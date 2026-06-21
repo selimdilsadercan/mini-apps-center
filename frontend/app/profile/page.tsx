@@ -153,11 +153,6 @@ export default function Profile() {
             {displayName}
           </p>
 
-          {/* App Version */}
-          <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">
-            {t("version", { version: APP_CONFIG.version })}
-          </p>
-
           {/* Social Stats line */}
           <div className="grid grid-cols-2 divide-x divide-gray-150 mt-6 py-3.5 bg-white/60 border border-gray-100 rounded-2xl shadow-sm text-center w-full max-w-[240px]">
             <Link href="/friends" className="flex flex-col items-center no-underline text-gray-900 justify-center">
@@ -259,6 +254,10 @@ export default function Profile() {
               </SignOutButton>
             </div>
           )}
+
+          <p className="text-center text-[10px] font-bold text-gray-400 pt-2 tracking-widest">
+            v{APP_CONFIG.version}
+          </p>
         </div>
       </main>
 
