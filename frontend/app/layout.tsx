@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   title: "Everything - Mini Apps Center",
   description: "One hub for all your daily digital needs - Games, Utilities, Productivity and more.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
