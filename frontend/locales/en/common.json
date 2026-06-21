@@ -28,8 +28,8 @@
     "addedToast": "{appName} added to My Apps!",
     "get": "GET",
     "open": "OPEN",
-    "betaTitle": "In Development",
-    "betaSubtitle": "These apps are coming soon, stay tuned!",
+    "comingSoonTitle": "Coming Soon",
+    "comingSoonSubtitle": "These apps are coming soon, stay tuned!",
     "comingSoon": "SOON"
   },
   "profile": {

@@ -96,6 +96,78 @@
       }
     }
   },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated: June 20, 2026",
+    "backToHome": "Back to Home",
+    "sections": {
+      "1": {
+        "title": "1. Introduction",
+        "content": "Everything Mini Apps Center (\"the App\") values the privacy of our users. This Privacy Policy explains what information is collected, how it is used, and how it is protected when you use our app and services."
+      },
+      "2": {
+        "title": "2. Data Collection",
+        "content": "When you sign in via Google OAuth or other methods, only basic profile information is collected for authentication and secure account management purposes:",
+        "items": [
+          "Your Name and Surname",
+          "Your Email Address",
+          "Your Profile Picture (optional)"
+        ]
+      },
+      "3": {
+        "title": "3. Purpose of Data Use",
+        "content": "The collected data is used for the following limited purposes:",
+        "items": [
+          "Ensuring secure login to the application",
+          "Matching your personalized data in mini-apps (pantry, budget, etc.) with your account",
+          "Improving user experience and resolving technical issues"
+        ]
+      },
+      "4": {
+        "title": "4. Data Security and Sharing",
+        "content": "Your user data is never sold, rented, or shared with third parties for commercial purposes. Your data is protected using industry-standard security measures and secure infrastructures (Clerk and Supabase)."
+      },
+      "5": {
+        "title": "5. User Rights",
+        "content": "You have the right to permanently delete your account and all associated data from your profile settings at any time. You can contact us for questions or data deletion requests."
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "For questions about our privacy policy, you can reach us at:"
+    }
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last Updated: June 20, 2026",
+    "backToHome": "Back to Home",
+    "sections": {
+      "1": {
+        "title": "1. Acceptance of Terms",
+        "content": "By accessing or using Everything Mini Apps Center (\"the Service\"), you declare that you have read, understood, and agree to be bound by these Terms of Service (\"Terms\"). If you do not accept these terms, please do not use the Service."
+      },
+      "2": {
+        "title": "2. Service Use and Account Security",
+        "content": "You may be required to authenticate via Google OAuth or other provided methods to use the Service. You are responsible for maintaining the security of your account and the confidentiality of your password. You are fully responsible for all activities that occur under your account."
+      },
+      "3": {
+        "title": "3. Intellectual Property Rights",
+        "content": "The design, codes, logos, graphics, and brands of Everything Mini Apps Center and all mini-apps hosted within it belong to the Everything team and are protected by international intellectual property laws. They cannot be copied, reproduced, or distributed without written permission."
+      },
+      "4": {
+        "title": "4. Acceptable Use",
+        "content": "Users agree to use the Service only for lawful purposes. It is strictly forbidden to misuse the platform, conduct attacks that damage servers or databases, or engage in activities that negatively affect the experience of other users."
+      },
+      "5": {
+        "title": "5. Disclaimer",
+        "content": "Everything Mini Apps Center provides services \"as is\" and \"as available\". We do not guarantee that the service will be uninterrupted, error-free, or completely secure. Everything cannot be held responsible for any data loss that may occur directly or indirectly."
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "content": "If you have any questions about the terms of use, you can contact us at:"
+    }
+  },
   "Footer": {
     "cta": {
       "title": "Start Exploring Today",

@@ -10,34 +10,6 @@
     "wind": "Rüzgâr"
   },
   "recommendations": {
-    "title": "Bugün için öneriler",
-    "subtitle": "Sıcaklık, yağış ve rüzgâra göre kişiselleştirilmiş ipuçları."
-  },
-  "notifications": {
-    "title": "Sabah bildirimi",
-    "description": "Seçtiğin saatte günlük hava özetini al.",
-    "enabled": "Açık",
-    "disabled": "Kapalı",
-    "hourLabel": "Bildirim saati",
-    "timeHint": "Saat ve dakikayı gir (ör. 07:30)",
-    "inspectMenu": "İncele",
-    "sendTest": "Test bildirimi gönder",
-    "sendingTest": "Gönderiliyor…",
-    "showPayload": "Gönderilen veri",
-    "testSent": "Test bildirimi hazır",
-    "testFailed": "Test gönderilemedi",
-    "inspectTitle": "Bildirim verisi (incele)",
-    "noPayloadYet": "Henüz test yok — İncele menüsünden test gönder.",
-    "devices": "{count} kayıtlı cihaz",
-    "previewTitle": "Bildirim önizlemesi",
-    "permissionHint": "Mobil uygulamada bildirim izni vererek push alabilirsin.",
-    "requestPermission": "Bildirim izni ver",
-    "signInRequired": "Tercihleri kaydetmek için giriş yap.",
-    "saved": "Tercihler kaydedildi.",
-    "saveFailed": "Tercihler kaydedilemedi.",
-    "invalidTime": "Geçerli bir saat gir (ör. 07:30)"
-  },
-  "recommendations": {
     "title": "Günün Akıllı Önerileri",
     "storm": "Gök gürültülü veya fırtınalı hava bekleniyor. Dışarı çıkarken dikkatli olman iyi olur.",
     "snow": "Kar ihtimali var. Zemin kaygan olabilir, ayakkabı ve ulaşım seçimine dikkat et.",

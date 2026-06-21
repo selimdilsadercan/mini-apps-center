@@ -96,6 +96,78 @@
       }
     }
   },
+  "Privacy": {
+    "title": "Gizlilik Politikası",
+    "lastUpdated": "Son Güncelleme: 20 Haziran 2026",
+    "backToHome": "Ana Sayfaya Dön",
+    "sections": {
+      "1": {
+        "title": "1. Giriş",
+        "content": "Everything Mini Apps Center (\"Uygulama\"), kullanıcılarımızın gizliliğine son derece önem vermektedir. Bu Gizlilik Politikası, uygulamamızı ve sunduğumuz hizmetleri kullanırken hangi bilgilerinizin toplandığını, nasıl kullanıldığını ve nasıl korunduğunu açıklar."
+      },
+      "2": {
+        "title": "2. Toplanan Veriler",
+        "content": "Google OAuth veya diğer yöntemlerle giriş yaptığınızda, yalnızca kimlik doğrulama ve hesabınızı güvenli bir şekilde yönetmek amacıyla temel profil bilgileriniz alınır:",
+        "items": [
+          "Adınız ve Soyadınız",
+          "E-posta Adresiniz",
+          "Profil Fotoğrafınız (isteğe bağlı)"
+        ]
+      },
+      "3": {
+        "title": "3. Verilerin Kullanım Amacı",
+        "content": "Toplanan veriler aşağıdaki amaçlarla sınırlı olarak kullanılır:",
+        "items": [
+          "Uygulamaya güvenli bir şekilde giriş yapmanızı sağlamak",
+          "Mini uygulamalardaki kişiselleştirilmiş verilerinizi (kiler, bütçe vb.) hesabınızla eşleştirmek",
+          "Kullanıcı deneyimini iyileştirmek ve teknik sorunları çözmek"
+        ]
+      },
+      "4": {
+        "title": "4. Veri Güvenliği ve Paylaşımı",
+        "content": "Kullanıcı verileriniz hiçbir şekilde üçüncü taraflara satılmaz, kiralanmaz veya ticari amaçlarla paylaşılmaz. Verileriniz endüstri standardı güvenlik önlemleri ve güvenli altyapılar (Clerk ve Supabase) kullanılarak korunmaktadır."
+      },
+      "5": {
+        "title": "5. Kullanıcı Hakları",
+        "content": "Dilediğiniz zaman profil ayarlarınızdan hesabınızı ve hesabınızla ilişkili tüm verileri kalıcı olarak silme hakkına sahipsiniz. Sorularınız veya veri silme talepleriniz için bizimle iletişime geçebilirsiniz."
+      }
+    },
+    "contact": {
+      "title": "İletişim",
+      "content": "Gizlilik politikamız hakkında sorularınız için bize şu adresten ulaşabilirsiniz:"
+    }
+  },
+  "Terms": {
+    "title": "Kullanım Koşulları",
+    "lastUpdated": "Son Güncelleme: 20 Haziran 2026",
+    "backToHome": "Ana Sayfaya Dön",
+    "sections": {
+      "1": {
+        "title": "1. Koşulların Kabulü",
+        "content": "Everything Mini Apps Center'a (\"Hizmet\") erişerek veya Hizmet'i kullanarak, bu Kullanım Koşulları'nı (\"Koşullar\") okuduğunuzu, anladığınızı ve bunlara bağlı kalmayı kabul ettiğinizi beyan edersiniz. Eğer bu koşulları kabul etmiyorsanız, lütfen Hizmet'i kullanmayınız."
+      },
+      "2": {
+        "title": "2. Hizmet Kullanımı ve Hesap Güvenliği",
+        "content": "Hizmet'i kullanabilmek için Google OAuth veya sunulan diğer yöntemlerle kimlik doğrulama yapmanız gerekebilir. Hesabınızın güvenliğini ve şifrenizin gizliliğini korumak sizin sorumluluğunuzdadır. Hesabınız altında gerçekleşen tüm faaliyetlerden tamamen siz sorumlu olursunuz."
+      },
+      "3": {
+        "title": "3. Fikri Mülkiyet Hakları",
+        "content": "Everything Mini Apps Center ve içinde barındırılan tüm mini uygulamaların tasarımı, kodları, logoları, grafikleri ve markaları Everything ekibine aittir ve uluslararası fikri mülkiyet yasalarıyla korunmaktadır. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz veya dağıtılamaz."
+      },
+      "4": {
+        "title": "4. Kabul Edilebilir Kullanım",
+        "content": "Kullanıcılar, Hizmet'i yalnızca yasal amaçlar doğrultusunda kullanmayı kabul ederler. Platformu kötüye kullanmak, sunuculara veya veritabanına zarar verecek saldırılarda bulunmak, diğer kullanıcıların deneyimini olumsuz etkileyecek faaliyetler yürütmek kesinlikle yasaktır."
+      },
+      "5": {
+        "title": "5. Sorumluluk Reddi",
+        "content": "Everything Mini Apps Center, hizmetleri \"olduğu gibi\" ve \"kullanılabilir olduğu sürece\" sunmaktadır. Hizmetin kesintisiz, hatasız veya tamamen güvenli olacağını garanti etmeyiz. Doğrudan veya dolaylı olarak ortaya çıkabilecek veri kayıplarından Everything sorumlu tutulamaz."
+      }
+    },
+    "contact": {
+      "title": "İletişim",
+      "content": "Kullanım koşulları hakkında herhangi bir sorunuz olması durumunda bizimle iletişime geçebilirsiniz:"
+    }
+  },
   "Footer": {
     "cta": {
       "title": "Bugün Keşfetmeye Başla",

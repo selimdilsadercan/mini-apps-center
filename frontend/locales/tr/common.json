@@ -28,8 +28,8 @@
     "addedToast": "{appName} uygulaması eklendi!",
     "get": "EKLE",
     "open": "AÇ",
-    "betaTitle": "Geliştirilme Aşamasındakiler",
-    "betaSubtitle": "Bu uygulamalar yakında sizlerle olacak, takipte kalın!",
+    "comingSoonTitle": "Yakında Gelecekler",
+    "comingSoonSubtitle": "Bu uygulamalar yakında sizlerle olacak, takipte kalın!",
     "comingSoon": "YAKINDA"
   },
   "profile": {

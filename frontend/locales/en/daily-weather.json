@@ -10,34 +10,6 @@
     "wind": "Wind"
   },
   "recommendations": {
-    "title": "Today's tips",
-    "subtitle": "Personalized advice based on temperature, rain, and wind."
-  },
-  "notifications": {
-    "title": "Morning notification",
-    "description": "Get a daily weather summary at your chosen time.",
-    "enabled": "On",
-    "disabled": "Off",
-    "hourLabel": "Notification time",
-    "timeHint": "Enter hour and minute (e.g. 07:30)",
-    "inspectMenu": "Inspect",
-    "sendTest": "Send test notification",
-    "sendingTest": "Sending…",
-    "showPayload": "View payload",
-    "testSent": "Test notification ready",
-    "testFailed": "Test failed",
-    "inspectTitle": "Notification payload (inspect)",
-    "noPayloadYet": "No test yet — send one from the Inspect menu.",
-    "devices": "{count} registered device(s)",
-    "previewTitle": "Notification preview",
-    "permissionHint": "On the mobile app, grant notification permission to receive pushes.",
-    "requestPermission": "Enable notifications",
-    "signInRequired": "Sign in to save your preferences.",
-    "saved": "Preferences saved.",
-    "saveFailed": "Could not save preferences.",
-    "invalidTime": "Enter a valid time (e.g. 07:30)"
-  },
-  "recommendations": {
     "title": "Smart Recommendations",
     "storm": "Stormy or thundery weather is expected. Be careful when going outside.",
     "snow": "Chance of snow. Ground might be slippery, pay attention to footwear and transport.",

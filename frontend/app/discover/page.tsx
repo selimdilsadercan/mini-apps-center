@@ -405,16 +405,16 @@ export default function Discover() {
             <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
 
-            {/* Beta / In Development Section */}
+            {/* Coming Soon Section */}
             {betaApps.length > 0 && (
               <div className="mt-16 pb-10 border-t border-gray-100 pt-10">
                 <div className="px-1 mb-6">
                   <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight flex items-center gap-2">
                     <Sparkle size={24} weight="fill" className="text-amber-500" />
-                    {t("betaTitle")}
+                    {t("comingSoonTitle")}
                   </h2>
                   <p className="text-gray-500 text-sm font-medium mt-1">
-                    {t("betaSubtitle")}
+                    {t("comingSoonSubtitle")}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

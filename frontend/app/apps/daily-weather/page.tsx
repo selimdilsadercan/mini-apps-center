@@ -5,8 +5,6 @@ import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Bell,
-  BellRinging,
   CloudSun,
   Drop,
   SunHorizon,
@@ -20,10 +18,9 @@ import {
   CloudSnow,
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
-import { useNotifications } from "@/hooks/use-notifications";
 import type { daily_weather } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import { calculateSmartRecommendations } from "./suggestion";
@@ -89,15 +86,7 @@ export default function DailyWeatherPage() {
   const { locale } = useLanguage();
   const t = useTranslations("dailyWeather");
   const { user, isLoaded: isUserLoaded } = useUser();
-  const { permission, handleRequestPermission, loading: permissionLoading, refreshSetup } =
-    useNotifications();
 
-  const [enabled, setEnabled] = useState(true);
-  const [testSending, setTestSending] = useState(false);
-  const [notifyHour, setNotifyHour] = useState(7);
-  const [notifyMinute, setNotifyMinute] = useState(0);
-  const [prefsLoading, setPrefsLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [weather, setWeather] = useState<DailyWeatherSnapshot | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
@@ -176,36 +165,9 @@ export default function DailyWeatherPage() {
       ?.isNativePlatform?.();
 
   useEffect(() => {
-    if (isUserLoaded && user && isNative) {
-      void refreshSetup();
-    }
-  }, [isUserLoaded, user, isNative, refreshSetup]);
-
-  const loadPreferences = useCallback(async () => {
-    if (!user) {
-      setPrefsLoading(false);
-      return;
-    }
-    try {
-      setPrefsLoading(true);
-      const client = createBrowserClient();
-      const res = await client.daily_weather.getPreferences(user.id);
-      setEnabled(res.preferences.notifications_enabled);
-      setNotifyHour(res.preferences.notify_hour);
-      setNotifyMinute(res.preferences.notify_minute ?? 0);
-    } catch (err) {
-      console.error("loadPreferences:", err);
-    } finally {
-      setPrefsLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (!isUserLoaded) return;
-    if (!user) {
-      setPrefsLoading(false);
-      return;
-    }
+    if (!user) return;
+
     const client = createBrowserClient();
     client.users
       .getOrCreateUser({
@@ -217,80 +179,7 @@ export default function DailyWeatherPage() {
         avatarUrl: user.imageUrl,
       })
       .catch((err) => console.error("daily-weather user sync:", err));
-    loadPreferences();
-  }, [isUserLoaded, user, loadPreferences]);
-
-  const persistPreferences = async (
-    nextEnabled: boolean,
-    hour: number,
-    minute: number,
-  ) => {
-    if (!user) {
-      toast.error(t("notifications.signInRequired"));
-      return false;
-    }
-    try {
-      setSaving(true);
-      const client = createBrowserClient();
-      await client.daily_weather.upsertPreferences({
-        userId: user.id,
-        notificationsEnabled: nextEnabled,
-        notifyHour: hour,
-        notifyMinute: minute,
-        city: "Istanbul",
-      });
-      toast.success(t("notifications.saved"));
-      return true;
-    } catch (err) {
-      console.error("persistPreferences:", err);
-      toast.error(t("notifications.saveFailed"));
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleToggle = async () => {
-    const next = !enabled;
-    setEnabled(next);
-    await persistPreferences(next, notifyHour, notifyMinute);
-  };
-
-  const handleTimeChange = async (hour: number, minute: number) => {
-    setNotifyHour(hour);
-    setNotifyMinute(minute);
-    if (saving) return;
-    await persistPreferences(enabled, hour, minute);
-  };
-
-  const handleTestNotification = async () => {
-    if (!user) {
-      toast.error(t("notifications.signInRequired"));
-      return;
-    }
-    if (isNative && permission !== "granted") {
-      toast.error(t("notifications.permissionHint"));
-      return;
-    }
-    try {
-      setTestSending(true);
-      const client = createBrowserClient();
-      const res = await client.daily_weather.sendTestNotification({
-        userId: user.id,
-        locale: lang,
-      });
-      if (res.pushSent) {
-        toast.success(res.message || t("notifications.testSent"));
-      } else {
-        toast.error(res.message || t("notifications.testFailed"));
-      }
-    } catch (err) {
-      console.error("handleTestNotification:", err);
-      toast.error(t("notifications.testFailed"));
-    } finally {
-      setTestSending(false);
-    }
-  };
+  }, [isUserLoaded, user]);
 
   const activeDay = (weather && weather.dailyForecast && weather.dailyForecast[selectedDayIndex])
     ? weather.dailyForecast[selectedDayIndex]
@@ -313,9 +202,6 @@ export default function DailyWeatherPage() {
   const recommendationsList = activeSnapshot
     ? calculateSmartRecommendations(activeSnapshot, (key, variables) => t(key, variables))
     : [];
-
-  const hourOptions = Array.from({ length: 24 }, (_, i) => i);
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#FFF9E6] via-[#E6F3FF] to-[#F0E6FF] text-slate-700 flex flex-col font-sans">
@@ -506,97 +392,6 @@ export default function DailyWeatherPage() {
             </div>
           </motion.section>
         )}
-
-        <section className="rounded-2xl border border-white/50 bg-white/60 backdrop-blur-lg p-5 space-y-4 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                <BellRinging size={20} className="text-amber-500" weight="duotone" />
-                {t("notifications.title")}
-              </h2>
-              <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">{t("notifications.description")}</p>
-            </div>
-            <button
-              type="button"
-              disabled={prefsLoading || saving || !user}
-              onClick={handleToggle}
-              className={`shrink-0 relative h-8 w-14 rounded-full transition-colors focus:outline-none ${
-                enabled ? "bg-amber-400" : "bg-slate-300"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
-              aria-pressed={enabled}
-            >
-              <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
-                  enabled ? "left-7" : "left-1"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{t("notifications.hourLabel")}</p>
-            <div className="flex items-center gap-2">
-              <select
-                aria-label={t("notifications.hourLabel")}
-                value={notifyHour}
-                disabled={saving}
-                onChange={(e) => {
-                  void handleTimeChange(Number(e.target.value), notifyMinute);
-                }}
-                className="flex-1 max-w-[5.5rem] rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-base font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer shadow-sm"
-              >
-                {hourOptions.map((h) => (
-                  <option key={h} value={h} className="bg-white text-slate-700">
-                    {String(h).padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-              <span className="text-slate-400 text-lg font-extrabold">:</span>
-              <select
-                aria-label="Dakika"
-                value={notifyMinute}
-                disabled={saving}
-                onChange={(e) => {
-                  void handleTimeChange(notifyHour, Number(e.target.value));
-                }}
-                className="flex-1 max-w-[5.5rem] rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-base font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer shadow-sm"
-              >
-                {minuteOptions.map((m) => (
-                  <option key={m} value={m} className="bg-white text-slate-700">
-                    {String(m).padStart(2, "0")}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {user && (
-            <button
-              type="button"
-              disabled={testSending || (isNative && permission !== "granted")}
-              onClick={() => void handleTestNotification()}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-100/30 hover:bg-amber-100/60 text-amber-800 font-bold py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            >
-              <Bell size={18} weight="fill" className="text-amber-500" />
-              {testSending ? t("notifications.sendingTest") : t("notifications.sendTest")}
-            </button>
-          )}
-
-          {isNative && permission !== "granted" && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-2">
-              <p className="text-xs text-amber-900 leading-relaxed font-medium">{t("notifications.permissionHint")}</p>
-              <button
-                type="button"
-                onClick={handleRequestPermission}
-                disabled={permissionLoading}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-400 text-slate-900 font-bold py-2.5 text-sm hover:bg-amber-350 transition-colors disabled:opacity-60 shadow-sm"
-              >
-                <Bell size={18} weight="fill" />
-                {t("notifications.requestPermission")}
-              </button>
-            </div>
-          )}
-        </section>
       </main>
     </div>
   );
