@@ -1,10 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { User, onAuthChange, signInWithGoogle, signInWithApple, logOut } from "@/lib/firebase";
+import { User, onAuthChange, signInWithGoogle, signInWithApple, handleRedirectResult, logOut } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
-import { Capacitor } from "@capacitor/core";
 
 const client = createBrowserClient();
 
@@ -151,11 +150,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log("[DeepLink] Parsed:", { pathname, search });
 
-        // OAuth callback (existing behavior)
+        // OAuth callback (Android browser flow only - iOS uses native sign-in)
         if (pathname.includes("oauth-native-callback") || urlStr.includes("oauth-native-callback")) {
           const token = url.searchParams.get("token");
           if (token) {
-            router.push(`/oauth-native-callback?token=${token}`);
+            let platform = "web";
+            if (typeof window !== "undefined" && (window as any).Capacitor) {
+              platform = (window as any).Capacitor.getPlatform?.() || "web";
+            }
+
+            if (platform === "ios") {
+              console.warn("[DeepLink] Ignoring browser OAuth callback on iOS");
+              setLoading(false);
+            } else {
+              router.push(`/oauth-native-callback?token=${token}`);
+            }
           }
           return;
         }
@@ -181,6 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setupDeepLinks();
 
     const handleNativeAuthChange = async (event: Event) => {
+      authResolved = true;
+      clearTimeout(timeoutId);
+
       const customEvent = event as CustomEvent;
       const nativeUser = customEvent.detail;
 
@@ -206,11 +218,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (e) {
           console.error("Native auth change backend sync error:", e);
         }
+
+        setLoading(false);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     window.addEventListener("ios-native-auth-change", handleNativeAuthChange);
+
+    const checkRedirect = async () => {
+      const redirectUser = await handleRedirectResult();
+      if (redirectUser) {
+        setUser(redirectUser);
+      }
+    };
+    checkRedirect();
 
     return () => {
       clearTimeout(timeoutId);
@@ -231,6 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         platform = Cap.getPlatform?.() || "web";
       }
 
+      // iOS Native SDK handling (Everydle ile aynı akış)
       if (platform === "ios") {
         const user = provider === "apple" ? await signInWithApple(false) : await signInWithGoogle(false);
         if (user) {
@@ -249,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Android Native handling (currently only Google)
+      // Android Native handling
       if (platform === "android" && isNativeApp && provider === "google") {
         const clientId = "798226372844-rkgbhbs91ou6mau78r5c8l73lqudqq18.apps.googleusercontent.com";
         const redirectUri = encodeURIComponent("https://allminiapps.com/sso-callback");

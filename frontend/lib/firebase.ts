@@ -52,72 +52,77 @@ let app: FirebaseApp;
 let auth: Auth;
 let messaging: Messaging | null = null;
 
-if (typeof window !== "undefined") {
-  // Only initialize Firebase Web SDK on non-native platforms
-  // Native platforms use @capacitor-firebase/authentication directly
-  if (!isNativePlatform()) {
-    try {
-      // Firebase Config kontrolü
-      if (!firebaseConfig.apiKey) {
-        console.warn("Firebase API Key eksik. .env.local dosyasını kontrol edin.");
-      }
+if (typeof window !== "undefined" && !isIOS()) {
+  try {
+    if (!firebaseConfig.apiKey) {
+      console.warn("Firebase API Key eksik. .env.local dosyasını kontrol edin.");
+    }
 
-      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-      auth = getAuth(app);
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    auth = getAuth(app);
 
-      setPersistence(auth, browserLocalPersistence)
-        .then(() => {})
-        .catch((err) => {
-          console.warn("[Firebase] Persistence error:", err);
-        });
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {})
+      .catch((err) => {
+        console.warn("[Firebase] Persistence error:", err);
+      });
 
-      // Messaging sadece web'de çalışır (native'de FCM plugin kullanılır)
-      if ("Notification" in window && "serviceWorker" in navigator) {
-        try {
-          messaging = getMessaging(app);
-        } catch (error) {
-          console.warn("[Firebase] Messaging başlatılamadı:", error);
-        }
-      }
-    } catch (error) {
-      console.error("[Firebase] Initialization Error:", error);
+    if ("Notification" in window && "serviceWorker" in navigator) {
       try {
-        if (getApps().length > 0) {
-          app = getApps()[0];
-          auth = getAuth(app);
-          console.log("[Firebase] Fallback auth initialized");
-        }
-      } catch (e) {
-        console.error("[Firebase] Fallback failed:", e);
+        messaging = getMessaging(app);
+      } catch (error) {
+        console.warn("[Firebase] Messaging başlatılamadı:", error);
       }
     }
+  } catch (error) {
+    console.error("[Firebase] Initialization Error:", error);
+    try {
+      if (getApps().length > 0) {
+        app = getApps()[0];
+        auth = getAuth(app);
+        console.log("[Firebase] Fallback auth initialized");
+      }
+    } catch (e) {
+      console.error("[Firebase] Fallback failed:", e);
+    }
   }
+} else if (typeof window !== "undefined" && isIOS()) {
+  console.log("[Firebase] iOS native auth mode — skipping JS SDK init");
 }
 
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: "select_account"
-});
+// Google Auth Provider (lazy — avoid loading gapi on iOS)
+let googleProvider: GoogleAuthProvider | null = null;
+function getGoogleProvider() {
+  if (!googleProvider) {
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+  }
+  return googleProvider;
+}
 
 // Apple Auth Provider
-const appleProvider = new OAuthProvider("apple.com");
-appleProvider.addScope("email");
-appleProvider.addScope("name");
+let appleProvider: OAuthProvider | null = null;
+function getAppleProvider() {
+  if (!appleProvider) {
+    appleProvider = new OAuthProvider("apple.com");
+    appleProvider.addScope("email");
+    appleProvider.addScope("name");
+  }
+  return appleProvider;
+}
 
 // ==================== iOS NATIVE AUTH ====================
 // iOS'ta @capacitor-firebase/authentication plugin kullanılır
 
 async function signInWithGoogleNativeIOS(retryCount = 0): Promise<User | null> {
   try {
-    // Dinamik import - sadece iOS'ta yüklenir
+    console.log("[Firebase] Starting native Google sign-in...");
     const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
 
-    // Native Google Sign-In - Bu native Firebase SDK kullanıyor
     const result = await FirebaseAuthentication.signInWithGoogle();
+    console.log("[Firebase] Native Google sign-in result:", result.user?.email || "no user");
 
     if (result.user) {
-      // Native user bilgilerini oluştur
       const nativeUser = {
         uid: result.user.uid,
         email: result.user.email,
@@ -127,18 +132,14 @@ async function signInWithGoogleNativeIOS(retryCount = 0): Promise<User | null> {
         isNativeUser: true
       };
 
-      // localStorage'a kaydet (sayfa yenilense bile kalıcı olsun)
       localStorage.setItem("ios_native_user", JSON.stringify(nativeUser));
 
-      // Custom event dispatch et - AuthContext bunu dinleyecek ve state'i güncelleyecek
-      // Bu, reload yapmadan anında UI güncellenmesini sağlar
       window.dispatchEvent(
         new CustomEvent("ios-native-auth-change", {
           detail: nativeUser
         })
       );
 
-      // Fake User objesi döndür - AuthContext setUser yapacak
       return {
         uid: nativeUser.uid,
         email: nativeUser.email,
@@ -151,7 +152,6 @@ async function signInWithGoogleNativeIOS(retryCount = 0): Promise<User | null> {
   } catch (error: any) {
     console.error("[Firebase] iOS native sign-in error:", error);
 
-    // Network hatası alırsa otomatik retry (max 2 deneme)
     if (error?.code === "auth/network-request-failed" && retryCount < 2) {
       console.log("[Firebase] Network error, retrying in 2 seconds...");
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -206,17 +206,15 @@ async function signInWithAppleNativeIOS(): Promise<User | null> {
 // Google ile giriş yap
 export async function signInWithGoogle(isMobile: boolean = false): Promise<User | null> {
   try {
-    // iOS'ta native SDK kullan
     if (isIOS()) {
       return await signInWithGoogleNativeIOS();
     }
 
-    // Android ve Web'de mevcut JS SDK kullan
     if (isMobile) {
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithRedirect(auth, getGoogleProvider());
       return null;
     } else {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, getGoogleProvider());
       return result.user;
     }
   } catch (error) {
@@ -233,10 +231,10 @@ export async function signInWithApple(isMobile: boolean = false): Promise<User |
     }
 
     if (isMobile) {
-      await signInWithRedirect(auth, appleProvider);
+      await signInWithRedirect(auth, getAppleProvider());
       return null;
     } else {
-      const result = await signInWithPopup(auth, appleProvider);
+      const result = await signInWithPopup(auth, getAppleProvider());
       return result.user;
     }
   } catch (error) {
@@ -245,10 +243,8 @@ export async function signInWithApple(isMobile: boolean = false): Promise<User |
   }
 }
 
-// Redirect sonucunu al (Tüm sonucu döner)
 export async function getFullRedirectResult(): Promise<any> {
   try {
-    // iOS'ta redirect kullanılmıyor
     if (isIOS()) return null;
     return await getRedirectResult(auth);
   } catch (error) {
@@ -257,54 +253,42 @@ export async function getFullRedirectResult(): Promise<any> {
   }
 }
 
-// Geriye dönük uyumluluk için eski fonksiyonu koruyalım veya güncelleyelim
 export async function handleRedirectResult(): Promise<User | null> {
   const result = await getFullRedirectResult();
   return result?.user || null;
 }
 
-// Çıkış yap
 export async function logOut(): Promise<void> {
   try {
-    // iOS'ta native sign-out yap
     if (isIOS()) {
       try {
         const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
         await FirebaseAuthentication.signOut();
-        // iOS'ta native auth kullandığımız için JS SDK signOut'a gerek yok
-        // JS SDK'da geçerli bir session olmadığı için signOut çağrısı asılı kalabilir
         return;
       } catch (e) {
         console.error("[Firebase] iOS native sign-out error:", e);
-        // Hata olsa bile devam edip JS SDK'yı da deneyelim
       }
     }
 
-    // Android ve Web için JS SDK signOut
     await signOut(auth);
   } catch (error) {
     console.error("[Firebase] Çıkış hatası:", error);
-    throw error; // Hatayı yukarı fırlat
+    throw error;
   }
 }
 
-// Auth state değişikliklerini dinle
 export function onAuthChange(callback: (user: User | null) => void): () => void {
   if (typeof window === "undefined") {
     return () => {};
   }
 
-  // iOS'ta native auth state listener da ekle
   if (isIOS()) {
-    // Native auth state listener (async)
     (async () => {
       try {
         const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
 
-        // Native listener
         FirebaseAuthentication.addListener("authStateChange", async (change) => {
           if (change.user) {
-            // Dispatch custom event instead of reloading. AuthContext will handle it.
             const nativeUser = {
               uid: change.user.uid,
               email: change.user.email,
@@ -321,7 +305,6 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
           }
         });
 
-        // Mevcut native user'ı kontrol et ve event fırlat (ilk açılış için)
         const currentUser = await FirebaseAuthentication.getCurrentUser();
         if (currentUser.user) {
           const nativeUser = {
@@ -335,7 +318,6 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
           localStorage.setItem("ios_native_user", JSON.stringify(nativeUser));
           window.dispatchEvent(new CustomEvent("ios-native-auth-change", { detail: nativeUser }));
         } else {
-          // No native user found, let AuthContext know so it can potentially stop loading
           window.dispatchEvent(new CustomEvent("ios-native-auth-change", { detail: null }));
         }
       } catch (e) {
@@ -344,18 +326,20 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
     })();
   }
 
-  // Auth undefined kontrolü
   if (!auth) {
     console.warn("[Firebase] Auth not initialized, calling callback with null user");
     setTimeout(() => callback(null), 0);
     return () => {};
   }
 
-  // JS SDK auth state listener (iOS dahil tüm platformlar için)
+  // iOS'ta native auth kullanıyoruz; JS SDK listener gapi/web OAuth tetikleyebilir
+  if (isIOS()) {
+    return () => {};
+  }
+
   return onAuthStateChanged(auth, callback);
 }
 
-// Mevcut kullanıcıyı Firebase'den sil
 export async function deleteCurrentUser(): Promise<{ success: boolean; error?: string }> {
   try {
     const currentUser = auth.currentUser;
@@ -382,9 +366,6 @@ export async function deleteCurrentUser(): Promise<{ success: boolean; error?: s
   }
 }
 
-// ==================== PUSH NOTIFICATIONS ====================
-
-// Bildirim izni iste
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "denied";
@@ -394,7 +375,6 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   return permission;
 }
 
-// FCM Token al
 export async function getFCMToken(): Promise<string | null> {
   if (!messaging) {
     console.warn("Messaging not initialized");
@@ -422,7 +402,6 @@ export async function getFCMToken(): Promise<string | null> {
   }
 }
 
-// Foreground'da bildirim dinle
 export function onForegroundMessage(callback: (payload: any) => void): () => void {
   if (!messaging) {
     return () => {};
@@ -433,9 +412,6 @@ export function onForegroundMessage(callback: (payload: any) => void): () => voi
   });
 }
 
-// Platform helper'ları export et
 export { isIOS, isNativePlatform };
-
-// Auth instance'ını export et
 export { auth, messaging };
 export type { User };
