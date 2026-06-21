@@ -28,11 +28,13 @@ import {
   deleteConversation,
 } from "@/lib/ai-chat-storage";
 import { sendAssistantChat } from "@/lib/assistant-chat";
+import { useAdminRouteGuard } from "@/hooks/useAdminRouteGuard";
 import AssistantCardGallery from "@/components/ai-chat/AssistantCardGallery";
 import ChatMessageContent from "@/components/ai-chat/ChatMessageContent";
 import toast from "react-hot-toast";
 
 export default function AIChatPage() {
+  const { isAdmin, loading: adminLoading } = useAdminRouteGuard();
   const { user, isLoaded: isUserLoaded } = useUser();
   const [input, setInput] = useState("");
   const [chatId, setChatId] = useState<string | null>(null);
@@ -328,6 +330,10 @@ export default function AIChatPage() {
   );
 
   const isPageReady = isUserLoaded && isHydrated;
+
+  if (adminLoading || !isAdmin) {
+    return null;
+  }
 
   return (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#FAF9F7] selection:bg-violet-100">

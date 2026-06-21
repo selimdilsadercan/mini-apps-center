@@ -6,6 +6,15 @@ const isCapacitorBuild = process.env.NEXT_PUBLIC_CAPACITOR === "true";
 const nextConfig: any = {
   devIndicators: false,
   transpilePackages: ["@clerk/clerk-react"],
+  async rewrites() {
+    if (isCapacitorBuild) return [];
+    return [
+      {
+        source: "/encore-api/:path*",
+        destination: "http://127.0.0.1:4000/:path*",
+      },
+    ];
+  },
   webpack: (config: any) => {
     config.resolve.alias = {
       ...config.resolve.alias,

@@ -5915,6 +5915,10 @@ export namespace users {
         user: lib.User | null
     }
 
+    export interface DeleteUserResponse {
+        success: boolean
+    }
+
     export interface GetOrCreateUserRequest {
         clerkId: string
         firebaseId?: string
@@ -5976,6 +5980,7 @@ export namespace users {
             this.baseClient = baseClient
             this.checkAdmin = this.checkAdmin.bind(this)
             this.createUser = this.createUser.bind(this)
+            this.deleteUser = this.deleteUser.bind(this)
             this.getOrCreateUser = this.getOrCreateUser.bind(this)
             this.getUserByClerkId = this.getUserByClerkId.bind(this)
             this.getUserByUsername = this.getUserByUsername.bind(this)
@@ -6001,6 +6006,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/user/create`, JSON.stringify(params))
             return await resp.json() as CreateUserResponse
+        }
+
+        /**
+         * Kullanıcı hesabını ve ilişkili verileri kalıcı olarak siler
+         */
+        public async deleteUser(clerkId: string): Promise<DeleteUserResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/users/user/${encodeURIComponent(clerkId)}`)
+            return await resp.json() as DeleteUserResponse
         }
 
         /**

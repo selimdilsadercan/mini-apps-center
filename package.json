@@ -3,15 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:ports": "bunx --yes kill-port 3000 4000",
-    "dev": "bun run dev:ports; bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run watch\"",
+    "dev": "bunx --yes kill-port 3000 4000; bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run watch\"",
     "frontend": "bun run --cwd frontend dev",
     "watch": "bun -e \"await Bun.sleep(3000)\" && bun run --cwd backend generate:watch",
     "encore": "bun run --cwd backend dev",
     "clean": "cd frontend && bun run clean",
-    "mobile": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run mobile",
-    "store": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run store",
-    "apk": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run apk",
+    "mobile": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run store",
+    "apk": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run mobile",
     "ios": "cd frontend && bun run ios",
     "secret": "cd backend && encore secret set --type local,dev,prod"
   }

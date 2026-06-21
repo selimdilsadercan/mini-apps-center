@@ -4,6 +4,7 @@
  */
 
 import Client, { Environment, Local } from "./client";
+import { APP_CONFIG } from "./config";
 
 // Platform algılama için yardımcı fonksiyon (Browser güvenli)
 function getPlatform() {
@@ -17,46 +18,27 @@ function getPlatform() {
   return "web";
 }
 
-// Environment'a göre doğru baseURL seçimi
-function getBaseURL() {
-  const platform = getPlatform();
-  const isWeb = platform === "web";
-  const isNative = platform === "ios" || platform === "android";
-  
-  // Browser ortamında hostname kontrolü
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-
-    // Local IP control (e.g. 192.168.x.x, 10.x.x.x, 172.16.x.x - 172.31.x.x)
-    const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
-    const isLocalIP = isIP && (
-      hostname.startsWith("192.168.") ||
+function isLocalDevHostname(hostname: string, isNative: boolean): boolean {
+  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
+  const isLocalIP =
+    isIP &&
+    (hostname.startsWith("192.168.") ||
       hostname.startsWith("10.") ||
-      (hostname.startsWith("172.") && 
-       parseInt(hostname.split(".")[1]) >= 16 && 
-       parseInt(hostname.split(".")[1]) <= 31)
-    );
+      (hostname.startsWith("172.") &&
+        parseInt(hostname.split(".")[1]) >= 16 &&
+        parseInt(hostname.split(".")[1]) <= 31));
 
-    // Dev: localhost, 127.0.0.1, *.localhost veya yerel ağ IP'si → local Encore
-    const isLocalDev =
-      !isNative &&
-      (hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.endsWith(".localhost") ||
-        isLocalIP);
+  return (
+    !isNative &&
+    (hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.endsWith(".localhost") ||
+      isLocalIP)
+  );
+}
 
-    if (isLocalDev) {
-      if (isLocalIP || hostname === "127.0.0.1") {
-        return `http://${hostname}:4000`;
-      }
-      return Local;
-    }
-
-    const env = process.env.NEXT_PUBLIC_ENCORE_ENVIRONMENT || "staging";
-    return Environment(env);
-  }
-
-  // Server ortamı için (Server Actions vs)
+// Server-side base URL (SSR, server actions)
+function getServerBaseURL() {
   const environment =
     process.env.NEXT_PUBLIC_ENCORE_ENVIRONMENT ||
     process.env.ENCORE_ENVIRONMENT ||
@@ -69,13 +51,55 @@ function getBaseURL() {
   return Environment(environment);
 }
 
+// Browser base URL — local dev uses same-origin proxy to avoid CORS issues
+function getBrowserBaseURL() {
+  const platform = getPlatform();
+  const isNative = platform === "ios" || platform === "android";
+  const hostname = window.location.hostname;
+
+  if (isLocalDevHostname(hostname, isNative)) {
+    const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname);
+    const isLocalIP =
+      isIP &&
+      (hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.") ||
+        (hostname.startsWith("172.") &&
+          parseInt(hostname.split(".")[1]) >= 16 &&
+          parseInt(hostname.split(".")[1]) <= 31));
+
+    // Device on LAN hits Encore directly; browser dev goes through Next proxy
+    if (isLocalIP) {
+      return `http://${hostname}:4000`;
+    }
+
+    return "/encore-api";
+  }
+
+  const env = process.env.NEXT_PUBLIC_ENCORE_ENVIRONMENT || "staging";
+  return Environment(env);
+}
+
+function getBaseURL() {
+  if (typeof window !== "undefined") {
+    return getBrowserBaseURL();
+  }
+
+  return getServerBaseURL();
+}
+
 /**
  * Server tarafında Encore client oluşturur
  * "use server" actions içinde kullanılır
  */
 export async function createServerClient(): Promise<Client> {
   const baseURL = getBaseURL();
-  return new Client(baseURL);
+  return new Client(baseURL, {
+    requestInit: {
+      headers: {
+        "X-App-Version": APP_CONFIG.version,
+      },
+    },
+  });
 }
 
 /**
@@ -84,7 +108,13 @@ export async function createServerClient(): Promise<Client> {
  */
 export function createBrowserClient(): Client {
   const baseURL = getBaseURL();
-  return new Client(baseURL);
+  return new Client(baseURL, {
+    requestInit: {
+      headers: {
+        "X-App-Version": APP_CONFIG.version,
+      },
+    },
+  });
 }
 
 // Re-export types from client

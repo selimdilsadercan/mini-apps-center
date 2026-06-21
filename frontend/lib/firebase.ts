@@ -342,7 +342,14 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
 
 export async function deleteCurrentUser(): Promise<{ success: boolean; error?: string }> {
   try {
-    const currentUser = auth.currentUser;
+    if (isIOS()) {
+      const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+      await FirebaseAuthentication.deleteUser();
+      localStorage.removeItem("ios_native_user");
+      return { success: true };
+    }
+
+    const currentUser = auth?.currentUser;
     if (!currentUser) {
       return { success: false, error: "No user logged in" };
     }

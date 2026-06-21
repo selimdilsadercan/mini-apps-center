@@ -6,10 +6,10 @@ import {
   SquaresFour, 
   Compass, 
   User,
-  Users,
   Sparkle,
   Globe
 } from "@phosphor-icons/react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 // Aktif sayfa enum'u
 export enum ActivePage {
@@ -29,6 +29,7 @@ interface AppBarProps {
 
 export default function AppBar({ activePage }: AppBarProps) {
   const [hasBadge, setHasBadge] = useState(false);
+  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -84,7 +85,8 @@ export default function AppBar({ activePage }: AppBarProps) {
           </div>
         </Link>
 
-        {/* AI Chat */}
+        {/* AI Chat — admin only */}
+        {isAdmin && (
         <Link
           href="/ai-chat"
           className={`flex flex-col items-center group transition-all duration-300 ${
@@ -101,8 +103,10 @@ export default function AppBar({ activePage }: AppBarProps) {
             />
           </div>
         </Link>
+        )}
 
-        {/* Feed */}
+        {/* Feed — admin only */}
+        {isAdmin && (
         <Link
           href="/feed"
           className={`flex flex-col items-center group transition-all duration-300 ${
@@ -119,6 +123,7 @@ export default function AppBar({ activePage }: AppBarProps) {
             />
           </div>
         </Link>
+        )}
 
         {/* Profil */}
         <Link

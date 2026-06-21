@@ -4,7 +4,7 @@ import { useUser, SignOutButton } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkle, Translate, SignOut, User, Users, CaretRight, Shield, Globe } from "@phosphor-icons/react";
+import { Sparkle, Translate, SignOut, User, Users, CaretRight, Shield, Globe, UserGear } from "@phosphor-icons/react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
 
@@ -170,10 +170,9 @@ export default function Profile() {
           
           {/* Action Links */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            
             <Link
               href="/friends"
-              className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors no-underline cursor-pointer"
+              className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors no-underline cursor-pointer border-b border-gray-50"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl">
@@ -190,6 +189,22 @@ export default function Profile() {
                 )}
                 <CaretRight size={16} className="text-gray-400" />
               </div>
+            </Link>
+
+            <Link
+              href="/settings/account"
+              className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors no-underline cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-orange-50 text-[#FF6B35] rounded-2xl">
+                  <UserGear size={18} weight="fill" />
+                </div>
+                <div className="text-left">
+                  <span className="text-xs font-black text-gray-900 block">{t("accountSettings")}</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{t("accountSettingsSubtitle")}</span>
+                </div>
+              </div>
+              <CaretRight size={16} className="text-gray-400" />
             </Link>
           </div>
 

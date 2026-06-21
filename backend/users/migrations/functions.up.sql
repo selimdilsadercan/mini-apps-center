@@ -259,3 +259,32 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 8. Grants
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+
+-- 9. delete_user_by_clerk_id
+DROP FUNCTION IF EXISTS public.delete_user_by_clerk_id(TEXT, BOOLEAN);
+
+CREATE OR REPLACE FUNCTION public.delete_user_by_clerk_id(
+  clerk_id_param TEXT,
+  is_local_param BOOLEAN DEFAULT FALSE
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  SELECT id INTO v_user_id FROM public.users
+  WHERE (is_local_param AND local_clerk_id = clerk_id_param)
+     OR (NOT is_local_param AND clerk_id = clerk_id_param)
+     OR (firebase_id = clerk_id_param)
+  LIMIT 1;
+
+  IF v_user_id IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
+  DELETE FROM public.users WHERE id = v_user_id;
+  RETURN TRUE;
+END;
+$$;

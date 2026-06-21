@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, onAuthChange, signInWithGoogle, signInWithApple, handleRedirectResult, logOut } from "@/lib/firebase";
+import { clearAdminCache } from "@/hooks/useIsAdmin";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 
@@ -303,6 +304,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOutUser = async () => {
     try {
       localStorage.removeItem("ios_native_user");
+      clearAdminCache();
       await logOut();
       setUser(null);
       setBackendUser(null);

@@ -347,3 +347,31 @@ export const getUserByUsername = api(
     return { user: data?.[0] || null };
   }
 );
+
+interface DeleteUserRequest {
+  clerkId: string;
+}
+
+interface DeleteUserResponse {
+  success: boolean;
+}
+
+/**
+ * Kullanıcı hesabını ve ilişkili verileri kalıcı olarak siler
+ */
+export const deleteUser = api(
+  { expose: true, method: "DELETE", path: "/users/user/:clerkId" },
+  async ({ clerkId }: DeleteUserRequest): Promise<DeleteUserResponse> => {
+    const { data, error } = await supabase.rpc("delete_user_by_clerk_id", {
+      clerk_id_param: clerkId,
+      is_local_param: isLocal,
+    });
+
+    if (error) {
+      console.error("deleteUser error:", error);
+      return { success: false };
+    }
+
+    return { success: !!data };
+  }
+);

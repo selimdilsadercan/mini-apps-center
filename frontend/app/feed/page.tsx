@@ -23,6 +23,7 @@ import {
 import { createBrowserClient } from "@/lib/api";
 import { feed, kim_gelir } from "@/lib/client";
 import AppBar, { ActivePage } from "@/components/AppBar";
+import { useAdminRouteGuard } from "@/hooks/useAdminRouteGuard";
 
 const client = createBrowserClient();
 
@@ -39,6 +40,7 @@ function formatRelativeTime(dateStr: string) {
 }
 
 export default function FeedPage() {
+  const { isAdmin, loading: adminLoading } = useAdminRouteGuard();
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"foryou" | "friends" | "all">("foryou");
@@ -101,6 +103,10 @@ export default function FeedPage() {
       setActionLoading(null);
     }
   };
+
+  if (adminLoading || !isAdmin) {
+    return null;
+  }
 
   if (!isLoaded) {
     return (
