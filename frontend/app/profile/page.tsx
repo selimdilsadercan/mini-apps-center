@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { Sparkle, Translate, SignOut, User, Users, CaretRight, Shield, Globe, UserGear } from "@phosphor-icons/react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
+import { APP_CONFIG } from "@/lib/config";
 
 const client = createBrowserClient();
 
@@ -150,6 +151,11 @@ export default function Profile() {
           {/* User Full Name */}
           <p className="text-sm font-semibold text-gray-500 mt-1">
             {displayName}
+          </p>
+
+          {/* App Version */}
+          <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">
+            {t("version", { version: APP_CONFIG.version })}
           </p>
 
           {/* Social Stats line */}

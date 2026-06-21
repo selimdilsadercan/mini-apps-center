@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand, ObjectIdentifier } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import * as dotenv from "dotenv";
 
@@ -67,13 +67,7 @@ async function main() {
     console.log(`\n✅ Zip Hazır!`);
     console.log(`📍 Konum: ${fullPath}`);
 
-    // 5. Cloudflare R2'ye Yükle
-    const rl = (await import("readline")).createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-    const quest = (query: string): Promise<string> => new Promise((resolve) => rl.question(query, resolve));
-
+    // 5. Cloudflare R2'ye Yükle (Otomatik)
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     const endpoint = process.env.R2_ENDPOINT;
@@ -83,64 +77,80 @@ async function main() {
     let fullUrl = "";
 
     if (accessKeyId && secretAccessKey && endpoint && bucketName) {
-      const confirmUpload = await quest(`\n☁️ Cloudflare R2'ye otomatik yüklemek istiyor musun? (Y/n): `);
-      if (confirmUpload.toLowerCase() !== "n") {
-        console.log("📤 R2'ye yükleniyor...");
+      console.log("\n📤 R2'ye otomatik yükleniyor...");
+      
+      const s3Client = new S3Client({
+        region: "auto",
+        endpoint: endpoint,
+        credentials: {
+          accessKeyId: accessKeyId,
+          secretAccessKey: secretAccessKey,
+        },
+      });
+
+      const fileStream = fs.createReadStream(fullPath);
+      const upload = new Upload({
+        client: s3Client,
+        params: {
+          Bucket: bucketName,
+          Key: `updates/${fileName}`,
+          Body: fileStream,
+          ContentType: "application/zip",
+        },
+      });
+
+      upload.on("httpUploadProgress", (progress) => {
+        if (progress.loaded && progress.total) {
+          const percent = Math.round((progress.loaded / progress.total) * 100);
+          process.stdout.write(`\r   📊 Yükleme: %${percent}`);
+        }
+      });
+
+      await upload.done();
+      console.log(`\n✅ Yükleme başarılı!`);
+      fullUrl = `${publicUrlBase}/updates/${fileName}`;
+
+      // 6. Eski Sürümleri Temizle (Sadece son 2 taneyi tut)
+      try {
+        console.log("🧹 Eski sürümler temizleniyor...");
+        const listCommand = new ListObjectsV2Command({
+          Bucket: bucketName,
+          Prefix: "updates/",
+        });
+        const listResponse = await s3Client.send(listCommand);
         
-        const s3Client = new S3Client({
-          region: "auto",
-          endpoint: endpoint,
-          credentials: {
-            accessKeyId: accessKeyId,
-            secretAccessKey: secretAccessKey,
-          },
-        });
+        if (listResponse.Contents && listResponse.Contents.length > 2) {
+          // Tarihe göre sırala (en yeni en üstte)
+          const sortedObjects = listResponse.Contents
+            .filter(obj => obj.Key && obj.Key.endsWith(".zip"))
+            .sort((a, b) => (b.LastModified?.getTime() || 0) - (a.LastModified?.getTime() || 0));
 
-        const fileStream = fs.createReadStream(fullPath);
-        const upload = new Upload({
-          client: s3Client,
-          params: {
-            Bucket: bucketName,
-            Key: `updates/${fileName}`,
-            Body: fileStream,
-            ContentType: "application/zip",
-          },
-        });
+          const objectsToDelete = sortedObjects.slice(2); // İlk 2'yi tut, gerisini sil
 
-        upload.on("httpUploadProgress", (progress) => {
-          if (progress.loaded && progress.total) {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            process.stdout.write(`\r   📊 Yükleme: %${percent}`);
+          if (objectsToDelete.length > 0) {
+            const deleteParams: ObjectIdentifier[] = objectsToDelete.map(obj => ({ Key: obj.Key }));
+            const deleteCommand = new DeleteObjectsCommand({
+              Bucket: bucketName,
+              Delete: { Objects: deleteParams },
+            });
+            await s3Client.send(deleteCommand);
+            console.log(`   🗑️ ${objectsToDelete.length} eski sürüm silindi.`);
+            objectsToDelete.forEach(obj => console.log(`      - ${obj.Key}`));
           }
-        });
-
-        await upload.done();
-        console.log(`\n✅ Yükleme başarılı!`);
-        fullUrl = `${publicUrlBase}/updates/${fileName}`;
-      }
-    }
-
-    if (!fullUrl) {
-      console.log("\n--------------------------------------------------");
-      console.log("Sıradaki Adım: Bu zip dosyasını Cloudflare R2'ye yükle.");
-      const suggestedPath = `updates/${fileName}`;
-      console.log(`💡 Önerilen Cloudflare yolu: ${suggestedPath}`);
-      const manualUrl = await quest(`Yüklediğin dosyanın tam URL'ini yaz (iptal için 'n'): `);
-      if (manualUrl.toLowerCase() !== "n") {
-        fullUrl = manualUrl.trim();
+        } else {
+          console.log("   ✨ Temizlenecek eski sürüm bulunamadı.");
+        }
+      } catch (cleanErr: any) {
+        console.error("⚠️ Temizlik sırasında hata oluştu (yükleme etkilenmedi):", cleanErr.message);
       }
     }
 
     if (fullUrl) {
-      // Beta Sorusu
-      const isBetaInput = await quest(`Bu bir BETA build mi? (y/n, varsayılan n): `);
-      const isBeta = isBetaInput.toLowerCase() === "y" || isBetaInput.toLowerCase() === "e";
+      // Otomatik Değerler
+      const isBeta = false;
+      const finalNotes = `Otomatik Build: v${version} (Build: ${buildNumber})`;
 
-      // Not Sorusu
-      const customNotes = await quest(`Versiyon notları (boş bırakılırsa "Otomatik Build" yazılır): `);
-      const finalNotes = customNotes.trim() || `Otomatik Build: v${version}`;
-
-      console.log(`🔗 Encore'a kaydediliyor: ${fullUrl} ${isBeta ? "[BETA]" : "[PRODUCTION]"}`);
+      console.log(`🔗 Encore'a kaydediliyor: ${fullUrl} [PRODUCTION]`);
       try {
         const stagingUrl = "https://staging-mini-apps-center-8u7i.encr.app";
 
@@ -179,10 +189,9 @@ async function main() {
         console.error("Hata Mesajı:", e.message);
       }
     } else {
-      console.log("⏩ Kayıt adımı atlandı.");
+      console.log("❌ R2 URL'i alınamadığı için kayıt adımı atlandı.");
     }
 
-    rl.close();
   } catch (error: any) {
     console.error("❌ Hata:", error.message);
     process.exit(1);

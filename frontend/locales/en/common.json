@@ -47,7 +47,8 @@
     "manageFriends": "Manage Friends",
     "manageFriendsSubtitle": "New Requests & Connections",
     "accountSettings": "Account Settings",
-    "accountSettingsSubtitle": "Delete account and data management"
+    "accountSettingsSubtitle": "Delete account and data management",
+    "version": "Version: {version}"
   },
   "account": {
     "title": "Account Settings",
