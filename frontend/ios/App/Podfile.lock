@@ -6,10 +6,59 @@ PODS:
   - CapacitorBrowser (7.0.5):
     - Capacitor
   - CapacitorCordova (7.6.7)
+  - CapacitorFirebaseAuthentication (8.3.0):
+    - Capacitor
+    - CapacitorFirebaseAuthentication/Lite (= 8.3.0)
+    - FirebaseAuth (~> 12.7.0)
+  - CapacitorFirebaseAuthentication/Lite (8.3.0):
+    - Capacitor
+    - FirebaseAuth (~> 12.7.0)
   - CapacitorShare (7.0.4):
     - Capacitor
   - CapacitorStatusBar (7.0.6):
     - Capacitor
+  - FirebaseAppCheckInterop (12.7.0)
+  - FirebaseAuth (12.7.0):
+    - FirebaseAppCheckInterop (~> 12.7.0)
+    - FirebaseAuthInterop (~> 12.7.0)
+    - FirebaseCore (~> 12.7.0)
+    - FirebaseCoreExtension (~> 12.7.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GTMSessionFetcher/Core (< 6.0, >= 3.4)
+    - RecaptchaInterop (~> 101.0)
+  - FirebaseAuthInterop (12.7.0)
+  - FirebaseCore (12.7.0):
+    - FirebaseCoreInternal (~> 12.7.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Logger (~> 8.1)
+  - FirebaseCoreExtension (12.7.0):
+    - FirebaseCore (~> 12.7.0)
+  - FirebaseCoreInternal (12.7.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.1)"
+  - GoogleUtilities/AppDelegateSwizzler (8.1.1):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Environment (8.1.1):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.1.1):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (8.1.1):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (8.1.1)":
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.1.1)
+  - GoogleUtilities/Reachability (8.1.1):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GTMSessionFetcher/Core (5.3.0)
+  - RecaptchaInterop (101.0.0)
   - SendIntent (7.0.0):
     - Capacitor
 
@@ -18,9 +67,22 @@ DEPENDENCIES:
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorFirebaseAuthentication (from `../../node_modules/@capacitor-firebase/authentication`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - SendIntent (from `../../node_modules/send-intent`)
+
+SPEC REPOS:
+  trunk:
+    - FirebaseAppCheckInterop
+    - FirebaseAuth
+    - FirebaseAuthInterop
+    - FirebaseCore
+    - FirebaseCoreExtension
+    - FirebaseCoreInternal
+    - GoogleUtilities
+    - GTMSessionFetcher
+    - RecaptchaInterop
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -31,6 +93,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/browser"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorFirebaseAuthentication:
+    :path: "../../node_modules/@capacitor-firebase/authentication"
   CapacitorShare:
     :path: "../../node_modules/@capacitor/share"
   CapacitorStatusBar:
@@ -43,10 +107,20 @@ SPEC CHECKSUMS:
   CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
   CapacitorBrowser: 6d09f59655e89aede71654ef08b98de55cf032b6
   CapacitorCordova: 139e2ed3d91c54b5aeae7941135c9f9aefc6da1d
+  CapacitorFirebaseAuthentication: d1f4c78c96f2669351781692071260ac79573876
   CapacitorShare: 25f7fc5dd0e4edbde5d6801c6de5d14a8b450a41
   CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
+  FirebaseAppCheckInterop: d58366471f1dadf2ed998b15f85c658458a10142
+  FirebaseAuth: 88beaef7c688a2950541552b6dd195d22137c41a
+  FirebaseAuthInterop: deb2638881b5d98c88c4371dd0de65b6110f217b
+  FirebaseCore: c7b57863ce0859281a66d16ca36d665c45d332b5
+  FirebaseCoreExtension: 731a5744970bcd73ad95ab2a2b8a1f46353e86dd
+  FirebaseCoreInternal: 571a2dd8c975410966199623351db3a3265c874d
+  GoogleUtilities: 4f2618a4a1e762a1ee134a1e2323bba9843e06da
+  GTMSessionFetcher: 127211aeec0b1e904fc49f4f6f895dcc535b0ecf
+  RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   SendIntent: 8a6f646a4489f788d253ffbd1082a98ea388d870
 
-PODFILE CHECKSUM: d1a0552a18ef78bad4aafebe0db3cbe3d695a083
+PODFILE CHECKSUM: 8a492dfdc70e0354eb6e140be07ca068f5e9740a
 
 COCOAPODS: 1.16.2

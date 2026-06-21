@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Everything</string>
     <string name="title_activity_main">Everything</string>
-    <string name="package_name">com.everything.app</string>
-    <string name="custom_url_scheme">com.everything.app</string>
+    <string name="package_name">com.everything.apps</string>
+    <string name="custom_url_scheme">com.everything.apps</string>
 </resources>

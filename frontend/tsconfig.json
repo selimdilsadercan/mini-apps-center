@@ -20,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@clerk/clerk-react": ["./contexts/AuthContext.tsx"]
     }
   },
   "include": [

@@ -1,10 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.everything.app',
+  appId: 'com.everything.apps',
   appName: 'Everything',
   webDir: 'out',
-  server: {
+  /* server: {
     hostname: 'allminiapps.com',
     iosScheme: 'https',
     allowNavigation: [
@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
       'allminiapps.com',
       '*.allminiapps.com',
     ]
-  },
+  }, */
   plugins: {
     StatusBar: {
       backgroundColor: '#FAF9F7',
@@ -23,7 +23,11 @@ const config: CapacitorConfig = {
       // Enable deep linking
     },
     CapacitorHttp: {
-      enabled: true
+      enabled: false
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["google.com", "apple.com"]
     }
   },
   android: {

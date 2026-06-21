@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.53",
+    "@capacitor-firebase/authentication": "^8.3.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.0",
     "@capacitor/browser": "^7.0.0",
@@ -62,6 +63,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "fabric": "^7.3.1",
+    "firebase": "^12.15.0",
     "framer-motion": "^12.38.0",
     "html-to-image": "^1.11.13",
     "html2pdf.js": "^0.14.0",

@@ -24,6 +24,7 @@ interface GetUserByClerkIdResponse {
 
 interface CreateUserRequest {
   clerkId: string;
+  firebaseId?: string;
   username?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -35,6 +36,7 @@ interface CreateUserResponse {
 
 interface GetOrCreateUserRequest {
   clerkId: string;
+  firebaseId?: string;
   username?: string;
   fullName?: string;
   avatarUrl?: string;
@@ -93,6 +95,7 @@ export const getUserByClerkId = api(
     const { data, error } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
       is_local_param: isLocal,
+      firebase_id_param: clerkId,
     });
 
     if (error) {
@@ -109,13 +112,14 @@ export const getUserByClerkId = api(
  */
 export const createUser = api(
   { expose: true, method: "POST", path: "/users/user/create" },
-  async ({ clerkId, username, fullName, avatarUrl }: CreateUserRequest): Promise<CreateUserResponse> => {
+  async ({ clerkId, firebaseId, username, fullName, avatarUrl }: CreateUserRequest): Promise<CreateUserResponse> => {
     const { data, error } = await supabase.rpc("users_create_user", {
       clerk_id_param: clerkId,
       username_param: username || null,
       avatar_url_param: avatarUrl || null,
       full_name_param: fullName || null,
       is_local_param: isLocal,
+      firebase_id_param: firebaseId || clerkId,
     });
 
     if (error) {
@@ -132,11 +136,12 @@ export const createUser = api(
  */
 export const getOrCreateUser = api(
   { expose: true, method: "POST", path: "/users/user/get-or-create" },
-  async ({ clerkId, username, fullName, avatarUrl }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
+  async ({ clerkId, firebaseId, username, fullName, avatarUrl }: GetOrCreateUserRequest): Promise<GetOrCreateUserResponse> => {
     // Önce mevcut user'ı ara
     const { data: existingData, error: existingError } = await supabase.rpc("users_get_user", {
       clerk_id_param: clerkId,
       is_local_param: isLocal,
+      firebase_id_param: firebaseId || clerkId,
     });
 
     if (existingError) {
@@ -158,6 +163,7 @@ export const getOrCreateUser = api(
           avatar_url_param: avatarUrl || existingUser.avatar_url,
           full_name_param: fullName || existingUser.full_name,
           is_local_param: isLocal,
+          firebase_id_param: firebaseId || clerkId,
         });
         if (!updateError && updatedData?.[0]) {
           return { user: updatedData[0], isNewUser: false };
@@ -173,6 +179,7 @@ export const getOrCreateUser = api(
       avatar_url_param: avatarUrl || null,
       full_name_param: fullName || null,
       is_local_param: isLocal,
+      firebase_id_param: firebaseId || clerkId,
     });
 
     if (newError) {

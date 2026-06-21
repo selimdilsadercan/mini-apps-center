@@ -4,7 +4,7 @@ android {
     namespace "com.everything.miniapps"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.everything.app"
+        applicationId "com.everything.apps"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 67

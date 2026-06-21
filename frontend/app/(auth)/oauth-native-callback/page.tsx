@@ -1,65 +1,66 @@
 "use client";
 
-import { useAuth, useClerk } from "@clerk/clerk-react";
+import { auth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 function OAuthNativeCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn, isLoaded } = useAuth();
-  const { handleRedirectCallback } = useClerk();
+  const [error, setError] = useState<string | null>(null);
 
-  // Zaten giriş yapmışsa direkt Ana Sayfaya
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.push("/home");
-    }
-  }, [isLoaded, isSignedIn, router]);
+    const processLogin = async () => {
+      const token = searchParams.get("token");
 
-  // Arka planda sessizce doğrulama işlemini yap
-  useEffect(() => {
-    const processParams = async () => {
-      if (isSignedIn) return;
-      
-      const code = searchParams.get("code");
-      const state = searchParams.get("state");
-      
-      if (!code) {
-        console.log("No code param found in URL yet");
+      if (!token) {
+        setError("URL içerisinde token bulunamadı.");
         return;
       }
 
       try {
-        console.log("Exchanging code for session...");
-        await handleRedirectCallback({
-           redirectUrl: "https://my.allminiapps.com/sso-callback?source=native"
-        });
-        console.log("Silent verification success");
-        
-        // Başarılı olduktan sonra home'a yönlendir
+        // ID Token ile Firebase'e giriş yap
+        const credential = GoogleAuthProvider.credential(token);
+        const userCredential = await signInWithCredential(auth, credential);
+
+        console.log("Native login success:", userCredential.user.email);
+
+        // Giriş başarılı, profile yönlendir
         setTimeout(() => {
-          router.push("/home");
+          router.push("/games");
         }, 1000);
       } catch (err) {
-        console.error("Silent verification error:", err);
+        console.error("Native login error:", err);
+        setError("Giriş işlemi başarısız oldu. Lütfen tekrar deneyin.");
       }
     };
 
-    if (isLoaded) {
-        processParams();
-    }
-  }, [handleRedirectCallback, isSignedIn, isLoaded, searchParams, router]);
+    processLogin();
+  }, [searchParams, router]);
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-white text-center">
+        <h1 className="text-2xl font-bold text-red-400 mb-4">Hata Oluştu</h1>
+        <p className="text-red-300 text-sm mb-8">{error}</p>
+        <button
+          onClick={() => router.push("/")}
+          className="bg-slate-800 px-6 py-3 rounded-xl font-bold hover:bg-slate-700 transition-colors"
+        >
+          Ana Sayfaya Dön
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-        <div className="mb-8">
-            <div className="w-16 h-16 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">Google Girişi Başarılı!</h1>
-            <p className="text-gray-600">
-              Giriş Yapılıyor...
-            </p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-white text-center">
+      <div className="space-y-6">
+        <div className="w-16 h-16 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">Oturum Açılıyor</h1>
+          <p className="text-slate-400">Kimlik bilgileriniz doğrulanıyor, lütfen bekleyin...</p>
         </div>
       </div>
     </div>
@@ -68,11 +69,7 @@ function OAuthNativeCallbackContent() {
 
 export default function OAuthNativeCallbackPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6">
-        <div className="w-12 h-12 border-4 border-[#FF6B35] border-t-transparent rounded-full animate-spin mx-auto"></div>
-      </div>
-    }>
+    <Suspense fallback={<div>Yükleniyor...</div>}>
       <OAuthNativeCallbackContent />
     </Suspense>
   );

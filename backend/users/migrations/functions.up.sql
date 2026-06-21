@@ -1,15 +1,15 @@
--- Users RPC Functions with Environment Specific Lookup
-
 -- 1. users_create_user
 DROP FUNCTION IF EXISTS public.users_create_user(TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.users_create_user(TEXT, TEXT, TEXT, TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS public.users_create_user(TEXT, TEXT, TEXT, TEXT, BOOLEAN, TEXT);
 
 CREATE OR REPLACE FUNCTION public.users_create_user(
   clerk_id_param TEXT,
   username_param TEXT DEFAULT NULL,
   avatar_url_param TEXT DEFAULT NULL,
   full_name_param TEXT DEFAULT NULL,
-  is_local_param BOOLEAN DEFAULT FALSE
+  is_local_param BOOLEAN DEFAULT FALSE,
+  firebase_id_param TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -24,32 +24,39 @@ AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
-  -- 1. Check if user already exists
-  IF is_local_param THEN
-    SELECT u.id INTO v_user_id FROM public.users u WHERE u.local_clerk_id = clerk_id_param;
-  ELSE
-    SELECT u.id INTO v_user_id FROM public.users u WHERE u.clerk_id = clerk_id_param;
+  -- 1. Check if user already exists (Prioritize firebase_id lookup if provided)
+  IF firebase_id_param IS NOT NULL THEN
+    SELECT u.id INTO v_user_id FROM public.users u WHERE u.firebase_id = firebase_id_param;
   END IF;
 
-  -- 2. If exists, update
+  IF v_user_id IS NULL THEN
+    IF is_local_param THEN
+      SELECT u.id INTO v_user_id FROM public.users u WHERE u.local_clerk_id = clerk_id_param;
+    ELSE
+      SELECT u.id INTO v_user_id FROM public.users u WHERE u.clerk_id = clerk_id_param;
+    END IF;
+  END IF;
+
+  -- 2. If exists, update (and associate firebase_id if it's missing)
   IF v_user_id IS NOT NULL THEN
     UPDATE public.users u
     SET 
       username = COALESCE(username_param, u.username),
       full_name = COALESCE(full_name_param, u.full_name),
-      avatar_url = COALESCE(avatar_url_param, u.avatar_url)
+      avatar_url = COALESCE(avatar_url_param, u.avatar_url),
+      firebase_id = COALESCE(firebase_id_param, u.firebase_id)
     WHERE u.id = v_user_id;
   ELSE
     -- 3. If not exists, insert new user
     IF is_local_param THEN
-      -- On local, clerk_id is NOT NULL so we set both clerk_id and local_clerk_id to clerk_id_param
-      INSERT INTO public.users (clerk_id, local_clerk_id, username, avatar_url, full_name)
-      VALUES (clerk_id_param, clerk_id_param, username_param, avatar_url_param, full_name_param)
-      RETURNING u.id INTO v_user_id;
+      -- On local, clerk_id is NOT NULL so we; set both clerk_id and local_clerk_id to clerk_id_param
+      INSERT INTO public.users (clerk_id, local_clerk_id, firebase_id, username, avatar_url, full_name)
+      VALUES (clerk_id_param, clerk_id_param, firebase_id_param, username_param, avatar_url_param, full_name_param)
+      RETURNING public.users.id INTO v_user_id;
     ELSE
-      INSERT INTO public.users (clerk_id, username, avatar_url, full_name)
-      VALUES (clerk_id_param, username_param, avatar_url_param, full_name_param)
-      RETURNING u.id INTO v_user_id;
+      INSERT INTO public.users (clerk_id, firebase_id, username, avatar_url, full_name)
+      VALUES (clerk_id_param, firebase_id_param, username_param, avatar_url_param, full_name_param)
+      RETURNING public.users.id INTO v_user_id;
     END IF;
   END IF;
 
@@ -61,11 +68,13 @@ END;
 $$;
 
 -- 2. users_get_user
-DROP FUNCTION IF EXISTS public.users_get_user;
+DROP FUNCTION IF EXISTS public.users_get_user(TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS public.users_get_user(TEXT, BOOLEAN, TEXT);
 
 CREATE OR REPLACE FUNCTION public.users_get_user(
   clerk_id_param TEXT,
-  is_local_param BOOLEAN DEFAULT FALSE
+  is_local_param BOOLEAN DEFAULT FALSE,
+  firebase_id_param TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -84,7 +93,8 @@ AS $$
     avatar_url,
     created_at
   FROM public.users
-  WHERE (is_local_param AND local_clerk_id = clerk_id_param)
+  WHERE (firebase_id_param IS NOT NULL AND firebase_id = firebase_id_param)
+     OR (is_local_param AND local_clerk_id = clerk_id_param)
      OR (NOT is_local_param AND clerk_id = clerk_id_param)
   LIMIT 1;
 $$;
@@ -130,6 +140,7 @@ AS $$
         (SELECT role = 'admin' FROM public.users 
          WHERE (is_local_param AND local_clerk_id = p_clerk_id)
             OR (NOT is_local_param AND clerk_id = p_clerk_id)
+            OR (firebase_id = p_clerk_id)
          LIMIT 1),
         FALSE
     );
@@ -147,10 +158,11 @@ RETURNS VOID AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
-  -- Get user id from clerk id (checking environment specific ID)
+  -- Get user id from clerk id (checking environment specific ID or firebase_id)
   SELECT id INTO v_user_id FROM public.users 
   WHERE (is_local_param AND local_clerk_id = clerk_id_param)
-     OR (NOT is_local_param AND clerk_id = clerk_id_param);
+     OR (NOT is_local_param AND clerk_id = clerk_id_param)
+     OR (firebase_id = clerk_id_param);
   
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'User not found';
@@ -182,7 +194,8 @@ BEGIN
   FROM public.user_preferences up
   JOIN public.users u ON up.user_id = u.id
   WHERE (is_local_param AND u.local_clerk_id = clerk_id_param)
-     OR (NOT is_local_param AND u.clerk_id = clerk_id_param);
+     OR (NOT is_local_param AND u.clerk_id = clerk_id_param)
+     OR (u.firebase_id = clerk_id_param);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -201,7 +214,8 @@ BEGIN
   -- Get user id
   SELECT id INTO v_user_id FROM public.users 
   WHERE (is_local_param AND local_clerk_id = clerk_id_param)
-     OR (NOT is_local_param AND clerk_id = clerk_id_param);
+     OR (NOT is_local_param AND clerk_id = clerk_id_param)
+     OR (firebase_id = clerk_id_param);
   
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'User not found';
@@ -230,9 +244,9 @@ RETURNS UUID AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
-  -- 1. Try to match by clerk_id or local_clerk_id
+  -- 1. Try to match by clerk_id, local_clerk_id, or firebase_id
   SELECT id INTO v_user_id FROM public.users 
-  WHERE clerk_id = clerk_id_param OR local_clerk_id = clerk_id_param;
+  WHERE clerk_id = clerk_id_param OR local_clerk_id = clerk_id_param OR firebase_id = clerk_id_param;
   
   -- 2. If not found, check if the input itself is a valid UUID and exists in users
   IF v_user_id IS NULL AND clerk_id_param ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN

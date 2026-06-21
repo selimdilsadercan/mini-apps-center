@@ -1,12 +1,9 @@
 "use client";
 
-import { useSignIn, useAuth } from "@clerk/clerk-react";
-import { useState, useEffect } from "react";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GoogleLogo, X, LockKey } from "@phosphor-icons/react";
-import { Capacitor } from "@capacitor/core";
-import { Browser } from "@capacitor/browser";
-import { PUBLISHABLE_KEY } from "@/components/ClerkProvider";
+import { GoogleLogo, AppleLogo, X, LockKey } from "@phosphor-icons/react";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,66 +12,28 @@ interface AuthModalProps {
   subtitle?: string;
 }
 
-// OAuth callback URL - Vercel'de tek bir yönlendirme köprüsü olarak my.allminiapps.com kullanılıyor
-const SSO_CALLBACK_URL_BASE = "https://my.allminiapps.com/sso-callback";
-
 export function AuthModal({ 
   isOpen, 
   onClose, 
   title = "Giriş Yapın", 
   subtitle = "Devam etmek için lütfen giriş yapın." 
 }: AuthModalProps) {
-  const { signIn, isLoaded } = useSignIn();
-  const { isSignedIn } = useAuth();
-  const [isNative, setIsNative] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, isAuthenticated, loading } = useAuthContext();
+  const [loadingProvider, setLoadingProvider] = useState<"google" | "apple" | null>(null);
 
-  useEffect(() => {
-    setIsNative(Capacitor.isNativePlatform());
-  }, []);
-
-  const signInWithGoogle = async () => {
-    if (!signIn) return;
-    setIsLoading(true);
-
+  const signInWithOAuth = async (provider: "google" | "apple") => {
+    setLoadingProvider(provider);
     try {
-      const returnUrl = window.location.pathname + window.location.search;
-      // Save current URL to redirect back after login
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_return_url', returnUrl);
-      }
-
-      const callbackUrl = isNative 
-        ? `${SSO_CALLBACK_URL_BASE}?source=native` 
-        : `${window.location.origin}/sso-callback?return_url=${encodeURIComponent(returnUrl)}`;
-
-      if (isNative) {
-        // Native platformda doğrudan Google giriş URL'ini alıp sistem tarayıcısında açıyoruz.
-        const { firstFactorVerification } = await signIn.create({
-          strategy: "oauth_google",
-          redirectUrl: callbackUrl,
-        });
-
-        const authUrl = firstFactorVerification?.externalVerificationRedirectURL;
-        
-        if (authUrl) {
-          await Browser.open({ url: authUrl.toString() });
-        }
-        setIsLoading(false);
-      } else {
-        await signIn.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: callbackUrl,
-          redirectUrlComplete: callbackUrl,
-        });
-      }
+      await signIn(provider);
+      if (onClose) onClose();
     } catch (err) {
-      console.error("OAuth error:", err);
-      setIsLoading(false);
+      console.error(`${provider} sign-in error:`, err);
+    } finally {
+      setLoadingProvider(null);
     }
   };
 
-  if (!isOpen || isSignedIn) return null;
+  if (!isOpen || isAuthenticated) return null;
 
   return (
     <AnimatePresence>
@@ -84,9 +43,6 @@ export function AuthModal({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-md px-6"
       >
-        {/* Clerk CAPTCHA element for bot protection in custom flows */}
-        <div id="clerk-captcha"></div>
-
         <motion.div
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
@@ -113,21 +69,39 @@ export function AuthModal({
             {subtitle}
           </p>
 
-          <button
-            onClick={signInWithGoogle}
-            disabled={!isLoaded || isLoading}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-100 py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : (
-              <GoogleLogo size={24} weight="bold" className="text-red-500" />
-            )}
-            <span>{isLoading ? "Bağlanıyor..." : "Google ile Devam Et"}</span>
-          </button>
+          <div className="w-full flex flex-col gap-3">
+            <button
+              onClick={() => signInWithOAuth("google")}
+              disabled={loading || loadingProvider !== null}
+              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-100 py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingProvider === "google" ? (
+                <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <GoogleLogo size={24} weight="bold" className="text-red-500" />
+              )}
+              <span>{loadingProvider === "google" ? "Bağlanıyor..." : "Google ile Devam Et"}</span>
+            </button>
+
+            <button
+              onClick={() => signInWithOAuth("apple")}
+              disabled={loading || loadingProvider !== null}
+              className="w-full flex items-center justify-center gap-3 bg-black border-2 border-black py-4 rounded-2xl font-bold text-white hover:bg-gray-900 active:scale-95 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingProvider === "apple" ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <AppleLogo size={24} weight="fill" className="text-white" />
+              )}
+              <span>{loadingProvider === "apple" ? "Bağlanıyor..." : "Apple ile Devam Et"}</span>
+            </button>
+          </div>
 
           <p className="mt-6 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
             Everything Mini Apps Center

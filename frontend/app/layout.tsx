@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ClerkProviderWrapper } from "@/components/ClerkProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationHandler } from "@/components/notifications/notification-handler";
 import { Toaster } from "react-hot-toast";
 import { GreetingHandler } from "@/components/GreetingHandler";
@@ -36,14 +36,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LanguageProvider messages={trMessages}>
-          <ClerkProviderWrapper>
+          <AuthProvider>
             <ConfirmDialogProvider>
               {/* <NotificationHandler /> */}
               <GreetingHandler />
               {children}
               <Toaster position="top-center" />
             </ConfirmDialogProvider>
-          </ClerkProviderWrapper>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

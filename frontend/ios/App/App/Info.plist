@@ -49,10 +49,24 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.everything.app</string>
+			<string>com.everything.apps</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.everything.app</string>
+				<string>com.everything.apps</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.getcapacitor.schemes</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.everything.apps</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.798226372844-sriumrcn2malb9vssirfo3hq291qmumq</string>
 			</array>
 		</dict>
 	</array>

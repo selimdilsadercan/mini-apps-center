@@ -5905,6 +5905,7 @@ export namespace users {
 
     export interface CreateUserRequest {
         clerkId: string
+        firebaseId?: string
         username?: string
         fullName?: string
         avatarUrl?: string
@@ -5916,6 +5917,7 @@ export namespace users {
 
     export interface GetOrCreateUserRequest {
         clerkId: string
+        firebaseId?: string
         username?: string
         fullName?: string
         avatarUrl?: string

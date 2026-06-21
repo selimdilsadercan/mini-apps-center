@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Ensure selected_university column exists (Migration script rerun support)
+-- Ensure selected_university and firebase_id columns exist (Migration script rerun support)
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -22,12 +22,20 @@ BEGIN
     ) THEN
         ALTER TABLE public.users ADD COLUMN selected_university TEXT;
     END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'firebase_id'
+    ) THEN
+        ALTER TABLE public.users ADD COLUMN firebase_id TEXT UNIQUE;
+    END IF;
 END $$;
 
 -- Indexes for Users
 CREATE INDEX IF NOT EXISTS idx_users_clerk_id ON public.users(clerk_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_local_clerk_id ON public.users(local_clerk_id) WHERE local_clerk_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_id ON public.users(firebase_id) WHERE firebase_id IS NOT NULL;
 
 -- 2. User Preferences Table
 CREATE TABLE IF NOT EXISTS public.user_preferences (
