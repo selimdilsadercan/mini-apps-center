@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "bunx --yes kill-port 3000 4000; bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \"bun run frontend\" \"bun run encore\" \"bun run watch\"",
-    "frontend": "bun run --cwd frontend dev",
+    "frontend": "ENCORE_PROXY_TARGET=http://localhost:4000 NEXT_PUBLIC_ENCORE_ENVIRONMENT=local bun run --cwd frontend dev",
     "watch": "bun -e \"await Bun.sleep(3000)\" && bun run --cwd backend generate:watch",
     "encore": "bun run --cwd backend dev",
     "clean": "cd frontend && bun run clean",
