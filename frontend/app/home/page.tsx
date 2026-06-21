@@ -180,7 +180,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] selection:bg-indigo-100">
+    <div className="flex h-screen flex-col bg-[#FAF9F7] selection:bg-indigo-100 overflow-hidden">
       <main className="flex-1 px-6 pb-28 overflow-y-auto max-w-lg mx-auto w-full pt-10">
         {/* Background Decorative Gradient */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">

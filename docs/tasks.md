@@ -9,7 +9,8 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 - [ ] Uygulamalar içerisindeki giriş (Auth/Clerk) modallarının güncellenmesi
 - [ ] **Bildirimler (Push):** Backend altyapısı ve frontend hook hazır. Global layout entegrasyonu ve izin yönetimi cilası bekliyor.
 - [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu ve kullanıcı yönetimi gerekiyor.
-- [ ] **Mobil Uyumluluk:** Sayfalar responsive tasarlandı. Capacitor/Native özelinde derinlemesine testler yapılacak.
+- [x] **Mobil Uyumluluk:** Sayfalar responsive tasarlandı. Capacitor/Native özelinde derinlemesine testler yapıldı, ikonlar ve splash screen'ler eklendi.
+- [x] **Store Readiness:** App Store & Play Store uyumluluğu (Gizlilik Politikası, Kullanım Şartları, Hesap Silme, Apple Sign-In).
 - [ ] **Performans:** Sayfa yükleme hızları iyi durumda. Görsel optimizasyonu ve bundle boyutu küçültme bekliyor.
 - [ ] **Analitik & Takip:** Google Analytics ve Search Console derin entegrasyonu.
 - [ ] **Geri Bildirim Sistemi:** Kullanıcıların hata bildirmesi veya uygulama önerisinde bulunması.
@@ -100,7 +101,7 @@ Bu dosya, platformun temel (core) özelliklerinin ve tüm mini uygulamaların ge
 ### Daily Weather
 
 - [x] Hava durumu verisi çekme
-- [x] Bildirim altyapısı
+- [-] Bildirim altyapısı (Kaldırıldı)
 - [ ] UI cilası ve son dokunuşlar
 - [ ] Kapsamlı test süreci
 
@@ -237,4 +238,4 @@ Sadece admin tarafından görülebilen, yayına alınmayacak uygulamalar.
 
 ---
 
-*Son Güncelleme: 12 Haziran 2026*
+*Son Güncelleme: 21 Haziran 2026*
