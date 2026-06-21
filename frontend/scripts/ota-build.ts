@@ -42,7 +42,18 @@ async function main() {
 
     // 3. Next.js Build
     console.log("🏗️ Next.js export ediliyor...");
-    execSync("npm run build", { stdio: "inherit", cwd: path.join(__dirname, "..") });
+    
+    try {
+      // Build öncesi iptal edilen app'leri ve dashboard'u gizle
+      console.log("🙈 İptal edilen uygulamalar gizleniyor...");
+      execSync("node scripts/toggle-cancelled-apps.js hide", { stdio: "inherit", cwd: path.join(__dirname, "..") });
+
+      execSync("npm run build", { stdio: "inherit", cwd: path.join(__dirname, "..") });
+    } finally {
+      // Build bittikten sonra (hata alsa bile) her şeyi geri getir
+      console.log("👀 Uygulamalar geri getiriliyor...");
+      execSync("node scripts/toggle-cancelled-apps.js restore", { stdio: "inherit", cwd: path.join(__dirname, "..") });
+    }
 
     // 4. Zip oluştur (Sistemdeki zip komutunu kullanarak, ESM sorunlarını aşmak için)
     console.log(`📦 Zip oluşturuluyor: ${fileName}`);

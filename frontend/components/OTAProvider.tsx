@@ -81,13 +81,23 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
 
         try {
           addLog("⬇️ İndirme başladı...");
-          const bundle = await CapacitorUpdater.download({
+          const downloadPromise = CapacitorUpdater.download({
             url: result.latestBundle.bundle_url,
             version: result.latestBundle.version
           });
 
+          // 60 saniye timeout ekleyelim
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("İndirme zaman aşımına uğradı (60sn)")), 60000)
+          );
+
+          const bundle = await Promise.race([downloadPromise, timeoutPromise]) as any;
+
           addLog("💾 Paket cihaza hazırlandı.");
           setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
+
+          // Küçük bir gecikme ki kullanıcı "TAMAMLANDI" ekranını görebilsin
+          await new Promise(r => setTimeout(r, 1000));
 
           // KRİTİK: set() çağrısı ZATEN otomatik reload yapıyor.
           // Bu yüzden sessionStorage flag'lerini set()'ten ÖNCE koymalıyız.
@@ -192,7 +202,7 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // Debug Modu veya İndirme Ekranı
-  const showDebugPanel = process.env.NODE_ENV === "development";
+  const showDebugPanel = true; // Test sürecinde logları görelim
 
   return (
     <>

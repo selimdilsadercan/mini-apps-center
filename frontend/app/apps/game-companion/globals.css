@@ -1,0 +1,327 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6f9;
+  --foreground: #171717;
+  --card-background: #ffffff;
+  --card-shadow: 0 0 8px 5px #0b297d0a;
+  --secondary-color: #365376;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+}
+
+/* Light mode (default) */
+:root,
+:root.light,
+html.light {
+  --background: #f4f6f9;
+  --foreground: #171717;
+  --card-background: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode */
+.dark,
+html.dark {
+  --background: #100d16;
+  --foreground: #ededed;
+  --card-background: #1C1922;
+  --card-border: rgba(247, 247, 248, 0.1);
+}
+
+/* System preference fallback (only if no class is set) */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --background: #100d16;
+    --foreground: #ededed;
+    --card-background: rgba(247, 247, 248, 0.05);
+    --card-border: rgba(247, 247, 248, 0.1);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Rich text content styling */
+.rich-text-content {
+  color: #374151;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.dark .rich-text-content {
+  color: #e5e7eb;
+}
+
+.rich-text-content p {
+  margin: 0 0 12px 0;
+  color: #374151;
+}
+
+.dark .rich-text-content p {
+  color: #e5e7eb;
+}
+
+.rich-text-content ul {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.rich-text-content ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+  list-style-type: decimal;
+}
+
+.rich-text-content li {
+  margin: 4px 0;
+  color: #374151;
+}
+
+.dark .rich-text-content li {
+  color: #e5e7eb;
+}
+
+.rich-text-content li p {
+  margin: 0;
+  display: inline;
+}
+
+.rich-text-content strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.dark .rich-text-content strong {
+  color: #f3f4f6;
+}
+
+.rich-text-content b {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.dark .rich-text-content b {
+  color: #f3f4f6;
+}
+
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3,
+.rich-text-content h4,
+.rich-text-content h5,
+.rich-text-content h6 {
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .rich-text-content h1,
+.dark .rich-text-content h2,
+.dark .rich-text-content h3,
+.dark .rich-text-content h4,
+.dark .rich-text-content h5,
+.dark .rich-text-content h6 {
+  color: #f3f4f6;
+}
+
+.rich-text-content h1 {
+  font-size: 18px;
+}
+
+.rich-text-content h2 {
+  font-size: 16px;
+}
+
+.rich-text-content h3 {
+  font-size: 15px;
+}
+
+.rich-text-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.rich-text-content a:hover {
+  color: #2563eb;
+}
+
+.rich-text-content code {
+  background-color: #f3f4f6;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.dark .rich-text-content code {
+  background-color: rgba(247, 247, 248, 0.1);
+  color: #e5e7eb;
+}
+
+.rich-text-content pre {
+  background-color: #f3f4f6;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+.dark .rich-text-content pre {
+  background-color: rgba(247, 247, 248, 0.1);
+}
+
+.rich-text-content pre code {
+  background: none;
+  padding: 0;
+  color: #1f2937;
+}
+
+.dark .rich-text-content pre code {
+  color: #e5e7eb;
+}
+
+.rich-text-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.rich-text-content th,
+.rich-text-content td {
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.dark .rich-text-content th,
+.dark .rich-text-content td {
+  border-color: rgba(247, 247, 248, 0.2);
+}
+
+.rich-text-content th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .rich-text-content th {
+  background-color: rgba(247, 247, 248, 0.1);
+  color: #f3f4f6;
+}
+
+.rich-text-content td {
+  color: #374151;
+}
+
+.dark .rich-text-content td {
+  color: #e5e7eb;
+}
+
+/* Autofill styles override for dark mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1c1922 inset !important;
+  -webkit-text-fill-color: #ededed !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Firefox autofill */
+input:-moz-autofill {
+  background-color: white !important;
+  color: #111827 !important;
+}
+
+.dark input:-moz-autofill {
+  background-color: #1c1922 !important;
+  color: #ededed !important;
+}
+
+/* Poker Chip Styles */
+.pokerchip {
+  display: inline-block;
+}
+.pokerchipOuter {
+  box-sizing: initial !important;
+  transform-origin: top left;
+  position: relative;
+  width: 151px;
+  height: 151px;
+  box-shadow:
+    0 0 5px 1px rgba(0, 0, 0, 0.5),
+    0 0 3px 0 rgba(0, 0, 0, 0.4) inset;
+  border-radius: 50%;
+  background-size: 151px 151px;
+  background-position: center center;
+}
+.innerChipBorder {
+  position: absolute;
+  z-index: 1;
+  width: 117px;
+  height: 117px;
+  border-radius: 50%;
+  top: 9px;
+  left: 9px;
+  background-size: 151px 151px;
+  background-position: center center;
+}
+.chipContent {
+  user-select: none;
+  z-index: 2;
+  position: absolute;
+  text-align: center;
+  font: bold 50px/111px Arial;
+  white-space: pre;
+  width: 111px;
+  height: 111px;
+  border-radius: 50%;
+  top: 20px;
+  left: 20px;
+  text-shadow:
+    -1px -1px 0px rgba(0, 0, 0, 0.3),
+    1px 1px 0px rgba(255, 255, 255, 0.2);
+}

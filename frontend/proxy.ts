@@ -119,7 +119,7 @@ export function proxy(request: NextRequest) {
   }
 
   // ── Unknown subdomain → redirect to my.[domain]/home ─────────────────────
-  if (subdomain && subdomain !== "my" && !SUBDOMAIN_ROUTES[subdomain]) {
+  if (subdomain && subdomain !== "my" && subdomain !== "updates" && !SUBDOMAIN_ROUTES[subdomain]) {
     const appUrl = request.nextUrl.clone();
     const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
     const isLocal = host.startsWith("localhost") || host.includes(".localhost");
