@@ -3,10 +3,65 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, onAuthChange, signInWithGoogle, signInWithApple, handleRedirectResult, logOut } from "@/lib/firebase";
 import { clearAdminCache } from "@/hooks/useIsAdmin";
+import {
+  clearWebAuthSession,
+  persistWebAuthSession,
+  readWebAuthSession,
+  webAuthSessionToUser,
+} from "@/lib/auth-session";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 
 const client = createBrowserClient();
+
+function resolveEffectiveUser(firebaseUser: User | null): User | null {
+  if (firebaseUser) {
+    persistWebAuthSession({
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName,
+      photoURL: firebaseUser.photoURL,
+    });
+    return firebaseUser;
+  }
+
+  if (typeof window !== "undefined") {
+    const nativeUserJson = localStorage.getItem("ios_native_user");
+    if (nativeUserJson) {
+      try {
+        const nativeUser = JSON.parse(nativeUserJson);
+        return {
+          uid: nativeUser.uid,
+          email: nativeUser.email,
+          displayName: nativeUser.displayName,
+          photoURL: nativeUser.photoURL,
+        } as User;
+      } catch (e) {
+        console.error("Failed to parse native user:", e);
+      }
+    }
+
+    const cookieSession = readWebAuthSession();
+    if (cookieSession) {
+      return webAuthSessionToUser(cookieSession) as User;
+    }
+  }
+
+  return null;
+}
+
+async function syncBackendUser(effectiveUser: User) {
+  const res = await (client.users.getOrCreateUser as any)({
+    clerkId: effectiveUser.uid,
+    firebaseId: effectiveUser.uid,
+    username: effectiveUser.displayName
+      ? effectiveUser.displayName.toLowerCase().replace(/\s+/g, "")
+      : undefined,
+    fullName: effectiveUser.displayName || undefined,
+    avatarUrl: effectiveUser.photoURL || undefined,
+  });
+  return res.user ?? null;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -58,6 +113,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     quickCheckNativeUser();
 
+    const cookieSession = readWebAuthSession();
+    if (cookieSession) {
+      const cookieUser = webAuthSessionToUser(cookieSession) as User;
+      setUser(cookieUser);
+      syncBackendUser(cookieUser)
+        .then((dbUser) => {
+          if (dbUser) setBackendUser(dbUser);
+        })
+        .catch((err) => console.error("Cookie auth backend load failed:", err));
+      setLoading(false);
+      authResolved = true;
+    }
+
     // Timeout to prevent infinite loading state
     const timeoutId = setTimeout(() => {
       if (!authResolved) {
@@ -70,37 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authResolved = true;
       clearTimeout(timeoutId);
 
-      let effectiveUser = firebaseUser;
-      if (!firebaseUser && typeof window !== "undefined") {
-        const nativeUserJson = localStorage.getItem("ios_native_user");
-        if (nativeUserJson) {
-          try {
-            const nativeUser = JSON.parse(nativeUserJson);
-            effectiveUser = {
-              uid: nativeUser.uid,
-              email: nativeUser.email,
-              displayName: nativeUser.displayName,
-              photoURL: nativeUser.photoURL
-            } as any;
-          } catch (e) {
-            console.error("Failed to parse native user:", e);
-          }
-        }
-      }
-
+      const effectiveUser = resolveEffectiveUser(firebaseUser);
       setUser(effectiveUser);
 
       if (effectiveUser) {
         try {
-          const res = await (client.users.getOrCreateUser as any)({
-            clerkId: effectiveUser.uid,
-            firebaseId: effectiveUser.uid,
-            username: effectiveUser.displayName ? effectiveUser.displayName.toLowerCase().replace(/\s+/g, "") : undefined,
-            fullName: effectiveUser.displayName || undefined,
-            avatarUrl: effectiveUser.photoURL || undefined
-          });
-          if (res.user) {
-            setBackendUser(res.user);
+          const dbUser = await syncBackendUser(effectiveUser);
+          if (dbUser) {
+            setBackendUser(dbUser);
           }
         } catch (err) {
           console.error("Database user sync failed:", err);
@@ -304,6 +349,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOutUser = async () => {
     try {
       localStorage.removeItem("ios_native_user");
+      clearWebAuthSession();
       clearAdminCache();
       await logOut();
       setUser(null);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
+import { getCookie, setCookie } from "@/lib/cookies";
 
 const STORAGE_KEY = "everything_is_admin";
 
@@ -22,7 +23,7 @@ function readAdminCache(userId: string): boolean | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = getCookie(STORAGE_KEY) ?? localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AdminCacheEntry;
     if (parsed.userId !== userId) return null;
@@ -36,11 +37,11 @@ function readAdminCache(userId: string): boolean | null {
 function writeAdminCache(userId: string, isAdmin: boolean) {
   memoryCache.set(userId, isAdmin);
   if (typeof window === "undefined") return;
+
+  const payload = JSON.stringify({ userId, isAdmin } satisfies AdminCacheEntry);
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ userId, isAdmin } satisfies AdminCacheEntry)
-    );
+    setCookie(STORAGE_KEY, payload, 30);
+    localStorage.setItem(STORAGE_KEY, payload);
   } catch {
     // ignore quota / private mode errors
   }
@@ -50,6 +51,7 @@ export function clearAdminCache() {
   memoryCache.clear();
   inflightRequests.clear();
   if (typeof window !== "undefined") {
+    setCookie(STORAGE_KEY, "", -1);
     localStorage.removeItem(STORAGE_KEY);
   }
 }

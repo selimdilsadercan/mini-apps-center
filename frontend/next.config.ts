@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { getEncoreProxyTarget } from "./lib/encore-proxy";
 
 const isCapacitorBuild = process.env.NEXT_PUBLIC_CAPACITOR === "true";
 
@@ -8,10 +9,11 @@ const nextConfig: any = {
   transpilePackages: ["@clerk/clerk-react"],
   async rewrites() {
     if (isCapacitorBuild) return [];
+    const target = getEncoreProxyTarget();
     return [
       {
         source: "/encore-api/:path*",
-        destination: "http://127.0.0.1:4000/:path*",
+        destination: `${target}/:path*`,
       },
     ];
   },

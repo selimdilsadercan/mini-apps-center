@@ -11,6 +11,7 @@
 			"http://127.0.0.1:4000",
 			"https://allminiapps.com",
 			"https://my.allminiapps.com",
+			"https://*.allminiapps.com",
 			"capacitor://localhost",
 			"ionic://localhost",
 			"https://localhost",
