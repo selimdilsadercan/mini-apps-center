@@ -28,6 +28,11 @@ const config: CapacitorConfig = {
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["google.com", "apple.com"]
+    },
+    CapacitorUpdater: {
+      autoUpdate: false,
+      appReadyTimeout: 30000,
+      resetWhenUpdate: false
     }
   },
   android: {

@@ -119,10 +119,20 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
 
     // EN KRİTİK ADIM: Capgo'ya hemen "uygulama çalışıyor" de.
     // Bu çağrı yapılmazsa, Capgo timeout sonrası otomatik rollback yapar → beyaz ekran.
-    addLog("📱 Mobil platform: notifyAppReady çağrılıyor...");
-    CapacitorUpdater.notifyAppReady()
-      .then(() => addLog("✅ notifyAppReady başarılı!"))
-      .catch((e) => addLog(`⚠️ notifyAppReady hatası: ${e.message}`));
+    const initOTA = async () => {
+      try {
+        if (Capacitor.getPlatform() !== 'web') {
+          addLog("📱 Mobil platform: notifyAppReady çağrılıyor...");
+          await CapacitorUpdater.notifyAppReady();
+          addLog("✅ notifyAppReady başarılı!");
+        }
+      } catch (e: any) {
+        addLog(`⚠️ notifyAppReady hatası: ${e.message}`);
+        console.error("[OTA] notifyAppReady failed:", e);
+      }
+    };
+
+    initOTA();
 
     const hasReloaded = sessionStorage.getItem("ota_reloaded");
 
