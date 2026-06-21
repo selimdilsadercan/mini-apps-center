@@ -78,14 +78,17 @@ export function useTranslations(namespace?: string) {
     // Resolve nested keys like "home.myApps"
     let val = fullKey.split(".").reduce((acc, k) => acc?.[k], messages);
     
-    if (typeof val !== "string") {
+    if (val === undefined || val === null) {
       return fullKey;
     }
 
-    if (values) {
-      Object.entries(values).forEach(([k, v]) => {
-        val = val.replace(`{${k}}`, String(v));
-      });
+    if (typeof val === "string") {
+      if (values) {
+        Object.entries(values).forEach(([k, v]) => {
+          val = (val as string).replace(`{${k}}`, String(v));
+        });
+      }
+      return val;
     }
 
     return val;

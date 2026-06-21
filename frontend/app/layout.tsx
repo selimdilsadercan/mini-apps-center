@@ -8,6 +8,7 @@ import { GreetingHandler } from "@/components/GreetingHandler";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import trMessages from "@/locales/tr/index";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
+import OTAProvider from "@/components/OTAProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,16 +40,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LanguageProvider messages={trMessages}>
-          <AuthProvider>
-            <ConfirmDialogProvider>
-              {/* <NotificationHandler /> */}
-              <GreetingHandler />
-              {children}
-              <Toaster position="top-center" />
-            </ConfirmDialogProvider>
-          </AuthProvider>
-        </LanguageProvider>
+        <OTAProvider>
+          <LanguageProvider messages={trMessages}>
+            <AuthProvider>
+              <ConfirmDialogProvider>
+                {/* <NotificationHandler /> */}
+                <GreetingHandler />
+                {children}
+                <Toaster position="top-center" />
+              </ConfirmDialogProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </OTAProvider>
       </body>
     </html>
   );

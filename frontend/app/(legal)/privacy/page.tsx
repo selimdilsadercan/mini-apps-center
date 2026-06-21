@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
               <p>{t(`sections.${num}.content` as any)}</p>
               {t(`sections.${num}.items` as any) && Array.isArray(t(`sections.${num}.items` as any)) && (
                 <ul className="list-disc pl-6 space-y-2 text-gray-600">
-                  {(t(`sections.${num}.items` as any) as string[]).map((item, idx) => (
+                  {(t(`sections.${num}.items` as any) as unknown as string[]).map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>

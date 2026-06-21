@@ -56,6 +56,7 @@ export default class Client {
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
+    public readonly ota: ota.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
@@ -108,6 +109,7 @@ export default class Client {
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
+        this.ota = new ota.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
@@ -3553,6 +3555,131 @@ export namespace movies_this_year {
             const resp = await this.baseClient.callTypedAPI("POST", `/movies-this-year/favorite`, JSON.stringify(params))
             return await resp.json() as {
     isFavorited: boolean
+}
+        }
+    }
+}
+
+export namespace ota {
+    export interface AddBundleRequest {
+        version: string
+        buildNumber: number
+        bundleUrl: string
+        checksum?: string
+        platform?: string
+        notes?: string
+        isBeta?: boolean
+        adminKey?: string
+    }
+
+    export interface AddBundleResponse {
+        success: boolean
+        bundle?: AppBundle
+        error?: string
+    }
+
+    export interface AppBundle {
+        id: string
+        version: string
+        "build_number": number
+        "bundle_url": string
+        checksum?: string
+        "is_active": boolean
+        "is_beta": boolean
+        platform: string
+        "created_at": string
+        notes?: string
+    }
+
+    export interface CheckUpdateRequest {
+        platform: string
+        currentBuildNumber: number
+    }
+
+    export interface CheckUpdateResponse {
+        updateAvailable: boolean
+        latestBundle?: AppBundle
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addBundle = this.addBundle.bind(this)
+            this.checkUpdate = this.checkUpdate.bind(this)
+            this.listBundles = this.listBundles.bind(this)
+            this.toggleBundleStatus = this.toggleBundleStatus.bind(this)
+        }
+
+        /**
+         * Admin: Add a new bundle to the system
+         */
+        public async addBundle(params: AddBundleRequest): Promise<AddBundleResponse> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                "x-admin-key": params.adminKey,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                buildNumber: params.buildNumber,
+                bundleUrl:   params.bundleUrl,
+                checksum:    params.checksum,
+                isBeta:      params.isBeta,
+                notes:       params.notes,
+                platform:    params.platform,
+                version:     params.version,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ota/bundle`, JSON.stringify(body), {headers})
+            return await resp.json() as AddBundleResponse
+        }
+
+        /**
+         * Check for the latest active bundle for a platform
+         */
+        public async checkUpdate(params: CheckUpdateRequest): Promise<CheckUpdateResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                currentBuildNumber: String(params.currentBuildNumber),
+                platform:           params.platform,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ota/check`, undefined, {query})
+            return await resp.json() as CheckUpdateResponse
+        }
+
+        /**
+         * List all bundles (for admin panel)
+         */
+        public async listBundles(): Promise<{
+    bundles: AppBundle[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ota/bundles`)
+            return await resp.json() as {
+    bundles: AppBundle[]
+}
+        }
+
+        /**
+         * Admin: Toggle bundle active status
+         */
+        public async toggleBundleStatus(params: {
+    id: string
+    isActive: boolean
+}): Promise<{
+    success: boolean
+    error?: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ota/bundle/toggle`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+    error?: string
 }
         }
     }
