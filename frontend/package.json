@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.53",
-    "@capacitor-firebase/authentication": "^8.3.0",
+    "@capacitor-firebase/authentication": "^7.1.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.0",
     "@capacitor/browser": "^7.0.0",
