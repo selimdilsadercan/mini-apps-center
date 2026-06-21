@@ -16,7 +16,7 @@
 			"https://localhost",
 			"http://localhost"
 		],
-		"allow_headers": ["Authorization", "Content-Type"],
+		"allow_headers": ["Authorization", "Content-Type", "X-App-Version"],
 		"expose_headers": ["*"]
 	}
 }

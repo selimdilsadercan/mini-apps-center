@@ -47,8 +47,16 @@ export default function AppBar({ activePage }: AppBarProps) {
   }, []);
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-sm bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] px-2 py-3 z-50">
-      <div className="flex items-center justify-around">
+    <nav
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] py-3 z-50 transition-all duration-300 ${
+        isAdmin ? "w-[95%] max-w-sm px-2" : "w-fit px-5"
+      }`}
+    >
+      <div
+        className={`flex items-center transition-all duration-300 ${
+          isAdmin ? "justify-around w-full" : "gap-5"
+        }`}
+      >
         {/* Hub */}
         <Link
           href="/home"
