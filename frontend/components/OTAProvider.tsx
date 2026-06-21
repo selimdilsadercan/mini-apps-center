@@ -202,7 +202,7 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // Debug Modu veya İndirme Ekranı
-  const showDebugPanel = true; // Test sürecinde logları görelim
+  const showDebugPanel = process.env.NODE_ENV === "development";
 
   return (
     <>

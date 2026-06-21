@@ -91,11 +91,25 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const subdomain = getSubdomain(host);
 
-  // ── Special 'updates' subdomain → DO NOT HANDLE IN NEXT.JS ────────────────
-  // This should be handled by Cloudflare R2. If it hits here, we just pass it through
-  // without any rewrites or redirects to avoid showing the landing page.
+  // ── 'updates' subdomain → R2 CDN only ─────────────────────────────────────
+  // Normalde Cloudflare R2 bu subdomain'i karşılar. Vercel'e düşerse:
+  // - /updates/*.zip → redirect yapma (OTA indirmesi HTML'e dönmesin)
+  // - diğer path'ler → my.allminiapps.com'a yönlendir
   if (subdomain === "updates") {
-    return NextResponse.next();
+    if (pathname.startsWith("/updates/")) {
+      return new NextResponse("OTA bundle not found on this server. Check Cloudflare R2 custom domain.", {
+        status: 404,
+      });
+    }
+
+    const appUrl = request.nextUrl.clone();
+    const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+    const isLocal = host.startsWith("localhost") || host.includes(".localhost");
+
+    appUrl.hostname = isLocal ? "my.localhost" : `my.${ROOT_DOMAIN}`;
+    appUrl.port = isLocal && host.split(":")[1] ? host.split(":")[1] : "";
+    appUrl.pathname = "/home";
+    return NextResponse.redirect(appUrl);
   }
 
   // ── Special 'my' subdomain → serves the main application ─────────────────
