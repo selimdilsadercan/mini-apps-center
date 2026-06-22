@@ -8,7 +8,7 @@ interface CarcassonneScoreboardProps {
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { mapGameSaveToFrontend } from "../lib/mock-data";
+import { mapGameSaveToFrontend } from "../lib/games";
 
 const client = createBrowserClient();
 

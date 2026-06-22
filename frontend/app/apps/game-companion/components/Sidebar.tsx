@@ -4,19 +4,7 @@ import { getAppRootUrl } from "@/lib/apps";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_USER } from "../lib/mock-data";
-
-// Mock hooks to keep UI-only mode functional
-const useAuthMock = () => ({
-  user: MOCK_USER,
-  signOut: async () => console.log("Mock sign out"),
-});
-
-const useQueryMock = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("isUserAdmin")) return false;
-  if (apiPath.includes("getPlayerById")) return { name: MOCK_USER.displayName, avatar: null };
-  return undefined;
-};
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 // Page enum for active state
 export type PageType = "games" | "history" | "contacts" | "profile" | "admin";
@@ -98,15 +86,15 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ currentPage }: SidebarProps) {
-  const { user, signOut } = useAuthMock();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const router = useRouter();
 
-  // Mocked state for player and admin status
-  const player = useQueryMock("api.players.getPlayerById");
-  const isAdmin = useQueryMock("api.users.isUserAdmin");
+  const player = { name: user?.fullName || user?.firstName || "Kullanıcı" };
+  const isAdmin = false;
 
-  const items = getNavigationItems(isAdmin || false);
+  const items = getNavigationItems(isAdmin);
 
   const isActive = (page: PageType) => {
     return currentPage === page;
@@ -188,7 +176,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                 {player?.name || "Kullanıcı"}
               </p>
               <p className="text-xs text-gray-700 dark:text-gray-400 truncate">
-                {user?.email || "user@example.com"}
+                {user?.primaryEmailAddress?.emailAddress || ""}
               </p>
             </div>
           </div>

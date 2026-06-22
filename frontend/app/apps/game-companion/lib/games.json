@@ -2,78 +2,212 @@
   {
     "_id": "g1",
     "name": "101 Okey",
-    "emoji": "🀄",
-    "listName": "Cafe Oyunları",
+    "emoji": "⚡",
+    "listName": "Kahvehane Oyunları",
     "settings": {
-      "gameplay": "herkes-tek",
+      "gameplay": "takimli",
       "calculationMode": "Points",
-      "roundWinner": "Lowest"
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Lowest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": true
     }
   },
   {
     "_id": "g2",
-    "name": "Düz Okey",
-    "emoji": "🀚",
-    "listName": "Cafe Oyunları",
+    "name": "Okey",
+    "emoji": "🀄",
+    "listName": "Kahvehane Oyunları",
     "settings": {
       "gameplay": "herkes-tek",
       "calculationMode": "Points",
-      "roundWinner": "Lowest"
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Lowest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
     }
   },
   {
     "_id": "g3",
-    "name": "Batak",
+    "name": "Uno",
     "emoji": "🃏",
-    "listName": "Cafe Oyunları",
+    "listName": "Yaygın Masa Oyunları",
     "settings": {
       "gameplay": "herkes-tek",
       "calculationMode": "Points",
-      "roundWinner": "Highest"
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Lowest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
     }
   },
-  {
-    "_id": "g4",
-    "name": "King",
-    "emoji": "👑",
-    "listName": "Cafe Oyunları",
-    "settings": {
-      "gameplay": "herkes-tek",
-      "calculationMode": "Points",
-      "roundWinner": "Highest"
-    }
-  },
+
   {
     "_id": "g5",
-    "name": "Catan",
-    "emoji": "🎲",
-    "listName": "Klasik Kutu Oyunları",
+    "name": "Scrabble",
+    "emoji": "🅰️",
+    "listName": "Yaygın Masa Oyunları",
     "settings": {
       "gameplay": "herkes-tek",
       "calculationMode": "Points",
-      "roundWinner": "Highest"
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
     }
   },
   {
     "_id": "g6",
-    "name": "Carcassonne",
-    "emoji": "🏰",
-    "listName": "Klasik Kutu Oyunları",
+    "name": "Satranç",
+    "emoji": "♟️",
+    "listName": "Klasik Strateji Oyunları",
     "settings": {
       "gameplay": "herkes-tek",
-      "calculationMode": "Points",
-      "roundWinner": "Highest"
+      "calculationMode": "NoPoints",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
     }
   },
   {
     "_id": "g7",
-    "name": "Munchkin",
-    "emoji": "⚔️",
-    "listName": "Klasik Kutu Oyunları",
+    "name": "Dama",
+    "emoji": "🏁",
+    "listName": "Klasik Strateji Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "NoPoints",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g8",
+    "name": "Amiral Battı",
+    "emoji": "🚢",
+    "listName": "Klasik Strateji Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "NoPoints",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g9",
+    "name": "Catan",
+    "emoji": "🎲",
+    "listName": "Hobi Kutu Oyunları",
     "settings": {
       "gameplay": "herkes-tek",
       "calculationMode": "Points",
-      "roundWinner": "Highest"
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g10",
+    "name": "Munchkin",
+    "emoji": "⚔️",
+    "listName": "Hobi Kutu Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g11",
+    "name": "Carcassonne",
+    "emoji": "🏰",
+    "listName": "Hobi Kutu Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g12",
+    "name": "Wyrmspan",
+    "emoji": "🐉",
+    "listName": "Hobi Kutu Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g13",
+    "name": "Flip Seven",
+    "emoji": "7️⃣",
+    "listName": "Hobi Kutu Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g14",
+    "name": "Wingspan",
+    "emoji": "🐦",
+    "listName": "Hobi Kutu Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g15",
+    "name": "Tabu",
+    "emoji": "🤫",
+    "listName": "Yaygın Masa Oyunları",
+    "settings": {
+      "gameplay": "takimli",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
+    }
+  },
+  {
+    "_id": "g16",
+    "name": "Bil Bakalım Kim",
+    "emoji": "👥",
+    "listName": "Yaygın Masa Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "NoPoints",
+      "scoringTiming": "oyun-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Single",
+      "hideTotalColumn": false
     }
   }
 ]

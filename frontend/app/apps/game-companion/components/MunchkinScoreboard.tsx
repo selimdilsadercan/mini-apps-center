@@ -8,7 +8,7 @@ interface MunchkinScoreboardProps {
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { mapGameSaveToFrontend } from "../lib/mock-data";
+import { mapGameSaveToFrontend } from "../lib/games";
 
 const client = createBrowserClient();
 
@@ -168,7 +168,9 @@ export default function MunchkinScoreboard({
       style={{ backgroundColor: "var(--background)" }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
-        {(gamePlayers as any[]).map((player: any) => {
+        {(gamePlayers as any[])
+          .filter((player: any) => gameSave.players?.includes(player._id))
+          .map((player: any) => {
           const scores = playerScores[player._id] || {
             level: 1,
             bonus: 0,

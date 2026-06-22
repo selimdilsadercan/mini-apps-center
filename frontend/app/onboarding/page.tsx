@@ -32,12 +32,6 @@ const ONBOARDING_STEPS = [
     appIds: ["one-day-city-guide", "workplaces", "digital-menu", "stamp-card", "concert-list"]
   },
   {
-    id: "productivity",
-    title: "Pratik Araçlar",
-    question: "Günlük işlerini kolaylaştıracak yardımcı araçları ekleyelim mi? 🛠️",
-    appIds: ["pdf-tools", "daily-weather"]
-  },
-  {
     id: "finance",
     title: "Finans & Tasarruf",
     question: "Finansal takibini kolaylaştıracak uygulamaları ister misin? 💰",

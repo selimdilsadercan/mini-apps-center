@@ -74,16 +74,16 @@ export default function GameHistoryCard({
                 return players.slice(0, 6).map((p: any, idx: number) => (
                   <div
                     key={p?._id || idx}
-                    className="w-8 h-8 rounded-full ring-2 ring-white dark:ring-[#0b0b0b] overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[11px] font-semibold text-gray-800 dark:text-gray-100 relative"
+                    className="w-8 h-8 rounded-full ring-2 ring-white dark:ring-[#0b0b0b] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[11px] font-semibold text-gray-800 dark:text-gray-100 relative"
                     title={p?.name}
                   >
                     {p?.avatar ? (
-                      <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                      <img src={p.avatar} alt={p.name} className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <span className="text-[12px]">{p?.initial || (p?.name || "?")[0]}</span>
                     )}
                     {winnerId && p._id === winnerId && (
-                      <span className="absolute -top-2 -right-2 rotate-[-20deg]">
+                      <span className="absolute -top-2.5 -right-2 rotate-[-20deg] z-10">
                         <CrownSimple size={18} weight="fill" className="text-yellow-400 drop-shadow" />
                       </span>
                     )}

@@ -18,14 +18,11 @@
     "noResults": "Sonuç bulunamadı",
     "tryDifferent": "Farklı bir anahtar kelime deneyin.",
     "categories": {
-      "Utilities": "Temel Araçlar",
-      "Developer Tools": "Geliştirici Araçları",
-      "Board Games & Fun": "Masa Oyunları & Eğlence",
-      "Productivity": "Verimliliği Artır",
-      "Entertainment": "Medya",
-      "Simulations": "Simülasyonlar & Algoritmalar",
-      "Local Services": "Lokal & Kampüs Servisleri",
-      "Lifestyle": "Günlük Yaşam"
+      "Social": "Sosyal & Etkinlik",
+      "City": "Şehrini Keşfet",
+      "Finance": "Finans & Tasarruf",
+      "Entertainment": "Eğlence & Hobi",
+      "Campus": "Kampüslülere Özel"
     },
     "addedToast": "{appName} uygulaması eklendi!",
     "get": "EKLE",
@@ -249,17 +246,77 @@
     "emptyAction": "Abonelik Ekle"
   },
   "apps": {
-    "daily-weather": {
-      "name": "Daily Weather",
-      "description": "Her sabah İstanbul hava durumu bildirimi al"
+    "suggest": {
+      "name": "Suggest",
+      "description": "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et, durumlarını takip et!"
+    },
+    "neyapsam": {
+      "name": "Ne Yapsak?",
+      "description": "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et."
+    },
+    "one-day-city-guide": {
+      "name": "One Day City Guide",
+      "description": "Seçtiğin şehirde bir günde ne yapılır? En iyi rotalar ve tavsiyeler."
+    },
+    "workplaces": {
+      "name": "Workplaces",
+      "description": "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner."
+    },
+    "digital-menu": {
+      "name": "Dijital Menü",
+      "description": "Kafelerin QR menülerini görüntüle, siparişini planla ve masadan garson çağır."
+    },
+    "stamp-card": {
+      "name": "Stamp Card",
+      "description": "Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan."
+    },
+    "concert-list": {
+      "name": "My Concert List",
+      "description": "Gittiğin konserleri tarihleri ve notlarınla takip et."
+    },
+    "budget": {
+      "name": "Budget",
+      "description": "Bireysel ve ortak bütçe takibi, arkadaşlarınla kolay borç bölüşümü."
     },
     "tasarruf-challenges": {
       "name": "Tasarruf",
-      "description": "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş!"
+      "description": "Tasarruf önerilerini takip et, harcamalarını azalt ve hedeflerine ulaş."
     },
-    "birikim": {
-      "name": "Birikim",
-      "description": "Birikim hedefleri koy, hesaplarını yönet ve tasarruflarını takip et!"
+    "subcenter": {
+      "name": "Subcenter",
+      "description": "Tüm aboneliklerini ve harcamalarını tek bir yerden takip et."
+    },
+    "iskambil": {
+      "name": "İskambil Rehberi",
+      "description": "Klasik kart oyunları için kurallar ve detaylı rehberler."
+    },
+    "memedex": {
+      "name": "Memedex",
+      "description": "Trend meme'ler, doğru kullanım bağlamları ve hazır Giphy şablonları."
+    },
+    "series-track": {
+      "name": "SeriesTrack",
+      "description": "İzlediğin dizileri takip et, bölümleri işaretle ve ilerlemeni gör."
+    },
+    "game-companion": {
+      "name": "Yazboz",
+      "description": "Masa oyunları ve kafe oyunları için skor tahtası, zar ve yardımcı araçlar."
+    },
+    "chocolate-db": {
+      "name": "ChocolateDB",
+      "description": "Çikolataların IMDb'si! Favori çikolatanı bul, puanla ve yorumla."
+    },
+    "itu-yemekhane": {
+      "name": "Campus Meals",
+      "description": "Günün menüsünü takip et ve bildirim al."
+    },
+    "campus-events": {
+      "name": "Campus Events",
+      "description": "Üniversite topluluk etkinliklerini keşfet ve katıl."
+    },
+    "campus-concerts": {
+      "name": "Campus Concerts",
+      "description": "Kampüslerdeki konserleri takip et, katılımını işaretle."
     }
   },
   "birikim": {

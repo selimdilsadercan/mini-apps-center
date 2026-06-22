@@ -31,7 +31,7 @@ Bu dosya platformdaki tüm aktif ve geliştirilmekte olan mini uygulamaları kat
 - **ChocolateDB:** Çikolataların IMDB'si! Favori çikolatanı bul, puanla ve yorumla.
 
 ## 🎓 Kampüslülere Özel
-- **Campus Meals (İTÜ Yemekhane):** Günün menüsünü takip et ve bildirim al.
+- **Campus Meals:** Günün menüsünü takip et ve bildirim al.
 - **Campus Events:** Üniversite topluluk etkinliklerini keşfet ve katıl.
 - **Campus Concerts:** Kampüslerdeki konserleri takip et, katılımını işaretle.
 

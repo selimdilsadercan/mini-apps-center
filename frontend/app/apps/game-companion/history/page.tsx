@@ -7,11 +7,10 @@ import Sidebar from "../components/Sidebar";
 import AppBar from "../components/AppBar";
 import Header from "../components/Header";
 import GameHistoryCard from "../components/GameHistoryCard";
-import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
+import { MOCK_GAMES, mapGameSaveToFrontend } from "../lib/games";
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { mapGameSaveToFrontend } from "../lib/mock-data";
 
 const client = createBrowserClient();
 

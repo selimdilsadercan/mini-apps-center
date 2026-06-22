@@ -18,14 +18,11 @@
     "noResults": "No results found",
     "tryDifferent": "Try a different keyword.",
     "categories": {
-      "Utilities": "Must-Have Tools",
-      "Developer Tools": "Developer Tools",
-      "Board Games & Fun": "Board Game Companions & Fun",
-      "Productivity": "Boost Productivity",
-      "Entertainment": "Media & Entertainment",
-      "Simulations": "Simulations & Demos",
-      "Local Services": "Local & Campus Services",
-      "Lifestyle": "Lifestyle & Daily Life"
+      "Social": "Social & Events",
+      "City": "Explore Your City",
+      "Finance": "Finance & Savings",
+      "Entertainment": "Entertainment & Hobbies",
+      "Campus": "Campus Specials"
     },
     "addedToast": "{appName} added to My Apps!",
     "get": "GET",
@@ -236,10 +233,10 @@
     "trialOptions": {
       "none": "None",
       "1week": "1 Week",
-      "2weeks": "2 Weeks",
+      "2weeks": "2 Week",
       "1month": "1 Month",
-      "3months": "3 Months",
-      "6months": "6 Months",
+      "3months": "3 Month",
+      "6months": "6 Month",
       "1year": "1 Year"
     },
     "update": "Update",
@@ -253,17 +250,77 @@
     "emptyAction": "Add Subscription"
   },
   "apps": {
-    "daily-weather": {
-      "name": "Daily Weather",
-      "description": "Get a morning Istanbul weather notification"
+    "suggest": {
+      "name": "Suggest",
+      "description": "Recommend movies, series, games, or venues to your friends and track their status!"
+    },
+    "neyapsam": {
+      "name": "What to Do?",
+      "description": "Quickly create activity invitations or polls, and invite your friends."
+    },
+    "one-day-city-guide": {
+      "name": "One Day City Guide",
+      "description": "What to do in a selected city in one day? Best routes and recommendations."
+    },
+    "workplaces": {
+      "name": "Workplaces",
+      "description": "Discover libraries and cafes suitable for working, and suggest new ones."
+    },
+    "digital-menu": {
+      "name": "Digital Menu",
+      "description": "View QR menus of cafes, plan your order, and call a waiter from your table."
+    },
+    "stamp-card": {
+      "name": "Stamp Card",
+      "description": "Collect stamps from partnered businesses and win free gifts."
+    },
+    "concert-list": {
+      "name": "My Concert List",
+      "description": "Track the concerts you attend with dates and personal notes."
+    },
+    "budget": {
+      "name": "Budget",
+      "description": "Individual and shared budget tracking, split expenses easily with friends."
     },
     "tasarruf-challenges": {
-      "name": "Savings Challenges",
-      "description": "Track saving suggestions, reduce spending, and achieve your goals!"
-    },
-    "birikim": {
       "name": "Savings",
-      "description": "Set savings goals, manage accounts, and track your progress!"
+      "description": "Follow saving challenges, reduce your expenses, and achieve goals."
+    },
+    "subcenter": {
+      "name": "Subcenter",
+      "description": "Track all your subscriptions and bill payments in one place."
+    },
+    "iskambil": {
+      "name": "Card Game Codex",
+      "description": "Rules and detailed guides for classic card games."
+    },
+    "memedex": {
+      "name": "Memedex",
+      "description": "Trending memes, correct usage contexts, and ready-to-use Giphy templates."
+    },
+    "series-track": {
+      "name": "SeriesTrack",
+      "description": "Track the series you watch, mark episodes, and monitor your progress."
+    },
+    "game-companion": {
+      "name": "Scorekeeper",
+      "description": "Digital scoreboard, dice, and utility tools for board games and cafe games."
+    },
+    "chocolate-db": {
+      "name": "ChocolateDB",
+      "description": "The IMDb of chocolates! Find, rate, and review your favorite chocolate."
+    },
+    "itu-yemekhane": {
+      "name": "Campus Meals",
+      "description": "Track the daily menu and receive notifications."
+    },
+    "campus-events": {
+      "name": "Campus Events",
+      "description": "Discover and join university student club events."
+    },
+    "campus-concerts": {
+      "name": "Campus Concerts",
+      "description": "Track concerts on campuses and mark your attendance."
     }
   },
   "birikim": {

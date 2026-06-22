@@ -100,11 +100,11 @@ function AppSection({
                 >
                   <button 
                     onClick={() => onOpenApp(app)}
-                    className="flex-1 flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200"
+                    className="flex-1 flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0"
                   >
                     {/* Icon */}
                     <div 
-                      className="w-[68px] h-[68px] rounded-[1.4rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
+                      className="w-14 h-14 rounded-[1rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
                       style={{ 
                         backgroundColor: app.color,
                         boxShadow: `0 8px 20px -6px ${app.color}50`
@@ -112,18 +112,18 @@ function AppSection({
                     >
                       <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
                       <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
-                      <div className="absolute inset-0 border border-white/20 rounded-[1.4rem]"></div>
-                      <app.icon size={32} weight="fill" color="white" className="relative z-10" />
+                      <div className="absolute inset-0 border border-white/20 rounded-[1rem]"></div>
+                      <app.icon size={24} weight="fill" color="white" className="relative z-10" />
                     </div>
  
                     {/* Content */}
-                    <div className="flex-1 min-w-0 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
                           {appName}
                         </h3>
                       </div>
-                      <p className="text-gray-500 text-[13px] leading-tight line-clamp-1 font-medium">
+                      <p className="text-gray-500 text-[13px] leading-tight line-clamp-2 font-medium">
                         {appDesc}
                       </p>
                     </div>
@@ -360,7 +360,7 @@ export default function Discover() {
                           <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
                             {appName}
                           </h3>
-                          <p className="text-gray-500 text-sm truncate">{appDesc}</p>
+                          <p className="text-gray-500 text-sm leading-tight line-clamp-2 font-medium">{appDesc}</p>
                         </div>
                       </button>
                       <button 
@@ -398,13 +398,11 @@ export default function Discover() {
           /* Main App Store Layout */
           <>
             {/* Categorized Sections */}
-            <AppSection title={t("categories.Lifestyle")} apps={implementedApps.filter(a => a.category === 'Lifestyle').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Utilities")} apps={implementedApps.filter(a => a.category === 'Utilities').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => a.category === 'Entertainment').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Board Games & Fun")} apps={implementedApps.filter(a => a.category === 'Board Games & Fun').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Developer Tools")} apps={implementedApps.filter(a => a.category === 'Developer Tools').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Simulations")} apps={implementedApps.filter(a => a.category === 'Simulations').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Local Services")} apps={implementedApps.filter(a => a.category === 'Local Services').slice(0, 12)} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Social")} apps={implementedApps.filter(a => ["suggest", "neyapsam"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.City")} apps={implementedApps.filter(a => ["one-day-city-guide", "workplaces", "digital-menu", "stamp-card", "concert-list"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Finance")} apps={implementedApps.filter(a => ["budget", "tasarruf-challenges", "subcenter"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => ["iskambil", "memedex", "series-track", "game-companion", "chocolate-db"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Campus")} apps={implementedApps.filter(a => ["itu-yemekhane", "campus-events", "campus-concerts"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
 
             {/* Coming Soon Section */}
             {betaApps.length > 0 && (
@@ -450,7 +448,7 @@ export default function Discover() {
                               <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
                                 {appName}
                               </h3>
-                              <p className="text-gray-500 text-xs truncate">{appDesc}</p>
+                              <p className="text-gray-500 text-xs leading-tight line-clamp-2 font-medium">{appDesc}</p>
                             </div>
                           </div>
                           
@@ -528,7 +526,7 @@ export default function Discover() {
                               <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
                                 {appName}
                               </h3>
-                              <p className="text-gray-500 text-xs truncate">{appDesc}</p>
+                              <p className="text-gray-500 text-xs leading-tight line-clamp-2 font-medium">{appDesc}</p>
                             </div>
                           </div>
                           

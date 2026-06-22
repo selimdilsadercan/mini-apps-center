@@ -16,7 +16,7 @@ import Sidebar from "../components/Sidebar";
 import AppBar from "../components/AppBar";
 import Header from "../components/Header";
 import GameImage from "../components/GameImage";
-import { MOCK_GAMES, MOCK_GAME_LISTS, mapGameSaveToFrontend } from "../lib/mock-data";
+import { MOCK_GAMES, mapGameSaveToFrontend } from "../lib/games";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 
@@ -28,7 +28,13 @@ export default function GamesPage() {
   const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   
   const games = MOCK_GAMES;
-  const gameLists = MOCK_GAME_LISTS;
+  // Generate gameLists dynamically by grouping games by their listName from games.json
+  const listNames = Array.from(new Set(games.map((g: any) => g.listName).filter(Boolean)));
+  const gameLists = listNames.map((name, index) => ({
+    _id: `list-${index}`,
+    name: name,
+    gameIds: games.filter((g: any) => g.listName === name).map((g: any) => g._id)
+  }));
 
   const [gameSaves, setGameSaves] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -91,8 +97,14 @@ export default function GamesPage() {
   const getRecentlyPlayedGames = () => {
     if (!games) return [];
     
-    // UI-only mode: just show first few games
-    return games.slice(0, 8);
+    // Show only the featured games requested by the user (Monopoly removed, Carcassonne added)
+    const featuredNames = ["101 Okey", "Okey", "Uno", "Catan", "Munchkin", "Carcassonne"];
+    const featured = games.filter((game: any) => featuredNames.includes(game.name));
+    
+    // Order them as requested: 101 Okey, Okey, Uno, Catan, Munchkin, Carcassonne
+    return featured.sort((a: any, b: any) => {
+      return featuredNames.indexOf(a.name) - featuredNames.indexOf(b.name);
+    });
   };
 
   return (

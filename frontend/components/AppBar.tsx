@@ -50,13 +50,15 @@ export default function AppBar({ activePage }: AppBarProps) {
   return (
     <>
       {/* Feedback Floating Button */}
-      <Link
-        href="/f?board=9be81ce2"
-        className="fixed bottom-[6.5rem] left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-xl px-4 py-2 rounded-full z-50 flex items-center gap-2 hover:bg-violet-50 hover:border-violet-200 transition-all group active:scale-95"
-      >
-        <ChatTeardropDots size={18} weight="fill" className="text-violet-600 group-hover:scale-110 transition-transform" />
-        <span className="text-[11px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-violet-700">Feedback Ver</span>
-      </Link>
+      {activePage === ActivePage.HUB && (
+        <Link
+          href="/f?board=9be81ce2"
+          className="fixed bottom-[6.5rem] left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-xl px-4 py-2 rounded-full z-50 flex items-center gap-2 hover:bg-violet-50 hover:border-violet-200 transition-all group active:scale-95"
+        >
+          <ChatTeardropDots size={18} weight="fill" className="text-violet-600 group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-violet-700">Feedback Ver</span>
+        </Link>
+      )}
 
       <nav
         className={`fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-[2.5rem] py-3 z-50 transition-all duration-300 ${

@@ -13,7 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
-import { useUser } from "@clerk/clerk-react"; 
+import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import IskambilAppBar from "../components/IskambilAppBar";
@@ -101,11 +101,11 @@ export default function ForYouPage() {
   }, [isUserLoaded, user?.id]);
 
   const favoriteGames = useMemo(() => {
-    return games.filter(g => g.is_favorite);
+    return games.filter(g => g.is_favorite && g.category_tr !== "Casino / Bahis" && g.category_en !== "Casino / Betting");
   }, [games]);
 
   const knownGames = useMemo(() => {
-    return games.filter(g => g.is_known);
+    return games.filter(g => g.is_known && g.category_tr !== "Casino / Bahis" && g.category_en !== "Casino / Betting");
   }, [games]);
 
   const hasAnyData = favoriteGames.length > 0 || knownGames.length > 0;
@@ -216,8 +216,8 @@ export default function ForYouPage() {
           <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500">
             <Users size={14} className="text-[#0c3122]/60" />
             <span>
-              {game.min_players === game.max_players 
-                ? `${game.min_players} ${t.players}` 
+              {game.min_players === game.max_players
+                ? `${game.min_players} ${t.players}`
                 : `${game.min_players}-${game.max_players} ${t.players}`}
             </span>
           </div>
@@ -246,13 +246,13 @@ export default function ForYouPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
-      
+
       {/* Shared AppBar */}
       <IskambilAppBar activeTab="foryou" />
 
       {/* Main Layout */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-8 flex flex-col gap-10 relative z-10">
-        
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-32 flex flex-col gap-10 relative z-10">
+
         <AnimatePresence mode="wait">
           {!hasAnyData ? (
             <motion.div
@@ -279,7 +279,7 @@ export default function ForYouPage() {
               </button>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="space-y-12"
@@ -302,7 +302,7 @@ export default function ForYouPage() {
                     </p>
                   </div>
 
-                  <motion.div 
+                  <motion.div
                     layout
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   >
@@ -331,7 +331,7 @@ export default function ForYouPage() {
                     </p>
                   </div>
 
-                  <motion.div 
+                  <motion.div
                     layout
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   >

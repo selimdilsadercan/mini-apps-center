@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
-import { Sparkle, Plus, Check, ArrowsOutCardinal, Storefront, ChefHat, ChatTeardropDots } from "@phosphor-icons/react";
+import { Sparkle, Plus, Check, ArrowsOutCardinal, Storefront, ChefHat, ChatTeardropDots, Diamond } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DndContext,
@@ -291,44 +291,42 @@ function DashboardWidget({
   dimmed: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={`group col-span-2 flex flex-col items-center gap-2 select-none cursor-pointer transition-all duration-200 active:scale-[0.98] ${
+    <div
+      className={`flex flex-col items-center gap-2 select-none relative ${
         dimmed ? "opacity-60" : ""
       }`}
     >
-      <div
-        className="w-full h-16 sm:h-20 rounded-[1.25rem] flex items-center justify-center relative overflow-hidden shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-red-300/50"
-        style={{
-          background: "linear-gradient(135deg, #EF4444 0%, #F97316 100%)",
-          boxShadow: "0 8px 24px -6px #EF444440",
-        }}
+      <button
+        type="button"
+        onClick={onOpen}
+        className="relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
-        <div className="absolute inset-0 border border-white/20 rounded-[1.25rem]" />
+        <div className="relative">
+          <div
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] flex items-center justify-center relative overflow-hidden shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-red-300/50"
+            style={{
+              background: "linear-gradient(135deg, #EF4444 0%, #F97316 100%)",
+              boxShadow: "0 8px 24px -6px #EF444440",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
+            <div className="absolute inset-0 border border-white/20 rounded-[1.25rem]" />
 
-        <div className="relative z-10 flex items-center justify-center gap-2.5 w-full px-3">
-          <Storefront size={24} weight="fill" color="white" className="shrink-0" />
+            <Storefront size={32} weight="fill" color="white" className="relative z-10" />
+          </div>
 
-          <div className="h-7 w-px shrink-0 bg-white/30" />
-
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-              <ChefHat size={14} weight="fill" color="white" />
-            </div>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-              <ChatTeardropDots size={14} weight="fill" color="white" />
-            </div>
+          {/* Official badge icon outside the overflow-hidden squircle, positioned beautifully */}
+          <div className="absolute bottom-0 right-0 bg-[#F97316] text-white w-5 h-5 rounded-full flex items-center justify-center z-20 border-2 border-[#FAF9F7] dark:border-[var(--card-background)] shadow-md translate-x-1 translate-y-1">
+            <Diamond size={10} weight="fill" color="white" />
           </div>
         </div>
-      </div>
 
-      <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 leading-[1.2] group-hover:text-indigo-600 transition-colors">
-        {title}
-      </span>
-    </button>
+        <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2] mt-2 flex flex-col items-center gap-0.5">
+          {title}
+        </span>
+      </button>
+    </div>
   );
 }
 

@@ -5,14 +5,8 @@ import { useRouter } from "next/navigation";
 import { MagnifyingGlass, ArrowLeft } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import GameImage from "../components/GameImage";
-import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
-
-// Local mock hooks
-const useAuth = () => ({
-  isSignedIn: true,
-  isLoaded: true,
-  user: MOCK_USER,
-});
+import { MOCK_GAMES } from "../lib/games";
+import { useUser } from "@clerk/clerk-react";
 
 const useQuery = (apiPath: any, args?: any): any => {
   if (apiPath.toString().includes("getGames")) return MOCK_GAMES;
@@ -26,7 +20,7 @@ const useMutation = (apiPath: any) => async (args: any) => {
 };
 
 export default function SearchPage() {
-  const { isSignedIn, isLoaded, user } = useAuth();
+  const { isSignedIn, isLoaded, user } = useUser();
   const router = useRouter();
   const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   const games = useQuery("api.games.getGames") || [];

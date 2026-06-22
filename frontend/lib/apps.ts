@@ -125,7 +125,7 @@ export function navigateToMiniApp(
   window.location.href = href;
 }
 
-export const MINI_APPS: MiniApp[] = [
+const RAW_MINI_APPS: MiniApp[] = [
   {
     id: "icon-set-guide",
     name: "Icon Set Guide",
@@ -165,6 +165,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "weather",
     isBeta: true,
+    isCancelled: true,
     statusBarColor: "#F0E6FF",
     statusBarStyle: "light",
     navigationBarColor: "#FFF9E6",
@@ -209,6 +210,7 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/pdf-tools",
     isImplemented: true,
     subdomain: "pdf",
+    isCancelled: true,
     statusBarColor: "#ffffff",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",
@@ -505,6 +507,7 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "hobby",
     isBeta: true,
+    isCancelled: true,
     statusBarColor: "#020617",
     statusBarStyle: "dark",
     navigationBarColor: "#020617",
@@ -734,3 +737,5 @@ export const MINI_APPS: MiniApp[] = [
     navigationBarStyle: "light",
   },
 ];
+
+export const MINI_APPS: MiniApp[] = RAW_MINI_APPS.map(app => ({ ...app, isBeta: false }));

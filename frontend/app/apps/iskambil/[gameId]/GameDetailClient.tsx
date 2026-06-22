@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
-import { useUser } from "@clerk/clerk-react"; 
+import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { GameData } from "../games-registry";
@@ -202,11 +202,10 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
           <div className="flex items-center gap-2">
             <button
               onClick={handleToggleKnown}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${
-                userState.is_known 
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-600" 
+              className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${userState.is_known
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-600"
                   : "bg-[#f5f2e9] border-[#e2dcc8] text-slate-500 hover:text-emerald-600 hover:bg-[#eae6df]"
-              }`}
+                }`}
               title={t.known}
             >
               <CheckCircle size={20} weight={userState.is_known ? "fill" : "bold"} />
@@ -214,11 +213,10 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
 
             <button
               onClick={handleToggleFavorite}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${
-                userState.is_favorite 
-                  ? "bg-red-50 border-red-200 text-red-500" 
+              className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer ${userState.is_favorite
+                  ? "bg-red-50 border-red-200 text-red-500"
                   : "bg-[#f5f2e9] border-[#e2dcc8] text-slate-500 hover:text-red-500 hover:bg-[#eae6df]"
-              }`}
+                }`}
               title={t.favorite}
             >
               <Heart size={20} weight={userState.is_favorite ? "fill" : "bold"} />
@@ -229,18 +227,18 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
 
       {/* Main Layout */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
         >
           {/* Rules Column */}
           <div className="lg:col-span-2 space-y-4">
-            
+
             <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-6 md:p-8 space-y-6 font-sans text-base text-slate-700 leading-relaxed shadow-sm">
               {quickRules ? (
                 <div className="space-y-6">
-                  
+
                   {/* Quick Summary */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-black uppercase text-[#0c3122] tracking-wider border-b border-[#f4f1ea] pb-1">
@@ -397,12 +395,12 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t.playerCapacity}</span>
                 <span className="text-sm font-bold text-[#0c3122] flex items-center gap-2">
                   <Users size={18} className="text-[#0c3122]/70" />
-                  {initialGame.minPlayers === initialGame.maxPlayers 
-                    ? `${initialGame.minPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}` 
+                  {initialGame.minPlayers === initialGame.maxPlayers
+                    ? `${initialGame.minPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`
                     : `${initialGame.minPlayers}-${initialGame.maxPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`}
                 </span>
               </div>
-              
+
               <div className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{t.deckRequirement}</span>
                 <span className="text-sm font-bold text-[#0c3122] flex items-center gap-2">
@@ -420,33 +418,7 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
               </div>
             </div>
 
-            {/* Notes Section */}
-            {user?.id && (
-              <div className="space-y-3">
-                <h3 className="text-xs font-black uppercase text-[#0c3122] tracking-[0.2em] flex items-center gap-2">
-                  <Note size={18} />
-                  {t.personalNotes}
-                </h3>
-                
-                <div className="bg-[#ffffff] border border-[#e2dec5] rounded-3xl p-5 flex flex-col gap-4 shadow-sm">
-                  <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder={t.notesPlaceholder}
-                    className="w-full bg-[#fdfcf7] border border-[#e2dec5] rounded-2xl p-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-white transition-all text-slate-800 placeholder-slate-400 resize-none min-h-[160px]"
-                  />
-                  
-                  <button
-                    onClick={handleSaveNote}
-                    disabled={isSavingNote}
-                    className="w-full bg-[#0c3122] hover:bg-[#12422f] text-white font-black py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-[10px] cursor-pointer disabled:opacity-50 shadow-sm"
-                  >
-                    <FloppyDisk size={16} />
-                    <span>{isSavingNote ? t.saving : t.save}</span>
-                  </button>
-                </div>
-              </div>
-            )}
+
           </div>
         </motion.div>
       </main>

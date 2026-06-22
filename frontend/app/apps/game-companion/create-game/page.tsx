@@ -15,11 +15,10 @@ import {
   CaretDown,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
-import GameRulesTab from "../components/GameRulesTab";
 import CreateModal from "../components/CreateModal";
 import EditPlayerModal from "../components/EditPlayerModal";
 import { useUser as useClerkUser } from "@clerk/clerk-react";
-import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
+import { MOCK_GAMES } from "../lib/games";
 import { createBrowserClient } from "@/lib/api";
 
 const client = createBrowserClient();
@@ -71,10 +70,10 @@ function CreateGameContent() {
             setLoadingPlayers(true);
             const res = await client.yazboz.getPlayers(clerkUser.id);
             let dbPlayers = res.players || [];
-            
+
             const myName = clerkUser.fullName || clerkUser.firstName || "Ben";
             let me = dbPlayers.find(p => p.name === myName || p.name === "Ben");
-            
+
             if (!me) {
               const createRes = await client.yazboz.createPlayer({
                 userId: clerkUser.id,
@@ -86,12 +85,12 @@ function CreateGameContent() {
                 me = createRes.player;
               }
             }
-            
+
             const formatted = dbPlayers.map((p: any) => ({
               ...p,
               _id: p.id
             }));
-            
+
             setPlayers(formatted);
             if (me) {
               setSelectedPlayers([me.id]);
@@ -162,6 +161,10 @@ function CreateGameContent() {
       if (selectedPlayers.length === 0) {
         toast.error("En az bir oyuncu seçmelisiniz!");
         return;
+      }
+      if (gameSettings.gameplay === "takimli") {
+        setRedTeam([...selectedPlayers]);
+        setBlueTeam([]);
       }
       setCurrentStep(3);
     } else {
@@ -382,8 +385,9 @@ function CreateGameContent() {
 
     return (
       <div
-        className="rounded-full px-3 py-2 flex items-center space-x-2"
+        className="rounded-full pl-3 pr-2.5 py-1.5 flex items-center space-x-1.5 cursor-pointer active:scale-95 transition-transform select-none"
         style={{ backgroundColor: getTeamColor() }}
+        onClick={() => movePlayerToTeam(player._id, team === "red" ? "blue" : "red")}
       >
         {player.avatar ? (
           <img
@@ -403,26 +407,31 @@ function CreateGameContent() {
         <span className="font-medium text-sm text-white truncate max-w-[70px]">
           {player.name}
         </span>
-        <button
-          onClick={() =>
-            movePlayerToTeam(player._id, team === "red" ? "blue" : "red")
-          }
-          className="ml-2 text-white hover:text-gray-200"
-        >
-          {team === "red" ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
-        </button>
+
+        {/* Arrow indicator icon */}
+        <div className="text-white/80 p-0.5">
+          {team === "red" ? (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l-6.75-6.75M12 19.5l6.75-6.75" />
+            </svg>
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" />
+            </svg>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col max-w-2xl mx-auto border-x border-gray-100 dark:border-gray-900"
       style={{ backgroundColor: "var(--background)" }}
     >
       {/* Fixed Header */}
       <div
-        className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#100D16] shadow-sm"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 bg-white dark:bg-[#100D16] shadow-sm"
         style={{ opacity: 1 }}
       >
         <div className="px-4 py-4 flex items-center justify-between border-b border-gray-200 dark:border-[var(--card-border)]">
@@ -449,7 +458,7 @@ function CreateGameContent() {
 
       {/* Fixed White Rectangle at Bottom - Hide when Sor or Kurallar tab is selected */}
       {activeTab === "oyun-kur" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[var(--card-background)] rounded-t-3xl shadow-lg">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white dark:bg-[var(--card-background)] rounded-t-3xl shadow-lg z-40">
           <div className="p-6">
             {currentStep === 1 ? null : currentStep === 2 ? (
               // Player Selection in Bottom Panel
@@ -544,27 +553,26 @@ function CreateGameContent() {
                             onClick={() =>
                               togglePlayer(userPlayer._id)
                             }
-                            className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${
-                              selectedPlayers.includes(userPlayer._id)
-                                ? "bg-blue-500 border-blue-500"
-                                : "bg-white dark:bg-[var(--card-background)] border-blue-500"
-                            }`}
+                            className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${selectedPlayers.includes(userPlayer._id)
+                              ? "bg-blue-500 border-blue-500"
+                              : "bg-white dark:bg-[var(--card-background)] border-blue-500"
+                              }`}
                           >
                             {selectedPlayers.includes(
                               userPlayer._id,
                             ) && (
-                              <svg
-                                className="w-3 h-3 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            )}
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
                           </button>
                         </div>
                       </div>
@@ -598,11 +606,10 @@ function CreateGameContent() {
                             </div>
                             <button
                               onClick={() => togglePlayer(player._id)}
-                              className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${
-                                selectedPlayers.includes(player._id)
-                                  ? "bg-blue-500 border-blue-500"
-                                  : "bg-white dark:bg-[var(--card-background)] border-blue-500"
-                              }`}
+                              className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${selectedPlayers.includes(player._id)
+                                ? "bg-blue-500 border-blue-500"
+                                : "bg-white dark:bg-[var(--card-background)] border-blue-500"
+                                }`}
                             >
                               {selectedPlayers.includes(player._id) && (
                                 <svg
@@ -632,11 +639,11 @@ function CreateGameContent() {
                   {/* Oyuncular - Show teams if team mode is selected */}
                   {gameSettings.gameplay === "takimli" ? (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-4">
                         {/* Kırmızı Takım */}
                         <div>
                           <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                            Kırmızı Takım:
+                            Kırmızı Takım:  
                           </h2>
                           <div className="min-h-[120px] p-4 border-2 border-dashed border-red-300 dark:border-red-700 rounded-lg bg-red-50 dark:bg-red-950/30">
                             <div className="flex flex-wrap gap-2">
@@ -689,6 +696,8 @@ function CreateGameContent() {
                           </div>
                         </div>
                       </div>
+
+
                     </>
                   ) : (
                     <div>
@@ -739,11 +748,10 @@ function CreateGameContent() {
                         onClick={() =>
                           updateGameSetting("gameplay", "herkes-tek")
                         }
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                          gameSettings.gameplay === "herkes-tek"
-                            ? "text-white"
-                            : "text-gray-800 dark:text-gray-300"
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.gameplay === "herkes-tek"
+                          ? "text-white"
+                          : "text-gray-800 dark:text-gray-300"
+                          }`}
                         style={
                           gameSettings.gameplay === "herkes-tek"
                             ? { backgroundColor: "#365376" }
@@ -754,11 +762,10 @@ function CreateGameContent() {
                       </button>
                       <button
                         onClick={() => updateGameSetting("gameplay", "takimli")}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                          gameSettings.gameplay === "takimli"
-                            ? "text-white"
-                            : "text-gray-800 dark:text-gray-300"
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.gameplay === "takimli"
+                          ? "text-white"
+                          : "text-gray-800 dark:text-gray-300"
+                          }`}
                         style={
                           gameSettings.gameplay === "takimli"
                             ? { backgroundColor: "#365376" }
@@ -783,9 +790,8 @@ function CreateGameContent() {
                       </h2>
                       <CaretDown
                         size={16}
-                        className={`text-gray-600 transition-transform duration-200 ${
-                          showAdvancedSettings ? "rotate-180" : ""
-                        }`}
+                        className={`text-gray-600 transition-transform duration-200 ${showAdvancedSettings ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 
@@ -801,11 +807,10 @@ function CreateGameContent() {
                               onClick={() =>
                                 updateGameSetting("calculationMode", "NoPoints")
                               }
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                                gameSettings.calculationMode === "NoPoints"
-                                  ? "text-white"
-                                  : "text-gray-800 dark:text-gray-300"
-                              }`}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.calculationMode === "NoPoints"
+                                ? "text-white"
+                                : "text-gray-800 dark:text-gray-300"
+                                }`}
                               style={
                                 gameSettings.calculationMode === "NoPoints"
                                   ? { backgroundColor: "#365376" }
@@ -818,11 +823,10 @@ function CreateGameContent() {
                               onClick={() =>
                                 updateGameSetting("calculationMode", "Points")
                               }
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                                gameSettings.calculationMode === "Points"
-                                  ? "text-white"
-                                  : "text-gray-800 dark:text-gray-300"
-                              }`}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.calculationMode === "Points"
+                                ? "text-white"
+                                : "text-gray-800 dark:text-gray-300"
+                                }`}
                               style={
                                 gameSettings.calculationMode === "Points"
                                   ? { backgroundColor: "#365376" }
@@ -844,11 +848,10 @@ function CreateGameContent() {
                               onClick={() =>
                                 updateGameSetting("scoringTiming", "tur-sonu")
                               }
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                                gameSettings.scoringTiming === "tur-sonu"
-                                  ? "text-white"
-                                  : "text-gray-800 dark:text-gray-300"
-                              }`}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.scoringTiming === "tur-sonu"
+                                ? "text-white"
+                                : "text-gray-800 dark:text-gray-300"
+                                }`}
                               style={
                                 gameSettings.scoringTiming === "tur-sonu"
                                   ? { backgroundColor: "#365376" }
@@ -861,11 +864,10 @@ function CreateGameContent() {
                               onClick={() =>
                                 updateGameSetting("scoringTiming", "oyun-sonu")
                               }
-                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                                gameSettings.scoringTiming === "oyun-sonu"
-                                  ? "text-white"
-                                  : "text-gray-800 dark:text-gray-300"
-                              }`}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium ${gameSettings.scoringTiming === "oyun-sonu"
+                                ? "text-white"
+                                : "text-gray-800 dark:text-gray-300"
+                                }`}
                               style={
                                 gameSettings.scoringTiming === "oyun-sonu"
                                   ? { backgroundColor: "#365376" }
@@ -890,11 +892,10 @@ function CreateGameContent() {
                                   onClick={() =>
                                     updateGameSetting("roundWinner", "Highest")
                                   }
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                                    gameSettings.roundWinner === "Highest"
-                                      ? "text-white"
-                                      : "text-gray-800 dark:text-gray-300"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${gameSettings.roundWinner === "Highest"
+                                    ? "text-white"
+                                    : "text-gray-800 dark:text-gray-300"
+                                    }`}
                                   style={
                                     gameSettings.roundWinner === "Highest"
                                       ? { backgroundColor: "#365376" }
@@ -908,11 +909,10 @@ function CreateGameContent() {
                                   onClick={() =>
                                     updateGameSetting("roundWinner", "Lowest")
                                   }
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                                    gameSettings.roundWinner === "Lowest"
-                                      ? "text-white"
-                                      : "text-gray-800 dark:text-gray-300"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${gameSettings.roundWinner === "Lowest"
+                                    ? "text-white"
+                                    : "text-gray-800 dark:text-gray-300"
+                                    }`}
                                   style={
                                     gameSettings.roundWinner === "Lowest"
                                       ? { backgroundColor: "#365376" }
@@ -930,11 +930,10 @@ function CreateGameContent() {
                                   onClick={() =>
                                     updateGameSetting("roundWinner", "Highest")
                                   }
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                                    gameSettings.roundWinner === "Highest"
-                                      ? "text-white"
-                                      : "text-gray-800 dark:text-gray-300"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${gameSettings.roundWinner === "Highest"
+                                    ? "text-white"
+                                    : "text-gray-800 dark:text-gray-300"
+                                    }`}
                                   style={
                                     gameSettings.roundWinner === "Highest"
                                       ? { backgroundColor: "#365376" }
@@ -948,11 +947,10 @@ function CreateGameContent() {
                                   onClick={() =>
                                     updateGameSetting("roundWinner", "Lowest")
                                   }
-                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                                    gameSettings.roundWinner === "Lowest"
-                                      ? "text-white"
-                                      : "text-gray-800 dark:text-gray-300"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center space-x-2 ${gameSettings.roundWinner === "Lowest"
+                                    ? "text-white"
+                                    : "text-gray-800 dark:text-gray-300"
+                                    }`}
                                   style={
                                     gameSettings.roundWinner === "Lowest"
                                       ? { backgroundColor: "#365376" }
@@ -978,11 +976,10 @@ function CreateGameContent() {
                                 onClick={() =>
                                   updateGameSetting("pointsPerRound", "Single")
                                 }
-                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
-                                  gameSettings.pointsPerRound === "Single"
-                                    ? "text-white"
-                                    : "text-gray-800 dark:text-gray-300"
-                                }`}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${gameSettings.pointsPerRound === "Single"
+                                  ? "text-white"
+                                  : "text-gray-800 dark:text-gray-300"
+                                  }`}
                                 style={
                                   gameSettings.pointsPerRound === "Single"
                                     ? { backgroundColor: "#365376" }
@@ -998,11 +995,10 @@ function CreateGameContent() {
                                     "Multiple",
                                   )
                                 }
-                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${
-                                  gameSettings.pointsPerRound === "Multiple"
-                                    ? "text-white"
-                                    : "text-gray-800 dark:text-gray-300"
-                                }`}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 ${gameSettings.pointsPerRound === "Multiple"
+                                  ? "text-white"
+                                  : "text-gray-800 dark:text-gray-300"
+                                  }`}
                                 style={
                                   gameSettings.pointsPerRound === "Multiple"
                                     ? { backgroundColor: "#365376" }
@@ -1027,11 +1023,10 @@ function CreateGameContent() {
                                 !gameSettings.hideTotalColumn,
                               )
                             }
-                            className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                              gameSettings.hideTotalColumn
-                                ? "border-gray-300 dark:border-gray-600"
-                                : "border-gray-300 dark:border-gray-600"
-                            }`}
+                            className={`w-6 h-6 rounded border-2 flex items-center justify-center ${gameSettings.hideTotalColumn
+                              ? "border-gray-300 dark:border-gray-600"
+                              : "border-gray-300 dark:border-gray-600"
+                              }`}
                             style={
                               gameSettings.hideTotalColumn
                                 ? { backgroundColor: "#365376" }

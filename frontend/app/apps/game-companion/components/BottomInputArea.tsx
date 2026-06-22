@@ -128,7 +128,7 @@ export default function BottomInputArea({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[var(--card-background)] shadow-lg"
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white dark:bg-[var(--card-background)] shadow-lg"
       style={{ zIndex: 60 }}
     >
       {showSettings ? (
@@ -164,21 +164,6 @@ export default function BottomInputArea({
               <Trash size={16} />
               <span className="text-sm font-medium">Turları Sıfırla</span>
             </button>
-            <div className="flex items-center space-x-2">
-              <label
-                htmlFor="hideTotalColumn"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Toplam Sütununu Gizle:
-              </label>
-              <input
-                type="checkbox"
-                id="hideTotalColumn"
-                checked={gameSave?.settings.hideTotalColumn || false}
-                onChange={toggleHideTotalColumn}
-                className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
-              />
-            </div>
           </div>
         </div>
       ) : (
@@ -682,7 +667,7 @@ export default function BottomInputArea({
         <div className="flex items-center justify-between">
           <button
             onClick={endRound}
-            className="flex-1 bg-blue-500 text-white py-3 px-6 rounded-lg font-medium text-center hover:bg-blue-600"
+            className="flex-1 bg-blue-500 text-white h-12 rounded-xl font-medium flex items-center justify-center hover:bg-blue-600"
           >
             {getNextRoundNumber()}. Turu Bitir
           </button>

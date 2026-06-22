@@ -11,16 +11,15 @@ import {
 } from "@phosphor-icons/react";
 
 // Local imports
-import GameRulesTab from "../components/GameRulesTab";
 import PuanlarTab from "../components/PuanlarTab";
 import WyrmspanHorizontalScorepad from "../components/WyrmspanHorizontalScorepad";
 import CatanHorizontalScorepad from "../components/CatanHorizontalScorepad";
 import CarcassoneScoreboard from "../components/CarcassoneScoreboard";
-import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
+import MunchkinScoreboard from "../components/MunchkinScoreboard";
+import { MOCK_GAMES, mapGameSaveToFrontend } from "../lib/games";
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { mapGameSaveToFrontend } from "../lib/mock-data";
 
 const client = createBrowserClient();
 
@@ -83,9 +82,10 @@ function GameSessionContent() {
   const gameName = gameSave?.name || "Oyun";
   const gameTemplateId = gameSave?.gameTemplate || "";
 
-  const isWyrmspanGame = gameTemplateId === "j977daz379q5h1d266v0gkfq1h7swdvp" || gameTemplateId === "g7";
-  const isCatanGame = gameTemplateId === "j97468qwc0r8f3n0a04bhpgtz57sww2t" || gameTemplateId === "g5";
-  const isCarcassonneGame = gameTemplateId === "j977k8t8rhgtxyzvwyafvk0nc17wkqh3" || gameTemplateId === "g6";
+  const isWyrmspanGame = gameTemplateId === "j977daz379q5h1d266v0gkfq1h7swdvp" || gameTemplateId === "g7" || gameTemplateId === "g12" || gameName === "Wyrmspan";
+  const isCatanGame = gameTemplateId === "j97468qwc0r8f3n0a04bhpgtz57sww2t" || gameTemplateId === "g5" || gameTemplateId === "g9" || gameName === "Catan";
+  const isCarcassonneGame = gameTemplateId === "j977k8t8rhgtxyzvwyafvk0nc17wkqh3" || gameTemplateId === "g6" || gameTemplateId === "g11" || gameName === "Carcassonne";
+  const isMunchkinGame = gameTemplateId === "g10" || gameName === "Munchkin";
 
   const handleBack = () => {
     router.push("/apps/game-companion/history");
@@ -103,9 +103,9 @@ function GameSessionContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--background)" }}>
+    <div className="min-h-screen flex flex-col max-w-2xl mx-auto border-x border-gray-100 dark:border-gray-900" style={{ backgroundColor: "var(--background)" }}>
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#100D16] shadow-sm">
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 bg-white dark:bg-[#100D16] shadow-sm">
         <div className="px-4 py-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center">
             <button onClick={handleBack} className="mr-4">
@@ -125,6 +125,8 @@ function GameSessionContent() {
           <CatanHorizontalScorepad gameSaveId={gameSaveId as any} />
         ) : isCarcassonneGame ? (
           <CarcassoneScoreboard gameSaveId={gameSaveId as any} />
+        ) : isMunchkinGame ? (
+          <MunchkinScoreboard gameSaveId={gameSaveId as any} />
         ) : (
           <PuanlarTab
             gameSaveId={gameSaveId as any}

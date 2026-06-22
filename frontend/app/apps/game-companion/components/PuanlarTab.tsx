@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { CrownSimple } from "@phosphor-icons/react";
+import { CrownSimple, Eye, EyeSlash } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import BottomInputArea from "./BottomInputArea";
 import ConfirmModal from "./ConfirmModal";
 import MunchkinScoreboard from "./MunchkinScoreboard";
-import { MOCK_GAMES, MOCK_PLAYERS } from "../lib/mock-data";
+import { MOCK_GAMES } from "../lib/games";
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { mapGameSaveToFrontend } from "../lib/mock-data";
+import { mapGameSaveToFrontend } from "../lib/games";
 import { useEffect } from "react";
 
 const client = createBrowserClient();
@@ -282,45 +282,51 @@ export default function PuanlarTab({
     }
   };
 
-  // Generate round columns dynamically
-  const generateRoundColumns = () => {
+  const getNextRoundNumber = () => {
     if (gameSave?.settings.gameplay === "takimli" && gameSave?.teamLaps) {
       // For team mode, use teamLaps
-      if (gameSave.teamLaps.length === 0) {
-        return [];
-      }
-      
-      const rounds = [];
-      // Generate round numbers from most recent to oldest
-      for (let i = gameSave.teamLaps.length; i >= 1; i--) {
-        rounds.push(i);
-      }
-      return rounds;
+      return gameSave.teamLaps.length + 1;
     } else {
       // For individual mode, use laps
       if (!gameSave?.laps || gameSave.laps.length === 0) {
-        return [];
+        return 1; // First round if no laps exist
       }
       
       // Get the maximum number of rounds from the laps data
       const maxRounds = Math.max(
-        ...(gameSave.laps as any[]).map((playerLaps: any[]) => playerLaps.length)
+        ...gameSave.laps.map((playerLaps: any[]) => playerLaps.length)
       );
-      
-      // If no rounds have been recorded, don't show any round columns
-      if (maxRounds === 0) {
-        return [];
-      }
-      
-      const rounds = [];
-      
-      // Generate round numbers from most recent to oldest
-      for (let i = maxRounds; i >= 1; i--) {
-        rounds.push(i);
-      }
-      
-      return rounds;
+      return maxRounds + 1; // Next round number
     }
+  };
+
+  // Generate round columns dynamically
+  const generateRoundColumns = () => {
+    const rounds: number[] = [];
+    if (gameSave?.settings.gameplay === "takimli" && gameSave?.teamLaps) {
+      // For team mode, use teamLaps
+      if (gameSave.teamLaps.length > 0) {
+        // Generate round numbers from most recent to oldest
+        for (let i = gameSave.teamLaps.length; i >= 1; i--) {
+          rounds.push(i);
+        }
+      }
+    } else {
+      // For individual mode, use laps
+      if (gameSave?.laps && gameSave.laps.length > 0) {
+        // Get the maximum number of rounds from the laps data
+        const maxRounds = Math.max(
+          ...(gameSave.laps as any[]).map((playerLaps: any[]) => playerLaps.length)
+        );
+        
+        // Generate round numbers from most recent to oldest
+        for (let i = maxRounds; i >= 1; i--) {
+          rounds.push(i);
+        }
+      }
+    }
+
+    return rounds;
   };
 
   const roundColumns = generateRoundColumns();
@@ -603,23 +609,18 @@ export default function PuanlarTab({
     }
   };
 
-  const getNextRoundNumber = () => {
-    if (gameSave?.settings.gameplay === "takimli" && gameSave?.teamLaps) {
-      // For team mode, use teamLaps
-      return gameSave.teamLaps.length + 1;
-    } else {
-      // For individual mode, use laps
-      if (!gameSave?.laps || gameSave.laps.length === 0) {
-        return 1; // First round if no laps exist
-      }
-      
-      // Get the maximum number of rounds from the laps data
-      const maxRounds = Math.max(
-        ...gameSave.laps.map((playerLaps: any[]) => playerLaps.length)
-      );
-      return maxRounds + 1; // Next round number
-    }
-  };
+
+
+  if (!gameSave) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-150 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Check if this is the Munchkin game
   const isMunchkinGame =
@@ -644,11 +645,11 @@ export default function PuanlarTab({
           <div className="px-2 py-2 flex min-w-max">
             {/* Player/Team Names Column */}
             <div className="flex flex-col">
-              <div className="py-4"></div> {/* Header spacer */}
+              <div className="h-9"></div> {/* Header spacer */}
               {gameSave?.settings.gameplay === "takimli" ? (
                 <>
                   {/* Red Team */}
-                  <div className="pb-1 pt-3.5 pl-4 pr-2 flex items-center border-b border-gray-100 dark:border-[var(--card-border)]">
+                  <div className="h-[52px] pl-4 pr-2 flex items-center border-b border-gray-100 dark:border-[var(--card-border)]">
                     <div className="flex items-center min-w-[120px] flex-1">
                       <div className="relative mr-3">
                         {redTeamPlayers && redTeamPlayers.length > 0 ? (
@@ -700,7 +701,7 @@ export default function PuanlarTab({
                   </div>
                   
                   {/* Blue Team */}
-                  <div className="py-2 pl-4 pr-2 flex items-center">
+                  <div className="h-[52px] pl-4 pr-2 flex items-center">
                     <div className="flex items-center min-w-[180px] flex-1">
                       <div className="relative mr-3">
                         {blueTeamPlayers && blueTeamPlayers.length > 0 ? (
@@ -757,7 +758,7 @@ export default function PuanlarTab({
                 (gamePlayers as any[]).map((player: any, index: number) => (
                   <div
                     key={player._id}
-                    className={`pt-3 pb-0.5 pl-4 pr-2 flex items-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
+                    className={`h-[52px] pl-4 pr-2 flex items-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
                   >
                     <div className="flex items-center min-w-[120px]">
                       {player.avatar ? (
@@ -783,48 +784,65 @@ export default function PuanlarTab({
             </div>
 
             {/* Total Column */}
-            {!gameSave?.settings.hideTotalColumn && (
-              <div className="flex flex-col">
-                <div className="py-2 px-4 font-medium flex items-center justify-center text-[var(--secondary-color)] dark:text-gray-200">
-                  Toplam
-                </div>
-                {gameSave?.settings.gameplay === "takimli" ? (
-                  <>
-                    <div className="py-2.5 px-4 flex items-center justify-center border-b border-gray-100 dark:border-[var(--card-border)]">
-                      <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
-                        {getTeamTotalScore(redTeamPlayers || [])}
-                      </div>
-                    </div>
-                    <div className="py-2.5 px-4 flex items-center justify-center">
-                      <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
-                        {getTeamTotalScore(blueTeamPlayers || [])}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  (gamePlayers as any[]).map((player: any, index: number) => (
-                    <div
-                      key={player._id}
-                      className={`py-2.5 px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
-                    >
-                      <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
-                        {getTotalScore(player._id)}
-                      </div>
-                    </div>
-                  ))
-                )}
+            <div className="flex flex-col">
+              <div className="h-9 px-4 font-medium flex items-center justify-center gap-1.5 text-[var(--secondary-color)] dark:text-gray-200">
+                <span>Toplam</span>
+                <button
+                  onClick={toggleHideTotalColumn}
+                  className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-blue-500 flex items-center justify-center"
+                  title={gameSave?.settings.hideTotalColumn ? "Toplamı Göster" : "Toplamı Gizle"}
+                >
+                  {gameSave?.settings.hideTotalColumn ? <EyeSlash size={16} /> : <Eye size={16} />}
+                </button>
               </div>
-            )}
+              {gameSave?.settings.gameplay === "takimli" ? (
+                <>
+                  <div className="h-[52px] px-4 flex items-center justify-center border-b border-gray-100 dark:border-[var(--card-border)]">
+                    <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
+                      {gameSave?.settings.hideTotalColumn ? (
+                        "••"
+                      ) : (
+                        getTeamTotalScore(redTeamPlayers || [])
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-[52px] px-4 flex items-center justify-center">
+                    <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
+                      {gameSave?.settings.hideTotalColumn ? (
+                        "••"
+                      ) : (
+                        getTeamTotalScore(blueTeamPlayers || [])
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                (gamePlayers as any[]).map((player: any, index: number) => (
+                  <div
+                    key={player._id}
+                    className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
+                  >
+                    <div className="font-medium text-[var(--secondary-color)] dark:text-gray-200">
+                      {gameSave?.settings.hideTotalColumn ? (
+                        "••"
+                      ) : (
+                        getTotalScore(player._id)
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
             {/* Round Columns */}
             {roundColumns.map((roundNumber) => (
               <div key={roundNumber} className="flex flex-col">
-                <div className="py-2 px-4 font-medium flex items-center justify-center text-[var(--secondary-color)] dark:text-gray-200">
+                <div className="h-9 px-4 font-medium flex items-center justify-center text-[var(--secondary-color)] dark:text-gray-200">
                   {roundNumber}. Tur
                 </div>
                 {gameSave?.settings.gameplay === "takimli" ? (
                   <>
-                    <div className="py-2.5 px-4 flex items-center justify-center border-b border-gray-100 dark:border-[var(--card-border)]">
+                    <div className="h-[52px] px-4 flex items-center justify-center border-b border-gray-100 dark:border-[var(--card-border)]">
                       <div className="text-gray-600 dark:text-gray-200 font-medium">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
                           getTeamRoundScore(
@@ -843,11 +861,11 @@ export default function PuanlarTab({
                           getTeamRoundScore(
                             redTeamPlayers || [],
                             roundNumber
-                          ) || "-"
+                          ) ?? "-"
                         )}
                       </div>
                     </div>
-                    <div className="py-2.5 px-4 flex items-center justify-center">
+                    <div className="h-[52px] px-4 flex items-center justify-center">
                       <div className="text-gray-600 dark:text-gray-200 font-medium">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
                           getTeamRoundScore(
@@ -866,7 +884,7 @@ export default function PuanlarTab({
                           getTeamRoundScore(
                             blueTeamPlayers || [],
                             roundNumber
-                          ) || "-"
+                          ) ?? "-"
                         )}
                       </div>
                     </div>
@@ -875,7 +893,7 @@ export default function PuanlarTab({
                 (gamePlayers as any[]).map((player: any, index: number) => (
                     <div
                       key={player._id}
-                      className={`py-2.5 px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
+                      className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100 dark:border-[var(--card-border)]" : ""}`}
                     >
                       <div className="text-gray-600 dark:text-gray-200 font-medium">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
@@ -889,7 +907,7 @@ export default function PuanlarTab({
                             "-"
                           )
                         ) : (
-                          getRoundScores(player._id, roundNumber) || "-"
+                          getRoundScores(player._id, roundNumber) ?? "-"
                         )}
                       </div>
                     </div>
