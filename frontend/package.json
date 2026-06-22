@@ -34,6 +34,7 @@
     "@capacitor/ios": "^7.4.4",
     "@capacitor/share": "^7.0.2",
     "@capacitor/status-bar": "^7.0.3",
+    "@capgo/capacitor-navigation-bar": "^8.2.5",
     "@capgo/capacitor-updater": "^7.45.10",
     "@clerk/clerk-react": "^5.58.0",
     "@dicebear/avataaars": "^9.4.2",

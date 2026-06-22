@@ -29,7 +29,9 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (7.0.6):
     - Capacitor
-  - CapgoCapacitorUpdater (8.49.7):
+  - CapgoCapacitorNavigationBar (8.2.5):
+    - Capacitor
+  - CapgoCapacitorUpdater (7.45.10):
     - Alamofire (= 5.10.2)
     - BigInt (= 5.2.0)
     - Capacitor
@@ -98,6 +100,7 @@ DEPENDENCIES:
   - "CapacitorFirebaseAuthentication/Google (from `../../node_modules/@capacitor-firebase/authentication`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+  - "CapgoCapacitorNavigationBar (from `../../node_modules/@capgo/capacitor-navigation-bar`)"
   - "CapgoCapacitorUpdater (from `../../node_modules/@capgo/capacitor-updater`)"
   - SendIntent (from `../../node_modules/send-intent`)
 
@@ -135,6 +138,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/share"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
+  CapgoCapacitorNavigationBar:
+    :path: "../../node_modules/@capgo/capacitor-navigation-bar"
   CapgoCapacitorUpdater:
     :path: "../../node_modules/@capgo/capacitor-updater"
   SendIntent:
@@ -151,7 +156,8 @@ SPEC CHECKSUMS:
   CapacitorFirebaseAuthentication: c5d02225dc97a1192f3b615f8c0df2ef910c40b7
   CapacitorShare: 25f7fc5dd0e4edbde5d6801c6de5d14a8b450a41
   CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
-  CapgoCapacitorUpdater: 3e1ae00c980070ec620dd638863b4cbc79705c6e
+  CapgoCapacitorNavigationBar: b1ed7220ddd3ca6990709e5944f05b7ba43b75da
+  CapgoCapacitorUpdater: e2ec6954d5f24d4b340ed155ade8fa91085d91b1
   FirebaseAppCheckInterop: 06fe5a3799278ae4667e6c432edd86b1030fa3df
   FirebaseAuth: 77e25aa24f3e1c626c5babd3338551fc1669ee0e
   FirebaseAuthInterop: 7087d7a4ee4bc4de019b2d0c240974ed5d89e2fd
@@ -167,6 +173,6 @@ SPEC CHECKSUMS:
   Version: de5907f2c5d0f3cf21708db7801d1d5401139486
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 71043b2fa3d3a0a5897571a1ce39c0eed6d69048
+PODFILE CHECKSUM: 68a59463f75faa104d7d07649989b4ab1d88cd42
 
 COCOAPODS: 1.16.2

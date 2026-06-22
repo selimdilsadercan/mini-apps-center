@@ -26,14 +26,7 @@ public class MainActivity extends BridgeActivity {
         
         super.onCreate(savedInstanceState);
         
-        Window window = getWindow();
-        window.setStatusBarColor(Color.parseColor("#FAF9F7"));
-        window.setNavigationBarColor(Color.WHITE);
-        
-        WindowInsetsControllerCompat windowInsetsController = 
-            WindowCompat.getInsetsController(window, window.getDecorView());
-        windowInsetsController.setAppearanceLightStatusBars(true);
-        windowInsetsController.setAppearanceLightNavigationBars(true);
+
         
         // Check for share intent on startup
         handleIntent(getIntent());

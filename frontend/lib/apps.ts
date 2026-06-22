@@ -55,6 +55,10 @@ export interface MiniApp {
   isLocal?: boolean;
   isBeta?: boolean;
   isCancelled?: boolean;
+  statusBarColor?: string;
+  statusBarStyle?: "light" | "dark";
+  navigationBarColor?: string;
+  navigationBarStyle?: "light" | "dark";
 }
 
 /** Capacitor APK/WebView (build flag veya çalışma anı). */
@@ -145,6 +149,10 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/subcenter",
     isImplemented: true,
     subdomain: "subcenter",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#F3F4F6",
+    navigationBarStyle: "light",
   },
   {
     id: "daily-weather",
@@ -157,6 +165,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "weather",
     isBeta: true,
+    statusBarColor: "#F0E6FF",
+    statusBarStyle: "light",
+    navigationBarColor: "#FFF9E6",
+    navigationBarStyle: "light",
   },
   {
     id: "suggest",
@@ -169,6 +181,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "suggest",
     isBeta: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
   },
   {
     id: "tutor-crm",
@@ -193,6 +209,10 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/pdf-tools",
     isImplemented: true,
     subdomain: "pdf",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
   },
 
   // Games
@@ -206,6 +226,10 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/iskambil",
     isImplemented: true,
     subdomain: "cardgames",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#f4f1ea",
+    navigationBarStyle: "light",
   },
   {
     id: "catan-bot",
@@ -245,6 +269,10 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "tournaments",
     isBeta: true,
     isCancelled: true,
+    statusBarColor: "#0a0a0c",
+    statusBarStyle: "dark",
+    navigationBarColor: "#0a0a0c",
+    navigationBarStyle: "dark",
   },
   {
     id: "board-game-clubs",
@@ -272,6 +300,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "memedex",
     isBeta: true,
+    statusBarColor: "#020617",
+    statusBarStyle: "dark",
+    navigationBarColor: "#020617",
+    navigationBarStyle: "dark",
   },
   {
     id: "youtube-series",
@@ -338,6 +370,10 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "itumeals",
     isLocal: true,
     isBeta: true,
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#F0F2F5",
+    navigationBarStyle: "light",
   },
   {
     id: "sticker-editor",
@@ -363,6 +399,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "kimgelir",
     isBeta: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
   },
   {
     id: "workplaces",
@@ -375,6 +415,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "workplaces",
     isBeta: true,
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAFAFA",
+    navigationBarStyle: "light",
   },
   {
     id: "kiler",
@@ -388,6 +432,10 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "kiler",
     isBeta: true,
     isCancelled: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#ffffff",
+    navigationBarStyle: "light",
   },
   {
     id: "map-tracker",
@@ -412,6 +460,10 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/chocolate-db",
     isImplemented: true,
     subdomain: "chocolatedb",
+    statusBarColor: "#4A2C2A",
+    statusBarStyle: "dark",
+    navigationBarColor: "#FDF5E6",
+    navigationBarStyle: "light",
   },
   {
     id: "meal-planner",
@@ -425,6 +477,10 @@ export const MINI_APPS: MiniApp[] = [
     subdomain: "recipe",
     isBeta: true,
     isCancelled: true,
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
   },
   {
     id: "ne-yapsam",
@@ -446,10 +502,14 @@ export const MINI_APPS: MiniApp[] = [
     icon: Compass,
     category: "Lifestyle",
     color: "#D4AF37",
-    href: "/apps/hobby-center", 
+    href: "/apps/hobby-center",
     isImplemented: true,
     subdomain: "hobby",
     isBeta: true,
+    statusBarColor: "#020617",
+    statusBarStyle: "dark",
+    navigationBarColor: "#020617",
+    navigationBarStyle: "dark",
   },
   {
     id: "concert-list",
@@ -461,6 +521,10 @@ export const MINI_APPS: MiniApp[] = [
     href: "/apps/concert-list",
     isImplemented: true,
     subdomain: "concerts",
+    statusBarColor: "#09090b",
+    statusBarStyle: "dark",
+    navigationBarColor: "#09090b",
+    navigationBarStyle: "dark",
   },
   {
     id: "campus-concerts",
@@ -473,6 +537,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "kampus",
     isBeta: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#F8FAFC",
+    navigationBarStyle: "light",
   },
   {
     id: "one-day-city-guide",
@@ -485,6 +553,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "oneday",
     isBeta: true,
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#F8FAFC",
+    navigationBarStyle: "light",
   },
   {
     id: "tasket",
@@ -538,6 +610,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tasarruf",
     isBeta: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#ffffff",
+    navigationBarStyle: "light",
   },
   {
     id: "penalty-jar",
@@ -563,6 +639,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "budget",
     isBeta: true,
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
   },
   {
     id: "stamp-card",
@@ -575,6 +655,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "stampcard",
     isBeta: true,
+    statusBarColor: "#FDFBF7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FDFBF7",
+    navigationBarStyle: "light",
   },
   {
     id: "campus-events",
@@ -587,6 +671,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "campusevents",
     isBeta: true,
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#F8FAFC",
+    navigationBarStyle: "light",
   },
   {
     id: "esles",
@@ -625,6 +713,10 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "seriestrack",
     isBeta: true,
+    statusBarColor: "#09090b",
+    statusBarStyle: "dark",
+    navigationBarColor: "#09090b",
+    navigationBarStyle: "dark",
   },
   {
     id: "digital-menu",
@@ -637,5 +729,9 @@ export const MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "menu",
     isBeta: true,
+    statusBarColor: "#FDFBF9",
+    statusBarStyle: "light",
+    navigationBarColor: "#FDFBF9",
+    navigationBarStyle: "light",
   },
 ];
