@@ -1,6 +1,6 @@
 "use client";
 
-import { getAppRootUrl } from "@/lib/apps";
+import { getAppRootUrl, getPublicSubdomainUrl } from "@/lib/apps";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
@@ -489,16 +489,7 @@ function SuggestPageContent() {
     return <span className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full bg-blue-50 text-blue-600 border border-blue-200">Görülmedi</span>;
   };
 
-  const getShareLink = (id: string) => {
-    if (typeof window === "undefined") return "";
-    const hostname = window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : "";
-    if (hostname.includes("localhost")) {
-      return `http://suggest.localhost${port}/s/${id}`;
-    }
-    const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-    return `https://suggest.${ROOT_DOMAIN}/s/${id}`;
-  };
+  const getShareLink = (id: string) => getPublicSubdomainUrl("suggest", `/s/${id}`);
 
   const getExternalLinkButtonLabel = (category: string) => {
     switch (category) {

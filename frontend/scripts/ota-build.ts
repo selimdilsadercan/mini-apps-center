@@ -96,6 +96,32 @@ async function main() {
     console.log(`\n✅ Zip Hazır!`);
     console.log(`📍 Konum: ${fullPath}`);
 
+    // Yerel versions/ klasöründe de sadece son 2 zip kalsın (R2 ile aynı politika)
+    try {
+      console.log("🧹 Yerel eski sürümler temizleniyor...");
+      const localZips = fs
+        .readdirSync(outputDir)
+        .filter((name) => name.endsWith(".zip"))
+        .map((name) => {
+          const zipPath = path.join(outputDir, name);
+          return { name, path: zipPath, mtime: fs.statSync(zipPath).mtimeMs };
+        })
+        .sort((a, b) => b.mtime - a.mtime);
+
+      const localToDelete = localZips.slice(2);
+      for (const file of localToDelete) {
+        fs.unlinkSync(file.path);
+        console.log(`      - ${file.name}`);
+      }
+      if (localToDelete.length > 0) {
+        console.log(`   🗑️ ${localToDelete.length} eski yerel sürüm silindi.`);
+      } else {
+        console.log("   ✨ Temizlenecek yerel eski sürüm yok.");
+      }
+    } catch (localCleanErr: any) {
+      console.error("⚠️ Yerel temizlik sırasında hata (build etkilenmedi):", localCleanErr.message);
+    }
+
     // 5. Cloudflare R2'ye Yükle (Otomatik)
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;

@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { getRootHomeUrl } from "@/lib/apps";
+import { getRootHomeUrl, isCapacitorNative } from "@/lib/apps";
 
 export default function NotFound() {
   useEffect(() => {
+    if (isCapacitorNative()) {
+      window.location.href = getRootHomeUrl();
+      return;
+    }
+
     const hostname = window.location.hostname;
     const port = window.location.port ? `:${window.location.port}` : "";
     const protocol = window.location.protocol;

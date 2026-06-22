@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
 import { suggest } from "@/lib/client";
@@ -40,14 +41,16 @@ interface SuggestRecipientClientProps {
 }
 
 export default function SuggestRecipientClient({
-  id,
+  id: initialId,
   initialSuggestion,
   initialSenderName,
   initialSenderAvatar,
   initialSenderClerkId,
   initialIsExpired,
 }: SuggestRecipientClientProps) {
-  const [loading, setLoading] = useState(false);
+  const params = useParams() as { id?: string };
+  const id = params.id || initialId || "";
+  const [loading, setLoading] = useState(!initialSuggestion);
   const [isExpired, setIsExpired] = useState(initialIsExpired);
   const [suggestion, setSuggestion] = useState<suggest.Suggestion | null>(initialSuggestion);
   const [senderName, setSenderName] = useState<string | null>(initialSenderName);
@@ -57,6 +60,33 @@ export default function SuggestRecipientClient({
   const [reactionSubmitting, setReactionSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Initial fetch if data is missing (e.g. in static export)
+  useEffect(() => {
+    if (!initialSuggestion && id && id !== "dummy") {
+      fetchSuggestion();
+    }
+  }, [id, initialSuggestion]);
+
+  const fetchSuggestion = async () => {
+    try {
+      setLoading(true);
+      const res = await client.suggest.getPublicSuggestion(id, { userId: user?.id });
+      if (res.suggestion) {
+        setSuggestion(res.suggestion);
+        setSenderName(res.senderUsername);
+        setSenderAvatar(res.senderAvatar);
+        setSenderClerkId(res.senderId);
+        setIsExpired(res.isExpired);
+        setSelectedReaction(res.suggestion.reaction);
+      }
+    } catch (err) {
+      console.error("Error fetching suggestion:", err);
+      toast.error("Öneri yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!suggestion?.expiresAt) return;
@@ -313,6 +343,14 @@ export default function SuggestRecipientClient({
             <ArrowRight size={16} weight="bold" />
           </a>
         </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F7] flex flex-col items-center justify-center p-4 text-gray-900">
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

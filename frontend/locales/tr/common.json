@@ -6,7 +6,9 @@
     "buildYourOs": "Kendi Arayüzünü Oluştur",
     "homeEmptyDescription": "Ana ekranınız boş. Deneyiminizi özelleştirmek için keşfet bölümünden modüller ekleyin.",
     "startExploring": "Keşfetmeye Başla",
-    "removedToast": "Uygulama ana ekrandan kaldırıldı"
+    "removedToast": "Uygulama ana ekrandan kaldırıldı",
+    "dashboardWidgetTitle": "İşletme Paneli",
+    "dashboardWidgetSubtitle": "Menü, stamp & feedback"
   },
   "discover": {
     "title": "Uygulama Merkezi",

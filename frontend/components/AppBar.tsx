@@ -51,7 +51,7 @@ export default function AppBar({ activePage }: AppBarProps) {
     <>
       {/* Feedback Floating Button */}
       <Link
-        href="/f/9be81ce2"
+        href="/f?board=9be81ce2"
         className="fixed bottom-[6.5rem] left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-xl border border-zinc-200 shadow-xl px-4 py-2 rounded-full z-50 flex items-center gap-2 hover:bg-violet-50 hover:border-violet-200 transition-all group active:scale-95"
       >
         <ChatTeardropDots size={18} weight="fill" className="text-violet-600 group-hover:scale-110 transition-transform" />

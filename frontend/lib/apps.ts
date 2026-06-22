@@ -58,12 +58,8 @@ export interface MiniApp {
 }
 
 /** Capacitor APK/WebView (build flag veya çalışma anı). */
-export function isCapacitorNative(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } })
-    .Capacitor;
-  return !!cap?.isNativePlatform?.();
-}
+export { isCapacitorNative, getAppRootUrl, getRootHomeUrl, navigateToAppRoot, APP_HOME_PATH, getPublicSubdomainUrl } from "./app-root";
+import { isCapacitorNative } from "./app-root";
 
 /**
  * Generates the correct URL for a mini app, considering subdomains.
@@ -123,52 +119,6 @@ export function navigateToMiniApp(
     /* external */
   }
   window.location.href = href;
-}
-
-/**
- * Returns the root home URL.
- */
-export function getRootHomeUrl(): string {
-  if (typeof window === "undefined") return "/home";
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-  const protocol = window.location.protocol;
-
-  const isLocal =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.endsWith(".localhost");
-
-  if (isLocal) {
-    const primary = port ? `localhost:${port}` : "localhost";
-    return `${protocol}//${primary}/home`;
-  }
-
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-  return `${protocol}//${rootDomain}/home`;
-}
-
-/**
- * Returns the app root URL on the 'my' subdomain.
- */
-export function getAppRootUrl(): string {
-  if (typeof window === "undefined") return "/";
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-  const protocol = window.location.protocol;
-
-  const isLocal =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.endsWith(".localhost");
-
-  if (isLocal) {
-    const primary = port ? `my.localhost:${port}` : "my.localhost";
-    return `${protocol}//${primary}/`;
-  }
-
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-  return `${protocol}//my.${rootDomain}/`;
 }
 
 export const MINI_APPS: MiniApp[] = [

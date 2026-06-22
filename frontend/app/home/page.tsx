@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
-import { Sparkle, Plus, Check, ArrowsOutCardinal } from "@phosphor-icons/react";
+import { Sparkle, Plus, Check, ArrowsOutCardinal, Storefront, ChefHat, ChatTeardropDots } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DndContext,
@@ -29,9 +29,11 @@ import AppBar, { ActivePage } from "@/components/AppBar";
 import { getUserPreferencesAction, updateAppOrderAction } from "./actions";
 import { toast } from "react-hot-toast";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export default function Home() {
   const { isLoaded, user } = useUser();
+  const { isAdmin, loading: isAdminLoading } = useIsAdmin();
   const router = useRouter();
   const t = useTranslations("home");
 
@@ -223,6 +225,13 @@ export default function Home() {
         >
           <section className="mb-12">
             <div className="grid grid-cols-4 gap-y-8 gap-x-4">
+              {user && isAdmin && !isAdminLoading && (
+                <DashboardWidget
+                  title={t("dashboardWidgetTitle")}
+                  onOpen={() => router.push("/dashboard")}
+                  dimmed={isEditMode}
+                />
+              )}
               <SortableContext
                 items={apps.map((a) => a.id)}
                 strategy={rectSortingStrategy}
@@ -266,6 +275,60 @@ export default function Home() {
 
       <AppBar activePage={ActivePage.HUB} />
     </div>
+  );
+}
+
+/**
+ * Fixed 2×1 OS widget — spans two columns, one row height.
+ */
+function DashboardWidget({
+  title,
+  onOpen,
+  dimmed,
+}: {
+  title: string;
+  onOpen: () => void;
+  dimmed: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`group col-span-2 flex flex-col items-center gap-2 select-none cursor-pointer transition-all duration-200 active:scale-[0.98] ${
+        dimmed ? "opacity-60" : ""
+      }`}
+    >
+      <div
+        className="w-full h-16 sm:h-20 rounded-[1.25rem] flex items-center justify-center relative overflow-hidden shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-red-300/50"
+        style={{
+          background: "linear-gradient(135deg, #EF4444 0%, #F97316 100%)",
+          boxShadow: "0 8px 24px -6px #EF444440",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
+        <div className="absolute inset-0 border border-white/20 rounded-[1.25rem]" />
+
+        <div className="relative z-10 flex items-center justify-center gap-2.5 w-full px-3">
+          <Storefront size={24} weight="fill" color="white" className="shrink-0" />
+
+          <div className="h-7 w-px shrink-0 bg-white/30" />
+
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
+              <ChefHat size={14} weight="fill" color="white" />
+            </div>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
+              <ChatTeardropDots size={14} weight="fill" color="white" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 leading-[1.2] group-hover:text-indigo-600 transition-colors">
+        {title}
+      </span>
+    </button>
   );
 }
 

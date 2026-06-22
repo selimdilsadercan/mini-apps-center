@@ -12,6 +12,13 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  if (id === "dummy") {
+    return {
+      title: "Suggest Tavsiyesi",
+      description: "Arkadaşından gelen tavsiyeyi hemen gör!",
+    };
+  }
+
   try {
     const client = await createServerClient();
     const res = await client.suggest.getPublicSuggestion(id, {});
@@ -23,16 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       };
     }
 
-    const { suggestion, senderUsername } = res;
-    const categoryMap: Record<string, string> = {
-      song: "Şarkı 🎵",
-      movie: "Film 🎬",
-      tv: "Dizi 📺",
-      video: "Video 📹",
-      place: "Mekan 📍",
-      book: "Kitap 📚",
-    };
-
+    const { senderUsername } = res;
     const title = `${senderUsername || "Bir arkadaşın"} sana bir tavsiye bıraktı!`;
     const description = `24 saat dolmadan hemen tıkla ve arkadaşının senin için bıraktığı öneriyi gör.`;
 
@@ -71,32 +69,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
-  let suggestion = null;
-  let senderUsername = null;
-  let senderAvatar = null;
-  let senderId = null;
-  let isExpired = false;
-
-  try {
-    const client = await createServerClient();
-    const res = await client.suggest.getPublicSuggestion(id, {});
-    suggestion = res.suggestion;
-    senderUsername = res.senderUsername;
-    senderAvatar = res.senderAvatar;
-    senderId = res.senderId;
-    isExpired = res.isExpired;
-  } catch (err) {
-    console.error("Failed to load server suggestion:", err);
-  }
-
+  
+  // In a static export, we can't reliably fetch data at build time for dynamic IDs.
+  // We pass the ID to the client component which will handle fetching if initial data is missing.
   return (
     <SuggestRecipientClient
       id={id}
-      initialSuggestion={suggestion as any}
-      initialSenderName={senderUsername}
-      initialSenderAvatar={senderAvatar}
-      initialSenderClerkId={senderId}
-      initialIsExpired={isExpired}
+      initialSuggestion={null as any}
+      initialSenderName={null}
+      initialSenderAvatar={null}
+      initialSenderClerkId={null}
+      initialIsExpired={false}
     />
   );
 }

@@ -6,7 +6,9 @@
     "buildYourOs": "Build your OS",
     "homeEmptyDescription": "Your home screen is empty. Add modules from the discover section to customize your experience.",
     "startExploring": "Start Exploring",
-    "removedToast": "App removed from home screen"
+    "removedToast": "App removed from home screen",
+    "dashboardWidgetTitle": "Business Hub",
+    "dashboardWidgetSubtitle": "Menu, stamp & feedback"
   },
   "discover": {
     "title": "Everything Hub",

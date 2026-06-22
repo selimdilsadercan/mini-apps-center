@@ -22,7 +22,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const client = createBrowserClient();
 
-export default function BudgetDashboard() {
+export default function BudgetPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const [projects, setProjects] = useState<budget.Project[]>([]);
   const [friends, setFriends] = useState<friendship.FriendUser[]>([]);
@@ -169,7 +169,7 @@ export default function BudgetDashboard() {
                 return (
                   <div
                     key={project.id}
-                    onClick={() => router.push(`/apps/budget/${project.id}`)}
+                    onClick={() => router.push(`/apps/budget/project?id=${project.id}`)}
                     className="bg-white hover:bg-gray-50 border border-gray-200/50 rounded-[1.6rem] p-4 flex justify-between items-center transition-all cursor-pointer active:scale-[0.98] group shadow-sm"
                   >
                     <div className="flex items-center gap-4">

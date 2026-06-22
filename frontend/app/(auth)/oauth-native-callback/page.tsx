@@ -5,6 +5,18 @@ import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 
+function LoadingCard({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[#FAF9F7] p-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="w-12 h-12 border-4 border-[#FF6B35]/30 border-t-[#FF6B35] rounded-full animate-spin mx-auto mb-6" />
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
+        <p className="text-gray-600">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 function OAuthNativeCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,15 +32,13 @@ function OAuthNativeCallbackContent() {
       }
 
       try {
-        // ID Token ile Firebase'e giriş yap
         const credential = GoogleAuthProvider.credential(token);
         const userCredential = await signInWithCredential(auth, credential);
 
         console.log("Native login success:", userCredential.user.email);
 
-        // Giriş başarılı, profile yönlendir
         setTimeout(() => {
-          router.push("/games");
+          router.push("/home");
         }, 1000);
       } catch (err) {
         console.error("Native login error:", err);
@@ -41,35 +51,36 @@ function OAuthNativeCallbackContent() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-white text-center">
-        <h1 className="text-2xl font-bold text-red-400 mb-4">Hata Oluştu</h1>
-        <p className="text-red-300 text-sm mb-8">{error}</p>
-        <button
-          onClick={() => router.push("/")}
-          className="bg-slate-800 px-6 py-3 rounded-xl font-bold hover:bg-slate-700 transition-colors"
-        >
-          Ana Sayfaya Dön
-        </button>
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[#FAF9F7] p-6">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Hata Oluştu</h1>
+          <p className="text-gray-600 mb-8">{error}</p>
+          <button
+            onClick={() => router.push("/sign-in")}
+            className="w-full border border-gray-200 rounded-xl py-3 px-4 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Giriş Sayfasına Dön
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-white text-center">
-      <div className="space-y-6">
-        <div className="w-16 h-16 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Oturum Açılıyor</h1>
-          <p className="text-slate-400">Kimlik bilgileriniz doğrulanıyor, lütfen bekleyin...</p>
-        </div>
-      </div>
-    </div>
+    <LoadingCard
+      title="Oturum Açılıyor"
+      subtitle="Kimlik bilgileriniz doğrulanıyor, lütfen bekleyin..."
+    />
   );
 }
 
 export default function OAuthNativeCallbackPage() {
   return (
-    <Suspense fallback={<div>Yükleniyor...</div>}>
+    <Suspense
+      fallback={
+        <LoadingCard title="Yükleniyor" subtitle="Giriş işlemi hazırlanıyor..." />
+      }
+    >
       <OAuthNativeCallbackContent />
     </Suspense>
   );
