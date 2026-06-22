@@ -17,7 +17,6 @@ import ConfirmModal from "../components/ConfirmModal";
 import Sidebar from "../components/Sidebar";
 import AppBar from "../components/AppBar";
 import Header from "../components/Header";
-import { useTheme } from "../components/ThemeProvider";
 import GameImage from "../components/GameImage";
 import GameHistoryCard from "../components/GameHistoryCard";
 import { MOCK_PLAYERS, MOCK_GROUPS, MOCK_USER, MOCK_GAMES } from "../lib/mock-data";
@@ -49,7 +48,7 @@ function PlayerDetailContent() {
   const { isSignedIn, isLoaded, user } = useAuthMock();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { resolvedTheme } = useTheme();
+  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   const playerId = searchParams.get("playerId");
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -428,11 +427,16 @@ function PlayerDetailContent() {
       </div>
 
       {/* Edit Modal */}
-      {showEditModal && (
+      {showEditModal && player && (
         <EditPlayerModal
-          playerId={playerId}
+          player={player}
           onClose={() => setShowEditModal(false)}
-          groups={groups || []}
+          onUpdate={(updatedPlayer) => {
+            window.location.reload();
+          }}
+          onDelete={() => {
+            router.push("/contacts");
+          }}
         />
       )}
 

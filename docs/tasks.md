@@ -145,7 +145,7 @@
 - [ ] İçerik girişi ve kaynak linkleri
 - [ ] İlerleme takibi sistemi
 
-### Board Game Companion
+### Yazboz (Game Companion)
 
 - [x] Masa oyunu puan takibi
 - [x] Yardımcı araçlar (zar, sayaç vb.)

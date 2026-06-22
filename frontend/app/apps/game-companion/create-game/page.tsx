@@ -16,56 +16,30 @@ import {
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import GameRulesTab from "../components/GameRulesTab";
-import GameAskTab from "../components/GameAskTab";
-import PokerAssistantTab from "../components/PokerAssistantTab";
 import CreateModal from "../components/CreateModal";
 import EditPlayerModal from "../components/EditPlayerModal";
-import { MOCK_GAMES, MOCK_USER, MOCK_PLAYERS, MOCK_GROUPS } from "../lib/mock-data";
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
+import { createBrowserClient } from "@/lib/api";
 
-// UI-only mode logic: Mocking the database hooks
-const useAuthMock = () => ({
-  isSignedIn: true,
-  isLoaded: true,
-  user: MOCK_USER,
-});
+const client = createBrowserClient();
 
-const useQueryMock = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("getGameById")) return MOCK_GAMES.find(g => g._id === args?.id) || MOCK_GAMES[0];
-  if (apiPath.includes("getPlayers")) return MOCK_PLAYERS;
-  if (apiPath.includes("getGroups")) return MOCK_GROUPS;
-  if (apiPath.includes("getUserByFirebaseId")) return { _id: "u1", playerId: "p1" };
-  if (apiPath.includes("getPlayerByUserId")) return MOCK_PLAYERS[0];
-  return undefined;
-};
-
-const useMutationMock = (apiPath: string) => async (args: any) => {
-  console.log("Mock mutation called:", apiPath, args);
-  return "mock-session-id";
-};
 
 function CreateGameContent() {
-  const { isSignedIn, isLoaded, user } = useAuthMock();
+  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameId = searchParams.get("gameId");
 
-  const game = useQueryMock("api.games.getGameById", { id: gameId });
-  const players = useQueryMock("api.players.getPlayers");
-  const groups = useQueryMock("api.groups.getGroups");
-  const currentUser = useQueryMock("api.users.getUserByFirebaseId");
-  const currentUserAsPlayer = useQueryMock("api.players.getPlayerByUserId");
+  const game = MOCK_GAMES.find(g => g._id === gameId) || MOCK_GAMES[0];
   const gameName = game?.name || "Oyun";
 
-  const createGameSave = useMutationMock("api.gameSaves.createGameSave");
-  const createPlayer = useMutationMock("api.players.createPlayer");
-  const createGroup = useMutationMock("api.groups.createGroup");
+  const [players, setPlayers] = useState<any[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
 
   // ALL STATE HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [activeTab, setActiveTab] = useState("oyun-kur");
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedGroupId, setSelectedGroupId] = useState<
-    string | undefined
-  >(undefined);
+  const [currentStep, setCurrentStep] = useState(2);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [redTeam, setRedTeam] = useState<string[]>([]);
   const [blueTeam, setBlueTeam] = useState<string[]>([]);
@@ -75,12 +49,12 @@ function CreateGameContent() {
     roundWinner: game?.settings?.roundWinner || "Highest",
     pointsPerRound: (game?.settings as any)?.pointsPerRound || "Single",
     scoringTiming: (game?.settings as any)?.scoringTiming || "tur-sonu",
-    hideTotalColumn: game?.settings?.hideTotalColumn || false,
+    hideTotalColumn: (game?.settings as any)?.hideTotalColumn || false,
   });
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createModalType, setCreateModalType] = useState<
-    "player" | "group" | null
+    "player" | null
   >(null);
   const [showEditPlayerModal, setShowEditPlayerModal] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] =
@@ -88,12 +62,55 @@ function CreateGameContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchBar, setShowSearchBar] = useState(false);
 
-  // Redirect to home page if user is not signed in
+  // Fetch players on load and manage the "Ben" user player
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.replace("/");
+    if (isClerkLoaded) {
+      if (clerkUser) {
+        const fetchPlayers = async () => {
+          try {
+            setLoadingPlayers(true);
+            const res = await client.yazboz.getPlayers(clerkUser.id);
+            let dbPlayers = res.players || [];
+            
+            const myName = clerkUser.fullName || clerkUser.firstName || "Ben";
+            let me = dbPlayers.find(p => p.name === myName || p.name === "Ben");
+            
+            if (!me) {
+              const createRes = await client.yazboz.createPlayer({
+                userId: clerkUser.id,
+                name: myName,
+                initial: myName.charAt(0).toUpperCase()
+              });
+              if (createRes.player) {
+                dbPlayers = [createRes.player, ...dbPlayers];
+                me = createRes.player;
+              }
+            }
+            
+            const formatted = dbPlayers.map((p: any) => ({
+              ...p,
+              _id: p.id
+            }));
+            
+            setPlayers(formatted);
+            if (me) {
+              setSelectedPlayers([me.id]);
+            } else if (formatted.length > 0) {
+              setSelectedPlayers([formatted[0]._id]);
+            }
+          } catch (e) {
+            console.error("Error loading players:", e);
+          } finally {
+            setLoadingPlayers(false);
+          }
+        };
+        fetchPlayers();
+      } else {
+        setPlayers([]);
+        setLoadingPlayers(false);
+      }
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isClerkLoaded, clerkUser]);
 
   // Update settings when game data loads
   useEffect(() => {
@@ -104,32 +121,21 @@ function CreateGameContent() {
         roundWinner: game.settings.roundWinner || "Highest",
         pointsPerRound: (game.settings as any)?.pointsPerRound || "Single",
         scoringTiming: (game.settings as any)?.scoringTiming || "tur-sonu",
-        hideTotalColumn: game.settings.hideTotalColumn || false,
+        hideTotalColumn: (game.settings as any)?.hideTotalColumn || false,
       });
     }
   }, [game]);
 
-  // Auto-select players when group is selected
+
+  // Redirect to home page if user is not signed in
   useEffect(() => {
-    if (selectedGroupId && currentUserAsPlayer && players) {
-      // Start with current user's player
-      const autoSelectedPlayers: string[] = [currentUserAsPlayer._id];
-
-      // Add all players from the selected group
-      const groupPlayers = players.filter(
-        (player: any) =>
-          player.groupId === selectedGroupId &&
-          player._id !== currentUserAsPlayer._id,
-      );
-
-      autoSelectedPlayers.push(...groupPlayers.map((p: any) => p._id));
-
-      setSelectedPlayers(autoSelectedPlayers);
+    if (isClerkLoaded && !isClerkSignedIn) {
+      router.replace("/");
     }
-  }, [selectedGroupId, currentUserAsPlayer, players]);
+  }, [isClerkLoaded, isClerkSignedIn, router]);
 
   // Show loading state while checking authentication
-  if (!isLoaded || (isLoaded && !isSignedIn)) {
+  if (!isClerkLoaded || (isClerkLoaded && !isClerkSignedIn)) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -144,7 +150,7 @@ function CreateGameContent() {
   }
 
   const handleBack = () => {
-    if (currentStep === 1) {
+    if (currentStep === 2) {
       router.back();
     } else {
       setCurrentStep(currentStep - 1);
@@ -152,13 +158,7 @@ function CreateGameContent() {
   };
 
   const handleNext = async () => {
-    if (currentStep === 1) {
-      if (!selectedGroupId) {
-        toast.error("Bir grup seçmelisiniz!");
-        return;
-      }
-      setCurrentStep(2);
-    } else if (currentStep === 2) {
+    if (currentStep === 2) {
       if (selectedPlayers.length === 0) {
         toast.error("En az bir oyuncu seçmelisiniz!");
         return;
@@ -166,8 +166,8 @@ function CreateGameContent() {
       setCurrentStep(3);
     } else {
       // Create game save and start the game (step 3)
-      if (!currentUser || !gameId) {
-        console.error("Missing user or game ID");
+      if (!clerkUser || !gameId) {
+        console.error("Missing clerkUser or game ID");
         return;
       }
 
@@ -190,24 +190,21 @@ function CreateGameContent() {
           toast.error("Her iki takımda da en az bir oyuncu olmalıdır!");
           return;
         }
-
-        // Optional: Check for balanced teams (can be removed if not needed)
-        if (Math.abs(redTeam.length - blueTeam.length) > 1) {
-          toast.error(
-            `Takım dengesi: Kırmızı takım ${redTeam.length}, Mavi takım ${blueTeam.length} oyuncu. Takımları dengeleyin!`,
-          );
-          return;
-        }
       }
 
       try {
-        const gameSaveId = await createGameSave({
+        const statePayload = {
+          redTeam: gameSettings.gameplay === "takimli" ? redTeam : undefined,
+          blueTeam: gameSettings.gameplay === "takimli" ? blueTeam : undefined,
+          laps: [],
+          teamLaps: [],
+        };
+
+        const res = await client.yazboz.createGameSave({
+          userId: clerkUser.id,
           name: gameName,
           gameTemplate: gameId as string,
           players: selectedPlayers,
-          groupId: selectedGroupId,
-          redTeam: gameSettings.gameplay === "takimli" ? redTeam : undefined,
-          blueTeam: gameSettings.gameplay === "takimli" ? blueTeam : undefined,
           settings: {
             gameplay: gameSettings.gameplay as "herkes-tek" | "takimli",
             calculationMode: gameSettings.calculationMode as
@@ -224,17 +221,13 @@ function CreateGameContent() {
               | undefined,
             hideTotalColumn: gameSettings.hideTotalColumn,
           },
-          userId: currentUser._id,
+          state: statePayload,
         });
 
-        console.log("Game save created:", gameSaveId);
-        console.log("Team assignments:", {
-          redTeam: gameSettings.gameplay === "takimli" ? redTeam : "N/A",
-          blueTeam: gameSettings.gameplay === "takimli" ? blueTeam : "N/A",
-          gameplay: gameSettings.gameplay,
-        });
-
-        router.push(`/apps/game-companion/game-session?gameSaveId=${gameSaveId}`);
+        if (res.gameSave) {
+          console.log("Game save created:", res.gameSave.id);
+          router.push(`/apps/game-companion/game-session?gameSaveId=${res.gameSave.id}`);
+        }
       } catch (error) {
         console.error("Error creating game save:", error);
         toast.error(
@@ -300,42 +293,28 @@ function CreateGameContent() {
   };
 
   const handleCreatePlayer = async (name: string, avatar?: string) => {
-    if (!currentUser) return;
+    if (!clerkUser) return;
 
     try {
-      const result = await createPlayer({
+      const result = await client.yazboz.createPlayer({
+        userId: clerkUser.id,
         name,
-        avatar,
-        firebaseId: user?.uid || "",
         initial: name.charAt(0).toUpperCase(),
       });
 
-      // Automatically select the new player
-      setSelectedPlayers((prev: any) => [...prev, result]);
-      toast.success(`${name} oyuncu olarak eklendi!`);
+      if (result.player) {
+        const newPlayer = { ...result.player, _id: result.player.id };
+        setPlayers((prev) => [...prev, newPlayer]);
+        setSelectedPlayers((prev: any) => [...prev, newPlayer._id]);
+        toast.success(`${name} oyuncu olarak eklendi!`);
+      }
     } catch (error) {
       console.error("Error creating player:", error);
       toast.error("Oyuncu eklenirken hata oluştu!");
     }
   };
 
-  const handleCreateGroup = async (name: string) => {
-    if (!currentUser) return;
-
-    try {
-      await createGroup({
-        name,
-        firebaseId: user?.uid || "",
-      });
-
-      toast.success(`${name} grubu oluşturuldu!`);
-    } catch (error) {
-      console.error("Error creating group:", error);
-      toast.error("Grup oluşturulurken hata oluştu!");
-    }
-  };
-
-  const openCreateModal = (type: "player" | "group") => {
+  const openCreateModal = (type: "player") => {
     setCreateModalType(type);
     setShowCreateModal(true);
   };
@@ -379,42 +358,19 @@ function CreateGameContent() {
     );
   };
 
-  // Group players by their group, excluding the current user's player
-  const groupedPlayers =
-    players?.reduce(
-      (acc: any, player: any) => {
-        // Skip the current user's player since it's shown in the "Ben" section
-        if (currentUserAsPlayer && player._id === currentUserAsPlayer._id) {
-          return acc;
-        }
+  const myName = clerkUser?.fullName || clerkUser?.firstName || "Ben";
+  const userPlayer = players.find(p => p.name === myName || p.name === "Ben");
 
-        const groupId = player.groupId || "ungrouped";
-        if (!acc[groupId]) {
-          acc[groupId] = [];
-        }
-        acc[groupId].push(player);
-        return acc;
-      },
-      {} as Record<string, typeof players>,
-    ) || {};
-
-  // Filter grouped players based on search query
-  const filteredGroupedPlayers = Object.keys(groupedPlayers).reduce(
-    (acc: any, groupId: any) => {
-      const filteredPlayers = filterPlayers(groupedPlayers[groupId]);
-      if (filteredPlayers && filteredPlayers.length > 0) {
-        acc[groupId] = filteredPlayers;
-      }
-      return acc;
-    },
-    {} as Record<string, typeof players>,
+  // Filter players based on search query, excluding the current user's player (by ID and Name)
+  const filteredPlayers = filterPlayers(
+    players?.filter((player: any) => {
+      const isMe = (userPlayer && player._id === userPlayer._id) || player.name === myName || player.name === "Ben";
+      return !isMe;
+    }) || []
   );
 
   // Combine all players including current user
-  const allPlayers = [
-    ...(currentUserAsPlayer ? [currentUserAsPlayer] : []),
-    ...(players || []),
-  ];
+  const allPlayers = players || [];
 
   // Simple player component for team display
   function TeamPlayer({ player, team }: { player: any; team: "red" | "blue" }) {
@@ -469,7 +425,7 @@ function CreateGameContent() {
         className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#100D16] shadow-sm"
         style={{ opacity: 1 }}
       >
-        <div className="px-4 py-4 flex items-center justify-between">
+        <div className="px-4 py-4 flex items-center justify-between border-b border-gray-200 dark:border-[var(--card-border)]">
           <div className="flex items-center">
             <button onClick={handleBack} className="mr-4">
               <ArrowLeft size={24} className="text-gray-600" />
@@ -479,171 +435,23 @@ function CreateGameContent() {
             </h1>
           </div>
         </div>
-
-        {/* Navigation Tabs */}
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-[var(--card-border)]">
-          <div className="flex overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => setActiveTab("oyun-kur")}
-              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 flex-shrink-0 rounded-lg transition-colors ${
-                activeTab === "oyun-kur"
-                  ? "text-white bg-blue-500 dark:bg-blue-600"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-              }`}
-            >
-              <ChartBar size={16} />
-              <span>Oyun Kur</span>
-            </button>
-            {gameId === "j973hj02fpn4jjr9txpb84fy717rfekq" && (
-              <button
-                onClick={() => setActiveTab("poker-helper")}
-                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 flex-shrink-0 rounded-lg transition-colors ${
-                  activeTab === "poker-helper"
-                    ? "text-white bg-blue-500 dark:bg-blue-600"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                }`}
-              >
-                <Spade size={16} />
-                <span>Poker</span>
-              </button>
-            )}
-            <button
-              onClick={() => setActiveTab("sor")}
-              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 flex-shrink-0 rounded-lg transition-colors ${
-                activeTab === "sor"
-                  ? "text-white bg-blue-500 dark:bg-blue-600"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-              }`}
-            >
-              <ChatCircle size={16} />
-              <span>Sor</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("kurallar")}
-              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 flex-shrink-0 rounded-lg transition-colors ${
-                activeTab === "kurallar"
-                  ? "text-white bg-blue-500 dark:bg-blue-600"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-              }`}
-            >
-              <ListBullets size={16} />
-              <span>Kurallar</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Main Content */}
       <div
-        className="flex-1 flex flex-col pt-32 pb-6"
+        className="flex-1 flex flex-col pt-20 pb-6"
         style={{ minHeight: "calc(100vh - 140px)" }}
       >
-        {activeTab === "oyun-kur" ? (
-          <div className="flex-1 overflow-y-auto">
-            {/* Content will be handled by the bottom panel based on currentStep */}
-          </div>
-        ) : activeTab === "sor" ? (
-          <GameAskTab gameId={gameId as string} />
-        ) : activeTab === "kurallar" ? (
-          <GameRulesTab gameId={gameId as string} />
-        ) : activeTab === "poker-helper" ? (
-          <PokerAssistantTab />
-        ) : null}
+        <div className="flex-1 overflow-y-auto">
+          {/* Content will be handled by the bottom panel based on currentStep */}
+        </div>
       </div>
 
       {/* Fixed White Rectangle at Bottom - Hide when Sor or Kurallar tab is selected */}
       {activeTab === "oyun-kur" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[var(--card-background)] rounded-t-3xl shadow-lg">
           <div className="p-6">
-            {currentStep === 1 ? (
-              // Group Selection in Bottom Panel
-              <>
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4 -mx-0.5">
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                    Grubu Seç
-                  </h2>
-                </div>
-
-                {/* Groups List */}
-                <div className="space-y-3 max-h-92 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                  {(groups as any[])?.map((group: any) => {
-                    // Get players in this group
-                    const groupPlayers =
-                      (players as any[])?.filter(
-                        (player: any) => player.groupId === group._id,
-                      ) || [];
-
-                    return (
-                      <button
-                        key={group._id}
-                        onClick={() => setSelectedGroupId(group._id as any)}
-                        className={`w-full px-4 py-4 rounded-xl transition-all border-2 ${
-                          selectedGroupId === group._id
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--card-background)]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1">
-                            {/* Group Name */}
-                            <div className="text-left">
-                              <h3
-                                className={`font-semibold text-sm ${
-                                  selectedGroupId === group._id
-                                    ? "text-blue-600 dark:text-blue-400"
-                                    : "text-gray-800 dark:text-gray-200"
-                                }`}
-                              >
-                                {group.name}
-                              </h3>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {groupPlayers.length} oyuncu
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Player Avatars */}
-                          <div className="flex items-center -space-x-2 ml-2">
-                            {(groupPlayers as any[]).slice(0, 3).map((player: any) => (
-                              <div
-                                key={player._id}
-                                className="w-8 h-8 rounded-full border-2 border-white dark:border-[var(--card-background)] overflow-hidden flex-shrink-0"
-                              >
-                                {player.avatar ? (
-                                  <img
-                                    src={player.avatar}
-                                    alt={player.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                    <span className="text-blue-600 dark:text-blue-300 font-semibold text-xs">
-                                      {player.initial}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            {groupPlayers.length > 3 && (
-                              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-[var(--card-background)] flex items-center justify-center text-xs font-semibold text-gray-700 dark:text-gray-300 flex-shrink-0">
-                                +{groupPlayers.length - 3}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                  {!groups ||
-                    (groups.length === 0 && (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        Grup bulunamadı. Lütfen grup oluşturun.
-                      </p>
-                    ))}
-                </div>
-              </>
-            ) : currentStep === 2 ? (
+            {currentStep === 1 ? null : currentStep === 2 ? (
               // Player Selection in Bottom Panel
               <>
                 {/* Header */}
@@ -702,7 +510,7 @@ function CreateGameContent() {
                 {/* Player Selection Container with Max Height and Scroll */}
                 <div className="max-h-92 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   {/* Current User */}
-                  {currentUserAsPlayer && (
+                  {userPlayer && (
                     <div className="mb-6">
                       <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                         Ben
@@ -712,38 +520,38 @@ function CreateGameContent() {
                           <div
                             className="flex items-center space-x-3 cursor-pointer flex-1"
                             onClick={() =>
-                              openEditPlayerModal(currentUserAsPlayer._id)
+                              openEditPlayerModal(userPlayer._id)
                             }
                           >
-                            {currentUserAsPlayer.avatar ? (
+                            {clerkUser?.imageUrl ? (
                               <img
-                                src={currentUserAsPlayer.avatar}
-                                alt={currentUserAsPlayer.name}
+                                src={clerkUser.imageUrl}
+                                alt={clerkUser.fullName || "Sen"}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
                             ) : (
                               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                 <span className="text-blue-600 font-semibold text-sm">
-                                  {currentUserAsPlayer.initial}
+                                  {clerkUser?.firstName?.charAt(0) || userPlayer.initial}
                                 </span>
                               </div>
                             )}
                             <span className="font-normal text-black dark:text-gray-200 text-sm">
-                              {currentUserAsPlayer.name}
+                              {clerkUser?.fullName || userPlayer.name}
                             </span>
                           </div>
                           <button
                             onClick={() =>
-                              togglePlayer(currentUserAsPlayer._id)
+                              togglePlayer(userPlayer._id)
                             }
-                            className={`w-5 h-5 border-2 flex items-center justify-center ${
-                              selectedPlayers.includes(currentUserAsPlayer._id)
+                            className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${
+                              selectedPlayers.includes(userPlayer._id)
                                 ? "bg-blue-500 border-blue-500"
                                 : "bg-white dark:bg-[var(--card-background)] border-blue-500"
                             }`}
                           >
                             {selectedPlayers.includes(
-                              currentUserAsPlayer._id,
+                              userPlayer._id,
                             ) && (
                               <svg
                                 className="w-3 h-3 text-white"
@@ -763,143 +571,58 @@ function CreateGameContent() {
                     </div>
                   )}
 
-                  {/* Ungrouped Players */}
-                  {filteredGroupedPlayers.ungrouped &&
-                    filteredGroupedPlayers.ungrouped.length > 0 && (
-                      <div className="mb-6">
-                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                          Gruplandırılmamış
-                        </h3>
-                        <div className="space-y-0.5">
-                          {(filteredGroupedPlayers.ungrouped as any[]).map((player: any) => (
+                  {/* All Players List */}
+                  {filteredPlayers && filteredPlayers.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        Kişiler
+                      </h3>
+                      <div className="space-y-0.5">
+                        {filteredPlayers.map((player: any) => (
+                          <div
+                            key={player._id}
+                            className="flex items-center justify-between py-1"
+                          >
                             <div
-                              key={player._id}
-                              className="flex items-center justify-between py-1"
+                              className="flex items-center space-x-3 cursor-pointer flex-1"
+                              onClick={() => openEditPlayerModal(player._id)}
                             >
-                              <div
-                                className="flex items-center space-x-3 cursor-pointer flex-1"
-                                onClick={() => openEditPlayerModal(player._id)}
-                              >
-                                {player.avatar ? (
-                                  <img
-                                    src={player.avatar}
-                                    alt={player.name}
-                                    className="w-8 h-8 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-blue-600 font-semibold text-sm">
-                                      {player.initial}
-                                    </span>
-                                  </div>
-                                )}
-                                <span className="font-normal text-black dark:text-gray-200 text-sm truncate max-w-[200px]">
-                                  {player.name}
+                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center">
+                                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                                  {player.initial}
                                 </span>
                               </div>
-                              <button
-                                onClick={() => togglePlayer(player._id)}
-                                className={`w-5 h-5 border-2 flex items-center justify-center ${
-                                  selectedPlayers.includes(player._id)
-                                    ? "bg-blue-500 border-blue-500"
-                                    : "bg-white dark:bg-[var(--card-background)] border-blue-500"
-                                }`}
-                              >
-                                {selectedPlayers.includes(player._id) && (
-                                  <svg
-                                    className="w-3 h-3 text-white"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                )}
-                              </button>
+                              <span className="font-normal text-black dark:text-gray-200 text-sm truncate max-w-[200px]">
+                                {player.name}
+                              </span>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Grouped Players */}
-                  {(groups as any[])
-                    ?.sort((a: any, b: any) => {
-                      // Seçilen grup ilk sıraya gelsin
-                      if (a._id === selectedGroupId) return -1;
-                      if (b._id === selectedGroupId) return 1;
-                      return 0;
-                    })
-                    .map((group: any) => {
-                      const groupPlayers =
-                        filteredGroupedPlayers[group._id] || [];
-                      if (groupPlayers.length === 0) return null;
-
-                      return (
-                        <div key={group._id} className="mb-6">
-                          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                            {group.name}
-                          </h3>
-                          <div className="space-y-0.5">
-                            {(groupPlayers as any[]).map((player: any) => (
-                              <div
-                                key={player._id}
-                                className="flex items-center justify-between py-1"
-                              >
-                                <div
-                                  className="flex items-center space-x-3 cursor-pointer flex-1"
-                                  onClick={() =>
-                                    openEditPlayerModal(player._id)
-                                  }
+                            <button
+                              onClick={() => togglePlayer(player._id)}
+                              className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${
+                                selectedPlayers.includes(player._id)
+                                  ? "bg-blue-500 border-blue-500"
+                                  : "bg-white dark:bg-[var(--card-background)] border-blue-500"
+                              }`}
+                            >
+                              {selectedPlayers.includes(player._id) && (
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
                                 >
-                                  {player.avatar ? (
-                                    <img
-                                      src={player.avatar}
-                                      alt={player.name}
-                                      className="w-8 h-8 rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                      <span className="text-blue-600 font-semibold text-sm">
-                                        {player.initial}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <span className="font-normal text-black dark:text-gray-200 text-sm truncate max-w-[200px]">
-                                    {player.name}
-                                  </span>
-                                </div>
-                                <button
-                                  onClick={() => togglePlayer(player._id)}
-                                  className={`w-5 h-5 border-2 flex items-center justify-center ${
-                                    selectedPlayers.includes(player._id)
-                                      ? "bg-blue-500 border-blue-500"
-                                      : "bg-white dark:bg-[var(--card-background)] border-blue-500"
-                                  }`}
-                                >
-                                  {selectedPlayers.includes(player._id) && (
-                                    <svg
-                                      className="w-3 h-3 text-white"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  )}
-                                </button>
-                              </div>
-                            ))}
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </button>
                           </div>
-                        </div>
-                      );
-                    })}
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             ) : currentStep === 3 ? (
@@ -1329,13 +1052,13 @@ function CreateGameContent() {
 
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6">
-              {currentStep > 1 && (
+              {currentStep > 2 && (
                 <button
                   onClick={handleBack}
                   className="flex-1 bg-white dark:bg-[var(--card-background)] border-2 border-blue-500 text-blue-500 dark:text-blue-400 py-3 px-4 rounded-lg font-medium flex items-center justify-center space-x-2"
                 >
                   <ArrowLeft size={20} />
-                  <span>Önceki Adım</span>
+                  <span>Önceki</span>
                 </button>
               )}
               <button
@@ -1344,8 +1067,8 @@ function CreateGameContent() {
               >
                 <span>
                   {currentStep === 1 || currentStep === 2
-                    ? "Sonraki Adım"
-                    : "Oyunu Başlat"}
+                    ? "Sonraki"
+                    : "Başlat"}
                 </span>
                 <ArrowRight size={20} />
               </button>
@@ -1362,15 +1085,26 @@ function CreateGameContent() {
           setCreateModalType(null);
         }}
         type={createModalType || "player"}
-        groups={groups || []}
+        onPlayerCreated={(newPlayer) => {
+          setPlayers((prev) => [...prev, newPlayer]);
+          setSelectedPlayers((prev) => [...prev, newPlayer._id]);
+        }}
       />
 
       {/* Edit Player Modal */}
       {showEditPlayerModal && selectedPlayerId && (
         <EditPlayerModal
-          playerId={selectedPlayerId}
+          player={players.find((p) => p._id === selectedPlayerId)}
           onClose={closeEditPlayerModal}
-          groups={groups || []}
+          onUpdate={(updatedPlayer) => {
+            setPlayers((prev) =>
+              prev.map((p) => (p._id === updatedPlayer._id ? updatedPlayer : p))
+            );
+          }}
+          onDelete={(id) => {
+            setPlayers((prev) => prev.filter((p) => p._id !== id));
+            setSelectedPlayers((prev) => prev.filter((pid) => pid !== id));
+          }}
         />
       )}
     </div>

@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "./components/ThemeProvider";
-import StatusBarComponent from "./components/StatusBar";
-import BackButtonHandler from "./components/BackButtonHandler";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
@@ -17,7 +14,7 @@ export default function GameCompanionLayout({
 }>) {
   return (
     <div className="game-companion-root min-h-screen bg-background">
-      <ThemeProvider>{children}</ThemeProvider>
+      {children}
       <Toaster
         position="top-center"
         toastOptions={{

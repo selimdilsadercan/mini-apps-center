@@ -7,64 +7,68 @@ import Sidebar from "../components/Sidebar";
 import AppBar from "../components/AppBar";
 import Header from "../components/Header";
 import GameHistoryCard from "../components/GameHistoryCard";
-import { useTheme } from "../components/ThemeProvider";
 import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
 
-// Type shim for UI-only mode
-type Id<T> = string;
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { createBrowserClient } from "@/lib/api";
+import { mapGameSaveToFrontend } from "../lib/mock-data";
 
-// Local mock hooks
-const useAuth = () => ({
-  isSignedIn: true,
-  isLoaded: true,
-  user: MOCK_USER,
-});
+const client = createBrowserClient();
 
-const useQuery = (apiPath: any, args?: any): any => {
-  if (apiPath.toString().includes("getGameSaves")) return [
-    { 
-      _id: "s1", 
-      gameTemplate: "g1", 
-      name: "Akşam Oyunu", 
-      createdTime: Date.now() - 86400000,
-      players: ["p1", "p2"]
-    }
-  ];
-  if (apiPath.toString().includes("getGames")) return MOCK_GAMES;
-  if (apiPath.toString().includes("getPlayersByIds")) return [
-    { _id: "p1", name: "Oyuncu 1" },
-    { _id: "p2", name: "Oyuncu 2" }
-  ];
-  return [];
-};
-
-const useMutation = (apiPath: any) => async (args: any) => {
-  console.log("Mock mutation:", apiPath, args);
-  return true;
-};
 export default function HistoryPage() {
-  const { isSignedIn, isLoaded, user } = useAuth();
+  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const router = useRouter();
-  const { resolvedTheme } = useTheme();
+  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [gameToDelete, setGameToDelete] = useState<Id<"gameSaves"> | null>(
-    null,
-  );
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
 
-  // Fetch game saves and related data - ALWAYS call hooks first
-  const gameSaves = useQuery("api.gameSaves.getGameSaves");
-  const games = useQuery("api.games.getGames");
-  const deleteGameSave = useMutation("api.gameSaves.deleteGameSave");
+  const [gameSaves, setGameSaves] = useState<any[] | undefined>(undefined);
+  const [players, setPlayers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (gameSaveId: Id<"gameSaves">) => {
+  const games = MOCK_GAMES;
+
+  useEffect(() => {
+    if (isClerkLoaded && !isClerkSignedIn) {
+      router.replace("/");
+    }
+  }, [isClerkLoaded, isClerkSignedIn, router]);
+
+  useEffect(() => {
+    if (isClerkLoaded && clerkUser) {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const savesRes = await client.yazboz.getGameSaves(clerkUser.id);
+          const playersRes = await client.yazboz.getPlayers(clerkUser.id);
+
+          setGameSaves((savesRes.gameSaves || []).map(mapGameSaveToFrontend));
+          setPlayers((playersRes.players || []).map((p: any) => ({ ...p, _id: p.id })));
+        } catch (e) {
+          console.error("Error loading history data:", e);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [isClerkLoaded, clerkUser]);
+
+  const handleDelete = (gameSaveId: string) => {
     setGameToDelete(gameSaveId);
     setShowConfirmModal(true);
   };
 
   const confirmDelete = async () => {
-    if (gameToDelete) {
+    if (gameToDelete && clerkUser) {
       try {
-        await deleteGameSave({ id: gameToDelete });
+        const res = await client.yazboz.deleteGameSave({
+          userId: clerkUser.id,
+          saveId: gameToDelete
+        });
+        if (res.success) {
+          setGameSaves((prev) => prev?.filter((gs) => gs._id !== gameToDelete));
+        }
       } catch (error) {
         console.error("Error deleting game save:", error);
       } finally {
@@ -89,11 +93,6 @@ export default function HistoryPage() {
         ),
       )
     : [];
-
-  const allGamePlayers = useQuery(
-    "api.players.getPlayersByIds",
-    allPlayerIds.length > 0 ? { playerIds: allPlayerIds } : "skip",
-  );
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -166,27 +165,18 @@ export default function HistoryPage() {
     return orderedGroups;
   };
 
-  const getPlayerData = (playerIds: Id<"players">[]) => {
+  const getPlayerData = (playerIds: string[]) => {
     if (!playerIds || playerIds.length === 0) return [];
-
-    // Combine allGamePlayers to ensure we have all players
-    const allAvailablePlayers = [...(allGamePlayers || [])];
-
-    // Remove duplicates by _id
-    const uniquePlayers = allAvailablePlayers.filter(
-      (player, index, self) =>
-        index === self.findIndex((p) => p._id === player._id),
-    );
 
     return playerIds
       .map((id) => {
-        const player = uniquePlayers.find((p) => p._id === id);
+        const player = players.find((p) => p._id === id || p.id === id);
         return player;
       })
       .filter(Boolean);
   };
 
-  const getGameName = (gameTemplateId: Id<"games">) => {
+  const getGameName = (gameTemplateId: string) => {
     if (!games) return "Oyun";
     const game = games.find((g: any) => g._id === gameTemplateId);
     return game?.name || "Oyun";

@@ -72,6 +72,7 @@ export default class Client {
     public readonly tutor_crm: tutor_crm.ServiceClient
     public readonly users: users.ServiceClient
     public readonly workplaces: workplaces.ServiceClient
+    public readonly yazboz: yazboz.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
 
@@ -126,6 +127,7 @@ export default class Client {
         this.tutor_crm = new tutor_crm.ServiceClient(base)
         this.users = new users.ServiceClient(base)
         this.workplaces = new workplaces.ServiceClient(base)
+        this.yazboz = new yazboz.ServiceClient(base)
     }
 
     /**
@@ -6642,6 +6644,209 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/update`, JSON.stringify(params))
             return await resp.json() as UpdatePlaceResponse
+        }
+    }
+}
+
+export namespace yazboz {
+    export interface CreateGameSaveRequest {
+        userId: string
+        name: string
+        gameTemplate: string
+        players: any
+        settings: any
+        state: any
+    }
+
+    export interface CreatePlayerRequest {
+        userId: string
+        name: string
+        initial: string
+    }
+
+    export interface DeleteGameSaveRequest {
+        userId: string
+        saveId: string
+    }
+
+    export interface DeletePlayerRequest {
+        userId: string
+        playerId: string
+    }
+
+    export interface GameSave {
+        id: string
+        name: string
+        "game_template": string
+        players: any
+        settings: any
+        state: any
+        "created_at": string
+    }
+
+    export interface Player {
+        id: string
+        name: string
+        initial: string
+        "created_at": string
+    }
+
+    export interface UpdateGameSaveRequest {
+        userId: string
+        saveId: string
+        name?: string
+        players?: any
+        settings?: any
+        state?: any
+    }
+
+    export interface UpdatePlayerRequest {
+        userId: string
+        playerId: string
+        name: string
+        initial: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createGameSave = this.createGameSave.bind(this)
+            this.createPlayer = this.createPlayer.bind(this)
+            this.deleteGameSave = this.deleteGameSave.bind(this)
+            this.deletePlayer = this.deletePlayer.bind(this)
+            this.getGameSaveById = this.getGameSaveById.bind(this)
+            this.getGameSaves = this.getGameSaves.bind(this)
+            this.getPlayers = this.getPlayers.bind(this)
+            this.updateGameSave = this.updateGameSave.bind(this)
+            this.updatePlayer = this.updatePlayer.bind(this)
+        }
+
+        /**
+         * Yeni bir oyun kaydı oluşturur / başlatır
+         * POST /yazboz/game-saves
+         */
+        public async createGameSave(params: CreateGameSaveRequest): Promise<{
+    gameSave: GameSave | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/game-saves`, JSON.stringify(params))
+            return await resp.json() as {
+    gameSave: GameSave | null
+}
+        }
+
+        /**
+         * Yeni kişi/oyuncu oluşturur
+         * POST /yazboz/players
+         */
+        public async createPlayer(params: CreatePlayerRequest): Promise<{
+    player: Player | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/players`, JSON.stringify(params))
+            return await resp.json() as {
+    player: Player | null
+}
+        }
+
+        /**
+         * Oyun kaydını siler
+         * POST /yazboz/game-saves/delete
+         */
+        public async deleteGameSave(params: DeleteGameSaveRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/game-saves/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Kişiyi/Oyuncuyu siler
+         * POST /yazboz/players/delete
+         */
+        public async deletePlayer(params: DeletePlayerRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/players/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Belirli bir oyun kaydının detayını getirir
+         * GET /yazboz/game-saves/get/:userId/:saveId
+         */
+        public async getGameSaveById(userId: string, saveId: string): Promise<{
+    gameSave: GameSave | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yazboz/game-saves/get/${encodeURIComponent(userId)}/${encodeURIComponent(saveId)}`)
+            return await resp.json() as {
+    gameSave: GameSave | null
+}
+        }
+
+        /**
+         * Kullanıcının tüm kayıtlı oyunlarını listeler
+         * GET /yazboz/game-saves/:userId
+         */
+        public async getGameSaves(userId: string): Promise<{
+    gameSaves: GameSave[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yazboz/game-saves/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    gameSaves: GameSave[]
+}
+        }
+
+        /**
+         * Kişileri/Oyuncuları getirir
+         * GET /yazboz/players/:userId
+         */
+        public async getPlayers(userId: string): Promise<{
+    players: Player[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yazboz/players/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    players: Player[]
+}
+        }
+
+        /**
+         * Oyun kaydını günceller
+         * POST /yazboz/game-saves/update
+         */
+        public async updateGameSave(params: UpdateGameSaveRequest): Promise<{
+    gameSave: GameSave | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/game-saves/update`, JSON.stringify(params))
+            return await resp.json() as {
+    gameSave: GameSave | null
+}
+        }
+
+        /**
+         * Kişiyi/Oyuncuyu günceller
+         * POST /yazboz/players/update
+         */
+        public async updatePlayer(params: UpdatePlayerRequest): Promise<{
+    player: Player | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/players/update`, JSON.stringify(params))
+            return await resp.json() as {
+    player: Player | null
+}
         }
     }
 }

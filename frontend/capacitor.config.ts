@@ -31,7 +31,9 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
-    },
+      notificationIcon: "ic_stat_notify",
+      notificationColor: "#EAB308",
+    } as any,
     CapacitorUpdater: {
       autoUpdate: false,
       appReadyTimeout: 30000,

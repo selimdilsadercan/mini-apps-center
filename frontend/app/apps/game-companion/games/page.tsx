@@ -12,69 +12,47 @@ import {
 } from "@phosphor-icons/react";
 
 // Local imports
-import AddGameModal from "../components/AddGameModal";
 import Sidebar from "../components/Sidebar";
 import AppBar from "../components/AppBar";
 import Header from "../components/Header";
 import GameImage from "../components/GameImage";
-import { useTheme } from "../components/ThemeProvider";
-import { MOCK_GAMES, MOCK_GAME_LISTS, MOCK_USER } from "../lib/mock-data";
+import { MOCK_GAMES, MOCK_GAME_LISTS, mapGameSaveToFrontend } from "../lib/mock-data";
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { createBrowserClient } from "@/lib/api";
 
-// UI-only mode logic: Mocking the database hooks
-const useAuthMock = () => ({
-  isSignedIn: true,
-  isLoaded: true,
-  user: MOCK_USER,
-});
-
-const useQueryMock = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("getGames")) return MOCK_GAMES;
-  if (apiPath.includes("getGameLists")) return MOCK_GAME_LISTS;
-  if (apiPath.includes("getUserByFirebaseId")) return { _id: "u1", playerId: "p1" };
-  if (apiPath.includes("getGameSaves")) return [];
-  return undefined;
-};
-
-const useMutationMock = (apiPath: string) => async (args: any) => {
-  console.log("Mock mutation called:", apiPath, args);
-  return { _id: "new-id" };
-};
+const client = createBrowserClient();
 
 export default function GamesPage() {
-  // Use our mock hooks instead of real ones
-  const { isSignedIn, isLoaded, user } = useAuthMock();
+  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const router = useRouter();
-  const { resolvedTheme } = useTheme();
+  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   
-  const games = useQueryMock("api.games.getGames");
-  const gameLists = useQueryMock("api.gameLists.getGameLists");
-  const createGame = useMutationMock("api.games.createGame");
+  const games = MOCK_GAMES;
+  const gameLists = MOCK_GAME_LISTS;
 
-  // Get user's game history to determine favorites
-  const currentUser = useQueryMock("api.users.getUserByFirebaseId");
-  const gameSaves = useQueryMock("api.gameSaves.getGameSaves");
+  const [gameSaves, setGameSaves] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
-  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (isClerkLoaded && clerkUser) {
+      const fetchHistory = async () => {
+        try {
+          setLoadingHistory(true);
+          const res = await client.yazboz.getGameSaves(clerkUser.id);
+          setGameSaves((res.gameSaves || []).map(mapGameSaveToFrontend));
+        } catch (e) {
+          console.error("Error fetching game saves:", e);
+        } finally {
+          setLoadingHistory(false);
+        }
+      };
+      fetchHistory();
+    }
+  }, [isClerkLoaded, clerkUser]);
 
   const handleGameSelect = (gameId: string) => {
     router.push(`/apps/game-companion/create-game?gameId=${gameId}`);
-  };
-
-  const handleAddGame = async (gameName: string) => {
-    try {
-      await createGame({
-        name: gameName,
-        rules: "",
-        settings: {
-          gameplay: "herkes-tek",
-          calculationMode: "NoPoints",
-          roundWinner: "Highest",
-          hideTotalColumn: false,
-        },
-      });
-    } catch (error) {
-      console.error("Error creating game:", error);
-    }
   };
 
   const handleSearchClick = () => {
@@ -193,15 +171,6 @@ export default function GamesPage() {
               <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
                 Henüz oyun eklenmemiş
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                İlk oyununuzu ekleyerek başlayın
-              </p>
-              <button
-                onClick={() => setShowModal(true)}
-                className="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium"
-              >
-                Oyun Ekle
-              </button>
             </div>
           ) : (
             <div className="space-y-8 mb-8">
@@ -323,12 +292,7 @@ export default function GamesPage() {
         </div>
       </div>
 
-      {/* Add Game Modal */}
-      <AddGameModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onAddGame={handleAddGame}
-      />
+
 
       {/* AppBar for mobile screens */}
       <div className="lg:hidden">

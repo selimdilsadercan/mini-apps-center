@@ -8,29 +8,17 @@ import ConfirmModal from "./ConfirmModal";
 import MunchkinScoreboard from "./MunchkinScoreboard";
 import { MOCK_GAMES, MOCK_PLAYERS } from "../lib/mock-data";
 
-// Type shim for UI-only mode
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { createBrowserClient } from "@/lib/api";
+import { mapGameSaveToFrontend } from "../lib/mock-data";
+import { useEffect } from "react";
+
+const client = createBrowserClient();
+
 type Id<T> = string;
 
-// Local mock hooks
-const useQuery = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("getGameSaveById")) return { 
-    _id: "ms1", 
-    name: "Örnek", 
-    players: ["p1", "p2"], 
-    settings: { gameplay: "herkes-tek", calculationMode: "NoPoints" },
-    laps: [[1, 0], [0, 1]]
-  };
-  if (apiPath.includes("getPlayersByIds")) return MOCK_PLAYERS;
-  return undefined;
-};
-
-const useMutation = (apiPath: string) => async (args: any) => {
-  console.log("Mock mutation:", apiPath, args);
-  return true;
-};
-
 interface PuanlarTabProps {
-  gameSaveId: Id<"gameSaves">;
+  gameSaveId: string;
   isAdReady: boolean;
   showInterstitial: () => Promise<void>;
 }
@@ -40,18 +28,98 @@ export default function PuanlarTab({
   isAdReady,
   showInterstitial,
 }: PuanlarTabProps) {
-  const addRoundScores = useMutation("api.gameSaves.addRoundScores");
-  const updateGameSave = useMutation("api.gameSaves.updateGameSave");
-  
-  // Fetch game save data
-  const gameSave = useQuery(
-    "api.gameSaves.getGameSaveById",
-    gameSaveId ? { id: gameSaveId } : "skip"
-  );
-  const players = useQuery(
-    "api.players.getPlayersByIds",
-    gameSave?.players ? { playerIds: gameSave.players } : "skip"
-  );
+  const { user: clerkUser } = useClerkUser();
+  const [gameSave, setGameSave] = useState<any>(undefined);
+  const [players, setPlayers] = useState<any[]>([]);
+
+  // Fetch session and players
+  useEffect(() => {
+    if (clerkUser && gameSaveId) {
+      const fetchData = async () => {
+        try {
+          const saveRes = await client.yazboz.getGameSaveById(clerkUser.id, gameSaveId);
+          const playersRes = await client.yazboz.getPlayers(clerkUser.id);
+          
+          if (saveRes.gameSave) {
+            setGameSave(mapGameSaveToFrontend(saveRes.gameSave));
+          }
+          setPlayers((playersRes.players || []).map((p: any) => ({ ...p, _id: p.id })));
+        } catch (e) {
+          console.error("Error loading PuanlarTab data:", e);
+        }
+      };
+      fetchData();
+    }
+  }, [clerkUser, gameSaveId]);
+
+  const addRoundScores = async (args: any) => {
+    if (!clerkUser || !gameSave) return;
+    try {
+      let newState = { ...(gameSave.state || {}) };
+      
+      if (args.isTeamMode) {
+        const teamLaps = [...(newState.teamLaps || [])];
+        teamLaps.push(args.teamScores);
+        newState.teamLaps = teamLaps;
+      } else {
+        const laps = [...(newState.laps || [])];
+        // Initialize laps for each player if empty
+        if (laps.length === 0) {
+          laps.push(...(gameSave.players || []).map(() => []));
+        }
+        // Append scores
+        args.roundScores.forEach((score: any, idx: number) => {
+          if (!laps[idx]) laps[idx] = [];
+          laps[idx] = [...laps[idx], score];
+        });
+        newState.laps = laps;
+      }
+      
+      const res = await client.yazboz.updateGameSave({
+        userId: clerkUser.id,
+        saveId: gameSaveId,
+        state: newState
+      });
+      
+      if (res.gameSave) {
+        setGameSave(mapGameSaveToFrontend(res.gameSave));
+      }
+      toast.success("Tur kaydedildi!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Tur kaydedilemedi!");
+    }
+  };
+
+  const updateGameSave = async (args: any) => {
+    if (!clerkUser || !gameSave) return;
+    try {
+      let newState = { ...(gameSave.state || {}) };
+      let newSettings = gameSave.settings;
+      
+      if (args.teamLaps !== undefined) newState.teamLaps = args.teamLaps;
+      if (args.laps !== undefined) newState.laps = args.laps;
+      if (args.settings !== undefined) newSettings = args.settings;
+      if (args.specialPoints !== undefined) newState.specialPoints = args.specialPoints;
+      if (args.playerScores !== undefined) newState.playerScores = args.playerScores;
+      if (args.state !== undefined) {
+        newState = { ...newState, ...args.state };
+      }
+      
+      const res = await client.yazboz.updateGameSave({
+        userId: clerkUser.id,
+        saveId: gameSaveId,
+        settings: newSettings,
+        state: newState
+      });
+      
+      if (res.gameSave) {
+        setGameSave(mapGameSaveToFrontend(res.gameSave));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
   
   // Score-related states
   const [currentScores, setCurrentScores] = useState<{ [key: string]: number }>(
@@ -74,8 +142,10 @@ export default function PuanlarTab({
   });
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
-  // Get players data
-  const gamePlayers = players || [];
+  // Get players data - filter by players selected in this game save
+  const gamePlayers = (players || []).filter((player: any) =>
+    gameSave?.players?.includes(player._id || player.id)
+  );
 
   // For team mode, group players by teams
   const getTeamPlayers = () => {

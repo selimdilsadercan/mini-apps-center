@@ -23,7 +23,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   subcenter: "/apps/subcenter",
   tutorplace: "/apps/tutor-crm",
   pdf: "/apps/pdf-tools",
-  gamecompanion: "/apps/game-companion",
+  yazboz: "/apps/game-companion",
   bgc: "/apps/board-game-clubs",
   memedex: "/apps/memedex",
   sticker: "/apps/sticker-editor",

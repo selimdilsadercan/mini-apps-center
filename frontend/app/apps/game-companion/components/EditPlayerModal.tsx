@@ -3,68 +3,56 @@
 import { useState, useEffect } from "react";
 import { X, Trash } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
-import AvatarGenerator from "./AvatarGenerator";
 import ConfirmModal from "./ConfirmModal";
-import { MOCK_PLAYERS, MOCK_GROUPS } from "../lib/mock-data";
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { createBrowserClient } from "@/lib/api";
+
+const client = createBrowserClient();
 
 interface EditPlayerModalProps {
-  playerId: string;
+  player: any;
   onClose: () => void;
-  groups: any[];
+  onUpdate: (updatedPlayer: any) => void;
+  onDelete: (playerId: string) => void;
 }
 
-// UI-only mode logic: Mocking the database hooks
-const useQueryMock = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("getPlayerById")) return MOCK_PLAYERS.find(p => p._id === args?.id) || MOCK_PLAYERS[0];
-  return undefined;
-};
-
-const useMutationMock = (apiPath: string) => async (args: any) => {
-  console.log("Mock mutation called:", apiPath, args);
-  return { _id: "new-id" };
-};
-
 export default function EditPlayerModal({
-  playerId,
+  player,
   onClose,
-  groups,
+  onUpdate,
+  onDelete,
 }: EditPlayerModalProps) {
+  const { user: clerkUser } = useClerkUser();
   const [playerName, setPlayerName] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [playerAvatar, setPlayerAvatar] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  const currentPlayer = useQueryMock("api.players.getPlayerById", { id: playerId });
-
-  const updatePlayer = useMutationMock("api.players.updatePlayer");
-  const deletePlayer = useMutationMock("api.players.deletePlayer");
-
   useEffect(() => {
-    if (currentPlayer) {
-      setPlayerName(currentPlayer.name);
-      setPlayerAvatar(currentPlayer.avatar || "");
-      if (currentPlayer.groupId) {
-        setSelectedGroup(currentPlayer.groupId);
-      }
+    if (player) {
+      setPlayerName(player.name);
     }
-  }, [currentPlayer]);
+  }, [player]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!playerName.trim()) return;
+    if (!playerName.trim() || !clerkUser || !player) return;
 
     setIsUpdating(true);
     try {
-      await updatePlayer({
-        id: playerId,
+      const res = await client.yazboz.updatePlayer({
+        userId: clerkUser.id,
+        playerId: player.id || player._id,
         name: playerName.trim(),
         initial: playerName.trim().charAt(0).toUpperCase(),
-        avatar: playerAvatar,
-        groupId: selectedGroup || undefined,
       });
 
+      if (res.player) {
+        onUpdate({
+          ...res.player,
+          _id: res.player.id,
+        });
+      }
       onClose();
     } catch (error) {
       console.error("Error updating player:", error);
@@ -78,9 +66,17 @@ export default function EditPlayerModal({
   };
 
   const handleDeleteConfirm = async () => {
+    if (!clerkUser || !player) return;
     setIsDeleting(true);
     try {
-      await deletePlayer({ id: playerId });
+      const targetId = player.id || player._id;
+      const res = await client.yazboz.deletePlayer({
+        userId: clerkUser.id,
+        playerId: targetId,
+      });
+      if (res.success) {
+        onDelete(targetId);
+      }
       onClose();
     } catch (error) {
       console.error("Error deleting player:", error);
@@ -89,11 +85,7 @@ export default function EditPlayerModal({
     }
   };
 
-  const selectGroup = (groupId: string) => {
-    setSelectedGroup(selectedGroup === groupId ? null : groupId);
-  };
-
-  if (!currentPlayer) {
+  if (!player) {
     return null;
   }
 
@@ -101,8 +93,11 @@ export default function EditPlayerModal({
     <>
       <Drawer.Root open={true} onOpenChange={(open) => !open && onClose()}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 opacity-100 z-[60]" />
-          <Drawer.Content className="bg-white dark:bg-[#1C1922] h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[60]">
+          <Drawer.Overlay className="fixed inset-0 bg-black/45 z-[60]" />
+          <Drawer.Content
+            className="h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[60]"
+            style={{ backgroundColor: "var(--card-background)" }}
+          >
             {/* Gesture bar */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
@@ -121,69 +116,19 @@ export default function EditPlayerModal({
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Player Name Input with Avatar */}
                 <div>
-                  <div className="flex items-center space-x-4">
-                    {/* Avatar on the left */}
-                    <div className="flex-shrink-0">
-                      <AvatarGenerator
-                        name={playerName.trim() || "Player"}
-                        size={80}
-                        initialAvatar={playerAvatar}
-                        onAvatarChange={setPlayerAvatar}
-                      />
-                    </div>
-
-                    {/* Column with name input */}
-                    <div className="flex-1">
-                      {/* Name input */}
-                      <div>
-                        <input
-                          type="text"
-                          value={playerName}
-                          onChange={(e) => setPlayerName(e.target.value)}
-                          placeholder="Kişi adını girin"
-                          className="w-full px-4 py-3 border border-blue-300 dark:border-blue-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-[var(--card-background)]"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Kişi Adı
+                  </label>
+                  <input
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Kişi adını girin"
+                    className="w-full px-4 py-3 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-[#2A2435]"
+                    required
+                  />
                 </div>
-
-                {/* Group Selection */}
-                {groups.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Grup Seçimi
-                    </label>
-                    <div className="space-y-2">
-                      {groups.map((group) => (
-                        <div
-                          key={group._id}
-                          className="flex items-center justify-between py-2"
-                        >
-                          <span className="text-gray-800 dark:text-gray-200">
-                            {group.name}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => selectGroup(group._id)}
-                            className={`w-5 h-5 border-2 rounded-full flex items-center justify-center ${
-                              selectedGroup === group._id
-                                ? "bg-blue-500 border-blue-500"
-                                : "bg-white dark:bg-gray-700 border-blue-500 dark:border-blue-400"
-                            }`}
-                          >
-                            {selectedGroup === group._id && (
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            )}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
@@ -199,7 +144,7 @@ export default function EditPlayerModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium"
+                    className="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-850/50"
                   >
                     İptal
                   </button>

@@ -26,6 +26,7 @@ Bu dosya platformdaki tüm aktif ve geliştirilmekte olan mini uygulamaları kat
 - **Card Game Codex:** Klasik kart oyunları için kurallar ve detaylı rehberler.
 - **Memedex:** Trend meme'ler, doğru kullanım bağlamları ve hazır Giphy template'leri.
 - **SeriesTrack:** İzlediğin dizileri takip et, bölümleri işaretle ve ilerlemeni gör.
+- **Yazboz:** Masa oyunları ve cafe oyunları (101, okey vb.) için dijital skor tahtası, zar ve yardımcı araçlar.
 - **Hobby Center:** Yeni hobiler keşfet, yol haritalarını takip et ve kaynaklara eriş.
 - **ChocolateDB:** Çikolataların IMDB'si! Favori çikolatanı bul, puanla ve yorumla.
 

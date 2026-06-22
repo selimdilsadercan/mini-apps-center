@@ -6,27 +6,11 @@ interface CarcassonneScoreboardProps {
   gameSaveId: string;
 }
 
-// Type shim for UI-only mode
-type Id<T> = string;
+import { useUser as useClerkUser } from "@clerk/clerk-react";
+import { createBrowserClient } from "@/lib/api";
+import { mapGameSaveToFrontend } from "../lib/mock-data";
 
-// Local mock hooks
-const useQuery = (apiPath: string, args?: any): any => {
-  if (apiPath.includes("getGameSaveById")) return { 
-    _id: "ms1", 
-    players: ["p1", "p2"],
-    specialPoints: {} 
-  };
-  if (apiPath.includes("getPlayersByIds")) return [
-    { _id: "p1", name: "Oyuncu 1", initial: "O1" },
-    { _id: "p2", name: "Oyuncu 2", initial: "O2" },
-  ];
-  return undefined;
-};
-
-const useMutation = (apiPath: string) => async (args: any) => {
-  console.log("Mock mutation:", apiPath, args);
-  return true;
-};
+const client = createBrowserClient();
 
 type ScoreType = "road" | "city" | "monastery" | "farm" | "other";
 
@@ -62,17 +46,56 @@ const SCORE_TYPE_POINTS: Record<ScoreType, number> = {
 export default function CarcassonneScoreboard({
   gameSaveId,
 }: CarcassonneScoreboardProps) {
-  // Game save + players
-  const gameSave = useQuery(
-    "api.gameSaves.getGameSaveById",
-    gameSaveId ? { id: gameSaveId } : "skip"
-  );
-  const players = useQuery(
-    "api.players.getPlayersByIds",
-    gameSave?.players ? { playerIds: gameSave.players } : "skip"
-  );
+  const { user: clerkUser } = useClerkUser();
+  const [gameSave, setGameSave] = useState<any>(undefined);
+  const [players, setPlayers] = useState<any[]>([]);
 
-  const updateGameSave = useMutation("api.gameSaves.updateGameSave");
+  // Fetch session and players
+  useEffect(() => {
+    if (clerkUser && gameSaveId) {
+      const fetchData = async () => {
+        try {
+          const saveRes = await client.yazboz.getGameSaveById(clerkUser.id, gameSaveId);
+          const playersRes = await client.yazboz.getPlayers(clerkUser.id);
+          
+          if (saveRes.gameSave) {
+            setGameSave(mapGameSaveToFrontend(saveRes.gameSave));
+          }
+          setPlayers((playersRes.players || []).map((p: any) => ({ ...p, _id: p.id })));
+        } catch (e) {
+          console.error("Error loading Carcassonne data:", e);
+        }
+      };
+      fetchData();
+    }
+  }, [clerkUser, gameSaveId]);
+
+  const updateGameSave = async (args: any) => {
+    if (!clerkUser || !gameSave) return;
+    try {
+      let newState = { ...(gameSave.state || {}) };
+      let newSettings = gameSave.settings;
+      
+      if (args.settings !== undefined) newSettings = args.settings;
+      if (args.specialPoints !== undefined) newState.specialPoints = args.specialPoints;
+      if (args.state !== undefined) {
+        newState = { ...newState, ...args.state };
+      }
+      
+      const res = await client.yazboz.updateGameSave({
+        userId: clerkUser.id,
+        saveId: gameSaveId,
+        settings: newSettings,
+        state: newState
+      });
+      
+      if (res.gameSave) {
+        setGameSave(mapGameSaveToFrontend(res.gameSave));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const [playerScores, setPlayerScores] = useState<PlayerScoresState>({});
 

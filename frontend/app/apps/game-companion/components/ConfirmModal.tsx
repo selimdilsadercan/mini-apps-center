@@ -35,7 +35,10 @@ export default function ConfirmModal({
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[70]" />
-        <Drawer.Content className="bg-white dark:bg-[#1C1922] h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[70]">
+        <Drawer.Content
+          className="h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[70]"
+          style={{ backgroundColor: "var(--card-background)" }}
+        >
           {/* Gesture bar */}
           <div className="flex justify-center pt-3 pb-1">
             <div className="w-10 h-1 bg-gray-300 rounded-full"></div>

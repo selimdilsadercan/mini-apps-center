@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { MagnifyingGlass, ArrowLeft } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import GameImage from "../components/GameImage";
-import { useTheme } from "../components/ThemeProvider";
 import { MOCK_GAMES, MOCK_USER } from "../lib/mock-data";
 
 // Local mock hooks
@@ -29,7 +28,7 @@ const useMutation = (apiPath: any) => async (args: any) => {
 export default function SearchPage() {
   const { isSignedIn, isLoaded, user } = useAuth();
   const router = useRouter();
-  const { resolvedTheme } = useTheme();
+  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   const games = useQuery("api.games.getGames") || [];
 
   // Get current user mock
