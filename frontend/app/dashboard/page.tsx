@@ -155,7 +155,7 @@ export default function BusinessListPage() {
               {businesses.map((biz) => (
                 <div
                   key={biz.id}
-                  onClick={() => router.push(`/dashboard/${biz.id}`)}
+                  onClick={() => router.push(`/dashboard/business?id=${biz.id}`)}
                   className="bg-white p-4.5 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 hover:border-red-400 transition-all cursor-pointer hover:-translate-y-0.5 active:scale-98"
                 >
                   <div className="w-12 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">

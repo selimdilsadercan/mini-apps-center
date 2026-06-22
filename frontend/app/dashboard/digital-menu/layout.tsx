@@ -62,7 +62,7 @@ function Sidebar() {
       {/* Sidebar Top: Back Button & Brand Header */}
       <div className="p-6 border-b border-stone-100 space-y-5">
         <button
-          onClick={() => router.push(`/dashboard/${id}`)}
+          onClick={() => router.push(`/dashboard/business?id=${id}`)}
           className="flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-all bg-stone-50 hover:bg-stone-100 border border-stone-200/60 px-4 py-2.5 rounded-2xl active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
         >
           <CaretLeft size={14} weight="bold" />
@@ -91,7 +91,7 @@ function Sidebar() {
           </h3>
           <div className="space-y-1.5">
             <button
-              onClick={() => router.push(`/dashboard/${id}/digital-menu/design`)}
+              onClick={() => router.push(`/dashboard/digital-menu/design?id=${id}`)}
               className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all ${
                 isDesignActive
                   ? "bg-stone-900 text-white shadow-lg shadow-stone-900/10 font-black"
@@ -103,7 +103,7 @@ function Sidebar() {
             </button>
 
             <button
-              onClick={() => router.push(`/dashboard/${id}/digital-menu/share`)}
+              onClick={() => router.push(`/dashboard/digital-menu/share?id=${id}`)}
               className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all ${
                 isShareActive
                   ? "bg-stone-900 text-white shadow-lg shadow-stone-900/10 font-black"
@@ -115,7 +115,7 @@ function Sidebar() {
             </button>
 
             <button
-              onClick={() => router.push(`/dashboard/${id}/digital-menu/bulk`)}
+              onClick={() => router.push(`/dashboard/digital-menu/bulk?id=${id}`)}
               className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all ${
                 isBulkActive
                   ? "bg-stone-900 text-white shadow-lg shadow-stone-900/10 font-black"
@@ -157,7 +157,7 @@ function Sidebar() {
                     key={cat.id}
                     onClick={() => {
                       setSelectedCategoryId(cat.id);
-                      router.push(`/dashboard/${id}/digital-menu`);
+                      router.push(`/dashboard/digital-menu?id=${id}`);
                     }}
                     className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all ${
                       isActive

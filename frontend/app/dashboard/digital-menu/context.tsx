@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useParams } from "next/navigation";
+import { createContext, useContext, useState, useEffect, ReactNode, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { digital_menu, business } from "@/lib/client";
@@ -24,8 +24,9 @@ interface DigitalMenuContextType {
 
 const DigitalMenuContext = createContext<DigitalMenuContextType | undefined>(undefined);
 
-export function DigitalMenuProvider({ children }: { children: ReactNode }) {
-  const { id } = useParams() as { id: string };
+function DigitalMenuProviderInner({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const { user, isLoaded: isUserLoaded } = useUser();
   
   const [loading, setLoading] = useState(true);
@@ -91,4 +92,19 @@ export function useDigitalMenu() {
     throw new Error("useDigitalMenu must be used within a DigitalMenuProvider");
   }
   return context;
+}
+
+
+export function DigitalMenuProvider({ children }: { children: ReactNode }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-screen items-center justify-center bg-[#FDFBF9]">
+          <div className="w-12 h-12 border-4 border-red-100 border-t-red-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <DigitalMenuProviderInner>{children}</DigitalMenuProviderInner>
+    </Suspense>
+  );
 }

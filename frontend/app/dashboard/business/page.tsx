@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChefHat,
   Cards,
@@ -17,9 +17,9 @@ import { stamp_card } from "@/lib/client";
 
 const client = createBrowserClient();
 
-export default function BusinessDetailClient({ id: initialId }: { id?: string }) {
-  const params = useParams() as { id?: string };
-  const id = params.id || initialId || "";
+function BusinessDetailContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
 
@@ -76,6 +76,18 @@ export default function BusinessDetailClient({ id: initialId }: { id?: string })
     }
   };
 
+
+  if (!id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9] px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-8 text-center">
+          <h1 className="text-lg font-black text-stone-900 mb-2">Geçersiz Link</h1>
+          <p className="text-sm text-stone-500">İşletme linkinde ID bulunamadı.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9]">
@@ -130,7 +142,7 @@ export default function BusinessDetailClient({ id: initialId }: { id?: string })
 
           {/* CARD 1: DIGITAL MENU */}
           <div
-            onClick={() => router.push(`/dashboard/${id}/digital-menu`)}
+            onClick={() => router.push(`/dashboard/digital-menu?id=${id}`)}
             className="bg-white p-5 rounded-[2.2rem] border border-stone-200/80 hover:border-red-300 transition-all cursor-pointer flex items-center justify-between group shadow-sm active:scale-[0.98]"
           >
             <div className="flex items-center gap-4 min-w-0">
@@ -149,7 +161,7 @@ export default function BusinessDetailClient({ id: initialId }: { id?: string })
 
           {/* CARD 2: STAMP CARD */}
           <div
-            onClick={() => router.push(`/dashboard/${id}/stamp`)}
+            onClick={() => router.push(`/dashboard/stamp?id=${id}`)}
             className="bg-white p-5 rounded-[2.2rem] border border-stone-200/80 hover:border-amber-300 transition-all cursor-pointer flex items-center justify-between group shadow-sm active:scale-[0.98]"
           >
             <div className="flex items-center gap-4 min-w-0">
@@ -207,5 +219,20 @@ export default function BusinessDetailClient({ id: initialId }: { id?: string })
       </main>
 
     </div>
+  );
+}
+
+
+export default function BusinessDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9]">
+          <div className="w-12 h-12 border-4 border-red-100 border-t-red-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <BusinessDetailContent />
+    </Suspense>
   );
 }

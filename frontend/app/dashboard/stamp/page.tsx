@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import {
   Cards,
@@ -19,8 +19,9 @@ import { stamp_card } from "@/lib/client";
 
 const client = createBrowserClient();
 
-export default function StampCardManagementPage() {
-  const { id } = useParams() as { id: string };
+function StampContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
 
@@ -97,6 +98,18 @@ export default function StampCardManagementPage() {
     }
   };
 
+
+  if (!id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9] px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-8 text-center">
+          <h1 className="text-lg font-black text-stone-900 mb-2">Geçersiz Link</h1>
+          <p className="text-sm text-stone-500">Stamp linkinde işletme ID bulunamadı.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9]">
@@ -120,7 +133,7 @@ export default function StampCardManagementPage() {
         {/* Navigation */}
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => router.push(`/dashboard/${id}`)}
+            onClick={() => router.push(`/dashboard/business?id=${id}`)}
             className="flex items-center gap-1.5 text-stone-600 hover:text-stone-900 transition-all bg-white border border-stone-200/80 backdrop-blur-xl px-3.5 py-2.5 rounded-2xl shadow-sm active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
           >
             <CaretLeft size={14} weight="bold" />
@@ -247,5 +260,20 @@ export default function StampCardManagementPage() {
         )}
       </main>
     </div>
+  );
+}
+
+
+export default function StampCardManagementPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9]">
+          <div className="w-12 h-12 border-4 border-amber-100 border-t-amber-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <StampContent />
+    </Suspense>
   );
 }
