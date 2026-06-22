@@ -42,9 +42,16 @@ async function fetchDislikedDishes(clerkId: string): Promise<string[]> {
 /** Her dakika İstanbul saatine göre 08:00 öğle / 15:00 akşam menü bildirimi gönderir. */
 export const dispatchMealNotifications = api(
   {},
-  async (): Promise<{ checked: number; sent: number; skipped: number }> => {
+  async (params?: {
+    force?: boolean;
+    mealSlot?: MealSlot;
+  }): Promise<{ checked: number; sent: number; skipped: number }> => {
     const { hour, minute, dateKey } = getIstanbulClock();
-    const slots = activeSlots(hour, minute);
+    let slots = activeSlots(hour, minute);
+
+    if (params?.force) {
+      slots = params.mealSlot ? [params.mealSlot] : (["lunch", "dinner"] as MealSlot[]);
+    }
 
     if (slots.length === 0) {
       return { checked: 0, sent: 0, skipped: 0 };

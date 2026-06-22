@@ -22,12 +22,15 @@ export default function YemekhaneNotificationsPage() {
     permission,
     handleRequestPermission,
     loading: pushLoading,
+    refreshSetup,
     isNativePushSupported,
   } = useNotifications();
 
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testMessage, setTestMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadPreferences = useCallback(async () => {
@@ -95,6 +98,40 @@ export default function YemekhaneNotificationsPage() {
     }
 
     await saveEnabled(next);
+
+    if (next && isNativePushSupported) {
+      await refreshSetup();
+    }
+  };
+
+  const handleTestPush = async () => {
+    if (!user?.uid) {
+      setError("Test için giriş yapmalısın.");
+      return;
+    }
+
+    setTesting(true);
+    setTestMessage(null);
+    setError(null);
+
+    try {
+      const client = createBrowserClient();
+      const res = await client.itu_yemekhane.sendTestMealNotification({
+        userId: user.uid,
+        mealSlot: "lunch",
+      });
+
+      setTestMessage(
+        res.pushSent
+          ? `Bildirim gönderildi: ${res.title}`
+          : `${res.message} (kayıtlı cihaz: ${res.deviceCount})`,
+      );
+    } catch (err) {
+      console.error("handleTestPush:", err);
+      setError("Test bildirimi gönderilemedi.");
+    } finally {
+      setTesting(false);
+    }
   };
 
   return (
@@ -164,6 +201,30 @@ export default function YemekhaneNotificationsPage() {
             <p className="text-xs text-red-500 mt-4 font-medium">{error}</p>
           )}
         </section>
+
+        {isAuthenticated && (
+          <section className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              Test
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              Otomatik bildirimler yalnızca <strong>08:00</strong> ve <strong>15:00</strong>{" "}
+              (İstanbul) saatinde gönderilir. Encore&apos;dan manuel çalıştırma bu saatler dışında
+              hiçbir şey yapmaz.
+            </p>
+            <button
+              type="button"
+              disabled={testing || pushLoading}
+              onClick={() => void handleTestPush()}
+              className="w-full rounded-xl bg-[#EAB308] hover:bg-[#CA8A04] disabled:opacity-50 text-slate-900 font-bold text-sm py-3 transition-colors"
+            >
+              {testing ? "Gönderiliyor..." : "Test Bildirimi Gönder"}
+            </button>
+            {testMessage && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{testMessage}</p>
+            )}
+          </section>
+        )}
 
         <section className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
           <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">
