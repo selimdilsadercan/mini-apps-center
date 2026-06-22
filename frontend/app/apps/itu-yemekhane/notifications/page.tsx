@@ -208,9 +208,13 @@ export default function YemekhaneNotificationsPage() {
               Test
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Otomatik bildirimler yalnızca <strong>08:00</strong> ve <strong>15:00</strong>{" "}
-              (İstanbul) saatinde gönderilir. Encore&apos;dan manuel çalıştırma bu saatler dışında
-              hiçbir şey yapmaz.
+              Otomatik bildirimler <strong>08:00–09:00</strong> ve{" "}
+              <strong>15:00–16:00</strong> (İstanbul) arasında gönderilir. Encore cron&apos;u
+              manuel tetiklemek için{" "}
+              <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 rounded">
+                POST /itu-yemekhane/trigger-notifications
+              </code>{" "}
+              kullan.
             </p>
             <button
               type="button"

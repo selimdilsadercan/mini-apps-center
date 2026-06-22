@@ -3007,6 +3007,8 @@ export namespace itu_yemekhane {
         isSelectable?: boolean
     }
 
+    export type MealSlot = "lunch" | "dinner"
+
     export interface MenuResponse {
         date: string
         mealType: string
@@ -3037,6 +3039,7 @@ export namespace itu_yemekhane {
             this.getMenu = this.getMenu.bind(this)
             this.sendTestMealNotification = this.sendTestMealNotification.bind(this)
             this.toggleDislike = this.toggleDislike.bind(this)
+            this.triggerMealNotifications = this.triggerMealNotifications.bind(this)
         }
 
         public async getDislikedDishes(userId: string): Promise<{
@@ -3086,6 +3089,26 @@ export namespace itu_yemekhane {
             const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/disliked`, JSON.stringify(params))
             return await resp.json() as {
     status: string
+}
+        }
+
+        /**
+         * Encore panelinden veya manuel test için — force ile saat kısıtını atlar.
+         */
+        public async triggerMealNotifications(params: {
+    force?: boolean
+    mealSlot?: MealSlot
+}): Promise<{
+    checked: number
+    sent: number
+    skipped: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/trigger-notifications`, JSON.stringify(params))
+            return await resp.json() as {
+    checked: number
+    sent: number
+    skipped: number
 }
         }
     }

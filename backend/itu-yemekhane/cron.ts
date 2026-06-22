@@ -20,8 +20,7 @@ const LUNCH_HOUR = 8;
 const DINNER_HOUR = 15;
 const APP_KEY = NOTIFICATION_APP_KEYS.ITU_YEMEKHANE;
 
-function activeSlots(hour: number, minute: number): MealSlot[] {
-  if (minute !== 0) return [];
+function activeSlots(hour: number): MealSlot[] {
   const slots: MealSlot[] = [];
   if (hour === LUNCH_HOUR) slots.push("lunch");
   if (hour === DINNER_HOUR) slots.push("dinner");
@@ -39,95 +38,118 @@ async function fetchDislikedDishes(clerkId: string): Promise<string[]> {
   return ((data as { dish_name: string }[]) ?? []).map((row) => row.dish_name);
 }
 
-/** Her dakika İstanbul saatine göre 08:00 öğle / 15:00 akşam menü bildirimi gönderir. */
-export const dispatchMealNotifications = api(
-  {},
-  async (params?: {
-    force?: boolean;
-    mealSlot?: MealSlot;
-  }): Promise<{ checked: number; sent: number; skipped: number }> => {
-    const { hour, minute, dateKey } = getIstanbulClock();
-    let slots = activeSlots(hour, minute);
+async function runMealNotificationDispatch(options?: {
+  force?: boolean;
+  mealSlot?: MealSlot;
+}): Promise<{ checked: number; sent: number; skipped: number }> {
+  const { hour, dateKey } = getIstanbulClock();
+  let slots = activeSlots(hour);
 
-    if (params?.force) {
-      slots = params.mealSlot ? [params.mealSlot] : (["lunch", "dinner"] as MealSlot[]);
-    }
+  if (options?.force) {
+    slots = options.mealSlot ? [options.mealSlot] : (["lunch", "dinner"] as MealSlot[]);
+  }
 
-    if (slots.length === 0) {
-      return { checked: 0, sent: 0, skipped: 0 };
-    }
+  if (slots.length === 0) {
+    return { checked: 0, sent: 0, skipped: 0 };
+  }
 
-    let rows;
+  let rows;
+  try {
+    rows = await listNotificationOptInUsers(supabase, APP_KEY);
+  } catch (error) {
+    console.error("dispatchMealNotifications:", error);
+    return { checked: 0, sent: 0, skipped: 0 };
+  }
+
+  let sent = 0;
+  let skipped = 0;
+  let checked = 0;
+
+  for (const slot of slots) {
+    let menu;
     try {
-      rows = await listNotificationOptInUsers(supabase, APP_KEY);
-    } catch (error) {
-      console.error("dispatchMealNotifications:", error);
-      return { checked: 0, sent: 0, skipped: 0 };
+      menu = await fetchMenu(true);
+    } catch (err) {
+      console.error(`dispatchMealNotifications menu (${slot}):`, err);
+      continue;
     }
 
-    let sent = 0;
-    let skipped = 0;
-    let checked = 0;
-
-    for (const slot of slots) {
-      let menu;
-      try {
-        menu = await fetchMenu(true);
-      } catch (err) {
-        console.error(`dispatchMealNotifications menu (${slot}):`, err);
+    for (const row of rows) {
+      checked++;
+      const clerkId = row.clerk_id;
+      if (!clerkId) {
+        skipped++;
         continue;
       }
 
-      for (const row of rows) {
-        checked++;
-        const clerkId = row.clerk_id;
-        if (!clerkId) {
-          skipped++;
-          continue;
-        }
+      const appData = row.app_data as ItuYemekhaneNotificationOptIn;
+      const lastKey =
+        slot === "lunch" ? appData.last_lunch_notified_date : appData.last_dinner_notified_date;
+      if (!options?.force && lastKey === dateKey) {
+        skipped++;
+        continue;
+      }
 
-        const appData = row.app_data as ItuYemekhaneNotificationOptIn;
-        const lastKey =
-          slot === "lunch" ? appData.last_lunch_notified_date : appData.last_dinner_notified_date;
-        if (lastKey === dateKey) {
-          skipped++;
-          continue;
-        }
+      try {
+        const disliked = await fetchDislikedDishes(clerkId);
+        const copy = buildMealNotificationCopy(slot, menu, disliked);
+        const payload = {
+          title: copy.title,
+          body: copy.body,
+          data: {
+            type: "itu_yemekhane" as const,
+            mealSlot: slot,
+            mealType: menu.mealType,
+            menuDate: menu.date,
+            sentAt: new Date().toISOString(),
+          },
+        };
 
-        try {
-          const disliked = await fetchDislikedDishes(clerkId);
-          const copy = buildMealNotificationCopy(slot, menu, disliked);
-          const payload = {
-            title: copy.title,
-            body: copy.body,
-            data: {
-              type: "itu_yemekhane" as const,
-              mealSlot: slot,
-              mealType: menu.mealType,
-              menuDate: menu.date,
-              sentAt: new Date().toISOString(),
-            },
-          };
-
-          const { pushSent } = await sendMealPush(supabase, clerkId, payload);
-          if (pushSent) {
-            const patch =
-              slot === "lunch"
-                ? { last_lunch_notified_date: dateKey }
-                : { last_dinner_notified_date: dateKey };
-            await mergeNotificationAppOptIn(supabase, clerkId, APP_KEY, patch);
-            sent++;
-          } else {
-            skipped++;
-          }
-        } catch (err) {
-          console.error(`dispatchMealNotifications user ${row.user_id} (${slot}):`, err);
+        const { pushSent } = await sendMealPush(supabase, clerkId, payload);
+        if (pushSent) {
+          const patch =
+            slot === "lunch"
+              ? { last_lunch_notified_date: dateKey }
+              : { last_dinner_notified_date: dateKey };
+          await mergeNotificationAppOptIn(supabase, clerkId, APP_KEY, patch);
+          sent++;
+        } else {
           skipped++;
         }
+      } catch (err) {
+        console.error(`dispatchMealNotifications user ${row.user_id} (${slot}):`, err);
+        skipped++;
       }
     }
+  }
 
-    return { checked, sent, skipped };
+  return { checked, sent, skipped };
+}
+
+/** Her dakika İstanbul saatine göre 08:xx öğle / 15:xx akşam menü bildirimi gönderir. */
+export const dispatchMealNotifications = api(
+  {},
+  async (): Promise<{ checked: number; sent: number; skipped: number }> => {
+    try {
+      return await runMealNotificationDispatch();
+    } catch (error) {
+      console.error("dispatchMealNotifications fatal:", error);
+      return { checked: 0, sent: 0, skipped: 0 };
+    }
+  },
+);
+
+/** Encore panelinden veya manuel test için — force ile saat kısıtını atlar. */
+export const triggerMealNotifications = api(
+  { expose: true, method: "POST", path: "/itu-yemekhane/trigger-notifications" },
+  async ({
+    force = true,
+    mealSlot,
+  }: {
+    force?: boolean;
+    mealSlot?: MealSlot;
+  }): Promise<{ checked: number; sent: number; skipped: number }> => {
+    return runMealNotificationDispatch({ force, mealSlot });
   },
 );
 
