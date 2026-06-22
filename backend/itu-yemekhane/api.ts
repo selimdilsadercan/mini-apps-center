@@ -1,6 +1,5 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
-import { users } from "~encore/clients";
 import { createSupabaseClient } from "../lib/supabase";
 import { fetchMenu } from "./menu_provider";
 import { buildMealNotificationCopy } from "./notification_copy";
@@ -14,46 +13,30 @@ export interface Dish {
   id: string;
   name: string;
   category: string;
+  traySlot?: string;
   calories: number;
+  isSelectable?: boolean;
 }
 
 export interface MenuResponse {
   date: string;
   mealType: string;
   dishes: Dish[];
-}
-
-export interface NotificationPreferences {
-  user_id: string;
-  notifications_enabled: boolean;
-  last_lunch_notified_date: string | null;
-  last_dinner_notified_date: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-const DEFAULT_NOTIFICATION_PREFERENCES = (userId: string): NotificationPreferences => ({
-  user_id: userId,
-  notifications_enabled: false,
-  last_lunch_notified_date: null,
-  last_dinner_notified_date: null,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-});
-
-async function ensurePublicUser(clerkId: string): Promise<void> {
-  const { user } = await users.getOrCreateUser({ clerkId });
-  if (!user) {
-    throw APIError.internal("Could not ensure user record in public.users");
-  }
-}
-
-function normalizeNotificationPreferences(
-  row: NotificationPreferences | null,
-  userId: string,
-): NotificationPreferences {
-  if (!row) return DEFAULT_NOTIFICATION_PREFERENCES(userId);
-  return row;
+  trays?: {
+    soup: Dish[];
+    main: Dish[];
+    side: Dish[];
+    extras: Dish[];
+  };
+  vegan?: {
+    dishes: Dish[];
+    trays: {
+      soup: Dish[];
+      main: Dish[];
+      side: Dish[];
+      extras: Dish[];
+    };
+  };
 }
 
 export const getMenu = api(
@@ -98,53 +81,6 @@ export const getDislikedDishes = api(
     }
 
     return { dishes: ((data as { dish_name: string }[]) || []).map((row) => row.dish_name) };
-  },
-);
-
-export const getNotificationPreferences = api(
-  { expose: true, method: "GET", path: "/itu-yemekhane/notification-preferences/:userId" },
-  async ({ userId }: { userId: string }): Promise<{ preferences: NotificationPreferences }> => {
-    const { data, error } = await supabase
-      .schema("itu_yemekhane")
-      .rpc("get_notification_preferences", { clerk_id_param: userId });
-
-    if (error) {
-      console.error("getNotificationPreferences error:", error);
-      throw APIError.internal(`Failed to load preferences: ${error.message}`);
-    }
-
-    return {
-      preferences: normalizeNotificationPreferences(data as NotificationPreferences | null, userId),
-    };
-  },
-);
-
-export const upsertNotificationPreferences = api(
-  { expose: true, method: "POST", path: "/itu-yemekhane/notification-preferences" },
-  async ({
-    userId,
-    notificationsEnabled,
-  }: {
-    userId: string;
-    notificationsEnabled: boolean;
-  }): Promise<{ preferences: NotificationPreferences }> => {
-    await ensurePublicUser(userId);
-
-    const { data, error } = await supabase
-      .schema("itu_yemekhane")
-      .rpc("upsert_notification_preferences", {
-        clerk_id_param: userId,
-        notifications_enabled_param: notificationsEnabled,
-      });
-
-    if (error) {
-      console.error("upsertNotificationPreferences error:", error);
-      throw APIError.internal(`Failed to save preferences: ${error.message}`);
-    }
-
-    return {
-      preferences: normalizeNotificationPreferences(data as NotificationPreferences | null, userId),
-    };
   },
 );
 

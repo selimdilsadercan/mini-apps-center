@@ -388,6 +388,28 @@ interface DeleteUserResponse {
   success: boolean;
 }
 
+export type NotificationAppsJson = Record<string, Record<string, unknown>>;
+
+interface GetNotificationOptInsRequest {
+  clerkId: string;
+}
+
+interface GetNotificationOptInsResponse {
+  apps: NotificationAppsJson;
+  updatedAt: string | null;
+}
+
+interface SetNotificationAppOptInRequest {
+  clerkId: string;
+  appKey: string;
+  patch: Record<string, unknown>;
+}
+
+interface SetNotificationAppOptInResponse {
+  app: Record<string, unknown>;
+  apps: NotificationAppsJson;
+}
+
 /**
  * Kullanıcı hesabını ve ilişkili verileri kalıcı olarak siler
  */
@@ -407,3 +429,82 @@ export const deleteUser = api(
     return { success: !!data };
   }
 );
+
+/**
+ * Kullanıcının uygulama bazlı bildirim izinlerini getirir (JSON wrapper).
+ */
+export const getNotificationOptIns = api(
+  { expose: true, method: "GET", path: "/users/notification-opt-ins/:clerkId" },
+  async ({ clerkId }: GetNotificationOptInsRequest): Promise<GetNotificationOptInsResponse> => {
+    const { data, error } = await supabase.rpc("get_notification_opt_ins", {
+      clerk_id_param: clerkId,
+    });
+
+    if (error) {
+      console.error("getNotificationOptIns error:", error);
+      return { apps: {}, updatedAt: null };
+    }
+
+    const row = data?.[0];
+    return {
+      apps: (row?.apps as NotificationAppsJson) ?? {},
+      updatedAt: row?.updated_at ?? null,
+    };
+  },
+);
+
+/**
+ * Belirli bir uygulama için bildirim iznini JSON patch ile günceller.
+ * Örn. appKey: "itu_yemekhane", patch: { enabled: true }
+ */
+export const setNotificationAppOptIn = api(
+  { expose: true, method: "POST", path: "/users/notification-opt-ins" },
+  async ({
+    clerkId,
+    appKey,
+    patch,
+  }: SetNotificationAppOptInRequest): Promise<SetNotificationAppOptInResponse> => {
+    await supabase.rpc("users_create_user", {
+      clerk_id_param: clerkId,
+      is_local_param: isLocal,
+      firebase_id_param: clerkId,
+    });
+
+    const { data: merged, error: mergeError } = await supabase.rpc(
+      "merge_notification_app_opt_in",
+      {
+        clerk_id_param: clerkId,
+        app_key_param: appKey,
+        patch_param: patch,
+      },
+    );
+
+    if (mergeError) {
+      console.error("setNotificationAppOptIn error:", mergeError);
+      throw APIError.internal(`Failed to save notification opt-in: ${mergeError.message}`);
+    }
+
+    const { data, error } = await supabase.rpc("get_notification_opt_ins", {
+      clerk_id_param: clerkId,
+    });
+
+    if (error) {
+      console.error("setNotificationAppOptIn reload error:", error);
+      return {
+        app: (merged as Record<string, unknown>) ?? {},
+        apps: { [appKey]: (merged as Record<string, unknown>) ?? {} },
+      };
+    }
+
+    const apps = (data?.[0]?.apps as NotificationAppsJson) ?? {};
+    return {
+      app: (merged as Record<string, unknown>) ?? getAppPatch(apps, appKey),
+      apps,
+    };
+  },
+);
+
+function getAppPatch(apps: NotificationAppsJson, appKey: string): Record<string, unknown> {
+  const raw = apps[appKey];
+  return raw && typeof raw === "object" ? raw : {};
+}

@@ -34,15 +34,20 @@ export function buildMealNotificationCopy(
     };
   }
 
+  const selectableSlots = (["soup", "main", "side", "extras"] as const).some(
+    (key) => (menu.trays?.[key]?.length ?? 0) > 1,
+  );
+  const selectableNote = selectableSlots ? " (bazı kalemler seçmeli)" : "";
+
   if (slot === "lunch") {
     return {
       title: "ITU Yemekhane • Öğle Menüsü ☀️",
-      body: `Bugünün öğle menüsü: ${preview}${suffix}`,
+      body: `Bugünün öğle menüsü: ${preview}${suffix}${selectableNote}`,
     };
   }
 
   return {
     title: "ITU Yemekhane • Akşam Menüsü 🌙",
-    body: `Bugünün akşam menüsü: ${preview}${suffix}`,
+    body: `Bugünün akşam menüsü: ${preview}${suffix}${selectableNote}`,
   };
 }

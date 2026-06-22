@@ -321,3 +321,86 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
+
+-- 10. get_notification_opt_ins
+DROP FUNCTION IF EXISTS public.get_notification_opt_ins(TEXT);
+CREATE OR REPLACE FUNCTION public.get_notification_opt_ins(clerk_id_param TEXT)
+RETURNS TABLE(user_id UUID, apps JSONB, updated_at TIMESTAMPTZ)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    v_user_id := public.get_internal_user_id(clerk_id_param);
+    IF v_user_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    SELECT uo.user_id, uo.apps, uo.updated_at
+    FROM public.user_notification_opt_ins uo
+    WHERE uo.user_id = v_user_id;
+END;
+$$;
+
+-- 11. merge_notification_app_opt_in
+DROP FUNCTION IF EXISTS public.merge_notification_app_opt_in(TEXT, TEXT, JSONB);
+CREATE OR REPLACE FUNCTION public.merge_notification_app_opt_in(
+    clerk_id_param TEXT,
+    app_key_param TEXT,
+    patch_param JSONB
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_user_id UUID;
+    v_merged JSONB;
+BEGIN
+    v_user_id := public.get_internal_user_id(clerk_id_param);
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    INSERT INTO public.user_notification_opt_ins (user_id, apps, updated_at)
+    VALUES (
+        v_user_id,
+        jsonb_build_object(app_key_param, patch_param),
+        NOW()
+    )
+    ON CONFLICT (user_id) DO UPDATE SET
+        apps = jsonb_set(
+            public.user_notification_opt_ins.apps,
+            ARRAY[app_key_param],
+            COALESCE(public.user_notification_opt_ins.apps -> app_key_param, '{}'::jsonb) || patch_param,
+            true
+        ),
+        updated_at = NOW()
+    RETURNING apps -> app_key_param INTO v_merged;
+
+    RETURN v_merged;
+END;
+$$;
+
+-- 12. list_notification_opt_in_users
+DROP FUNCTION IF EXISTS public.list_notification_opt_in_users(TEXT);
+CREATE OR REPLACE FUNCTION public.list_notification_opt_in_users(app_key_param TEXT)
+RETURNS TABLE(user_id UUID, clerk_id TEXT, app_data JSONB)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT uo.user_id, u.clerk_id, uo.apps -> app_key_param AS app_data
+    FROM public.user_notification_opt_ins uo
+    INNER JOIN public.users u ON u.id = uo.user_id
+    WHERE COALESCE((uo.apps -> app_key_param ->> 'enabled')::boolean, false) = true;
+END;
+$$;
+
+-- Grants (yeni fonksiyonlar eklendikten sonra)
+GRANT EXECUTE ON FUNCTION public.get_notification_opt_ins(TEXT) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.merge_notification_app_opt_in(TEXT, TEXT, JSONB) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.list_notification_opt_in_users(TEXT) TO anon, authenticated, service_role;

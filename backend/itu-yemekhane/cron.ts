@@ -1,10 +1,16 @@
 import { CronJob } from "encore.dev/cron";
 import { api } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import {
+  listNotificationOptInUsers,
+  mergeNotificationAppOptIn,
+  NOTIFICATION_APP_KEYS,
+  type ItuYemekhaneNotificationOptIn,
+} from "../lib/notification_opt_ins";
 import { createSupabaseClient } from "../lib/supabase";
 import { fetchMenu } from "./menu_provider";
 import { buildMealNotificationCopy, type MealSlot } from "./notification_copy";
-import { getIstanbulClock, markMealNotified, sendMealPush } from "./push";
+import { getIstanbulClock, sendMealPush } from "./push";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -12,14 +18,7 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 const LUNCH_HOUR = 8;
 const DINNER_HOUR = 15;
-
-interface NotificationPrefsRow {
-  user_id: string;
-  notifications_enabled: boolean;
-  last_lunch_notified_date: string | null;
-  last_dinner_notified_date: string | null;
-  user: { clerk_id: string } | null;
-}
+const APP_KEY = NOTIFICATION_APP_KEYS.ITU_YEMEKHANE;
 
 function activeSlots(hour: number, minute: number): MealSlot[] {
   if (minute !== 0) return [];
@@ -51,13 +50,10 @@ export const dispatchMealNotifications = api(
       return { checked: 0, sent: 0, skipped: 0 };
     }
 
-    const { data: rows, error } = await supabase
-      .schema("itu_yemekhane")
-      .from("notification_preferences")
-      .select("*, user:user_id(clerk_id)")
-      .eq("notifications_enabled", true);
-
-    if (error) {
+    let rows;
+    try {
+      rows = await listNotificationOptInUsers(supabase, APP_KEY);
+    } catch (error) {
       console.error("dispatchMealNotifications:", error);
       return { checked: 0, sent: 0, skipped: 0 };
     }
@@ -75,16 +71,17 @@ export const dispatchMealNotifications = api(
         continue;
       }
 
-      for (const row of (rows ?? []) as NotificationPrefsRow[]) {
+      for (const row of rows) {
         checked++;
-        const clerkId = row.user?.clerk_id;
+        const clerkId = row.clerk_id;
         if (!clerkId) {
           skipped++;
           continue;
         }
 
+        const appData = row.app_data as ItuYemekhaneNotificationOptIn;
         const lastKey =
-          slot === "lunch" ? row.last_lunch_notified_date : row.last_dinner_notified_date;
+          slot === "lunch" ? appData.last_lunch_notified_date : appData.last_dinner_notified_date;
         if (lastKey === dateKey) {
           skipped++;
           continue;
@@ -107,7 +104,11 @@ export const dispatchMealNotifications = api(
 
           const { pushSent } = await sendMealPush(supabase, clerkId, payload);
           if (pushSent) {
-            await markMealNotified(supabase, row.user_id, slot, dateKey);
+            const patch =
+              slot === "lunch"
+                ? { last_lunch_notified_date: dateKey }
+                : { last_dinner_notified_date: dateKey };
+            await mergeNotificationAppOptIn(supabase, clerkId, APP_KEY, patch);
             sent++;
           } else {
             skipped++;

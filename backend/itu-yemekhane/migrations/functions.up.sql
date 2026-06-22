@@ -2,6 +2,10 @@
 -- 1. itu_yemekhane.get_dislikes
 -- 2. itu_yemekhane.toggle_dislike
 
+-- Eski bildirim RPC'leri (artık public.user_notification_opt_ins kullanılıyor)
+DROP FUNCTION IF EXISTS itu_yemekhane.get_notification_preferences(TEXT);
+DROP FUNCTION IF EXISTS itu_yemekhane.upsert_notification_preferences(TEXT, BOOLEAN);
+
 -- 1. Get Dislikes
 DROP FUNCTION IF EXISTS itu_yemekhane.get_dislikes();
 DROP FUNCTION IF EXISTS itu_yemekhane.get_dislikes(TEXT);
@@ -46,64 +50,5 @@ BEGIN
         INSERT INTO itu_yemekhane.dislikes (user_id, dish_name) VALUES (v_user_id, dish_name_param);
         RETURN 'added';
     END IF;
-END;
-$$;
-
--- 3. Get Notification Preferences
-DROP FUNCTION IF EXISTS itu_yemekhane.get_notification_preferences(TEXT);
-CREATE OR REPLACE FUNCTION itu_yemekhane.get_notification_preferences(clerk_id_param TEXT)
-RETURNS itu_yemekhane.notification_preferences
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-    v_user_id UUID;
-    v_result itu_yemekhane.notification_preferences;
-BEGIN
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-
-    SELECT * INTO v_result
-    FROM itu_yemekhane.notification_preferences p
-    WHERE p.user_id = v_user_id;
-
-    RETURN v_result;
-END;
-$$;
-
--- 4. Upsert Notification Preferences
-DROP FUNCTION IF EXISTS itu_yemekhane.upsert_notification_preferences(TEXT, BOOLEAN);
-CREATE OR REPLACE FUNCTION itu_yemekhane.upsert_notification_preferences(
-    clerk_id_param TEXT,
-    notifications_enabled_param BOOLEAN
-)
-RETURNS itu_yemekhane.notification_preferences
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-    v_user_id UUID;
-    v_result itu_yemekhane.notification_preferences;
-BEGIN
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    INSERT INTO itu_yemekhane.notification_preferences (
-        user_id,
-        notifications_enabled,
-        updated_at
-    )
-    VALUES (
-        v_user_id,
-        notifications_enabled_param,
-        NOW()
-    )
-    ON CONFLICT (user_id) DO UPDATE SET
-        notifications_enabled = EXCLUDED.notifications_enabled,
-        updated_at = NOW()
-    RETURNING * INTO v_result;
-
-    RETURN v_result;
 END;
 $$;

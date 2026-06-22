@@ -113,21 +113,3 @@ export async function sendMealPush(
 
   return { deviceCount, pushSent, message };
 }
-
-export async function markMealNotified(
-  supabase: SupabaseClient,
-  userId: string,
-  slot: MealSlot,
-  dateKey: string,
-): Promise<void> {
-  const column = slot === "lunch" ? "last_lunch_notified_date" : "last_dinner_notified_date";
-  const { error } = await supabase
-    .schema("itu_yemekhane")
-    .from("notification_preferences")
-    .update({ [column]: dateKey, updated_at: new Date().toISOString() })
-    .eq("user_id", userId);
-
-  if (error) {
-    console.error("markMealNotified:", error);
-  }
-}

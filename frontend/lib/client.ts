@@ -3002,35 +3002,30 @@ export namespace itu_yemekhane {
         id: string
         name: string
         category: string
+        traySlot?: string
         calories: number
+        isSelectable?: boolean
     }
 
     export interface MenuResponse {
         date: string
         mealType: string
         dishes: Dish[]
-    }
-
-    export interface NotificationPreferences {
-        "user_id": string
-        "notifications_enabled": boolean
-        "last_lunch_notified_date": string | null
-        "last_dinner_notified_date": string | null
-        "created_at": string
-        "updated_at": string
-    }
-
-    export interface GetNotificationPreferencesResponse {
-        preferences: NotificationPreferences
-    }
-
-    export interface UpsertNotificationPreferencesRequest {
-        userId: string
-        notificationsEnabled: boolean
-    }
-
-    export interface UpsertNotificationPreferencesResponse {
-        preferences: NotificationPreferences
+        trays?: {
+            soup: Dish[]
+            main: Dish[]
+            side: Dish[]
+            extras: Dish[]
+        }
+        vegan?: {
+            dishes: Dish[]
+            trays: {
+                soup: Dish[]
+                main: Dish[]
+                side: Dish[]
+                extras: Dish[]
+            }
+        }
     }
 
     export class ServiceClient {
@@ -3040,15 +3035,10 @@ export namespace itu_yemekhane {
             this.baseClient = baseClient
             this.getDislikedDishes = this.getDislikedDishes.bind(this)
             this.getMenu = this.getMenu.bind(this)
-            this.getNotificationPreferences = this.getNotificationPreferences.bind(this)
+            this.sendTestMealNotification = this.sendTestMealNotification.bind(this)
             this.toggleDislike = this.toggleDislike.bind(this)
-            this.upsertNotificationPreferences = this.upsertNotificationPreferences.bind(this)
         }
 
-        /**
-         * Get all disliked dishes for global display at the bottom via Supabase RPC.
-         * GET /itu-yemekhane/disliked/:userId
-         */
         public async getDislikedDishes(userId: string): Promise<{
     dishes: string[]
 }> {
@@ -3059,29 +3049,33 @@ export namespace itu_yemekhane {
 }
         }
 
-        /**
-         * Scrapes the ITU cafeteria menu from the provided external page.
-         */
         public async getMenu(): Promise<MenuResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/menu`)
             return await resp.json() as MenuResponse
         }
 
-        public async getNotificationPreferences(userId: string): Promise<GetNotificationPreferencesResponse> {
-            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/notification-preferences/${encodeURIComponent(userId)}`)
-            return await resp.json() as GetNotificationPreferencesResponse
+        public async sendTestMealNotification(params: {
+    userId: string
+    mealSlot?: "lunch" | "dinner"
+}): Promise<{
+    title: string
+    body: string
+    deviceCount: number
+    pushSent: boolean
+    message: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/test-notification`, JSON.stringify(params))
+            return await resp.json() as {
+    title: string
+    body: string
+    deviceCount: number
+    pushSent: boolean
+    message: string
+}
         }
 
-        public async upsertNotificationPreferences(params: UpsertNotificationPreferencesRequest): Promise<UpsertNotificationPreferencesResponse> {
-            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/notification-preferences`, JSON.stringify(params))
-            return await resp.json() as UpsertNotificationPreferencesResponse
-        }
-
-        /**
-         * Toggles a dish (name) in the disliked library using Supabase RPC.
-         * POST /itu-yemekhane/disliked
-         */
         public async toggleDislike(params: {
     dishName: string
     userId: string
@@ -6158,6 +6152,11 @@ export namespace users {
         success: boolean
     }
 
+    export interface GetNotificationOptInsResponse {
+        apps: NotificationAppsJson
+        updatedAt: string | null
+    }
+
     export interface GetOrCreateUserRequest {
         clerkId: string
         firebaseId?: string
@@ -6185,6 +6184,8 @@ export namespace users {
         isOnboardingFinished?: boolean
     }
 
+    export type NotificationAppsJson = { [key: string]: { [key: string]: any } }
+
     export interface SaveFcmTokenRequest {
         clerkId: string
         token: string
@@ -6193,6 +6194,17 @@ export namespace users {
 
     export interface SaveFcmTokenResponse {
         success: boolean
+    }
+
+    export interface SetNotificationAppOptInRequest {
+        clerkId: string
+        appKey: string
+        patch: { [key: string]: any }
+    }
+
+    export interface SetNotificationAppOptInResponse {
+        app: { [key: string]: any }
+        apps: NotificationAppsJson
     }
 
     export interface SetOnboardingFinishedRequest {
@@ -6230,11 +6242,13 @@ export namespace users {
             this.checkAdmin = this.checkAdmin.bind(this)
             this.createUser = this.createUser.bind(this)
             this.deleteUser = this.deleteUser.bind(this)
+            this.getNotificationOptIns = this.getNotificationOptIns.bind(this)
             this.getOrCreateUser = this.getOrCreateUser.bind(this)
             this.getUserByClerkId = this.getUserByClerkId.bind(this)
             this.getUserByUsername = this.getUserByUsername.bind(this)
             this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
+            this.setNotificationAppOptIn = this.setNotificationAppOptIn.bind(this)
             this.setOnboardingFinished = this.setOnboardingFinished.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
             this.updateUniversity = this.updateUniversity.bind(this)
@@ -6265,6 +6279,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/users/user/${encodeURIComponent(clerkId)}`)
             return await resp.json() as DeleteUserResponse
+        }
+
+        /**
+         * Kullanıcının uygulama bazlı bildirim izinlerini getirir (JSON wrapper).
+         */
+        public async getNotificationOptIns(clerkId: string): Promise<GetNotificationOptInsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/users/notification-opt-ins/${encodeURIComponent(clerkId)}`)
+            return await resp.json() as GetNotificationOptInsResponse
         }
 
         /**
@@ -6307,6 +6330,16 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/fcm-token`, JSON.stringify(params))
             return await resp.json() as SaveFcmTokenResponse
+        }
+
+        /**
+         * Belirli bir uygulama için bildirim iznini JSON patch ile günceller.
+         * Örn. appKey: "itu_yemekhane", patch: { enabled: true }
+         */
+        public async setNotificationAppOptIn(params: SetNotificationAppOptInRequest): Promise<SetNotificationAppOptInResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/notification-opt-ins`, JSON.stringify(params))
+            return await resp.json() as SetNotificationAppOptInResponse
         }
 
         /**

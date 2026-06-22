@@ -100,7 +100,7 @@
 ### Daily Weather
 
 - [x] Hava durumu verisi çekme
-- [ ] Bildirim altyapısı (Kaldırıldı)
+- [x] Bildirim altyapısı (Kaldırıldı)
 - [ ] UI cilası ve son dokunuşlar
 - [ ] Kapsamlı test süreci
 
@@ -188,7 +188,7 @@
 - [x] Haftalık yemek planlama takvimi
 - [ ] Tarif kütüphanesi entegrasyonu
 
-### Ne Yapsak? (Stop Scroll)
+### Ne Yapsam?
 
 - [x] Aktivite öneri motoru
 - [ ] İçerik zenginleştirme (yeni aktiviteler)

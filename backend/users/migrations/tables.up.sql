@@ -77,7 +77,55 @@ CREATE TABLE IF NOT EXISTS public.user_fcm_tokens (
 CREATE INDEX IF NOT EXISTS idx_user_fcm_tokens_clerk_id ON public.user_fcm_tokens(clerk_id);
 CREATE INDEX IF NOT EXISTS idx_user_fcm_tokens_token ON public.user_fcm_tokens(fcm_token);
 
--- 4. Grants
+-- 4. User Notification Opt-ins (genel JSON wrapper — uygulama bazlı bildirim izinleri)
+-- apps örneği:
+-- {
+--   "itu_yemekhane": { "enabled": true, "last_lunch_notified_date": "2026-06-22" },
+--   "daily_weather": { "enabled": true, "notify_hour": 7 }
+-- }
+CREATE TABLE IF NOT EXISTS public.user_notification_opt_ins (
+    user_id UUID PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
+    apps JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_notification_opt_ins_apps
+ON public.user_notification_opt_ins USING gin (apps);
+
+-- Eski ITU-specific tablodan taşı (varsa)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'itu_yemekhane' AND table_name = 'notification_preferences'
+    ) THEN
+        INSERT INTO public.user_notification_opt_ins (user_id, apps, updated_at)
+        SELECT
+            np.user_id,
+            jsonb_build_object(
+                'itu_yemekhane',
+                jsonb_strip_nulls(
+                    jsonb_build_object(
+                        'enabled', np.notifications_enabled,
+                        'last_lunch_notified_date', np.last_lunch_notified_date,
+                        'last_dinner_notified_date', np.last_dinner_notified_date
+                    )
+                )
+            ),
+            COALESCE(np.updated_at, NOW())
+        FROM itu_yemekhane.notification_preferences np
+        ON CONFLICT (user_id) DO UPDATE SET
+            apps = public.user_notification_opt_ins.apps || EXCLUDED.apps,
+            updated_at = GREATEST(public.user_notification_opt_ins.updated_at, EXCLUDED.updated_at);
+
+        -- Eski RPC'ler tablo tipine bağlı; önce fonksiyonları kaldır
+        DROP FUNCTION IF EXISTS itu_yemekhane.get_notification_preferences(TEXT);
+        DROP FUNCTION IF EXISTS itu_yemekhane.upsert_notification_preferences(TEXT, BOOLEAN);
+        DROP TABLE itu_yemekhane.notification_preferences;
+    END IF;
+END $$;
+
+-- 5. Grants
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;

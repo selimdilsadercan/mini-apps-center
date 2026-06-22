@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
   ArrowLeft,
   Bell,
@@ -14,6 +13,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { createBrowserClient } from "@/lib/api";
 import { getAppRootUrl, isCapacitorNative } from "@/lib/apps";
 import { useNotifications } from "@/hooks/use-notifications";
+
+const ITU_YEMEKHANE_APP_KEY = "itu_yemekhane";
 
 export default function YemekhaneNotificationsPage() {
   const { user, isAuthenticated } = useAuthContext();
@@ -38,8 +39,9 @@ export default function YemekhaneNotificationsPage() {
     try {
       setError(null);
       const client = createBrowserClient();
-      const res = await client.itu_yemekhane.getNotificationPreferences(user.uid);
-      setEnabled(res.preferences.notifications_enabled);
+      const res = await client.users.getNotificationOptIns(user.uid);
+      const app = res.apps[ITU_YEMEKHANE_APP_KEY];
+      setEnabled(app?.enabled === true);
     } catch (err) {
       console.error("loadPreferences:", err);
       setError("Ayarlar yüklenemedi.");
@@ -59,11 +61,12 @@ export default function YemekhaneNotificationsPage() {
     setError(null);
     try {
       const client = createBrowserClient();
-      const res = await client.itu_yemekhane.upsertNotificationPreferences({
-        userId: user.uid,
-        notificationsEnabled: next,
+      const res = await client.users.setNotificationAppOptIn({
+        clerkId: user.uid,
+        appKey: ITU_YEMEKHANE_APP_KEY,
+        patch: { enabled: next },
       });
-      setEnabled(res.preferences.notifications_enabled);
+      setEnabled(res.app.enabled === true);
     } catch (err) {
       console.error("saveEnabled:", err);
       setError("Ayar kaydedilemedi.");
@@ -98,13 +101,16 @@ export default function YemekhaneNotificationsPage() {
     <div className="min-h-full flex flex-col">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b h-16 px-4 flex items-center">
         <div className="max-w-lg mx-auto w-full flex items-center justify-between">
-          <Link
-            href={getAppRootUrl()}
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = getAppRootUrl();
+            }}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center gap-2 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span className="hidden sm:inline text-sm font-medium pr-2">Geri Dön</span>
-          </Link>
+          </button>
 
           <h1 className="text-lg font-black tracking-tight flex items-center gap-1.5 uppercase text-slate-800 dark:text-slate-100">
             <Bell className="w-5 h-5 text-[#EAB308]" />

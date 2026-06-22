@@ -52,21 +52,8 @@ CREATE TABLE IF NOT EXISTS itu_yemekhane.dislikes (
     UNIQUE (user_id, dish_name)
 );
 
--- 3. Notification Preferences
-CREATE TABLE IF NOT EXISTS itu_yemekhane.notification_preferences (
-    user_id UUID PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
-    notifications_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-    last_lunch_notified_date DATE,
-    last_dinner_notified_date DATE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 -- 4. Indexes
 CREATE INDEX IF NOT EXISTS idx_itu_yemekhane_dislikes_user_id ON itu_yemekhane.dislikes(user_id);
-CREATE INDEX IF NOT EXISTS idx_itu_yemekhane_notification_prefs_enabled
-ON itu_yemekhane.notification_preferences(notifications_enabled)
-WHERE notifications_enabled = TRUE;
 
 -- 5. Grants
 GRANT ALL ON ALL TABLES IN SCHEMA itu_yemekhane TO anon, authenticated, service_role;
