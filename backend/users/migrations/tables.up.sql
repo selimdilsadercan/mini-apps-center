@@ -54,6 +54,13 @@ BEGIN
     ) THEN
         ALTER TABLE public.user_preferences ADD COLUMN selected_university TEXT;
     END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'user_preferences' AND column_name = 'is_onboarding_finished'
+    ) THEN
+        ALTER TABLE public.user_preferences ADD COLUMN is_onboarding_finished BOOLEAN NOT NULL DEFAULT FALSE;
+    END IF;
 END $$;
 
 -- 3. User FCM Tokens Table

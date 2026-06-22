@@ -1,5 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isFcmConfigured, sendPushToTokens } from "../lib/fcm";
+import { secret } from "encore.dev/config";
+import {
+  configureFcm,
+  isFcmConfigured,
+  sendPushToTokens,
+} from "../lib/fcm";
+
+const firebaseServiceAccount = secret("FirebaseServiceAccount");
+let fcmInitAttempted = false;
+
+function ensureFcmConfigured(): void {
+  if (fcmInitAttempted) return;
+  fcmInitAttempted = true;
+  configureFcm(firebaseServiceAccount());
+}
 
 export interface WeatherPushPayload {
   title: string;
@@ -84,12 +98,14 @@ export async function sendWeatherPush(
     };
   }
 
+  ensureFcmConfigured();
+
   if (!isFcmConfigured()) {
     return {
       deviceCount,
       pushSent: false,
       message:
-        "FCM yapılandırılmadı. Encore secret: FirebaseServiceAccount (önerilen) veya FcmServerKey.",
+        "FCM yapılandırılmadı. Encore secret: FirebaseServiceAccount (service account JSON).",
     };
   }
 
@@ -103,7 +119,9 @@ export async function sendWeatherPush(
   const pushSent = result.successCount > 0;
   const message = pushSent
     ? `${result.successCount} cihaza bildirim gönderildi.`
-    : result.errors[0] ?? "Bildirim gönderilemedi.";
+    : result.failureCount > 0
+      ? `${result.failureCount} cihaza gönderilemedi.`
+      : "Bildirim gönderilemedi.";
 
   return { deviceCount, pushSent, message };
 }

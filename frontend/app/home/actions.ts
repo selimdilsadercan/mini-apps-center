@@ -101,7 +101,7 @@ export async function updateAppOrderAction(
 
 export async function getUserPreferencesAction(
   clerkId: string
-): Promise<ActionResponse<{ appOrder: string[] | null; selectedUniversity?: string | null }>> {
+): Promise<ActionResponse<{ appOrder: string[] | null; selectedUniversity?: string | null; isOnboardingFinished?: boolean }>> {
   try {
     const client = createBrowserClient();
     const response = await client.users.getUserPreferences(clerkId);
@@ -109,12 +109,37 @@ export async function getUserPreferencesAction(
     return {
       data: {
         appOrder: response.appOrder,
-        selectedUniversity: response.selectedUniversity
+        selectedUniversity: response.selectedUniversity,
+        isOnboardingFinished: response.isOnboardingFinished
       },
       error: null
     };
   } catch (error) {
     console.error("Failed to get user preferences:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error)
+    };
+  }
+}
+
+/**
+ * Kullanıcının onboarding durumunu günceller
+ */
+export async function setOnboardingFinishedAction(
+  clerkId: string,
+  finished: boolean
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.users.setOnboardingFinished({ clerkId, finished });
+    
+    return {
+      data: response.success,
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to set onboarding status:", error);
     return {
       data: null,
       error: getErrorMessage(error)

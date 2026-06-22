@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
-import { ArrowLeft, Trash, WarningCircle } from "@phosphor-icons/react";
+import { ArrowLeft, Trash, WarningCircle, Sparkle } from "@phosphor-icons/react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
 import { deleteCurrentUser } from "@/lib/firebase";
+import { setOnboardingFinishedAction } from "../../home/actions";
 
 const client = createBrowserClient();
 
@@ -87,6 +88,36 @@ export default function AccountSettingsPage() {
         </div>
 
         <div className="space-y-4">
+          <h2 className="px-1 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+            Onboarding
+          </h2>
+
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-indigo-50 text-indigo-500 rounded-2xl shrink-0">
+                <Sparkle size={20} weight="fill" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-black text-gray-900">{t("onboardingTitle")}</h3>
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">{t("onboardingDescription")}</p>
+                <button
+                  onClick={async () => {
+                    if (user?.id) {
+                      localStorage.removeItem(`onboarding_completed_${user.id}`);
+                      await setOnboardingFinishedAction(user.id, false);
+                    } else {
+                      localStorage.removeItem("onboarding_completed_guest");
+                    }
+                    router.push("/onboarding");
+                  }}
+                  className="mt-4 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-2xl transition-colors cursor-pointer"
+                >
+                  {t("onboardingButton")}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <h2 className="px-1 text-[10px] font-black text-red-500 uppercase tracking-wider">
             {t("dangerTitle")}
           </h2>

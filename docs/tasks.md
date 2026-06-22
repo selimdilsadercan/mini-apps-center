@@ -1,23 +1,20 @@
 ## 🛠️ Genel Altyapı & Yapılacaklar
 
-- [ ] **Onboarding (Chat):** Chat-like (sohbet arayüzü tarzında) interaktif onboarding süreci. 🔵 Aktif
 - [ ] **Giriş Ekranı (Login):** Giriş yapma ekranı güncellemesi.
 - [ ] **Auth Modalleri (Clerk):** Uygulamalar içerisindeki giriş modallarının güncellenmesi.
-- [ ] **Bildirimler (Push):** Backend altyapısı ve frontend hook hazır. Global layout entegrasyonu ve izin yönetimi cilası bekliyor.
 - [ ] **Notification Altyapısı:** Uygulama içi bildirim merkezi, aktivite akışı ve push notification entegrasyonu. 🔵 Aktif
 - [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu gerekiyor. Kullanıcıalr sayfası ve businesslar sayfaları eklencek
-- [ ] **Uygulama Kategorileri:** Discover ve hub'daki uygulama kategorilerinin düzenlenmesi.
 
 ## 🌐 Landing Page
 
-- [ ] **Hedef Kitle / Persona Bölümü (Targeted Showcase):** `notlar.md` dosyasındaki hedef kitlelere yönelik özel bir tanıtım alanı/sekmesi ekle:
-  - *İşletmeler İçin (For Local Businesses):* QR Menü, Stamp Card ve Board Game Clubs entegrasyonlarını vurgula.
-  - *Öğrenciler İçin (For Campus Students):* İTÜ Yemekhane, Campus Events ve Campus Concerts entegrasyonlarını öne çıkar.
-  - *Geliştiriciler İçin (For Developers):* Modüler yapı, Encore.ts + Supabase altyapısı ve platforma yeni mini-app ekleme kolaylığını (SDK/developer kılavuzu) açıkla.
-  - *Genel Kullanıcılar İçin (For General Users):* PDF Araçları, Tasket, Suggest ve Tasarruf meydan okumalarını listele.
+- [ ] **Hedef Kitle / Persona Bölümü (Targeted Showcase):** notlar.md dosyasındaki hedef kitlelere yönelik özel bir tanıtım alanı/sekmesi ekle:
+  - **İşletmeler İçin (For Local Businesses):** QR Menü, Stamp Card ve Board Game Clubs entegrasyonlarını vurgula.
+  - **Öğrenciler İçin (For Campus Students):** İTÜ Yemekhane, Campus Events ve Campus Concerts entegrasyonlarını öne çıkar.
+  - **Geliştiriciler İçin (For Developers):** Modüler yapı, Encore.ts + Supabase altyapısı ve platforma yeni mini-app ekleme kolaylığını (SDK/developer kılavuzu) açıkla.
+  - **Genel Kullanıcılar İçin (For General Users):** PDF Araçları, Tasket, Suggest ve Tasarruf meydan okumalarını listele.
 - [ ] **Etkileşimli Hub Önizlemesi (Interactive Dashboard Demo):** Landing page üzerinde kullanıcının mini uygulamaları sürükleyip bırakarak kendi ana sayfasını (hub) nasıl düzenleyebileceğini gösteren küçük bir interaktif mockup/sandbox yap.
 - [ ] **Ekran Görüntüleri & Cihaz Mockup'ları:** Android ve iOS native entegrasyonunu (durum çubuğu ve alt bar renk uyumları dahil) gösteren modern, premium görünümlü mockup tasarımları ekle.
-- [ ] **SEO & Metin Optimizasyonu:** `notlar.md` dosyasındaki SEO hedeflerine uygun anahtar kelimeleri (Kart oyunu kuralları, PDF araçları, QR menü vb.) landing page metinlerine yedir.
+- [ ] **SEO & Metin Optimizasyonu:** notlar.md dosyasındaki SEO hedeflerine uygun anahtar kelimeleri (Kart oyunu kuralları, PDF araçları, QR menü vb.) landing page metinlerine yedir.
 
 ## 📱 Tüm Uygulamalar
 

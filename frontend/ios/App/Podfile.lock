@@ -25,11 +25,13 @@ PODS:
   - CapacitorFirebaseAuthentication/Lite (7.5.0):
     - Capacitor
     - FirebaseAuth (~> 11.7.0)
+  - CapacitorPushNotifications (7.0.6):
+    - Capacitor
   - CapacitorShare (7.0.4):
     - Capacitor
   - CapacitorStatusBar (7.0.6):
     - Capacitor
-  - CapgoCapacitorNavigationBar (8.2.5):
+  - CapgoCapacitorNavigationBar (7.3.18):
     - Capacitor
   - CapgoCapacitorUpdater (7.45.10):
     - Alamofire (= 5.10.2)
@@ -98,6 +100,7 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorFirebaseAuthentication (from `../../node_modules/@capacitor-firebase/authentication`)"
   - "CapacitorFirebaseAuthentication/Google (from `../../node_modules/@capacitor-firebase/authentication`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - "CapgoCapacitorNavigationBar (from `../../node_modules/@capgo/capacitor-navigation-bar`)"
@@ -134,6 +137,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorFirebaseAuthentication:
     :path: "../../node_modules/@capacitor-firebase/authentication"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
   CapacitorShare:
     :path: "../../node_modules/@capacitor/share"
   CapacitorStatusBar:
@@ -154,9 +159,10 @@ SPEC CHECKSUMS:
   CapacitorBrowser: 6d09f59655e89aede71654ef08b98de55cf032b6
   CapacitorCordova: 139e2ed3d91c54b5aeae7941135c9f9aefc6da1d
   CapacitorFirebaseAuthentication: c5d02225dc97a1192f3b615f8c0df2ef910c40b7
+  CapacitorPushNotifications: b8e30637549ce91468b8c4dddbef2657be831f4c
   CapacitorShare: 25f7fc5dd0e4edbde5d6801c6de5d14a8b450a41
   CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
-  CapgoCapacitorNavigationBar: b1ed7220ddd3ca6990709e5944f05b7ba43b75da
+  CapgoCapacitorNavigationBar: 3c59704af4b6774bebb36beaab82643c141dfa83
   CapgoCapacitorUpdater: e2ec6954d5f24d4b340ed155ade8fa91085d91b1
   FirebaseAppCheckInterop: 06fe5a3799278ae4667e6c432edd86b1030fa3df
   FirebaseAuth: 77e25aa24f3e1c626c5babd3338551fc1669ee0e
@@ -173,6 +179,6 @@ SPEC CHECKSUMS:
   Version: de5907f2c5d0f3cf21708db7801d1d5401139486
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 68a59463f75faa104d7d07649989b4ab1d88cd42
+PODFILE CHECKSUM: 4e8169fac4ab9ce0979e2c71bad6ae65983798d9
 
 COCOAPODS: 1.16.2

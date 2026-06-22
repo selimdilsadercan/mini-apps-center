@@ -29,6 +29,9 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ["google.com", "apple.com"]
     },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
     CapacitorUpdater: {
       autoUpdate: false,
       appReadyTimeout: 30000,

@@ -186,16 +186,49 @@ CREATE OR REPLACE FUNCTION public.get_user_preferences(
 )
 RETURNS TABLE (
   app_order JSONB,
-  selected_university TEXT
+  selected_university TEXT,
+  is_onboarding_finished BOOLEAN
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT up.app_order, up.selected_university
+  SELECT up.app_order, up.selected_university, up.is_onboarding_finished
   FROM public.user_preferences up
   JOIN public.users u ON up.user_id = u.id
   WHERE (is_local_param AND u.local_clerk_id = clerk_id_param)
      OR (NOT is_local_param AND u.clerk_id = clerk_id_param)
      OR (u.firebase_id = clerk_id_param);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6a. update_onboarding_finished
+DROP FUNCTION IF EXISTS public.update_onboarding_finished;
+
+CREATE OR REPLACE FUNCTION public.update_onboarding_finished(
+  clerk_id_param TEXT,
+  finished_param BOOLEAN,
+  is_local_param BOOLEAN DEFAULT FALSE
+)
+RETURNS VOID AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- Get user id
+  SELECT id INTO v_user_id FROM public.users 
+  WHERE (is_local_param AND local_clerk_id = clerk_id_param)
+     OR (NOT is_local_param AND clerk_id = clerk_id_param)
+     OR (firebase_id = clerk_id_param);
+  
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found';
+  END IF;
+
+  -- Update user_preferences table
+  INSERT INTO public.user_preferences (user_id, is_onboarding_finished, updated_at)
+  VALUES (v_user_id, finished_param, NOW())
+  ON CONFLICT (user_id)
+  DO UPDATE SET 
+    is_onboarding_finished = EXCLUDED.is_onboarding_finished,
+    updated_at = NOW();
 END;
 $$ LANGUAGE plpgsql;
 

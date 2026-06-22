@@ -6148,6 +6148,7 @@ export namespace users {
     export interface GetUserPreferencesResponse {
         appOrder: string[] | null
         selectedUniversity?: string | null
+        isOnboardingFinished?: boolean
     }
 
     export interface SaveFcmTokenRequest {
@@ -6157,6 +6158,15 @@ export namespace users {
     }
 
     export interface SaveFcmTokenResponse {
+        success: boolean
+    }
+
+    export interface SetOnboardingFinishedRequest {
+        clerkId: string
+        finished: boolean
+    }
+
+    export interface SetOnboardingFinishedResponse {
         success: boolean
     }
 
@@ -6191,6 +6201,7 @@ export namespace users {
             this.getUserByUsername = this.getUserByUsername.bind(this)
             this.getUserPreferences = this.getUserPreferences.bind(this)
             this.saveFcmToken = this.saveFcmToken.bind(this)
+            this.setOnboardingFinished = this.setOnboardingFinished.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
             this.updateUniversity = this.updateUniversity.bind(this)
         }
@@ -6262,6 +6273,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/fcm-token`, JSON.stringify(params))
             return await resp.json() as SaveFcmTokenResponse
+        }
+
+        /**
+         * Kullanıcının onboarding durumunu günceller
+         */
+        public async setOnboardingFinished(params: SetOnboardingFinishedRequest): Promise<SetOnboardingFinishedResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/onboarding-finished`, JSON.stringify(params))
+            return await resp.json() as SetOnboardingFinishedResponse
         }
 
         /**

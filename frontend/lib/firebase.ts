@@ -15,7 +15,6 @@ import {
   Auth,
   OAuthProvider
 } from "firebase/auth";
-import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 import { Capacitor } from "@capacitor/core";
 
 // Firebase yapılandırması - .env.local'dan alınıyor
@@ -50,7 +49,6 @@ function isNativePlatform(): boolean {
 // Firebase uygulamasını başlat (singleton pattern)
 let app: FirebaseApp;
 let auth: Auth;
-let messaging: Messaging | null = null;
 
 if (typeof window !== "undefined" && !isIOS()) {
   try {
@@ -66,14 +64,6 @@ if (typeof window !== "undefined" && !isIOS()) {
       .catch((err) => {
         console.warn("[Firebase] Persistence error:", err);
       });
-
-    if ("Notification" in window && "serviceWorker" in navigator) {
-      try {
-        messaging = getMessaging(app);
-      } catch (error) {
-        console.warn("[Firebase] Messaging başlatılamadı:", error);
-      }
-    }
   } catch (error) {
     console.error("[Firebase] Initialization Error:", error);
     try {
@@ -373,52 +363,6 @@ export async function deleteCurrentUser(): Promise<{ success: boolean; error?: s
   }
 }
 
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return "denied";
-  }
-
-  const permission = await Notification.requestPermission();
-  return permission;
-}
-
-export async function getFCMToken(): Promise<string | null> {
-  if (!messaging) {
-    console.warn("Messaging not initialized");
-    return null;
-  }
-
-  try {
-    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-
-    if (!vapidKey) {
-      console.error("VAPID key bulunamadı");
-      return null;
-    }
-
-    const token = await getToken(messaging, {
-      vapidKey,
-      serviceWorkerRegistration: registration
-    });
-
-    return token;
-  } catch (error) {
-    console.error("FCM Token alınamadı:", error);
-    return null;
-  }
-}
-
-export function onForegroundMessage(callback: (payload: any) => void): () => void {
-  if (!messaging) {
-    return () => {};
-  }
-
-  return onMessage(messaging, (payload) => {
-    callback(payload);
-  });
-}
-
 export { isIOS, isNativePlatform };
-export { auth, messaging };
+export { auth };
 export type { User };

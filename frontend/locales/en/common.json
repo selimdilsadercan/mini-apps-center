@@ -76,7 +76,10 @@
     "deleteModalStatusLocal": "Clearing local data...",
     "deleteModalStatusSignOut": "Signing out...",
     "deleteModalError": "Failed to delete account. Please try again.",
-    "deleteModalReauth": "You need to sign in again to delete your account. Please sign out and sign back in."
+    "deleteModalReauth": "You need to sign in again to delete your account. Please sign out and sign back in.",
+    "onboardingTitle": "Onboarding",
+    "onboardingDescription": "Restart the app introduction and initial setup wizard.",
+    "onboardingButton": "Restart"
   },
   "stopScroll": {
     "title": "Stop Scrolling, Start Living",

@@ -73,6 +73,16 @@ interface GetUserPreferencesRequest {
 interface GetUserPreferencesResponse {
   appOrder: string[] | null;
   selectedUniversity?: string | null;
+  isOnboardingFinished?: boolean;
+}
+
+interface SetOnboardingFinishedRequest {
+  clerkId: string;
+  finished: boolean;
+}
+
+interface SetOnboardingFinishedResponse {
+  success: boolean;
 }
 
 interface UpdateUniversityRequest {
@@ -250,13 +260,35 @@ export const getUserPreferences = api(
 
     if (error) {
       console.error("getUserPreferences error:", error);
-      return { appOrder: null, selectedUniversity: null };
+      return { appOrder: null, selectedUniversity: null, isOnboardingFinished: false };
     }
 
     return { 
       appOrder: data?.[0]?.app_order || null,
-      selectedUniversity: data?.[0]?.selected_university || null
+      selectedUniversity: data?.[0]?.selected_university || null,
+      isOnboardingFinished: data?.[0]?.is_onboarding_finished || false
     };
+  }
+);
+
+/**
+ * Kullanıcının onboarding durumunu günceller
+ */
+export const setOnboardingFinished = api(
+  { expose: true, method: "POST", path: "/users/onboarding-finished" },
+  async ({ clerkId, finished }: SetOnboardingFinishedRequest): Promise<SetOnboardingFinishedResponse> => {
+    const { error } = await supabase.rpc("update_onboarding_finished", {
+      clerk_id_param: clerkId,
+      finished_param: finished,
+      is_local_param: isLocal,
+    });
+
+    if (error) {
+      console.error("setOnboardingFinished error:", error);
+      return { success: false };
+    }
+
+    return { success: true };
   }
 );
 

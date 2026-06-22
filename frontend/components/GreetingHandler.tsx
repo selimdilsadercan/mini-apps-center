@@ -7,12 +7,16 @@ import { Bell, UserCircle } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { createBrowserClient } from "@/lib/api";
 
+import { useRouter, usePathname } from "next/navigation";
+
 const client = createBrowserClient();
 
 export function GreetingHandler() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const { permission, handleRequestPermission } = useNotifications();
+  const router = useRouter();
+  const pathname = usePathname();
   
   // greetingStep:
   // - 0: None / Hidden
@@ -43,6 +47,16 @@ export function GreetingHandler() {
         } else {
           setGreetingStep(0);
         }
+
+        // Check onboarding status
+        client.users.getUserPreferences(user.id).then(pref => {
+          const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
+          if (!pref.isOnboardingFinished && !ignoredPaths.includes(pathname)) {
+            router.replace("/onboarding");
+          }
+        }).catch(err => {
+          console.error("Failed to check onboarding:", err);
+        });
       }).catch(err => {
         console.error("User sync error:", err);
       });

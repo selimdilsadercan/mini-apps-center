@@ -76,7 +76,10 @@
     "deleteModalStatusLocal": "Yerel veriler temizleniyor...",
     "deleteModalStatusSignOut": "Oturum kapatılıyor...",
     "deleteModalError": "Hesap silinirken bir hata oluştu. Lütfen tekrar deneyin.",
-    "deleteModalReauth": "Hesabınızı silmek için yeniden giriş yapmanız gerekiyor. Lütfen çıkış yapıp tekrar giriş yapın."
+    "deleteModalReauth": "Hesabınızı silmek için yeniden giriş yapmanız gerekiyor. Lütfen çıkış yapıp tekrar giriş yapın.",
+    "onboardingTitle": "Onboarding",
+    "onboardingDescription": "Uygulama tanıtımını ve ilk kurulum sihirbazını tekrar başlatın.",
+    "onboardingButton": "Yeniden Başlat"
   },
   "stopScroll": {
     "title": "Bugün Ne Yapsam?",

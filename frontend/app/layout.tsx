@@ -46,7 +46,7 @@ export default function RootLayout({
             <AuthProvider>
               <ConfirmDialogProvider>
                 <MobileThemeProvider>
-                  {/* <NotificationHandler /> */}
+                  <NotificationHandler />
                   <GreetingHandler />
                   {children}
                   <Toaster position="top-center" />
