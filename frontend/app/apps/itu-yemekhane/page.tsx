@@ -7,10 +7,9 @@ import {
   ChefHat,
   Flame,
   ArrowLeft,
-  Bell,
-  UtensilsCrossed,
   Soup,
   Beef,
+  UtensilsCrossed,
   CakeSlice,
   RefreshCw,
   X,
@@ -236,7 +235,7 @@ export function ITUYemekhaneAppContent({
 
   return (
     <div
-      className={`w-full h-full flex flex-col relative ${!isMock ? "min-h-screen pb-32" : "max-h-full overflow-hidden"}`}
+      className={`w-full h-full flex flex-col relative ${!isMock ? "min-h-full" : "max-h-full overflow-hidden"}`}
     >
       <header className={`sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b flex flex-col justify-end ${isMock ? 'h-22 pb-2 px-3' : 'h-16 px-4'}`}>
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
@@ -267,21 +266,12 @@ export function ITUYemekhaneAppContent({
           </div>
 
           <div className="flex items-center gap-1">
-            <button 
+            <button
                onClick={handleExpand}
                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative group shadow-sm active:scale-95"
             >
               <Maximize2 className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
             </button>
-            {!isMock && (
-              <Link
-                href="/apps/itu-yemekhane/notifications"
-                className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative group shadow-sm active:scale-95"
-              >
-                <Bell className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-                <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" />
-              </Link>
-            )}
           </div>
         </div>
       </header>
@@ -336,9 +326,5 @@ export function ITUYemekhaneAppContent({
 }
 
 export default function ITUYemekhanePage() {
-  return (
-    <div className="min-h-screen bg-[#F0F2F5] dark:bg-[#0F172A] font-sans overflow-x-hidden">
-      <ITUYemekhaneAppContent />
-    </div>
-  );
+  return <ITUYemekhaneAppContent />;
 }

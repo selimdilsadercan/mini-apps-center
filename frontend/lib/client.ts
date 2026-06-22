@@ -3011,6 +3011,28 @@ export namespace itu_yemekhane {
         dishes: Dish[]
     }
 
+    export interface NotificationPreferences {
+        "user_id": string
+        "notifications_enabled": boolean
+        "last_lunch_notified_date": string | null
+        "last_dinner_notified_date": string | null
+        "created_at": string
+        "updated_at": string
+    }
+
+    export interface GetNotificationPreferencesResponse {
+        preferences: NotificationPreferences
+    }
+
+    export interface UpsertNotificationPreferencesRequest {
+        userId: string
+        notificationsEnabled: boolean
+    }
+
+    export interface UpsertNotificationPreferencesResponse {
+        preferences: NotificationPreferences
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -3018,7 +3040,9 @@ export namespace itu_yemekhane {
             this.baseClient = baseClient
             this.getDislikedDishes = this.getDislikedDishes.bind(this)
             this.getMenu = this.getMenu.bind(this)
+            this.getNotificationPreferences = this.getNotificationPreferences.bind(this)
             this.toggleDislike = this.toggleDislike.bind(this)
+            this.upsertNotificationPreferences = this.upsertNotificationPreferences.bind(this)
         }
 
         /**
@@ -3042,6 +3066,16 @@ export namespace itu_yemekhane {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/menu`)
             return await resp.json() as MenuResponse
+        }
+
+        public async getNotificationPreferences(userId: string): Promise<GetNotificationPreferencesResponse> {
+            const resp = await this.baseClient.callTypedAPI("GET", `/itu-yemekhane/notification-preferences/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetNotificationPreferencesResponse
+        }
+
+        public async upsertNotificationPreferences(params: UpsertNotificationPreferencesRequest): Promise<UpsertNotificationPreferencesResponse> {
+            const resp = await this.baseClient.callTypedAPI("POST", `/itu-yemekhane/notification-preferences`, JSON.stringify(params))
+            return await resp.json() as UpsertNotificationPreferencesResponse
         }
 
         /**
