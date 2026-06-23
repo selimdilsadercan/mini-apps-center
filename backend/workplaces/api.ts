@@ -28,6 +28,7 @@ export interface Place {
   rating?: number;
   user_ratings_total?: number;
   metadata?: any;
+  businessId?: string;
   created_at: string;
   is_favorite?: boolean;
   is_visited?: boolean;
@@ -64,6 +65,7 @@ export interface AddPlaceRequest {
   rating?: number;
   user_ratings_total?: number;
   metadata?: any;
+  businessId?: string;
 }
 
 export interface AddPlaceResponse {
@@ -165,6 +167,7 @@ function mapPlace(row: any): Place {
     rating: row.rating ? Number(row.rating) : undefined,
     user_ratings_total: row.user_ratings_total,
     metadata: row.metadata,
+    businessId: row.business_id,
     created_at: row.created_at,
   };
 }
@@ -260,6 +263,23 @@ export const listPlaces = api(
       console.error("listPlaces error:", err);
       throw err;
     }
+  },
+);
+
+export interface ListPlacesByBusinessRequest {
+  businessId: string;
+}
+
+export const listPlacesByBusiness = api(
+  { expose: true, method: "GET", path: "/workplaces/business/:businessId" },
+  async ({ businessId }: ListPlacesByBusinessRequest): Promise<ListPlacesResponse> => {
+    const { data, error } = await supabase
+      .schema("workplaces")
+      .rpc("get_business_places", { p_business_id: businessId });
+    if (error) {
+      throw APIError.internal(`Failed to load business places: ${error.message}`);
+    }
+    return { places: (data || []).map(mapPlace) };
   },
 );
 
@@ -366,6 +386,8 @@ export const addPlace = api(
       p_rating: req.rating,
       p_user_ratings_total: req.user_ratings_total,
       p_metadata: req.metadata || {},
+      p_approved: req.businessId ? true : false,
+      p_business_id: req.businessId,
     });
     if (error) {
       console.error("addPlace error:", error);
@@ -395,6 +417,7 @@ export interface UpdatePlaceRequest {
   user_ratings_total?: number;
   metadata?: any;
   google_place_id?: string;
+  businessId?: string;
 }
 
 export interface UpdatePlaceResponse {
@@ -513,6 +536,7 @@ export const updatePlace = api(
         p_rating: finalRating,
         p_user_ratings_total: finalUserRatings,
         p_metadata: meta,
+        p_business_id: req.businessId,
       });
     if (error) {
       console.error("updatePlace error:", error);

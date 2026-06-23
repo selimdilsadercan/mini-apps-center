@@ -20,7 +20,9 @@ import {
   Warning,
   Sparkle,
   GameController,
-  X
+  Tag,
+  X,
+  SquaresFour
 } from "@phosphor-icons/react";
 import { 
   getClubDetailsAction, 
@@ -29,7 +31,10 @@ import {
   updateClubGameAction, 
   deleteClubGameAction, 
   searchBggGamesAction, 
-  importBggGeeklistAction 
+  importBggGeeklistAction,
+  importCsvGamesAction,
+  syncBggGamesAction,
+  updateClubAction
 } from "../actions";
 import type { board_game_clubs } from "@/lib/client";
 
@@ -48,7 +53,7 @@ const CONDITION_LABELS: Record<string, { text: string; color: string }> = {
   damaged: { text: "Hasarlı", color: "text-red-700 bg-red-50 border-red-200" },
 };
 
-export default function ClubDetailClient({ clubId }: { clubId: string }) {
+export default function ClubDetailClient({ clubId, hideHeader = false }: { clubId: string; hideHeader?: boolean }) {
   const router = useRouter();
 
   const [club, setClub] = useState<board_game_clubs.Club | null>(null);
@@ -64,7 +69,9 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isGeeklistModalOpen, setIsGeeklistModalOpen] = useState(false);
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditClubModalOpen, setIsEditClubModalOpen] = useState(false);
   
   // Import / Create game states
   const [manualTitle, setManualTitle] = useState("");
@@ -84,6 +91,13 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
   const [geeklistId, setGeeklistId] = useState("");
   const [importingGeeklist, setImportingGeeklist] = useState(false);
 
+  // CSV Import states
+  const [csvContent, setCsvContent] = useState("");
+  const [importingCsv, setImportingCsv] = useState(false);
+
+  // Sync states
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // BGG API Key state
   const [bggApiKey, setBggApiKey] = useState("");
 
@@ -93,6 +107,12 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
   const [editStatus, setEditStatus] = useState<"available" | "borrowed" | "maintenance">("available");
   const [editNotes, setEditNotes] = useState("");
   const [updatingGame, setUpdatingGame] = useState(false);
+
+  // Edit Club states
+  const [editClubName, setEditClubName] = useState("");
+  const [editClubDescription, setEditClubDescription] = useState("");
+  const [editClubLogoUrl, setEditClubLogoUrl] = useState("");
+  const [updatingClub, setUpdatingClub] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -239,6 +259,50 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
     }
   }
 
+  // Import CSV
+  async function handleImportCsv(e: React.FormEvent) {
+    e.preventDefault();
+    if (!csvContent.trim()) return;
+
+    try {
+      setImportingCsv(true);
+      const res = await importCsvGamesAction(clubId, csvContent.trim());
+      if (res.error || !res.data) {
+        alert(res.error || "CSV aktarılamadı.");
+      } else {
+        alert(`Başarıyla ${res.data.importedCount} yeni oyun aktarıldı, ${res.data.failedCount} oyun başarısız oldu.`);
+        loadClubData(); // Refresh games list
+        setIsCsvModalOpen(false);
+        setCsvContent("");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setImportingCsv(false);
+    }
+  }
+
+  // Sync with BGG
+  async function handleSyncWithBgg() {
+    if (isSyncing) return;
+    if (!confirm("Kütüphanedeki resimsiz oyunlar için BGG üzerinden otomatik resim ve bilgi çekilecek. Bu işlem biraz zaman alabilir. Onaylıyor musunuz?")) return;
+
+    try {
+      setIsSyncing(true);
+      const res = await syncBggGamesAction(clubId);
+      if (res.error || !res.data) {
+        alert(res.error || "Senkronizasyon başarısız.");
+      } else {
+        alert(`Senkronizasyon tamamlandı: ${res.data.syncedCount} oyun güncellendi, ${res.data.failedCount} oyun için eşleşme bulunamadı.`);
+        loadClubData();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
   function handleApiKeyChange(val: string) {
     setBggApiKey(val);
     localStorage.setItem("bgg_api_key", val);
@@ -295,9 +359,45 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
     }
   }
 
+  // Open Edit Club Modal
+  function openEditClubModal() {
+    if (!club) return;
+    setEditClubName(club.name);
+    setEditClubDescription(club.description || "");
+    setEditClubLogoUrl(club.logo_url || "");
+    setIsEditClubModalOpen(true);
+  }
+
+  // Update Club
+  async function handleUpdateClub(e: React.FormEvent) {
+    e.preventDefault();
+    if (!club) return;
+
+    try {
+      setUpdatingClub(true);
+      const res = await updateClubAction({
+        clubId,
+        name: editClubName.trim(),
+        description: editClubDescription.trim(),
+        logoUrl: editClubLogoUrl.trim() || undefined,
+      });
+
+      if (res.error || !res.data) {
+        alert(res.error || "Kulüp güncellenemedi.");
+      } else {
+        setClub(res.data);
+        setIsEditClubModalOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpdatingClub(false);
+    }
+  }
+
   // Filtered games logic
   const filteredGames = useMemo(() => {
-    return games.filter((game) => {
+    const filtered = games.filter((game) => {
       // Search text
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -325,6 +425,13 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
       }
 
       return true;
+    });
+
+    // Sort: Games with images first, then alphabetically
+    return [...filtered].sort((a, b) => {
+      if (a.image_url && !b.image_url) return -1;
+      if (!a.image_url && b.image_url) return 1;
+      return a.title.localeCompare(b.title);
     });
   }, [games, searchQuery, selectedPlayers, selectedStatus]);
 
@@ -369,46 +476,101 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,115,85,0.06),transparent_70%)] pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="sticky top-0 z-20 backdrop-blur-xl bg-white/80 border-b border-[#e8e4d9] px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => router.push("/apps/board-game-clubs")}
-            className="p-2 hover:bg-stone-200/50 rounded-xl text-stone-500 hover:text-stone-850 transition-all duration-300 border border-transparent hover:border-stone-300/40"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex items-center gap-3">
-            {club.logo_url ? (
-              <img src={club.logo_url} alt={club.name} className="w-10 h-10 rounded-xl object-cover border border-[#e8e4d9] shadow-sm" />
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center">
-                <Users size={20} className="text-stone-400" />
+      {!hideHeader && (
+        <header className="sticky top-0 z-20 backdrop-blur-xl bg-white/80 border-b border-[#e8e4d9] px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.push("/apps/board-game-clubs")}
+              className="p-2 hover:bg-stone-200/50 rounded-xl text-stone-500 hover:text-stone-850 transition-all duration-300 border border-transparent hover:border-stone-300/40"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="flex items-center gap-3">
+              {club.logo_url ? (
+                <img src={club.logo_url} alt={club.name} className="w-10 h-10 rounded-xl object-cover border border-[#e8e4d9] shadow-sm" />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center">
+                  <Users size={20} className="text-stone-400" />
+                </div>
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-base leading-tight text-stone-800">{club.name}</h1>
+                  <button 
+                    onClick={openEditClubModal}
+                    className="p-1 hover:bg-stone-100 rounded-md text-stone-400 hover:text-amber-700 transition-all"
+                    title="Kulüp Bilgilerini Düzenle"
+                  >
+                    <PencilSimple size={14} />
+                  </button>
+                </div>
+                <p className="text-[11px] text-stone-500 truncate max-w-xs font-bold">{club.description || "Açıklama belirtilmemiş"}</p>
               </div>
-            )}
-            <div>
-              <h1 className="font-bold text-base leading-tight text-stone-800">{club.name}</h1>
-              <p className="text-[11px] text-stone-500 truncate max-w-xs font-bold">{club.description || "Açıklama belirtilmemiş"}</p>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setIsGeeklistModalOpen(true)}
-            className="flex items-center gap-1.5 bg-white hover:bg-stone-50 border border-[#e8e4d9] hover:border-amber-600/20 px-4 py-2.5 rounded-xl text-stone-600 hover:text-amber-800 transition-all duration-300 text-xs font-bold shadow-sm"
-          >
-            <DownloadSimple size={16} />
-            <span className="hidden sm:inline">Geeklist Aktar</span>
-          </button>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="group flex items-center gap-1.5 bg-amber-700 hover:bg-amber-600 active:scale-[0.97] text-white font-bold px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md text-xs"
-          >
-            <Plus size={16} weight="bold" className="group-hover:rotate-90 transition-transform duration-300" />
-            <span>Oyun Ekle</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleSyncWithBgg}
+              disabled={isSyncing}
+              className="hidden md:flex items-center gap-1.5 bg-white hover:bg-stone-50 border border-[#e8e4d9] hover:border-amber-600/20 px-4 py-2.5 rounded-xl text-stone-600 hover:text-amber-800 transition-all duration-300 text-xs font-bold shadow-sm disabled:opacity-50"
+            >
+              {isSyncing ? <CircleNotch size={16} className="animate-spin" /> : <Sparkle size={16} />}
+              <span className="hidden sm:inline">{isSyncing ? "Senkronize Ediliyor..." : "Resimleri Tamamla"}</span>
+            </button>
+            <button
+              onClick={() => setIsCsvModalOpen(true)}
+              className="hidden md:flex items-center gap-1.5 bg-white hover:bg-stone-50 border border-[#e8e4d9] hover:border-amber-600/20 px-4 py-2.5 rounded-xl text-stone-600 hover:text-amber-800 transition-all duration-300 text-xs font-bold shadow-sm"
+            >
+              <DownloadSimple size={16} />
+              <span className="hidden sm:inline">CSV Aktar</span>
+            </button>
+            <button
+              onClick={() => setIsGeeklistModalOpen(true)}
+              className="hidden md:flex items-center gap-1.5 bg-white hover:bg-stone-50 border border-[#e8e4d9] hover:border-amber-600/20 px-4 py-2.5 rounded-xl text-stone-600 hover:text-amber-800 transition-all duration-300 text-xs font-bold shadow-sm"
+            >
+              <DownloadSimple size={16} />
+              <span className="hidden sm:inline">Geeklist Aktar</span>
+            </button>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="group flex items-center gap-1.5 bg-amber-700 hover:bg-amber-600 active:scale-[0.97] text-white font-bold px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md text-xs"
+            >
+              <Plus size={16} weight="bold" className="group-hover:rotate-90 transition-transform duration-300" />
+              <span>Oyun Ekle</span>
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Dashboard Actions (Only if header is hidden) */}
+      {hideHeader && (
+        <div className="sticky top-0 z-20 bg-[#fbf9f4]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-[#e8e4d9]/50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+              <SquaresFour size={20} weight="fill" />
+            </div>
+            <h2 className="font-black text-sm text-stone-800 uppercase tracking-widest">Oyun Kütüphanesi</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSyncWithBgg}
+              disabled={isSyncing}
+              className="flex items-center gap-1.5 bg-white hover:bg-stone-50 border border-[#e8e4d9] px-3 py-2 rounded-xl text-stone-600 hover:text-amber-800 transition-all text-[10px] font-black uppercase tracking-wider shadow-sm disabled:opacity-50"
+            >
+              {isSyncing ? <CircleNotch size={14} className="animate-spin" /> : <Sparkle size={14} />}
+              <span className="hidden sm:inline">Senkronize Et</span>
+            </button>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl transition-all shadow-md text-[10px] uppercase tracking-wider"
+            >
+              <Plus size={14} weight="bold" />
+              <span>Oyun Ekle</span>
+            </button>
+          </div>
         </div>
-      </header>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-6 relative z-10 flex flex-col gap-6">
@@ -448,20 +610,8 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
               <option value="5">5+ Oyuncu</option>
             </select>
 
-            {/* Status Filter */}
-            <select
-              value={selectedStatus || ""}
-              onChange={(e) => setSelectedStatus(e.target.value || null)}
-              className="px-3 py-2 bg-white border border-[#e8e4d9] rounded-xl text-xs text-stone-700 focus:outline-none focus:border-amber-600 cursor-pointer shadow-sm"
-            >
-              <option value="">Durum (Tümü)</option>
-              <option value="available">Mevcut</option>
-              <option value="borrowed">Ödünç Verildi</option>
-              <option value="maintenance">Bakımda</option>
-            </select>
-
             {/* Reset Filters */}
-            {(selectedPlayers !== null || selectedStatus !== null || searchQuery) && (
+            {(selectedPlayers !== null || searchQuery) && (
               <button
                 onClick={() => {
                   setSelectedPlayers(null);
@@ -474,16 +624,6 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
               </button>
             )}
           </div>
-        </div>
-
-        {/* Stats Bar */}
-        <div className="flex items-center gap-4 text-xs text-stone-500">
-          <span className="bg-stone-200/50 border border-stone-300/30 px-3 py-1.5 rounded-lg font-bold text-stone-600 shadow-sm">
-            {filteredGames.length} / {games.length} oyun
-          </span>
-          {searchQuery && (
-            <span className="text-amber-700 italic">&quot;{searchQuery}&quot; araması</span>
-          )}
         </div>
 
         {/* Games Library Grid */}
@@ -500,96 +640,74 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredGames.map((game) => {
               const StatusStyle = STATUS_STYLES[game.status] || STATUS_STYLES.available;
               const StatusIcon = StatusStyle.icon;
               const conditionInfo = CONDITION_LABELS[game.condition] || CONDITION_LABELS.good;
 
               return (
-                <div
+                <button
                   key={game.id}
-                  className="group relative bg-white border border-[#e8e4d9] hover:border-amber-600/40 rounded-2xl p-4 flex flex-col justify-between transition-all duration-500 shadow-sm hover:shadow-md"
+                  onClick={() => openEditModal(game)}
+                  className="group relative bg-white border border-[#e8e4d9] hover:border-amber-600/40 rounded-xl p-3 flex flex-col justify-between transition-all duration-500 shadow-sm hover:shadow-md text-left w-full"
                 >
-                  <div className="space-y-3 relative">
+                  <div className="space-y-2 relative w-full">
                     {/* Game Header */}
-                    <div className="flex items-start gap-3.5">
+                    <div className="flex items-start gap-2.5">
                       {game.image_url ? (
                         <img
                           src={game.image_url}
                           alt={game.title}
-                          className="w-16 h-16 rounded-xl object-cover border border-stone-200 shadow-sm group-hover:scale-102 transition-transform duration-300"
+                          className="w-12 h-12 rounded-lg object-cover border border-stone-200 shadow-sm group-hover:scale-102 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-xl bg-stone-50 border border-stone-250 flex items-center justify-center group-hover:bg-amber-50 transition-all duration-300">
-                          <GameController size={28} className="text-stone-400 group-hover:text-amber-700/60 transition-colors" />
+                        <div className="w-12 h-12 rounded-lg bg-stone-50 border border-stone-250 flex items-center justify-center group-hover:bg-amber-50 transition-all duration-300">
+                          <GameController size={20} className="text-stone-400 group-hover:text-amber-700/60 transition-colors" />
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${StatusStyle.bg} mb-1.5 shadow-sm`}>
-                          <StatusIcon size={10} weight="fill" />
-                          <span>{StatusStyle.label}</span>
-                        </span>
-                        
                         <h4 className="font-bold text-stone-800 group-hover:text-amber-800 transition-colors duration-300 text-sm truncate" title={game.title}>
                           {game.title}
                         </h4>
-
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${conditionInfo.color} shadow-sm`}>
-                            {conditionInfo.text}
+                        <div className="flex items-center gap-1 text-[10px] text-stone-400 font-bold mt-0.5">
+                          <Users size={10} weight="fill" />
+                          <span>
+                            {game.min_players && game.max_players
+                              ? game.min_players === game.max_players
+                                ? `${game.min_players} Kişi`
+                                : `${game.min_players}-${game.max_players} Kişi`
+                              : "Belirtilmemiş"}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Specifications */}
-                    <div className="grid grid-cols-2 gap-2 bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-stone-600 text-xs shadow-inner">
+                    {/* Specifications & Category */}
+                    <div className="space-y-1 text-stone-500 text-[10px] font-medium">
                       <div className="flex items-center gap-1.5">
-                        <Users size={14} className="text-stone-400" />
+                        <Sparkle size={12} className="text-stone-400" />
                         <span>
-                          {game.min_players && game.max_players
-                            ? game.min_players === game.max_players
-                              ? `${game.min_players} Kişi`
-                              : `${game.min_players}-${game.max_players} Kişi`
-                            : "Belirtilmemiş"}
+                          Zorluk: {game.notes?.match(/Zorluk:\s*([\d,.]+)/)?.[1] || "—"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={14} className="text-stone-400" />
-                        <span>
-                          {game.playing_time ? `${game.playing_time} Dk` : "Belirtilmemiş"}
-                        </span>
-                      </div>
+                      {game.description && (
+                        <div className="flex items-center gap-1.5">
+                          <Tag size={12} className="text-stone-400" />
+                          <span className="truncate" title={game.description}>{game.description}</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Notes */}
-                    {game.notes && (
-                      <p className="text-[11px] text-stone-500 leading-relaxed italic bg-stone-50 border-l-2 border-amber-600/30 pl-3 py-1.5 rounded-r">
-                        {game.notes}
+                    {/* Notes (excluding difficulty) */}
+                    {game.notes && game.notes.replace(/Zorluk:\s*[\d,.]+\n?/, "").trim() && (
+                      <p className="text-[10px] text-stone-400 leading-tight italic border-l border-stone-200 pl-2 py-0.5">
+                        {game.notes.replace(/Zorluk:\s*[\d,.]+\n?/, "").trim()}
                       </p>
                     )}
                   </div>
-
-                  {/* Actions Bar */}
-                  <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-stone-100">
-                    <button
-                      onClick={() => openEditModal(game)}
-                      className="p-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-amber-600/30 hover:text-amber-800 rounded-lg text-stone-450 transition-all duration-300 shadow-sm"
-                      title="Durumu Düzenle"
-                    >
-                      <PencilSimple size={14} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteGame(game.id)}
-                      className="p-2 bg-stone-50 hover:bg-red-50 border border-stone-200 hover:border-red-300 hover:text-red-600 rounded-lg text-stone-450 transition-all duration-300 shadow-sm"
-                      title="Kütüphaneden Çıkar"
-                    >
-                      <Trash size={14} />
-                    </button>
-                  </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -830,7 +948,71 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
         </div>
       )}
 
-      {/* MODAL: Edit Status & Notes */}
+      {/* MODAL: CSV Import */}
+      {isCsvModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-stone-900/60 backdrop-blur-sm"
+          onClick={() => setIsCsvModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md bg-white border border-[#e8e4d9] rounded-3xl p-7 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <h3 className="text-base font-bold text-stone-800 mb-1.5">
+                CSV Dosyasından Oyun Aktar
+              </h3>
+              <p className="text-xs text-stone-500 mb-6 leading-relaxed">
+                Excel veya Google Sheets'ten kopyaladığınız CSV içeriğini buraya yapıştırarak oyunları toplu halde ekleyin.
+              </p>
+
+              <form onSubmit={handleImportCsv} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-stone-500 tracking-wide uppercase">
+                    CSV İçeriği *
+                  </label>
+                  <textarea
+                    required
+                    value={csvContent}
+                    onChange={(e) => setCsvContent(e.target.value)}
+                    placeholder="*,OYUN,EK PAKETLER,TÜRÜ,OYUNCU,ZORLUK&#10;1,7 Wonders,,Kart Seçimi,2-7,2.31..."
+                    rows={8}
+                    className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-850 text-xs focus:outline-none focus:border-amber-600 transition-all placeholder:text-stone-400 font-mono"
+                  />
+                </div>
+
+                <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl">
+                  <p className="text-[10px] text-amber-800 leading-tight">
+                    <strong>Format Notu:</strong> İlk satır başlık olmalı ve sütunlar şu sırayla olmalıdır: <br/>
+                    <code>*,OYUN,EK PAKETLER,TÜRÜ,OYUNCU,ZORLUK</code>
+                  </p>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCsvModalOpen(false);
+                      setCsvContent("");
+                    }}
+                    className="bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold px-5 py-2.5 rounded-xl text-xs transition-all"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={importingCsv || !csvContent.trim()}
+                    className="flex items-center justify-center gap-2 bg-amber-700 hover:bg-amber-600 disabled:bg-amber-700/50 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md"
+                  >
+                    {importingCsv && <CircleNotch size={12} className="animate-spin" />}
+                    <span>Aktarımı Başlat</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       {isEditModalOpen && selectedGame && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-stone-900/60 backdrop-blur-sm"
@@ -884,20 +1066,101 @@ export default function ClubDetailClient({ clubId }: { clubId: string }) {
                   />
                 </div>
 
+                <div className="pt-2 flex justify-between items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteGame(selectedGame.id)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                  >
+                    <Trash size={14} />
+                    <span>Oyunu Sil</span>
+                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(false)}
+                      className="bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold px-5 py-2.5 rounded-xl text-xs transition-all"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={updatingGame}
+                      className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md"
+                    >
+                      {updatingGame && <CircleNotch size={12} className="animate-spin" />}
+                      <span>Güncelle</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Edit Club Details */}
+      {isEditClubModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-stone-900/60 backdrop-blur-sm"
+          onClick={() => setIsEditClubModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md bg-white border border-[#e8e4d9] rounded-3xl p-7 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <h3 className="text-base font-bold text-stone-850 mb-6">Kulüp Bilgilerini Güncelle</h3>
+              
+              <form onSubmit={handleUpdateClub} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 mb-2 tracking-wide uppercase">Kulüp Adı *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editClubName}
+                    onChange={(e) => setEditClubName(e.target.value)}
+                    placeholder="Örn: Kadıköy Oyun Kulübü"
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-850 focus:outline-none focus:border-amber-600 transition-all placeholder:text-stone-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 mb-2 tracking-wide uppercase">Açıklama</label>
+                  <textarea
+                    value={editClubDescription}
+                    onChange={(e) => setEditClubDescription(e.target.value)}
+                    placeholder="Kulüp hakkında kısa bir bilgi..."
+                    rows={3}
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-850 focus:outline-none focus:border-amber-600 resize-none transition-all placeholder:text-stone-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-500 mb-2 tracking-wide uppercase">Logo URL</label>
+                  <input
+                    type="text"
+                    value={editClubLogoUrl}
+                    onChange={(e) => setEditClubLogoUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-850 focus:outline-none focus:border-amber-600 transition-all placeholder:text-stone-400"
+                  />
+                </div>
+
                 <div className="pt-2 flex justify-end gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsEditModalOpen(false)}
+                    onClick={() => setIsEditClubModalOpen(false)}
                     className="bg-white border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold px-5 py-2.5 rounded-xl text-xs transition-all"
                   >
                     İptal
                   </button>
                   <button
                     type="submit"
-                    disabled={updatingGame}
+                    disabled={updatingClub}
                     className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md"
                   >
-                    {updatingGame && <CircleNotch size={12} className="animate-spin" />}
+                    {updatingClub && <CircleNotch size={12} className="animate-spin" />}
                     <span>Güncelle</span>
                   </button>
                 </div>

@@ -8,7 +8,8 @@
     "startExploring": "Start Exploring",
     "removedToast": "App removed from home screen",
     "dashboardWidgetTitle": "Business Hub",
-    "dashboardWidgetSubtitle": "Menu, stamp & feedback"
+    "dashboardWidgetSubtitle": "Menu, stamp & feedback",
+    "adminWidgetTitle": "Admin Panel"
   },
   "discover": {
     "title": "Everything Hub",
@@ -18,7 +19,7 @@
     "noResults": "No results found",
     "tryDifferent": "Try a different keyword.",
     "categories": {
-      "Social": "Social & Events",
+      "Social": "Social",
       "City": "Explore Your City",
       "Finance": "Finance & Savings",
       "Entertainment": "Entertainment & Hobbies",
@@ -315,8 +316,8 @@
       "description": "Track the daily menu and receive notifications."
     },
     "campus-events": {
-      "name": "Campus Events",
-      "description": "Discover and join university student club events."
+      "name": "Events",
+      "description": "Discover, join, and share events in your city and campus!"
     },
     "campus-concerts": {
       "name": "Campus Concerts",

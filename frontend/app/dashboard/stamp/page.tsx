@@ -145,7 +145,7 @@ function StampContent() {
         <div className="mb-8">
           <h1 className="text-xl font-black text-stone-900 flex items-center gap-2">
             <Cards size={24} className="text-amber-500" />
-            Sadakat Kartı (Stamp)
+            Sadakat Kartı
           </h1>
           <p className="text-stone-450 text-[10px] uppercase font-black tracking-wider mt-1">{businessName}</p>
         </div>

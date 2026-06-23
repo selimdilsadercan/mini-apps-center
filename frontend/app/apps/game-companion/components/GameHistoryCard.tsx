@@ -83,7 +83,7 @@ export default function GameHistoryCard({
                       <span className="text-[12px]">{p?.initial || (p?.name || "?")[0]}</span>
                     )}
                     {winnerId && p._id === winnerId && (
-                      <span className="absolute -top-2.5 -right-2 rotate-[-20deg] z-10">
+                      <span className="absolute -top-2.5 -left-1.5 rotate-[-20deg] z-10">
                         <CrownSimple size={18} weight="fill" className="text-yellow-400 drop-shadow" />
                       </span>
                     )}

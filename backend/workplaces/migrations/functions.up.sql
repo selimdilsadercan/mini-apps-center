@@ -23,6 +23,7 @@ RETURNS TABLE (
     user_ratings_total INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    business_id TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -31,9 +32,48 @@ BEGIN
     SELECT 
         p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
         p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total, p.metadata, p.approved, p.created_at, p.updated_at
+        p.user_ratings_total, p.metadata, p.approved, p.business_id, p.created_at, p.updated_at
     FROM workplaces.places p
     WHERE p.approved = TRUE
+    ORDER BY p.created_at DESC;
+END;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
+-- 1.1 Get Business Places
+DROP FUNCTION IF EXISTS workplaces.get_business_places(TEXT);
+CREATE OR REPLACE FUNCTION workplaces.get_business_places(p_business_id TEXT)
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    note TEXT,
+    url TEXT,
+    tags TEXT[],
+    wifi BOOLEAN,
+    parking BOOLEAN,
+    power_outlets BOOLEAN,
+    quiet_level INTEGER,
+    user_id UUID,
+    latitude NUMERIC,
+    longitude NUMERIC,
+    district TEXT,
+    image_url TEXT,
+    address TEXT,
+    rating NUMERIC,
+    user_ratings_total INTEGER,
+    metadata JSONB,
+    approved BOOLEAN,
+    business_id TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
+        p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
+        p.user_ratings_total, p.metadata, p.approved, p.business_id, p.created_at, p.updated_at
+    FROM workplaces.places p
+    WHERE p.business_id = p_business_id
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
@@ -134,7 +174,8 @@ CREATE OR REPLACE FUNCTION workplaces.add_place(
     p_rating NUMERIC DEFAULT NULL,
     p_user_ratings_total INTEGER DEFAULT NULL,
     p_metadata JSONB DEFAULT '{}',
-    p_approved BOOLEAN DEFAULT FALSE
+    p_approved BOOLEAN DEFAULT FALSE,
+    p_business_id TEXT DEFAULT NULL
 )
 RETURNS TABLE (
     id UUID,
@@ -156,6 +197,7 @@ RETURNS TABLE (
     user_ratings_total INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    business_id TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -165,10 +207,10 @@ BEGIN
     RETURN QUERY
     INSERT INTO workplaces.places (
         name, note, url, tags, wifi, parking, power_outlets, quiet_level, user_id,
-        latitude, longitude, district, image_url, address, rating, user_ratings_total, metadata, approved
+        latitude, longitude, district, image_url, address, rating, user_ratings_total, metadata, approved, business_id
     ) VALUES (
         p_name, p_note, p_url, p_tags, p_wifi, p_parking, p_power_outlets, p_quiet_level, v_user_id,
-        p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total, p_metadata, p_approved
+        p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total, p_metadata, p_approved, p_business_id
     )
     RETURNING 
         workplaces.places.id, workplaces.places.name, workplaces.places.note, workplaces.places.url, 
@@ -177,7 +219,7 @@ BEGIN
         workplaces.places.latitude, workplaces.places.longitude, workplaces.places.district, 
         workplaces.places.image_url, workplaces.places.address, workplaces.places.rating, 
         workplaces.places.user_ratings_total, workplaces.places.metadata, workplaces.places.approved, 
-        workplaces.places.created_at, workplaces.places.updated_at;
+        workplaces.places.business_id, workplaces.places.created_at, workplaces.places.updated_at;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -200,7 +242,8 @@ CREATE OR REPLACE FUNCTION workplaces.update_place(
     p_address TEXT DEFAULT NULL,
     p_rating NUMERIC DEFAULT NULL,
     p_user_ratings_total INTEGER DEFAULT NULL,
-    p_metadata JSONB DEFAULT '{}'
+    p_metadata JSONB DEFAULT '{}',
+    p_business_id TEXT DEFAULT NULL
 )
 RETURNS TABLE (
     id UUID,
@@ -222,6 +265,7 @@ RETURNS TABLE (
     user_ratings_total INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    business_id TEXT,
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -244,6 +288,7 @@ BEGIN
         rating = p_rating,
         user_ratings_total = p_user_ratings_total,
         metadata = p_metadata,
+        business_id = COALESCE(p_business_id, workplaces.places.business_id),
         updated_at = NOW()
     WHERE workplaces.places.id = p_id
     RETURNING 
@@ -253,7 +298,7 @@ BEGIN
         workplaces.places.latitude, workplaces.places.longitude, workplaces.places.district, 
         workplaces.places.image_url, workplaces.places.address, workplaces.places.rating, 
         workplaces.places.user_ratings_total, workplaces.places.metadata, workplaces.places.approved, 
-        workplaces.places.created_at, workplaces.places.updated_at;
+        workplaces.places.business_id, workplaces.places.created_at, workplaces.places.updated_at;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

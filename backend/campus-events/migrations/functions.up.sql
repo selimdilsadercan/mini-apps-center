@@ -4,7 +4,9 @@
 DROP FUNCTION IF EXISTS campus_events.get_events(TEXT, TEXT);
 CREATE OR REPLACE FUNCTION campus_events.get_events(
     clerk_id_param TEXT,
-    university_param TEXT
+    university_param TEXT DEFAULT NULL,
+    business_id_param TEXT DEFAULT NULL,
+    category_param TEXT DEFAULT NULL
 )
 RETURNS TABLE (
     id UUID,
@@ -20,6 +22,8 @@ RETURNS TABLE (
     creator_avatar TEXT,
     created_at TIMESTAMPTZ,
     user_status TEXT,
+    business_id TEXT,
+    category TEXT,
     attendees JSONB
 ) AS $$
 DECLARE
@@ -46,6 +50,8 @@ BEGIN
             FROM campus_events.attendance att 
             WHERE att.event_id = e.id AND att.user_id = v_user_uuid
         ) AS user_status,
+        e.business_id,
+        e.category,
         COALESCE(
             (
                 SELECT jsonb_agg(
@@ -64,7 +70,10 @@ BEGIN
         ) AS attendees
     FROM campus_events.events e
     LEFT JOIN public.users cu ON e.added_by_id = cu.id
-    WHERE e.university = university_param
+    WHERE 
+        (university_param IS NULL OR e.university = university_param) AND
+        (business_id_param IS NULL OR e.business_id = business_id_param) AND
+        (category_param IS NULL OR e.category = category_param)
     ORDER BY e.event_date ASC, e.created_at DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -79,7 +88,9 @@ CREATE OR REPLACE FUNCTION campus_events.add_event(
     event_date_param TIMESTAMP WITH TIME ZONE,
     image_url_param TEXT,
     organizer_club_param TEXT,
-    added_by_clerk_id_param TEXT
+    added_by_clerk_id_param TEXT,
+    business_id_param TEXT DEFAULT NULL,
+    category_param TEXT DEFAULT NULL
 )
 RETURNS campus_events.events AS $$
 DECLARE
@@ -96,7 +107,9 @@ BEGIN
         event_date,
         image_url,
         organizer_club,
-        added_by_id
+        added_by_id,
+        business_id,
+        category
     ) VALUES (
         title_param,
         description_param,
@@ -105,7 +118,9 @@ BEGIN
         event_date_param,
         image_url_param,
         organizer_club_param,
-        v_added_by_uuid
+        v_added_by_uuid,
+        business_id_param,
+        category_param
     )
     RETURNING * INTO v_result;
 

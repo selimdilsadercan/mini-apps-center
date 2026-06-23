@@ -56,10 +56,29 @@ export async function createClubAction(params: {
   description?: string;
   logoUrl?: string;
   ownerId: string;
+  businessId?: string;
 }): Promise<ActionResponse<board_game_clubs.Club>> {
   try {
     const client = createBrowserClient();
     const response = await client.board_game_clubs.createClub(params);
+    return { data: response.club, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * Kulüp bilgilerini günceller
+ */
+export async function updateClubAction(params: {
+  clubId: string;
+  name?: string;
+  description?: string;
+  logoUrl?: string;
+}): Promise<ActionResponse<board_game_clubs.Club>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.board_game_clubs.updateClub(params.clubId, params);
     return { data: response.club, error: null };
   } catch (error) {
     return { data: null, error: getErrorMessage(error) };
@@ -75,6 +94,21 @@ export async function getClubDetailsAction(
   try {
     const client = createBrowserClient();
     const response = await client.board_game_clubs.getClubDetails(clubId);
+    return { data: response.club, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * İşletmeye bağlı kulübü getirir
+ */
+export async function getClubByBusinessIdAction(
+  businessId: string
+): Promise<ActionResponse<board_game_clubs.Club>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.board_game_clubs.getClubByBusinessId(businessId);
     return { data: response.club, error: null };
   } catch (error) {
     return { data: null, error: getErrorMessage(error) };
@@ -199,6 +233,49 @@ export async function importBggGeeklistAction(
         games: response.games || []
       },
       error: null
+    };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * CSV import eder
+ */
+export async function importCsvGamesAction(
+  clubId: string,
+  csvContent: string
+): Promise<ActionResponse<{ importedCount: number; failedCount: number }>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.board_game_clubs.importCsvGames(clubId, { csvContent });
+    return {
+      data: {
+        importedCount: response.importedCount,
+        failedCount: response.failedCount,
+      },
+      error: null,
+    };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * BGG ile senkronize eder (Resimleri çeker)
+ */
+export async function syncBggGamesAction(
+  clubId: string
+): Promise<ActionResponse<{ syncedCount: number; failedCount: number }>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.board_game_clubs.syncClubGamesWithBgg(clubId);
+    return {
+      data: {
+        syncedCount: response.syncedCount,
+        failedCount: response.failedCount,
+      },
+      error: null,
     };
   } catch (error) {
     return { data: null, error: getErrorMessage(error) };

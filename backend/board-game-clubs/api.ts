@@ -3,6 +3,8 @@ import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 import axios from "axios";
 import { parse } from "node-html-parser";
+import * as fs from "fs";
+import * as path from "path";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -19,6 +21,7 @@ export interface Club {
   description: string | null;
   logo_url: string | null;
   owner_id: string;
+  business_id: string | null;
   created_at: string;
 }
 
@@ -70,6 +73,7 @@ interface CreateClubRequest {
   description?: string;
   logoUrl?: string;
   ownerId: string;
+  businessId?: string;
 }
 
 interface CreateClubResponse {
@@ -81,6 +85,17 @@ interface GetClubDetailsRequest {
 }
 
 interface GetClubDetailsResponse {
+  club: Club | null;
+}
+
+interface UpdateClubRequest {
+  clubId: string;
+  name?: string;
+  description?: string;
+  logoUrl?: string;
+}
+
+interface UpdateClubResponse {
   club: Club | null;
 }
 
@@ -157,6 +172,25 @@ interface BggGeeklistImportResponse {
   games: ClubGame[];
 }
 
+interface CsvImportRequest {
+  clubId: string;
+  csvContent: string;
+}
+
+interface CsvImportResponse {
+  importedCount: number;
+  failedCount: number;
+}
+
+interface SyncBggRequest {
+  clubId: string;
+}
+
+interface SyncBggResponse {
+  syncedCount: number;
+  failedCount: number;
+}
+
 // ==================== API ENDPOINTS ====================
 
 /**
@@ -185,17 +219,69 @@ export const getUserClubs = api(
  */
 export const createClub = api(
   { expose: true, method: "POST", path: "/board-game-clubs/create" },
-  async ({ name, description, logoUrl, ownerId }: CreateClubRequest): Promise<CreateClubResponse> => {
+  async ({ name, description, logoUrl, ownerId, businessId }: CreateClubRequest): Promise<CreateClubResponse> => {
     const { data, error } = await supabase.schema("board_game_clubs").rpc("create_club", {
       name_param: name,
       description_param: description || null,
       logo_url_param: logoUrl || null,
       owner_id_param: ownerId,
+      business_id_param: businessId || null,
     });
 
     if (error) {
       console.error("createClub error:", error);
       throw APIError.internal("Kulüp oluşturulamadı");
+    }
+
+    return { club: (data as Club) || null };
+  }
+);
+
+/**
+ * İşletmeye bağlı kulübü getirir
+ * GET /board-game-clubs/business/:businessId
+ */
+export const getClubByBusinessId = api(
+  { expose: true, method: "GET", path: "/board-game-clubs/business/:businessId" },
+  async ({ businessId }: { businessId: string }): Promise<GetClubDetailsResponse> => {
+    const { data, error } = await supabase
+      .schema("board_game_clubs")
+      .from("clubs")
+      .select("*")
+      .eq("business_id", businessId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("getClubByBusinessId error:", error);
+      return { club: null };
+    }
+
+    return { club: (data as Club) || null };
+  }
+);
+
+/**
+ * Kulüp bilgilerini günceller
+ * PUT /board-game-clubs/:clubId
+ */
+export const updateClub = api(
+  { expose: true, method: "PUT", path: "/board-game-clubs/:clubId" },
+  async ({ clubId, name, description, logoUrl }: UpdateClubRequest): Promise<UpdateClubResponse> => {
+    const { data, error } = await supabase
+      .schema("board_game_clubs")
+      .from("clubs")
+      .update({
+        name: name || undefined,
+        description: description || null,
+        logo_url: logoUrl || null,
+      })
+      .eq("id", clubId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("updateClub error:", error);
+      throw APIError.internal("Kulüp güncellenemedi");
     }
 
     return { club: (data as Club) || null };
@@ -417,7 +503,8 @@ async function fetchBggGameDetailsBatch(bggIds: number[], apiKey?: string): Prom
   try {
     const idsString = bggIds.join(",");
     const headers: Record<string, string> = {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "application/xml,text/xml,*/*"
     };
     if (apiKey) {
       headers["Authorization"] = `Bearer ${apiKey}`;
@@ -584,3 +671,369 @@ export const importBggGeeklist = api(
     }
   }
 );
+
+/**
+ * CSV formatındaki oyun listesini kulüp kütüphanesine aktarır
+ * Format: *,OYUN,EK PAKETLER,TÜRÜ,OYUNCU,ZORLUK
+ * POST /board-game-clubs/:clubId/import-csv
+ */
+export const importCsvGames = api(
+  { expose: true, method: "POST", path: "/board-game-clubs/:clubId/import-csv" },
+  async ({ clubId, csvContent }: CsvImportRequest): Promise<CsvImportResponse> => {
+    const lines = csvContent.split("\n").filter((line) => line.trim() !== "");
+    if (lines.length <= 1) {
+      throw APIError.invalidArgument("CSV içeriği boş veya geçersiz");
+    }
+
+    // Header'ı atla
+    const dataLines = lines.slice(1);
+    let importedCount = 0;
+    let failedCount = 0;
+
+    for (const line of dataLines) {
+      try {
+        const columns = parseCsvLine(line);
+        if (columns.length < 2) continue; // En azından oyun adı olmalı
+
+        const title = columns[1];
+        const expansions = columns[2];
+        const genre = columns[3];
+        const playerCountStr = columns[4];
+        const difficulty = columns[5];
+
+        const { min: minPlayers, max: maxPlayers } = parsePlayerCount(playerCountStr);
+
+        let notes = "";
+        if (expansions) notes += `Ek Paketler: ${expansions}\n`;
+        if (difficulty) notes += `Zorluk: ${difficulty}\n`;
+        notes = notes.trim();
+
+        const { error } = await supabase.schema("board_game_clubs").rpc("add_club_game", {
+          club_id_param: clubId,
+          bgg_id_param: null,
+          title_param: title,
+          image_url_param: null,
+          min_players_param: minPlayers,
+          max_players_param: maxPlayers,
+          playing_time_param: null,
+          description_param: genre || null,
+          condition_param: "good",
+          status_param: "available",
+          notes_param: notes || null,
+        });
+
+        if (error) {
+          console.error(`CSV Import failed for game ${title}:`, error);
+          failedCount++;
+        } else {
+          importedCount++;
+        }
+      } catch (err) {
+        console.error(`Error parsing line: ${line}`, err);
+        failedCount++;
+      }
+    }
+
+    return { importedCount, failedCount };
+  }
+);
+
+/**
+ * NeoTroy Games üzerinden oyunun resmini bulmaya çalışır
+ */
+async function scrapeNeoTroyImage(title: string): Promise<string | null> {
+  try {
+    console.log(`[scrapeNeoTroyImage] Starting search for: ${title}`);
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    };
+
+    const searchUrl = `https://neotroygames.com/?s=${encodeURIComponent(title)}&post_type=product`;
+    const response = await axios.get(searchUrl, { headers, timeout: 10000 });
+    const root = parse(response.data);
+    
+    // Tüm ürün kartlarını bulalım
+    const products = root.querySelectorAll("li.product, .rt-product-block");
+    console.log(`[scrapeNeoTroyImage] Found ${products.length} potential products on page`);
+    
+    for (const product of products) {
+      // Ürün adını kontrol et
+      const titleEl = product.querySelector(".rt-title a, .woocommerce-loop-product__title, h3 a");
+      const productTitle = titleEl?.text?.trim() || "";
+      const img = product.querySelector("img");
+      
+      if (img && productTitle) {
+        const normalizedProductTitle = productTitle.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normalizedSearchTitle = title.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+        console.log(`[scrapeNeoTroyImage] Checking product: "${productTitle}" against search: "${title}"`);
+
+        // Eğer ürün adı aradığımız adla örtüşüyorsa bu doğru üründür
+        if (normalizedProductTitle.includes(normalizedSearchTitle) || normalizedSearchTitle.includes(normalizedProductTitle)) {
+          const src = img.getAttribute("data-src") || 
+                      img.getAttribute("src") || 
+                      img.getAttribute("data-lazy-src");
+          
+          if (src && !src.includes("data:image") && !src.toLowerCase().includes("logo")) {
+            console.log(`[scrapeNeoTroyImage] MATCH FOUND! Product: "${productTitle}", Image: ${src}`);
+            return src;
+          }
+        }
+      }
+    }
+
+    // Eğer tam eşleşme bulamadıysak ama ürünler varsa, ilk ürünün resmini (logo değilse) dönmeyi deneyebiliriz
+    if (products.length > 0) {
+      const firstImg = products[0].querySelector("img");
+      const src = firstImg?.getAttribute("data-src") || firstImg?.getAttribute("src");
+      if (src && !src.includes("data:image") && !src.toLowerCase().includes("logo")) {
+        console.log(`[scrapeNeoTroyImage] No exact match, falling back to first product image: ${src}`);
+        return src;
+      }
+    }
+
+    console.log(`[scrapeNeoTroyImage] No matching product found for: ${title}`);
+    return null;
+  } catch (err: any) {
+    console.error(`[scrapeNeoTroyImage] Failed for ${title}:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Google üzerinden oyunun resmini bulmaya çalışır
+ */
+async function scrapeGameImage(title: string): Promise<string | null> {
+  try {
+    // Önce NeoTroy Games'i deneyelim (Türkçe içerik ve temiz görseller için)
+    const neoTroyImg = await scrapeNeoTroyImage(title);
+    if (neoTroyImg) return neoTroyImg;
+
+    console.log(`[scrapeGameImage] Falling back to Google search for: ${title}`);
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Referer": "https://www.google.com/",
+      "DNT": "1",
+      "Connection": "keep-alive",
+      "Upgrade-Insecure-Requests": "1"
+    };
+
+    // Google Images araması
+    // tbm=isch görsel araması için, sca_esv ve diğer parametreler bazen bot korumasını geçmeye yardımcı olabilir
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title + " board game geek box art")}&tbm=isch&source=lnms`;
+    console.log(`[scrapeGameImage] Requesting URL: ${searchUrl}`);
+    const response = await axios.get(searchUrl, { headers, timeout: 10000 });
+    const html = response.data;
+    console.log(`[scrapeGameImage] Received HTML, length: ${html.length}`);
+    
+    // Debug için HTML'i dosyaya kaydedelim
+    try {
+      const debugPath = path.join(process.cwd(), "google_search_debug.html");
+      fs.writeFileSync(debugPath, html);
+      console.log(`[scrapeGameImage] Debug HTML saved to: ${debugPath}`);
+    } catch (fsErr) {
+      console.error(`[scrapeGameImage] Failed to save debug HTML:`, fsErr);
+    }
+    
+    // Google Images HTML'indeki resim URL'lerini bulmaya çalışalım
+    // 1. Standart URL'ler
+    // 2. Escaped URL'ler (https:\/\/...)
+    // 3. Google'ın tbn (thumbnail) URL'leri (uzantısız olabilir)
+    const imgRegex = /(https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp)|https?:\\\/\\\/[^"']+\.(?:jpg|jpeg|png|webp)|https?:\/\/encrypted-tbn[^"']+)/gi;
+    const matches = html.match(imgRegex);
+    console.log(`[scrapeGameImage] Found ${matches ? matches.length : 0} potential image matches`);
+    
+    if (matches) {
+      for (let url of matches) {
+        // Escaped slashes temizle
+        url = url.replace(/\\/g, "");
+        
+        // Log individual matches for debugging
+        console.log(`[scrapeGameImage] Checking URL: ${url.substring(0, 60)}...`);
+        
+        if (url.includes("gstatic.com") || url.includes("encrypted-tbn") || url.includes("google.com")) {
+          if (url.includes("encrypted-tbn")) {
+            console.log(`[scrapeGameImage] Selected encrypted-tbn URL: ${url}`);
+            return url;
+          }
+        }
+        if (url.includes("boardgamegeek.com/image")) {
+          console.log(`[scrapeGameImage] Selected BGG image URL: ${url}`);
+          return url;
+        }
+      }
+      
+      // Hiçbiri özel kriterlere uymadıysa ilkini temizleyip dön
+      const finalUrl = matches[0].replace(/\\/g, "");
+      console.log(`[scrapeGameImage] Falling back to first match: ${finalUrl}`);
+      return finalUrl;
+    }
+
+    console.log(`[scrapeGameImage] No image matches found in HTML`);
+    return null;
+  } catch (err: any) {
+    console.error(`[scrapeGameImage] Scraping failed for ${title}:`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Kütüphanedeki resimsiz oyunları BGG üzerinden arayıp resim ve eksik bilgileri tamamlar
+ * POST /board-game-clubs/:clubId/sync-bgg
+ */
+export const syncClubGamesWithBgg = api(
+  { expose: true, method: "POST", path: "/board-game-clubs/:clubId/sync-bgg" },
+  async ({ clubId }: SyncBggRequest): Promise<SyncBggResponse> => {
+    console.log(`[syncClubGamesWithBgg] Starting sync for club: ${clubId}`);
+    // 1. Kulübün tüm oyunlarını çekelim
+    const { data: games, error: fetchErr } = await supabase
+      .schema("board_game_clubs")
+      .rpc("get_club_games", { club_id_param: clubId });
+
+    if (fetchErr || !games) {
+      console.error(`[syncClubGamesWithBgg] Failed to fetch games:`, fetchErr);
+      throw APIError.internal("Oyunlar çekilemedi");
+    }
+
+    console.log(`[syncClubGamesWithBgg] Total games found: ${games.length}`);
+
+    // 2. Resimi olmayan veya BGG ID'si olmayan oyunları filtreleyelim
+    const gamesToSync = (games as ClubGame[]).filter(
+      (g) => !g.image_url
+    );
+
+    console.log(`[syncClubGamesWithBgg] Games needing sync: ${gamesToSync.length}`);
+
+    let syncedCount = 0;
+    let failedCount = 0;
+
+    // NeoTroy JSON verilerini oku
+    let neotroyGames: any[] = [];
+    try {
+      // Encore'da process.cwd() genellikle backend klasörüdür.
+      // Eğer backend/backend oluşuyorsa, yolu düzeltelim.
+      const cwd = process.cwd();
+      let jsonPath = path.join(cwd, "board-game-clubs", "neotroy-games.json");
+      
+      // Eğer dosya yoksa ve biz ana klasördeysek (everything), backend ekleyelim
+      if (!fs.existsSync(jsonPath)) {
+        jsonPath = path.join(cwd, "backend", "board-game-clubs", "neotroy-games.json");
+      }
+
+      if (fs.existsSync(jsonPath)) {
+        neotroyGames = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+        console.log(`[syncClubGamesWithBgg] Loaded ${neotroyGames.length} games from JSON at: ${jsonPath}`);
+      } else {
+        console.error(`[syncClubGamesWithBgg] neotroy-games.json not found at: ${jsonPath}`);
+      }
+    } catch (err) {
+      console.error(`[syncClubGamesWithBgg] Error reading neotroy-games.json:`, err);
+    }
+
+    // NeoTroy JSON verilerini normalize ederek bir map'e koyalım
+    const neotroyMap = new Map<string, string>();
+    neotroyGames.forEach(item => {
+      const normalizedTitle = item.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (!neotroyMap.has(normalizedTitle)) {
+        neotroyMap.set(normalizedTitle, item.imageUrl);
+      }
+    });
+
+    for (const game of gamesToSync) {
+      try {
+        console.log(`[syncClubGamesWithBgg] Processing game: "${game.title}" (ID: ${game.id})`);
+        let imageUrl: string | null = null;
+        
+        // SADECE NeoTroy JSON'da arayalım
+        const normalizedGameTitle = game.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+        imageUrl = neotroyMap.get(normalizedGameTitle) || null;
+
+        if (imageUrl) {
+          console.log(`[syncClubGamesWithBgg] Image found in JSON: ${imageUrl.substring(0, 50)}...`);
+          // Veritabanını güncelle
+          const { error: updateErr } = await supabase.schema("board_game_clubs").rpc("update_club_game", {
+            game_id_param: game.id,
+            title_param: game.title,
+            image_url_param: imageUrl,
+            min_players_param: game.min_players,
+            max_players_param: game.max_players,
+            playing_time_param: game.playing_time,
+            description_param: game.description,
+            condition_param: game.condition,
+            status_param: game.status,
+            notes_param: game.notes,
+          });
+          
+          if (updateErr) {
+            console.error(`[syncClubGamesWithBgg] Database update failed for ${game.title}:`, updateErr);
+            failedCount++;
+          } else {
+            syncedCount++;
+            console.log(`[syncClubGamesWithBgg] Successfully synced image for: ${game.title}`);
+          }
+        } else {
+          failedCount++;
+          console.log(`[syncClubGamesWithBgg] Failed to find image in JSON for: ${game.title}`);
+        }
+      } catch (err: any) {
+        console.error(`[syncClubGamesWithBgg] Unexpected error for ${game.title}:`, err.message);
+        failedCount++;
+      }
+    }
+
+    console.log(`[syncClubGamesWithBgg] Sync finished. Synced: ${syncedCount}, Failed: ${failedCount}`);
+    return { syncedCount, failedCount };
+  }
+);
+
+/**
+ * CSV satırını virgüllere göre ayırır, tırnak içindeki virgülleri korur.
+ */
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+/**
+ * Oyuncu sayısı stringini (örn: "2-7", "2", "1-10+") min ve max olarak ayırır.
+ */
+function parsePlayerCount(playerStr: string): { min: number | null; max: number | null } {
+  if (!playerStr) return { min: null, max: null };
+
+  // "+" ve diğer sayısal olmayan karakterleri temizle (tire hariç)
+  const cleaned = playerStr.replace(/[^\d-]/g, "");
+
+  if (cleaned.includes("-")) {
+    const parts = cleaned.split("-");
+    const min = parseInt(parts[0]);
+    const max = parseInt(parts[1]);
+    return {
+      min: isNaN(min) ? null : min,
+      max: isNaN(max) ? null : max,
+    };
+  } else {
+    const val = parseInt(cleaned);
+    return {
+      min: isNaN(val) ? null : val,
+      max: isNaN(val) ? null : val,
+    };
+  }
+}

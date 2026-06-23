@@ -296,10 +296,9 @@ export default function Discover() {
         <div className="max-w-4xl mx-auto w-full px-5 pb-32">
         {/* Header Section */}
         <header className="pt-8 pb-4">
-          <h1 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-1.5">
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
             {t("title")}
           </h1>
-          <p className="text-gray-500 text-sm font-medium">{t("subtitle")}</p>
         </header>
 
         {/* Search Bar */}
@@ -399,10 +398,10 @@ export default function Discover() {
           <>
             {/* Categorized Sections */}
             <AppSection title={t("categories.Social")} apps={implementedApps.filter(a => ["suggest", "neyapsam"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.City")} apps={implementedApps.filter(a => ["one-day-city-guide", "workplaces", "digital-menu", "stamp-card", "concert-list"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.City")} apps={implementedApps.filter(a => ["one-day-city-guide", "workplaces", "digital-menu", "stamp-card", "concert-list", "campus-events"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Finance")} apps={implementedApps.filter(a => ["budget", "tasarruf-challenges", "subcenter"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
             <AppSection title={t("categories.Entertainment")} apps={implementedApps.filter(a => ["iskambil", "memedex", "series-track", "game-companion", "chocolate-db"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Campus")} apps={implementedApps.filter(a => ["itu-yemekhane", "campus-events", "campus-concerts"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
+            <AppSection title={t("categories.Campus")} apps={implementedApps.filter(a => ["itu-yemekhane", "campus-concerts"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
 
             {/* Coming Soon Section */}
             {betaApps.length > 0 && (

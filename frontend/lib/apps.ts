@@ -286,7 +286,6 @@ const RAW_MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "bgc",
     isBeta: true,
-    isCancelled: true,
   },
 
   // Entertainment
@@ -664,14 +663,14 @@ const RAW_MINI_APPS: MiniApp[] = [
   },
   {
     id: "campus-events",
-    name: "Campus Events",
-    description: "Üniversite topluluk etkinliklerini keşfet ve katıl",
+    name: "Events",
+    description: "Şehirdeki ve kampüsündeki etkinlikleri keşfet, katıl ve paylaş!",
     icon: Megaphone,
     category: "Lifestyle",
-    color: "#3B82F6",
+    color: "#00aeef",
     href: "/apps/campus-events",
     isImplemented: true,
-    subdomain: "campusevents",
+    subdomain: "events",
     isBeta: true,
     statusBarColor: "#ffffff",
     statusBarStyle: "light",

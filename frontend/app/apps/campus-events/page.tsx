@@ -9,82 +9,35 @@ import {
   Calendar,
   MapPin,
   CaretLeft,
-  MagnifyingGlass,
-  GraduationCap
+  MagnifyingGlass
 } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { campus_events } from "@/lib/client";
-import { getUserPreferencesAction, updateUniversityAction } from "../../home/actions";
 
 const client = createBrowserClient();
-
-const UNIVERSITIES = [
-  { id: "itu", name: "İstanbul Teknik Üniversitesi", shortName: "İTÜ" },
-  { id: "boun", name: "Boğaziçi Üniversitesi", shortName: "BOUN" },
-  { id: "odtu", name: "Orta Doğu Teknik Üniversitesi", shortName: "ODTÜ" },
-  { id: "ytu", name: "Yıldız Teknik Üniversitesi", shortName: "YTÜ" },
-  { id: "bilkent", name: "Bilkent Üniversitesi", shortName: "Bilkent" },
-  { id: "koc", name: "Koç Üniversitesi", shortName: "Koç" },
-  { id: "sabanci", name: "Sabancı Üniversitesi", shortName: "Sabancı" }
-];
 
 export default function CampusEventsPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const [events, setEvents] = useState<campus_events.CampusEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUni, setSelectedUni] = useState<string>("");
   const [showAddDrawer, setShowAddDrawer] = useState(false);
-  const [showUniSelect, setShowUniSelect] = useState(false);
 
-  // Load user university preference & events
+  // Load events
   useEffect(() => {
-    async function loadUserPreference() {
-      if (!isUserLoaded) return;
-      
-      let uni = "";
-      if (user?.id) {
-        try {
-          const { data } = await getUserPreferencesAction(user.id);
-          if (data?.selectedUniversity) {
-            uni = data.selectedUniversity;
-          }
-        } catch (e) {
-          console.error("Error loading university preference", e);
-        }
-      }
-
-      // Fallback to localStorage
-      if (!uni) {
-        uni = localStorage.getItem(`selected_uni_${user?.id || "guest"}`) || "";
-      }
-
-      if (uni) {
-        setSelectedUni(uni);
-      } else {
-        setShowUniSelect(true); // Open select overlay if no university is selected yet
-      }
-    }
-
-    loadUserPreference();
-  }, [isUserLoaded, user?.id]);
-
-  // Load events once university is selected
-  useEffect(() => {
-    if (selectedUni) {
+    if (isUserLoaded) {
       fetchEvents();
     }
-  }, [selectedUni, user?.id]);
+  }, [isUserLoaded, user?.id]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       const res = await client.campus_events.getEvents({
-        userId: user?.id || undefined,
-        university: selectedUni
+        userId: user?.id || undefined
       });
       setEvents(res.events || []);
     } catch (error) {
@@ -92,20 +45,6 @@ export default function CampusEventsPage() {
       toast.error("Etkinlikler yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUniversitySelect = async (uniId: string) => {
-    setSelectedUni(uniId);
-    setShowUniSelect(false);
-    localStorage.setItem(`selected_uni_${user?.id || "guest"}`, uniId);
-    
-    if (user?.id) {
-      try {
-        await updateUniversityAction(user.id, uniId);
-      } catch (e) {
-        console.error("Failed to save university to backend", e);
-      }
     }
   };
 
@@ -129,8 +68,6 @@ export default function CampusEventsPage() {
       (e.organizer_club && e.organizer_club.toLowerCase().includes(query))
     );
   });
-
-  const activeUni = UNIVERSITIES.find(u => u.id === selectedUni);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
@@ -162,26 +99,12 @@ export default function CampusEventsPage() {
               className="flex items-center gap-1.5 group"
             >
               <span className="text-xl font-[900] text-slate-800 tracking-tight flex items-center gap-1">
-                Campus<span className="text-[#00aeef]">Events</span>
-                <span className="text-[#00aeef] inline-block group-hover:scale-110 transition-transform">💙</span>
+                Events
               </span>
             </button>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-slate-500 ml-4">
-              <span className="text-[#00aeef] cursor-pointer">Etkinlikler</span>
-            </nav>
           </div>
 
           <div className="flex gap-2.5">
-            {selectedUni && (
-              <button
-                onClick={() => setShowUniSelect(true)}
-                className="bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-extrabold px-3.5 py-2.5 rounded-full active:scale-95 transition-all flex items-center gap-1.5"
-              >
-                <GraduationCap size={16} weight="fill" className="text-[#00aeef]" />
-                <span>{activeUni?.shortName || "Uni Değiştir"}</span>
-              </button>
-            )}
-
             <button
               onClick={() => {
                 if (!user) {
@@ -200,30 +123,17 @@ export default function CampusEventsPage() {
       </header>
 
       <main className="flex-1 px-4 py-10 pb-32 max-w-4xl mx-auto w-full">
-        
-
-
-        {activeUni && (
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-[900] text-slate-800 tracking-tight">
-              🎓 {activeUni.name} Etkinlikleri
-            </h2>
-          </div>
-        )}
-
-        {selectedUni && (
-          <>
-            {/* Search Bar */}
-            <div className="relative mb-8 shadow-sm rounded-2xl">
-              <MagnifyingGlass size={18} className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Etkinlik başlığı, topluluk veya salon ara..."
-                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-slate-400 text-slate-800 font-semibold"
-              />
-            </div>
+        {/* Search Bar */}
+        <div className="relative mb-8 shadow-sm rounded-2xl">
+          <MagnifyingGlass size={18} className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Etkinlik başlığı, topluluk veya salon ara..."
+            className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-slate-400 text-slate-800 font-semibold"
+          />
+        </div>
 
             {/* Events Grid View */}
             {loading ? (
@@ -303,59 +213,7 @@ export default function CampusEventsPage() {
                 ))}
               </div>
             )}
-          </>
-        )}
       </main>
-
-      {/* University Selection Overlay */}
-      <AnimatePresence>
-        {showUniSelect && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="w-full max-w-sm bg-white border border-slate-200 rounded-[2.5rem] p-6 shadow-2xl flex flex-col max-h-[85vh] relative overflow-hidden"
-            >
-              <div className="text-center mb-6 relative z-10">
-                <div className="mx-auto w-14 h-14 rounded-full bg-[#00aeef]/10 flex items-center justify-center text-[#00aeef] mb-4">
-                  <GraduationCap size={28} weight="fill" />
-                </div>
-                <h3 className="text-xl font-[800] text-slate-900">Üniversiteni Seç</h3>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                  Kampüsündeki topluluk etkinliklerini keşfetmek için üniversite seçimi yapın.
-                </p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1 relative z-10 scrollbar-none">
-                {UNIVERSITIES.map((uni) => (
-                  <button
-                    key={uni.id}
-                    onClick={() => handleUniversitySelect(uni.id)}
-                    className={`w-full text-left p-4 rounded-2xl border text-xs font-black transition-all flex items-center justify-between active:scale-[0.99] ${
-                      selectedUni === uni.id
-                        ? "bg-[#00aeef]/10 border-[#00aeef]/30 text-[#00aeef]"
-                        : "bg-slate-50 border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
-                    }`}
-                  >
-                    <span>{uni.name}</span>
-                    <span className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-500 uppercase tracking-widest">{uni.shortName}</span>
-                  </button>
-                ))}
-              </div>
-              
-              {selectedUni && (
-                <button
-                  onClick={() => setShowUniSelect(false)}
-                  className="w-full mt-4 h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-2xl transition-all border border-slate-200"
-                >
-                  Kapat
-                </button>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Suggest Event Drawer */}
       <Drawer.Root open={showAddDrawer} onOpenChange={setShowAddDrawer}>
@@ -368,10 +226,9 @@ export default function CampusEventsPage() {
                 Etkinlik Ekle
               </Drawer.Title>
               <Drawer.Description className="text-xs text-slate-400 mb-6 font-medium">
-                Üniversite topluluğun adına veya kampüsteki genel bir etkinliği buraya gir.
+                Topluluğun adına veya genel bir etkinliği buraya gir.
               </Drawer.Description>
               <SuggestEventForm
-                selectedUni={selectedUni}
                 onComplete={() => {
                   fetchEvents();
                   setShowAddDrawer(false);
@@ -454,10 +311,8 @@ function AttendanceButton({
 
 // Event Suggestion Form Component
 function SuggestEventForm({
-  selectedUni,
   onComplete
 }: {
-  selectedUni: string;
   onComplete: () => void;
 }) {
   const { user } = useUser();
@@ -485,7 +340,6 @@ function SuggestEventForm({
       await client.campus_events.addEvent({
         userId: user.id,
         title: formData.title,
-        university: selectedUni,
         description: formData.description || undefined,
         location: formData.location || undefined,
         eventDate: isoDate,
@@ -524,7 +378,7 @@ function SuggestEventForm({
           type="text"
           value={formData.organizerClub}
           onChange={(e) => setFormData({ ...formData, organizerClub: e.target.value })}
-          placeholder="Örn: İTÜ Veri Analitiği Kulübü"
+          placeholder="Örn: Şehir Koşu Grubu"
           className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
         />
       </div>
@@ -543,12 +397,12 @@ function SuggestEventForm({
 
       {/* Location */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Konum / Salon</label>
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Konum / Mekan</label>
         <input
           type="text"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          placeholder="Örn: EEB İlkan Seminer Salonu"
+          placeholder="Örn: Beşiktaş Sahil"
           className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
         />
       </div>

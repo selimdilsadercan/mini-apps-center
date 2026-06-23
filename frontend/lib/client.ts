@@ -32,6 +32,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the mini-apps-center-8u7i Encore application.
  */
 export default class Client {
+    public readonly admin: admin.ServiceClient
     public readonly apply_tracker: apply_tracker.ServiceClient
     public readonly assistant: assistant.ServiceClient
     public readonly birikim: birikim.ServiceClient
@@ -87,6 +88,7 @@ export default class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.admin = new admin.ServiceClient(base)
         this.apply_tracker = new apply_tracker.ServiceClient(base)
         this.assistant = new assistant.ServiceClient(base)
         this.birikim = new birikim.ServiceClient(base)
@@ -156,6 +158,92 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+export namespace admin {
+    export interface AdminBusiness {
+        id: string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "theme_color": string
+        "font_family": string
+        "created_at": string
+        "owner_user_id": string
+        "owner_username": string | null
+        "owner_full_name": string | null
+        "total_count": number
+    }
+
+    export interface AdminUser {
+        role?: string | null
+        "total_count": number
+        id: string
+        username: string | null
+        "full_name": string | null
+        "avatar_url": string | null
+        "created_at": string
+    }
+
+    export interface ListBusinessesResponse {
+        businesses: AdminBusiness[]
+        totalCount: number
+    }
+
+    export interface ListRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface ListRequest {
+        limit?: number
+        offset?: number
+    }
+
+    export interface ListUsersResponse {
+        users: AdminUser[]
+        totalCount: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.listBusinesses = this.listBusinesses.bind(this)
+            this.listUsers = this.listUsers.bind(this)
+        }
+
+        /**
+         * Tüm işletmeleri listeler (Admin Only)
+         */
+        public async listBusinesses(params: ListRequest): Promise<ListBusinessesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/admin/businesses`, undefined, {query})
+            return await resp.json() as ListBusinessesResponse
+        }
+
+        /**
+         * Tüm kullanıcıları listeler (Admin Only)
+         */
+        public async listUsers(params: ListRequest): Promise<ListUsersResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit:  params.limit === undefined ? undefined : String(params.limit),
+                offset: params.offset === undefined ? undefined : String(params.offset),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/admin/users`, undefined, {query})
+            return await resp.json() as ListUsersResponse
+        }
+    }
 }
 
 export namespace apply_tracker {
@@ -660,6 +748,7 @@ export namespace board_game_clubs {
         description: string | null
         "logo_url": string | null
         "owner_id": string
+        "business_id": string | null
         "created_at": string
     }
 
@@ -684,10 +773,20 @@ export namespace board_game_clubs {
         description?: string
         logoUrl?: string
         ownerId: string
+        businessId?: string
     }
 
     export interface CreateClubResponse {
         club: Club | null
+    }
+
+    export interface CsvImportRequest {
+        csvContent: string
+    }
+
+    export interface CsvImportResponse {
+        importedCount: number
+        failedCount: number
     }
 
     export interface DeleteClubGameResponse {
@@ -706,6 +805,11 @@ export namespace board_game_clubs {
         clubs: Club[]
     }
 
+    export interface SyncBggResponse {
+        syncedCount: number
+        failedCount: number
+    }
+
     export interface UpdateClubGameRequest {
         title?: string
         imageUrl?: string
@@ -722,6 +826,16 @@ export namespace board_game_clubs {
         game: ClubGame | null
     }
 
+    export interface UpdateClubRequest {
+        name?: string
+        description?: string
+        logoUrl?: string
+    }
+
+    export interface UpdateClubResponse {
+        club: Club | null
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -730,11 +844,15 @@ export namespace board_game_clubs {
             this.addClubGame = this.addClubGame.bind(this)
             this.createClub = this.createClub.bind(this)
             this.deleteClubGame = this.deleteClubGame.bind(this)
+            this.getClubByBusinessId = this.getClubByBusinessId.bind(this)
             this.getClubDetails = this.getClubDetails.bind(this)
             this.getClubGames = this.getClubGames.bind(this)
             this.getUserClubs = this.getUserClubs.bind(this)
             this.importBggGeeklist = this.importBggGeeklist.bind(this)
+            this.importCsvGames = this.importCsvGames.bind(this)
             this.searchBggGames = this.searchBggGames.bind(this)
+            this.syncClubGamesWithBgg = this.syncClubGamesWithBgg.bind(this)
+            this.updateClub = this.updateClub.bind(this)
             this.updateClubGame = this.updateClubGame.bind(this)
         }
 
@@ -766,6 +884,16 @@ export namespace board_game_clubs {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/board-game-clubs/games/${encodeURIComponent(gameId)}`)
             return await resp.json() as DeleteClubGameResponse
+        }
+
+        /**
+         * İşletmeye bağlı kulübü getirir
+         * GET /board-game-clubs/business/:businessId
+         */
+        public async getClubByBusinessId(businessId: string): Promise<GetClubDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/business/${encodeURIComponent(businessId)}`)
+            return await resp.json() as GetClubDetailsResponse
         }
 
         /**
@@ -809,6 +937,17 @@ export namespace board_game_clubs {
         }
 
         /**
+         * CSV formatındaki oyun listesini kulüp kütüphanesine aktarır
+         * Format: *,OYUN,EK PAKETLER,TÜRÜ,OYUNCU,ZORLUK
+         * POST /board-game-clubs/:clubId/import-csv
+         */
+        public async importCsvGames(clubId: string, params: CsvImportRequest): Promise<CsvImportResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/board-game-clubs/${encodeURIComponent(clubId)}/import-csv`, JSON.stringify(params))
+            return await resp.json() as CsvImportResponse
+        }
+
+        /**
          * BoardGameGeek üzerinden oyun arar
          * GET /board-game-clubs/bgg/search
          */
@@ -822,6 +961,26 @@ export namespace board_game_clubs {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/board-game-clubs/bgg/search`, undefined, {query})
             return await resp.json() as BggSearchResponse
+        }
+
+        /**
+         * Kütüphanedeki resimsiz oyunları BGG üzerinden arayıp resim ve eksik bilgileri tamamlar
+         * POST /board-game-clubs/:clubId/sync-bgg
+         */
+        public async syncClubGamesWithBgg(clubId: string): Promise<SyncBggResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/board-game-clubs/${encodeURIComponent(clubId)}/sync-bgg`)
+            return await resp.json() as SyncBggResponse
+        }
+
+        /**
+         * Kulüp bilgilerini günceller
+         * PUT /board-game-clubs/:clubId
+         */
+        public async updateClub(clubId: string, params: UpdateClubRequest): Promise<UpdateClubResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/board-game-clubs/${encodeURIComponent(clubId)}`, JSON.stringify(params))
+            return await resp.json() as UpdateClubResponse
         }
 
         /**
@@ -1091,6 +1250,12 @@ export namespace budget {
  * Centralized Business service - manages base business profiles for merchants.
  */
 export namespace business {
+    export interface AddBusinessUserRequest {
+        businessId: string
+        clerkId: string
+        role: string
+    }
+
     export interface Business {
         id: string
         name: string
@@ -1099,10 +1264,23 @@ export namespace business {
         "theme_color": string
         "font_family": string
         "created_at": string
+        "owner_user_id": string
     }
 
     export interface BusinessResponse {
         business: Business | null
+    }
+
+    export interface BusinessUser {
+        id: string
+        "business_id": string
+        "user_id": string
+        role: string
+        "created_at": string
+        "clerk_id": string
+        username: string | null
+        "full_name": string | null
+        "avatar_url": string | null
     }
 
     export interface CreateBusinessRequest {
@@ -1111,6 +1289,11 @@ export namespace business {
         description: string
         logoUrl: string
         themeColor: string
+    }
+
+    export interface RemoveBusinessUserRequest {
+        businessId: string
+        clerkId: string
     }
 
     export interface UpdateBusinessRequest {
@@ -1127,10 +1310,28 @@ export namespace business {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.addBusinessUser = this.addBusinessUser.bind(this)
             this.createBusiness = this.createBusiness.bind(this)
+            this.deleteBusiness = this.deleteBusiness.bind(this)
             this.getBusiness = this.getBusiness.bind(this)
+            this.getBusinessUsers = this.getBusinessUsers.bind(this)
             this.getOwnedBusinesses = this.getOwnedBusinesses.bind(this)
+            this.removeBusinessUser = this.removeBusinessUser.bind(this)
             this.updateBusiness = this.updateBusiness.bind(this)
+        }
+
+        /**
+         * Add a user to a business
+         * POST /business/users/add
+         */
+        public async addBusinessUser(params: AddBusinessUserRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business/users/add`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**
@@ -1141,6 +1342,22 @@ export namespace business {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/business/create`, JSON.stringify(params))
             return await resp.json() as BusinessResponse
+        }
+
+        /**
+         * Delete a business entirely
+         * POST /business/delete
+         */
+        public async deleteBusiness(params: {
+    businessId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**
@@ -1158,6 +1375,20 @@ export namespace business {
         }
 
         /**
+         * Get all users of a business
+         * GET /business/users/:businessId
+         */
+        public async getBusinessUsers(businessId: string): Promise<{
+    users: BusinessUser[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/business/users/${encodeURIComponent(businessId)}`)
+            return await resp.json() as {
+    users: BusinessUser[]
+}
+        }
+
+        /**
          * Get all businesses owned by a specific user
          * GET /business/owned/:userId
          */
@@ -1168,6 +1399,20 @@ export namespace business {
             const resp = await this.baseClient.callTypedAPI("GET", `/business/owned/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     businesses: Business[]
+}
+        }
+
+        /**
+         * Remove a user from a business
+         * POST /business/users/remove
+         */
+        public async removeBusinessUser(params: RemoveBusinessUserRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business/users/remove`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
 }
         }
 
@@ -1337,11 +1582,13 @@ export namespace campus_events {
         userId: string
         title: string
         description?: string
-        university: string
+        university?: string
         location?: string
         eventDate: string
         imageUrl?: string
         organizerClub?: string
+        businessId?: string
+        category?: string
     }
 
     export interface AddEventResponse {
@@ -1359,7 +1606,7 @@ export namespace campus_events {
         id: string
         title: string
         description?: string | null
-        university: string
+        university?: string | null
         location?: string | null
         "event_date": string
         "image_url"?: string | null
@@ -1369,12 +1616,16 @@ export namespace campus_events {
         "creator_avatar"?: string | null
         "created_at": string
         "user_status"?: string | null
+        businessId?: string | null
+        category?: string | null
         attendees?: Attendee[]
     }
 
     export interface GetEventsRequest {
         userId?: string
-        university: string
+        university?: string
+        businessId?: string
+        category?: string
     }
 
     export interface GetEventsResponse {
@@ -1402,7 +1653,7 @@ export namespace campus_events {
         }
 
         /**
-         * Add a new campus event
+         * Add a new event
          * POST /campus-events/events/add
          */
         public async addEvent(params: AddEventRequest): Promise<AddEventResponse> {
@@ -1418,6 +1669,8 @@ export namespace campus_events {
         public async getEvents(params: GetEventsRequest): Promise<GetEventsResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
+                businessId: params.businessId,
+                category:   params.category,
                 university: params.university,
                 userId:     params.userId,
             })
@@ -6418,6 +6671,7 @@ export namespace workplaces {
         rating?: number
         "user_ratings_total"?: number
         metadata?: any
+        businessId?: string
     }
 
     export interface AddPlaceResponse {
@@ -6481,6 +6735,7 @@ export namespace workplaces {
         rating?: number
         "user_ratings_total"?: number
         metadata?: any
+        businessId?: string
         "created_at": string
         "is_favorite"?: boolean
         "is_visited"?: boolean
@@ -6545,6 +6800,7 @@ export namespace workplaces {
         "user_ratings_total"?: number
         metadata?: any
         "google_place_id"?: string
+        businessId?: string
     }
 
     export interface UpdatePlaceResponse {
@@ -6562,6 +6818,7 @@ export namespace workplaces {
             this.getPlace = this.getPlace.bind(this)
             this.listPendingPlaces = this.listPendingPlaces.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
+            this.listPlacesByBusiness = this.listPlacesByBusiness.bind(this)
             this.searchPlace = this.searchPlace.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
             this.toggleVisited = this.toggleVisited.bind(this)
@@ -6614,6 +6871,12 @@ export namespace workplaces {
 
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/workplaces`, undefined, {query})
+            return await resp.json() as ListPlacesResponse
+        }
+
+        public async listPlacesByBusiness(businessId: string): Promise<ListPlacesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/business/${encodeURIComponent(businessId)}`)
             return await resp.json() as ListPlacesResponse
         }
 
@@ -6987,6 +7250,7 @@ export namespace lib {
         username: string | null
         "full_name": string | null
         "avatar_url": string | null
+        role?: string | null
         "created_at": string
     }
 }

@@ -8,7 +8,8 @@
     "startExploring": "Keşfetmeye Başla",
     "removedToast": "Uygulama ana ekrandan kaldırıldı",
     "dashboardWidgetTitle": "İşletme Paneli",
-    "dashboardWidgetSubtitle": "Menü, stamp & feedback"
+    "dashboardWidgetSubtitle": "Menü, stamp & feedback",
+    "adminWidgetTitle": "Yönetim Paneli"
   },
   "discover": {
     "title": "Uygulama Merkezi",
@@ -18,7 +19,7 @@
     "noResults": "Sonuç bulunamadı",
     "tryDifferent": "Farklı bir anahtar kelime deneyin.",
     "categories": {
-      "Social": "Sosyal & Etkinlik",
+      "Social": "Sosyal",
       "City": "Şehrini Keşfet",
       "Finance": "Finans & Tasarruf",
       "Entertainment": "Eğlence & Hobi",
@@ -311,8 +312,8 @@
       "description": "Günün menüsünü takip et ve bildirim al."
     },
     "campus-events": {
-      "name": "Campus Events",
-      "description": "Üniversite topluluk etkinliklerini keşfet ve katıl."
+      "name": "Events",
+      "description": "Şehirdeki ve kampüsündeki etkinlikleri keşfet, katıl ve paylaş!"
     },
     "campus-concerts": {
       "name": "Campus Concerts",

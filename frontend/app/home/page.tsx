@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
-import { Sparkle, Plus, Check, ArrowsOutCardinal, Storefront, ChefHat, ChatTeardropDots, Diamond } from "@phosphor-icons/react";
+import { Sparkle, Plus, Check, ArrowsOutCardinal, Storefront, ChefHat, ChatTeardropDots, Diamond, ShieldCheck, SquaresFour } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DndContext,
@@ -226,11 +226,18 @@ export default function Home() {
           <section className="mb-12">
             <div className="grid grid-cols-4 gap-y-8 gap-x-4">
               {user && isAdmin && !isAdminLoading && (
-                <DashboardWidget
-                  title={t("dashboardWidgetTitle")}
-                  onOpen={() => router.push("/dashboard")}
-                  dimmed={isEditMode}
-                />
+                <>
+                  <DashboardWidget
+                    title={t("dashboardWidgetTitle")}
+                    onOpen={() => router.push("/dashboard")}
+                    dimmed={isEditMode}
+                  />
+                  <AdminWidget
+                    title={t("adminWidgetTitle")}
+                    onOpen={() => router.push("/admin")}
+                    dimmed={isEditMode}
+                  />
+                </>
               )}
               <SortableContext
                 items={apps.map((a) => a.id)}
@@ -319,6 +326,57 @@ function DashboardWidget({
           {/* Official badge icon outside the overflow-hidden squircle, positioned beautifully */}
           <div className="absolute bottom-0 right-0 bg-[#F97316] text-white w-5 h-5 rounded-full flex items-center justify-center z-20 border-2 border-[#FAF9F7] dark:border-[var(--card-background)] shadow-md translate-x-1 translate-y-1">
             <Diamond size={10} weight="fill" color="white" />
+          </div>
+        </div>
+
+        <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 text-center line-clamp-2 w-full tracking-tight px-1 group-hover:text-indigo-600 transition-colors leading-[1.2] mt-2 flex flex-col items-center gap-0.5">
+          {title}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Admin Panel widget — only for admins.
+ */
+function AdminWidget({
+  title,
+  onOpen,
+  dimmed,
+}: {
+  title: string;
+  onOpen: () => void;
+  dimmed: boolean;
+}) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-2 select-none relative ${
+        dimmed ? "opacity-60" : ""
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        className="relative flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-200"
+      >
+        <div className="relative">
+          <div
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] flex items-center justify-center relative overflow-hidden shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-indigo-300/50"
+            style={{
+              background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+              boxShadow: "0 8px 24px -6px #4F46E540",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
+            <div className="absolute inset-0 border border-white/20 rounded-[1.25rem]" />
+
+            <ShieldCheck size={32} weight="fill" color="white" className="relative z-10" />
+          </div>
+
+          <div className="absolute bottom-0 right-0 bg-[#7C3AED] text-white w-5 h-5 rounded-full flex items-center justify-center z-20 border-2 border-[#FAF9F7] shadow-md translate-x-1 translate-y-1">
+            <SquaresFour size={10} weight="fill" color="white" />
           </div>
         </div>
 

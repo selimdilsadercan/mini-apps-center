@@ -17,6 +17,19 @@ export interface Business {
   theme_color: string;
   font_family: string;
   created_at: string;
+  owner_user_id: string;
+}
+
+export interface BusinessUser {
+  id: string;
+  business_id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+  clerk_id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
 // ==================== REQUEST / RESPONSE ====================
@@ -40,6 +53,17 @@ interface UpdateBusinessRequest {
 
 interface BusinessResponse {
   business: Business | null;
+}
+
+interface AddBusinessUserRequest {
+  businessId: string;
+  clerkId: string;
+  role: string;
+}
+
+interface RemoveBusinessUserRequest {
+  businessId: string;
+  clerkId: string;
 }
 
 // ==================== ENDPOINTS ====================
@@ -129,6 +153,90 @@ export const getBusiness = api(
       throw APIError.internal(`Failed to get business: ${error.message}`);
     }
 
-    return { business: (data as Business) || null };
+    const biz = Array.isArray(data) ? data[0] : data;
+    return { business: (biz as Business) || null };
+  }
+);
+
+/**
+ * Delete a business entirely
+ * POST /business/delete
+ */
+export const deleteBusiness = api(
+  { expose: true, method: "POST", path: "/business/delete" },
+  async ({ businessId }: { businessId: string }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("business").rpc("delete_business", {
+      p_business_id: businessId,
+    });
+
+    if (error) {
+      console.error("deleteBusiness error:", error);
+      throw APIError.internal(`Failed to delete business: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
+/**
+ * Add a user to a business
+ * POST /business/users/add
+ */
+export const addBusinessUser = api(
+  { expose: true, method: "POST", path: "/business/users/add" },
+  async (req: AddBusinessUserRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("business").rpc("add_business_user", {
+      p_business_id: req.businessId,
+      p_user_id: req.clerkId,
+      p_role: req.role,
+    });
+
+    if (error) {
+      console.error("addBusinessUser error:", error);
+      throw APIError.internal(`Failed to add user: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+);
+
+/**
+ * Get all users of a business
+ * GET /business/users/:businessId
+ */
+export const getBusinessUsers = api(
+  { expose: true, method: "GET", path: "/business/users/:businessId" },
+  async ({ businessId }: { businessId: string }): Promise<{ users: BusinessUser[] }> => {
+    const { data, error } = await supabase.schema("business").rpc("get_business_users", {
+      p_business_id: businessId,
+    });
+
+    if (error) {
+      console.error("getBusinessUsers error:", error);
+      throw APIError.internal(`Failed to get users: ${error.message}`);
+    }
+
+    return { users: (data as BusinessUser[]) || [] };
+  }
+);
+
+/**
+ * Remove a user from a business
+ * POST /business/users/remove
+ */
+export const removeBusinessUser = api(
+  { expose: true, method: "POST", path: "/business/users/remove" },
+  async (req: RemoveBusinessUserRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("business").rpc("remove_business_user", {
+      p_business_id: req.businessId,
+      p_user_id: req.clerkId,
+    });
+
+    if (error) {
+      console.error("removeBusinessUser error:", error);
+      throw APIError.internal(`Failed to remove user: ${error.message}`);
+    }
+
+    return { success: true };
   }
 );

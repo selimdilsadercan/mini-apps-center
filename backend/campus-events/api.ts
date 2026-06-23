@@ -21,7 +21,7 @@ export interface CampusEvent {
   id: string;
   title: string;
   description?: string | null;
-  university: string;
+  university?: string | null;
   location?: string | null;
   event_date: string; // ISO String
   image_url?: string | null;
@@ -31,6 +31,8 @@ export interface CampusEvent {
   creator_avatar?: string | null;
   created_at: string;
   user_status?: string | null; // status of requesting user ('going', 'interested', null)
+  businessId?: string | null;
+  category?: string | null;
   attendees?: Attendee[];
 }
 
@@ -38,7 +40,9 @@ export interface CampusEvent {
 
 interface GetEventsRequest {
   userId?: string;
-  university: string;
+  university?: string;
+  businessId?: string;
+  category?: string;
 }
 
 interface GetEventsResponse {
@@ -49,11 +53,13 @@ interface AddEventRequest {
   userId: string;
   title: string;
   description?: string;
-  university: string;
+  university?: string;
   location?: string;
   eventDate: string; // ISO String
   imageUrl?: string;
   organizerClub?: string;
+  businessId?: string;
+  category?: string;
 }
 
 interface AddEventResponse {
@@ -78,15 +84,17 @@ interface SetAttendanceResponse {
  */
 export const getEvents = api(
   { expose: true, method: "GET", path: "/campus-events/events" },
-  async ({ userId, university }: GetEventsRequest): Promise<GetEventsResponse> => {
+  async ({ userId, university, businessId, category }: GetEventsRequest): Promise<GetEventsResponse> => {
     const { data, error } = await supabase.schema("campus_events").rpc("get_events", {
       clerk_id_param: userId || null,
-      university_param: university,
+      university_param: university || null,
+      business_id_param: businessId || null,
+      category_param: category || null,
     });
 
     if (error) {
       console.error("getEvents error:", error);
-      throw APIError.internal(`Failed to load campus events: ${error.message}`);
+      throw APIError.internal(`Failed to load events: ${error.message}`);
     }
 
     return { events: data || [] };
@@ -94,7 +102,7 @@ export const getEvents = api(
 );
 
 /**
- * Add a new campus event
+ * Add a new event
  * POST /campus-events/events/add
  */
 export const addEvent = api(
@@ -107,22 +115,26 @@ export const addEvent = api(
     location, 
     eventDate, 
     imageUrl, 
-    organizerClub 
+    organizerClub,
+    businessId,
+    category
   }: AddEventRequest): Promise<AddEventResponse> => {
     const { data, error } = await supabase.schema("campus_events").rpc("add_event", {
       title_param: title,
       description_param: description || null,
-      university_param: university,
+      university_param: university || null,
       location_param: location || null,
       event_date_param: eventDate,
       image_url_param: imageUrl || null,
       organizer_club_param: organizerClub || null,
       added_by_clerk_id_param: userId,
+      business_id_param: businessId || null,
+      category_param: category || null,
     });
 
     if (error) {
       console.error("addEvent error:", error);
-      throw APIError.internal(`Failed to add campus event: ${error.message}`);
+      throw APIError.internal(`Failed to add event: ${error.message}`);
     }
 
     return { event: (data as CampusEvent) || null };

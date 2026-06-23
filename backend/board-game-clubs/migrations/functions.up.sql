@@ -10,11 +10,13 @@
 -- 1. create_club
 DROP FUNCTION IF EXISTS board_game_clubs.create_club(TEXT, TEXT, TEXT, UUID);
 DROP FUNCTION IF EXISTS board_game_clubs.create_club(TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS board_game_clubs.create_club(TEXT, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION board_game_clubs.create_club(
   name_param TEXT,
   description_param TEXT,
   logo_url_param TEXT,
-  owner_id_param TEXT
+  owner_id_param TEXT,
+  business_id_param TEXT DEFAULT NULL
 )
 RETURNS board_game_clubs.clubs AS $$
 DECLARE
@@ -27,8 +29,8 @@ BEGIN
     RAISE EXCEPTION 'User not found for clerk_id: %', owner_id_param;
   END IF;
   
-  INSERT INTO board_game_clubs.clubs (name, description, logo_url, owner_id)
-  VALUES (name_param, description_param, logo_url_param, v_owner_uuid)
+  INSERT INTO board_game_clubs.clubs (name, description, logo_url, owner_id, business_id)
+  VALUES (name_param, description_param, logo_url_param, v_owner_uuid, business_id_param)
   RETURNING * INTO v_result;
 
   RETURN v_result;

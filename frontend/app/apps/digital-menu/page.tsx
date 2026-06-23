@@ -14,9 +14,11 @@ import {
   MagnifyingGlass,
   Notebook,
   SquaresFour,
-  CaretUp
+  CaretUp,
+  Plus
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
+import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
 import { digital_menu } from "@/lib/client";
 
@@ -122,6 +124,13 @@ export default function DigitalMenuPage() {
   // Filtering
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Create Business State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newLogo, setNewLogo] = useState("");
+  const [newColor, setNewColor] = useState("#EF4444");
+
   // Customer Table State
   const [tableNumber, setTableNumber] = useState("");
   const [draftOrder, setDraftOrder] = useState<Record<string, number>>({}); // item_id -> quantity
@@ -210,6 +219,30 @@ export default function DigitalMenuPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateBusiness = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try {
+      const res = await client.business.createBusiness({
+        userId: user.id,
+        name: newName,
+        description: newDesc,
+        logoUrl: newLogo || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&auto=format&fit=crop&q=80",
+        themeColor: newColor
+      });
+      if (res.business) {
+        toast.success("İşletme profili başarıyla oluşturuldu!");
+        setIsCreateOpen(false);
+        setNewName("");
+        setNewDesc("");
+        setNewLogo("");
+        fetchAllBusinesses();
+      }
+    } catch (err) {
+      toast.error("İşletme oluşturulurken hata oluştu.");
     }
   };
 
@@ -380,6 +413,16 @@ export default function DigitalMenuPage() {
             <SquaresFour size={16} weight="bold" />
             <span>{viewMode === "list" ? "Kategorilere Dön" : selectedBusiness ? "Geri Dön" : "Geri"}</span>
           </button>
+
+          {user && !selectedBusiness && (
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all"
+            >
+              <Plus size={14} weight="bold" />
+              <span>İşletme Oluştur</span>
+            </button>
+          )}
         </div>
 
         {/* RESTAURANT LIST VIEW */}
@@ -501,22 +544,21 @@ export default function DigitalMenuPage() {
                   <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Kategoriler</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {menuCategories.map((cat, idx) => {
-                    const isWide = idx % 3 === 0;
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                  {menuCategories.map((cat) => {
                     const img = getCategoryImageUrl(cat.name);
                     return (
                       <div
                         key={cat.id}
                         onClick={() => scrollToCategory(cat.id)}
-                        className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-stone-200/40 hover:-translate-y-0.5 active:scale-98 transition-all group ${
-                          isWide ? "col-span-2 h-36" : "col-span-1 h-32"
-                        }`}
+                        className="flex flex-col gap-2 cursor-pointer group hover:-translate-y-0.5 transition-all"
                       >
-                        <img src={img} alt={cat.name} className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10 flex items-center justify-center p-3 text-center">
-                          <span className="font-serif font-black text-white text-xs uppercase tracking-widest drop-shadow-md">{cat.name}</span>
+                        <div className="h-28 w-full rounded-2xl overflow-hidden shadow-sm border border-stone-200/40 relative">
+                          <img src={img} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
+                        <span className="font-serif font-black text-stone-800 text-xs uppercase tracking-wider text-center block">
+                          {cat.name}
+                        </span>
                       </div>
                     );
                   })}
@@ -646,6 +688,81 @@ export default function DigitalMenuPage() {
       >
         <CaretUp size={24} weight="bold" />
       </button>
+
+      {/* Create Business Drawer */}
+      <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-md mx-auto border-t border-stone-200 shadow-2xl">
+            <div className="p-6 overflow-y-auto">
+              <div className="mx-auto w-12 h-1 bg-stone-200 rounded-full mb-6" />
+              <Drawer.Title className="text-xl font-black text-stone-900 tracking-tight mb-1">
+                İŞLETME <span className="text-red-500">EKLE</span>
+              </Drawer.Title>
+              <Drawer.Description className="text-stone-400 text-[9px] font-black uppercase tracking-wider mb-6">
+                Yeni dükkanınız için işletme profili oluşturun
+              </Drawer.Description>
+
+              <form onSubmit={handleCreateBusiness} className="space-y-4 pb-12">
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Adı</label>
+                  <input
+                    required
+                    placeholder="Brew Lab Coffee"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Açıklama / Slogan</label>
+                  <input
+                    placeholder="En taze gurme kahveler ve el yapımı kruvasanlar"
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Logo Görsel Linki</label>
+                  <input
+                    placeholder="https://..."
+                    value={newLogo}
+                    onChange={(e) => setNewLogo(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider block mb-1">Tema Rengi</label>
+                  <div className="flex gap-2">
+                    {["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#845EF7", "#EC4899"].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setNewColor(color)}
+                        className={`w-8 h-8 rounded-full border-2 ${
+                          newColor === color ? "border-stone-900 scale-110" : "border-transparent"
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-md transition-all active:scale-98 mt-4"
+                >
+                  İşletmeyi Kaydet
+                </button>
+              </form>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
     </div>
   );

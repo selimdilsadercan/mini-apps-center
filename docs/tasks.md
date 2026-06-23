@@ -2,8 +2,6 @@
 
 - [ ] **Giriş Ekranı (Login):** Giriş yapma ekranı güncellemesi.
 - [ ] **Auth Modalleri (Clerk):** Uygulamalar içerisindeki giriş modallarının güncellenmesi.
-- [ ] **Notification Altyapısı:** Uygulama içi bildirim merkezi, aktivite akışı ve push notification entegrasyonu. 🔵 Aktif
-- [ ] **Admin Paneli:** Uygulama listeleme ve temel yetki kontrolü var. Yeni uygulama ekleme formu gerekiyor. Kullanıcıalr sayfası ve businesslar sayfaları eklencek
 
 ## 🌐 Landing Page
 
