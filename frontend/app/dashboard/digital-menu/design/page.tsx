@@ -31,8 +31,10 @@ export default function DesignPage() {
         name: business.name,
         description: business.description || "",
         logoUrl: business.logo_url || "",
+        headerUrl: business.header_url || "",
         themeColor: themeColor,
-        fontFamily: fontFamily
+        fontFamily: fontFamily,
+        contactInfo: business.contact_info || {}
       });
       if (res.business) {
         toast.success("Tasarım ayarları güncellendi!");

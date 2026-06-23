@@ -43,7 +43,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   budget: "/apps/budget",
   stampcard: "/apps/stamp-card",
   esles: "/apps/esles",
-  campusevents: "/apps/campus-events",
+  events: "/apps/campus-events",
   basvuru: "/apps/apply-tracker",
   seriestrack: "/apps/series-track",
   weather: "/apps/daily-weather",
