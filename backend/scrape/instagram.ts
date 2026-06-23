@@ -2,6 +2,8 @@ import { api } from "encore.dev/api";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
+declare const document: any;
+
 // Stealth plugin ekle - Instagram'ın bot detection'ını bypass etmek için
 puppeteer.use(StealthPlugin());
 
@@ -47,6 +49,11 @@ export const scrapeInstagramReel = api(
 
       const page = await browser.newPage();
 
+      // Konsol loglarını terminale yönlendir
+      page.on("console", (msg) => {
+        console.log(`[BROWSER] ${msg.text()}`);
+      });
+
       // Viewport ayarla
       await page.setViewport({ width: 1920, height: 1080 });
 
@@ -72,17 +79,33 @@ export const scrapeInstagramReel = api(
 
       // Sayfadan veriyi çıkar
       const data = await page.evaluate(() => {
-        // DOM'dan meta tag'leri kontrol et (username için)
+        console.log("Evaluating page...");
+        // DOM'dan meta tag'leri kontrol et (username ve image için)
         const metaTitle = document
           .querySelector('meta[property="og:title"]')
           ?.getAttribute("content");
+        
+        const metaImage = document
+          .querySelector('meta[property="og:image"]')
+          ?.getAttribute("content");
+
+        console.log("Meta Title:", metaTitle);
+        console.log("Meta Image:", metaImage);
 
         // Caption: span[style*="line-height: 18px"] elementinin index 3'ü
         // Test sonucu: index 0 = hesap adı, index 3 = caption
         let fullCaption = "";
         
         const captionSpans = document.querySelectorAll('span[style*="line-height: 18px"]');
+        console.log("Found caption spans:", captionSpans.length);
         
+        // Diğer olası selector'lar
+        const h1Caption = document.querySelector('h1');
+        if (h1Caption) console.log("Found H1 caption:", h1Caption.textContent?.substring(0, 50));
+
+        const altCaption = document.querySelector('article span._ap3a'); // Yeni Instagram class'ı
+        if (altCaption) console.log("Found alt span caption:", altCaption.textContent?.substring(0, 50));
+
         // Index 3'ü al (caption burada)
         if (captionSpans.length > 3) {
           const captionSpan = captionSpans[3] as any;
@@ -96,6 +119,10 @@ export const scrapeInstagramReel = api(
           const textarea = document.createElement('textarea');
           textarea.innerHTML = html;
           fullCaption = textarea.value.trim();
+        } else if (h1Caption) {
+          fullCaption = h1Caption.textContent?.trim() || "";
+        } else if (altCaption) {
+          fullCaption = altCaption.textContent?.trim() || "";
         } else if (captionSpans.length > 0) {
           // Fallback: eğer 4'ten az span varsa en uzununu al
           let maxLength = 0;
@@ -123,6 +150,7 @@ export const scrapeInstagramReel = api(
 
         return {
           metaTitle,
+          metaImage,
           fullCaption,
           pageTitle: document.title,
         };
@@ -132,9 +160,27 @@ export const scrapeInstagramReel = api(
       let username = "";
       let thumbnail = "";
 
+      // Thumbnail'i meta tag'den al
+      if (data.metaImage) {
+        thumbnail = data.metaImage;
+      }
+
       // Caption'u fullCaption'dan al
       if (data.fullCaption) {
         caption = data.fullCaption;
+      } else if (data.metaTitle) {
+        // Fallback: metaTitle'dan caption'ı çıkar
+        // Format: "Username on Instagram: \"Caption\""
+        const captionMatch = data.metaTitle.match(/^.+?\s+on Instagram:\s*"([\s\S]+)"$/);
+        if (captionMatch) {
+          caption = captionMatch[1];
+        } else {
+          // Eğer tırnak içinde değilse ama "on Instagram:" varsa sonrasını al
+          const parts = data.metaTitle.split("on Instagram:");
+          if (parts.length > 1) {
+            caption = parts[1].trim().replace(/^"|"$/g, "");
+          }
+        }
       }
 
       // Username'i title'dan çıkar

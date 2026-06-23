@@ -1735,6 +1735,20 @@ export namespace campus_events {
         status: string
     }
 
+    export interface BulkAddEventsRequest {
+        userId: string
+        businessId: string
+        events: {
+            title: string
+            description?: string
+            location?: string
+            eventDate: string
+            imageUrl?: string
+            organizerClub?: string
+            category?: string
+        }[]
+    }
+
     export interface CampusEvent {
         id: string
         title: string
@@ -1775,14 +1789,29 @@ export namespace campus_events {
         success: boolean
     }
 
+    export interface UpdateEventRequest {
+        eventId: string
+        title: string
+        description?: string
+        university?: string
+        location?: string
+        eventDate: string
+        imageUrl?: string
+        organizerClub?: string
+        category?: string
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addEvent = this.addEvent.bind(this)
+            this.bulkAddEvents = this.bulkAddEvents.bind(this)
+            this.getEvent = this.getEvent.bind(this)
             this.getEvents = this.getEvents.bind(this)
             this.setAttendance = this.setAttendance.bind(this)
+            this.updateEvent = this.updateEvent.bind(this)
         }
 
         /**
@@ -1793,6 +1822,41 @@ export namespace campus_events {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/events/add`, JSON.stringify(params))
             return await resp.json() as AddEventResponse
+        }
+
+        /**
+         * Bulk add events
+         * POST /campus-events/events/bulk-add
+         */
+        public async bulkAddEvents(params: BulkAddEventsRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/events/bulk-add`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Get a single event by ID
+         * GET /campus-events/events/:id
+         */
+        public async getEvent(id: string, params: {
+    userId?: string
+}): Promise<{
+    event: CampusEvent | null
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-events/events/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    event: CampusEvent | null
+}
         }
 
         /**
@@ -1821,6 +1885,20 @@ export namespace campus_events {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/attendance/set`, JSON.stringify(params))
             return await resp.json() as SetAttendanceResponse
+        }
+
+        /**
+         * Update an existing event
+         * POST /campus-events/events/update
+         */
+        public async updateEvent(params: UpdateEventRequest): Promise<{
+    event: CampusEvent | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/events/update`, JSON.stringify(params))
+            return await resp.json() as {
+    event: CampusEvent | null
+}
         }
     }
 }

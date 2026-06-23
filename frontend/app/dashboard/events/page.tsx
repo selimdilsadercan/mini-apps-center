@@ -9,10 +9,12 @@ import {
   MapPin, 
   Clock, 
   Pencil, 
-  Trash,
   Megaphone,
   Globe,
-  Users
+  Users,
+  User,
+  InstagramLogo,
+  ArrowRight
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEvents } from "./context";
@@ -29,6 +31,10 @@ export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<campus_events.CampusEvent | null>(null);
+  const [modalMode, setModalMode] = useState<"manual" | "json">("manual");
+  const [jsonInput, setJsonInput] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [fetchingInstagram, setFetchingInstagram] = useState(false);
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -50,6 +56,9 @@ export default function EventsPage() {
   const handleCloseModal = () => {
     setShowAddModal(false);
     setEditingEvent(null);
+    setModalMode("manual");
+    setJsonInput("");
+    setInstagramUrl("");
     setNewEvent({
       title: "",
       description: "",
@@ -59,6 +68,35 @@ export default function EventsPage() {
       imageUrl: "",
       category: "social"
     });
+  };
+
+  const handleFetchInstagram = async () => {
+    if (!instagramUrl) {
+      toast.error("Lütfen bir Instagram linki girin.");
+      return;
+    }
+
+    try {
+      setFetchingInstagram(true);
+      const res = await client.scrape.scrapeInstagramReel({ url: instagramUrl });
+      
+      if (res.success) {
+        setNewEvent(prev => ({
+          ...prev,
+          description: res.caption || prev.description,
+          imageUrl: res.thumbnail || prev.imageUrl,
+          organizerClub: res.username || prev.organizerClub
+        }));
+        toast.success("Bilgiler Instagram'dan çekildi!");
+      } else {
+        toast.error(res.error || "Bilgiler çekilemedi.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Bir hata oluştu.");
+    } finally {
+      setFetchingInstagram(false);
+    }
   };
 
   const handleEditClick = (event: campus_events.CampusEvent) => {
@@ -78,26 +116,61 @@ export default function EventsPage() {
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const isoDate = new Date(newEvent.eventDate).toISOString();
-      
-      if (editingEvent) {
-        // We don't have an updateEvent endpoint yet, let's assume it works like addEvent for now
-        // or just implement addEvent and we'll add update later.
-        // For now, I'll just use addEvent and tell the user.
-        toast.error("Güncelleme henüz desteklenmiyor, yeni etkinlik ekleyebilirsiniz.");
-      } else {
-        await client.campus_events.addEvent({
+      if (modalMode === "json") {
+        let eventsToUpload;
+        try {
+          eventsToUpload = JSON.parse(jsonInput);
+          if (!Array.isArray(eventsToUpload)) {
+            eventsToUpload = [eventsToUpload];
+          }
+        } catch (err) {
+          toast.error("Geçersiz JSON formatı");
+          return;
+        }
+
+        await client.campus_events.bulkAddEvents({
           userId: user?.id || "",
-          title: newEvent.title,
-          description: newEvent.description,
-          location: newEvent.location,
-          eventDate: isoDate,
-          organizerClub: newEvent.organizerClub,
-          imageUrl: newEvent.imageUrl,
-          businessId: businessId,
-          category: newEvent.category
+          businessId: businessId || "",
+          events: eventsToUpload.map((ev: any) => ({
+            title: ev.title,
+            description: ev.description,
+            location: ev.location,
+            eventDate: ev.eventDate || ev.date || new Date().toISOString(),
+            organizerClub: ev.organizerClub || ev.organizer,
+            imageUrl: ev.imageUrl || ev.image,
+            category: ev.category || "social"
+          }))
         });
-        toast.success("Etkinlik oluşturuldu!");
+        toast.success("Etkinlikler başarıyla eklendi!");
+      } else {
+        const isoDate = new Date(newEvent.eventDate).toISOString();
+        
+        if (editingEvent) {
+          await client.campus_events.updateEvent({
+            eventId: editingEvent.id,
+            title: newEvent.title,
+            description: newEvent.description,
+            location: newEvent.location,
+            eventDate: isoDate,
+            organizerClub: newEvent.organizerClub,
+            imageUrl: newEvent.imageUrl,
+            category: newEvent.category
+          });
+          toast.success("Etkinlik güncellendi!");
+        } else {
+          await client.campus_events.addEvent({
+            userId: user?.id || "",
+            title: newEvent.title,
+            description: newEvent.description,
+            location: newEvent.location,
+            eventDate: isoDate,
+            organizerClub: newEvent.organizerClub,
+            imageUrl: newEvent.imageUrl,
+            businessId: businessId,
+            category: newEvent.category
+          });
+          toast.success("Etkinlik oluşturuldu!");
+        }
       }
       handleCloseModal();
       refreshEvents();
@@ -147,31 +220,34 @@ export default function EventsPage() {
 
       {/* Events Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-64 bg-stone-100 rounded-3xl animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="aspect-square bg-stone-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredEvents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
           {filteredEvents.map((event) => (
             <div 
               key={event.id}
-              className="bg-white rounded-3xl border border-stone-200 overflow-hidden hover:shadow-xl transition-all group flex flex-col"
+              className="group flex flex-col relative"
             >
-              <div className="relative h-40 bg-stone-100 overflow-hidden">
+              {/* Image Section */}
+              <div className="relative w-full aspect-square overflow-hidden rounded-xl md:rounded-2xl mb-3 md:mb-5">
                 {event.image_url ? (
                   <img
                     src={event.image_url}
                     alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-contain bg-stone-50"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-stone-300">
+                  <div className="w-full h-full bg-stone-50 flex items-center justify-center text-stone-200">
                     <Calendar size={48} weight="thin" />
                   </div>
                 )}
-                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                
+                {/* Edit Button Overlay */}
+                <div className="absolute top-2 right-2 md:top-3 md:right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <button
                     onClick={() => handleEditClick(event)}
                     className="p-2 bg-white/90 backdrop-blur-md rounded-xl text-stone-600 hover:text-[#00aeef] shadow-sm transition-colors cursor-pointer"
@@ -179,40 +255,35 @@ export default function EventsPage() {
                     <Pencil size={18} weight="bold" />
                   </button>
                 </div>
-                <div className="absolute bottom-3 left-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-[10px] font-black rounded-full uppercase tracking-wider">
+
+                {/* Category Badge */}
+                <div className="absolute bottom-2 left-2 md:bottom-3 md:left-3 px-2 py-0.5 md:px-3 md:py-1 bg-black/50 backdrop-blur-md text-white text-[8px] md:text-[10px] font-black rounded-full uppercase tracking-wider">
                   {event.category || "Genel"}
                 </div>
               </div>
 
-              <div className="p-5 flex-1 flex flex-col">
-                <h3 className="text-lg font-black text-stone-900 line-clamp-1">{event.title}</h3>
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center gap-2 text-xs text-stone-500 font-bold">
-                    <Calendar size={16} className="text-[#00aeef]" />
-                    {formatDate(event.event_date)}
-                  </div>
+              {/* Content Section */}
+              <div className="flex flex-col flex-1 px-1">
+                <h3 className="text-sm md:text-lg font-[900] text-stone-800 leading-tight mb-1 md:mb-1.5 line-clamp-2">
+                  {event.title}
+                </h3>
+
+                {/* Event Details List */}
+                <div className="space-y-1 md:space-y-1.5 mt-2">
                   {event.location && (
-                    <div className="flex items-center gap-2 text-xs text-stone-500 font-bold">
-                      <MapPin size={16} className="text-[#00aeef]" />
-                      {event.location}
+                    <div className="flex items-center gap-2 text-stone-500">
+                      <MapPin size={12} weight="bold" className="text-stone-300 shrink-0" />
+                      <span className="text-[10px] md:text-xs font-bold truncate">
+                        {event.location}
+                      </span>
                     </div>
                   )}
-                </div>
-
-                <div className="mt-auto pt-4 flex items-center justify-between border-t border-stone-50">
-                  <div className="flex items-center gap-1.5">
-                    <Users size={16} className="text-stone-400" />
-                    <span className="text-[10px] font-black text-stone-500 uppercase tracking-widest">
-                      {event.attendees?.length || 0} Katılımcı
+                  <div className="flex items-center gap-2 text-stone-500">
+                    <Calendar size={12} weight="bold" className="text-stone-300 shrink-0" />
+                    <span className="text-[10px] md:text-xs font-bold">
+                      {formatDate(event.event_date)}
                     </span>
                   </div>
-                  <a 
-                    href={`/apps/campus-events`}
-                    target="_blank"
-                    className="text-[10px] font-black text-[#00aeef] uppercase tracking-widest hover:underline"
-                  >
-                    Görüntüle
-                  </a>
                 </div>
               </div>
             </div>
@@ -254,11 +325,26 @@ export default function EventsPage() {
               <div className="px-8 py-8 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
                 <div>
                   <h2 className="text-xl font-black text-stone-900 tracking-tight">
-                    {editingEvent ? "Etkinliği Düzenle" : "Yeni Etkinlik Oluştur"}
+                    {editingEvent ? "Etkinliği Düzenle" : (modalMode === "json" ? "JSON ile Toplu Ekle" : "Yeni Etkinlik Oluştur")}
                   </h2>
-                  <p className="text-stone-500 text-xs font-bold mt-1 uppercase tracking-wider">
-                    Etkinlik detaylarını doldurun
-                  </p>
+                  <div className="flex gap-4 mt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setModalMode("manual")}
+                      className={`text-[10px] font-black uppercase tracking-widest pb-1 border-b-2 transition-all ${modalMode === "manual" ? "text-[#00aeef] border-[#00aeef]" : "text-stone-400 border-transparent"}`}
+                    >
+                      Manuel Giriş
+                    </button>
+                    {!editingEvent && (
+                      <button 
+                        type="button"
+                        onClick={() => setModalMode("json")}
+                        className={`text-[10px] font-black uppercase tracking-widest pb-1 border-b-2 transition-all ${modalMode === "json" ? "text-[#00aeef] border-[#00aeef]" : "text-stone-400 border-transparent"}`}
+                      >
+                        JSON ile Yükle
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button onClick={handleCloseModal} className="p-2 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer">
                   <X size={24} weight="bold" className="text-stone-400" />
@@ -266,77 +352,142 @@ export default function EventsPage() {
               </div>
 
               <form onSubmit={handleSaveEvent} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Etkinlik Başlığı</label>
-                    <input
-                      required
-                      type="text"
-                      value={newEvent.title}
-                      onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
-                      placeholder="Örn: Hafta Sonu Turnuvası"
-                    />
+                {modalMode === "json" ? (
+                  <div className="space-y-4">
+                    <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                      <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Örnek Format</p>
+                      <pre className="text-[10px] text-stone-500 font-mono overflow-x-auto">
+{`[
+  {
+    "title": "Etkinlik Adı",
+    "description": "Açıklama",
+    "date": "2026-06-24T13:00:00Z",
+    "location": "Mekan",
+    "image": "https://..."
+  }
+]`}
+                      </pre>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">JSON Verisi</label>
+                      <textarea
+                        required
+                        value={jsonInput}
+                        onChange={(e) => setJsonInput(e.target.value)}
+                        className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all h-64 resize-none text-xs font-mono"
+                        placeholder="[{ ... }]"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Kategori</label>
-                    <select
-                      value={newEvent.category}
-                      onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
-                    >
-                      <option value="social">Sosyal</option>
-                      <option value="tournament">Turnuva</option>
-                      <option value="workshop">Workshop</option>
-                      <option value="meetup">Buluşma</option>
-                      <option value="other">Diğer</option>
-                    </select>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Instagram Import */}
+                    {!editingEvent && (
+                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-[2rem] border border-purple-100/50 mb-2">
+                        <label className="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-3 block flex items-center gap-1.5">
+                          <InstagramLogo size={16} weight="bold" />
+                          Instagram'dan Bilgileri Çek
+                        </label>
+                        <div className="flex gap-3">
+                          <input
+                            type="url"
+                            value={instagramUrl}
+                            onChange={(e) => setInstagramUrl(e.target.value)}
+                            placeholder="Post veya Reel linki yapıştır..."
+                            className="flex-1 bg-white border border-purple-200 rounded-2xl px-4 py-3 text-sm focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-slate-800 font-bold"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleFetchInstagram}
+                            disabled={fetchingInstagram}
+                            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-5 rounded-2xl transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center min-w-[56px] active:scale-95"
+                          >
+                            {fetchingInstagram ? (
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                              <ArrowRight size={20} weight="bold" />
+                            )}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-purple-400 mt-3 font-bold">
+                          * Açıklama, görsel ve hesap adını otomatik doldurur.
+                        </p>
+                      </div>
+                    )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Tarih & Saat</label>
-                    <input
-                      required
-                      type="datetime-local"
-                      value={newEvent.eventDate}
-                      onChange={(e) => setNewEvent({ ...newEvent, eventDate: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Konum</label>
-                    <input
-                      type="text"
-                      value={newEvent.location}
-                      onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                      className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
-                      placeholder="Örn: Ana Salon"
-                    />
-                  </div>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Etkinlik Başlığı</label>
+                        <input
+                          required
+                          type="text"
+                          value={newEvent.title}
+                          onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                          className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
+                          placeholder="Örn: Hafta Sonu Turnuvası"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Kategori</label>
+                        <select
+                          value={newEvent.category}
+                          onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
+                          className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
+                        >
+                          <option value="social">Sosyal</option>
+                          <option value="tournament">Turnuva</option>
+                          <option value="workshop">Workshop</option>
+                          <option value="meetup">Buluşma</option>
+                          <option value="other">Diğer</option>
+                        </select>
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Açıklama</label>
-                  <textarea
-                    value={newEvent.description}
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all h-24 resize-none text-sm font-bold"
-                    placeholder="Etkinlik hakkında bilgi..."
-                  />
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Tarih & Saat</label>
+                        <input
+                          required
+                          type="datetime-local"
+                          value={newEvent.eventDate}
+                          onChange={(e) => setNewEvent({ ...newEvent, eventDate: e.target.value })}
+                          className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Konum</label>
+                        <input
+                          type="text"
+                          value={newEvent.location}
+                          onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                          className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
+                          placeholder="Örn: Ana Salon"
+                        />
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Görsel URL (Opsiyonel)</label>
-                  <input
-                    type="url"
-                    value={newEvent.imageUrl}
-                    onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })}
-                    className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
-                    placeholder="https://..."
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Açıklama</label>
+                      <textarea
+                        value={newEvent.description}
+                        onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                        className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all h-24 resize-none text-sm font-bold"
+                        placeholder="Etkinlik hakkında bilgi..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Görsel URL (Opsiyonel)</label>
+                      <input
+                        type="url"
+                        value={newEvent.imageUrl}
+                        onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })}
+                        className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="flex gap-4 pt-8 border-t border-stone-100">
                   <button

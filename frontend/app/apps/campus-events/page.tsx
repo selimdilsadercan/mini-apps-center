@@ -3,13 +3,18 @@
 import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
+import Link from "next/link";
 import {
   Megaphone,
   Plus,
   Calendar,
   MapPin,
   CaretLeft,
-  MagnifyingGlass
+  MagnifyingGlass,
+  InstagramLogo,
+  ArrowRight,
+  Star,
+  ChatCircleText
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
@@ -70,7 +75,7 @@ export default function CampusEventsPage() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
+    <div className="flex min-h-screen flex-col bg-white text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
       <Toaster 
         position="top-center" 
         toastOptions={{
@@ -85,7 +90,7 @@ export default function CampusEventsPage() {
 
       {/* Brand Header */}
       <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
@@ -122,9 +127,9 @@ export default function CampusEventsPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-10 pb-32 max-w-4xl mx-auto w-full">
+      <main className="flex-1 px-4 py-10 pb-32 max-w-6xl mx-auto w-full">
         {/* Search Bar */}
-        <div className="relative mb-8 shadow-sm rounded-2xl">
+        <div className="relative mb-12 shadow-sm rounded-2xl max-w-2xl mx-auto">
           <MagnifyingGlass size={18} className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -148,66 +153,60 @@ export default function CampusEventsPage() {
                 <p className="text-xs text-slate-400 mt-1">İlk etkinliği siz paylaşarak topluluğa katkıda bulunabilirsiniz!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
                 {filteredEvents.map((event) => (
-                  <motion.div
+                  <motion.div 
                     layout
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={event.id}
-                    className="group bg-white border border-slate-200/60 hover:border-slate-300/80 rounded-[2rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+                    className="group flex flex-col relative"
                   >
-                    <div>
-                      {/* Image header if available */}
-                      {event.image_url ? (
-                        <div className="w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative">
-                          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
-                          <div className="absolute top-3 left-3 bg-white/95 shadow-sm backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black tracking-wider text-[#00aeef] uppercase border border-slate-100">
-                            {event.organizer_club ? event.organizer_club : "Topluluk"}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-full h-1.5 bg-[#00aeef]/60 rounded-full mb-4" />
-                      )}
-
-                      <h3 className="text-lg font-[800] text-slate-800 leading-snug mb-3 group-hover:text-[#00aeef] transition-colors">
-                        {event.title}
-                      </h3>
-
-                      <div className="grid grid-cols-1 gap-2 mb-4 text-xs font-semibold text-slate-500">
-                        <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <Calendar size={15} className="text-[#00aeef] shrink-0" />
-                          <span>{formatDate(event.event_date)}</span>
-                        </div>
-                        {event.location && (
-                          <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            <MapPin size={15} className="text-[#00aeef] shrink-0" />
-                            <span className="truncate">{event.location}</span>
+                    {/* Image Section */}
+                    <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
+                      <div className="relative w-full aspect-square overflow-hidden rounded-xl md:rounded-2xl mb-3 md:mb-5">
+                        {event.image_url ? (
+                          <img 
+                            src={event.image_url} 
+                            alt={event.title} 
+                            className="w-full h-full object-contain bg-slate-50" 
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                            <Megaphone size={32} className="text-slate-200 md:hidden" />
+                            <Megaphone size={48} className="text-slate-200 hidden md:block" />
                           </div>
                         )}
                       </div>
+                    </Link>
 
-                      {event.description && (
-                        <p className="text-xs text-slate-500 leading-relaxed font-medium mb-4 line-clamp-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                          {event.description}
-                        </p>
-                      )}
-                    </div>
+                    {/* Content Section */}
+                    <div className="flex flex-col flex-1 px-1">
+                      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block group/title">
+                        <h3 className="text-sm md:text-lg font-[900] text-slate-800 leading-tight mb-1 md:mb-1.5 group-hover/title:text-[#00aeef] transition-colors line-clamp-2">
+                          {event.title}
+                        </h3>
+                      </Link>
 
-                    <div className="flex items-center justify-between mt-4 pt-3.5 border-t border-slate-100">
-                      {event.creator_username ? (
-                        <span className="text-[10px] text-slate-500 font-extrabold bg-slate-100 px-2.5 py-1 rounded-full">
-                          @{event.creator_username}
-                        </span>
-                      ) : <span />}
-
-                      {/* Attendance Selector Button */}
-                      <AttendanceButton 
-                        event={event} 
-                        isUserLoaded={isUserLoaded}
-                        user={user}
-                        onRefresh={fetchEvents}
-                      />
+                      {/* Event Details List */}
+                      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
+                        <div className="space-y-1 md:space-y-1.5 mt-2">
+                          {event.location && (
+                            <div className="flex items-center gap-2 text-slate-500">
+                              <MapPin size={12} weight="bold" className="text-slate-300 shrink-0" />
+                              <span className="text-[10px] md:text-xs font-bold truncate">
+                                {event.location}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-slate-500">
+                            <Calendar size={12} weight="bold" className="text-slate-300 shrink-0" />
+                            <span className="text-[10px] md:text-xs font-bold">
+                              {formatDate(event.event_date)}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
                     </div>
                   </motion.div>
                 ))}
@@ -282,14 +281,14 @@ function AttendanceButton({
   const isInterested = event.user_status === "interested";
 
   return (
-    <div className="flex gap-1.5">
+    <div className="flex gap-2">
       <button
         onClick={() => handleToggleAttendance("interested")}
         disabled={submitting}
-        className={`px-3.5 py-2 rounded-full text-[10px] font-black border transition-all ${
+        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
           isInterested 
-            ? "bg-[#00aeef]/10 border-[#00aeef]/20 text-[#00aeef]"
-            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+            ? "bg-[#00aeef]/10 text-[#00aeef]"
+            : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
         }`}
       >
         İlgileniyorum
@@ -297,10 +296,10 @@ function AttendanceButton({
       <button
         onClick={() => handleToggleAttendance("going")}
         disabled={submitting}
-        className={`px-3.5 py-2 rounded-full text-[10px] font-black border transition-all ${
+        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
           isGoing 
-            ? "bg-[#00aeef] border-[#00aeef] text-white shadow-sm"
-            : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+            ? "bg-[#00aeef] text-white shadow-md shadow-[#00aeef]/20"
+            : "bg-slate-800 text-white hover:bg-slate-900"
         }`}
       >
         Katılıyorum
@@ -324,7 +323,38 @@ function SuggestEventForm({
     organizerClub: "",
     imageUrl: ""
   });
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [fetchingInstagram, setFetchingInstagram] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleFetchInstagram = async () => {
+    if (!instagramUrl) {
+      toast.error("Lütfen bir Instagram linki girin.");
+      return;
+    }
+
+    try {
+      setFetchingInstagram(true);
+      const res = await client.scrape.scrapeInstagramReel({ url: instagramUrl });
+      
+      if (res.success) {
+        setFormData(prev => ({
+          ...prev,
+          description: res.caption || prev.description,
+          imageUrl: res.thumbnail || prev.imageUrl,
+          organizerClub: res.username || prev.organizerClub
+        }));
+        toast.success("Bilgiler Instagram'dan çekildi!");
+      } else {
+        toast.error(res.error || "Bilgiler çekilemedi.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Bir hata oluştu.");
+    } finally {
+      setFetchingInstagram(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -358,6 +388,38 @@ function SuggestEventForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-8 font-semibold text-slate-700">
+      {/* Instagram Import */}
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-2xl border border-purple-100 mb-2">
+        <label className="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-2 block flex items-center gap-1.5">
+          <InstagramLogo size={14} weight="bold" />
+          Instagram'dan Bilgileri Çek
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={instagramUrl}
+            onChange={(e) => setInstagramUrl(e.target.value)}
+            placeholder="Post veya Reel linki yapıştır..."
+            className="flex-1 bg-white border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-slate-800 font-semibold"
+          />
+          <button
+            type="button"
+            onClick={handleFetchInstagram}
+            disabled={fetchingInstagram}
+            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center min-w-[44px]"
+          >
+            {fetchingInstagram ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <ArrowRight size={18} weight="bold" />
+            )}
+          </button>
+        </div>
+        <p className="text-[9px] text-purple-400 mt-2 font-bold">
+          * Açıklama, görsel ve hesap adını otomatik doldurur.
+        </p>
+      </div>
+
       {/* Title */}
       <div>
         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
@@ -434,7 +496,7 @@ function SuggestEventForm({
       <button
         type="submit"
         disabled={submitting}
-        className="w-full h-12 bg-[#00aeef] hover:bg-[#009bcf] text-white font-bold rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-sm"
+        className="w-full h-14 bg-[#00aeef] hover:bg-[#009bcf] text-white font-[900] rounded-[1.5rem] flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-lg shadow-[#00aeef]/20 active:scale-[0.98]"
       >
         {submitting ? "Ekleniyor..." : "Etkinlik Paylaş"}
       </button>
