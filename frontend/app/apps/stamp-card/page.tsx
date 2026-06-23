@@ -161,6 +161,7 @@ export default function StampCardPage() {
       updated_at: new Date().toISOString(),
       business_name: biz.name,
       business_logo: biz.logo_url,
+      business_header: biz.header_url,
       business_reward: biz.reward_title,
       stamp_limit: biz.stamp_limit
     };
@@ -497,9 +498,9 @@ export default function StampCardPage() {
                         className="bg-stone-50 p-4 rounded-2xl border border-stone-150 flex items-center justify-between shadow-sm"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-amber-600 font-black text-xs overflow-hidden">
-                            {biz.logo_url ? (
-                              <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                          <div className="w-16 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-amber-600 font-black text-xs overflow-hidden">
+                            {biz.header_url || biz.logo_url ? (
+                              <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
                             ) : (
                               biz.name.substring(0, 2).toUpperCase()
                             )}
@@ -556,9 +557,9 @@ export default function StampCardPage() {
 
                         <div className="flex items-start justify-between relative z-10 mb-2">
                           <div className="flex items-center gap-3.5">
-                            <div className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white font-black text-sm overflow-hidden shadow-inner">
-                              {selectedCard.business_logo ? (
-                                <img src={selectedCard.business_logo} alt={selectedCard.business_name} className="w-full h-full object-cover" />
+                            <div className="w-16 h-10 rounded-xl bg-black/20 backdrop-blur-md border border-white/10 flex items-center justify-center text-white font-black text-sm overflow-hidden shadow-inner">
+                              {selectedCard.business_header || selectedCard.business_logo ? (
+                                <img src={(selectedCard.business_header || selectedCard.business_logo) as string} alt={selectedCard.business_name} className="w-full h-full object-cover" />
                               ) : (
                                 selectedCard.business_name.substring(0, 2).toUpperCase()
                               )}

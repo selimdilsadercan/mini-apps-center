@@ -14,10 +14,12 @@ export interface Business {
   name: string;
   description: string | null;
   logo_url: string | null;
+  header_url: string | null;
   stamp_limit: number;
   reward_title: string;
   font_family: string;
   created_at: string;
+  contact_info: any;
 }
 
 export interface UserCard {
@@ -28,6 +30,7 @@ export interface UserCard {
   updated_at: string;
   business_name: string;
   business_logo: string | null;
+  business_header: string | null;
   business_reward: string;
   stamp_limit: number;
 }
@@ -40,6 +43,7 @@ export interface RedeemedReward {
   redeemed_at: string;
   business_name: string;
   business_logo: string | null;
+  business_header: string | null;
 }
 
 export interface UserOwnedBusiness {
@@ -47,6 +51,7 @@ export interface UserOwnedBusiness {
   name: string;
   description: string | null;
   logo_url: string | null;
+  header_url: string | null;
   stamp_limit: number;
   reward_title: string;
   pin_code: string;

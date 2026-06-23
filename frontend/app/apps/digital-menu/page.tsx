@@ -15,12 +15,18 @@ import {
   Notebook,
   SquaresFour,
   CaretUp,
-  Plus
+  Plus,
+  Image as ImageIcon,
+  UploadSimple,
+  Trash,
+  X
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
 import { digital_menu } from "@/lib/client";
+import { uploadImage } from "@/lib/image";
+import { useRef } from "react";
 
 const client = createBrowserClient();
 
@@ -110,6 +116,8 @@ export default function DigitalMenuPage() {
   // Business lists
   const [allBusinesses, setAllBusinesses] = useState<digital_menu.Business[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<digital_menu.Business | null>(null);
+  const [selectedItem, setSelectedItem] = useState<GroupedMenuItem | null>(null);
+  const [isItemDetailOpen, setIsItemDetailOpen] = useState(false);
 
   // Favorites state (stored in localStorage)
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -119,6 +127,7 @@ export default function DigitalMenuPage() {
   const [menuCategories, setMenuCategories] = useState<digital_menu.Category[]>([]);
   const [menuItems, setMenuItems] = useState<digital_menu.MenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [isScrollingToCategory, setIsScrollingToCategory] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filtering
@@ -129,7 +138,12 @@ export default function DigitalMenuPage() {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newLogo, setNewLogo] = useState("");
+  const [newHeader, setNewHeader] = useState("");
   const [newColor, setNewColor] = useState("#EF4444");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
 
   // Customer Table State
   const [tableNumber, setTableNumber] = useState("");
@@ -222,6 +236,48 @@ export default function DigitalMenuPage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingLogo(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "logos",
+        client
+      });
+      setNewLogo(publicUrl);
+      toast.success("Logo başarıyla yüklendi!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Logo yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingHeader(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "headers",
+        client
+      });
+      setNewHeader(publicUrl);
+      toast.success("Header görseli başarıyla yüklendi!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Header yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingHeader(false);
+      if (headerInputRef.current) headerInputRef.current.value = "";
+    }
+  };
+
   const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -231,6 +287,7 @@ export default function DigitalMenuPage() {
         name: newName,
         description: newDesc,
         logoUrl: newLogo || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&auto=format&fit=crop&q=80",
+        headerUrl: newHeader,
         themeColor: newColor
       });
       if (res.business) {
@@ -362,10 +419,11 @@ export default function DigitalMenuPage() {
   const scrollToCategory = (categoryId: string) => {
     setViewMode("list");
     setActiveCategory(categoryId);
+    setIsScrollingToCategory(true);
     setTimeout(() => {
       const element = document.getElementById(`category-${categoryId}`);
       if (element) {
-        const offset = 80; // Sticky header offset
+        const offset = 120; // Sticky header offset
         const bodyRect = document.body.getBoundingClientRect().top;
         const elementRect = element.getBoundingClientRect().top;
         const elementPosition = elementRect - bodyRect;
@@ -376,11 +434,48 @@ export default function DigitalMenuPage() {
           behavior: "smooth"
         });
       }
+      // Reset after animation
+      setTimeout(() => setIsScrollingToCategory(false), 1000);
     }, 100);
   };
 
+  // Scroll detection for active category
+  useEffect(() => {
+    if (viewMode !== "list" || isScrollingToCategory) return;
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-120px 0px -70% 0px',
+      threshold: 0
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const categoryId = entry.target.id.replace('category-', '');
+          setActiveCategory(categoryId);
+          
+          // Scroll the sticky header to the active category
+          const navElement = document.getElementById(`nav-item-${categoryId}`);
+          if (navElement) {
+            navElement.parentElement?.scrollTo({
+              left: navElement.offsetLeft - 100,
+              behavior: 'smooth'
+            });
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    const sections = document.querySelectorAll('section[id^="category-"]');
+    sections.forEach(section => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [viewMode, menuCategories, isScrollingToCategory]);
+
   return (
-    <div className={`flex min-h-screen flex-col bg-[#FDFBF9] text-stone-900 overflow-x-hidden relative ${currentFontClass}`}>
+    <div className={`flex min-h-screen flex-col bg-[#FDFBF9] text-stone-900 relative ${currentFontClass}`}>
       <Toaster position="top-center" />
 
       {/* Decorative premium background blobs */}
@@ -392,10 +487,10 @@ export default function DigitalMenuPage() {
         <div className="absolute bottom-[-10%] right-[-15%] w-[70vw] h-[70vw] rounded-full bg-amber-500/5 blur-[120px]" />
       </div>
 
-      <main className="flex-1 px-4 py-8 pb-32 max-w-md mx-auto w-full relative z-10">
+      <main className="flex-1 max-w-md mx-auto w-full relative z-10">
         
         {/* Navigation & Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="px-4 pt-8 mb-8 flex items-center justify-between">
           <button
             onClick={() => {
               if (viewMode === "list") {
@@ -427,7 +522,7 @@ export default function DigitalMenuPage() {
 
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
-          <div className="space-y-6">
+          <div className="px-4 space-y-6">
             {/* Favorites List */}
             {favoriteBusinesses.length > 0 && (
               <div className="space-y-3">
@@ -442,9 +537,9 @@ export default function DigitalMenuPage() {
                       onClick={() => handleSelectBusiness(biz)}
                       className="bg-white p-4 rounded-[2rem] border border-amber-300 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
                     >
-                      <div className="w-11 h-11 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
-                        {biz.logo_url ? (
-                          <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                      <div className="w-20 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                        {biz.header_url || biz.logo_url ? (
+                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
                         ) : (
                           biz.name.slice(0, 2).toUpperCase()
                         )}
@@ -491,9 +586,9 @@ export default function DigitalMenuPage() {
                       onClick={() => handleSelectBusiness(biz)}
                       className="bg-white p-4 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
                     >
-                      <div className="w-11 h-11 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
-                        {biz.logo_url ? (
-                          <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                      <div className="w-20 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                        {biz.header_url || biz.logo_url ? (
+                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
                         ) : (
                           biz.name.slice(0, 2).toUpperCase()
                         )}
@@ -516,37 +611,32 @@ export default function DigitalMenuPage() {
           </div>
         ) : (
           // ACTIVE RESTAURANT MENU VIEW
-          <div className="space-y-8">
+          <div className="flex flex-col pb-32">
             
             {/* Main Header Banner */}
-            <div className="relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-48 shrink-0">
-              <img
-                src={selectedBusiness.logo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80"}
-                alt={selectedBusiness.name}
-                className="w-full h-full object-cover opacity-60"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px] p-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-white border-2 border-white shadow-xl overflow-hidden flex items-center justify-center mb-3">
-                  {selectedBusiness.logo_url ? (
-                    <img src={selectedBusiness.logo_url} alt={selectedBusiness.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="font-serif font-black text-stone-850 text-base">{selectedBusiness.name.slice(0, 2).toUpperCase()}</span>
-                  )}
+            <div className="px-4 mb-8">
+              <div className="relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-56 shrink-0">
+                <img
+                  src={selectedBusiness.header_url || selectedBusiness.logo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80"}
+                  alt={selectedBusiness.name}
+                  className="w-full h-full object-cover opacity-70"
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-[1px] p-4 text-center">
+                  <h2 className="font-serif font-black text-white text-2xl tracking-wide drop-shadow-lg">{selectedBusiness.name}</h2>
+                  <p className="text-[11px] text-white/90 font-bold uppercase tracking-[0.25em] mt-2 drop-shadow-md">{selectedBusiness.description || "Hoş Geldiniz"}</p>
                 </div>
-                <h2 className="font-serif font-black text-white text-xl tracking-wide drop-shadow-md">{selectedBusiness.name}</h2>
-                <p className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em] mt-1">{selectedBusiness.description || "Hoş Geldiniz"}</p>
               </div>
             </div>
 
             {viewMode === "grid" ? (
-              <div className="space-y-6">
+              <div className="px-4 space-y-6">
                 <div className="flex justify-between items-center px-1">
                   <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Kategoriler</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                   {menuCategories.map((cat) => {
-                    const img = getCategoryImageUrl(cat.name);
+                    const img = cat.image_url || getCategoryImageUrl(cat.name);
                     return (
                       <div
                         key={cat.id}
@@ -567,37 +657,46 @@ export default function DigitalMenuPage() {
             ) : (
               <>
                 {/* STICKY CATEGORY NAV */}
-                <div className="sticky top-4 z-30 -mx-4 px-4 py-2">
-                  <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+                <div className="sticky top-[-1px] z-40 px-4 py-4 pt-[calc(1rem+1px)] bg-white/95 backdrop-blur-xl border-b border-stone-200/50 mb-8 shadow-sm will-change-transform">
+                  <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
                     <button
+                      id="nav-item-all"
                       onClick={() => setViewMode("grid")}
-                      className="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-sm border bg-white/80 backdrop-blur-md text-stone-500 border-stone-200 hover:border-stone-300"
+                      className="flex flex-col items-center gap-1.5 shrink-0 group"
                     >
-                      <SquaresFour size={14} weight="bold" className="inline mr-1.5" />
-                      IZGARA
+                      <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-stone-200 transition-all">
+                        <SquaresFour size={24} weight="bold" className="text-stone-400" />
+                      </div>
+                      <span className="text-[8px] font-black uppercase tracking-tighter text-stone-400">KATEGORİ</span>
                     </button>
-                    {menuCategories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => scrollToCategory(cat.id)}
-                        className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-sm border ${
-                          activeCategory === cat.id
-                            ? "text-white border-transparent"
-                            : "bg-white/80 backdrop-blur-md text-stone-500 border-stone-200 hover:border-stone-300"
-                        }`}
-                        style={{ 
-                          backgroundColor: activeCategory === cat.id ? currentThemeColor : undefined,
-                          borderColor: activeCategory === cat.id ? currentThemeColor : undefined
-                        }}
-                      >
-                        {cat.name}
-                      </button>
-                    ))}
+
+                    {menuCategories.map((cat) => {
+                      const img = cat.image_url || getCategoryImageUrl(cat.name);
+                      const isActive = activeCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          id={`nav-item-${cat.id}`}
+                          onClick={() => scrollToCategory(cat.id)}
+                          className={`flex flex-col items-center gap-1.5 shrink-0 transition-all ${isActive ? "scale-105" : "opacity-60 hover:opacity-100"}`}
+                        >
+                          <div 
+                            className="w-14 h-14 rounded-2xl overflow-hidden border-2 shadow-sm transition-all"
+                            style={{ borderColor: isActive ? currentThemeColor : 'white' }}
+                          >
+                            <img src={img} alt={cat.name} className="w-full h-full object-cover" />
+                          </div>
+                          <span className={`text-[8px] font-black uppercase tracking-tighter text-center w-14 truncate ${isActive ? "text-stone-900" : "text-stone-400"}`}>
+                            {cat.name}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
             {/* ALL ITEMS LISTED BY CATEGORY */}
-            <div className="space-y-16 pb-20">
+            <div className="px-4 space-y-16 pb-20">
               {menuCategories.map((cat) => {
                 const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
                 if (allGroupedItems.length === 0) return null;
@@ -607,33 +706,40 @@ export default function DigitalMenuPage() {
                 return (
                   <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-24 space-y-8">
                     {/* Category Header */}
-                    <div className="flex items-center gap-4 px-1">
-                      <h3 className="font-serif font-black text-xl uppercase tracking-wider whitespace-nowrap" style={{ color: currentThemeColor }}>
+                    <div className="flex items-start gap-4 px-1">
+                      <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
                         {cat.name}
                       </h3>
-                      <div className="h-[1px] flex-1 bg-stone-200/60" />
+                      <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
                     </div>
 
                     {/* Standard List with Integrated Images */}
                     <div className="space-y-12 px-1">
                       {allGroupedItems.map((group) => (
-                        <div key={group.baseName} className={`flex items-center gap-4 ${!group.is_available ? "opacity-60" : ""}`}>
+                        <div 
+                          key={group.baseName} 
+                          onClick={() => {
+                            setSelectedItem(group);
+                            setIsItemDetailOpen(true);
+                          }}
+                          className={`flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${!group.is_available ? "opacity-60" : ""}`}
+                        >
                           {group.image_url && (
                             <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
                               <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
                             </div>
                           )}
-                          <div className="flex-1 space-y-1.5">
-                            <div className="flex justify-between items-center gap-4">
-                              <div className="flex-1">
-                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800">
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
                                   {group.baseName}
                                 </h4>
                               </div>
                               
-                              <div className="flex items-center gap-3 shrink-0">
+                              <div className="flex items-center gap-3 shrink-0 pt-0.5">
                                 {group.variations.length === 1 && !group.variations[0].optionName && (
-                                  <span className="font-serif font-black text-sm" style={{ color: currentThemeColor }}>
+                                  <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
                                     {group.variations[0].price.toFixed(2)} ₺
                                   </span>
                                 )}
@@ -646,7 +752,7 @@ export default function DigitalMenuPage() {
                             </div>
 
                             {group.description && (
-                              <p className="text-[11px] text-stone-500 font-serif leading-relaxed italic pr-4 line-clamp-2">
+                              <p className="text-[11px] text-stone-500 font-medium leading-relaxed pr-4 line-clamp-2">
                                 {group.description}
                               </p>
                             )}
@@ -689,6 +795,91 @@ export default function DigitalMenuPage() {
         <CaretUp size={24} weight="bold" />
       </button>
 
+      {/* Item Detail Drawer */}
+      <Drawer.Root open={isItemDetailOpen} onOpenChange={setIsItemDetailOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-md mx-auto border-t border-stone-200 shadow-2xl overflow-hidden">
+            <div className="p-0 overflow-y-auto">
+              {selectedItem && (
+                <>
+                  <Drawer.Title className="sr-only">{selectedItem.baseName}</Drawer.Title>
+                  <Drawer.Description className="sr-only">{selectedItem.description || selectedItem.baseName}</Drawer.Description>
+                </>
+              )}
+              
+              <div className="absolute top-0 left-0 right-0 z-20 p-6 flex justify-center pointer-events-none">
+                <div className="w-12 h-1.5 bg-white/40 backdrop-blur-md rounded-full shadow-sm border border-white/20" />
+              </div>
+
+              <button 
+                onClick={() => setIsItemDetailOpen(false)}
+                className="absolute top-4 right-6 z-20 w-10 h-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 transition-all active:scale-90"
+              >
+                <X size={20} weight="bold" />
+              </button>
+
+              {selectedItem && (
+                <div className="pb-12">
+                  {selectedItem.image_url && (
+                    <div className="w-full aspect-[4/3] relative overflow-hidden bg-stone-100">
+                      <img src={selectedItem.image_url} alt={selectedItem.baseName} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent" />
+                    </div>
+                  )}
+
+                  <div className={`px-8 space-y-6 ${selectedItem.image_url ? 'mt-8' : 'mt-16'}`}>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start gap-4">
+                        <h2 className="text-2xl font-serif font-black text-stone-900 uppercase tracking-tight leading-tight">
+                          {selectedItem.baseName}
+                        </h2>
+                        {selectedItem.variations.length === 1 && !selectedItem.variations[0].optionName && (
+                          <span className="text-xl font-serif font-black shrink-0" style={{ color: currentThemeColor }}>
+                            {selectedItem.variations[0].price.toFixed(2)} ₺
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {selectedItem.dietary_flags.map((flag) => (
+                          <span key={flag} className="px-2 py-1 bg-stone-100 rounded-lg text-[10px] font-black uppercase tracking-wider text-stone-500">
+                            {flag === "vegan" ? "🌱 VEGAN" : flag === "gluten-free" ? "🌾 GLUTEN-FREE" : flag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedItem.description && (
+                      <div className="space-y-2">
+                        <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">İçerik & Detaylar</h4>
+                        <p className="text-sm text-stone-600 font-medium leading-relaxed">
+                          {selectedItem.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {(selectedItem.variations.length > 1 || (selectedItem.variations.length === 1 && selectedItem.variations[0].optionName)) && (
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Seçenekler</h4>
+                        <div className="space-y-3">
+                          {selectedItem.variations.map((v) => (
+                            <div key={v.id} className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                              <span className="font-serif font-bold text-stone-800">{v.optionName || "Porsiyon"}</span>
+                              <span className="font-serif font-black" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
       {/* Create Business Drawer */}
       <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <Drawer.Portal>
@@ -726,13 +917,91 @@ export default function DigitalMenuPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Logo Görsel Linki</label>
-                  <input
-                    placeholder="https://..."
-                    value={newLogo}
-                    onChange={(e) => setNewLogo(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
-                  />
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Logosu</label>
+                  <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 rounded-2xl p-3">
+                    <div className="w-14 h-14 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                      {newLogo ? (
+                        <>
+                          <img src={newLogo} alt="Logo Preview" className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setNewLogo("")}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Trash size={18} weight="bold" className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
+                      )}
+                      {uploadingLogo && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                      >
+                        <UploadSimple size={14} weight="bold" />
+                        {newLogo ? "Logoyu Değiştir" : "Logo Seç"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Geniş Logo / Banner (Opsiyonel)</label>
+                  <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-2xl p-3">
+                    <div className="w-full h-24 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                      {newHeader ? (
+                        <>
+                          <img src={newHeader} alt="Header Preview" className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setNewHeader("")}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Trash size={18} weight="bold" className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
+                      )}
+                      {uploadingHeader && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={headerInputRef}
+                        onChange={handleHeaderUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => headerInputRef.current?.click()}
+                        disabled={uploadingHeader}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                      >
+                        <UploadSimple size={14} weight="bold" />
+                        {newHeader ? "Görseli Değiştir" : "Geniş Logo Seç"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

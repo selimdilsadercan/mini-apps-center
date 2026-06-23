@@ -39,6 +39,7 @@ export default class Client {
     public readonly board_game_clubs: board_game_clubs.ServiceClient
     public readonly budget: budget.ServiceClient
     public readonly business: business.ServiceClient
+    public readonly business_page: business_page.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly campus_events: campus_events.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
@@ -65,6 +66,7 @@ export default class Client {
     public readonly scrape: scrape.ServiceClient
     public readonly series_track: series_track.ServiceClient
     public readonly stamp_card: stamp_card.ServiceClient
+    public readonly storage: storage.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
@@ -95,6 +97,7 @@ export default class Client {
         this.board_game_clubs = new board_game_clubs.ServiceClient(base)
         this.budget = new budget.ServiceClient(base)
         this.business = new business.ServiceClient(base)
+        this.business_page = new business_page.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.campus_events = new campus_events.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
@@ -121,6 +124,7 @@ export default class Client {
         this.scrape = new scrape.ServiceClient(base)
         this.series_track = new series_track.ServiceClient(base)
         this.stamp_card = new stamp_card.ServiceClient(base)
+        this.storage = new storage.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
@@ -166,12 +170,15 @@ export namespace admin {
         name: string
         description: string | null
         "logo_url": string | null
+        "header_url": string | null
         "theme_color": string
         "font_family": string
         "created_at": string
         "owner_user_id": string
         "owner_username": string | null
         "owner_full_name": string | null
+        "enabled_apps": string[]
+        "contact_info": any
         "total_count": number
     }
 
@@ -205,6 +212,12 @@ export namespace admin {
         totalCount: number
     }
 
+    export interface ToggleAppRequest {
+        businessId: string
+        appId: string
+        enabled: boolean
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -212,6 +225,7 @@ export namespace admin {
             this.baseClient = baseClient
             this.listBusinesses = this.listBusinesses.bind(this)
             this.listUsers = this.listUsers.bind(this)
+            this.toggleBusinessApp = this.toggleBusinessApp.bind(this)
         }
 
         /**
@@ -242,6 +256,19 @@ export namespace admin {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/admin/users`, undefined, {query})
             return await resp.json() as ListUsersResponse
+        }
+
+        /**
+         * Bir işletme için bir uygulamayı açar/kapatır (Admin Only)
+         */
+        public async toggleBusinessApp(params: ToggleAppRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/admin/businesses/toggle-app`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
     }
 }
@@ -1261,10 +1288,13 @@ export namespace business {
         name: string
         description: string | null
         "logo_url": string | null
+        "header_url": string | null
         "theme_color": string
         "font_family": string
         "created_at": string
         "owner_user_id": string
+        "enabled_apps": string[]
+        "contact_info": any
     }
 
     export interface BusinessResponse {
@@ -1288,7 +1318,9 @@ export namespace business {
         name: string
         description: string
         logoUrl: string
+        headerUrl?: string
         themeColor: string
+        contactInfo?: any
     }
 
     export interface RemoveBusinessUserRequest {
@@ -1301,8 +1333,10 @@ export namespace business {
         name: string
         description: string
         logoUrl: string
+        headerUrl: string
         themeColor: string
         fontFamily: string
+        contactInfo: any
     }
 
     export class ServiceClient {
@@ -1424,6 +1458,105 @@ export namespace business {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/business/update`, JSON.stringify(params))
             return await resp.json() as BusinessResponse
+        }
+    }
+}
+
+export namespace business_page {
+    export interface DeleteLinkRequest {
+        id: string
+    }
+
+    export interface Link {
+        id: string
+        "business_id": string
+        title: string
+        subtitle: string | null
+        "app_id": string | null
+        url: string
+        icon: string | null
+        "sort_order": number
+        "is_enabled": boolean
+        "created_at": string
+        "updated_at": string
+    }
+
+    export interface ToggleLinkRequest {
+        id: string
+    }
+
+    export interface UpsertLinkRequest {
+        id?: string
+        businessId: string
+        title: string
+        subtitle?: string
+        appId?: string
+        url: string
+        icon?: string
+        sortOrder?: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteLink = this.deleteLink.bind(this)
+            this.getLinks = this.getLinks.bind(this)
+            this.toggleLink = this.toggleLink.bind(this)
+            this.upsertLink = this.upsertLink.bind(this)
+        }
+
+        /**
+         * Delete a link
+         */
+        public async deleteLink(params: DeleteLinkRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business-page/links/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Get all links for a business
+         */
+        public async getLinks(businessId: string): Promise<{
+    links: Link[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/business-page/links/${encodeURIComponent(businessId)}`)
+            return await resp.json() as {
+    links: Link[]
+}
+        }
+
+        /**
+         * Toggle link status
+         */
+        public async toggleLink(params: ToggleLinkRequest): Promise<{
+    isEnabled: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business-page/links/toggle`, JSON.stringify(params))
+            return await resp.json() as {
+    isEnabled: boolean
+}
+        }
+
+        /**
+         * Add or update a link
+         */
+        public async upsertLink(params: UpsertLinkRequest): Promise<{
+    link: Link
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/business-page/links`, JSON.stringify(params))
+            return await resp.json() as {
+    link: Link
+}
         }
     }
 }
@@ -2246,14 +2379,29 @@ export namespace digital_menu {
         item: MenuItem | null
     }
 
+    export interface BulkImportRequest {
+        businessId: string
+        items: {
+            category: string
+            categoryImageUrl?: string
+            name: string
+            description: string
+            price: number
+            imageUrl: string
+            dietaryFlags: string[]
+        }[]
+    }
+
     export interface Business {
         id: string
         name: string
         description: string | null
         "logo_url": string | null
+        "header_url": string | null
         "theme_color": string
         "font_family": string
         "created_at": string
+        "contact_info": any
     }
 
     export interface CallWaiterRequest {
@@ -2269,6 +2417,7 @@ export namespace digital_menu {
     export interface Category {
         id: string
         name: string
+        "image_url": string | null
         "order_index": number
     }
 
@@ -2334,7 +2483,9 @@ export namespace digital_menu {
             this.baseClient = baseClient
             this.addCategory = this.addCategory.bind(this)
             this.addMenuItem = this.addMenuItem.bind(this)
+            this.bulkImport = this.bulkImport.bind(this)
             this.callWaiter = this.callWaiter.bind(this)
+            this.deleteAllMenuData = this.deleteAllMenuData.bind(this)
             this.getAllBusinesses = this.getAllBusinesses.bind(this)
             this.getBusiness = this.getBusiness.bind(this)
             this.getMenuData = this.getMenuData.bind(this)
@@ -2369,6 +2520,22 @@ export namespace digital_menu {
         }
 
         /**
+         * Bulk import menu items and categories
+         * POST /digital-menu/bulk-import
+         */
+        public async bulkImport(params: BulkImportRequest): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/bulk-import`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+    count: number
+}
+        }
+
+        /**
          * Call a waiter from a table
          * POST /digital-menu/waiter/call
          */
@@ -2376,6 +2543,22 @@ export namespace digital_menu {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/waiter/call`, JSON.stringify(params))
             return await resp.json() as CallWaiterResponse
+        }
+
+        /**
+         * Delete all menu data for a business
+         * POST /digital-menu/delete-all
+         */
+        public async deleteAllMenuData(params: {
+    businessId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/digital-menu/delete-all`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**
@@ -4832,10 +5015,12 @@ export namespace stamp_card {
         name: string
         description: string | null
         "logo_url": string | null
+        "header_url": string | null
         "stamp_limit": number
         "reward_title": string
         "font_family": string
         "created_at": string
+        "contact_info": any
     }
 
     export interface CreateBusinessRequest {
@@ -4863,6 +5048,7 @@ export namespace stamp_card {
         "redeemed_at": string
         "business_name": string
         "business_logo": string | null
+        "business_header": string | null
     }
 
     export interface UseRewardRequest {
@@ -4882,6 +5068,7 @@ export namespace stamp_card {
         "updated_at": string
         "business_name": string
         "business_logo": string | null
+        "business_header": string | null
         "business_reward": string
         "stamp_limit": number
     }
@@ -4891,6 +5078,7 @@ export namespace stamp_card {
         name: string
         description: string | null
         "logo_url": string | null
+        "header_url": string | null
         "stamp_limit": number
         "reward_title": string
         "pin_code": string
@@ -4961,6 +5149,37 @@ export namespace stamp_card {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/reward/use`, JSON.stringify(params))
             return await resp.json() as UseRewardResponse
+        }
+    }
+}
+
+export namespace storage {
+    export interface GetUploadURLRequest {
+        fileName: string
+        contentType: string
+        folder?: string
+    }
+
+    export interface GetUploadURLResponse {
+        uploadUrl: string
+        publicUrl: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getUploadURL = this.getUploadURL.bind(this)
+        }
+
+        /**
+         * Generates a presigned URL for uploading a file to Cloudflare R2.
+         */
+        public async getUploadURL(params: GetUploadURLRequest): Promise<GetUploadURLResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/storage/upload-url`, JSON.stringify(params))
+            return await resp.json() as GetUploadURLResponse
         }
     }
 }

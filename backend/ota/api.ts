@@ -110,7 +110,7 @@ export const addBundle = api(
  * List all bundles (for admin panel)
  */
 export const listBundles = api(
-  { method: "GET", path: "/ota/bundles", expose: true, auth: true },
+  { method: "GET", path: "/ota/bundles", expose: true },
   async (): Promise<{ bundles: AppBundle[] }> => {
     const { data, error } = await supabase.rpc("get_all_bundles");
 
@@ -127,7 +127,7 @@ export const listBundles = api(
  * Admin: Toggle bundle active status
  */
 export const toggleBundleStatus = api(
-  { method: "POST", path: "/ota/bundle/toggle", expose: true, auth: true },
+  { method: "POST", path: "/ota/bundle/toggle", expose: true },
   async (req: {
     id: string;
     isActive: boolean;

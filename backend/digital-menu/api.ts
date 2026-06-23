@@ -1,6 +1,8 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import { storage } from "~encore/clients";
+import axios from "axios";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -14,14 +16,17 @@ export interface Business {
   name: string;
   description: string | null;
   logo_url: string | null;
+  header_url: string | null;
   theme_color: string;
   font_family: string;
   created_at: string;
+  contact_info: any;
 }
 
 export interface Category {
   id: string;
   name: string;
+  image_url: string | null;
   order_index: number;
 }
 
@@ -401,6 +406,62 @@ export const updateMenuItem = api(
     }
 
     return { item: (data as MenuItem) || null };
+  }
+);
+
+export interface BulkImportRequest {
+  businessId: string;
+  items: {
+    category: string;
+    categoryImageUrl?: string;
+    name: string;
+    description: string;
+    price: number;
+    imageUrl: string;
+    dietaryFlags: string[];
+  }[];
+}
+
+/**
+ * Bulk import menu items and categories
+ * POST /digital-menu/bulk-import
+ */
+export const bulkImport = api(
+  { expose: true, method: "POST", path: "/digital-menu/bulk-import" },
+  async (req: BulkImportRequest): Promise<{ success: boolean; count: number }> => {
+    const { businessId, items } = req;
+    
+    const { data, error } = await supabase.schema("digital_menu").rpc("bulk_upsert_menu", {
+      p_business_id: businessId,
+      p_items: items
+    });
+
+    if (error) {
+      console.error("bulkImport error:", error);
+      throw APIError.internal(`Failed to bulk import menu: ${error.message}`);
+    }
+
+    return { success: true, count: data as number };
+  }
+);
+
+/**
+ * Delete all menu data for a business
+ * POST /digital-menu/delete-all
+ */
+export const deleteAllMenuData = api(
+  { expose: true, method: "POST", path: "/digital-menu/delete-all" },
+  async ({ businessId }: { businessId: string }): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("digital_menu").rpc("delete_all_menu_data", {
+      p_business_id: businessId,
+    });
+
+    if (error) {
+      console.error("deleteAllMenuData error:", error);
+      throw APIError.internal(`Failed to delete menu data: ${error.message}`);
+    }
+
+    return { success: true };
   }
 );
 

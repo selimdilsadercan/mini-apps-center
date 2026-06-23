@@ -23,6 +23,7 @@ import { Toaster, toast } from "react-hot-toast";
 import * as Popover from "@radix-ui/react-popover";
 import { createBrowserClient } from "@/lib/api";
 import { stamp_card, business } from "@/lib/client";
+import { BUSINESS_APPS } from "@/lib/apps";
 
 const client = createBrowserClient();
 
@@ -90,57 +91,24 @@ function BusinessLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const apps = [
-    {
-      id: "digital-menu",
-      title: "Dijital Menü",
-      Icon: ChefHat,
-      color: "bg-red-500",
-      path: `/dashboard/digital-menu?id=${id}`
-    },
-    {
-      id: "stamp",
-      title: "Sadakat Kartı",
-      Icon: Cards,
-      color: "bg-amber-500",
-      path: `/dashboard/stamp?id=${id}`
-    },
-    {
-      id: "tutor",
-      title: "Tutor Place",
-      Icon: GraduationCap,
-      color: "bg-indigo-500",
-      path: "/apps/tutor-crm"
-    },
-    {
-      id: "feedback",
-      title: "Feedback Board",
-      Icon: ChatTeardropDots,
-      color: "bg-violet-600",
-      path: `/dashboard/feedback-board?id=${id}`
-    },
-    {
-      id: "board-game-clubs",
-      title: "Board Game Clubs",
-      Icon: GameController,
-      color: "bg-[#D4A830]",
-      path: `/dashboard/board-game-clubs?id=${id}`
-    },
-    {
-      id: "workplaces",
-      title: "Workplaces",
-      Icon: Coffee,
-      color: "bg-[#6F4E37]",
-      path: `/dashboard/workplaces?id=${id}`
-    },
-    {
-      id: "events",
-      title: "Events",
-      Icon: Megaphone,
-      color: "bg-[#00aeef]",
-      path: `/dashboard/events?id=${id}`
-    }
-  ];
+  const allApps = BUSINESS_APPS.map(app => ({
+    id: app.id,
+    title: app.name,
+    Icon: app.icon,
+    color: app.id === "digital-menu" ? "bg-red-500" : 
+           app.id === "stamp-card" ? "bg-amber-500" :
+           app.id === "tutor-crm" ? "bg-indigo-500" :
+           app.id === "feedback-board" ? "bg-violet-600" :
+           app.id === "board-game-clubs" ? "bg-[#D4A830]" :
+           app.id === "workplaces" ? "bg-[#6F4E37]" :
+           app.id === "campus-events" ? "bg-[#00aeef]" : "bg-stone-500",
+    path: app.id === "tutor-crm" ? "/apps/tutor-crm" :
+          app.id === "campus-events" ? `/dashboard/events?id=${id}` :
+          app.id === "stamp-card" ? `/dashboard/stamp?id=${id}` :
+          `/dashboard/${app.id}?id=${id}`
+  }));
+
+  const apps = allApps.filter(app => bizData?.enabled_apps?.includes(app.id));
 
   const isDashboard = pathname === "/dashboard/business";
   const isSettings = pathname === "/dashboard/business/settings";
@@ -154,9 +122,9 @@ function BusinessLayoutContent({ children }: { children: React.ReactNode }) {
         <aside className="hidden md:flex w-64 flex-col bg-white border-r border-stone-200 shadow-sm z-30">
           <div className="p-6 border-b border-stone-100">
             <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-xl border border-stone-100">
-              <div className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
-                {bizData?.logo_url ? (
-                  <img src={bizData.logo_url} alt={bizData.name} className="w-full h-full object-cover" />
+              <div className="w-14 h-9 rounded-lg bg-white border border-stone-200 flex items-center justify-center font-bold text-[10px] overflow-hidden shrink-0">
+                {bizData?.header_url || bizData?.logo_url ? (
+                  <img src={(bizData.header_url || bizData.logo_url) as string} alt={bizData.name} className="w-full h-full object-cover" />
                 ) : (
                   bizData?.name?.slice(0, 2).toUpperCase() || "??"
                 )}

@@ -1,0 +1,1541 @@
+[
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Serpme Kahvaltı (2 Kişiliktir)",
+    "description": "Ezine beyaz peynir, Bergama tulum peyniri, eski kaşar peyniri, taze kaşar peyniri, çeçil peyniri, ev yapımı ezme peynir, tereyağında sucuk, kızarmış sosis, Trabzon tereyağı, manda kaymağı, süzme bal, ev yapımı vişne reçeli, böğürtlen reçeli, kayısı reçeli, çilek reçeli, incir reçeli, gül reçeli, süt reçeli, nutella, tahin-pekmez, ev yapımı acuka, yeşil ve siyah zeytin çeşitleri, kiraz domates, Çengelköy salatalık, sivri biber, pancar, roka, maydanoz, ceviz, badem, fındık, kuru üzüm, şakşuka, tavada kaşarlı mantar, pişi, puf böreği, patates kızartması, kızarmış simit, menemen veya dereotlu kaşar peynirli omlet, mevsim meyveleri, çilekli muzlu magnolia, çocuklar için meyve suyu veya süt, semaverde sınırsız çay veya demlikte bitki çayı ve Türk kahvesi veya filtre kahve ile cam şişe su ikramdır.",
+    "price": 1850,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1714498342.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Klasik Kahvaltı Tabağı",
+    "description": "Ezine beyaz peynir, kaşar peyniri, çeçil peyniri, sahanda tereyağlı göz yumurta, sosis, Trabzon tereyağı, karakovan petek balı, ev yapımı vişne veya böğürtlen reçeli, yeşil ve siyah zeytin, kiraz domates, Çengelköy salatalık, sivri biber, pancar, roka, maydanoz, ceviz, badem, fındık, kuru üzüm, kuru dut, puf börek, kızarmış simit ve iki bardak çay veya bitki çayı veya filtre kahve ikramdır.",
+    "price": 510,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1706352009.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Fit kahvaltı",
+    "description": "Hindi füme, kaburga füme, ızgara hellim peyniri, karamelize soğanlı sote bebek patates, sote mantar, sote brokoli, sote kiraz domates, tereyağlı göz yumurta, ekşi mayalı tam buğday ekmeği, yanında iki bardak çay veya bitki çayı veya filtre kahve ikramdır. (Bu çeşidimizin siparişleri, tatil günleri 11:00 ile 14:00 arası yoğunluğun durumuna göre kısıtlanabilmektedir.)",
+    "price": 550,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388058.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Kızarmış Peynirli Simit Tabağı",
+    "description": "İçinde Ezine beyaz peynir, kiraz domates ve ceviz, yanında acuka, zeytin ve salatalık, bir bardak çay ikramdır.",
+    "price": 385,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608386907.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Pişi Tabağı",
+    "description": "Ezine beyaz peynir, ev yapımı reçel, nutella, zeytin, kiraz domates ve salatalık ile, bir bardak çay ikramdır.",
+    "price": 435,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622560699.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Mantarlı Kaşarlı Dereotlu Omlet",
+    "description": "3 Adet gezen tavuk yumurtalı, yanında domates, zeytin ve salatalık ile servis edilir.",
+    "price": 385,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608386960.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Karışık Omlet",
+    "description": "3 Adet yumurta, içinde sucuk, biber, mantar, domates ve kaşar; yanında domates, zeytin ve salatalık ile servis edilir.",
+    "price": 415,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608387038.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Sucuklu Yumurta",
+    "description": "Kasap sucuğunu 2 adet gezen tavuk yumurtası ile servis edilir.",
+    "price": 415,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388081.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Menemen",
+    "description": "Domates, biber ve 2 adet gezen tavuk yumurtasını harmanlayarak servis edilir.",
+    "price": 360,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622560769.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahvaltı",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388513.png",
+    "name": "Muhlama",
+    "description": "",
+    "price": 460,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617387453.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Kaşarlı Tost",
+    "description": "Üç dilim kaşarlı tost. Yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 285,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705491645.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Beyaz Peynirli Domatesli Tost",
+    "description": "Yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 285,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705491670.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Karışık Tost",
+    "description": "Altı dilim sucuklu ve üç dilim kaşarlı tost. Yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 310,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705483443.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Akdeniz Tost",
+    "description": "Kepek ekmeği arasında dil peyniri, zeytin ezmesi, çeri domates ve zeytinyağlı fesleğen; yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 310,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705482965.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Babaanne Tostu",
+    "description": "Ekşi mayalı tam buğday ekmeği arasında Ezine beyaz peynir, cevizli acuka ve maydanoz; yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 335,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705483830.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Kavurmalı Kaşarlı Tost",
+    "description": "50 Gram kavurma ve üç dilim kaşarlı tost. Yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 380,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705572245.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Ayvalık Tostu",
+    "description": "Ayvalık ekmeği arasında sucuk, sosis, kaşar, zeytin, mısır, domates, turşu ve Amerikan salatası; yanında domates, salatalık ve zeytin ile servis edilir.",
+    "price": 395,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608328134.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Patatesli Gözleme",
+    "description": "",
+    "price": 350,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395698.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Ispanaklı Kaşarlı Gözleme",
+    "description": "",
+    "price": 395,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395824.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Kaşarlı Gözleme",
+    "description": "",
+    "price": 445,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395758.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Beyaz Peynirli Gözleme",
+    "description": "",
+    "price": 425,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395788.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tostlar Gözlemeler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403501.png",
+    "name": "Kıymalı Gözleme",
+    "description": "",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395807.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Patates Kızartması",
+    "description": "350 gr. patates kızartması, sade veya kajun baharatlı, yanında ev yapımı ranch sos ile servis edilir.",
+    "price": 260,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608401205.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Soğan Halkası",
+    "description": "10 adet servis edilir.",
+    "price": 270,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1704278751.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Patso Burger",
+    "description": "350 gr patates, ranch sos ile servis edilir.",
+    "price": 280,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608401481.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Sosisli veya Kaşarlı veya Sucuklu Patso Burger",
+    "description": "4 adet sosisli veya 80 gr kaşar peynirli veya 8 dilim sucuklu, ranch sos ile servis edilir.",
+    "price": 340,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617387994.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Sucuklu Kaşarlı Patso Burger",
+    "description": "8 dilim sucuk, 80 gr. kaşar peyniri ve ranch sos ile servis edilir.",
+    "price": 395,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279581.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Sosis Sepeti - 2 Kişilik",
+    "description": "10 adet sosis 450 gr. patates kızartması; yanında ev yapımı ranch sos ve barbekü sos ile servis edilir.",
+    "price": 460,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608401226.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Combo Sepeti - 2 Kişilik",
+    "description": "6 sosis, 3 soğan halkası, 3 piliç nugget, 3 patates kroket, 2 puf böreği, 450 gr.\r\npatates kızartması; yanında ev yapımı ranch sos, ev yapımı ballı hardallı sos,\r\nbarbekü sos ve acı sos ile servis edilir.",
+    "price": 520,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608401251.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Lezzetli Atıştırmalık",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401860.png",
+    "name": "Çıtır Tavuk",
+    "description": "160 gr. susamlı çıtır tavuk patates kızartması; yanında ev yapımı ranch sos, ev yapımı ballı hardallı sos ve acı sos ile servis edilir.",
+    "price": 475,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608401436.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Teras Burger (100 gr.)",
+    "description": "Teras Köfte, ev yapımı hamburger ekmeği, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 450,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622560974.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Teras Burger (150 gr.)",
+    "description": "150 gr. Teras Köfte, ev yapımı hamburger ekmeği, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ve ranch sos ile servis edilir.",
+    "price": 515,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608326499.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Teras Cheese Burger (100 gr.)",
+    "description": "100 gr. Teras Köfte, ev yapımı hamburger ekmeği, cheddar peyniri, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 475,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622560989.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Teras Cheese Burger (150 gr.)",
+    "description": "150 gr. Teras Köfte, ev yapımı hamburger ekmeği, cheddar peyniri, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 535,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608326551.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Mantarlı Teras Cheese Burger (100 gr.)",
+    "description": "100 gr. Teras Köfte, ev yapımı hamburger ekmeği, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 490,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622561004.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Mantarlı Teras Cheese Burger (150 gr.)",
+    "description": "150 gr. Teras Köfte, ev yapımı hamburger ekmeği, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 550,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608326760.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Füme Kaburgalı Teras Cheese Burger (100 gr.)",
+    "description": "100 gr. Teras Köfte, 20 gr. füme kaburga, ev yapımı hamburger ekmeği, cheddar peyniri, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 560,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622561021.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Füme Kaburgalı Teras Cheese Burger (150 gr.)",
+    "description": "150 gr. Teras Köfte, 30 gr. füme kaburga, ev yapımı hamburger ekmeği, cheddar peyniri, marul, domates, soğan ve salatalık turşusu; yanında patates kızartması ranch sos ile servis edilir.",
+    "price": 660,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279631.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Teras Tavuk Burger",
+    "description": "180 gr. Çıtır tavuk göğüs, ev yapımı hamburger ekmeği, cheddar peyniri, marul ve sezar sos; yanında patates kızartması, ranch sos ile servis edilir.",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388118.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Izgara Tavuklu Dürüm",
+    "description": "Sıcak lavaş içerisinde 160 gr. ızgara tavuk parçaları, çeri domates, yeşil salata, renkli kapya biber ve 70 gr. kaşar peyniri; yanında patates kızartması ile servis edilir.",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388139.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Izgara Köfte Dürüm",
+    "description": "Sıcak lavaş içerisinde 120 gr. Izgara Teras Köfte, renkli kapya biber ve 70 gr. kaşar peyniri; yanında patates kızartması ile servis edilir.",
+    "price": 520,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388176.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Izgara Etli Dürüm",
+    "description": "Sıcak lavaş içerisinde 140 gr. biftek, renkli kapya biber ve 70 gr. kaşar peyniri; yanında patates kızartması ile servis edilir.",
+    "price": 580,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388152.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Tavuklu Mantarlı Krep",
+    "description": "160 gr. Tavuk parçaları, kremalı mantar, renkli kapya biber ve kaşar peyniri; yanında patates kızartması ile servis edilir.",
+    "price": 490,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608327757.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Burger Dürüm Krep",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1617388406.png",
+    "name": "Vejeteryan Dürüm",
+    "description": "Sıcak lavaş içerisinde sotelenmiş sebzeler (mantar, brokoli, renkli kapya biber, çeri domates, kırmızı soğan) ve kaşar peyniri; yanında patates kızartması veya yeşil salata ile servis edilir.",
+    "price": 390,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1704279327.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Pizza Margarita (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, fesleğen, kiraz domates ve roka ile servis edilir.",
+    "price": 525,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388228.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Pizza Margarita (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, fesleğen, kiraz domates ve roka ile servis edilir.",
+    "price": 585,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388250.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Akdeniz Pizza (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, Ezine beyaz peynir, siyah zeytin, kekik, kiraz\r\ndomates ve roka ile servis edilir.",
+    "price": 585,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324369.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Akdeniz Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, Ezine beyaz peynir, siyah zeytin, kekik, kiraz\r\ndomates ve roka ile servis edilir.",
+    "price": 670,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324409.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Dört Peynirli Pizza (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, rokfor peyniri, cheddar peyniri, süzme peynir, fesleğen ve kiraz domates ile servis edilir.",
+    "price": 610,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324655.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Dört Peynirli Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, rokfor peyniri, cheddar peyniri, süzme peynir, fesleğen ve kiraz domates ile servis edilir.",
+    "price": 695,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324739.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Dağ Mantarlı Pizza(Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, istiridye mantarı, kestane mantarı, kültür mantarı, fesleğen, roka ve parmesan ile servis edilir.",
+    "price": 585,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324851.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Dağ Mantarlı Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, istiridye mantarı, kestane mantarı, kültür mantarı, fesleğen, roka ve parmesan ile servis edilir.",
+    "price": 670,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324884.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Kremalı Tavuklu Pizza (Orta Boy)",
+    "description": "Domates sos, buffalo mozzarella peyniri, tavuk dilimleri, krema, mantar, sotelenmiş soğan ve mısır ile servis edilir.",
+    "price": 610,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973601.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Kremalı Tavuklu Pizza (Büyük Boy)",
+    "description": "Domates sos, buffalo mozzarella peyniri, tavuk dilimleri, krema, mantar, sotelenmiş soğan ve mısır ile servis edilir.",
+    "price": 695,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973623.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Barbekü Tavuklu Pizza (Orta Boy)",
+    "description": "Domates sos, buffalo mozzarella peyniri, tavuk dilimleri, barbekü sos ve mısır ile servis edilir.",
+    "price": 610,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279204.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Barbekü Tavuklu Pizza (Büyük Boy)",
+    "description": "Domates sos, buffalo mozzarella peyniri, tavuk dilimleri, barbekü sos ve mısır ile servis edilir.",
+    "price": 695,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279230.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Ton Balıklı Pizza (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, ton balığı, mısır, kırmızı soğan ve ceviz ile servis edilir.",
+    "price": 610,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279502.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Ton Balıklı Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, ton balığı, mısır, kırmızı soğan ve ceviz ile servis edilir.",
+    "price": 695,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279536.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Füme Kaburga Pizza (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, füme kaburga, roka ve parmesan ile servis edilir.",
+    "price": 720,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279263.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Füme Kaburga Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, füme kaburga, roka ve parmesan ile servis edilir.",
+    "price": 820,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279336.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Karışık Teras Pizza (Orta Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, sucuk, sosis, mantar, biber, mısır, zeytin ve kiraz domates ile servis edilir.",
+    "price": 610,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324492.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Pizza",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608401974.png",
+    "name": "Karışık Teras Pizza (Büyük Boy)",
+    "description": "Domates sos, Buffalo Mozzarella peyniri, sucuk, sosis, mantar, biber, mısır, zeytin ve kiraz domates ile servis edilir.",
+    "price": 695,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324525.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Günün Çorbası",
+    "description": "Günün çorbasını sorunuz.",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1617388009.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Izgara Köfte",
+    "description": "150 gr. %100 dana köfte közlenmiş domates közlenmiş biber pirinç pilavı ve patates\r\nkızartması ile servis edilir.",
+    "price": 575,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608323704.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Kaşarlı Izgara Köfte",
+    "description": "150 gr. %100 dana köfte közlenmiş domates közlenmiş biber pirinç pilavı ve patates\r\nkızartması ile servis edilir.",
+    "price": 615,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622557553.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Soya Soslu Tavuk ( 160 gr. )",
+    "description": "Pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608323773.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Köri Soslu Tavuk ( 160 gr. )",
+    "description": "Pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608323866.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Barbekü Soslu Tavuk ( 160 gr. )",
+    "description": "Pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608323909.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Kekikli Mantarlı Tavuk ( 160 gr. )",
+    "description": "Pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608323940.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Izgara Tavuk Bonfile ( 300-350 gr. )",
+    "description": "Kekik biberiye soslu yanında pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 510,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324040.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Izgara Tavuk Pirzola ( 300-350 gr. )",
+    "description": "Kekik, biberiye soslu, yanında pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 510,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324085.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ana Yemekler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608385912.png",
+    "name": "Tavuk Şinitzel  ( 300-350 gr. )",
+    "description": "Limon, tereyağı soslu, yanında pirinç pilavı ve patates kızartması ile servis edilir.",
+    "price": 510,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608324113.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Bol Tahıllı Salata",
+    "description": "Akdeniz yeşillikleri, yeşil mercimek, siyez bulguru, nohut, brokoli, renkli\r\nkapya biber, kiraz domates, süzme yoğurt ve fesleğenli\r\nzeytinyağı ile servis edilir.",
+    "price": 400,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616279141.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Çıtır Tavuk Salata",
+    "description": "Akdeniz yeşillikleri, 200 gr. çıtır tavuk parçaları, kiraz domates, salatalık,\r\nzeytin, renkli kapya biber ve balzamikli zeytinyağı ile servis edilir.",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395996.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Tavuklu Sezar Salata",
+    "description": "Iceberg, 200 gr. ızgara tavuk parçaları, kruton ekmeği, ezine beyaz peynir,\r\nkiraz domates ve sezar sos ile servis edilir.",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396058.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Kinoalı & Cevizli Izgara Tavuk Salata",
+    "description": "Iceberg, 200 gr. ızgara tavuk parçaları, ceviz, peynir, kruton ekmeği, kiraz\r\ndomates, pancar, sıkma limon ve zeytinyağı ile servis edilir.",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396089.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Biftekli Salata",
+    "description": "Akdeniz yeşillikleri, 140 gr. biftek parçaları, sotelenmiş mantar, renkli kapya biber, kırmızı soğan, mısır ve kabak dilimleri, parmesan peyniri ve balzamikli zeytinyağı ile servis edilir.",
+    "price": 575,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622558909.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Izgara Köfte Salata",
+    "description": "Akdeniz yeşillikleri, 150 gr. ızgara köfte parçaları, pancar, domates,\r\nsalatalık, zeytin, renkli kapya biber ve nar ekşili zeytinyağı ile servis edilir.",
+    "price": 525,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608395900.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Salatalar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402035.png",
+    "name": "Ton Balıklı Salata",
+    "description": "Akdeniz yeşillikleri, 160 gr. ton balığı, pancar, salatalık, zeytin, renkli\r\nkapya biber, mısır, ay çekirdeği, sıkma limon ve zeytinyağı ile servis edilir.",
+    "price": 525,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396134.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Dondurmalı İrmik Helvası",
+    "description": "Vanilyalı veya çikolatalı veya karamelli dondurma ile",
+    "price": 295,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608406162.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Waffle",
+    "description": "Çilek, Kivi, Muz ve Nutellalı veya sütlü çikolatalı veya bitter çikolatalı veya beyaz çikolatalı veya fıstık ezmeli",
+    "price": 385,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400734.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Magnolia",
+    "description": "Oreo, Bebe Bisküvisi, Çilek, Kivi ve Muz",
+    "price": 315,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1704280278.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Magnolia Çikolatalı",
+    "description": "",
+    "price": 345,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1704280234.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "San Sebastian Cheesecake",
+    "description": "",
+    "price": 315,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400816.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "San Sebastian Cheesecake",
+    "description": "Ev yapımı beyaz veya sütlü veya bitter çikolata ile",
+    "price": 345,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400882.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Cheesecake Frambuazlı",
+    "description": "",
+    "price": 345,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400417.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Cheesecake Limonlu",
+    "description": "",
+    "price": 315,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400473.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Cheesecake Çikolatalı",
+    "description": "",
+    "price": 335,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400516.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Sufle",
+    "description": "Vanilyalı veya çikolatalı veya karamelli dondurma ile",
+    "price": 350,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400591.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Nutellalı Muzlu Krep",
+    "description": "",
+    "price": 370,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400710.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Sıcak Brownie",
+    "description": "Ev yapımı vişne sos ve vanilyalı veya çikolatalı dondurma ile",
+    "price": 345,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616278958.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "1/2 Sıcak Browni",
+    "description": "Kahvenin yanında canım çikolata istedi ama çok da kalori almak istemiyorum diyenler için yoğun kıvamlı küçük parça ev yapımı browni. Yanında ev yapımı vişne sos ile servis edilir.",
+    "price": 265,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1704280204.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Mozaik",
+    "description": "",
+    "price": 265,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1592505709.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Fondü",
+    "description": "Bitter veya sütlü veya beyaz çikolata, yanında muz ve çilek ile",
+    "price": 385,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1705524373.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Meyve Tabağı",
+    "description": "Kivi, muz, çilek ve 3 çeşit mevsim meyveleri ile toplam 6 çeşit meyve",
+    "price": 440,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400951.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Ev Yapımı Tatlılar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402136.png",
+    "name": "Dondurma (1 Top: 60 gr.)",
+    "description": "Vanilyalı, Çikolatalı, Karamelli,  Çilekli, Karadutlu, Limonlu",
+    "price": 120,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400759.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tarihi Meşhur Kanlıca Yoğurdu",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403804.png",
+    "name": "Yanında Pudra Şekerli ( 200 gr. )",
+    "description": "",
+    "price": 175,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399901.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tarihi Meşhur Kanlıca Yoğurdu",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403804.png",
+    "name": "Yanında Ballı ( 200 gr. )",
+    "description": "",
+    "price": 190,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399918.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Tarihi Meşhur Kanlıca Yoğurdu",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403804.png",
+    "name": "Yanında Mevsim Meyveli ve Pudra Şekerli ( 200 gr. )",
+    "description": "",
+    "price": 220,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399952.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Bardak Çay",
+    "description": "Aida bardakta",
+    "price": 65,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399257.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Fincan  Çay",
+    "description": "Yanında ev yapımı kurabiye ile",
+    "price": 95,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399273.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Bakırda Semaver Demlik Çay",
+    "description": "5-6 Aida bardak, yanında ev yapımı yarım kurabiye tabağı",
+    "price": 420,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399414.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Bakırda Semaver Demlik Çay",
+    "description": "10-12 Aida bardak, yanında ev yapımı kurabiye tabağı",
+    "price": 720,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399430.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Chai Tea Latte",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1702721351.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Meyve Çayları",
+    "description": "Karadut, Limon, Portakal, Kivi, Elma, Kuşburnu, Muz, Kakao",
+    "price": 75,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399547.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Taze Nane Limon",
+    "description": "",
+    "price": 130,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399589.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Yeşil Çay",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399617.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Yasemin Çayı",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399636.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Ada Çayı",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399652.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Papatya Çayı",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399670.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Ihlamur",
+    "description": "",
+    "price": 175,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399697.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Dinlendirici Çay",
+    "description": "Melisa, Lavanta, Kantaron, Papatya",
+    "price": 175,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399869.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Kış Çayı",
+    "description": "Kuşburnu, Ihlamur, Ada Çayı, Okaliptüs Yaprağı, Kabuk Tarçın, Karanfil, Zencefil, Hibiskus",
+    "price": 175,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399741.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Gojiberry Limonlu Zencefil Çayı",
+    "description": "Zencefil, Goji Berry, Limon",
+    "price": 185,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399838.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Ev Yapımı Kurabiye Tabağı",
+    "description": "",
+    "price": 275,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608400214.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Çaylar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402367.png",
+    "name": "Lüks Karışık Kuruyemiş Tabağı",
+    "description": "Ceviz, Badem, Fındık, Antep Fıstığı, Yer Fıstığı, Kuru Üzüm, Dut",
+    "price": 380,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1592506905.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Türk Kahvesi",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397348.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Double Türk Kahvesi",
+    "description": "",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396777.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Damla Sakızlı Türk Kahvesi",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397363.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Dibek Kahvesi",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616277028.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Nescafe",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396824.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Sütlü Nescafe",
+    "description": "Sade, Karamelli, Damla Sakızlı, Fındıklı",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396804.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Filtre Kahve",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397387.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Espresso",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397425.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Espresso Macchiato",
+    "description": "",
+    "price": 155,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973431.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Double Espresso",
+    "description": "",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616277048.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Americano",
+    "description": "Double Espresso",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397745.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Cappucino",
+    "description": "Double Espresso",
+    "price": 190,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397467.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Caffe Latte",
+    "description": "Double Espresso",
+    "price": 195,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397642.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Flat White",
+    "description": "Double Espresso",
+    "price": 190,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973399.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Cortado",
+    "description": "Single Espresso",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973546.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Caramel Macchiato",
+    "description": "Double espresso",
+    "price": 210,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1616277071.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Mocha",
+    "description": "Double Espresso",
+    "price": 210,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397677.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "White Chocolate Mocha",
+    "description": "Double Espresso",
+    "price": 210,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397702.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Affogato",
+    "description": "2 Top Dondurma üstüne 2 Shot Espresso",
+    "price": 340,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757973453.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Sıcak Çikolata",
+    "description": "",
+    "price": 185,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608397723.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Sıcak Ballı Süt",
+    "description": "",
+    "price": 140,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398032.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Kahveler",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402412.png",
+    "name": "Salep ( kış aylarında )",
+    "description": "Kış Aylarında",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1592507768.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Coca Cola/Cola Zero/Fanta/Sprite",
+    "description": "",
+    "price": 100,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396273.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Ice Tea",
+    "description": "Şeftali / Limon / Mango ve Ananas / Karpuz / Kavun ve Çilek",
+    "price": 100,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396308.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Schweppes Gazoz",
+    "description": "Mandalina / Yeşil Limon",
+    "price": 100,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396329.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Cappy Meyve Suyu",
+    "description": "Vişne / Şeftali / Portakal / Kayısı / Karışık",
+    "price": 100,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396375.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Eker Yayık Ayranı",
+    "description": "Cam Şişede 330 ml",
+    "price": 100,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396430.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Naneli Fesleğenli Ayran",
+    "description": "",
+    "price": 115,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396406.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Taze Sıkılmış Portakal (Küçük)",
+    "description": "",
+    "price": 160,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396453.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Taze Sıkılmış Portakal Suyu (Büyük)",
+    "description": "",
+    "price": 220,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622621305.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Red Bull Enerji İçeceği (250 ml)",
+    "description": "",
+    "price": 125,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1703523884.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Monster Enerji İçeceği (500 ml)",
+    "description": "",
+    "price": 150,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757972837.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Meyveli Soda",
+    "description": "Limon / Elma / Çilek & Karpuz / Mango & Ananas",
+    "price": 85,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396490.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Churchill",
+    "description": "Taze sıkılmış yarım limon ve tuz ilaveli Maden Suyu",
+    "price": 90,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396513.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Maden Suyu",
+    "description": "Sade",
+    "price": 80,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396537.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Cam Şişe Su 330 ml",
+    "description": "",
+    "price": 65,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608396563.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Meşrubatlar",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608402558.png",
+    "name": "Cam Şişe Su 1 lt",
+    "description": "",
+    "price": 140,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1757972934.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Ev Yapımı Taze Limonata (Küçük)",
+    "description": "",
+    "price": 180,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622727842.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Ev Yapımı Taze Limonata (Büyük)",
+    "description": "",
+    "price": 210,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398967.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Taze Çilekli Naneli Limonata",
+    "description": "",
+    "price": 240,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398995.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Iced Americano",
+    "description": "Triple Espresso",
+    "price": 200,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398911.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Iced Latte Macchiato",
+    "description": "Triple Espresso",
+    "price": 220,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398931.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Iced Caramel Macchiato",
+    "description": "Triple Espresso",
+    "price": 240,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398948.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Iced Chocolate Mocha",
+    "description": "Triple Espresso",
+    "price": 240,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608398881.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Iced White Chocolate Mocha",
+    "description": "Triple Espresso",
+    "price": 240,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622628588.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Yaz İçecekleri",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1608403434.png",
+    "name": "Frozen",
+    "description": "Çilekli / Orman Meyveli / Kivili / Mangolu / Karadutlu / Kavunlu",
+    "price": 240,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608399023.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Penne Arrabbiata",
+    "description": "Acılı domates sos, fesleğen ve parmesan ile",
+    "price": 395,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608325013.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Spaghetti Bolognese",
+    "description": "70 gr. dana kıyma, domates sos, kekik, fesleğen ve parmesan ile",
+    "price": 485,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622556425.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Tavuklu Fettuccine Alfredo",
+    "description": "140 gr. tavuk, kremalı mantar, fesleğen ve parmesan ile",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608325047.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Körili Tavuklu Fettuccine",
+    "description": "140 gr. körili tavuk, kremalı mantar, fesleğen ve parmesan ile",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622557042.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Ev Yapımı Mantı",
+    "description": "",
+    "price": 450,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1608325113.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Sebzeli Noodle",
+    "description": "Renkli kapya biberler, mantar, brokoli, fasulye, havuç, kişniş, kırmızı soğan, taze soğan, susam, taze zencefil, istiridye sos, soya sos ve susam yağı; yanında chilli biber sos ile",
+    "price": 415,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622556339.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Tavuklu Noodle",
+    "description": "140 gr. tavuk, renkli kapya biberler, mantar, brokoli, fasulye, havuç, kişniş, kırmızı soğan, taze soğan, susam, taze zencefil, istiridye sos, soya sos ve susam yağı; yanında chilli biber sos ile",
+    "price": 465,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622556323.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Etli Noodle",
+    "description": "140 gr. biftek, renkli kapya biberler, mantar, brokoli, fasulye, havuç, kişniş, kırmızı soğan, taze soğan, susam, taze zencefil, istiridye sos, soya sos ve susam yağı; yanında chilli biber sos ile",
+    "price": 550,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622556302.png",
+    "dietaryFlags": []
+  },
+  {
+    "category": "Makarna & Noodle",
+    "categoryImageUrl": "https://menu.kanlicateras.com/uploads/1622561183.png",
+    "name": "Karidesli Noodle",
+    "description": "80 gr. jumbo karides, renkli kapya biberler, mantar, brokoli, fasulye, havuç, kişniş, kırmızı soğan, taze soğan, susam, taze zencefil, istiridye sos, soya sos, susam yağı, yanında chilli biber sos ile",
+    "price": 620,
+    "imageUrl": "https://menu.kanlicateras.com/uploads/1622556281.png",
+    "dietaryFlags": []
+  }
+]

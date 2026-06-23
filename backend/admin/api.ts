@@ -19,12 +19,15 @@ export interface AdminBusiness {
   name: string;
   description: string | null;
   logo_url: string | null;
+  header_url: string | null;
   theme_color: string;
   font_family: string;
   created_at: string;
   owner_user_id: string;
   owner_username: string | null;
   owner_full_name: string | null;
+  enabled_apps: string[];
+  contact_info: any;
   total_count: number;
 }
 
@@ -33,6 +36,12 @@ export interface AdminBusiness {
 interface ListRequest {
   limit?: number;
   offset?: number;
+}
+
+interface ToggleAppRequest {
+  businessId: string;
+  appId: string;
+  enabled: boolean;
 }
 
 interface ListUsersResponse {
@@ -92,5 +101,26 @@ export const listBusinesses = api(
       businesses: (data as AdminBusiness[]) || [],
       totalCount: Number(totalCount)
     };
+  }
+);
+
+/**
+ * Bir işletme için bir uygulamayı açar/kapatır (Admin Only)
+ */
+export const toggleBusinessApp = api(
+  { expose: true, method: "POST", path: "/admin/businesses/toggle-app" },
+  async (req: ToggleAppRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("business").rpc("toggle_business_app", {
+      p_business_id: req.businessId,
+      p_app_id: req.appId,
+      p_enabled: req.enabled,
+    });
+
+    if (error) {
+      console.error("admin.toggleBusinessApp error:", error);
+      throw APIError.internal(`Failed to toggle app: ${error.message}`);
+    }
+
+    return { success: true };
   }
 );

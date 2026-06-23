@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SquaresFour, MagnifyingGlass, User as UserIcon, Calendar, DotsThreeVertical, Trash, CaretLeft, CaretRight, MapPin } from "@phosphor-icons/react";
+import { SquaresFour, MagnifyingGlass, User as UserIcon, Calendar, DotsThreeVertical, Trash, CaretLeft, CaretRight, MapPin, CheckCircle, Circle } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { admin } from "@/lib/client";
+import { BUSINESS_APPS } from "@/lib/apps";
 import { toast } from "react-hot-toast";
 
 const ITEMS_PER_PAGE = 20;
@@ -15,6 +16,7 @@ export default function AdminBusinessesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [togglingApp, setTogglingApp] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBusinesses();
@@ -35,6 +37,40 @@ export default function AdminBusinessesPage() {
       toast.error("İşletmeler yüklenirken bir hata oluştu.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleApp = async (businessId: string, appId: string, currentlyEnabled: boolean) => {
+    const toggleId = `${businessId}-${appId}`;
+    if (togglingApp === toggleId) return;
+
+    try {
+      setTogglingApp(toggleId);
+      const client = createBrowserClient();
+      await client.admin.toggleBusinessApp({
+        businessId,
+        appId,
+        enabled: !currentlyEnabled
+      });
+
+      // Update local state
+      setBusinesses(prev => prev.map(biz => {
+        if (biz.id === businessId) {
+          const currentApps = biz.enabled_apps || [];
+          const newApps = currentlyEnabled 
+            ? currentApps.filter(id => id !== appId)
+            : [...currentApps, appId];
+          return { ...biz, enabled_apps: newApps };
+        }
+        return biz;
+      }));
+
+      toast.success(currentlyEnabled ? "Uygulama kapatıldı" : "Uygulama açıldı");
+    } catch (error) {
+      console.error("Error toggling app:", error);
+      toast.error("Uygulama durumu güncellenirken bir hata oluştu.");
+    } finally {
+      setTogglingApp(null);
     }
   };
 
@@ -100,64 +136,100 @@ export default function AdminBusinessesPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white border border-stone-100 p-5 rounded-[2rem] flex items-center justify-between group hover:shadow-xl hover:shadow-stone-200/40 hover:border-violet-100 transition-all duration-300"
+                    className="bg-white border border-stone-100 rounded-[2rem] overflow-hidden group hover:shadow-xl hover:shadow-stone-200/40 hover:border-violet-100 transition-all duration-300"
                   >
-                    <div className="flex items-center gap-5">
-                      <div className="relative">
-                        {biz.logo_url ? (
-                          <img 
-                            src={biz.logo_url} 
-                            alt={biz.name || ""} 
-                            className="w-14 h-14 rounded-2xl object-cover shadow-sm"
-                          />
-                        ) : (
-                          <div 
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md"
-                            style={{ backgroundColor: biz.theme_color || "#7c3aed" }}
-                          >
-                            <SquaresFour size={28} weight="duotone" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <h3 className="font-black text-stone-900 truncate">
-                            {biz.name}
-                          </h3>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-3 text-xs text-stone-400 font-bold">
-                            <span className="flex items-center gap-1">
-                              <UserIcon size={14} />
-                              {biz.owner_full_name || biz.owner_username || "Bilinmeyen Sahip"}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-stone-200" />
-                            <span className="flex items-center gap-1">
-                              <Calendar size={14} />
-                              {new Date(biz.created_at).toLocaleDateString("tr-TR", { 
-                                day: "numeric", 
-                                month: "long", 
-                                year: "numeric" 
-                              })}
-                            </span>
-                          </div>
-                          {biz.description && (
-                            <p className="text-[11px] text-stone-400 line-clamp-1 font-medium italic">
-                              {biz.description}
-                            </p>
+                    <div className="p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-5">
+                        <div className="relative">
+                          {biz.header_url || biz.logo_url ? (
+                            <img 
+                              src={(biz.header_url || biz.logo_url) as string} 
+                              alt={biz.name || ""} 
+                              className="w-20 h-12 rounded-2xl object-cover shadow-sm"
+                            />
+                          ) : (
+                            <div 
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md"
+                              style={{ backgroundColor: biz.theme_color || "#7c3aed" }}
+                            >
+                              <SquaresFour size={28} weight="duotone" />
+                            </div>
                           )}
                         </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="font-black text-stone-900 truncate">
+                              {biz.name}
+                            </h3>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-3 text-xs text-stone-400 font-bold">
+                              <span className="flex items-center gap-1">
+                                <UserIcon size={14} />
+                                {biz.owner_full_name || biz.owner_username || "Bilinmeyen Sahip"}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-stone-200" />
+                              <span className="flex items-center gap-1">
+                                <Calendar size={14} />
+                                {new Date(biz.created_at).toLocaleDateString("tr-TR", { 
+                                  day: "numeric", 
+                                  month: "long", 
+                                  year: "numeric" 
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors">
+                          <DotsThreeVertical size={20} weight="bold" />
+                        </button>
+                        <button className="p-3 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                          <Trash size={20} weight="bold" />
+                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors">
-                        <DotsThreeVertical size={20} weight="bold" />
-                      </button>
-                      <button className="p-3 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                        <Trash size={20} weight="bold" />
-                      </button>
+                    {/* App Access Management */}
+                    <div className="px-5 pb-6 pt-4 border-t border-stone-50 bg-stone-50/30">
+                      <h4 className="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-4 px-1">Uygulama Erişimi</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {BUSINESS_APPS.map(app => {
+                          const isEnabled = biz.enabled_apps?.includes(app.id) || false;
+                          const isToggling = togglingApp === `${biz.id}-${app.id}`;
+
+                          return (
+                            <button
+                              key={app.id}
+                              onClick={() => toggleApp(biz.id, app.id, isEnabled)}
+                              disabled={isToggling}
+                              className={`flex flex-col items-center gap-2 p-2 rounded-2xl transition-all border w-20 text-center ${
+                                isEnabled 
+                                  ? "bg-white border-stone-200 shadow-sm" 
+                                  : "bg-transparent border-transparent opacity-40 grayscale hover:opacity-100 hover:grayscale-0"
+                              } ${isToggling ? "cursor-wait" : "cursor-pointer active:scale-95"}`}
+                            >
+                              <div 
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm relative"
+                                style={{ backgroundColor: app.color }}
+                              >
+                                <app.icon size={20} weight="fill" />
+                                {isEnabled && (
+                                  <div className="absolute -top-1.5 -right-1.5 bg-green-500 text-white rounded-full p-0.5 shadow-sm border-2 border-white">
+                                    <CheckCircle size={10} weight="fill" />
+                                  </div>
+                                )}
+                              </div>
+                              <span className={`text-[9px] font-black leading-tight line-clamp-2 ${isEnabled ? "text-stone-900" : "text-stone-400"}`}>
+                                {app.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </motion.div>
                 ))}

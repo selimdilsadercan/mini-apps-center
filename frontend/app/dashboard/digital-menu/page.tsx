@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Tag, Plus, Eye, EyeSlash, Check } from "@phosphor-icons/react";
+import { useState, useRef } from "react";
+import { Tag, Plus, Eye, EyeSlash, Check, Image as ImageIcon, UploadSimple, Trash } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { toast } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { useDigitalMenu } from "./context";
 import { digital_menu } from "@/lib/client";
+import { uploadImage } from "@/lib/image";
 
 const client = createBrowserClient();
 
@@ -23,6 +24,10 @@ export default function MenuContentPage() {
   const [newItemImage, setNewItemImage] = useState("");
   const [newItemCategory, setNewItemCategory] = useState("");
   const [newItemDietary, setNewItemDietary] = useState<string[]>([]);
+
+  // Image Upload
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Unsplash Search
   const [unsplashQuery, setUnsplashQuery] = useState("");
@@ -56,6 +61,27 @@ export default function MenuContentPage() {
     setUnsplashQuery("");
     setUnsplashResults([]);
     setIsAddItemOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "menu-items",
+        client
+      });
+      setNewItemImage(publicUrl);
+      toast.success("Görsel başarıyla yüklendi!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Görsel yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleAddMenuItem = async (e: React.FormEvent) => {
@@ -314,9 +340,56 @@ export default function MenuContentPage() {
                   />
                 </div>
 
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Ürün Görseli</label>
+                  <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 rounded-2xl p-3">
+                    <div className="w-20 h-20 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                      {newItemImage ? (
+                        <>
+                          <img src={newItemImage} alt="Preview" className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setNewItemImage("")}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Trash size={20} weight="bold" className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <ImageIcon size={24} weight="bold" className="text-stone-300" />
+                      )}
+                      {uploadingImage && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                      >
+                        <UploadSimple size={16} weight="bold" />
+                        {newItemImage ? "Görseli Değiştir" : "Görsel Yükle"}
+                      </button>
+                      <p className="text-[9px] text-stone-400 font-bold mt-1.5 ml-1 uppercase tracking-tighter">
+                        WebP, PNG veya JPG. Max 2MB.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-stone-50 p-4 rounded-3xl border border-stone-150 space-y-3">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Unsplash'ten Görsel Seç</label>
+                    <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Veya Unsplash'ten Seç</label>
                   </div>
 
                   <div className="flex gap-2">

@@ -8,7 +8,10 @@ import {
   Storefront,
   CaretLeft,
   ArrowRight,
-  Sparkle
+  Sparkle,
+  Image as ImageIcon,
+  UploadSimple,
+  Trash
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
@@ -17,6 +20,8 @@ import { createBrowserClient } from "@/lib/api";
 import { digital_menu, stamp_card } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import { useRouter } from "next/navigation";
+import { uploadImage } from "@/lib/image";
+import { useRef } from "react";
 
 const client = createBrowserClient();
 
@@ -33,7 +38,12 @@ export default function BusinessListPage() {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newLogo, setNewLogo] = useState("");
+  const [newHeader, setNewHeader] = useState("");
   const [newColor, setNewColor] = useState("#EF4444");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isUserLoaded && user) {
@@ -55,6 +65,48 @@ export default function BusinessListPage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingLogo(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "logos",
+        client
+      });
+      setNewLogo(publicUrl);
+      toast.success("Logo başarıyla yüklendi!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Logo yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingHeader(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "headers",
+        client
+      });
+      setNewHeader(publicUrl);
+      toast.success("Header görseli başarıyla yüklendi!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Header yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingHeader(false);
+      if (headerInputRef.current) headerInputRef.current.value = "";
+    }
+  };
+
   // Create Business
   const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +117,7 @@ export default function BusinessListPage() {
         name: newName,
         description: newDesc,
         logoUrl: newLogo || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&auto=format&fit=crop&q=80",
+        headerUrl: newHeader,
         themeColor: newColor
       });
       if (res.business) {
@@ -158,9 +211,9 @@ export default function BusinessListPage() {
                   onClick={() => router.push(`/dashboard/business?id=${biz.id}`)}
                   className="bg-white p-4.5 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 hover:border-red-400 transition-all cursor-pointer hover:-translate-y-0.5 active:scale-98"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">
-                    {biz.logo_url ? (
-                      <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                  <div className="w-24 h-14 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">
+                    {biz.header_url || biz.logo_url ? (
+                      <img src={biz.header_url || biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
                     ) : (
                       biz.name.slice(0, 2).toUpperCase()
                     )}
@@ -215,13 +268,91 @@ export default function BusinessListPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Logo Görsel Linki</label>
-                  <input
-                    placeholder="https://..."
-                    value={newLogo}
-                    onChange={(e) => setNewLogo(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
-                  />
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Logosu</label>
+                  <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 rounded-2xl p-3">
+                    <div className="w-14 h-14 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                      {newLogo ? (
+                        <>
+                          <img src={newLogo} alt="Logo Preview" className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setNewLogo("")}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Trash size={18} weight="bold" className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
+                      )}
+                      {uploadingLogo && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                      >
+                        <UploadSimple size={14} weight="bold" />
+                        {newLogo ? "Logoyu Değiştir" : "Logo Seç"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Geniş Logo / Banner (Opsiyonel)</label>
+                  <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-2xl p-3">
+                    <div className="w-full h-24 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                      {newHeader ? (
+                        <>
+                          <img src={newHeader} alt="Header Preview" className="w-full h-full object-cover" />
+                          <div 
+                            onClick={() => setNewHeader("")}
+                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <Trash size={18} weight="bold" className="text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
+                      )}
+                      {uploadingHeader && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        ref={headerInputRef}
+                        onChange={handleHeaderUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => headerInputRef.current?.click()}
+                        disabled={uploadingHeader}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                      >
+                        <UploadSimple size={14} weight="bold" />
+                        {newHeader ? "Görseli Değiştir" : "Geniş Logo Seç"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

@@ -14,10 +14,13 @@ export interface Business {
   name: string;
   description: string | null;
   logo_url: string | null;
+  header_url: string | null;
   theme_color: string;
   font_family: string;
   created_at: string;
   owner_user_id: string;
+  enabled_apps: string[];
+  contact_info: any;
 }
 
 export interface BusinessUser {
@@ -39,7 +42,9 @@ interface CreateBusinessRequest {
   name: string;
   description: string;
   logoUrl: string;
+  headerUrl?: string;
   themeColor: string;
+  contactInfo?: any;
 }
 
 interface UpdateBusinessRequest {
@@ -47,8 +52,10 @@ interface UpdateBusinessRequest {
   name: string;
   description: string;
   logoUrl: string;
+  headerUrl: string;
   themeColor: string;
   fontFamily: string;
+  contactInfo: any;
 }
 
 interface BusinessResponse {
@@ -80,7 +87,9 @@ export const createBusiness = api(
       p_name: req.name,
       p_description: req.description,
       p_logo_url: req.logoUrl,
+      p_header_url: req.headerUrl || null,
       p_theme_color: req.themeColor,
+      p_contact_info: req.contactInfo || {},
     });
 
     if (error) {
@@ -104,8 +113,10 @@ export const updateBusiness = api(
       p_name: req.name,
       p_description: req.description,
       p_logo_url: req.logoUrl,
+      p_header_url: req.headerUrl,
       p_theme_color: req.themeColor,
       p_font_family: req.fontFamily,
+      p_contact_info: req.contactInfo,
     });
 
     if (error) {
@@ -154,6 +165,7 @@ export const getBusiness = api(
     }
 
     const biz = Array.isArray(data) ? data[0] : data;
+    console.log("[Business] getBusiness result:", JSON.stringify(biz));
     return { business: (biz as Business) || null };
   }
 );

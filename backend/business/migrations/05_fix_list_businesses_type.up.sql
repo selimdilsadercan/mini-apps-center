@@ -19,6 +19,7 @@ RETURNS TABLE (
     owner_user_id UUID,
     owner_username TEXT,
     owner_full_name TEXT,
+    enabled_apps JSONB,
     total_count BIGINT
 ) AS $$
 BEGIN
@@ -34,6 +35,12 @@ BEGIN
         b.owner_user_id,
         u.username as owner_username,
         u.full_name as owner_full_name,
+        COALESCE(
+            (SELECT jsonb_agg(app_id) 
+             FROM business.business_apps 
+             WHERE business_id = b.id AND is_enabled = TRUE),
+            '[]'::jsonb
+        ) as enabled_apps,
         COUNT(*) OVER() as total_count
     FROM business.businesses b
     LEFT JOIN public.users u ON b.owner_user_id = u.id

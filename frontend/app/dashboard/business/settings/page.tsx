@@ -15,24 +15,54 @@ import {
   MagnifyingGlass,
   Trash,
   UserPlus,
-  Warning
+  Warning,
+  UploadSimple,
+  Palette,
+  Image as ImageIcon,
+  ShareNetwork,
+  InstagramLogo,
+  FacebookLogo,
+  TwitterLogo,
+  Globe,
+  Phone,
+  MapPin,
+  Clock,
+  X
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { business as bizTypes } from "@/lib/client";
+import { uploadImage, uploadBlob } from "@/lib/image";
+import { BannerEditor } from "@/components/BannerEditor";
+import { useRef } from "react";
 
 const client = createBrowserClient();
 
 export default function BusinessSettingsPage() {
   const { id, business, loading, refreshBusiness } = useBusiness();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"details" | "users">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "users" | "contact">("details");
 
   // Edit States
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [logo, setLogo] = useState("");
+  const [header, setHeader] = useState("");
   const [color, setColor] = useState("#EF4444");
+  const [contactInfo, setContactInfo] = useState<any>({
+    phone: "",
+    website: "",
+    instagram: "",
+    facebook: "",
+    twitter: "",
+    address: "",
+    working_hours: ""
+  });
   const [updating, setUpdating] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
+  const [isBannerEditorOpen, setIsBannerEditorOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
 
   // Users States
   const [users, setUsers] = useState<bizTypes.BusinessUser[]>([]);
@@ -45,10 +75,23 @@ export default function BusinessSettingsPage() {
 
   useEffect(() => {
     if (business) {
+      console.log("[Settings] Business data loaded:", business);
       setName(business.name || "");
       setDesc(business.description || "");
       setLogo(business.logo_url || "");
+      setHeader(business.header_url || "");
       setColor(business.theme_color || "#EF4444");
+      if (business.contact_info) {
+        setContactInfo({
+          phone: business.contact_info.phone || "",
+          website: business.contact_info.website || "",
+          instagram: business.contact_info.instagram || "",
+          facebook: business.contact_info.facebook || "",
+          twitter: business.contact_info.twitter || "",
+          address: business.contact_info.address || "",
+          working_hours: business.contact_info.working_hours || ""
+        });
+      }
     }
   }, [business]);
 
@@ -145,17 +188,121 @@ export default function BusinessSettingsPage() {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
-      setUpdating(true);
-      const res = await client.business.updateBusiness({
+      setUploadingLogo(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "logos",
+        client
+      });
+      setLogo(publicUrl);
+      
+      // Save immediately
+      await client.business.updateBusiness({
+        businessId: id,
+        name,
+        description: desc,
+        logoUrl: publicUrl,
+        headerUrl: header,
+        themeColor: color,
+        fontFamily: business?.font_family || "sans",
+        contactInfo
+      });
+      
+      toast.success("Logo başarıyla yüklendi ve kaydedildi!");
+      await refreshBusiness();
+    } catch (err) {
+      console.error(err);
+      toast.error("Logo yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingLogo(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingHeader(true);
+      const publicUrl = await uploadImage(file, {
+        folder: "headers",
+        client
+      });
+      setHeader(publicUrl);
+
+      // Save immediately
+      await client.business.updateBusiness({
         businessId: id,
         name,
         description: desc,
         logoUrl: logo,
+        headerUrl: publicUrl,
         themeColor: color,
-        fontFamily: business?.font_family || "sans"
+        fontFamily: business?.font_family || "sans",
+        contactInfo
+      });
+
+      toast.success("Header görseli başarıyla yüklendi ve kaydedildi!");
+      await refreshBusiness();
+    } catch (err) {
+      console.error(err);
+      toast.error("Header yüklenirken bir hata oluştu.");
+    } finally {
+      setUploadingHeader(false);
+      if (headerInputRef.current) headerInputRef.current.value = "";
+    }
+  };
+
+  const handleSaveBanner = async (blob: Blob) => {
+    try {
+      setUploadingHeader(true);
+      const publicUrl = await uploadBlob(blob, `banner-${Date.now()}.webp`, {
+        folder: "headers",
+        client
+      });
+      setHeader(publicUrl);
+
+      // Save immediately
+      await client.business.updateBusiness({
+        businessId: id,
+        name,
+        description: desc,
+        logoUrl: logo,
+        headerUrl: publicUrl,
+        themeColor: color,
+        fontFamily: business?.font_family || "sans",
+        contactInfo
+      });
+
+      setIsBannerEditorOpen(false);
+      toast.success("Banner tasarımı başarıyla kaydedildi!");
+      await refreshBusiness();
+    } catch (err) {
+      console.error(err);
+      toast.error("Banner kaydedilirken bir hata oluştu.");
+    } finally {
+      setUploadingHeader(false);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setUpdating(true);
+      const res =       await client.business.updateBusiness({
+        businessId: id,
+        name,
+        description: desc,
+        logoUrl: logo,
+        headerUrl: header,
+        themeColor: color,
+        fontFamily: business?.font_family || "sans",
+        contactInfo
       });
       if (res.business) {
         toast.success("İşletme bilgileri güncellendi!");
@@ -204,6 +351,17 @@ export default function BusinessSettingsPage() {
             <User size={16} weight={activeTab === "users" ? "fill" : "bold"} />
             Kullanıcılar
           </button>
+          <button
+            onClick={() => setActiveTab("contact")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeTab === "contact"
+                ? "bg-white text-stone-900 shadow-sm"
+                : "text-stone-400 hover:text-stone-600"
+            }`}
+          >
+            <ShareNetwork size={16} weight={activeTab === "contact" ? "fill" : "bold"} />
+            İletişim & Sosyal
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -227,12 +385,109 @@ export default function BusinessSettingsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-stone-400 tracking-wider ml-1">Logo URL</label>
-                    <input
-                      value={logo}
-                      onChange={(e) => setLogo(e.target.value)}
-                      className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none transition-all"
-                    />
+                    <label className="text-[10px] uppercase font-black text-stone-400 tracking-wider ml-1">İşletme Logosu</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0 relative group">
+                        {logo ? (
+                          <>
+                            <img src={logo} alt="Logo Preview" className="w-full h-full object-cover" />
+                            <div 
+                              onClick={() => setLogo("")}
+                              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                              <Trash size={20} weight="bold" className="text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <ImageIcon size={24} weight="bold" className="text-stone-300" />
+                        )}
+                        {uploadingLogo && (
+                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-stone-200 border-t-stone-900 rounded-full animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleLogoUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingLogo}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          <UploadSimple size={16} weight="bold" />
+                          {logo ? "Logoyu Değiştir" : "Logo Yükle"}
+                        </button>
+                        <p className="text-[9px] text-stone-400 font-bold mt-1.5 ml-1 uppercase tracking-tighter">
+                          WebP, PNG veya JPG. Max 2MB.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-black text-stone-400 tracking-wider ml-1">Geniş Logo / Banner (Dikdörtgen)</label>
+                    <div className="flex flex-col gap-4">
+                      <div className="w-full h-40 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-center overflow-hidden relative group">
+                        {header ? (
+                          <>
+                            <img src={header} alt="Header Preview" className="w-full h-full object-cover" />
+                            <div 
+                              onClick={() => setHeader("")}
+                              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                              <Trash size={24} weight="bold" className="text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <ImageIcon size={32} weight="bold" className="text-stone-300" />
+                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Görsel Yok</span>
+                          </div>
+                        )}
+                        {uploadingHeader && (
+                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                            <div className="w-8 h-8 border-2 border-stone-200 border-t-stone-900 rounded-full animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="file"
+                          ref={headerInputRef}
+                          onChange={handleHeaderUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => headerInputRef.current?.click()}
+                          disabled={uploadingHeader}
+                          className="flex items-center gap-2 px-6 py-3 bg-white border border-stone-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        >
+                          <UploadSimple size={18} weight="bold" />
+                          {header ? "Görseli Değiştir" : "Geniş Logo Yükle"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsBannerEditorOpen(true)}
+                          disabled={uploadingHeader}
+                          className="flex items-center gap-2 px-6 py-3 bg-stone-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        >
+                          <Palette size={18} weight="bold" />
+                          Tasarla
+                        </button>
+                        <p className="text-[9px] text-stone-400 font-bold uppercase tracking-tighter">
+                          Tavsiye edilen: 1200x400px. WebP, PNG veya JPG.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -370,6 +625,141 @@ export default function BusinessSettingsPage() {
               </div>
             </div>
           )}
+
+          {activeTab === "contact" && (
+            <div className="p-8 md:p-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="max-w-2xl mx-auto space-y-10">
+                <div className="text-center">
+                  <h2 className="text-2xl font-black text-stone-900 tracking-tight">İletişim & Sosyal Medya</h2>
+                  <p className="text-stone-400 text-sm font-medium mt-1 leading-relaxed">
+                    İşletmenizin iletişim bilgilerini ve sosyal medya hesaplarını ekleyin.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* İletişim Bilgileri */}
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] uppercase font-black text-stone-400 tracking-[0.2em] px-1">İletişim</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <Phone size={14} weight="bold" /> Telefon
+                        </label>
+                        <input
+                          value={contactInfo.phone}
+                          onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                          placeholder="+90 5XX XXX XX XX"
+                          className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <Globe size={14} weight="bold" /> Web Sitesi
+                        </label>
+                        <input
+                          value={contactInfo.website}
+                          onChange={(e) => setContactInfo({ ...contactInfo, website: e.target.value })}
+                          placeholder="https://www.isletme.com"
+                          className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <MapPin size={14} weight="bold" /> Adres
+                        </label>
+                        <textarea
+                          value={contactInfo.address}
+                          onChange={(e) => setContactInfo({ ...contactInfo, address: e.target.value })}
+                          placeholder="İşletme adresi..."
+                          rows={3}
+                          className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all resize-none"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <Clock size={14} weight="bold" /> Çalışma Saatleri
+                        </label>
+                        <input
+                          value={contactInfo.working_hours}
+                          onChange={(e) => setContactInfo({ ...contactInfo, working_hours: e.target.value })}
+                          placeholder="Örn: Pazartesi - Cuma: 09:00 - 18:00"
+                          className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sosyal Medya */}
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] uppercase font-black text-stone-400 tracking-[0.2em] px-1">Sosyal Medya</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <InstagramLogo size={14} weight="bold" /> Instagram
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">@</span>
+                          <input
+                            value={contactInfo.instagram}
+                            onChange={(e) => setContactInfo({ ...contactInfo, instagram: e.target.value })}
+                            placeholder="kullaniciadi"
+                            className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 pl-8 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <FacebookLogo size={14} weight="bold" /> Facebook
+                        </label>
+                        <input
+                          value={contactInfo.facebook}
+                          onChange={(e) => setContactInfo({ ...contactInfo, facebook: e.target.value })}
+                          placeholder="facebook.com/isletme"
+                          className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-stone-850 tracking-wider ml-1 flex items-center gap-2">
+                          <TwitterLogo size={14} weight="bold" /> Twitter / X
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">@</span>
+                          <input
+                            value={contactInfo.twitter}
+                            onChange={(e) => setContactInfo({ ...contactInfo, twitter: e.target.value })}
+                            placeholder="kullaniciadi"
+                            className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 pl-8 text-sm font-bold text-stone-850 focus:border-stone-900 focus:bg-white outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-stone-100">
+                  <button
+                    onClick={handleUpdate}
+                    disabled={updating}
+                    className="w-full py-5 bg-stone-900 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-stone-900/10 hover:bg-stone-800 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {updating ? (
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <FloppyDisk size={20} weight="fill" />
+                    )}
+                    {updating ? "Güncelleniyor..." : "Bilgileri Kaydet"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Invite Drawer */}
@@ -446,6 +836,16 @@ export default function BusinessSettingsPage() {
             </Drawer.Content>
           </Drawer.Portal>
         </Drawer.Root>
+
+        {/* Banner Editor Modal */}
+        {isBannerEditorOpen && (
+          <BannerEditor
+            logoUrl={logo}
+            initialHeaderUrl={header}
+            onSave={handleSaveBanner}
+            onClose={() => setIsBannerEditorOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
