@@ -68,7 +68,7 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-xs text-gray-400 font-medium">
-          &copy; {new Date().getFullYear()} Everything Mini Apps Center. Tüm Hakları Saklıdır.
+          &copy; {new Date().getFullYear()} Everything. Tüm Hakları Saklıdır.
         </div>
       </div>
     </div>

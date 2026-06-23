@@ -22,8 +22,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Everything - Mini Apps Center",
-  description: "One hub for all your daily digital needs - Games, Utilities, Productivity and more.",
+  title: "Everything",
+  description: "Your unified toolkit for daily life - Productivity, Utilities, and more.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",

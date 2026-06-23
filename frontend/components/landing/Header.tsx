@@ -18,6 +18,7 @@ const Header: React.FC = () => {
   const menuItems = [
     { text: t("apps"), url: "#apps" },
     { text: t("features"), url: "#features" },
+    { text: t("forBusinesses"), url: "/for-businesses" },
     { text: t("faq"), url: "#faq" },
   ];
 

@@ -7,7 +7,11 @@ import { Sparkle } from "@phosphor-icons/react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getAppRootUrl } from "@/lib/apps";
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  hideCTA?: boolean;
+}
+
+const Footer: React.FC<FooterProps> = ({ hideCTA = false }) => {
   const t = useTranslations("Footer");
   const [mounted, setMounted] = useState(false);
 
@@ -39,35 +43,39 @@ const Footer: React.FC = () => {
   return (
     <footer className="relative bg-gray-50 border-t border-gray-100">
       {/* CTA Section */}
-      <div className="max-w-6xl mx-auto px-6 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16 relative"
-        >
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px]" />
-          </div>
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
-              {t("cta.title")}
-            </h2>
-            <p className="text-gray-500 text-base md:text-lg mb-8 leading-relaxed">
-              {t("cta.subtitle")}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href={mounted ? getAppRootUrl() : "/"}
-                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition-all duration-300 shadow-lg shadow-indigo-500/10 active:scale-95 text-center flex items-center justify-center gap-2"
-              >
-                <Sparkle size={18} weight="fill" />
-                <span>{t("cta.openApp")}</span>
-              </Link>
+      {!hideCTA && (
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16 relative"
+          >
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px]" />
             </div>
-          </div>
-        </motion.div>
+            <div className="relative z-10 max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+                {t("cta.title")}
+              </h2>
+              <p className="text-gray-500 text-base md:text-lg mb-8 leading-relaxed">
+                {t("cta.subtitle")}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  href={mounted ? getAppRootUrl() : "/"}
+                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-2xl transition-all duration-300 shadow-lg shadow-indigo-500/10 active:scale-95 text-center flex items-center justify-center gap-2"
+                >
+                  <Sparkle size={18} weight="fill" />
+                  <span>{t("cta.openApp")}</span>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
+      <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Footer Links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 border-t border-gray-200/50 pt-12">
           {/* Brand */}

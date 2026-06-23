@@ -161,6 +161,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (originalPath === "/for-businesses") {
+    url.pathname = "/landing/for-businesses";
+    return NextResponse.rewrite(url);
+  }
+
   // If trying to access application paths directly on the root domain,
   // redirect to the personal 'my' subdomain.
   const APP_ROUTES = ["/home", "/discover", "/profile", "/friends", "/ai-chat", "/sign-in", "/sign-up", "/apps", "/dashboard"];

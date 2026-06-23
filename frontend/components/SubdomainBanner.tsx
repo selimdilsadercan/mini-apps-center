@@ -62,7 +62,7 @@ export function SubdomainBanner({ subdomain }: SubdomainBannerProps) {
             </div>
             <span className="text-white/30 text-xs">·</span>
             <span className="text-white/60 text-xs">
-              {app ? `${app.name} ve çok daha fazlası` : "Mini uygulamalar merkezi"}
+              {app ? `${app.name} ve çok daha fazlası` : "Zeki araçlar merkezi"}
             </span>
           </div>
           <button

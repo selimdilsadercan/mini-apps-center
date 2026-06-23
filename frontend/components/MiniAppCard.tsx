@@ -57,12 +57,12 @@ export default function MiniAppCard({ app }: MiniAppCardProps) {
       {/* Status Badge (if needed) */}
       {!app.isImplemented && (
         <div className="mt-3 px-2 py-0.5 bg-gray-50 text-[10px] font-bold text-gray-400 rounded-full border border-gray-100 group-hover:bg-indigo-50 group-hover:text-indigo-400 group-hover:border-indigo-100 transition-colors">
-          Soon
+          Yakında
         </div>
       )}
       {app.isImplemented && (
         <div className="mt-3 px-2 py-0.5 bg-emerald-50 text-[10px] font-bold text-emerald-600 rounded-full border border-emerald-100">
-          Live
+          Yerleşik
         </div>
       )}
     </button>

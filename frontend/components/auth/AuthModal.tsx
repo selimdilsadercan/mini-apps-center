@@ -104,7 +104,7 @@ export function AuthModal({
           </div>
 
           <p className="mt-6 text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-            Everything Mini Apps Center
+            Everything
           </p>
         </motion.div>
       </motion.div>

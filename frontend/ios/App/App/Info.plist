@@ -48,11 +48,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Everything needs access to your camera to let you take photos for your profile and mini-apps.</string>
+	<string>Everything needs access to your camera to let you take photos for your profile and tools.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Everything uses your location to provide relevant local information like weather and nearby services.</string>
+	<string>Everything uses your location to provide relevant local information and nearby services.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Everything needs access to your photo library to let you upload profile pictures and save generated images.</string>
+	<string>Everything needs access to your photo library to let you upload profile pictures and save images.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

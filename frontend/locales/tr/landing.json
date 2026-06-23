@@ -1,50 +1,51 @@
 {
   "Header": {
-    "apps": "Uygulamalar",
+    "apps": "Keşfet",
     "features": "Özellikler",
+    "forBusinesses": "İşletmeler İçin",
     "faq": "SSS",
-    "openApp": "Uygulamayı Aç",
+    "openApp": "Merkezi Aç",
     "signIn": "Giriş Yap"
   },
   "Hero": {
     "badge": "Tamamen Canlı Arayüz",
     "title1": "Tüm Günlük Araçların",
     "title2": "Tek Bir Merkezde.",
-    "subtitle": "Oyunlardan verimlilik araçlarına, finans takipçilerinden kişisel yaşam asistanlarına kadar her şey tek bir süper uygulamada.",
+    "subtitle": "Oyunlardan verimlilik araçlarına, finans takipçilerinden kişisel yaşam asistanlarına kadar her şey tek bir noktada.",
     "openApp": "Merkezi Keşfet",
     "now": "Hemen",
     "stats": {
       "players": "Aktif Kullanıcı",
-      "games": "Mini Uygulama",
+      "games": "Modül",
       "puzzles": "Çözülen Görev",
       "rating": "Memnuniyet Oranı"
     }
   },
   "AppPreview": {
-    "badge": "🧩 Zengin Mini Uygulama Kütüphanesi",
+    "badge": "🧩 Zengin Modül Kütüphanesi",
     "title": "İhtiyacın Olan Her Şey Burda",
-    "subtitle": "Kategorize edilmiş onlarca mini uygulama arasından dilediğini seç, ana ekranına ekle ve kendine özel işletim sistemini oluştur.",
-    "tryLive": "Hemen Uygulamaya Git",
-    "descriptionSuffix": "Bu mini uygulama ile günlük rutinlerini kolaylaştır, zamandan tasarruf et ve hayatını düzene sok.",
+    "subtitle": "Kategorize edilmiş onlarca mini araç arasından dilediğini seç, ana ekranına ekle ve kendine özel çalışma alanını oluştur.",
+    "tryLive": "Hemen Keşfet",
+    "descriptionSuffix": "Bu mini araç ile günlük rutinlerini kolaylaştır, zamandan tasarruf et ve hayatını düzene sok.",
     "difficulty": "Kategori",
     "players": "Geliştirici",
-    "playNow": "Uygulamayı Aç",
+    "playNow": "Aç",
     "share": "Paylaş",
     "loading": "Yükleniyor...",
-    "fallbackDesc": "Bu mini uygulamanın detaylı görünümü yakında burada olacak!"
+    "fallbackDesc": "Bu modülün detaylı görünümü yakında burada olacak!"
   },
   "Features": {
     "badge": "✨ Özellikler",
-    "title": "Gelişmiş Süper Uygulama Deneyimi",
+    "title": "Gelişmiş Deneyim",
     "subtitle": "Everything'i benzersiz kılan bazı temel özellikler",
     "items": {
       "daily": {
         "title": "Kişiselleştirilebilir Ana Ekran",
-        "description": "Dilediğin mini uygulamayı ana ekranına ekle, çıkar ve kendine özel bir kontrol paneli oluştur."
+        "description": "Dilediğin modülü ana ekranına ekle, çıkar ve kendine özel bir kontrol paneli oluştur."
       },
       "chest": {
         "title": "Tek Hesap, Onlarca Servis",
-        "description": "Clerk ile tek bir güvenli üyelik açarak tüm mini uygulamalarda verilerini bulut üzerinde senkronize et."
+        "description": "Clerk ile tek bir güvenli üyelik açarak tüm verilerini bulut üzerinde senkronize et."
       },
       "hints": {
         "title": "Encore & Supabase Altyapısı",
@@ -52,7 +53,7 @@
       },
       "social": {
         "title": "Sosyal Paylaşım & Arkadaşlar",
-        "description": "Arkadaş ekle, QR profilinle paylaş ve ortak listelerde veya oyunlarda birlikte etkileşime geç."
+        "description": "Arkadaş ekle, QR profilinle paylaş ve ortak listelerde veya araçlarda birlikte etkileşime geç."
       },
       "duel": {
         "title": "Mobil & Web Desteği",
@@ -60,30 +61,30 @@
       },
       "premium": {
         "title": "Geliştirici Dostu Yapı",
-        "description": "Yeni mini uygulamalar eklemek çok kolay! Tanımlı standartlar sayesinde hızla yeni bir araç geliştir."
+        "description": "Yeni modüller eklemek çok kolay! Tanımlı standartlar sayesinde hızla yeni bir araç geliştir."
       }
     }
   },
   "FAQ": {
     "badge": "❓ SSS",
     "title": "Sıkça Sorulan Sorular",
-    "subtitle": "Everything Mini Apps Center hakkında merak ettikleriniz",
+    "subtitle": "Everything Merkezi hakkında merak ettikleriniz",
     "moreQuestions": "Başka bir sorunuz mu var?",
     "questions": {
       "0": {
-        "q": "Mini Apps Center nedir?",
-        "a": "Mini Apps Center (Everything), günlük hayatta ihtiyaç duyabileceğiniz bütçe yönetimi, alışveriş listeleri, mini oyunlar ve üretkenlik araçları gibi farklı uygulamaları tek bir çatı altında birleştiren bir süper uygulamadır."
+        "q": "Everything nedir?",
+        "a": "Everything, günlük hayatta ihtiyaç duyabileceğiniz bütçe yönetimi, alışveriş listeleri, mini oyunlar ve üretkenlik araçları gibi farklı modülleri tek bir çatı altında birleştiren bir araç kutusudur."
       },
       "1": {
-        "q": "Uygulamaları kullanmak ücretli mi?",
-        "a": "Hayır! Platformumuzdaki tüm temel uygulamalar tamamen ücretsizdir ve herhangi bir reklam içermez."
+        "q": "Modülleri kullanmak ücretli mi?",
+        "a": "Hayır! Platformumuzdaki tüm temel araçlar tamamen ücretsizdir ve herhangi bir reklam içermez."
       },
       "2": {
         "q": "Verilerim nasıl saklanıyor?",
         "a": "Verileriniz Clerk entegrasyonuyla güvenli bir şekilde doğrulanır ve Supabase bulut veritabanında saklanır. Böylece telefon veya bilgisayar değiştirdiğinizde verileriniz kaybolmaz."
       },
       "3": {
-        "q": "Kendi mini uygulamamı ekleyebilir miyim?",
+        "q": "Kendi modülümü ekleyebilir miyim?",
         "a": "Evet, projemiz modüler bir yapıya sahiptir. Geliştirici kurallarına uyarak yeni bir frontend sayfası ve backend servisi ekleyip kolayca platforma dahil edebilirsiniz."
       },
       "4": {
@@ -92,7 +93,7 @@
       },
       "5": {
         "q": "Arkadaş ekleme özelliği ne işe yarıyor?",
-        "a": "Arkadaşlarınızı ekleyerek platformdaki bazı uygulamalarda ortak listeler oluşturabilir veya ilerlemelerinizi paylaşabilirsiniz."
+        "a": "Arkadaşlarınızı ekleyerek platformdaki bazı modüllerde ortak listeler oluşturabilir veya ilerlemelerinizi paylaşabilirsiniz."
       }
     }
   },
@@ -103,7 +104,7 @@
     "sections": {
       "1": {
         "title": "1. Giriş",
-        "content": "Everything Mini Apps Center (\"Uygulama\"), kullanıcılarımızın gizliliğine son derece önem vermektedir. Bu Gizlilik Politikası, uygulamamızı ve sunduğumuz hizmetleri kullanırken hangi bilgilerinizin toplandığını, nasıl kullanıldığını ve nasıl korunduğunu açıklar."
+        "content": "Everything Merkezi (\"Hizmet\"), kullanıcılarımızın gizliliğine son derece önem vermektedir. Bu Gizlilik Politikası, hizmetimizi kullanırken hangi bilgilerinizin toplandığını, nasıl kullanıldığını ve nasıl korunduğunu açıklar."
       },
       "2": {
         "title": "2. Toplanan Veriler",
@@ -118,8 +119,8 @@
         "title": "3. Verilerin Kullanım Amacı",
         "content": "Toplanan veriler aşağıdaki amaçlarla sınırlı olarak kullanılır:",
         "items": [
-          "Uygulamaya güvenli bir şekilde giriş yapmanızı sağlamak",
-          "Mini uygulamalardaki kişiselleştirilmiş verilerinizi (kiler, bütçe vb.) hesabınızla eşleştirmek",
+          "Hizmete güvenli bir şekilde giriş yapmanızı sağlamak",
+          "Kişiselleştirilmiş verilerinizi (kiler, bütçe vb.) hesabınızla eşleştirmek",
           "Kullanıcı deneyimini iyileştirmek ve teknik sorunları çözmek"
         ]
       },
@@ -144,7 +145,7 @@
     "sections": {
       "1": {
         "title": "1. Koşulların Kabulü",
-        "content": "Everything Mini Apps Center'a (\"Hizmet\") erişerek veya Hizmet'i kullanarak, bu Kullanım Koşulları'nı (\"Koşullar\") okuduğunuzu, anladığınızı ve bunlara bağlı kalmayı kabul ettiğinizi beyan edersiniz. Eğer bu koşulları kabul etmiyorsanız, lütfen Hizmet'i kullanmayınız."
+        "content": "Everything Merkezi'ne (\"Hizmet\") erişerek veya Hizmet'i kullanarak, bu Kullanım Koşulları'nı (\"Koşullar\") okuduğunuzu, anladığınızı ve bunlara bağlı kalmayı kabul ettiğinizi beyan edersiniz. Eğer bu koşulları kabul etmiyorsanız, lütfen Hizmet'i kullanmayınız."
       },
       "2": {
         "title": "2. Hizmet Kullanımı ve Hesap Güvenliği",
@@ -152,7 +153,7 @@
       },
       "3": {
         "title": "3. Fikri Mülkiyet Hakları",
-        "content": "Everything Mini Apps Center ve içinde barındırılan tüm mini uygulamaların tasarımı, kodları, logoları, grafikleri ve markaları Everything ekibine aittir ve uluslararası fikri mülkiyet yasalarıyla korunmaktadır. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz veya dağıtılamaz."
+        "content": "Everything Merkezi ve içinde barındırılan tüm modüllerin tasarımı, kodları, logoları, grafikleri ve markaları Everything ekibine aittir ve uluslararası fikri mülkiyet yasalarıyla korunmaktadır. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz veya dağıtılamaz."
       },
       "4": {
         "title": "4. Kabul Edilebilir Kullanım",
@@ -160,7 +161,7 @@
       },
       "5": {
         "title": "5. Sorumluluk Reddi",
-        "content": "Everything Mini Apps Center, hizmetleri \"olduğu gibi\" ve \"kullanılabilir olduğu sürece\" sunmaktadır. Hizmetin kesintisiz, hatasız veya tamamen güvenli olacağını garanti etmeyiz. Doğrudan veya dolaylı olarak ortaya çıkabilecek veri kayıplarından Everything sorumlu tutulamaz."
+        "content": "Everything Merkezi, hizmetleri \"olduğu gibi\" ve \"kullanılabilir olduğu sürece\" sunmaktadır. Hizmetin kesintisiz, hatasız veya tamamen güvenli olacağını garanti etmeyiz. Doğrudan veya dolaylı olarak ortaya çıkabilecek veri kayıplarından Everything sorumlu tutulamaz."
       }
     },
     "contact": {
@@ -172,7 +173,7 @@
     "cta": {
       "title": "Bugün Keşfetmeye Başla",
       "subtitle": "Tüm günlük araçlarını tek bir yerden yöneterek dijital hayatını sadeleştir.",
-      "openApp": "Uygulamayı Aç"
+      "openApp": "Merkezi Aç"
     },
     "tagline": "Zeki ve modüler günlük yaşam araçları merkezi.",
     "links": {
@@ -183,7 +184,7 @@
     "copyright": "© 2026 Everything. Tüm hakları saklıdır.",
     "madeWith": "❤️ ile geliştirildi",
     "linkTexts": {
-      "games": "Uygulamalar",
+      "games": "Keşfet",
       "features": "Özellikler",
       "premium": "Dokümantasyon",
       "howToPlay": "Destek",

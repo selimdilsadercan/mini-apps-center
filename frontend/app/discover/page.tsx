@@ -305,7 +305,7 @@ export default function Discover() {
           <div className="relative group">
             <div className="absolute inset-y-0 left-3.5 sm:left-4 flex items-center pointer-events-none group-focus-within:text-indigo-600 text-gray-400 transition-colors">
               <MagnifyingGlass size={18} weight="bold" className="sm:w-5 sm:h-5" />
-            </div>
+            </div>  
             <input
               type="text"
               placeholder={t("searchPlaceholder")}
@@ -408,7 +408,7 @@ export default function Discover() {
                     İptal Edilenler
                   </h2>
                   <p className="text-gray-500 text-sm font-medium mt-1">
-                    Bu uygulamalar yayından kaldırıldı veya iptal edildi. Sadece adminler görebilir.
+                    Bu araçlar yayından kaldırıldı veya iptal edildi. Sadece adminler görebilir.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -2,17 +2,17 @@ import LandingPage from "@/components/landing/LandingPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Everything - Mini Apps Center | Tüm Günlük Araçlarınız Tek Bir Yerde",
-  description: "Oyunlardan verimlilik araçlarına, finans takipçilerinden kişisel yaşam asistanlarına kadar her şey tek bir süper uygulamada. Everything Mini Apps Center ile dijital hayatınızı sadeleştirin.",
-  keywords: ["mini apps", "süper uygulama", "super app", "verimlilik araçları", "mini oyunlar", "günlük araçlar", "everything center"],
+  title: "Everything | Tüm Günlük Araçlarınız Tek Bir Yerde",
+  description: "Verimlilik araçlarından finans takipçilerine, kişisel yaşam asistanlarına kadar her şey tek bir noktada. Everything ile dijital hayatınızı sadeleştirin.",
+  keywords: ["toolkit", "araç kutusu", "verimlilik araçları", "günlük araçlar", "everything center"],
   openGraph: {
-    title: "Everything - Mini Apps Center",
-    description: "Tüm günlük dijital ihtiyaçlarınız için tek merkez - Oyunlar, Araçlar, Verimlilik ve daha fazlası.",
+    title: "Everything",
+    description: "Tüm günlük dijital ihtiyaçlarınız için tek merkez - Araçlar, Verimlilik ve daha fazlası.",
     url: "https://allminiapps.com",
-    siteName: "Everything Mini Apps Center",
+    siteName: "Everything",
     images: [
       {
-        url: "/og-image.png", // We should ensure this exists or use a placeholder
+        url: "/og-image.png",
         width: 1200,
         height: 630,
       },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Everything - Mini Apps Center",
+    title: "Everything",
     description: "Tüm günlük dijital ihtiyaçlarınız için tek merkez.",
     images: ["/og-image.png"],
   },

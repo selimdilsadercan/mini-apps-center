@@ -22,7 +22,7 @@ const ONBOARDING_STEPS = [
   {
     id: "social",
     title: "Sosyal & Etkinlik",
-    question: "Sosyal hayatını canlandıracak uygulamaları ana ekranına eklemek ister misin? 🤝",
+    question: "Sosyal hayatını canlandıracak araçları ana ekranına eklemek ister misin? 🤝",
     appIds: ["suggest", "kim-gelir"]
   },
   {
@@ -34,13 +34,13 @@ const ONBOARDING_STEPS = [
   {
     id: "finance",
     title: "Finans & Tasarruf",
-    question: "Finansal takibini kolaylaştıracak uygulamaları ister misin? 💰",
+    question: "Finansal takibini kolaylaştıracak araçları ister misin? 💰",
     appIds: ["budget", "tasarruf-challenges", "subcenter"]
   },
   {
     id: "entertainment",
     title: "Eğlence & Hobi",
-    question: "Boş zamanların için eğlence ve hobi uygulamalarını ekleyelim mi? 🎮",
+    question: "Boş zamanların için eğlence ve hobi araçlarını ekleyelim mi? 🎮",
     appIds: ["iskambil", "memedex", "series-track", "hobby-center", "chocolate-db"]
   },
   {
@@ -91,7 +91,7 @@ export default function OnboardingPage() {
             id: `msg-notifications-${Date.now()}`,
             role: "assistant",
             content:
-              "Son bir şey! Seçtiğin uygulamaların arkadaşlarınla, etkinliklerle ve hatırlatıcılarla düzgün çalışması için bildirimleri açmanı öneririz. 🔔",
+              "Son bir şey! Seçtiğin araçların arkadaşlarınla, etkinliklerle ve hatırlatıcılarla düzgün çalışması için bildirimleri açmanı öneririz. 🔔",
             choices: [
               { label: "Bildirimleri Aç", value: "enable-notifications" },
               { label: "Şimdilik Geç", value: "skip-notifications" },
@@ -110,7 +110,12 @@ export default function OnboardingPage() {
       {
         id: "msg-1",
         role: "assistant",
-        content: "Selam! Everything'de hayatı kolaylaştıran 30'dan fazla mini uygulama var. 🌟",
+        content: "Selam! Everything'de hayatı kolaylaştıran 30'dan fazla mini araç var. 🌟",
+      },
+      {
+        id: "msg-disclaimer",
+        role: "assistant",
+        content: "Everything, tarafımızca geliştirilen ve yönetilen yerleşik araçlardan oluşan bir koleksiyondur. Üçüncü taraf uygulamaları listelemez, satmaz veya bunlara bağlantı vermez. 🛡️",
       },
       {
         id: "msg-2",
@@ -136,7 +141,7 @@ export default function OnboardingPage() {
       {
         id: `msg-skip-complete-${Date.now()}`,
         role: "assistant",
-        content: "Harika! Tüm uygulamaları ana ekranına ekledim. Keyifli kullanımlar! ✨",
+        content: "Harika! Tüm araçları ana ekranına ekledim. Keyifli kullanımlar! ✨",
       },
     ]);
 
@@ -251,7 +256,7 @@ export default function OnboardingPage() {
       {
         id: `msg-complete-${Date.now()}`,
         role: "assistant",
-        content: "Harika! Seçtiğin uygulamalarla ana ekranını hazırladım. Diğer tüm uygulamaları 'Keşfet' sekmesinden bulabilirsin. Sürekli yeni mini uygulamalar ekliyoruz, arada kontrol etmeyi unutma! Keyifli kullanımlar! ✨",
+        content: "Harika! Seçtiğin araçlarla ana ekranını hazırladım. Diğer tüm araçları 'Keşfet' sekmesinden bulabilirsin. Sürekli yeni modüller ekliyoruz, arada kontrol etmeyi unutma! Keyifli kullanımlar! ✨",
       },
     ]);
 
