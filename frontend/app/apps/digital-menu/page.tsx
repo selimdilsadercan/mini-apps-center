@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   UploadSimple,
   Trash,
-  X
+  X,
+  ChefHat
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
@@ -490,39 +491,34 @@ export default function DigitalMenuPage() {
       <main className="flex-1 max-w-md mx-auto w-full relative z-10">
         
         {/* Navigation & Header */}
-        <div className="px-4 pt-8 mb-8 flex items-center justify-between">
-          <button
-            onClick={() => {
-              if (viewMode === "list") {
-                setViewMode("grid");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              } else if (selectedBusiness) {
-                setSelectedBusiness(null);
-                setDraftOrder({});
-              } else {
-                window.location.href = getAppRootUrl();
-              }
-            }}
-            className="flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-all bg-white border border-stone-200/80 backdrop-blur-xl px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer"
-          >
-            <SquaresFour size={16} weight="bold" />
-            <span>{viewMode === "list" ? "Kategorilere Dön" : selectedBusiness ? "Geri Dön" : "Geri"}</span>
-          </button>
-
-          {user && !selectedBusiness && (
+        {!selectedBusiness && (
+          <div className="px-4 pt-8 mb-8 flex items-center justify-between">
             <button
-              onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all"
+              onClick={() => {
+                window.location.href = getAppRootUrl();
+              }}
+              className="flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-all bg-white border border-stone-200/80 backdrop-blur-xl px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer"
             >
-              <Plus size={14} weight="bold" />
-              <span>İşletme Oluştur</span>
+              <SquaresFour size={16} weight="bold" />
+              <span>Geri</span>
             </button>
-          )}
-        </div>
+
+            {user && (
+              <button
+                onClick={() => setIsCreateOpen(true)}
+                className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all"
+              >
+                <Plus size={14} weight="bold" />
+                <span>İşletme Oluştur</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
           <div className="px-4 space-y-6">
+            {/* ... existing restaurant list code ... */}
             {/* Favorites List */}
             {favoriteBusinesses.length > 0 && (
               <div className="space-y-3">
@@ -613,17 +609,71 @@ export default function DigitalMenuPage() {
           // ACTIVE RESTAURANT MENU VIEW
           <div className="flex flex-col pb-32">
             
+            {/* STICKY CATEGORY NAV (HEADER STYLE) */}
+            <div className="sticky top-[-1px] z-40 bg-[#FDFBF9] border-b border-stone-200/60 shadow-sm will-change-transform flex items-center">
+              {/* Fixed Left Part: Digital Menu Logo */}
+              <div className="shrink-0 flex items-center h-20 px-4 bg-[#FDFBF9] border-r border-stone-200/60 z-10">
+                <div className="w-10 h-10 rounded-2xl bg-[#EF4444] flex items-center justify-center shadow-md shadow-red-200/50">
+                  <ChefHat size={24} weight="fill" className="text-white" />
+                </div>
+              </div>
+
+              {/* Scrolling Right Part: Categories */}
+              <div className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-20">
+                <button
+                  id="nav-item-all"
+                  onClick={() => setViewMode("grid")}
+                  className={`flex flex-col items-center justify-center gap-1.5 shrink-0 px-4 h-full transition-all ${
+                    viewMode === "grid" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
+                    <SquaresFour size={16} weight="bold" className="text-stone-600" />
+                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-tight text-stone-800">MENÜ</span>
+                </button>
+
+                {menuCategories.map((cat) => {
+                  const img = cat.image_url || getCategoryImageUrl(cat.name);
+                  const isActive = activeCategory === cat.id && viewMode === "list";
+                  return (
+                    <button
+                      key={cat.id}
+                      id={`nav-item-${cat.id}`}
+                      onClick={() => scrollToCategory(cat.id)}
+                      className={`flex flex-col items-center justify-center gap-1.5 shrink-0 px-4 h-full transition-all ${
+                        isActive 
+                          ? "bg-[#F5F1E9] border-b-2 border-stone-800" 
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <div 
+                        className={`w-9 h-9 rounded-full overflow-hidden transition-all duration-300 ${
+                          isActive ? "shadow-sm ring-1 ring-stone-200" : "border border-stone-200"
+                        }`}
+                      >
+                        <img src={img} alt={cat.name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className={`text-[8px] font-black uppercase tracking-tight text-center w-14 truncate transition-colors text-stone-800`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Main Header Banner */}
-            <div className="px-4 mb-8">
-              <div className="relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-56 shrink-0">
+            <div className="px-4 mt-6 mb-8">
+              <div className="relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-48 shrink-0">
                 <img
                   src={selectedBusiness.header_url || selectedBusiness.logo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80"}
                   alt={selectedBusiness.name}
-                  className="w-full h-full object-cover opacity-70"
+                  className="w-full h-full object-cover opacity-60"
                 />
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-[1px] p-4 text-center">
-                  <h2 className="font-serif font-black text-white text-2xl tracking-wide drop-shadow-lg">{selectedBusiness.name}</h2>
-                  <p className="text-[11px] text-white/90 font-bold uppercase tracking-[0.25em] mt-2 drop-shadow-md">{selectedBusiness.description || "Hoş Geldiniz"}</p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[1px] p-4 text-center">
+                  <h2 className="font-serif font-black text-white text-xl tracking-wide drop-shadow-lg">{selectedBusiness.name}</h2>
+                  <p className="text-[10px] text-white/90 font-bold uppercase tracking-[0.2em] mt-2 drop-shadow-md">{selectedBusiness.description || "Hoş Geldiniz"}</p>
                 </div>
               </div>
             </div>
@@ -656,126 +706,85 @@ export default function DigitalMenuPage() {
               </div>
             ) : (
               <>
-                {/* STICKY CATEGORY NAV */}
-                <div className="sticky top-[-1px] z-40 px-4 py-4 pt-[calc(1rem+1px)] bg-white/95 backdrop-blur-xl border-b border-stone-200/50 mb-8 shadow-sm will-change-transform">
-                  <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
-                    <button
-                      id="nav-item-all"
-                      onClick={() => setViewMode("grid")}
-                      className="flex flex-col items-center gap-1.5 shrink-0 group"
-                    >
-                      <div className="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center border-2 border-white shadow-sm group-hover:bg-stone-200 transition-all">
-                        <SquaresFour size={24} weight="bold" className="text-stone-400" />
-                      </div>
-                      <span className="text-[8px] font-black uppercase tracking-tighter text-stone-400">KATEGORİ</span>
-                    </button>
+                {/* ALL ITEMS LISTED BY CATEGORY */}
+                <div className="px-4 space-y-16 pb-20 mt-4">
+                  {menuCategories.map((cat) => {
+                    const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
+                    if (allGroupedItems.length === 0) return null;
 
-                    {menuCategories.map((cat) => {
-                      const img = cat.image_url || getCategoryImageUrl(cat.name);
-                      const isActive = activeCategory === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          id={`nav-item-${cat.id}`}
-                          onClick={() => scrollToCategory(cat.id)}
-                          className={`flex flex-col items-center gap-1.5 shrink-0 transition-all ${isActive ? "scale-105" : "opacity-60 hover:opacity-100"}`}
-                        >
-                          <div 
-                            className="w-14 h-14 rounded-2xl overflow-hidden border-2 shadow-sm transition-all"
-                            style={{ borderColor: isActive ? currentThemeColor : 'white' }}
-                          >
-                            <img src={img} alt={cat.name} className="w-full h-full object-cover" />
-                          </div>
-                          <span className={`text-[8px] font-black uppercase tracking-tighter text-center w-14 truncate ${isActive ? "text-stone-900" : "text-stone-400"}`}>
+                    return (
+                      <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-28 space-y-8">
+                        {/* Category Header */}
+                        <div className="flex items-start gap-4 px-1">
+                          <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
                             {cat.name}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-            {/* ALL ITEMS LISTED BY CATEGORY */}
-            <div className="px-4 space-y-16 pb-20">
-              {menuCategories.map((cat) => {
-                const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
-                if (allGroupedItems.length === 0) return null;
-
-                const featuredItems = shuffle(allGroupedItems.filter(group => group.image_url));
-
-                return (
-                  <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-24 space-y-8">
-                    {/* Category Header */}
-                    <div className="flex items-start gap-4 px-1">
-                      <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
-                        {cat.name}
-                      </h3>
-                      <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
-                    </div>
-
-                    {/* Standard List with Integrated Images */}
-                    <div className="space-y-12 px-1">
-                      {allGroupedItems.map((group) => (
-                        <div 
-                          key={group.baseName} 
-                          onClick={() => {
-                            setSelectedItem(group);
-                            setIsItemDetailOpen(true);
-                          }}
-                          className={`flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${!group.is_available ? "opacity-60" : ""}`}
-                        >
-                          {group.image_url && (
-                            <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
-                              <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0 space-y-1.5">
-                            <div className="flex justify-between items-start gap-4">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
-                                  {group.baseName}
-                                </h4>
-                              </div>
-                              
-                              <div className="flex items-center gap-3 shrink-0 pt-0.5">
-                                {group.variations.length === 1 && !group.variations[0].optionName && (
-                                  <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
-                                    {group.variations[0].price.toFixed(2)} ₺
-                                  </span>
-                                )}
-                                <div className="flex gap-1">
-                                  {group.dietary_flags.map((flag) => (
-                                    <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-
-                            {group.description && (
-                              <p className="text-[11px] text-stone-500 font-medium leading-relaxed pr-4 line-clamp-2">
-                                {group.description}
-                              </p>
-                            )}
-
-                            {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
-                              <div className="space-y-1.5 pt-1">
-                                {group.variations.map((v) => (
-                                  <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
-                                    <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
-                                    <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
-                                    <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          </h3>
+                          <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
                         </div>
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
+
+                        {/* Standard List with Integrated Images */}
+                        <div className="space-y-12 px-1">
+                          {allGroupedItems.map((group) => (
+                            <div 
+                              key={group.baseName} 
+                              onClick={() => {
+                                setSelectedItem(group);
+                                setIsItemDetailOpen(true);
+                              }}
+                              className={`flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${!group.is_available ? "opacity-60" : ""}`}
+                            >
+                              {group.image_url && (
+                                <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
+                                  <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
+                                      {group.baseName}
+                                    </h4>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-3 shrink-0 pt-0.5">
+                                    {group.variations.length === 1 && !group.variations[0].optionName && (
+                                      <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
+                                        {group.variations[0].price.toFixed(2)} ₺
+                                      </span>
+                                    )}
+                                    <div className="flex gap-1">
+                                      {group.dietary_flags.map((flag) => (
+                                        <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {group.description && (
+                                  <p className="text-[11px] text-stone-500 font-medium leading-relaxed pr-4 line-clamp-2">
+                                    {group.description}
+                                  </p>
+                                )}
+
+                                {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
+                                  <div className="space-y-1.5 pt-1">
+                                    {group.variations.map((v) => (
+                                      <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
+                                        <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
+                                        <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
+                                        <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
               </>
             )}
             
