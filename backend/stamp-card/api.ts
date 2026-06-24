@@ -20,6 +20,9 @@ export interface Business {
   font_family: string;
   created_at: string;
   contact_info: any;
+  theme: string;
+  type: string;
+  market_items: any;
 }
 
 export interface UserCard {
@@ -33,6 +36,9 @@ export interface UserCard {
   business_header: string | null;
   business_reward: string;
   stamp_limit: number;
+  theme: string;
+  type: string;
+  market_items: any;
 }
 
 export interface RedeemedReward {
@@ -56,6 +62,9 @@ export interface UserOwnedBusiness {
   reward_title: string;
   pin_code: string;
   created_at: string;
+  theme: string;
+  type: string;
+  market_items: any;
 }
 
 // ==================== REQUEST / RESPONSE ====================
@@ -90,14 +99,40 @@ interface UseRewardResponse {
   success: boolean;
 }
 
+interface JoinCampaignRequest {
+  userId: string;
+  businessId: string;
+}
+
+interface JoinCampaignResponse {
+  success: boolean;
+}
+
 interface CreateBusinessRequest {
   businessId: string;
   stampLimit: number;
   rewardTitle: string;
   pinCode: string;
+  theme: string;
+  type: string;
+  marketItems: any;
 }
 
 interface CreateBusinessResponse {
+  success: boolean;
+}
+
+interface UpdateBusinessRequest {
+  businessId: string;
+  stampLimit: number;
+  rewardTitle: string;
+  pinCode: string;
+  theme: string;
+  type: string;
+  marketItems: any;
+}
+
+interface UpdateBusinessResponse {
   success: boolean;
 }
 
@@ -190,6 +225,27 @@ export const useReward = api(
 );
 
 /**
+ * Join a loyalty campaign (add card to wallet)
+ * POST /stamp-card/join
+ */
+export const joinCampaign = api(
+  { expose: true, method: "POST", path: "/stamp-card/join" },
+  async (req: JoinCampaignRequest): Promise<JoinCampaignResponse> => {
+    const { data, error } = await supabase.schema("stamp_card").rpc("join_campaign", {
+      p_user_id: req.userId,
+      p_business_id: req.businessId,
+    });
+
+    if (error) {
+      console.error("joinCampaign error:", error);
+      throw APIError.internal(`Failed to join campaign: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
+/**
  * Create a new business
  * POST /stamp-card/business/create
  */
@@ -201,11 +257,40 @@ export const createBusiness = api(
       p_stamp_limit: req.stampLimit,
       p_reward_title: req.rewardTitle,
       p_pin_code: req.pinCode,
+      p_theme: req.theme,
+      p_type: req.type,
+      p_market_items: req.marketItems,
     });
 
     if (error) {
       console.error("createBusiness error:", error);
       throw APIError.internal(`Failed to create business: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
+/**
+ * Update an existing business
+ * POST /stamp-card/business/update
+ */
+export const updateBusiness = api(
+  { expose: true, method: "POST", path: "/stamp-card/business/update" },
+  async (req: UpdateBusinessRequest): Promise<UpdateBusinessResponse> => {
+    const { data, error } = await supabase.schema("stamp_card").rpc("update_business", {
+      p_business_id: req.businessId,
+      p_stamp_limit: req.stampLimit,
+      p_reward_title: req.rewardTitle,
+      p_pin_code: req.pinCode,
+      p_theme: req.theme,
+      p_type: req.type,
+      p_market_items: req.marketItems,
+    });
+
+    if (error) {
+      console.error("updateBusiness error:", error);
+      throw APIError.internal(`Failed to update business: ${error.message}`);
     }
 
     return { success: !!data };

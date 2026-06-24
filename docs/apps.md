@@ -10,7 +10,7 @@ Bu dosya platformdaki tüm aktif ve geliştirilmekte olan mini uygulamaları kat
 - **One Day City Guide:** Seçtiğin şehirde bir günde ne yapılır? En iyi rotalar ve tavsiyeler.
 - **Workplaces:** Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner.
 - **Dijital Menü:** Kafelerin QR menülerini görüntüle, siparişini planla ve masadan garson çağır.
-- **Stamp Card:** Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan.
+- **Müdavim Kartı:** Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan.
 - **My Concert List:** Gittiğin konserleri tarihleri ve notlarınla takip et.
 
 ## 🛠️ Pratik Araçlar

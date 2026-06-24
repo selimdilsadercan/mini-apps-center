@@ -129,7 +129,6 @@ export default function DigitalMenuPage() {
   const [menuItems, setMenuItems] = useState<digital_menu.MenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [isScrollingToCategory, setIsScrollingToCategory] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filtering
   const [searchQuery, setSearchQuery] = useState("");
@@ -197,10 +196,13 @@ export default function DigitalMenuPage() {
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
+      if (window.scrollY < 150 && !isScrollingToCategory) {
+        setActiveCategory("all");
+      }
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isScrollingToCategory]);
 
   // Fetch specific business when scanned by QR
   const fetchSpecificBusiness = async (bizId: string) => {
@@ -306,7 +308,6 @@ export default function DigitalMenuPage() {
 
   const handleSelectBusiness = async (biz: digital_menu.Business) => {
     setSelectedBusiness(biz);
-    setViewMode("grid");
     try {
       setLoading(true);
       const menuRes = await client.digital_menu.getMenuData(biz.id);
@@ -418,7 +419,6 @@ export default function DigitalMenuPage() {
   };
 
   const scrollToCategory = (categoryId: string) => {
-    setViewMode("list");
     setActiveCategory(categoryId);
     setIsScrollingToCategory(true);
     setTimeout(() => {
@@ -442,7 +442,7 @@ export default function DigitalMenuPage() {
 
   // Scroll detection for active category
   useEffect(() => {
-    if (viewMode !== "list" || isScrollingToCategory) return;
+    if (isScrollingToCategory) return;
 
     const observerOptions = {
       root: null,
@@ -451,8 +451,10 @@ export default function DigitalMenuPage() {
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      let anyIntersecting = false;
       entries.forEach(entry => {
         if (entry.isIntersecting) {
+          anyIntersecting = true;
           const categoryId = entry.target.id.replace('category-', '');
           setActiveCategory(categoryId);
           
@@ -473,7 +475,7 @@ export default function DigitalMenuPage() {
     sections.forEach(section => observer.observe(section));
 
     return () => observer.disconnect();
-  }, [viewMode, menuCategories, isScrollingToCategory]);
+  }, [menuCategories, isScrollingToCategory]);
 
   return (
     <div className={`flex min-h-screen flex-col bg-[#FDFBF9] text-stone-900 relative ${currentFontClass}`}>
@@ -621,21 +623,23 @@ export default function DigitalMenuPage() {
               {/* Scrolling Right Part: Categories */}
               <div className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-16">
                 <button
-                  id="nav-item-all"
-                  onClick={() => setViewMode("grid")}
+                  onClick={() => {
+                    setActiveCategory("all");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
-                    viewMode === "grid" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
+                    activeCategory === "all" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
                   }`}
                 >
                   <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
                     <SquaresFour size={14} weight="bold" className="text-stone-600" />
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-tight text-stone-800">MENÜ</span>
+                  <span className="text-[7px] font-black uppercase tracking-tight text-stone-800">KATEGORİLER</span>
                 </button>
 
                 {menuCategories.map((cat) => {
                   const img = cat.image_url || getCategoryImageUrl(cat.name);
-                  const isActive = activeCategory === cat.id && viewMode === "list";
+                  const isActive = activeCategory === cat.id;
                   return (
                     <button
                       key={cat.id}
@@ -678,115 +682,112 @@ export default function DigitalMenuPage() {
               </div>
             </div>
 
-            {viewMode === "grid" ? (
-              <div className="px-4 space-y-6">
-                <div className="flex justify-between items-center px-1">
-                  <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Kategoriler</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                  {menuCategories.map((cat) => {
-                    const img = cat.image_url || getCategoryImageUrl(cat.name);
-                    return (
-                      <div
-                        key={cat.id}
-                        onClick={() => scrollToCategory(cat.id)}
-                        className="flex flex-col gap-2 cursor-pointer group hover:-translate-y-0.5 transition-all"
-                      >
-                        <div className="h-28 w-full rounded-2xl overflow-hidden shadow-sm border border-stone-200/40 relative">
-                          <img src={img} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        </div>
-                        <span className="font-serif font-black text-stone-800 text-xs uppercase tracking-wider text-center block">
-                          {cat.name}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Category Grid */}
+            <div className="px-4 mb-12">
+              <div className="flex justify-between items-center px-1 mb-6">
+                <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Kategoriler</h3>
               </div>
-            ) : (
-              <>
-                {/* ALL ITEMS LISTED BY CATEGORY */}
-                <div className="px-4 space-y-16 pb-20 mt-4">
-                  {menuCategories.map((cat) => {
-                    const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
-                    if (allGroupedItems.length === 0) return null;
 
-                    return (
-                      <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-28 space-y-8">
-                        {/* Category Header */}
-                        <div className="flex items-start gap-4 px-1">
-                          <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
-                            {cat.name}
-                          </h3>
-                          <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
-                        </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                {menuCategories.map((cat) => {
+                  const img = cat.image_url || getCategoryImageUrl(cat.name);
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => scrollToCategory(cat.id)}
+                      className="flex flex-col gap-2 cursor-pointer group hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="h-28 w-full rounded-2xl overflow-hidden shadow-sm border border-stone-200/40 relative">
+                        <img src={img} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      <span className="font-serif font-black text-stone-800 text-xs uppercase tracking-wider text-center block">
+                        {cat.name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                        {/* Standard List with Integrated Images */}
-                        <div className="space-y-12 px-1">
-                          {allGroupedItems.map((group) => (
-                            <div 
-                              key={group.baseName} 
-                              onClick={() => {
-                                setSelectedItem(group);
-                                setIsItemDetailOpen(true);
-                              }}
-                              className={`flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${!group.is_available ? "opacity-60" : ""}`}
-                            >
-                              {group.image_url && (
-                                <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
-                                  <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0 space-y-1.5">
-                                <div className="flex justify-between items-start gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
-                                      {group.baseName}
-                                    </h4>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-3 shrink-0 pt-0.5">
-                                    {group.variations.length === 1 && !group.variations[0].optionName && (
-                                      <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
-                                        {group.variations[0].price.toFixed(2)} ₺
-                                      </span>
-                                    )}
-                                    <div className="flex gap-1">
-                                      {group.dietary_flags.map((flag) => (
-                                        <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
+            {/* ALL ITEMS LISTED BY CATEGORY */}
+            <div className="px-4 space-y-16 pb-20">
+              {menuCategories.map((cat) => {
+                const allGroupedItems = getGroupedItems(menuItems.filter(i => i.category_id === cat.id));
+                if (allGroupedItems.length === 0) return null;
 
-                                {group.description && (
-                                  <p className="text-[11px] text-stone-500 font-medium leading-relaxed pr-4 line-clamp-2">
-                                    {group.description}
-                                  </p>
+                return (
+                  <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-28 space-y-8">
+                    {/* Category Header */}
+                    <div className="flex items-start gap-4 px-1">
+                      <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
+                        {cat.name}
+                      </h3>
+                      <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
+                    </div>
+
+                    {/* Standard List with Integrated Images */}
+                    <div className="space-y-12 px-1">
+                      {allGroupedItems.map((group) => (
+                        <div 
+                          key={group.baseName} 
+                          onClick={() => {
+                            setSelectedItem(group);
+                            setIsItemDetailOpen(true);
+                          }}
+                          className={`flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${!group.is_available ? "opacity-60" : ""}`}
+                        >
+                          {group.image_url && (
+                            <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-stone-100">
+                              <img src={group.image_url} alt={group.baseName} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
+                                  {group.baseName}
+                                </h4>
+                              </div>
+                              
+                              <div className="flex items-center gap-3 shrink-0 pt-0.5">
+                                {group.variations.length === 1 && !group.variations[0].optionName && (
+                                  <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
+                                    {group.variations[0].price.toFixed(2)} ₺
+                                  </span>
                                 )}
-
-                                {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
-                                  <div className="space-y-1.5 pt-1">
-                                    {group.variations.map((v) => (
-                                      <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
-                                        <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
-                                        <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
-                                        <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
+                                <div className="flex gap-1">
+                                  {group.dietary_flags.map((flag) => (
+                                    <span key={flag} className="text-[10px]">{flag === "vegan" ? "🌱" : flag === "gluten-free" ? "🌾" : ""}</span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          ))}
+
+                            {group.description && (
+                              <p className="text-[11px] text-stone-500 font-medium leading-relaxed pr-4 line-clamp-2">
+                                {group.description}
+                              </p>
+                            )}
+
+                            {(group.variations.length > 1 || (group.variations.length === 1 && group.variations[0].optionName)) && (
+                              <div className="space-y-1.5 pt-1">
+                                {group.variations.map((v) => (
+                                  <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
+                                    <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
+                                    <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
+                                    <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </section>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
             
           </div>
         )}

@@ -6,7 +6,7 @@ import { stamp_card } from "~encore/clients";
 
 export const stampCardAssistant: AppAssistantModule = {
   appId: "stamp-card",
-  name: "Stamp Card",
+  name: "Müdavim Kartı",
   description: "Dijital sadakat ve kaşe kartı uygulamasını yönetir. İşletmelerin kartlarını listeler, kaşe ekler ve ödülleri yönetir.",
   schema: "stamp_card",
   tools: [

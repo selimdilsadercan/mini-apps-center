@@ -5099,6 +5099,9 @@ export namespace stamp_card {
         "font_family": string
         "created_at": string
         "contact_info": any
+        theme: string
+        type: string
+        "market_items": any
     }
 
     export interface CreateBusinessRequest {
@@ -5106,6 +5109,9 @@ export namespace stamp_card {
         stampLimit: number
         rewardTitle: string
         pinCode: string
+        theme: string
+        type: string
+        marketItems: any
     }
 
     export interface CreateBusinessResponse {
@@ -5118,6 +5124,15 @@ export namespace stamp_card {
         "my_businesses": UserOwnedBusiness[]
     }
 
+    export interface JoinCampaignRequest {
+        userId: string
+        businessId: string
+    }
+
+    export interface JoinCampaignResponse {
+        success: boolean
+    }
+
     export interface RedeemedReward {
         id: string
         "business_id": string
@@ -5127,6 +5142,20 @@ export namespace stamp_card {
         "business_name": string
         "business_logo": string | null
         "business_header": string | null
+    }
+
+    export interface UpdateBusinessRequest {
+        businessId: string
+        stampLimit: number
+        rewardTitle: string
+        pinCode: string
+        theme: string
+        type: string
+        marketItems: any
+    }
+
+    export interface UpdateBusinessResponse {
+        success: boolean
     }
 
     export interface UseRewardRequest {
@@ -5149,6 +5178,9 @@ export namespace stamp_card {
         "business_header": string | null
         "business_reward": string
         "stamp_limit": number
+        theme: string
+        type: string
+        "market_items": any
     }
 
     export interface UserOwnedBusiness {
@@ -5161,6 +5193,9 @@ export namespace stamp_card {
         "reward_title": string
         "pin_code": string
         "created_at": string
+        theme: string
+        type: string
+        "market_items": any
     }
 
     export class ServiceClient {
@@ -5172,6 +5207,8 @@ export namespace stamp_card {
             this.createBusiness = this.createBusiness.bind(this)
             this.getBusinesses = this.getBusinesses.bind(this)
             this.getUserData = this.getUserData.bind(this)
+            this.joinCampaign = this.joinCampaign.bind(this)
+            this.updateBusiness = this.updateBusiness.bind(this)
             this.useReward = this.useReward.bind(this)
         }
 
@@ -5217,6 +5254,26 @@ export namespace stamp_card {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/stamp-card/data/${encodeURIComponent(userId)}`)
             return await resp.json() as GetUserDataResponse
+        }
+
+        /**
+         * Join a loyalty campaign (add card to wallet)
+         * POST /stamp-card/join
+         */
+        public async joinCampaign(params: JoinCampaignRequest): Promise<JoinCampaignResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/join`, JSON.stringify(params))
+            return await resp.json() as JoinCampaignResponse
+        }
+
+        /**
+         * Update an existing business
+         * POST /stamp-card/business/update
+         */
+        public async updateBusiness(params: UpdateBusinessRequest): Promise<UpdateBusinessResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/business/update`, JSON.stringify(params))
+            return await resp.json() as UpdateBusinessResponse
         }
 
         /**

@@ -173,7 +173,7 @@ const RAW_MINI_APPS: MiniApp[] = [
   },
   {
     id: "stamp-card",
-    name: "Sadakat Kartı",
+    name: "Müdavim Kartı",
     description: "Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan!",
     icon: Cards,
     category: "Lifestyle",
@@ -725,7 +725,7 @@ const RAW_BUSINESS_APPS: MiniApp[] = [
   },
   {
     id: "stamp-card",
-    name: "Sadakat Kartı",
+    name: "Müdavim Kartı",
     description: "Anlaşmalı işletmelerden kaşe topla, ücretsiz hediye kazan!",
     icon: Cards,
     category: "Lifestyle",
