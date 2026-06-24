@@ -612,25 +612,25 @@ export default function DigitalMenuPage() {
             {/* STICKY CATEGORY NAV (HEADER STYLE) */}
             <div className="sticky top-[-1px] z-40 bg-[#FDFBF9] border-b border-stone-200/60 shadow-sm will-change-transform flex items-center">
               {/* Fixed Left Part: Digital Menu Logo */}
-              <div className="shrink-0 flex items-center h-20 px-4 bg-[#FDFBF9] border-r border-stone-200/60 z-10">
-                <div className="w-10 h-10 rounded-2xl bg-[#EF4444] flex items-center justify-center shadow-md shadow-red-200/50">
-                  <ChefHat size={24} weight="fill" className="text-white" />
+              <div className="shrink-0 flex items-center h-16 px-4 bg-[#FDFBF9] border-r border-stone-200/60 z-10">
+                <div className="w-9 h-9 rounded-xl bg-[#EF4444] flex items-center justify-center shadow-md shadow-red-200/50">
+                  <ChefHat size={20} weight="fill" className="text-white" />
                 </div>
               </div>
 
               {/* Scrolling Right Part: Categories */}
-              <div className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-20">
+              <div className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-16">
                 <button
                   id="nav-item-all"
                   onClick={() => setViewMode("grid")}
-                  className={`flex flex-col items-center justify-center gap-1.5 shrink-0 px-4 h-full transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
                     viewMode === "grid" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
-                    <SquaresFour size={16} weight="bold" className="text-stone-600" />
+                  <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
+                    <SquaresFour size={14} weight="bold" className="text-stone-600" />
                   </div>
-                  <span className="text-[8px] font-black uppercase tracking-tight text-stone-800">MENÜ</span>
+                  <span className="text-[7px] font-black uppercase tracking-tight text-stone-800">MENÜ</span>
                 </button>
 
                 {menuCategories.map((cat) => {
@@ -641,20 +641,20 @@ export default function DigitalMenuPage() {
                       key={cat.id}
                       id={`nav-item-${cat.id}`}
                       onClick={() => scrollToCategory(cat.id)}
-                      className={`flex flex-col items-center justify-center gap-1.5 shrink-0 px-4 h-full transition-all ${
+                      className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
                         isActive 
                           ? "bg-[#F5F1E9] border-b-2 border-stone-800" 
                           : "opacity-60 hover:opacity-100"
                       }`}
                     >
                       <div 
-                        className={`w-9 h-9 rounded-full overflow-hidden transition-all duration-300 ${
+                        className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 ${
                           isActive ? "shadow-sm ring-1 ring-stone-200" : "border border-stone-200"
                         }`}
                       >
                         <img src={img} alt={cat.name} className="w-full h-full object-cover" />
                       </div>
-                      <span className={`text-[8px] font-black uppercase tracking-tight text-center w-14 truncate transition-colors text-stone-800`}>
+                      <span className={`text-[7px] font-black uppercase tracking-tight text-center w-14 truncate transition-colors text-stone-800`}>
                         {cat.name}
                       </span>
                     </button>
