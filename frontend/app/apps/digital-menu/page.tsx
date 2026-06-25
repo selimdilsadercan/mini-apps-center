@@ -478,80 +478,68 @@ export default function DigitalMenuPage() {
   }, [menuCategories, isScrollingToCategory]);
 
   return (
-    <div className={`flex min-h-screen flex-col bg-[#FDFBF9] text-stone-900 relative ${currentFontClass}`}>
+    <div className={`flex min-h-screen flex-col bg-slate-50 text-slate-900 relative font-sans antialiased`}>
       <Toaster position="top-center" />
 
-      {/* Decorative premium background blobs */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div 
-          className="absolute top-[-10%] left-[-15%] w-[80vw] h-[80vw] rounded-full blur-[120px] opacity-[0.05]" 
-          style={{ backgroundColor: currentThemeColor }}
-        />
-        <div className="absolute bottom-[-10%] right-[-15%] w-[70vw] h-[70vw] rounded-full bg-amber-500/5 blur-[120px]" />
-      </div>
+      {/* Subtle background pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]" 
+        style={{ backgroundImage: `radial-gradient(${currentThemeColor} 0.5px, transparent 0.5px)`, backgroundSize: '24px 24px' }} 
+      />
 
       <main className="flex-1 max-w-md mx-auto w-full relative z-10">
         
         {/* Navigation & Header */}
         {!selectedBusiness && (
-          <div className="px-4 pt-8 mb-8 flex items-center justify-between">
+          <div className="px-6 pt-10 mb-6 flex items-center justify-between">
             <button
               onClick={() => {
                 window.location.href = getAppRootUrl();
               }}
-              className="flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-all bg-white border border-stone-200/80 backdrop-blur-xl px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer"
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-all bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm active:scale-95 text-[11px] font-bold uppercase tracking-wider cursor-pointer"
             >
-              <SquaresFour size={16} weight="bold" />
+              <SquaresFour size={18} weight="bold" />
               <span>Geri</span>
             </button>
-
-            {user && (
-              <button
-                onClick={() => setIsCreateOpen(true)}
-                className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-2xl shadow-sm active:scale-95 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all"
-              >
-                <Plus size={14} weight="bold" />
-                <span>İşletme Oluştur</span>
-              </button>
-            )}
           </div>
         )}
 
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
-          <div className="px-4 space-y-6">
-            {/* ... existing restaurant list code ... */}
+          <div className="px-6 space-y-6 pb-20">
             {/* Favorites List */}
             {favoriteBusinesses.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-xs font-black text-amber-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                  <Star size={15} weight="fill" />
-                  Favori İşletmelerim
-                </h2>
-                <div className="space-y-2.5">
+              <div className="space-y-4">
+                <div className="space-y-4">
                   {favoriteBusinesses.map((biz) => (
                     <div
                       key={biz.id}
                       onClick={() => handleSelectBusiness(biz)}
-                      className="bg-white p-4 rounded-[2rem] border border-amber-300 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
+                      className="bg-white rounded-3xl border border-amber-200 shadow-sm overflow-hidden cursor-pointer hover:border-amber-400 transition-all hover:shadow-md group active:scale-[0.99]"
                     >
-                      <div className="w-20 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                      <div className="h-40 w-full bg-slate-100 relative overflow-hidden">
                         {biz.header_url || biz.logo_url ? (
-                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
+                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         ) : (
-                          biz.name.slice(0, 2).toUpperCase()
+                          <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-400">
+                            <Storefront size={48} weight="thin" />
+                          </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-5 right-4 flex items-end justify-between">
+                          <div className="min-w-0">
+                            <h3 className="font-black text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
+                            {biz.description && (
+                              <p className="text-xs text-white/80 truncate font-medium drop-shadow-sm">{biz.description}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => toggleFavorite(biz.id, e)}
+                            className="p-2 bg-white/20 backdrop-blur-md rounded-full text-amber-400 hover:scale-110 transition-transform border border-white/20"
+                          >
+                            <Star size={20} weight="fill" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-black text-sm text-stone-850 truncate">{biz.name}</h3>
-                        <p className="text-[10px] text-stone-400 truncate mt-0.5">{biz.description}</p>
-                      </div>
-                      <button
-                        onClick={(e) => toggleFavorite(biz.id, e)}
-                        className="p-2 text-amber-500 hover:text-amber-600 transition-colors"
-                      >
-                        <Star size={20} weight="fill" />
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -559,48 +547,54 @@ export default function DigitalMenuPage() {
             )}
 
             {/* General Restaurants List */}
-            <div className="space-y-3">
-              <h2 className="text-xs font-black text-stone-500 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                <Storefront size={15} className="text-red-500" />
-                {favoriteBusinesses.length > 0 ? "Diğer İşletmeler" : "Tüm İşletmeler"}
-              </h2>
-
+            <div className="space-y-4">
               {loading ? (
-                <div className="py-20 text-center text-stone-400 text-xs font-bold animate-pulse uppercase tracking-widest">
-                  Yükleniyor...
+                <div className="py-20 flex flex-col items-center justify-center gap-4">
+                  <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Yükleniyor</span>
                 </div>
               ) : allBusinesses.length === 0 ? (
-                <div className="py-14 text-center bg-white rounded-[2.5rem] border border-dashed border-stone-250 flex flex-col items-center justify-center p-8 shadow-sm">
-                  <p className="text-stone-850 text-xs font-black uppercase tracking-wider mb-2">Henüz İşletme Yok</p>
-                  <p className="text-stone-400 text-[10px] max-w-[200px] leading-relaxed">
+                <div className="py-16 text-center bg-white rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-8">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                    <Storefront size={32} className="text-slate-300" />
+                  </div>
+                  <p className="text-slate-900 text-sm font-bold mb-1">Henüz İşletme Yok</p>
+                  <p className="text-slate-400 text-xs max-w-[200px] leading-relaxed font-medium">
                     Sistemde henüz kayıtlı bir dijital menü işletmesi bulunmuyor.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {normalBusinesses.map((biz) => (
                     <div
                       key={biz.id}
                       onClick={() => handleSelectBusiness(biz)}
-                      className="bg-white p-4 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 cursor-pointer hover:border-red-400 transition-all hover:-translate-y-0.5 active:scale-98"
+                      className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden cursor-pointer hover:border-slate-300 transition-all hover:shadow-md group active:scale-[0.99]"
                     >
-                      <div className="w-20 h-12 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-md overflow-hidden shrink-0">
+                      <div className="h-40 w-full bg-slate-100 relative overflow-hidden">
                         {biz.header_url || biz.logo_url ? (
-                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
+                          <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         ) : (
-                          biz.name.slice(0, 2).toUpperCase()
+                          <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-400">
+                            <Storefront size={48} weight="thin" />
+                          </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-5 right-4 flex items-end justify-between">
+                          <div className="min-w-0">
+                            <h3 className="font-black text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
+                            {biz.description && (
+                              <p className="text-xs text-white/80 truncate font-medium drop-shadow-sm">{biz.description}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => toggleFavorite(biz.id, e)}
+                            className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white/60 hover:text-amber-400 hover:scale-110 transition-all border border-white/20"
+                          >
+                            <Star size={20} weight="bold" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-black text-sm text-stone-850 truncate">{biz.name}</h3>
-                        <p className="text-[10px] text-stone-400 truncate mt-0.5">{biz.description}</p>
-                      </div>
-                      <button
-                        onClick={(e) => toggleFavorite(biz.id, e)}
-                        className="p-2 text-stone-300 hover:text-amber-500 transition-colors"
-                      >
-                        <Star size={20} weight="bold" />
-                      </button>
                     </div>
                   ))}
                 </div>

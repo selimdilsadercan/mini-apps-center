@@ -76,11 +76,11 @@ export function getAppRootUrl(): string {
 
   if (isLocalWebDev(hostname)) {
     const primary = port ? `my.localhost:${port}` : "my.localhost";
-    return `${protocol}//${primary}/`;
+    return `${protocol}//${primary}/dashboard`;
   }
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-  return `${protocol}//my.${rootDomain}/`;
+  return `${protocol}//my.${rootDomain}/dashboard`;
 }
 
 /**

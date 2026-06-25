@@ -11,6 +11,7 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 export interface Business {
   id: string;
+  slug: string | null;
   name: string;
   description: string | null;
   logo_url: string | null;
@@ -166,6 +167,42 @@ export const getBusiness = api(
 
     const biz = Array.isArray(data) ? data[0] : data;
     console.log("[Business] getBusiness result:", JSON.stringify(biz));
+    return { business: (biz as Business) || null };
+  }
+);
+
+export const checkSchema = api(
+  { expose: true, method: "GET", path: "/business/check-schema" },
+  async (): Promise<any> => {
+    const { data, error } = await supabase.rpc("get_table_info", { p_table_name: "businesses", p_schema_name: "business" });
+    if (error) {
+      // Fallback: try to select one row
+      const { data: row, error: rowError } = await supabase.schema("business").from("businesses").select("*").limit(1);
+      return { error, rowError, row: row?.[0] };
+    }
+    return { data };
+  }
+);
+
+/**
+ * Get specific business details by slug
+ * GET /business/get-by-slug/:slug
+ */
+export const getBusinessBySlug = api(
+  { expose: true, method: "GET", path: "/business/get-by-slug/:slug" },
+  async ({ slug }: { slug: string }): Promise<{ business: Business | null }> => {
+    console.log("[Business] getBusinessBySlug called with slug:", slug);
+    const { data, error } = await supabase.schema("business").rpc("get_business_by_slug", {
+      p_slug: slug,
+    });
+
+    if (error) {
+      console.error("[Business] getBusinessBySlug error:", error);
+      throw APIError.internal(`Failed to get business by slug: ${error.message}`);
+    }
+
+    const biz = Array.isArray(data) ? data[0] : data;
+    console.log("[Business] getBusinessBySlug result:", JSON.stringify(biz));
     return { business: (biz as Business) || null };
   }
 );

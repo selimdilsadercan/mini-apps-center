@@ -1285,6 +1285,7 @@ export namespace business {
 
     export interface Business {
         id: string
+        slug: string | null
         name: string
         description: string | null
         "logo_url": string | null
@@ -1348,6 +1349,7 @@ export namespace business {
             this.createBusiness = this.createBusiness.bind(this)
             this.deleteBusiness = this.deleteBusiness.bind(this)
             this.getBusiness = this.getBusiness.bind(this)
+            this.getBusinessBySlug = this.getBusinessBySlug.bind(this)
             this.getBusinessUsers = this.getBusinessUsers.bind(this)
             this.getOwnedBusinesses = this.getOwnedBusinesses.bind(this)
             this.removeBusinessUser = this.removeBusinessUser.bind(this)
@@ -1403,6 +1405,20 @@ export namespace business {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/business/get/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    business: Business | null
+}
+        }
+
+        /**
+         * Get specific business details by slug
+         * GET /business/get-by-slug/:slug
+         */
+        public async getBusinessBySlug(slug: string): Promise<{
+    business: Business | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/business/get-by-slug/${encodeURIComponent(slug)}`)
             return await resp.json() as {
     business: Business | null
 }

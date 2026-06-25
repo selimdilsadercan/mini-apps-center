@@ -19,6 +19,7 @@ import {
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
+import { getAppRootUrl } from "@/lib/apps";
 import { stamp_card } from "@/lib/client";
 
 const client = createBrowserClient();
@@ -189,7 +190,9 @@ function StampContent() {
         {/* Navigation */}
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => router.push(`/dashboard/business?id=${id}`)}
+            onClick={() => {
+              window.location.href = getAppRootUrl();
+            }}
             className="group flex items-center gap-2 text-slate-600 text-xs font-bold hover:text-slate-900 transition-all bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/80 active:scale-95 shadow-sm shadow-slate-100"
           >
             <CaretLeft size={16} weight="bold" className="text-slate-500 group-hover:-translate-x-0.5 transition-transform" />

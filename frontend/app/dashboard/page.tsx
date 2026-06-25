@@ -295,7 +295,7 @@ export default function BusinessPanelPage() {
                 İşletmeleriniz
               </Drawer.Title>
 
-              <div className="space-y-2 mb-8">
+              <div className="space-y-3 mb-8">
                 {businesses.map((biz) => (
                   <button
                     key={biz.id}
@@ -303,27 +303,27 @@ export default function BusinessPanelPage() {
                       setSelectedBusinessId(biz.id);
                       setIsSwitcherOpen(false);
                     }}
-                    className={`w-full flex items-center gap-4 p-4 rounded-[2rem] transition-all active:scale-[0.98] ${
+                    className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all active:scale-[0.98] group ${
                       selectedBusinessId === biz.id 
-                        ? "bg-gray-100 text-gray-900" 
-                        : "bg-white text-gray-900 hover:bg-gray-50"
+                        ? "bg-slate-100 text-slate-900 shadow-sm" 
+                        : "bg-white text-slate-900 hover:bg-slate-50 border border-slate-100 hover:border-slate-200"
                     }`}
                   >
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-gray-100 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
                       {biz.logo_url ? (
-                        <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                        <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       ) : (
-                        <span className="font-black text-sm text-gray-400">{biz.name.slice(0, 1).toUpperCase()}</span>
+                        <span className="font-bold text-sm text-slate-300">{biz.name.slice(0, 1).toUpperCase()}</span>
                       )}
                     </div>
                     <div className="flex-1 text-left min-w-0">
-                      <p className="font-black text-[14px] truncate">{biz.name}</p>
-                      <p className="text-[10px] truncate text-gray-400 font-medium">
+                      <p className="font-bold text-[14px] truncate text-slate-900">{biz.name}</p>
+                      <p className="text-[10px] truncate text-slate-500 font-medium mt-0.5">
                         {biz.description || "İşletme Profili"}
                       </p>
                     </div>
                     {selectedBusinessId === biz.id && (
-                      <div className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-slate-900 flex items-center justify-center shrink-0 shadow-md">
                         <Check size={14} weight="bold" className="text-white" />
                       </div>
                     )}
@@ -336,14 +336,14 @@ export default function BusinessPanelPage() {
                   setIsSwitcherOpen(false);
                   setIsCreateOpen(true);
                 }}
-                className="w-full flex items-center gap-4 p-4 rounded-[2rem] bg-gray-50 text-gray-900 hover:bg-gray-100 transition-all active:scale-[0.98]"
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-slate-50 text-slate-900 hover:bg-slate-100 border border-slate-100 transition-all active:scale-[0.98] group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 border border-gray-100 shadow-sm">
-                  <Plus size={20} weight="bold" className="text-gray-400" />
+                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 border border-slate-200 shadow-sm group-hover:border-slate-300 transition-colors">
+                  <Plus size={20} weight="bold" className="text-slate-400 group-hover:text-slate-900 transition-colors" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-black text-[14px]">Yeni İşletme Ekle</p>
-                  <p className="text-[10px] text-gray-400 font-medium">Yeni bir dükkan profili oluşturun</p>
+                  <p className="font-bold text-[14px] text-slate-900">Yeni İşletme Ekle</p>
+                  <p className="text-[10px] text-slate-500 font-medium mt-0.5">Yeni bir dükkan profili oluşturun</p>
                 </div>
               </button>
             </div>

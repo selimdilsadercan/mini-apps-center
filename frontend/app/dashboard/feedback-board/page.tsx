@@ -24,6 +24,7 @@ import { motion } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
+import { getAppRootUrl } from "@/lib/apps";
 import { feedback_board } from "@/lib/client";
 
 const client = createBrowserClient();
@@ -140,11 +141,13 @@ function FeedbackBoardAdminContent() {
       <main className="flex-1 px-4 py-8 pb-32 mx-auto w-full max-w-3xl">
         <div className="flex items-center justify-between mb-10">
           <button
-            onClick={() => router.push(`/dashboard/business?id=${businessId}`)}
+            onClick={() => {
+              window.location.href = getAppRootUrl();
+            }}
             className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 transition-all bg-white px-3.5 py-2 rounded-2xl border border-zinc-200 shadow-sm text-xs font-black uppercase tracking-widest cursor-pointer"
           >
             <CaretLeft size={16} weight="bold" />
-            <span>Geri Dön</span>
+            <span>Geri</span>
           </button>
 
           <button

@@ -16,6 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import { Toaster } from "react-hot-toast";
 import { DigitalMenuProvider, useDigitalMenu } from "./context";
+import { getAppRootUrl } from "@/lib/apps";
 import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
 import { toast } from "react-hot-toast";
@@ -62,11 +63,13 @@ function Sidebar() {
       {/* Sidebar Top: Back Button & Brand Header */}
       <div className="p-6 border-b border-stone-100 space-y-5">
         <button
-          onClick={() => router.push(`/dashboard/business?id=${id}`)}
+          onClick={() => {
+            window.location.href = getAppRootUrl();
+          }}
           className="flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-all bg-stone-50 hover:bg-stone-100 border border-stone-200/60 px-4 py-2.5 rounded-2xl active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
         >
           <CaretLeft size={14} weight="bold" />
-          <span>İşletme Detayı</span>
+          <span>Geri</span>
         </button>
 
         <div className="flex items-center gap-3">
