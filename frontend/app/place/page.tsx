@@ -66,20 +66,12 @@ const PROMOTABLE_APPS = [
 ];
 
 export default function PublicBusinessPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-white">
-        <div className="w-8 h-8 border-4 border-stone-100 border-t-stone-900 rounded-full animate-spin"></div>
-      </div>
-    }>
-      <PublicBusinessPageContent />
-    </Suspense>
-  );
+  return <PublicBusinessPageContent />;
 }
 
 function PublicBusinessPageContent() {
   const searchParams = useSearchParams();
-  const slug = searchParams.get("slug");
+  const slug = searchParams.get("slug") || searchParams.get("biz");
   const isPreview = searchParams.get("preview") === "true";
 
   const [business, setBusiness] = useState<any>(null);
@@ -87,29 +79,29 @@ function PublicBusinessPageContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       try {
-        console.log("Fetching business data for slug:", slug);
         const res = await client.business.getBusinessBySlug(slug);
-        console.log("getBusinessBySlug response:", res);
-        
         let bizData = res.business;
         
-        // Fallback to ID if slug search returned nothing
         if (!bizData && slug) {
-          console.log("Slug not found, trying ID fallback...");
-          const idRes = await client.business.getBusiness(slug);
-          bizData = idRes.business;
+          const fallbackRes = await client.business.getBusiness(slug);
+          bizData = fallbackRes.business;
         }
 
         if (bizData) {
           setBusiness(bizData);
-          const linksRes = await client.business_page.getLinks(bizData.id);
-          setLinks(linksRes.links || []);
-        } else {
-          console.log("No business data found for:", slug);
+          try {
+            const linksRes = await client.business_page.getLinks(bizData.id);
+            setLinks(linksRes.links || []);
+          } catch (linksErr) {
+            console.error("Error fetching links:", linksErr);
+          }
         }
       } catch (err) {
         console.error("Error fetching business data:", err);
@@ -120,9 +112,8 @@ function PublicBusinessPageContent() {
 
     fetchData();
     
-    // If in preview mode, we might want to refresh more often
     if (isPreview) {
-      const interval = setInterval(fetchData, 3000);
+      const interval = setInterval(fetchData, 2000);
       return () => clearInterval(interval);
     }
   }, [slug, isPreview]);

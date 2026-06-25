@@ -171,19 +171,6 @@ export const getBusiness = api(
   }
 );
 
-export const checkSchema = api(
-  { expose: true, method: "GET", path: "/business/check-schema" },
-  async (): Promise<any> => {
-    const { data, error } = await supabase.rpc("get_table_info", { p_table_name: "businesses", p_schema_name: "business" });
-    if (error) {
-      // Fallback: try to select one row
-      const { data: row, error: rowError } = await supabase.schema("business").from("businesses").select("*").limit(1);
-      return { error, rowError, row: row?.[0] };
-    }
-    return { data };
-  }
-);
-
 /**
  * Get specific business details by slug
  * GET /business/get-by-slug/:slug
@@ -192,13 +179,29 @@ export const getBusinessBySlug = api(
   { expose: true, method: "GET", path: "/business/get-by-slug/:slug" },
   async ({ slug }: { slug: string }): Promise<{ business: Business | null }> => {
     console.log("[Business] getBusinessBySlug called with slug:", slug);
+    
     const { data, error } = await supabase.schema("business").rpc("get_business_by_slug", {
       p_slug: slug,
     });
 
     if (error) {
       console.error("[Business] getBusinessBySlug error:", error);
-      throw APIError.internal(`Failed to get business by slug: ${error.message}`);
+      // Fallback to direct query if RPC fails
+      const { data: directData, error: directError } = await supabase
+        .schema("business")
+        .from("businesses")
+        .select("*")
+        .or(`slug.eq.${slug},id.eq.${slug}`)
+        .maybeSingle();
+        
+      if (directError) {
+        throw APIError.internal(`Failed to get business: ${directError.message}`);
+      }
+      
+      if (directData) {
+        return { business: (directData as Business) };
+      }
+      return { business: null };
     }
 
     const biz = Array.isArray(data) ? data[0] : data;

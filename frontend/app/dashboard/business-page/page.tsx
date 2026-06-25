@@ -675,7 +675,7 @@ export default function BusinessPageDashboard() {
              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-stone-800 rounded-b-2xl z-10" />
              
              <iframe 
-               src={`/place?slug=${business?.slug || id}&preview=true`}
+               src={`/place?slug=${business?.slug || id}&biz=${id}&preview=true`}
                className="w-full h-full border-none"
                title="Live Preview"
              />
