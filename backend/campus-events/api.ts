@@ -34,6 +34,9 @@ export interface CampusEvent {
   businessId?: string | null;
   category?: string | null;
   attendees?: Attendee[];
+  has_form?: boolean;
+  form_questions?: any;
+  user_submission?: any;
 }
 
 // ==================== REQ/RES INTERFACES ====================
@@ -60,6 +63,8 @@ interface AddEventRequest {
   organizerClub?: string;
   businessId?: string;
   category?: string;
+  hasForm?: boolean;
+  formQuestions?: any;
 }
 
 interface AddEventResponse {
@@ -76,6 +81,8 @@ interface UpdateEventRequest {
   imageUrl?: string;
   organizerClub?: string;
   category?: string;
+  hasForm?: boolean;
+  formQuestions?: any;
 }
 
 interface SetAttendanceRequest {
@@ -86,6 +93,24 @@ interface SetAttendanceRequest {
 
 interface SetAttendanceResponse {
   success: boolean;
+}
+
+interface SubmitFormRequest {
+  userId: string;
+  eventId: string;
+  answers: any;
+}
+
+interface GetSubmissionsResponse {
+  submissions: {
+    id: string;
+    event_id: string;
+    user_id: string;
+    username: string;
+    avatar_url: string;
+    answers: any;
+    created_at: string;
+  }[];
 }
 
 // ==================== API ENDPOINTS ====================
@@ -129,7 +154,9 @@ export const addEvent = api(
     imageUrl, 
     organizerClub,
     businessId,
-    category
+    category,
+    hasForm,
+    formQuestions
   }: AddEventRequest): Promise<AddEventResponse> => {
     const { data, error } = await supabase.schema("campus_events").rpc("add_event", {
       title_param: title,
@@ -142,6 +169,8 @@ export const addEvent = api(
       added_by_clerk_id_param: userId,
       business_id_param: businessId || null,
       category_param: category || null,
+      has_form_param: hasForm || false,
+      form_questions_param: formQuestions || [],
     });
 
     if (error) {
@@ -168,7 +197,9 @@ export const updateEvent = api(
     eventDate, 
     imageUrl, 
     organizerClub,
-    category
+    category,
+    hasForm,
+    formQuestions
   }: UpdateEventRequest): Promise<{ event: CampusEvent | null }> => {
     const { data, error } = await supabase.schema("campus_events").rpc("update_event", {
       event_id_param: eventId,
@@ -180,6 +211,8 @@ export const updateEvent = api(
       image_url_param: imageUrl || null,
       organizer_club_param: organizerClub || null,
       category_param: category || null,
+      has_form_param: hasForm || false,
+      form_questions_param: formQuestions || [],
     });
 
     if (error) {
@@ -278,5 +311,47 @@ export const setAttendance = api(
     }
 
     return { success: true };
+  }
+);
+
+/**
+ * Submit a form for an event
+ * POST /campus-events/forms/submit
+ */
+export const submitForm = api(
+  { expose: true, method: "POST", path: "/campus-events/forms/submit" },
+  async ({ userId, eventId, answers }: SubmitFormRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase.schema("campus_events").rpc("submit_form", {
+      clerk_id_param: userId,
+      event_id_param: eventId,
+      answers_param: answers,
+    });
+
+    if (error) {
+      console.error("submitForm error:", error);
+      throw APIError.internal(`Failed to submit form: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+);
+
+/**
+ * Get all submissions for an event
+ * GET /campus-events/events/:id/submissions
+ */
+export const getSubmissions = api(
+  { expose: true, method: "GET", path: "/campus-events/events/:id/submissions" },
+  async ({ id }: { id: string }): Promise<GetSubmissionsResponse> => {
+    const { data, error } = await supabase.schema("campus_events").rpc("get_submissions", {
+      event_id_param: id,
+    });
+
+    if (error) {
+      console.error("getSubmissions error:", error);
+      throw APIError.internal(`Failed to load submissions: ${error.message}`);
+    }
+
+    return { submissions: data || [] };
   }
 );

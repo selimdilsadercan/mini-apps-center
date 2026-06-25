@@ -101,14 +101,7 @@ export async function updateAppOrderAction(
 
 export async function getUserPreferencesAction(
   clerkId: string
-): Promise<ActionResponse<{ 
-  appOrder: string[] | null; 
-  selectedUniversity?: string | null; 
-  isOnboardingFinished?: boolean;
-  pinnedApps?: string[] | null;
-  lastUsedApps?: Record<string, string> | null;
-  usageCounts?: Record<string, number> | null;
-}>> {
+): Promise<ActionResponse<{ appOrder: string[] | null; selectedUniversity?: string | null; isOnboardingFinished?: boolean }>> {
   try {
     const client = createBrowserClient();
     const response = await client.users.getUserPreferences(clerkId);
@@ -117,47 +110,12 @@ export async function getUserPreferencesAction(
       data: {
         appOrder: response.appOrder,
         selectedUniversity: response.selectedUniversity,
-        isOnboardingFinished: response.isOnboardingFinished,
-        pinnedApps: response.pinnedApps,
-        lastUsedApps: response.lastUsedApps,
-        usageCounts: response.usageCounts
+        isOnboardingFinished: response.isOnboardingFinished
       },
       error: null
     };
   } catch (error) {
     console.error("Failed to get user preferences:", error);
-    return {
-      data: null,
-      error: getErrorMessage(error)
-    };
-  }
-}
-
-/**
- * Kullanıcının tercihlerini günceller (appOrder, pinnedApps, lastUsedApps, usageCounts)
- */
-export async function updateUserPreferencesAction(
-  clerkId: string,
-  preferences: {
-    appOrder?: string[];
-    pinnedApps?: string[];
-    lastUsedApps?: Record<string, string>;
-    usageCounts?: Record<string, number>;
-  }
-): Promise<ActionResponse<boolean>> {
-  try {
-    const client = createBrowserClient();
-    const response = await client.users.updateUserPreferences({
-      clerkId,
-      ...preferences
-    });
-    
-    return {
-      data: response.success,
-      error: null
-    };
-  } catch (error) {
-    console.error("Failed to update user preferences:", error);
     return {
       data: null,
       error: getErrorMessage(error)

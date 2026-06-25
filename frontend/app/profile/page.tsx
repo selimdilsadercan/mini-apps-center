@@ -4,8 +4,9 @@ import { useUser, SignOutButton } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkle, Translate, SignOut, User, Users, CaretRight, Shield, Globe, UserGear } from "@phosphor-icons/react";
+import { Sparkle, Translate, SignOut, User, Users, CaretRight, CaretLeft, Shield, Globe, UserGear } from "@phosphor-icons/react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
+import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 import { APP_CONFIG } from "@/lib/config";
 
@@ -14,6 +15,7 @@ const client = createBrowserClient();
 export default function Profile() {
   const { isLoaded, user } = useUser();
   const { locale, setLocale } = useLanguage();
+  const router = useRouter();
   const t = useTranslations("profile");
 
   const [dbUser, setDbUser] = useState<any>(null);
@@ -102,7 +104,6 @@ export default function Profile() {
             </div>
           </div>
         </main>
-        <AppBar activePage={ActivePage.PROFILE} />
       </div>
     );
   }
@@ -120,9 +121,17 @@ export default function Profile() {
       </div>
 
       {/* Main Profile View */}
-      <main className="flex-1 px-4 pb-32 max-w-md mx-auto w-full pt-8">
+      <main className="flex-1 px-4 pb-12 max-w-md mx-auto w-full pt-8">
         
-        {/* Instagram Style Profile Header */}
+        {/* Header with Back Button */}
+        <div className="mb-6">
+          <button 
+            onClick={() => router.push("/")}
+            className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+          >
+            <CaretLeft size={20} weight="bold" />
+          </button>
+        </div>
         <div className="flex flex-col items-center text-center mt-4 mb-8">
           
           {/* Avatar container */}
@@ -260,8 +269,6 @@ export default function Profile() {
           </p>
         </div>
       </main>
-
-      <AppBar activePage={ActivePage.PROFILE} />
     </div>
   );
 }

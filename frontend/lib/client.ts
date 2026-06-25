@@ -1722,6 +1722,8 @@ export namespace campus_events {
         organizerClub?: string
         businessId?: string
         category?: string
+        hasForm?: boolean
+        formQuestions?: any
     }
 
     export interface AddEventResponse {
@@ -1766,6 +1768,9 @@ export namespace campus_events {
         businessId?: string | null
         category?: string | null
         attendees?: Attendee[]
+        "has_form"?: boolean
+        "form_questions"?: any
+        "user_submission"?: any
     }
 
     export interface GetEventsRequest {
@@ -1779,6 +1784,18 @@ export namespace campus_events {
         events: CampusEvent[]
     }
 
+    export interface GetSubmissionsResponse {
+        submissions: {
+            id: string
+            "event_id": string
+            "user_id": string
+            username: string
+            "avatar_url": string
+            answers: any
+            "created_at": string
+        }[]
+    }
+
     export interface SetAttendanceRequest {
         userId: string
         eventId: string
@@ -1787,6 +1804,12 @@ export namespace campus_events {
 
     export interface SetAttendanceResponse {
         success: boolean
+    }
+
+    export interface SubmitFormRequest {
+        userId: string
+        eventId: string
+        answers: any
     }
 
     export interface UpdateEventRequest {
@@ -1799,6 +1822,8 @@ export namespace campus_events {
         imageUrl?: string
         organizerClub?: string
         category?: string
+        hasForm?: boolean
+        formQuestions?: any
     }
 
     export class ServiceClient {
@@ -1810,7 +1835,9 @@ export namespace campus_events {
             this.bulkAddEvents = this.bulkAddEvents.bind(this)
             this.getEvent = this.getEvent.bind(this)
             this.getEvents = this.getEvents.bind(this)
+            this.getSubmissions = this.getSubmissions.bind(this)
             this.setAttendance = this.setAttendance.bind(this)
+            this.submitForm = this.submitForm.bind(this)
             this.updateEvent = this.updateEvent.bind(this)
         }
 
@@ -1878,6 +1905,16 @@ export namespace campus_events {
         }
 
         /**
+         * Get all submissions for an event
+         * GET /campus-events/events/:id/submissions
+         */
+        public async getSubmissions(id: string): Promise<GetSubmissionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/campus-events/events/${encodeURIComponent(id)}/submissions`)
+            return await resp.json() as GetSubmissionsResponse
+        }
+
+        /**
          * Set user attendance status for an event
          * POST /campus-events/attendance/set
          */
@@ -1885,6 +1922,20 @@ export namespace campus_events {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/attendance/set`, JSON.stringify(params))
             return await resp.json() as SetAttendanceResponse
+        }
+
+        /**
+         * Submit a form for an event
+         * POST /campus-events/forms/submit
+         */
+        public async submitForm(params: SubmitFormRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/forms/submit`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**
@@ -6814,6 +6865,9 @@ export namespace users {
         appOrder: string[] | null
         selectedUniversity?: string | null
         isOnboardingFinished?: boolean
+        pinnedApps: string[] | null
+        lastUsedApps: { [key: string]: string } | null
+        usageCounts: { [key: string]: number } | null
     }
 
     export type NotificationAppsJson = { [key: string]: { [key: string]: any } }
@@ -6866,6 +6920,18 @@ export namespace users {
         success: boolean
     }
 
+    export interface UpdateUserPreferencesRequest {
+        clerkId: string
+        appOrder?: string[]
+        pinnedApps?: string[]
+        lastUsedApps?: { [key: string]: string }
+        usageCounts?: { [key: string]: number }
+    }
+
+    export interface UpdateUserPreferencesResponse {
+        success: boolean
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -6884,6 +6950,7 @@ export namespace users {
             this.setOnboardingFinished = this.setOnboardingFinished.bind(this)
             this.updateAppOrder = this.updateAppOrder.bind(this)
             this.updateUniversity = this.updateUniversity.bind(this)
+            this.updateUserPreferences = this.updateUserPreferences.bind(this)
         }
 
         /**
@@ -6999,6 +7066,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/university`, JSON.stringify(params))
             return await resp.json() as UpdateUniversityResponse
+        }
+
+        /**
+         * Kullanıcının tercihlerini günceller (appOrder, pinnedApps, lastUsedApps, usageCounts)
+         */
+        public async updateUserPreferences(params: UpdateUserPreferencesRequest): Promise<UpdateUserPreferencesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/preferences/update`, JSON.stringify(params))
+            return await resp.json() as UpdateUserPreferencesResponse
         }
     }
 }

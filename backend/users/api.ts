@@ -74,6 +74,21 @@ interface GetUserPreferencesResponse {
   appOrder: string[] | null;
   selectedUniversity?: string | null;
   isOnboardingFinished?: boolean;
+  pinnedApps: string[] | null;
+  lastUsedApps: Record<string, string> | null;
+  usageCounts: Record<string, number> | null;
+}
+
+interface UpdateUserPreferencesRequest {
+  clerkId: string;
+  appOrder?: string[];
+  pinnedApps?: string[];
+  lastUsedApps?: Record<string, string>;
+  usageCounts?: Record<string, number>;
+}
+
+interface UpdateUserPreferencesResponse {
+  success: boolean;
 }
 
 interface SetOnboardingFinishedRequest {
@@ -260,14 +275,48 @@ export const getUserPreferences = api(
 
     if (error) {
       console.error("getUserPreferences error:", error);
-      return { appOrder: null, selectedUniversity: null, isOnboardingFinished: false };
+      return { 
+        appOrder: null, 
+        selectedUniversity: null, 
+        isOnboardingFinished: false,
+        pinnedApps: null,
+        lastUsedApps: null,
+        usageCounts: null
+      };
     }
 
     return { 
       appOrder: data?.[0]?.app_order || null,
       selectedUniversity: data?.[0]?.selected_university || null,
-      isOnboardingFinished: data?.[0]?.is_onboarding_finished || false
+      isOnboardingFinished: data?.[0]?.is_onboarding_finished || false,
+      pinnedApps: data?.[0]?.pinned_apps || null,
+      lastUsedApps: data?.[0]?.last_used_apps || null,
+      usageCounts: data?.[0]?.usage_counts || null,
     };
+  }
+);
+
+/**
+ * Kullanıcının tercihlerini günceller (appOrder, pinnedApps, lastUsedApps, usageCounts)
+ */
+export const updateUserPreferences = api(
+  { expose: true, method: "POST", path: "/users/preferences/update" },
+  async ({ clerkId, appOrder, pinnedApps, lastUsedApps, usageCounts }: UpdateUserPreferencesRequest): Promise<UpdateUserPreferencesResponse> => {
+    const { error } = await supabase.rpc("update_user_preferences", {
+      clerk_id_param: clerkId,
+      app_order_param: appOrder || null,
+      pinned_apps_param: pinnedApps || null,
+      last_used_apps_param: lastUsedApps || null,
+      usage_counts_param: usageCounts || null,
+      is_local_param: isLocal,
+    });
+
+    if (error) {
+      console.error("updateUserPreferences error:", error);
+      return { success: false };
+    }
+
+    return { success: true };
   }
 );
 

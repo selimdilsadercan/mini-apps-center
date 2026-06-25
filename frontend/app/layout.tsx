@@ -10,6 +10,7 @@ import trMessages from "@/locales/tr/index";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import OTAProvider from "@/components/OTAProvider";
 import { MobileThemeProvider } from "@/components/MobileThemeManager";
+import { HomeProvider } from "@/contexts/HomeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,14 +45,16 @@ export default function RootLayout({
         <OTAProvider>
           <LanguageProvider messages={trMessages}>
             <AuthProvider>
-              <ConfirmDialogProvider>
-                <MobileThemeProvider>
-                  <NotificationHandler />
-                  <GreetingHandler />
-                  {children}
-                  <Toaster position="top-center" />
-                </MobileThemeProvider>
-              </ConfirmDialogProvider>
+              <HomeProvider>
+                <ConfirmDialogProvider>
+                  <MobileThemeProvider>
+                    <NotificationHandler />
+                    <GreetingHandler />
+                    {children}
+                    <Toaster position="top-center" />
+                  </MobileThemeProvider>
+                </ConfirmDialogProvider>
+              </HomeProvider>
             </AuthProvider>
           </LanguageProvider>
         </OTAProvider>

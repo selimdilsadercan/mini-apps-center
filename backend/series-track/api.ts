@@ -16,13 +16,13 @@ interface CacheEntry<T> {
 }
 
 const cache = new Map<string, CacheEntry<any>>();
-const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 hours
 
 function getFromCache<T>(key: string): T | null {
   const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() > entry.expiry) {
-    cache.delete(key);
+    cache.delete(key);  
     return null;
   }
   return entry.data;

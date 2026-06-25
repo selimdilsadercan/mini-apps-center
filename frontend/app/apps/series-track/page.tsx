@@ -108,15 +108,27 @@ export default function SeriesTrackPage() {
       });
       setAllSeriesProgress(progressMap);
 
-      // Fetch details only for those not in cache
-      const missingDetails = seriesList.filter(s => !allSeriesDetails[s.id]);
-      if (missingDetails.length > 0) {
-        const detailsPromises = missingDetails.map(s => client.series_track.getSeriesDetails(s.tmdb_id));
+      // Fetch details for missing or old cache (older than 12h)
+      const now = Date.now();
+      const CACHE_STALE_TIME = 1000 * 60 * 60 * 12; // 12 hours
+      
+      const seriesToFetch = seriesList.filter(s => {
+        const cached = allSeriesDetails[s.id];
+        if (!cached) return true;
+        if (!cached._cached_at || now - cached._cached_at > CACHE_STALE_TIME) return true;
+        return false;
+      });
+
+      if (seriesToFetch.length > 0) {
+        const detailsPromises = seriesToFetch.map(s => client.series_track.getSeriesDetails(s.tmdb_id));
         const detailsResults = await Promise.all(detailsPromises);
         
         const newDetailsMap = { ...allSeriesDetails };
-        missingDetails.forEach((s, i) => {
-          newDetailsMap[s.id] = detailsResults[i];
+        seriesToFetch.forEach((s, i) => {
+          newDetailsMap[s.id] = {
+            ...detailsResults[i],
+            _cached_at: now
+          };
         });
         setAllSeriesDetails(newDetailsMap);
       }
@@ -127,6 +139,14 @@ export default function SeriesTrackPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const hasEpisodeAired = (airDate: string) => {
+    if (!airDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const releaseDate = new Date(airDate);
+    return releaseDate <= today;
   };
 
   const getNextEpisode = (seriesId: string) => {
@@ -145,21 +165,47 @@ export default function SeriesTrackPage() {
       }
     });
 
+    // Calculate total aired episodes to find how many are left to watch
+    const lastAiredInfo = details.last_episode_to_air;
+    let totalAiredCount = 0;
+    if (lastAiredInfo) {
+      details.seasons.forEach((s: any) => {
+        if (s.season_number > 0) {
+          if (s.season_number < lastAiredInfo.season_number) {
+            totalAiredCount += s.episode_count;
+          } else if (s.season_number === lastAiredInfo.season_number) {
+            totalAiredCount += lastAiredInfo.episode_number;
+          }
+        }
+      });
+    } else {
+      totalAiredCount = details.number_of_episodes;
+    }
+
+    const totalUnwatchedAired = Math.max(0, totalAiredCount - progress.length);
+
     if (lastSeason === 0) {
       // Check if first episode is aired
       let isAired = true;
       let airDate = "";
       const nextToAir = details.next_episode_to_air;
-      const lastAired = details.last_episode_to_air;
-      if (lastAired) {
-        if (1 > lastAired.season_number || (1 === lastAired.season_number && 1 > lastAired.episode_number)) {
+      if (lastAiredInfo) {
+        if (1 > lastAiredInfo.season_number || (1 === lastAiredInfo.season_number && 1 > lastAiredInfo.episode_number)) {
           isAired = false;
           if (nextToAir && nextToAir.season_number === 1 && nextToAir.episode_number === 1) {
             airDate = nextToAir.air_date;
+            if (hasEpisodeAired(airDate)) isAired = true;
           }
         }
       }
-      return { season: 1, episode: 1, totalLeft: details.number_of_episodes, isAired, airDate, isFinished: false };
+      return { 
+        season: 1, 
+        episode: 1, 
+        totalLeft: isAired ? Math.max(0, totalUnwatchedAired - 1) : totalUnwatchedAired, 
+        isAired, 
+        airDate, 
+        isFinished: false 
+      };
     }
 
     // Find next episode in the same season or next season
@@ -185,15 +231,18 @@ export default function SeriesTrackPage() {
     // Check if aired
     let isAired = true;
     let airDate = "";
-    const lastAired = details.last_episode_to_air;
     const nextToAir = details.next_episode_to_air;
 
-    if (lastAired) {
-      if (nextSeasonNum > lastAired.season_number || 
-         (nextSeasonNum === lastAired.season_number && nextEpisodeNum > lastAired.episode_number)) {
+    if (lastAiredInfo) {
+      if (nextSeasonNum > lastAiredInfo.season_number || 
+         (nextSeasonNum === lastAiredInfo.season_number && nextEpisodeNum > lastAiredInfo.episode_number)) {
         isAired = false;
         if (nextToAir && nextSeasonNum === nextToAir.season_number && nextEpisodeNum === nextToAir.episode_number) {
           airDate = nextToAir.air_date;
+          // Even if TMDB says it's "next to air", if the date has passed, consider it aired
+          if (hasEpisodeAired(airDate)) {
+            isAired = true;
+          }
         }
       }
     }
@@ -201,7 +250,7 @@ export default function SeriesTrackPage() {
     return { 
       season: nextSeasonNum, 
       episode: nextEpisodeNum, 
-      totalLeft: details.number_of_episodes - progress.length,
+      totalLeft: isAired ? Math.max(0, totalUnwatchedAired - 1) : totalUnwatchedAired,
       isAired,
       airDate,
       isFinished: false
@@ -443,14 +492,6 @@ export default function SeriesTrackPage() {
 
   const isEpisodeWatched = (seasonNum: number, episodeNum: number) => {
     return userProgress.some(p => p.season_number === seasonNum && p.episode_number === episodeNum);
-  };
-
-  const hasEpisodeAired = (airDate: string) => {
-    if (!airDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const releaseDate = new Date(airDate);
-    return releaseDate <= today;
   };
 
   const formatDateTurkish = (dateStr: string) => {

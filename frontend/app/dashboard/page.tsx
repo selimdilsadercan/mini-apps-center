@@ -1,37 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
-  ChefHat,
   Plus,
   Storefront,
   CaretLeft,
-  ArrowRight,
-  Sparkle,
+  CaretRight,
+  Trash,
   Image as ImageIcon,
   UploadSimple,
-  Trash
+  CaretDown,
+  Check
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
-import { digital_menu, stamp_card } from "@/lib/client";
-import { getAppRootUrl } from "@/lib/apps";
+import { getAppRootUrl, BUSINESS_APPS, MiniApp } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { uploadImage } from "@/lib/image";
 import { useRef } from "react";
 
 const client = createBrowserClient();
 
-export default function BusinessListPage() {
+export default function BusinessPanelPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-
-  // User Owned Businesses (merged list from digital_menu & stamp_card)
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   // Create Business Dialog State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -56,7 +55,20 @@ export default function BusinessListPage() {
     try {
       setLoading(true);
       const res = await client.business.getOwnedBusinesses(user.id);
-      setBusinesses(res.businesses || []);
+      const bizList = res.businesses || [];
+      setBusinesses(bizList);
+      
+      if (bizList.length > 0 && !selectedBusinessId) {
+        // En son seçilen işletmeyi hatırla
+        const savedId = localStorage.getItem(`last_selected_business_${user.id}`);
+        const businessExists = bizList.some(b => b.id === savedId);
+        
+        if (savedId && businessExists) {
+          setSelectedBusinessId(savedId);
+        } else {
+          setSelectedBusinessId(bizList[0].id);
+        }
+      }
     } catch (e) {
       console.error(e);
       toast.error("İşletmeler yüklenirken hata oluştu.");
@@ -64,6 +76,26 @@ export default function BusinessListPage() {
       setLoading(false);
     }
   };
+
+  // Seçili işletme değiştiğinde localStorage'a kaydet
+  useEffect(() => {
+    if (user?.id && selectedBusinessId) {
+      localStorage.setItem(`last_selected_business_${user.id}`, selectedBusinessId);
+    }
+  }, [selectedBusinessId, user?.id]);
+
+  const selectedBusiness = useMemo(() => 
+    businesses.find(b => b.id === selectedBusinessId) || null
+  , [businesses, selectedBusinessId]);
+
+  const enabledBusinessApps = useMemo(() => {
+    if (!selectedBusiness) return [];
+    return BUSINESS_APPS.filter(app => 
+      app.isImplemented && 
+      !app.isCancelled && 
+      selectedBusiness.enabled_apps?.includes(app.id)
+    );
+  }, [selectedBusiness]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -107,7 +139,6 @@ export default function BusinessListPage() {
     }
   };
 
-  // Create Business
   const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -133,25 +164,25 @@ export default function BusinessListPage() {
     }
   };
 
-  if (!isUserLoaded) {
+  if (!isUserLoaded || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FDFBF9]">
-        <div className="w-12 h-12 border-4 border-red-100 border-t-red-500 rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-red-100 border-t-red-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FDFBF9] p-6 text-center">
-        <Storefront size={48} className="text-stone-900 mb-4" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center">
+        <Storefront size={48} className="text-gray-900 mb-4" />
         <h1 className="text-2xl font-black mb-2">İşletme Girişi</h1>
-        <p className="text-stone-550 text-sm max-w-xs mb-6 font-medium">
+        <p className="text-gray-500 text-sm max-w-xs mb-6 font-medium">
           İşletme paneline erişmek ve dükkanlarınızı yönetmek için lütfen giriş yapın.
         </p>
         <button
           onClick={() => (window.location.href = `${getAppRootUrl()}sign-in`)}
-          className="bg-stone-900 text-white font-black px-6 py-3.5 rounded-2xl text-xs uppercase tracking-widest cursor-pointer shadow-md"
+          className="bg-gray-900 text-white font-black px-6 py-3.5 rounded-2xl text-xs uppercase tracking-widest cursor-pointer shadow-md"
         >
           Giriş Yap
         </button>
@@ -160,117 +191,206 @@ export default function BusinessListPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FDFBF9] text-stone-900 overflow-x-hidden relative font-sans">
+    <div className="flex min-h-screen flex-col bg-white pb-12">
       <Toaster position="top-center" />
 
-      <main className="flex-1 px-4 py-8 pb-32 max-w-md mx-auto w-full relative z-10">
-        
-        {/* Navigation & Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => (window.location.href = getAppRootUrl())}
-            className="flex items-center gap-1.5 text-stone-600 hover:text-stone-900 transition-all bg-white border border-stone-200/80 backdrop-blur-xl px-3.5 py-2.5 rounded-2xl shadow-sm active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
+      <main className="px-5 py-2 max-w-lg mx-auto w-full">
+        {/* Header Section with Back Button and Account Switcher */}
+        <section className="mt-8 mb-8 flex items-center gap-4">
+          <button 
+            onClick={() => router.push("/")}
+            className="w-10 h-10 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-white hover:border-gray-200 shrink-0"
           >
-            <CaretLeft size={14} weight="bold" />
-            <span>Ana Sayfa</span>
+            <CaretLeft size={20} weight="bold" />
           </button>
-        </div>
 
-        {/* Business List */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <h2 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-              İşletmelerim ({businesses.length})
-            </h2>
-            <button
-              onClick={() => setIsCreateOpen(true)}
-              className="bg-red-500 hover:bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-xl flex items-center gap-1 shadow-sm shadow-red-500/10 cursor-pointer"
-            >
-              <Plus size={10} weight="bold" />
-              Yeni Ekle
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="py-12 text-center text-stone-400 text-xs font-semibold animate-pulse uppercase tracking-widest">
-              İşletmeler yükleniyor...
+          <button 
+            onClick={() => setIsSwitcherOpen(true)}
+            className="flex items-center gap-3 group cursor-pointer text-left min-w-0"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm group-hover:border-gray-200 transition-all">
+              {selectedBusiness?.logo_url ? (
+                <img src={selectedBusiness.logo_url} alt={selectedBusiness.name} className="w-full h-full object-cover" />
+              ) : (
+                <Storefront size={24} weight="fill" className="text-gray-300" />
+              )}
             </div>
-          ) : businesses.length === 0 ? (
-            <div className="py-12 text-center bg-white rounded-3xl border border-dashed border-stone-200 p-6 shadow-sm">
-              <Storefront size={32} className="text-stone-300 mx-auto mb-2" />
-              <p className="text-stone-850 text-xs font-black uppercase">İşletme bulunamadı</p>
-              <p className="text-stone-450 text-[10px] max-w-[200px] mx-auto mt-1 leading-normal">
-                Kampanyalarınızı ve menülerinizi yönetmek için ilk işletme profilinizi oluşturun.
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-xl font-[1000] text-gray-900 tracking-tighter uppercase truncate max-w-[180px]">
+                  {selectedBusiness?.name || "İşletme Seç"}
+                </h1>
+                <CaretDown size={14} weight="bold" className="text-gray-400 group-hover:text-gray-900 transition-colors mt-0.5" />
+              </div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                İşletme Paneli
               </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {businesses.map((biz) => (
-                <div
-                  key={biz.id}
-                  onClick={() => router.push(`/dashboard/business?id=${biz.id}`)}
-                  className="bg-white p-4.5 rounded-[2rem] border border-stone-200/80 shadow-sm flex items-center gap-4 hover:border-red-400 transition-all cursor-pointer hover:-translate-y-0.5 active:scale-98"
-                >
-                  <div className="w-24 h-14 rounded-2xl bg-stone-50 border border-stone-150 flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">
-                    {biz.header_url || biz.logo_url ? (
-                      <img src={biz.header_url || biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
-                    ) : (
-                      biz.name.slice(0, 2).toUpperCase()
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-black text-sm text-stone-900 truncate">{biz.name}</h3>
-                    <p className="text-[10px] text-stone-450 truncate mt-0.5">{biz.description || "Açıklama belirtilmedi."}</p>
-                  </div>
-                  <ArrowRight size={16} className="text-stone-400 mr-1 shrink-0" />
-                </div>
-              ))}
+          </button>
+        </section>
+
+        {/* Business Apps List */}
+        <div className="space-y-0">
+          {businesses.length === 0 ? (
+            <div className="py-20 text-center bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 p-8">
+              <Storefront size={48} weight="light" className="mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-900 font-black text-sm uppercase tracking-tight">Henüz işletmen yok</p>
+              <p className="text-gray-400 text-xs mt-2 mb-6">İlk işletmeni oluşturarak araçları kullanmaya başla.</p>
+              <button 
+                onClick={() => setIsCreateOpen(true)}
+                className="bg-gray-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-gray-200 active:scale-95 transition-all"
+              >
+                İşletme Oluştur
+              </button>
             </div>
+          ) : enabledBusinessApps.length === 0 ? (
+            <div className="py-12 text-center bg-gray-50 rounded-[2rem] border border-gray-100 p-6">
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Aktif Uygulama Yok</p>
+              <p className="text-gray-300 text-[10px] mt-1">Bu işletme için henüz bir uygulama yetkilendirilmemiş.</p>
+            </div>
+          ) : (
+            enabledBusinessApps.map((app, index) => (
+              <AppRow 
+                key={app.id} 
+                app={app} 
+                index={index} 
+                onClick={() => {
+                  const path = app.id === "tutor-crm" ? "/apps/tutor-crm" :
+                              app.id === "campus-events" ? `/dashboard/events?id=${selectedBusinessId}` :
+                              app.id === "stamp-card" ? `/dashboard/stamp?id=${selectedBusinessId}` :
+                              `/dashboard/${app.id}?id=${selectedBusinessId}`;
+                  router.push(path);
+                }}
+              />
+            ))
           )}
         </div>
-
       </main>
+
+      {/* Account Switcher Drawer */}
+      <Drawer.Root open={isSwitcherOpen} onOpenChange={setIsSwitcherOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-100 shadow-2xl">
+            <div className="p-6 overflow-y-auto">
+              <div className="mx-auto w-12 h-1.5 bg-gray-100 rounded-full mb-8" />
+              
+              <div className="flex items-center gap-4 mb-8 px-2">
+                <div className="w-16 h-16 rounded-[2rem] bg-gray-900 flex items-center justify-center text-white text-2xl font-black shadow-xl shadow-gray-200">
+                  {user?.imageUrl ? (
+                    <img src={user.imageUrl} alt="User" className="w-full h-full object-cover rounded-[2rem]" />
+                  ) : (
+                    user?.firstName?.slice(0, 1).toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-gray-900 tracking-tight">{user?.fullName}</h2>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Hesap Sahibi</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-50 mb-8" />
+
+              <Drawer.Title className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-2">
+                İşletmeleriniz
+              </Drawer.Title>
+
+              <div className="space-y-2 mb-8">
+                {businesses.map((biz) => (
+                  <button
+                    key={biz.id}
+                    onClick={() => {
+                      setSelectedBusinessId(biz.id);
+                      setIsSwitcherOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-4 p-4 rounded-[2rem] transition-all active:scale-[0.98] ${
+                      selectedBusinessId === biz.id 
+                        ? "bg-gray-100 text-gray-900" 
+                        : "bg-white text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center overflow-hidden shrink-0 border border-gray-100 shadow-sm">
+                      {biz.logo_url ? (
+                        <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-black text-sm text-gray-400">{biz.name.slice(0, 1).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="font-black text-[14px] truncate">{biz.name}</p>
+                      <p className="text-[10px] truncate text-gray-400 font-medium">
+                        {biz.description || "İşletme Profili"}
+                      </p>
+                    </div>
+                    {selectedBusinessId === biz.id && (
+                      <div className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                        <Check size={14} weight="bold" className="text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsSwitcherOpen(false);
+                  setIsCreateOpen(true);
+                }}
+                className="w-full flex items-center gap-4 p-4 rounded-[2rem] bg-gray-50 text-gray-900 hover:bg-gray-100 transition-all active:scale-[0.98]"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 border border-gray-100 shadow-sm">
+                  <Plus size={20} weight="bold" className="text-gray-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-black text-[14px]">Yeni İşletme Ekle</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Yeni bir dükkan profili oluşturun</p>
+                </div>
+              </button>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
       {/* Create Business Drawer */}
       <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-md mx-auto border-t border-stone-200 shadow-2xl">
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-100 shadow-2xl">
             <div className="p-6 overflow-y-auto">
-              <div className="mx-auto w-12 h-1 bg-stone-200 rounded-full mb-6" />
-              <Drawer.Title className="text-xl font-black text-stone-900 tracking-tight mb-1">
+              <div className="mx-auto w-12 h-1.5 bg-gray-100 rounded-full mb-8" />
+              <Drawer.Title className="text-xl font-black text-gray-900 tracking-tight mb-1">
                 İŞLETME <span className="text-red-500">EKLE</span>
               </Drawer.Title>
-              <Drawer.Description className="text-stone-400 text-[9px] font-black uppercase tracking-wider mb-6">
+              <Drawer.Description className="text-gray-400 text-[9px] font-black uppercase tracking-wider mb-8">
                 Yeni dükkanınız için işletme profili oluşturun
               </Drawer.Description>
 
-              <form onSubmit={handleCreateBusiness} className="space-y-4 pb-12">
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Adı</label>
+              <form onSubmit={handleCreateBusiness} className="space-y-6 pb-12">
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-black text-gray-400 tracking-wider ml-4">İşletme Adı</label>
                   <input
                     required
                     placeholder="Brew Lab Coffee"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-[2rem] p-5 text-sm font-bold text-gray-900 focus:border-red-500 focus:bg-white outline-none transition-all"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Açıklama / Slogan</label>
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-black text-gray-400 tracking-wider ml-4">Açıklama / Slogan</label>
                   <input
                     placeholder="En taze gurme kahveler ve el yapımı kruvasanlar"
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-[2rem] p-5 text-sm font-bold text-gray-900 focus:border-red-500 focus:bg-white outline-none transition-all"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Logosu</label>
-                  <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 rounded-2xl p-3">
-                    <div className="w-14 h-14 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-black text-gray-400 tracking-wider ml-4">İşletme Logosu</label>
+                  <div className="flex items-center gap-4 bg-gray-50 border border-gray-100 rounded-[2.5rem] p-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
                       {newLogo ? (
                         <>
                           <img src={newLogo} alt="Logo Preview" className="w-full h-full object-cover" />
@@ -282,11 +402,11 @@ export default function BusinessListPage() {
                           </div>
                         </>
                       ) : (
-                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
+                        <ImageIcon size={24} weight="bold" className="text-gray-200" />
                       )}
                       {uploadingLogo && (
                         <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-gray-100 border-t-red-500 rounded-full animate-spin" />
                         </div>
                       )}
                     </div>
@@ -302,7 +422,7 @@ export default function BusinessListPage() {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploadingLogo}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
                       >
                         <UploadSimple size={14} weight="bold" />
                         {newLogo ? "Logoyu Değiştir" : "Logo Seç"}
@@ -311,60 +431,16 @@ export default function BusinessListPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Geniş Logo / Banner (Opsiyonel)</label>
-                  <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-2xl p-3">
-                    <div className="w-full h-24 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
-                      {newHeader ? (
-                        <>
-                          <img src={newHeader} alt="Header Preview" className="w-full h-full object-cover" />
-                          <div 
-                            onClick={() => setNewHeader("")}
-                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                          >
-                            <Trash size={18} weight="bold" className="text-white" />
-                          </div>
-                        </>
-                      ) : (
-                        <ImageIcon size={20} weight="bold" className="text-stone-300" />
-                      )}
-                      {uploadingHeader && (
-                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                          <div className="w-5 h-5 border-2 border-stone-200 border-t-red-500 rounded-full animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        type="file"
-                        ref={headerInputRef}
-                        onChange={handleHeaderUpload}
-                        accept="image/*"
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => headerInputRef.current?.click()}
-                        disabled={uploadingHeader}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
-                      >
-                        <UploadSimple size={14} weight="bold" />
-                        {newHeader ? "Görseli Değiştir" : "Geniş Logo Seç"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider block mb-1">Tema Rengi</label>
-                  <div className="flex gap-2">
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-black text-gray-400 tracking-wider ml-4 block mb-1">Tema Rengi</label>
+                  <div className="flex gap-3 px-2">
                     {["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#845EF7", "#EC4899"].map((color) => (
                       <button
                         key={color}
                         type="button"
                         onClick={() => setNewColor(color)}
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          newColor === color ? "border-stone-900 scale-110" : "border-transparent"
+                        className={`w-10 h-10 rounded-full border-4 transition-all ${
+                          newColor === color ? "border-gray-900 scale-110" : "border-transparent"
                         }`}
                         style={{ backgroundColor: color }}
                       />
@@ -374,7 +450,7 @@ export default function BusinessListPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-md transition-all active:scale-98 mt-4"
+                  className="w-full bg-gray-900 text-white font-black py-5 rounded-[2rem] text-[11px] uppercase tracking-widest shadow-xl shadow-gray-200 transition-all active:scale-98 mt-4"
                 >
                   İşletmeyi Kaydet
                 </button>
@@ -383,7 +459,58 @@ export default function BusinessListPage() {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
-
     </div>
+  );
+}
+
+function AppRow({ 
+  app, 
+  index, 
+  onClick 
+}: { 
+  app: MiniApp; 
+  index: number; 
+  onClick: () => void;
+}) {
+  const Icon = app.icon;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2, delay: index * 0.01 }}
+      className="relative group"
+    >
+      <div
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        className="w-full flex items-center gap-4 py-4 px-1 transition-all active:scale-[0.98] text-left border-b border-gray-50 last:border-0 cursor-pointer"
+      >
+        <div 
+          className="w-12 h-12 rounded-[1.25rem] flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"
+          style={{ backgroundColor: app.color }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+          <Icon size={24} weight="fill" className="text-white relative z-10" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <h3 className="font-black text-gray-900 text-[15px] tracking-tight truncate group-hover:text-indigo-600 transition-colors">
+              {app.name}
+            </h3>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <p className="text-gray-400 text-[12px] font-medium line-clamp-2 leading-tight">
+              {app.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

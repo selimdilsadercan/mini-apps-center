@@ -8,20 +8,24 @@ import {
   MapPin, 
   Calendar, 
   Megaphone, 
-  InstagramLogo,
-  Globe,
-  Phone,
-  Info,
-  Users,
-  ShareNetwork,
-  Clock
+  InstagramLogo, 
+  Globe, 
+  Phone, 
+  Info, 
+  Users, 
+  ShareNetwork, 
+  Clock,
+  ListChecks,
+  CheckCircle,
+  X
 } from "@phosphor-icons/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { campus_events } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
+import { Drawer } from "vaul";
 
 const client = createBrowserClient();
 
@@ -53,6 +57,9 @@ function EventDetailContent() {
   const [event, setEvent] = useState<campus_events.CampusEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showApplyDrawer, setShowApplyDrawer] = useState(false);
+  const [formAnswers, setFormAnswers] = useState<Record<string, string>>({});
+  const [submittingForm, setSubmittingForm] = useState(false);
 
   useEffect(() => {
     if (!eventId) {
@@ -99,6 +106,31 @@ function EventDetailContent() {
       toast.error("Katılım güncellenirken bir hata oluştu.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Başvuru yapmak için giriş yapmalısınız.");
+      return;
+    }
+
+    try {
+      setSubmittingForm(true);
+      await client.campus_events.submitForm({
+        userId: user.id,
+        eventId: event!.id,
+        answers: formAnswers
+      });
+      toast.success("Başvurunuz başarıyla alındı!");
+      setShowApplyDrawer(false);
+      fetchEvent();
+    } catch (err) {
+      console.error("Failed to submit form:", err);
+      toast.error("Başvuru gönderilirken bir hata oluştu.");
+    } finally {
+      setSubmittingForm(false);
     }
   };
 
@@ -215,6 +247,34 @@ function EventDetailContent() {
 
       <main className="flex-1 px-6 py-12 max-w-4xl mx-auto w-full">
         <div className="space-y-10">
+          {/* Registration Section */}
+          {event.has_form && (
+            <section className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <ListChecks size={24} weight="bold" className="text-[#00aeef]" />
+                    Başvuru Gerekli
+                  </h3>
+                  <p className="text-slate-500 font-medium">Bu etkinliğe katılmak için başvuru formunu doldurmanız gerekmektedir.</p>
+                </div>
+                {event.user_submission ? (
+                  <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-6 py-3 rounded-2xl font-black text-sm border border-emerald-100">
+                    <CheckCircle size={20} weight="fill" />
+                    Başvurunuz Alındı
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowApplyDrawer(true)}
+                    className="bg-[#00aeef] hover:bg-[#009bcf] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-lg shadow-[#00aeef]/20 active:scale-95 transition-all"
+                  >
+                    Hemen Başvur
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+
           <section>
             <h2 className="text-2xl font-[900] text-slate-800 mb-6 flex items-center gap-3">
               <Info size={28} weight="bold" className="text-[#00aeef]" />
@@ -226,6 +286,71 @@ function EventDetailContent() {
           </section>
         </div>
       </main>
+
+      {/* Apply Drawer */}
+      <Drawer.Root open={showApplyDrawer} onOpenChange={setShowApplyDrawer}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[60]" />
+          <Drawer.Content className="bg-white text-slate-800 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
+            <div className="p-8 overflow-y-auto flex-1 scrollbar-none">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-8" />
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <Drawer.Title className="text-2xl font-[900] tracking-tight text-slate-900">
+                    Başvuru Formu
+                  </Drawer.Title>
+                  <Drawer.Description className="text-sm text-slate-500 font-medium mt-1">
+                    {event.title}
+                  </Drawer.Description>
+                </div>
+                <button onClick={() => setShowApplyDrawer(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                  <X size={24} weight="bold" className="text-slate-400" />
+                </button>
+              </div>
+
+              <form onSubmit={handleFormSubmit} className="space-y-6 pb-10">
+                {event.form_questions?.map((q: any, idx: number) => (
+                  <div key={idx} className="space-y-2">
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+                      {q.label} {q.required && <span className="text-red-500">*</span>}
+                    </label>
+                    {q.type === "textarea" ? (
+                      <textarea
+                        required={q.required}
+                        value={formAnswers[q.label] || ""}
+                        onChange={(e) => setFormAnswers({ ...formAnswers, [q.label]: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold resize-none h-32"
+                        placeholder="Cevabınız..."
+                      />
+                    ) : (
+                      <input
+                        required={q.required}
+                        type={q.type === "number" ? "number" : "text"}
+                        value={formAnswers[q.label] || ""}
+                        onChange={(e) => setFormAnswers({ ...formAnswers, [q.label]: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+                        placeholder="Cevabınız..."
+                      />
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="submit"
+                  disabled={submittingForm}
+                  className="w-full h-14 bg-[#00aeef] hover:bg-[#009bcf] text-white font-[900] rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-lg shadow-[#00aeef]/20 active:scale-[0.98] mt-4"
+                >
+                  {submittingForm ? (
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Başvuruyu Gönder"
+                  )}
+                </button>
+              </form>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
 }

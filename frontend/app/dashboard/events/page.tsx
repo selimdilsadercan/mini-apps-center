@@ -14,7 +14,11 @@ import {
   Users,
   User,
   InstagramLogo,
-  ArrowRight
+  ArrowRight,
+  ListChecks,
+  Trash,
+  CheckCircle,
+  CaretLeft
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEvents } from "./context";
@@ -35,6 +39,9 @@ export default function EventsPage() {
   const [jsonInput, setJsonInput] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
   const [fetchingInstagram, setFetchingInstagram] = useState(false);
+  const [viewingSubmissions, setViewingSubmissions] = useState<campus_events.CampusEvent | null>(null);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -43,7 +50,9 @@ export default function EventsPage() {
     eventDate: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
     organizerClub: "",
     imageUrl: "",
-    category: "social"
+    category: "social",
+    hasForm: false,
+    formQuestions: [] as { label: string; type: string; required: boolean }[]
   });
 
   const filteredEvents = useMemo(() => {
@@ -66,7 +75,9 @@ export default function EventsPage() {
       eventDate: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
       organizerClub: "",
       imageUrl: "",
-      category: "social"
+      category: "social",
+      hasForm: false,
+      formQuestions: []
     });
   };
 
@@ -108,9 +119,25 @@ export default function EventsPage() {
       eventDate: new Date(event.event_date).toISOString().slice(0, 16),
       organizerClub: event.organizer_club || "",
       imageUrl: event.image_url || "",
-      category: event.category || "social"
+      category: event.category || "social",
+      hasForm: event.has_form || false,
+      formQuestions: event.form_questions || []
     });
     setShowAddModal(true);
+  };
+
+  const handleViewSubmissions = async (event: campus_events.CampusEvent) => {
+    try {
+      setViewingSubmissions(event);
+      setLoadingSubmissions(true);
+      const res = await client.campus_events.getSubmissions(event.id);
+      setSubmissions(res.submissions || []);
+    } catch (err) {
+      console.error("Failed to load submissions:", err);
+      toast.error("Başvurular yüklenemedi");
+    } finally {
+      setLoadingSubmissions(false);
+    }
   };
 
   const handleSaveEvent = async (e: React.FormEvent) => {
@@ -154,7 +181,9 @@ export default function EventsPage() {
             eventDate: isoDate,
             organizerClub: newEvent.organizerClub,
             imageUrl: newEvent.imageUrl,
-            category: newEvent.category
+            category: newEvent.category,
+            hasForm: newEvent.hasForm,
+            formQuestions: newEvent.formQuestions
           });
           toast.success("Etkinlik güncellendi!");
         } else {
@@ -167,7 +196,9 @@ export default function EventsPage() {
             organizerClub: newEvent.organizerClub,
             imageUrl: newEvent.imageUrl,
             businessId: businessId,
-            category: newEvent.category
+            category: newEvent.category,
+            hasForm: newEvent.hasForm,
+            formQuestions: newEvent.formQuestions
           });
           toast.success("Etkinlik oluşturuldu!");
         }
@@ -246,11 +277,21 @@ export default function EventsPage() {
                   </div>
                 )}
                 
-                {/* Edit Button Overlay */}
+                {/* Edit & Submissions Buttons Overlay */}
                 <div className="absolute top-2 right-2 md:top-3 md:right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  {event.has_form && (
+                    <button
+                      onClick={() => handleViewSubmissions(event)}
+                      className="p-2 bg-white/90 backdrop-blur-md rounded-xl text-stone-600 hover:text-[#00aeef] shadow-sm transition-colors cursor-pointer"
+                      title="Başvuruları Gör"
+                    >
+                      <Users size={18} weight="bold" />
+                    </button>
+                  )}
                   <button
                     onClick={() => handleEditClick(event)}
                     className="p-2 bg-white/90 backdrop-blur-md rounded-xl text-stone-600 hover:text-[#00aeef] shadow-sm transition-colors cursor-pointer"
+                    title="Düzenle"
                   >
                     <Pencil size={18} weight="bold" />
                   </button>
@@ -304,6 +345,109 @@ export default function EventsPage() {
           </button>
         </div>
       )}
+
+      {/* Submissions Modal */}
+      <AnimatePresence>
+        {viewingSubmissions && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setViewingSubmissions(null)}
+              className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-4xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              <div className="px-8 py-6 border-b border-stone-100 flex items-center justify-between bg-stone-50/50 shrink-0">
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setViewingSubmissions(null)}
+                    className="p-2 hover:bg-stone-100 rounded-xl transition-colors"
+                  >
+                    <CaretLeft size={20} weight="bold" className="text-stone-600" />
+                  </button>
+                  <div>
+                    <h2 className="text-xl font-black text-stone-900 tracking-tight">
+                      Başvurular: <span className="text-[#00aeef]">{viewingSubmissions.title}</span>
+                    </h2>
+                    <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mt-0.5">
+                      Toplam {submissions.length} başvuru alındı
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setViewingSubmissions(null)} className="p-2 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer">
+                  <X size={24} weight="bold" className="text-stone-400" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8">
+                {loadingSubmissions ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="w-8 h-8 border-2 border-stone-200 border-t-[#00aeef] rounded-full animate-spin" />
+                    <span className="text-stone-400 text-[10px] font-black uppercase tracking-widest">Yükleniyor...</span>
+                  </div>
+                ) : submissions.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-separate border-spacing-y-3">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-[10px] font-black text-stone-400 uppercase tracking-widest">Kullanıcı</th>
+                          {viewingSubmissions.form_questions?.map((q: any, i: number) => (
+                            <th key={i} className="px-4 py-2 text-[10px] font-black text-stone-400 uppercase tracking-widest">{q.label}</th>
+                          ))}
+                          <th className="px-4 py-2 text-[10px] font-black text-stone-400 uppercase tracking-widest">Tarih</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {submissions.map((sub) => (
+                          <tr key={sub.id} className="group">
+                            <td className="px-4 py-4 bg-stone-50 rounded-l-2xl border-y border-l border-stone-100 group-hover:bg-stone-100 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-stone-200 overflow-hidden shrink-0 border border-stone-100">
+                                  {sub.avatar_url ? (
+                                    <img src={sub.avatar_url} alt={sub.username} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <User size={16} weight="bold" className="text-stone-400 m-auto mt-2" />
+                                  )}
+                                </div>
+                                <span className="text-xs font-bold text-stone-800">{sub.username || "Anonim"}</span>
+                              </div>
+                            </td>
+                            {viewingSubmissions.form_questions?.map((q: any, i: number) => (
+                              <td key={i} className="px-4 py-4 bg-stone-50 border-y border-stone-100 group-hover:bg-stone-100 transition-colors">
+                                <span className="text-xs font-medium text-stone-600">
+                                  {sub.answers[q.label] || "-"}
+                                </span>
+                              </td>
+                            ))}
+                            <td className="px-4 py-4 bg-stone-50 rounded-r-2xl border-y border-r border-stone-100 group-hover:bg-stone-100 transition-colors">
+                              <span className="text-[10px] font-bold text-stone-400">
+                                {new Date(sub.created_at).toLocaleDateString("tr-TR")}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ListChecks size={32} className="text-stone-200" weight="bold" />
+                    </div>
+                    <p className="text-stone-500 font-bold">Henüz başvuru yapılmamış.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Add Modal */}
       <AnimatePresence>
@@ -485,6 +629,97 @@ export default function EventsPage() {
                         className="w-full px-4 py-3 bg-stone-100 border-transparent focus:bg-white focus:border-[#00aeef] rounded-2xl outline-none transition-all text-sm font-bold"
                         placeholder="https://..."
                       />
+                    </div>
+
+                    {/* Form Builder Section */}
+                    <div className="pt-6 border-t border-stone-100 space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ListChecks size={20} weight="bold" className="text-[#00aeef]" />
+                          <h3 className="text-sm font-black text-stone-900 tracking-tight">Başvuru Formu</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewEvent(prev => ({ ...prev, hasForm: !prev.hasForm }))}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${newEvent.hasForm ? 'bg-[#00aeef]' : 'bg-stone-200'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newEvent.hasForm ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+
+                      {newEvent.hasForm && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="space-y-3">
+                            {newEvent.formQuestions.map((q, idx) => (
+                              <div key={idx} className="flex items-start gap-3 p-4 bg-stone-50 rounded-2xl border border-stone-100 group">
+                                <div className="flex-1 space-y-3">
+                                  <div className="flex gap-3">
+                                    <input
+                                      required
+                                      type="text"
+                                      value={q.label}
+                                      onChange={(e) => {
+                                        const newQs = [...newEvent.formQuestions];
+                                        newQs[idx].label = e.target.value;
+                                        setNewEvent({ ...newEvent, formQuestions: newQs });
+                                      }}
+                                      placeholder="Soru metni (örn: Bölümünüz?)"
+                                      className="flex-1 bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#00aeef]"
+                                    />
+                                    <select
+                                      value={q.type}
+                                      onChange={(e) => {
+                                        const newQs = [...newEvent.formQuestions];
+                                        newQs[idx].type = e.target.value;
+                                        setNewEvent({ ...newEvent, formQuestions: newQs });
+                                      }}
+                                      className="bg-white border border-stone-200 rounded-xl px-2 py-2 text-[10px] font-black uppercase outline-none focus:border-[#00aeef]"
+                                    >
+                                      <option value="text">Kısa Metin</option>
+                                      <option value="textarea">Uzun Metin</option>
+                                      <option value="number">Sayı</option>
+                                    </select>
+                                  </div>
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={q.required}
+                                      onChange={(e) => {
+                                        const newQs = [...newEvent.formQuestions];
+                                        newQs[idx].required = e.target.checked;
+                                        setNewEvent({ ...newEvent, formQuestions: newQs });
+                                      }}
+                                      className="w-3 h-3 rounded text-[#00aeef] focus:ring-[#00aeef]"
+                                    />
+                                    <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Zorunlu Soru</span>
+                                  </label>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newQs = newEvent.formQuestions.filter((_, i) => i !== idx);
+                                    setNewEvent({ ...newEvent, formQuestions: newQs });
+                                  }}
+                                  className="p-2 text-stone-300 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash size={18} weight="bold" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setNewEvent(prev => ({
+                              ...prev,
+                              formQuestions: [...prev.formQuestions, { label: "", type: "text", required: true }]
+                            }))}
+                            className="w-full py-3 border-2 border-dashed border-stone-200 rounded-2xl text-stone-400 hover:text-[#00aeef] hover:border-[#00aeef] hover:bg-[#00aeef]/5 transition-all text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                          >
+                            <Plus size={14} weight="bold" />
+                            Yeni Soru Ekle
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

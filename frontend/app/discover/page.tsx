@@ -1,282 +1,103 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import AppBar, { ActivePage } from "@/components/AppBar";
-import MiniAppCard from "@/components/MiniAppCard";
-import { MINI_APPS, AppCategory, MiniApp, navigateToMiniApp } from "@/lib/apps";
+import { MINI_APPS, MiniApp, navigateToMiniApp } from "@/lib/apps";
 import { 
   MagnifyingGlass, 
-  Sparkle,
-  CirclesFour,
   X,
-  Star,
   TrendUp,
   Fire,
-  Prohibit
+  CaretRight,
+  Plus,
+  Check
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { getUserPreferencesAction, updateAppOrderAction } from "../home/actions";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { createBrowserClient } from "@/lib/api";
-
-const CATEGORIES: AppCategory[] = ['Lifestyle', 'Utilities', 'Entertainment', 'Board Games & Fun', 'Developer Tools', 'Simulations', 'Local Services'];
-
-// App Store style horizontal section with vertical stacks of 3
-function AppSection({ 
-  title, 
-  apps, 
-  installedIds, 
-  onGetApp, 
-  onOpenApp 
-}: { 
-  title: string; 
-  apps: MiniApp[]; 
-  installedIds: string[]; 
-  onGetApp: (appId: string, e: React.MouseEvent) => void; 
-  onOpenApp: (app: MiniApp) => void; 
-}) {
-  const t = useTranslations("discover");
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [slideWidth, setSlideWidth] = useState<number | null>(null);
-
-  const measureSlideWidth = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setSlideWidth(el.clientWidth);
-  }, []);
-
-  useLayoutEffect(() => {
-    measureSlideWidth();
-    const el = scrollRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(measureSlideWidth);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [measureSlideWidth]);
-
-  const tApps = useTranslations("apps");
-  
-  if (apps.length === 0) return null;
-  
-  // Chunk apps into groups of 3 for vertical stacking
-  const chunkedApps = [];
-  for (let i = 0; i < apps.length; i += 3) {
-    chunkedApps.push(apps.slice(i, i + 3));
-  }
-  
-  return (
-    <section className="mt-10 first:mt-4">
-      <div className="flex items-center justify-between mb-5 px-1">
-        <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight">
-          {title}
-        </h2>
-      </div>
- 
-      <div
-        ref={scrollRef}
-        className="flex overflow-x-auto pb-6 gap-5 scrollbar-none no-scrollbar -mx-5 pl-4 pr-5 snap-x snap-mandatory scroll-pl-4"
-      >
-        {chunkedApps.map((chunk, chunkIdx) => (
-          <div
-            key={chunkIdx}
-            style={
-              slideWidth != null
-                ? { width: Math.min(slideWidth, 320) }
-                : undefined
-            }
-            className="flex flex-col gap-5 shrink-0 snap-start snap-always w-[calc(100vw-2.5rem)] max-w-[320px]"
-          >
-            {chunk.map((app) => {
-              const isInstalled = installedIds.includes(app.id);
-              const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
-              const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
-
-              return (
-                <div 
-                  key={app.id}
-                  className="group flex items-center justify-between gap-4"
-                >
-                  <button 
-                    onClick={() => onOpenApp(app)}
-                    className="flex-1 flex items-center text-left gap-4 active:scale-[0.98] transition-all duration-200 border-b border-gray-100/60 pb-5 group-last:border-0 group-last:pb-0"
-                  >
-                    {/* Icon */}
-                    <div 
-                      className="w-14 h-14 rounded-[1rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-500 group-hover:scale-105"
-                      style={{ 
-                        backgroundColor: app.color,
-                        boxShadow: `0 8px 20px -6px ${app.color}50`
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
-                      <div className="absolute inset-0 border border-white/20 rounded-[1rem]"></div>
-                      <app.icon size={24} weight="fill" color="white" className="relative z-10" />
-                    </div>
- 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <h3 className="font-bold text-gray-900 text-[16px] truncate group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
-                          {appName}
-                        </h3>
-                      </div>
-                      <p className="text-gray-500 text-[13px] leading-tight line-clamp-2 font-medium">
-                        {appDesc}
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Get / Open Button */}
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isInstalled) {
-                        onOpenApp(app);
-                      } else {
-                        onGetApp(app.id, e);
-                      }
-                    }}
-                    className={`px-5 py-2 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 select-none ${
-                      isInstalled
-                        ? "bg-green-100 text-green-600 hover:bg-green-200"
-                        : "bg-gray-100 text-gray-600 hover:bg-indigo-600 hover:text-white"
-                    }`}
-                  >
-                    {isInstalled ? t("open") : t("get")}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Discover() {
   const { isLoaded, user } = useUser();
   const router = useRouter();
   const t = useTranslations("discover");
   const tApps = useTranslations("apps");
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [installedIds, setInstalledIds] = useState<string[]>([]);
-  const [isPrefLoading, setIsPrefLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
+  const implementedApps = useMemo(() => 
+    MINI_APPS.filter(a => a.isImplemented && !a.isCancelled), 
+  []);
 
-  const implementedApps = useMemo(() => MINI_APPS.filter(a => a.isImplemented && !a.isCancelled), []);
-  const cancelledApps = useMemo(() => MINI_APPS.filter(a => a.isCancelled), []);
+  const categories = useMemo(() => {
+    const cats = new Set(implementedApps.map(a => a.category));
+    return ["All", ...Array.from(cats)];
+  }, [implementedApps]);
 
-  // Check admin status
-  useEffect(() => {
-    async function checkAdmin() {
-      if (!isLoaded || !user?.id) return;
-      try {
-        const client = createBrowserClient();
-        const res = await client.users.checkAdmin(user.id);
-        setIsAdmin(res.isAdmin);
-      } catch (err) {
-        console.error("Failed to check admin status:", err);
-      }
-    }
-    checkAdmin();
-  }, [isLoaded, user?.id]);
-
-  // Load installed apps
   useEffect(() => {
     async function loadInstalled() {
       if (!isLoaded) return;
       try {
         let orderIds: string[] | null = null;
-
-        // Try backend first
         if (user?.id) {
           const { data } = await getUserPreferencesAction(user.id);
-          if (data?.appOrder && data.appOrder.length > 0) {
-            orderIds = data.appOrder;
-          }
+          if (data?.appOrder) orderIds = data.appOrder;
         }
-
-        // Fallback to localStorage
         if (!orderIds) {
-          const savedOrder = localStorage.getItem(
-            `app_order_${user?.id || "guest"}`,
-          );
-          if (savedOrder) {
-            try {
-              orderIds = JSON.parse(savedOrder) as string[];
-            } catch (e) {}
-          }
+          const savedOrder = localStorage.getItem(`app_order_${user?.id || "guest"}`);
+          if (savedOrder) orderIds = JSON.parse(savedOrder);
         }
-
-        if (orderIds) {
-          setInstalledIds(orderIds);
-        } else {
-          // If never set, assume all implemented apps are installed by default
-          const defaultOrder = implementedApps.map(a => a.id);
-          setInstalledIds(defaultOrder);
-        }
+        setInstalledIds(orderIds || implementedApps.map(a => a.id));
       } finally {
-        setIsPrefLoading(false);
+        setIsLoading(false);
       }
     }
-
     loadInstalled();
   }, [user?.id, isLoaded, implementedApps]);
-  
+
   const filteredApps = useMemo(() => {
-    if (!searchQuery) return [];
-    return MINI_APPS.filter(app => app.isImplemented && !app.isCancelled).filter(app => {
+    return implementedApps.filter(app => {
       const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
       const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
-      return (
+      
+      const matchesSearch = 
         appName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        appDesc.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+        appDesc.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "All" || app.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, implementedApps, tApps]);
+  }, [searchQuery, selectedCategory, implementedApps, tApps]);
 
-  const handleAppClick = (app: MiniApp) => {
-    navigateToMiniApp(app, router);
-  };
-
-  const handleGetApp = async (appId: string, e: React.MouseEvent) => {
+  const handleToggleApp = async (appId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newInstalled = [...installedIds, appId];
-    setInstalledIds(newInstalled);
+    let newInstalled;
+    const isInstalled = installedIds.includes(appId);
     
-    // Save to localStorage
-    localStorage.setItem(
-      `app_order_${user?.id || "guest"}`,
-      JSON.stringify(newInstalled),
-    );
-
-    // Save to backend
-    if (user?.id) {
-      await updateAppOrderAction(user.id, newInstalled);
+    if (isInstalled) {
+      newInstalled = installedIds.filter(id => id !== appId);
+      toast.success(t("removedToast"));
+    } else {
+      newInstalled = [...installedIds, appId];
+      toast.success(t("addedToast"));
     }
-
-    const rawApp = MINI_APPS.find(a => a.id === appId);
-    const appName = rawApp ? (tApps(`${rawApp.id}.name`) !== `apps.${rawApp.id}.name` ? tApps(`${rawApp.id}.name`) : rawApp.name) : "App";
-    toast.success(t("addedToast", { appName }));
+    
+    setInstalledIds(newInstalled);
+    localStorage.setItem(`app_order_${user?.id || "guest"}`, JSON.stringify(newInstalled));
+    if (user?.id) await updateAppOrderAction(user.id, newInstalled);
   };
 
-  if (!isLoaded || isPrefLoading) {
+  if (!isLoaded || isLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
+      <div className="flex min-h-screen flex-col bg-white">
         <main className="flex-1 flex items-center justify-center">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkle size={16} className="text-indigo-400 animate-pulse" />
-            </div>
-          </div>
+          <div className="w-8 h-8 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
         </main>
         <AppBar activePage={ActivePage.DISCOVER} />
       </div>
@@ -284,201 +105,95 @@ export default function Discover() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
-      {/* Background Decorative Gradient (Same as Home) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/20 blur-[120px] rounded-full"></div>
+    <div className="flex min-h-screen flex-col bg-white pb-32">
+      {/* Header */}
+      <header className="px-6 pt-10 pb-6">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-2">
+          Keşfet
+        </h1>
+        <p className="text-gray-500 font-medium">
+          Everything ekosistemindeki en yeni araçları ve uygulamaları bul.
+        </p>
+      </header>
+
+      {/* Search & Categories */}
+      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-40 px-6 py-4 space-y-4">
+        <div className="relative">
+          <MagnifyingGlass size={20} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input 
+            type="text"
+            placeholder="Uygulama veya araç ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-gray-100 border-none rounded-2xl py-3.5 pl-12 pr-4 focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <X size={18} weight="bold" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-6 px-6">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                selectedCategory === cat 
+                  ? "bg-gray-900 text-white shadow-lg shadow-gray-200" 
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <main className="flex-1 w-full overflow-y-auto">
-        <div className="max-w-4xl mx-auto w-full px-5 pb-32">
-        {/* Header Section */}
-        <header className="pt-8 pb-4">
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-            {t("title")}
-          </h1>
-        </header>
-
-        {/* Search Bar */}
-        <div className="sticky top-0 z-50 bg-[#FAF9F7]/90 backdrop-blur-xl -mx-5 px-5 py-2.5 mb-2 transition-all duration-300">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-3.5 sm:left-4 flex items-center pointer-events-none group-focus-within:text-indigo-600 text-gray-400 transition-colors">
-              <MagnifyingGlass size={18} weight="bold" className="sm:w-5 sm:h-5" />
-            </div>  
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full min-w-0 bg-white/80 border border-gray-200/50 rounded-[1.5rem] py-3 sm:py-3.5 pl-10 sm:pl-12 pr-10 sm:pr-12 shadow-sm focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 transition-all font-semibold text-sm sm:text-base text-gray-900 placeholder:text-gray-400/80 truncate"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-3.5 sm:right-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
-              >
-                <X size={18} weight="bold" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {searchQuery ? (
-          /* Search Results */
-          <section className="mt-6">
-            <h2 className="text-xl font-extrabold mb-5 px-1 flex items-center gap-2">
-              {t("resultsFor", { query: searchQuery })}
-            </h2>
-            <div className="grid grid-cols-1 gap-3">
-              {filteredApps.length > 0 ? (
-                filteredApps.map(app => {
-                  const isInstalled = installedIds.includes(app.id);
-                  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
-                  const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
-
-                  return (
-                    <div 
-                      key={app.id} 
-                      className="flex items-center justify-between w-full gap-4 bg-white p-4 rounded-[1.75rem] border border-gray-100 hover:border-indigo-100 transition-all group"
-                    >
-                      <button 
-                        onClick={() => handleAppClick(app)}
-                        className="flex-1 flex items-center text-left gap-4"
-                      >
-                        <div 
-                          className="w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md" 
-                          style={{ backgroundColor: app.color }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
-                          <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-                          <app.icon size={24} color="white" weight="fill" className="relative z-10" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
-                            {appName}
-                          </h3>
-                          <p className="text-gray-500 text-sm leading-tight line-clamp-2 font-medium">{appDesc}</p>
-                        </div>
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isInstalled) {
-                            handleAppClick(app);
-                          } else {
-                            handleGetApp(app.id, e);
-                          }
-                        }}
-                        className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer ${
-                          isInstalled
-                            ? "bg-green-100 text-green-600 hover:bg-green-200"
-                            : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                        }`}
-                      >
-                        {isInstalled ? t("open") : t("get")}
-                      </button>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-                  <h3 className="text-gray-900 font-bold">{t("noResults")}</h3>
-                  <p className="text-gray-500 text-sm">{t("tryDifferent")}</p>
-                </div>
-              )}
+      <main className="px-6 py-4 max-w-2xl mx-auto w-full">
+        {/* Featured Section (Product Hunt Style) */}
+        {!searchQuery && selectedCategory === "All" && (
+          <section className="mb-10">
+            <div className="flex items-center gap-2 mb-4 text-orange-500 font-black text-xs uppercase tracking-widest">
+              <Fire size={18} weight="fill" />
+              <span>Trend Olanlar</span>
+            </div>
+            <div className="space-y-4">
+              {implementedApps.slice(0, 2).map(app => (
+                <FeaturedCard 
+                  key={app.id} 
+                  app={app} 
+                  tApps={tApps}
+                  isInstalled={installedIds.includes(app.id)}
+                  onToggle={(e) => handleToggleApp(app.id, e)}
+                  onClick={() => navigateToMiniApp(app, router)}
+                />
+              ))}
             </div>
           </section>
-        ) : (
-          /* Main App Store Layout */
-          <>
-            {/* Categorized Sections */}
-            <AppSection title={t("categories.Social")} apps={MINI_APPS.filter(a => ["suggest", "neyapsam"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.City")} apps={MINI_APPS.filter(a => ["one-day-city-guide", "workplaces", "digital-menu", "stamp-card", "concert-list", "campus-events"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Finance")} apps={MINI_APPS.filter(a => ["budget", "tasarruf-challenges", "subcenter"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Entertainment")} apps={MINI_APPS.filter(a => ["iskambil", "memedex", "series-track", "game-companion", "chocolate-db"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-            <AppSection title={t("categories.Campus")} apps={MINI_APPS.filter(a => ["itu-yemekhane", "campus-concerts"].includes(a.id))} installedIds={installedIds} onGetApp={handleGetApp} onOpenApp={handleAppClick} />
-
-            {/* Cancelled Section (Admin Only) */}
-            {isAdmin && cancelledApps.length > 0 && (
-              <div className="mt-16 pb-20 border-t border-gray-100 pt-10">
-                <div className="px-1 mb-6">
-                  <h2 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-tight flex items-center gap-2">
-                    <Prohibit size={24} weight="fill" className="text-red-500" />
-                    İptal Edilenler
-                  </h2>
-                  <p className="text-gray-500 text-sm font-medium mt-1">
-                    Bu araçlar yayından kaldırıldı veya iptal edildi. Sadece adminler görebilir.
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   {cancelledApps.map(app => {
-                      const isInstalled = installedIds.includes(app.id);
-                      const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
-                      const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
-                      return (
-                        <div 
-                          key={app.id} 
-                          className={`flex items-center justify-between w-full gap-4 p-4 rounded-[1.75rem] border shadow-sm ${
-                            isAdmin 
-                              ? "bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer" 
-                              : "bg-red-50/30 border-red-100/50 opacity-60 grayscale-[0.5] pointer-events-none"
-                          }`}
-                          onClick={() => {
-                            if (isAdmin) {
-                              handleAppClick(app);
-                            }
-                          }}
-                        >
-                          <div className="flex-1 flex items-center text-left gap-4 min-w-0">
-                            <div 
-                              className={`w-14 h-14 rounded-[1rem] flex items-center justify-center shrink-0 relative overflow-hidden shadow-md ${!isAdmin ? "grayscale" : ""}`} 
-                              style={{ backgroundColor: app.color }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-tr from-black/15 to-transparent"></div>
-                              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"></div>
-                              <app.icon size={24} color="white" weight="fill" className="relative z-10" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-gray-900 truncate flex items-center gap-1.5">
-                                {appName}
-                              </h3>
-                              <p className="text-gray-500 text-xs leading-tight line-clamp-2 font-medium">{appDesc}</p>
-                            </div>
-                          </div>
-                          
-                          {isAdmin ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isInstalled) {
-                                  handleAppClick(app);
-                                } else {
-                                  handleGetApp(app.id, e);
-                                }
-                              }}
-                              className={`px-4 py-1.5 rounded-full font-black text-[12px] transition-all active:scale-95 cursor-pointer shrink-0 ${
-                                isInstalled
-                                  ? "bg-green-100 text-green-600 hover:bg-green-200"
-                                  : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                              }`}
-                            >
-                              {isInstalled ? t("open") : t("get")}
-                            </button>
-                          ) : (
-                            <div className="px-3 py-1 rounded-full font-black text-[9px] bg-red-100 text-red-600 uppercase tracking-widest shrink-0">
-                              İptal
-                            </div>
-                          )}
-                        </div>
-                      );
-                   })}
-                </div>
-              </div>
-            )}
-          </>
         )}
-        </div>
+
+        {/* All Apps List */}
+        <section>
+          <div className="flex items-center gap-2 mb-4 text-gray-400 font-black text-xs uppercase tracking-widest">
+            <TrendUp size={18} weight="bold" />
+            <span>{selectedCategory === "All" ? "Tüm Uygulamalar" : selectedCategory}</span>
+          </div>
+          <div className="space-y-1">
+            {filteredApps.map((app, index) => (
+              <DiscoverRow 
+                key={app.id} 
+                app={app} 
+                index={index}
+                tApps={tApps}
+                isInstalled={installedIds.includes(app.id)}
+                onToggle={(e) => handleToggleApp(app.id, e)}
+                onClick={() => navigateToMiniApp(app, router)}
+              />
+            ))}
+          </div>
+        </section>
       </main>
 
       <AppBar activePage={ActivePage.DISCOVER} />
@@ -486,4 +201,84 @@ export default function Discover() {
   );
 }
 
+function FeaturedCard({ app, tApps, isInstalled, onToggle, onClick }: any) {
+  const Icon = app.icon;
+  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+  const appDesc = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : app.description;
 
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full text-left bg-gray-900 rounded-[2.5rem] p-6 relative overflow-hidden group active:scale-[0.98] transition-all shadow-xl shadow-gray-200"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-white/10 transition-all" />
+      
+      <div className="flex items-start justify-between mb-6">
+        <div 
+          className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+          style={{ backgroundColor: app.color }}
+        >
+          <Icon size={32} weight="fill" className="text-white" />
+        </div>
+        <button 
+          onClick={onToggle}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+            isInstalled ? "bg-green-500 text-white" : "bg-white/10 text-white hover:bg-white/20"
+          }`}
+        >
+          {isInstalled ? <Check size={24} weight="bold" /> : <Plus size={24} weight="bold" />}
+        </button>
+      </div>
+
+      <h3 className="text-white text-xl font-black mb-2">{appName}</h3>
+      <p className="text-gray-400 text-sm font-medium line-clamp-2 leading-relaxed">
+        {appDesc}
+      </p>
+    </button>
+  );
+}
+
+function DiscoverRow({ app, index, tApps, isInstalled, onToggle, onClick }: any) {
+  const Icon = app.icon;
+  const appName = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : app.name;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+      className="flex items-center gap-4 py-4 border-b border-gray-50 group"
+    >
+      <button onClick={onClick} className="flex-1 flex items-center gap-4 text-left min-w-0">
+        <div 
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: app.color }}
+        >
+          <Icon size={24} weight="fill" className="text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-bold text-gray-900 text-sm truncate group-hover:text-indigo-600 transition-colors">
+            {appName}
+          </h4>
+          <p className="text-gray-400 text-xs font-medium truncate">
+            {app.category}
+          </p>
+        </div>
+      </button>
+
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={onToggle}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+            isInstalled ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600"
+          }`}
+        >
+          {isInstalled ? <Check size={18} weight="bold" /> : <Plus size={18} weight="bold" />}
+        </button>
+        <button onClick={onClick} className="p-2 text-gray-200 hover:text-gray-400 transition-colors">
+          <CaretRight size={20} weight="bold" />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
