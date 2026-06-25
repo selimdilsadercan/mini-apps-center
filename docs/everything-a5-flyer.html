@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Everything A5 Tanıtım Kartı</title>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     @page {
       size: A5;
@@ -70,7 +71,7 @@
       background: linear-gradient(135deg, #5b35ff, #7c3aed);
       color: white;
       box-shadow: 0 10px 25px rgba(91,53,255,.28);
-      font-size: 18px;
+      font-size: 20px;
     }
 
     .eyebrow {
@@ -130,55 +131,62 @@
       box-shadow: 0 16px 35px rgba(15,23,42,.08);
     }
 
-    .feature-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 18px;
+    .app-list {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .feature {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 18px;
-      padding: 13px;
-      min-height: 86px;
+    .app-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 4px;
     }
 
-    .feature .icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
+    .app-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
       color: white;
-      font-size: 17px;
-      margin-bottom: 9px;
-      font-weight: 800;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
-    .feature strong {
+    .app-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .app-info strong {
       display: block;
-      color: #111827;
-      font-size: 14px;
-      line-height: 1.1;
-      margin-bottom: 4px;
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 800;
       letter-spacing: -0.02em;
+      margin-bottom: 2px;
     }
 
-    .feature span {
+    .app-info span {
       display: block;
       color: #64748b;
-      font-size: 11.5px;
-      line-height: 1.25;
+      font-size: 12px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .blue { background: linear-gradient(135deg, #38bdf8, #2563eb); }
-    .purple { background: linear-gradient(135deg, #8b5cf6, #5b35ff); }
-    .orange { background: linear-gradient(135deg, #f59e0b, #fb923c); }
-    .green { background: linear-gradient(135deg, #10b981, #059669); }
-    .red { background: linear-gradient(135deg, #fb7185, #ef4444); }
-    .dark { background: linear-gradient(135deg, #334155, #0f172a); }
+    .blue { background: #00aeef; }
+    .orange { background: #F59E0B; }
+    .red { background: #EF4444; }
+    .game { background: #228BE6; }
+    .dark { background: #1f2937; }
+    .purple { background: #7c3aed; }
 
     .cta-row {
       margin-top: auto;
@@ -423,31 +431,32 @@
     <div class="bg-circle two"></div>
     <div class="page-label">Normal Cafe / Ön</div>
     <div class="page-inner">
-      <div class="brand"><div class="logo-mark">✦</div>Everything</div>
+      <div class="brand"><div class="logo-mark"><i class="ph-fill ph-sparkle"></i></div>Everything</div>
       <div class="eyebrow">Lansmana özel pilot</div>
       <h1>Kafeniz için sadece QR menü değil.</h1>
-      <p class="lead">Menü, sadakat kartı, kampanya ve müşteri feedback alanını tek QR’da toplayan dijital müşteri sayfası.</p>
+      <p class="lead">Menü, sadakat kartı, kampanya ve dijital araçları tek QR’da toplayan dijital müşteri sayfası.</p>
 
-      <div class="feature-grid">
-        <div class="feature">
-          <div class="icon blue">☰</div>
-          <strong>Dijital Menü</strong>
-          <span>Menü ve fiyatlar tek linkte, masadan veya dışarıdan görülebilir.</span>
+      <div class="app-list">
+        <div class="app-row">
+          <div class="app-icon red"><i class="ph-fill ph-chef-hat"></i></div>
+          <div class="app-info">
+            <strong>Dijital Menü</strong>
+            <span>Ürünleriniz ve fiyatlarınız her an güncel.</span>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon orange">▣</div>
-          <strong>Müdavim Kartı</strong>
-          <span>Kaşe kartını dijitale taşıyın, müşteriler ödül toplasın.</span>
+        <div class="app-row">
+          <div class="app-icon orange"><i class="ph-fill ph-cards"></i></div>
+          <div class="app-info">
+            <strong>Müdavim Kartı</strong>
+            <span>Dijital kaşe ile müşteri sadakatini artırın.</span>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon purple">●</div>
-          <strong>Feedback</strong>
-          <span>Müşteri yorumlarını hızlıca toplayın ve takip edin.</span>
-        </div>
-        <div class="feature">
-          <div class="icon green">%</div>
-          <strong>Kampanyalar</strong>
-          <span>Günün fırsatlarını, öğrenci indirimlerini ve duyuruları gösterin.</span>
+        <div class="app-row">
+          <div class="app-icon blue"><i class="ph-fill ph-megaphone"></i></div>
+          <div class="app-info">
+            <strong>Kampanyalar</strong>
+            <span>Günün fırsatlarını ve duyuruları paylaşın.</span>
+          </div>
         </div>
       </div>
 
@@ -469,9 +478,9 @@
     <div class="bg-circle two"></div>
     <div class="page-label">Normal Cafe / Arka</div>
     <div class="page-inner">
-      <div class="brand"><div class="logo-mark">✦</div>Everything</div>
+      <div class="brand"><div class="logo-mark"><i class="ph-fill ph-sparkle"></i></div>Everything</div>
       <h2>Everything for Local Businesses</h2>
-      <p class="lead">Everything, küçük işletmeler için dijital müşteri sayfaları ve mini araçlar sunar. İşletmeniz tek linkte menü, kampanya, sadakat kartı ve feedback alanına sahip olur.</p>
+      <p class="lead">Everything, küçük işletmeler için dijital müşteri sayfaları ve mini araçlar sunar. İşletmeniz tek linkte menü, kampanya ve sadakat kartına sahip olur.</p>
 
       <div class="list">
         <div class="list-item">
@@ -480,7 +489,7 @@
         </div>
         <div class="list-item">
           <div class="check">✓</div>
-          <div><strong>Sadece QR menü değil</strong><span>Müşteri menüyü görür, kampanyayı takip eder, feedback bırakır ve sadakat kartını açar.</span></div>
+          <div><strong>Sadece QR menü değil</strong><span>Müşteri menüyü görür, kampanyayı takip eder ve sadakat kartını açar.</span></div>
         </div>
         <div class="list-item">
           <div class="check">✓</div>
@@ -495,7 +504,7 @@
 
       <div class="contact">
         <div><b>Demo:</b><br>allminiapps.com/business-demo</div>
-        <div><b>İletişim:</b><br>@selimercandev</div>
+        <div><b>İletişim:</b><br>0538 862 70 78</div>
       </div>
     </div>
   </section>
@@ -506,31 +515,39 @@
     <div class="bg-circle two"></div>
     <div class="page-label">Oyun Cafe / Ön</div>
     <div class="page-inner">
-      <div class="brand"><div class="logo-mark">✦</div>Everything</div>
+      <div class="brand"><div class="logo-mark"><i class="ph-fill ph-sparkle"></i></div>Everything</div>
       <div class="eyebrow">Oyun kafeler için</div>
       <h1>Masadaki QR artık sadece menü değil.</h1>
-      <p class="lead">Menü, skor/yazboz, oyun kataloğu, sadakat kartı ve feedback alanı tek dijital masa sayfasında.</p>
+      <p class="lead">Menü, skor/yazboz, oyun kataloğu ve sadakat kartı tek dijital masa sayfasında.</p>
 
-      <div class="feature-grid">
-        <div class="feature">
-          <div class="icon red">#</div>
-          <strong>Skor / Yazboz</strong>
-          <span>101, okey, batak gibi oyunlarda masadan dijital skor tutma.</span>
+      <div class="app-list">
+        <div class="app-row">
+          <div class="app-icon game"><i class="ph-fill ph-game-controller"></i></div>
+          <div class="app-info">
+            <strong>Skor / Yazboz</strong>
+            <span>101, okey, batak için dijital skor tahtası.</span>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon dark">♟</div>
-          <strong>Oyun Kataloğu</strong>
-          <span>Mekandaki oyunları oyuncu sayısı, süre ve zorlukla gösterin.</span>
+        <div class="app-row">
+          <div class="app-icon dark"><i class="ph-fill ph-chess-pawn"></i></div>
+          <div class="app-info">
+            <strong>Oyun Kataloğu</strong>
+            <span>Mekandaki oyunları tüm detaylarıyla listeleyin.</span>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon blue">☰</div>
-          <strong>Dijital Menü</strong>
-          <span>Masadan menüye ve ürünlere hızlı erişim.</span>
+        <div class="app-row">
+          <div class="app-icon red"><i class="ph-fill ph-chef-hat"></i></div>
+          <div class="app-info">
+            <strong>Dijital Menü</strong>
+            <span>Masadan ürünlere ve fiyatlara hızlı erişim.</span>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon orange">▣</div>
-          <strong>Müdavim Kartı</strong>
-          <span>Ziyaret, oyun saati veya kahve bazlı ödül sistemi.</span>
+        <div class="app-row">
+          <div class="app-icon orange"><i class="ph-fill ph-cards"></i></div>
+          <div class="app-info">
+            <strong>Müdavim Kartı</strong>
+            <span>Oyun saati veya kahve bazlı ödül sistemi.</span>
+          </div>
         </div>
       </div>
 
@@ -552,7 +569,7 @@
     <div class="bg-circle two"></div>
     <div class="page-label">Oyun Cafe / Arka</div>
     <div class="page-inner">
-      <div class="brand"><div class="logo-mark">✦</div>Everything</div>
+      <div class="brand"><div class="logo-mark"><i class="ph-fill ph-sparkle"></i></div>Everything</div>
       <h2>Oyun kafeler için dijital masa araçları</h2>
       <p class="lead">Everything, oyun oynanan mekanların masadaki deneyimini dijitale taşır. Müşteriler QR ile menüye, skor sayfasına, oyun kataloğuna ve sadakat kartına ulaşır.</p>
 
@@ -578,7 +595,7 @@
 
       <div class="contact">
         <div><b>Demo:</b><br>allminiapps.com/game-cafe-demo</div>
-        <div><b>İletişim:</b><br>@selimercandev</div>
+        <div><b>İletişim:</b><br>0538 862 70 78</div>
       </div>
     </div>
   </section>
