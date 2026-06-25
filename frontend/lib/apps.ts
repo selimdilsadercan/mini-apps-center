@@ -128,7 +128,7 @@ const RAW_MINI_APPS: MiniApp[] = [
   {
     id: "campus-events",
     name: "Events",
-    description: "Şehrindeki etkinlikleri keşfet, başvur ve katıl.",
+    description: "Şehrindeki tüm etkinlikleri keşfet ve katıl.",
     icon: Megaphone,
     category: "Şehrini Keşfet",
     color: "#00aeef",
@@ -540,7 +540,7 @@ const RAW_MINI_APPS: MiniApp[] = [
     name: "Campus Concerts",
     description: "Kampüsün Geçmiş Konserleri",
     icon: MusicNotes,
-    category: "Şehrini Keşfet",
+    category: "Kampüslülere Özel",
     color: "#845EF7",
     href: "/apps/campus-concerts",
     isImplemented: true,
