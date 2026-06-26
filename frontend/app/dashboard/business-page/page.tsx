@@ -31,7 +31,8 @@ import {
   CaretLeft,
   PaperPlaneTilt,
   Users,
-  SealCheck
+  SealCheck,
+  ShareNetwork
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { toast } from "react-hot-toast";
@@ -368,7 +369,27 @@ export default function BusinessPageDashboard() {
     );
   }
 
-  const publicUrl = `https://${business?.id}.page.allminiapps.com`;
+  const publicUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/place?slug=${business?.slug || business?.id}`
+    : "";
+
+  const handleShare = async () => {
+    if (!publicUrl) return;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: business?.name || "İşletme Sayfası",
+          url: publicUrl
+        });
+      } else {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Link kopyalandı!");
+      }
+    } catch (err) {
+      console.error("Paylaşım hatası:", err);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] overflow-hidden">
@@ -389,13 +410,23 @@ export default function BusinessPageDashboard() {
             </h2>
           </div>
           
-          <button
-            onClick={handleAddClick}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
-          >
-            <Plus size={14} weight="bold" />
-            YENİ LİNK EKLE
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="bg-stone-50 hover:bg-stone-100 text-stone-600 text-[10px] font-black uppercase tracking-widest px-5 py-3 rounded-2xl border border-stone-200 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <ShareNetwork size={14} weight="bold" />
+              PAYLAŞ
+            </button>
+            
+            <button
+              onClick={handleAddClick}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <Plus size={14} weight="bold" />
+              YENİ LİNK EKLE
+            </button>
+          </div>
         </div>
 
         {/* Links Management Area */}
