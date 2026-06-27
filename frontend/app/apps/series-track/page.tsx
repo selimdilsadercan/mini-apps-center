@@ -77,6 +77,35 @@ export default function SeriesTrackPage() {
   const [allSeasonsData, setAllSeasonsData] = useState<Record<number, any>>({});
   const [loadingGraph, setLoadingGraph] = useState(false);
 
+  // Audio feedback helper
+  const playClickSound = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      const playPulse = (time: number, freq: number, dur: number) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        osc.frequency.exponentialRampToValueAtTime(freq / 2, time + dur);
+        
+        gain.gain.setValueAtTime(0.08, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start(time);
+        osc.stop(time + dur);
+      };
+
+      // Modern "double-tap" feedback
+      playPulse(audioCtx.currentTime, 1000, 0.03);
+      playPulse(audioCtx.currentTime + 0.05, 1200, 0.04);
+    } catch (e) {}
+  };
+
   useEffect(() => {
     setLocalCache(CACHE_KEYS.DETAILS, allSeriesDetails);
   }, [allSeriesDetails]);
@@ -283,6 +312,13 @@ export default function SeriesTrackPage() {
 
   const addToMyList = async (series: any) => {
     if (!user) return;
+    
+    // Audio and Haptic feedback
+    playClickSound();
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10);
+    }
+
     try {
       await client.series_track.addUserSeries({
         userId: user.id,
@@ -392,6 +428,13 @@ export default function SeriesTrackPage() {
 
   const toggleWatched = async (seriesId: string, seasonNum: number, episodeNum: number) => {
     if (!user) return;
+    
+    // Audio and Haptic feedback
+    playClickSound();
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10);
+    }
+
     try {
       const res = await client.series_track.toggleEpisodeWatched({
         userId: user.id,
@@ -401,6 +444,17 @@ export default function SeriesTrackPage() {
       });
       
       if (res.isWatched) {
+        toast.success(`S${seasonNum} E${episodeNum} izlendi olarak işaretlendi.`, {
+          icon: '✅',
+          style: {
+            borderRadius: '12px',
+            background: '#fff',
+            color: '#10b981',
+            fontSize: '12px',
+            fontWeight: 'bold',
+          },
+          duration: 2000,
+        });
         if (selectedSeries?.id === seriesId) {
           setUserProgress(prev => [...prev, { season_number: seasonNum, episode_number: episodeNum, watched_at: new Date().toISOString() }]);
         }
@@ -427,6 +481,12 @@ export default function SeriesTrackPage() {
   const markSeasonAsWatched = async () => {
     if (!user || !selectedSeries || !seasonDetails[activeSeason]) return;
     
+    // Audio and Haptic feedback
+    playClickSound();
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(15);
+    }
+
     const episodes = seasonDetails[activeSeason].episodes || [];
     const unwatchedEpisodeNumbers = episodes
       .filter((ep: any) => !isEpisodeWatched(activeSeason, ep.episode_number))
@@ -466,6 +526,12 @@ export default function SeriesTrackPage() {
   const markAllAsWatched = async () => {
     if (!user || !selectedSeries || !seriesDetails) return;
     
+    // Audio and Haptic feedback
+    playClickSound();
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(20);
+    }
+
     const seasonsData = seriesDetails.seasons
       ?.filter((s: any) => s.season_number > 0)
       .map((s: any) => ({
@@ -566,6 +632,13 @@ export default function SeriesTrackPage() {
 
   const removeFromList = async (seriesId: string) => {
     if (!user) return;
+    
+    // Audio and Haptic feedback
+    playClickSound();
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10);
+    }
+
     try {
       await client.series_track.deleteUserSeries(user.id, seriesId);
       setMySeries(prev => prev.filter(s => s.id !== seriesId));
@@ -772,7 +845,7 @@ export default function SeriesTrackPage() {
                                 e.stopPropagation();
                                 toggleWatched(series.id, nextEp.season, nextEp.episode);
                               }}
-                              className="w-10 h-10 rounded-full bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 flex items-center justify-center transition-all group/btn cursor-pointer"
+                              className="w-10 h-10 rounded-full bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 flex items-center justify-center transition-all group/btn cursor-pointer active:scale-90"
                             >
                               <CheckCircle size={20} weight="bold" className="text-gray-300 group-hover/btn:text-emerald-500" />
                             </button>
@@ -1023,7 +1096,7 @@ export default function SeriesTrackPage() {
                                       }
                                       if (selectedSeries) toggleWatched(selectedSeries.id, activeSeason, ep.episode_number);
                                     }}
-                                    className={`group cursor-pointer flex items-center gap-5 py-4 border-b border-gray-50 hover:bg-white transition-all px-3 rounded-2xl -mx-3 ${!aired ? 'opacity-40' : ''}`}
+                                    className={`group cursor-pointer flex items-center gap-5 py-4 border-b border-gray-50 hover:bg-white transition-all px-3 rounded-2xl -mx-3 active:scale-[0.98] ${!aired ? 'opacity-40' : ''}`}
                                   >
                                     {/* Checkbox */}
                                     <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all ${
