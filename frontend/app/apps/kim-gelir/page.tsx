@@ -26,7 +26,7 @@ import { friendship, kim_gelir, workplaces } from "@/lib/client";
 import { Drawer } from "vaul";
 import dynamic from "next/dynamic";
 
-const StudyPlacesMap = dynamic(() => import("../_workplaces/StudyPlacesMap"), {
+const StudyPlacesMap = dynamic(() => import("../workplaces/StudyPlacesMap"), {
   ssr: false,
 });
 

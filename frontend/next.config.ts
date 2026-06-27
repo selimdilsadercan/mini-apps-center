@@ -24,11 +24,9 @@ const nextConfig: any = {
     };
     return config;
   },
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        "@clerk/clerk-react": "./contexts/AuthContext.tsx",
-      },
+  turbopack: {
+    resolveAlias: {
+      "@clerk/clerk-react": "./contexts/AuthContext.tsx",
     },
   },
   ...(isCapacitorBuild ? { 
