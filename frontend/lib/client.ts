@@ -3380,6 +3380,8 @@ export namespace hub {
         subscriptions: subcenter.Subscription[]
         budgetProjects: budget.Project[]
         savingsStats: tasarruf_challenges.StatsResponse | null
+        suggestions: suggest.InboxSuggestion[]
+        activities: kim_gelir.Activity[]
     }
 
     export class ServiceClient {

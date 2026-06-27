@@ -28,7 +28,9 @@ import {
   ChartBar,
   PiggyBank,
   Wrench,
-  VideoCamera
+  VideoCamera,
+  PaperPlaneTilt,
+  CheckCircle
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,7 +47,9 @@ import {
   hub,
   subcenter,
   budget,
-  tasarruf_challenges
+  tasarruf_challenges,
+  suggest,
+  kim_gelir
 } from "@/lib/client";
 import Link from "next/link";
 
@@ -104,6 +108,8 @@ function HomeContent() {
   const [subscriptions, setSubscriptions] = useState<subcenter.Subscription[]>([]);
   const [budgetProjects, setBudgetProjects] = useState<budget.Project[]>([]);
   const [savingsStats, setSavingsStats] = useState<tasarruf_challenges.StatsResponse | null>(null);
+  const [suggestions, setSuggestions] = useState<suggest.InboxSuggestion[]>([]);
+  const [activities, setActivities] = useState<kim_gelir.Activity[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
 
   useEffect(() => {
@@ -134,6 +140,8 @@ function HomeContent() {
       setSubscriptions(res.subscriptions?.slice(0, 6) || []);
       setBudgetProjects(res.budgetProjects?.slice(0, 6) || []);
       setSavingsStats(res.savingsStats);
+      setSuggestions(res.suggestions || []);
+      setActivities(res.activities || []);
     } catch (err) {
       console.error("Failed to fetch integrated content:", err);
     } finally {
@@ -387,31 +395,6 @@ function HomeContent() {
                   )}
                 </div>
               </section>
-
-              {/* Arkadaşlarınla Section (Social) */}
-              {socialApps.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Users size={14} weight="bold" className="text-gray-900" />
-                      Arkadaşlarınla
-                    </h2>
-                  </div>
-                  <div className="space-y-0">
-                    {socialApps.map((app, index) => (
-                      <AppRow 
-                        key={app.id} 
-                        app={app} 
-                        index={index} 
-                        tApps={tApps}
-                        isPinned={pinnedIds.includes(app.id)}
-                        onPin={(e) => togglePin(e, app.id)}
-                        onClick={() => handleAppClick(app)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
 
               {/* Pratik Araçlar Section (Tools) */}
               {toolsApps.length > 0 && (
@@ -748,6 +731,141 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
+              {/* Suggest Inbox Widget */}
+              {suggestions.length > 0 && (
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <PaperPlaneTilt size={14} weight="bold" className="text-gray-900" />
+                      Gelen Öneriler
+                    </h2>
+                    <Link href="/apps/suggest" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                      Tümünü Gör
+                    </Link>
+                  </div>
+                  
+                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                    {suggestions.map(suggestion => (
+                      <Link 
+                        key={suggestion.id} 
+                        href={`/apps/suggest/detail?id=${suggestion.shareId}`}
+                        className="w-48 bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100 shadow-inner">
+                            {suggestion.imageUrl ? (
+                              <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <PaperPlaneTilt size={20} weight="fill" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{suggestion.title}</h3>
+                            <p className="text-[9px] text-gray-400 font-bold truncate">@{suggestion.senderUsername || "birisi"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                            {suggestion.category === "movie" ? "Film" : 
+                             suggestion.category === "tv" ? "Dizi" :
+                             suggestion.category === "song" ? "Şarkı" :
+                             suggestion.category === "place" ? "Mekan" : "Öneri"}
+                          </span>
+                          {suggestion.status === "pending" && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Ne Yapsak Activities Widget */}
+              {activities.length > 0 && (
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Users size={14} weight="bold" className="text-gray-900" />
+                      Aktif Davetlerin
+                    </h2>
+                    <Link href="/apps/kim-gelir" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                      Tümünü Gör
+                    </Link>
+                  </div>
+                  
+                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                    {activities.map(activity => (
+                      <Link 
+                        key={activity.id} 
+                        href={`/apps/kim-gelir/activity?id=${activity.id}`}
+                        className="w-56 bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
+                            <Users size={20} weight="fill" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{activity.title}</h3>
+                            <p className="text-[9px] text-gray-400 font-bold truncate">{activity.location}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex -space-x-2">
+                            {activity.responses.slice(0, 3).map((resp, i) => (
+                              <div key={i} className="w-5 h-5 rounded-full border-2 border-white bg-gray-100 overflow-hidden">
+                                {resp.avatar ? (
+                                  <img src={resp.avatar} alt={resp.username || ""} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-400">
+                                    {(resp.username || "?")[0]}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {activity.responses.length > 3 && (
+                              <div className="w-5 h-5 rounded-full border-2 border-white bg-gray-900 flex items-center justify-center text-[7px] font-black text-white">
+                                +{activity.responses.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                            {activity.timeOption === "custom" ? activity.customTime : activity.timeOption}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Arkadaşlarınla Section (Social) */}
+              {socialApps.length > 0 && (
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Users size={14} weight="bold" className="text-gray-900" />
+                      Arkadaşlarınla
+                    </h2>
+                  </div>
+                  <div className="space-y-0">
+                    {socialApps.map((app, index) => (
+                      <AppRow 
+                        key={app.id} 
+                        app={app} 
+                        index={index} 
+                        tApps={tApps}
+                        isPinned={pinnedIds.includes(app.id)}
+                        onPin={(e) => togglePin(e, app.id)}
+                        onClick={() => handleAppClick(app)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">

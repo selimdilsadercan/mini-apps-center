@@ -375,14 +375,22 @@ export const searchSeries = api(
       throw APIError.internal("TMDB API Key is not configured");
     }
 
+    const fetchWithRetry = async (url: string) => {
+      let response = await fetch(url);
+      if (!response.ok && url.includes("language=tr-TR")) {
+        // Fallback to English if Turkish fails
+        const fallbackUrl = url.replace("&language=tr-TR", "");
+        response = await fetch(fallbackUrl);
+      }
+      return response;
+    };
+
     const url = `https://api.themoviedb.org/3/search/tv?api_key=${key}&query=${encodeURIComponent(query)}&language=tr-TR`;
     
     try {
-      const response = await fetch(url);
+      const response = await fetchWithRetry(url);
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`TMDB search failed with status ${response.status}:`, errorBody);
         throw APIError.internal(`TMDB search failed: ${response.status}`);
       }
 
@@ -406,12 +414,22 @@ export const getSeriesDetails = api(
     const cached = getFromCache<TmdbSeriesDetails>(cacheKey);
     if (cached) return cached;
 
-    const response = await fetch(
+    const fetchWithRetry = async (url: string) => {
+      let response = await fetch(url);
+      if (!response.ok && url.includes("language=tr-TR")) {
+        // Fallback to English if Turkish fails
+        const fallbackUrl = url.replace("&language=tr-TR", "");
+        response = await fetch(fallbackUrl);
+      }
+      return response;
+    };
+
+    const response = await fetchWithRetry(
       `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${tmdbApiKey()}&language=tr-TR`
     );
 
     if (!response.ok) {
-      throw APIError.internal("TMDB details fetch failed");
+      throw APIError.internal(`TMDB details fetch failed: ${response.status}`);
     }
 
     const data = await response.json();
@@ -430,12 +448,22 @@ export const getSeasonDetails = api(
     const cached = getFromCache<TmdbSeasonDetails>(cacheKey);
     if (cached) return cached;
 
-    const response = await fetch(
+    const fetchWithRetry = async (url: string) => {
+      let response = await fetch(url);
+      if (!response.ok && url.includes("language=tr-TR")) {
+        // Fallback to English if Turkish fails
+        const fallbackUrl = url.replace("&language=tr-TR", "");
+        response = await fetch(fallbackUrl);
+      }
+      return response;
+    };
+
+    const response = await fetchWithRetry(
       `https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNumber}?api_key=${tmdbApiKey()}&language=tr-TR`
     );
 
     if (!response.ok) {
-      throw APIError.internal("TMDB season fetch failed");
+      throw APIError.internal(`TMDB season fetch failed: ${response.status}`);
     }
 
     const data = await response.json();

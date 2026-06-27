@@ -51,9 +51,9 @@ const setLocalCache = (key: string, data: any) => {
 
 const STATUS_LABELS: Record<series_track.SeriesStatus, { label: string; color: string; bg: string }> = {
   watching: { label: "İzliyorum", color: "text-blue-600", bg: "bg-blue-50" },
-  plan_to_watch: { label: "İzleyeceğim", color: "text-zinc-500", bg: "bg-zinc-100" },
+  plan_to_watch: { label: "İzlemek İstiyorum", color: "text-zinc-500", bg: "bg-zinc-100" },
   completed: { label: "Bitti", color: "text-emerald-600", bg: "bg-emerald-50" },
-  dropped: { label: "Bıraktım", color: "text-rose-600", bg: "bg-rose-50" },
+  dropped: { label: "Yarım Bıraktım", color: "text-rose-600", bg: "bg-rose-50" },
 };
 
 export default function SeriesTrackPage() {
@@ -73,6 +73,7 @@ export default function SeriesTrackPage() {
   const [activeSeason, setActiveSeason] = useState<number>(1);
   const [showSearch, setShowSearch] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
+  const [activeStatusTab, setActiveStatusTab] = useState<series_track.SeriesStatus>("watching");
   const [allSeasonsData, setAllSeasonsData] = useState<Record<number, any>>({});
   const [loadingGraph, setLoadingGraph] = useState(false);
 
@@ -314,15 +315,30 @@ export default function SeriesTrackPage() {
       ]);
       
       setSeriesDetails(details);
-      setUserProgress(progress.progress || []);
+      const userProgressList = progress.progress || [];
+      setUserProgress(userProgressList);
       
       if (details.seasons && details.seasons.length > 0) {
-        const validSeasons = details.seasons.filter((s: any) => s.season_number > 0);
-        const lastSeason = validSeasons.length > 0 
-          ? validSeasons[validSeasons.length - 1].season_number 
-          : details.seasons[0].season_number;
-        setActiveSeason(lastSeason);
-        fetchSeasonDetails(series.tmdb_id, lastSeason);
+        let seasonToOpen = 1;
+        
+        if (userProgressList.length > 0) {
+          const maxSeason = Math.max(...userProgressList.map(p => p.season_number));
+          if (maxSeason > 1) {
+            seasonToOpen = maxSeason;
+          }
+        }
+        
+        // Sezonun mevcut olduğundan emin ol
+        const seasonExists = details.seasons.some((s: any) => s.season_number === seasonToOpen);
+        if (!seasonExists) {
+          const validSeasons = details.seasons.filter((s: any) => s.season_number > 0);
+          seasonToOpen = validSeasons.length > 0 
+            ? validSeasons[0].season_number 
+            : details.seasons[0].season_number;
+        }
+
+        setActiveSeason(seasonToOpen);
+        fetchSeasonDetails(series.tmdb_id, seasonToOpen);
       }
     } catch (error) {
       toast.error("Detaylar yüklenemedi.");
@@ -491,6 +507,7 @@ export default function SeriesTrackPage() {
   };
 
   const isEpisodeWatched = (seasonNum: number, episodeNum: number) => {
+    if (selectedSeries?.status === "completed") return true;
     return userProgress.some(p => p.season_number === seasonNum && p.episode_number === episodeNum);
   };
 
@@ -501,6 +518,49 @@ export default function SeriesTrackPage() {
       return new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' }).format(date);
     } catch (e) {
       return dateStr;
+    }
+  };
+
+  const getRelativeDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      // Normalize both dates to midnight local time for accurate day difference
+      const targetDate = new Date(dateStr);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const diffTime = targetDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      
+      const dayMonth = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(targetDate);
+
+      if (diffDays === 0) return `Bugün (${dayMonth})`;
+      if (diffDays === 1) return `Yarın (${dayMonth})`;
+      if (diffDays > 1 && diffDays < 7) return `${diffDays} gün sonra (${dayMonth})`;
+      if (diffDays === -1) return `Dün (${dayMonth})`;
+      if (diffDays < -1 && diffDays > -7) return `${Math.abs(diffDays)} gün önce (${dayMonth})`;
+      
+      return formatDateTurkish(dateStr);
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const updateSeriesStatus = async (status: series_track.SeriesStatus) => {
+    if (!user || !selectedSeries) return;
+    try {
+      await client.series_track.updateUserSeriesStatus({
+        userId: user.id,
+        seriesId: selectedSeries.id,
+        status: status
+      });
+      setSelectedSeries({ ...selectedSeries, status: status });
+      setMySeries(prev => prev.map(s => s.id === selectedSeries.id ? { ...s, status: status } : s));
+      toast.success(`Durum güncellendi: ${STATUS_LABELS[status].label}`);
+    } catch (error) {
+      toast.error("Durum güncellenemedi.");
     }
   };
 
@@ -559,7 +619,7 @@ export default function SeriesTrackPage() {
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={() => window.location.href = getAppRootUrl()}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm hover:border-gray-300 active:scale-95"
           >
             <SquaresFour size={16} weight="fill" className="text-indigo-500 shrink-0" />
             <span className="text-xs font-bold">Geri Dön</span>
@@ -568,9 +628,9 @@ export default function SeriesTrackPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSearch(true)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm active:scale-95"
             >
-              <Plus size={18} weight="bold" />
+              <Plus size={18} weight="bold" className="text-indigo-600" />
               <span>Dizi Ekle</span>
             </button>
           </div>
@@ -581,6 +641,26 @@ export default function SeriesTrackPage() {
           <p className="text-gray-500 text-sm">İzlediğin dizileri takip et, bölüm kaçırma.</p>
         </div>
 
+        {/* Status Tabs */}
+        <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+          {(["watching", "plan_to_watch", "dropped", "completed"] as series_track.SeriesStatus[]).map((status) => (
+            <button
+              key={status}
+              onClick={() => setActiveStatusTab(status)}
+              className={`px-6 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap border ${
+                activeStatusTab === status
+                  ? "bg-white border-gray-200 text-gray-900 shadow-sm"
+                  : "bg-transparent border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {STATUS_LABELS[status].label}
+              <span className="ml-2 opacity-50">
+                {mySeries.filter(s => s.status === status).length}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* My List */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -588,20 +668,24 @@ export default function SeriesTrackPage() {
               <div key={i} className="h-48 bg-white rounded-3xl animate-pulse border border-gray-100" />
             ))}
           </div>
-        ) : mySeries.length === 0 ? (
+        ) : mySeries.filter(s => s.status === activeStatusTab).length === 0 ? (
           <div className="text-center py-32 bg-white border border-gray-200/50 rounded-3xl shadow-sm">
             <Monitor size={48} className="mx-auto text-gray-200 mb-4" />
-            <p className="text-gray-400 font-medium">Henüz dizi eklemedin.</p>
-            <button 
-              onClick={() => setShowSearch(true)}
-              className="mt-4 text-indigo-600 font-bold text-sm hover:underline"
-            >
-              Hemen bir dizi ara
-            </button>
+            <p className="text-gray-400 font-medium">Bu kategoride henüz dizi yok.</p>
+            {activeStatusTab === "watching" && (
+              <button 
+                onClick={() => setShowSearch(true)}
+                className="mt-4 text-indigo-600 font-bold text-sm hover:underline"
+              >
+                Hemen bir dizi ara
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mySeries.map((series) => {
+            {mySeries
+              .filter(s => s.status === activeStatusTab)
+              .map((series) => {
               const nextEp = getNextEpisode(series.id);
               const progress = allSeriesProgress[series.id] || [];
               const details = allSeriesDetails[series.id];
@@ -677,9 +761,9 @@ export default function SeriesTrackPage() {
                                 e.stopPropagation();
                                 handleWatch(series, nextEp.season, nextEp.episode);
                               }}
-                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95 cursor-pointer"
+                              className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-sm hover:border-indigo-200 active:scale-95 cursor-pointer"
                             >
-                              <Play size={14} weight="fill" />
+                              <Play size={14} weight="fill" className="text-indigo-600" />
                               <span>İZLE</span>
                             </button>
 
@@ -696,7 +780,7 @@ export default function SeriesTrackPage() {
                         ) : (
                           <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl text-[10px] font-black text-amber-600">
                             <Calendar size={14} weight="bold" className="shrink-0" />
-                            <span>{nextEp.airDate ? formatDateTurkish(nextEp.airDate) : "YAKINDA"}</span>
+                            <span>{nextEp.airDate ? getRelativeDate(nextEp.airDate) : "YAKINDA"}</span>
                           </div>
                         )}
                       </div>
@@ -799,14 +883,6 @@ export default function SeriesTrackPage() {
 
                       <div className="flex items-center gap-3">
                         <button 
-                          onClick={markAllAsWatched}
-                          className="px-5 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 text-xs font-black rounded-xl flex items-center gap-2 transition-all active:scale-95"
-                        >
-                          <CheckCircle size={18} weight="bold" />
-                          <span>Tümünü İzledim</span>
-                        </button>
-
-                        <button 
                           onClick={() => selectedSeries && removeFromList(selectedSeries.id)}
                           className="w-11 h-11 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl flex items-center justify-center transition-all active:scale-95"
                           title="Listeden Kaldır"
@@ -836,17 +912,48 @@ export default function SeriesTrackPage() {
                           <span className="bg-white px-3 py-1.5 rounded-xl border border-gray-200">{seriesDetails.first_air_date?.split('-')[0]}</span>
                           <span className="bg-white px-3 py-1.5 rounded-xl border border-gray-200">{seriesDetails.number_of_seasons} Sezon</span>
                           <span className="bg-white px-3 py-1.5 rounded-xl border border-gray-200">{seriesDetails.number_of_episodes} Bölüm</span>
-                          
-                          <button
-                            onClick={() => {
-                              const newSlug = prompt("Aramaya eklenecek özel anahtar kelime (örn: site:hdfilmcehennemi.nl):", selectedSeries?.watch_url_slug || "");
-                              if (newSlug !== null && selectedSeries) updateWatchSlug(selectedSeries, newSlug);
-                            }}
-                            className="bg-white px-3 py-1.5 rounded-xl border border-gray-200 hover:border-indigo-500 transition-all text-[10px] uppercase tracking-widest"
-                          >
-                            Arama Ayarla
-                          </button>
                         </div>
+
+                        <div className="flex bg-gray-100/50 p-1 rounded-2xl border border-gray-200/50 w-fit mb-8">
+                          {[
+                            { id: "plan_to_watch", label: "İzlemek İstiyorum" },
+                            { id: "watching", label: "İzliyorum" },
+                            { id: "dropped", label: "Yarım Bıraktım" },
+                            { id: "completed", label: "İzledim" }
+                          ].map(s => (
+                            <button
+                              key={s.id}
+                              onClick={() => updateSeriesStatus(s.id as any)}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-wider ${
+                                selectedSeries?.status === s.id 
+                                  ? "bg-white text-gray-900 shadow-sm border border-gray-200" 
+                                  : "text-gray-400 hover:text-gray-600"
+                              }`}
+                            >
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {selectedSeries?.status === "watching" && (
+                          <div className="flex flex-wrap items-center gap-2 mb-8">
+                            <button 
+                              onClick={markAllAsWatched}
+                              className="px-4 py-2 bg-white border border-gray-200 text-emerald-600 text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-emerald-50 hover:border-emerald-200 active:scale-95 shadow-sm uppercase tracking-wider"
+                            >
+                              <CheckCircle size={16} weight="bold" />
+                              <span>Tümünü İzledim</span>
+                            </button>
+
+                            <button 
+                              onClick={markSeasonAsWatched}
+                              className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-indigo-50 hover:border-indigo-200 active:scale-95 shadow-sm uppercase tracking-wider"
+                            >
+                              <Monitor size={16} weight="bold" className="text-indigo-500" />
+                              <span>Bu Sezonu İzledim</span>
+                            </button>
+                          </div>
+                        )}
                         <p className="text-gray-600 text-base leading-relaxed max-w-2xl font-medium opacity-80">{seriesDetails.overview}</p>
                       </div>
                     </div>
@@ -870,16 +977,6 @@ export default function SeriesTrackPage() {
                           Rating Grafiği
                         </button>
                       </div>
-
-                      {viewMode === 'list' && (
-                        <button
-                          onClick={markSeasonAsWatched}
-                          className="px-5 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 text-xs font-bold rounded-xl flex items-center gap-2 transition-all active:scale-95"
-                        >
-                          <CheckCircle size={18} weight="bold" />
-                          <span className="hidden sm:inline">Bu Sezonu İzledim</span>
-                        </button>
-                      )}
                     </div>
 
                     {viewMode === 'list' ? (
@@ -953,7 +1050,7 @@ export default function SeriesTrackPage() {
 
                                       <div className="flex flex-col items-end shrink-0">
                                         <span className={`text-[10px] font-black uppercase tracking-widest ${aired ? 'text-gray-400' : 'text-amber-600'}`}>
-                                          {aired ? formatDateTurkish(ep.air_date) : 'YAKINDA'}
+                                          {aired ? formatDateTurkish(ep.air_date) : getRelativeDate(ep.air_date)}
                                         </span>
                                         {!aired && (
                                           <span className="text-[9px] text-gray-400 font-bold mt-0.5">
