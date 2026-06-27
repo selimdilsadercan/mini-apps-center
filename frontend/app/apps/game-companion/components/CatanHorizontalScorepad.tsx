@@ -124,7 +124,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
     const score = playerScores[playerId]?.[category] || 0;
 
     return (
-      <div className="py-2 px-3 border-b border-gray-200 bg-white/80 dark:bg-[var(--card-background)] backdrop-blur-sm min-w-[120px]">
+      <div className="py-2 px-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm min-w-[120px]">
         <div className="flex items-center justify-center">
           <input
             type="text"
@@ -133,8 +133,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
               const value = parseInt(e.target.value) || 0;
               updatePlayerScore(playerId, category, Math.max(0, value));
             }}
-            className="w-20 h-10 bg-white border-2 rounded-lg text-center font-medium text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            style={{ borderColor: "rgba(134, 189, 255, 0.4)" }}
+            className="w-20 h-10 bg-white border-2 border-blue-50 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
             placeholder="0"
           />
         </div>
@@ -183,8 +182,7 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
 
   return (
     <div
-      className="flex-1 overflow-x-auto overflow-y-auto"
-      style={{ backgroundColor: "var(--background)" }}
+      className="flex-1 overflow-x-auto overflow-y-auto bg-[#FAF9F7]"
     >
       <div className="min-w-full">
         {/* Table - Row by Row Rendering */}
@@ -198,27 +196,27 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
             {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={player._id}
-                className="min-w-[120px] py-4 px-3 flex flex-col items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm"
+                className="min-w-[120px] py-4 px-3 flex flex-col items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm"
               >
                 <div className="flex items-center space-x-2 mb-2">
                   {player.avatar ? (
                     <img
                       src={player.avatar}
                       alt={player.name}
-                      className="w-8 h-8 rounded-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">
+                    <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center border border-blue-100">
+                      <span className="text-blue-600 font-bold text-xs">
                         {player.initial}
                       </span>
                     </div>
                   )}
                 </div>
-                <span className="font-medium text-gray-800 text-sm text-center">
+                <span className="font-bold text-gray-900 text-xs text-center uppercase tracking-tight">
                   {player.name}
                 </span>
-                <div className="mt-2 text-lg font-bold text-gray-800">
+                <div className="mt-2 text-lg font-black text-blue-600">
                   {getPlayerTotal(player._id)} ZP
                 </div>
               </div>
@@ -229,15 +227,15 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
           {scoringCategories.map((category: any) => (
             <div key={category.key} className="flex min-w-max">
               {/* Category Name Column */}
-              <div className="w-48 py-3 px-4 flex items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm">
-                <div className="flex items-center space-x-2">
+              <div className="w-48 py-3 px-4 flex items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm">
+                <div className="flex items-center space-x-3">
                   {category.icon}
                   <div className="flex flex-col">
-                    <span className="text-gray-800 font-medium text-sm">
+                    <span className="text-gray-900 font-bold text-xs uppercase tracking-tight">
                       {category.label}
                     </span>
                     {category.subtext && (
-                      <span className="text-xs text-gray-500 italic">
+                      <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
                         {category.subtext}
                       </span>
                     )}
@@ -261,15 +259,15 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
 
           {/* Total Row */}
           <div className="flex min-w-max">
-            <div className="w-48 py-3 px-4 flex items-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm">
-              <span className="text-gray-800 font-bold text-sm">TOPLAM</span>
+            <div className="w-48 py-3 px-4 flex items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm">
+              <span className="text-gray-900 font-black text-xs uppercase tracking-widest">TOPLAM</span>
             </div>
             {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={`total-${player._id}`}
-                className="min-w-[120px] py-3 px-3 flex items-center justify-center border-b border-gray-200 bg-white/90 dark:bg-[var(--card-background)] backdrop-blur-sm"
+                className="min-w-[120px] py-3 px-3 flex items-center justify-center border-b border-gray-100 bg-white/90 backdrop-blur-sm"
               >
-                <div className="text-lg font-bold text-gray-800">
+                <div className="text-lg font-black text-blue-600">
                   {getPlayerTotal(player._id)} ZP
                 </div>
               </div>
@@ -279,10 +277,16 @@ const CatanHorizontalScorepad: React.FC<CatanHorizontalScorepadProps> = ({
       </div>
 
       {/* Game Rules Footer */}
-      <div className="px-6 py-4 bg-white/80 dark:bg-[var(--card-background)] backdrop-blur-sm">
-        <div className="text-sm text-gray-600 italic space-y-1">
-          <div>ZP = Zafer Puanı (Victory Point)</div>
-          <div>Oyunu kazanmak için 10 ZP'ye ulaşmanız gerekir</div>
+      <div className="px-6 py-6 bg-white/80 backdrop-blur-sm border-t border-gray-100">
+        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            <span>ZP = Zafer Puanı (Victory Point)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+            <span>Oyunu kazanmak için 10 ZP'ye ulaşmanız gerekir</span>
+          </div>
         </div>
       </div>
     </div>

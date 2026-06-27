@@ -61,41 +61,43 @@ export default function GameHistoryCard({
   };
 
   return (
-    <div className="bg-white/5 dark:bg-[var(--card-background)] rounded-lg p-4 flex items-start justify-between">
+    <div className="bg-white rounded-2xl p-4 flex items-start justify-between border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex-1 min-w-0 cursor-pointer" onClick={onClick}>
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg truncate">{gameSave?.name || "Oyun"}</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{formattedDate}</p>
+        <h3 className="font-black text-gray-900 text-lg tracking-tight uppercase">{gameSave?.name || "Oyun"}</h3>
+        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">{formattedDate}</p>
 
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-4">
           {players && players.length > 0 ? (
-            <div className="flex space-x-1">
+            <div className="flex -space-x-2">
               {(() => {
                 const winnerId = getWinnerPlayerId(gameSave, players);
                 return players.slice(0, 6).map((p: any, idx: number) => (
                   <div
                     key={p?._id || idx}
-                    className="w-8 h-8 rounded-full ring-2 ring-white dark:ring-[#0b0b0b] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[11px] font-semibold text-gray-800 dark:text-gray-100 relative"
+                    className="w-9 h-9 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-[11px] font-black text-gray-800 relative shadow-sm"
                     title={p?.name}
                   >
                     {p?.avatar ? (
                       <img src={p.avatar} alt={p.name} className="w-full h-full object-cover rounded-full" />
                     ) : (
-                      <span className="text-[12px]">{p?.initial || (p?.name || "?")[0]}</span>
+                      <span className="text-[12px] uppercase">{p?.initial || (p?.name || "?")[0]}</span>
                     )}
                     {winnerId && p._id === winnerId && (
                       <span className="absolute -top-2.5 -left-1.5 rotate-[-20deg] z-10">
-                        <CrownSimple size={18} weight="fill" className="text-yellow-400 drop-shadow" />
+                        <CrownSimple size={18} weight="fill" className="text-yellow-400 drop-shadow-sm" />
                       </span>
                     )}
                   </div>
                 ));
               })()}
               {players.length > 6 && (
-                <div className="ml-2 text-xs text-gray-500 dark:text-gray-400">+{players.length - 6}</div>
+                <div className="w-9 h-9 rounded-full ring-2 ring-white bg-gray-50 flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm">
+                  +{players.length - 6}
+                </div>
               )}
             </div>
           ) : (
-            <p className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full inline-block">
+            <p className="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1 rounded-full inline-block">
               {playerCount} oyuncu
             </p>
           )}
@@ -108,7 +110,7 @@ export default function GameHistoryCard({
         {showDelete && (
           <button
             onClick={handleDelete}
-            className="ml-2 text-gray-400 dark:text-gray-300 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 rounded-xl transition-all active:scale-95 border border-gray-100"
             title="Sil"
           >
             <Trash size={18} />

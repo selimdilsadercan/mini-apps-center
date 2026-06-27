@@ -249,8 +249,8 @@ export default function MemedexPage() {
 
   // Prevent white background leakage on scroll by styling html/body
   useEffect(() => {
-    document.documentElement.style.backgroundColor = "#020617";
-    document.body.style.backgroundColor = "#020617";
+    document.documentElement.style.backgroundColor = "#FAF9F7";
+    document.body.style.backgroundColor = "#FAF9F7";
     return () => {
       document.documentElement.style.backgroundColor = "";
       document.body.style.backgroundColor = "";
@@ -387,35 +387,38 @@ export default function MemedexPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative overflow-hidden pb-12">
+    <div className="min-h-screen bg-[#FAF9F7] text-gray-900 flex flex-col relative overflow-hidden pb-12 selection:bg-fuchsia-100">
       {/* Visual background details */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-[20%] left-[-10%] w-[35%] h-[35%] rounded-full bg-pink-600/10 blur-[130px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-fuchsia-600/5 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[20%] left-[-10%] w-[35%] h-[35%] rounded-full bg-pink-600/5 blur-[130px] pointer-events-none" />
 
       {/* Header */}
-      <header className="w-full border-b border-slate-900 bg-slate-950 sticky top-0 z-40 px-6 py-4">
+      <header className="w-full border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4">
         <div className="max-w-6xl mx-auto grid grid-cols-3 items-center">
           <div className="flex justify-start">
-            <Link href={getAppRootUrl()} className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors cursor-pointer">
-              <ArrowLeft size={18} />
-              <span className="text-sm font-medium">{locale === "tr" ? "Geri Dön" : "Back"}</span>
-            </Link>
+            <button
+              onClick={() => window.location.href = getAppRootUrl()}
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm"
+            >
+              <ArrowLeft size={16} weight="bold" className="text-fuchsia-500 shrink-0" />
+              <span className="text-xs font-bold">{locale === "tr" ? "Geri Dön" : "Back"}</span>
+            </button>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <div className="p-1 bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-400 rounded-lg">
+            <div className="p-1 bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-600 rounded-lg">
               <Sparkle size={16} className="animate-pulse" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-fuchsia-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
+            <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-fuchsia-600 via-pink-600 to-rose-600 bg-clip-text text-transparent uppercase">
               Memedex
             </h1>
           </div>
           <div className="flex justify-end">
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="fixed bottom-6 right-6 md:static z-40 md:z-auto p-4 md:px-3 md:py-1.5 rounded-full md:rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white shadow-2xl md:shadow-lg hover:shadow-fuchsia-950/70 hover:scale-[1.05] active:scale-[0.95] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="fixed bottom-6 right-6 md:static z-40 md:z-auto p-4 md:px-4 md:py-2 rounded-full md:rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white shadow-2xl md:shadow-lg hover:shadow-fuchsia-900/20 hover:scale-[1.05] active:scale-[0.95] transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus className="w-6 h-6 md:w-4 md:h-4" weight="bold" />
-              <span className="hidden md:inline text-sm font-semibold">{locale === "tr" ? "Meme Ekle" : "Add Meme"}</span>
+              <span className="hidden md:inline text-xs font-black uppercase tracking-widest">{locale === "tr" ? "Meme Ekle" : "Add Meme"}</span>
             </button>
           </div>
         </div>
@@ -430,13 +433,13 @@ export default function MemedexPage() {
           
           {/* Search Box */}
           <div className="md:col-span-5 relative">
-            <MagnifyingGlass size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <MagnifyingGlass size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder={locale === "tr" ? "Meme ara (örn: Boyfriend, coding...)" : "Search memes..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900/60 border border-slate-800 focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500/50 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all outline-none"
+              className="w-full bg-white border border-gray-200 focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500/20 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-all outline-none shadow-sm"
             />
           </div>
 
@@ -445,7 +448,7 @@ export default function MemedexPage() {
             <select
               value={selectedTrend}
               onChange={(e) => setSelectedTrend(e.target.value)}
-              className="w-full bg-slate-900/60 border border-slate-800 focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500/50 rounded-2xl px-4 py-2.5 text-sm text-slate-200 outline-none transition-all cursor-pointer"
+              className="w-full bg-white border border-gray-200 focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500/20 rounded-2xl px-4 py-2.5 text-sm text-gray-700 outline-none transition-all cursor-pointer shadow-sm"
             >
               <option value="">{locale === "tr" ? "Tüm Akımlar" : "All Trends"}</option>
               <option value="Trending">{locale === "tr" ? "Trend Olanlar" : "Trending"}</option>
@@ -458,10 +461,10 @@ export default function MemedexPage() {
           <div className="md:col-span-4 flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             <button
               onClick={() => setSelectedTag("")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-full border cursor-pointer transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-full border cursor-pointer transition-all uppercase tracking-wider ${
                 selectedTag === ""
-                  ? "bg-fuchsia-600/20 border-fuchsia-500 text-fuchsia-400"
-                  : "bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                  ? "bg-fuchsia-600 text-white border-fuchsia-600 shadow-lg shadow-fuchsia-900/20"
+                  : "bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 shadow-sm"
               }`}
             >
               {locale === "tr" ? "Hepsi" : "All"}
@@ -473,10 +476,10 @@ export default function MemedexPage() {
                 <button
                   key={tagValue}
                   onClick={() => setSelectedTag(tagValue)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border whitespace-nowrap cursor-pointer transition-all ${
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full border whitespace-nowrap cursor-pointer transition-all uppercase tracking-wider ${
                     selectedTag === tagValue
-                      ? "bg-fuchsia-600/20 border-fuchsia-500 text-fuchsia-400"
-                      : "bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                      ? "bg-fuchsia-600 text-white border-fuchsia-600 shadow-lg shadow-fuchsia-900/20"
+                      : "bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300 shadow-sm"
                   }`}
                 >
                   #{tagLabel}
@@ -528,15 +531,15 @@ export default function MemedexPage() {
             {memes.map((meme) => {
                const embedUrl = getGiphyEmbedUrl(meme.media_url);
                const isEmbed = isEmbeddable(embedUrl);
- 
+
                return (
                  <div
                    key={meme.id}
                    onClick={() => setSelectedMeme(meme)}
-                   className="group bg-slate-900/30 hover:bg-slate-900/60 border border-slate-900 hover:border-purple-900/40 rounded-3xl overflow-hidden flex flex-col shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+                   className="group bg-white hover:bg-gray-50 border border-gray-200/50 hover:border-gray-300 rounded-3xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                  >
                    {/* Media Wrapper */}
-                   <div className="aspect-[4/3] bg-slate-950 border-b border-slate-900/60 relative overflow-hidden pointer-events-none">
+                   <div className="aspect-[4/3] bg-gray-50 border-b border-gray-100 relative overflow-hidden pointer-events-none">
                      {isEmbed ? (
                        <iframe
                          src={embedUrl}
@@ -559,31 +562,31 @@ export default function MemedexPage() {
                    {/* Card Content */}
                    <div className="p-3 md:p-5 flex-1 flex flex-col justify-between gap-2 md:gap-4">
                      <div className="space-y-1">
-                       <h3 className="font-bold text-sm md:text-base text-slate-100 group-hover:text-fuchsia-400 transition-colors">
+                       <h3 className="font-bold text-sm md:text-base text-gray-900 group-hover:text-fuchsia-600 transition-colors">
                          {meme.title}
                        </h3>
                      </div>
  
                      {/* Footer Actions */}
-                     <div className="flex items-center justify-end pt-2 border-t border-slate-900/40">
+                     <div className="flex items-center justify-end pt-2 border-t border-gray-50">
                        <div className="flex items-center gap-1.5">
                          {/* Copy button */}
                          <button
                            onClick={(e) => handleCopy(e, meme.id, meme.media_url)}
-                           className="flex items-center gap-1 px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border border-slate-700/50"
+                           className="flex items-center gap-1 px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-bold border border-gray-200/50"
                            title="Copy template link"
                          >
-                           {copiedId === meme.id ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                           {copiedId === meme.id ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
                            <span>{copiedId === meme.id ? (locale === "tr" ? "Kopyalandı" : "Copied") : (locale === "tr" ? "Kullan" : "Use")}</span>
                          </button>
                          
                          {/* Like button */}
                          <button
                            onClick={(e) => handleLike(e, meme.id)}
-                           className={`flex items-center gap-1 px-2 py-1 ${meme.is_liked ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'bg-slate-800/80 border-slate-700/50 text-slate-200'} hover:bg-slate-700 hover:text-white rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-semibold border`}
+                           className={`flex items-center gap-1 px-2 py-1 ${meme.is_liked ? 'bg-pink-50 border-pink-100 text-pink-600' : 'bg-gray-50 border-gray-200/50 text-gray-400'} hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all cursor-pointer text-[11px] md:text-xs font-bold border`}
                          >
-                           <ThumbsUp size={12} weight={meme.is_liked ? "fill" : "regular"} className={meme.is_liked ? "text-pink-500" : "text-pink-500/70"} />
-                           <span className="text-[11px] md:text-xs font-semibold">{meme.likes_count}</span>
+                           <ThumbsUp size={12} weight={meme.is_liked ? "fill" : "regular"} className={meme.is_liked ? "text-pink-500" : "text-pink-400"} />
+                           <span className="text-[11px] md:text-xs font-bold">{meme.likes_count}</span>
                          </button>
                        </div>
                      </div>

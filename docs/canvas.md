@@ -1,41 +1,42 @@
 ## Kısa açıklama:
 
-Günlük ihtiyaçlar için mini uygulamalar ve pratik araçlar.
+Günlük yaşamını keşfet, planla, takip et ve düzenle.
 
 ## Etiketler
 
-mini uygulama,araçlar,oyun,sosyal,öğrenci,kampüs,notlar,karar,öneri
+günlük yaşam,şehir,etkinlik,mekan,sosyal,hobi,cüzdan,rutin,notlar,öneri,planlama,tasarruf
 
 ## Tam açıklama:
 
-Everything, günlük hayatta ihtiyaç duyabileceğin küçük ve pratik uygulamaları tek yerde toplayan bir mini uygulama merkezidir.
+Everything, günlük hayatındaki küçük işleri ve kararları tek bir sade deneyimde toplar.
 
-Farklı kategorilerdeki mini uygulamaları keşfedebilir, ihtiyacına göre hızlıca kullanabilir ve yeni araçları tek bir uygulama içinden deneyebilirsin.
+Şehirde yeni mekanlar keşfedebilir, yaklaşan etkinlikleri görebilir, hobilerini takip edebilir, arkadaşlarınla plan yapabilir, günlük rutinlerini düzenleyebilir ve kişisel finansını daha kolay yönetebilirsin.
 
-Everything içinde neler bulabilirsin?
+Everything; farklı ihtiyaçlar için ayrı ayrı karmaşık deneyimler yerine, günlük hayatın farklı alanlarını tek bir yerde birleştiren pratik bir yaşam uygulamasıdır.
 
-• Arkadaşlarınla paylaşabileceğin sosyal mini uygulamalar  
-• Günlük kararlarını kolaylaştıran pratik araçlar  
-• Öğrenciler için kampüs ve etkinlik yardımcıları  
-• Atıştırmalık, oyun ve eğlence odaklı mini uygulamalar  
-• PDF, video ve üretkenlik araçları  
-• Yeni eklenen deneysel mini uygulamalar
+Everything içinde neler yapabilirsin?
 
-Everything’in amacı büyük ve karmaşık uygulamalar yerine, tek bir ihtiyacı hızlıca çözen küçük araçlar sunmaktır.
+• Şehrindeki mekanları ve etkinlikleri keşfet
+• Arkadaşlarınla öneriler paylaş ve plan oluştur
+• Hobilerini, izlediklerini ve oyunlarını takip et
+• Günlük rutinlerini ve kişisel listelerini düzenle
+• Aboneliklerini, tasarruflarını ve küçük finansal hedeflerini yönet
+• İhtiyacın olduğunda pratik araçlara hızlıca ulaş
 
-Bir şey paylaşmak, bir karar vermek, bir oyun kuralına bakmak, bir dosya düzenlemek ya da yeni bir mini uygulama keşfetmek istediğinde Everything’i açıp hızlıca kullanabilirsin.
+Everything’in amacı, günlük hayatta sık karşılaşılan küçük ihtiyaçları hızlı, sade ve anlaşılır bir şekilde çözmektir.
 
-Uygulama düzenli olarak yeni mini uygulamalarla güncellenir. Böylece tek bir uygulama içinde farklı ihtiyaçlara yönelik yeni araçlar keşfedebilirsin.
+Bir mekan bulmak, bir etkinlik seçmek, arkadaşına öneri göndermek, hobilerini takip etmek, bir harcamanı düzenlemek veya günlük planını toparlamak istediğinde Everything’i açıp hızlıca devam edebilirsin.
 
 Öne çıkan özellikler:
 
-• Tek uygulama içinde birçok mini araç  
-• Hızlı ve sade kullanım  
-• Sosyal paylaşım odaklı mini uygulamalar  
-• Öğrenci ve günlük hayat odaklı araçlar  
-• Sürekli eklenen yeni uygulamalar  
-• Mobil kullanım için optimize edilmiş deneyim
+• Günlük yaşam odaklı sade ana ekran
+• Şehir, sosyal, hobiler, yaşam ve cüzdan alanları
+• Mekan ve etkinlik keşfi
+• Arkadaşlarla öneri ve planlama özellikleri
+• Hobi ve kişisel takip alanları
+• Günlük düzen ve finans yönetimi
+• Mobil kullanım için optimize edilmiş hızlı deneyim
 
-Everything, küçük ihtiyaçlar için hızlı çözümler sunan bir mini uygulama merkezidir.
+Everything, günlük hayatındaki keşifleri, planları, takipleri ve küçük işleri tek yerde toplar.
 
-Yeni mini uygulamaları keşfet, kullan ve arkadaşlarınla paylaş.
+Bugün ne yapacağını seç, şehirde yeni yerler keşfet, hobilerini takip et ve hayatını daha düzenli yönet.

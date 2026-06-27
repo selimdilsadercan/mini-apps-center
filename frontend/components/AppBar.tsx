@@ -3,23 +3,33 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
-  SquaresFour, 
-  User,
+  MapTrifold,
+  Heart,
+  House,
+  Wallet,
+  Users,
   Sparkle,
-  Globe
+  Wrench
 } from "@phosphor-icons/react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 // Aktif sayfa enum'u
 export enum ActivePage {
+  EXPLORE = "explore",
+  SOCIAL = "social",
+  HOBBY = "hobby",
+  WALLET = "wallet",
+  LIFE = "life",
+  TOOLS = "tools",
+  HOME = "home",
+  // Diğer sayfalar (sidebar'da olmayanlar için uyumluluk)
   HUB = "hub",
-  DISCOVER = "discover",
-  FEED = "feed",  
-  AI_CHAT = "ai-chat",
-  NOTIFICATIONS = "notifications",
   PROFILE = "profile",
-  GROCERIES = "groceries",
+  FEED = "feed",
+  AI_CHAT = "ai_chat",
+  DISCOVER = "discover",
   PLAN = "plan",
+  GROCERIES = "groceries"
 }
 
 interface AppBarProps {
@@ -45,98 +55,89 @@ export default function AppBar({ activePage }: AppBarProps) {
     };
   }, []);
 
+  const isActive = (page: ActivePage) => activePage === page;
+
   return (
-    <nav
-      className={`fixed bottom-4 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-[2rem] py-2.5 z-50 transition-all duration-300 ${
-        isAdmin ? "w-[92%] max-w-sm px-2" : "w-fit px-4"
-      }`}
-    >
-      <div
-        className={`flex items-center transition-all duration-300 ${
-          isAdmin ? "justify-around w-full" : "gap-4"
-        }`}
-      >
-        {/* Hub */}
-        <Link
-          href="/home"
-          className={`flex flex-col items-center group transition-all duration-300 ${
-            activePage === ActivePage.HUB ? "scale-110" : "opacity-50 hover:opacity-100"
-          }`}
-        >
-          <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-            activePage === ActivePage.HUB ? "bg-indigo-600 shadow-lg shadow-indigo-200" : "bg-transparent group-hover:bg-indigo-50"
-          }`}>
-            <SquaresFour 
-              size={24} 
-              weight={activePage === ActivePage.HUB ? "fill" : "bold"}
-              color={activePage === ActivePage.HUB ? "white" : "#1F2937"} 
+    <div className="fixed bottom-0 left-0 right-0 z-[150] bg-white border-t border-gray-100 pb-safe-area-inset-bottom transition-all duration-500">
+      <div className="max-w-lg mx-auto w-full relative">
+        <div className="flex items-center justify-around py-2 px-1 gap-0.5">
+          {/* Bugün (Hub) */}
+          <Link
+            href="/home?tab=discover"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.HOME) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <House 
+              size={20} 
+              weight={isActive(ActivePage.HOME) ? "fill" : "bold"}
+              className="flex-shrink-0"
             />
-          </div>
-        </Link>
+            <span className="text-[9px] font-black uppercase tracking-tighter">Bugün</span>
+          </Link>
 
-        {/* AI Chat — admin only */}
-        {isAdmin && (
+          {/* Şehrini Keşfet */}
           <Link
-            href="/ai-chat"
-            className={`flex flex-col items-center group transition-all duration-300 ${
-              activePage === ActivePage.AI_CHAT ? "scale-110" : "opacity-50 hover:opacity-100"
+            href="/home?tab=explore"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.EXPLORE) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-              activePage === ActivePage.AI_CHAT ? "bg-violet-600 shadow-lg shadow-violet-100" : "bg-transparent group-hover:bg-violet-50"
-            }`}>
-              <Sparkle 
-                size={24} 
-                weight={activePage === ActivePage.AI_CHAT ? "fill" : "bold"}
-                color={activePage === ActivePage.AI_CHAT ? "white" : "#1F2937"} 
-              />
-            </div>
+            <MapTrifold 
+              size={20} 
+              weight={isActive(ActivePage.EXPLORE) ? "fill" : "bold"}
+              className="flex-shrink-0"
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Keşfet</span>
           </Link>
-        )}
 
-        {/* Feed — admin only */}
-        {isAdmin && (
+          {/* Hobiler */}
           <Link
-            href="/feed"
-            className={`flex flex-col items-center group transition-all duration-300 ${
-              activePage === ActivePage.FEED ? "scale-110" : "opacity-50 hover:opacity-100"
+            href="/home?tab=hobby"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.HOBBY) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-              activePage === ActivePage.FEED ? "bg-blue-600 shadow-lg shadow-blue-100" : "bg-transparent group-hover:bg-blue-50"
-            }`}>
-              <Globe 
-                size={24} 
-                weight={activePage === ActivePage.FEED ? "fill" : "bold"}
-                color={activePage === ActivePage.FEED ? "white" : "#1F2937"} 
-              />
-            </div>
+            <Heart 
+              size={20} 
+              weight={isActive(ActivePage.HOBBY) ? "fill" : "bold"}
+              className="flex-shrink-0"
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Hobilerim</span>
           </Link>
-        )}
 
-        {/* Profil */}
-        <Link
-          href="/profile"
-          className={`flex flex-col items-center group transition-all duration-300 ${
-            activePage === ActivePage.PROFILE ? "scale-110" : "opacity-50 hover:opacity-100"
-          }`}
-        >
-          <div className="relative">
-            <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
-              activePage === ActivePage.PROFILE ? "bg-gray-900 shadow-lg shadow-gray-200" : "bg-transparent group-hover:bg-gray-100"
-            }`}>
-              <User 
-                size={24} 
-                weight={activePage === ActivePage.PROFILE ? "fill" : "bold"}
-                color={activePage === ActivePage.PROFILE ? "white" : "#1F2937"} 
-              />
-            </div>
-            {hasBadge && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-            )}
-          </div>
-        </Link>
+          {/* Cüzdan */}
+          <Link
+            href="/home?tab=wallet"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.WALLET) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <Wallet 
+              size={20} 
+              weight={isActive(ActivePage.WALLET) ? "fill" : "bold"}
+              className="flex-shrink-0"
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Cüzdan</span>
+          </Link>
+
+          {/* Yaşam */}
+          <Link
+            href="/home?tab=life"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.LIFE) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <Sparkle 
+              size={20} 
+              weight={isActive(ActivePage.LIFE) ? "fill" : "bold"}
+              className="flex-shrink-0"
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Yaşam</span>
+          </Link>
+        </div>
       </div>
-    </nav>
+    </div>
   );
 }
+  

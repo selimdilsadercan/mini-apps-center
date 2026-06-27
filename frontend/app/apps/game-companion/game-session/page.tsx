@@ -57,10 +57,10 @@ function GameSessionContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--background)" }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
         <div className="text-center">
           <div className="w-8 h-8 bg-blue-500 rounded-full animate-pulse mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Yükleniyor...</p>
+          <p className="text-gray-500 font-medium">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -68,10 +68,10 @@ function GameSessionContent() {
 
   if (!gameSave) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--background)" }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
         <div className="text-center">
-          <p className="text-red-500 mb-4">Oturum bulunamadı.</p>
-          <button onClick={() => router.push("/apps/game-companion/history")} className="px-4 py-2 bg-blue-500 text-white rounded-lg">
+          <p className="text-red-500 mb-4 font-bold">Oturum bulunamadı.</p>
+          <button onClick={() => router.push("/apps/game-companion/history")} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20">
             Geçmişe Dön
           </button>
         </div>
@@ -103,22 +103,25 @@ function GameSessionContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col max-w-2xl mx-auto border-x border-gray-100 dark:border-gray-900" style={{ backgroundColor: "var(--background)" }}>
+    <div className="min-h-screen flex flex-col max-w-2xl mx-auto bg-[#FAF9F7]">
       {/* Fixed Header */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 bg-white dark:bg-[#100D16] shadow-sm">
-        <div className="px-4 py-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center">
-            <button onClick={handleBack} className="mr-4">
-              <ArrowLeft size={24} className="text-gray-600 dark:text-gray-400" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div className="px-4 py-4 flex items-center justify-between h-20">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200/60 text-gray-500 hover:text-gray-900 shadow-sm transition-all active:scale-95"
+            >
+              <ArrowLeft size={20} weight="bold" />
             </button>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-200">{gameName}</h1>
+            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">{gameName}</h1>
           </div>
-          <span className="text-sm text-gray-500">{getTimeAgo()}</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{getTimeAgo()}</span>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 pt-20 pb-6 overflow-y-auto">
+      <div className="flex-1 pt-24 pb-6 overflow-y-auto">
         {isWyrmspanGame ? (
           <WyrmspanHorizontalScorepad gameSaveId={gameSaveId as any} />
         ) : isCatanGame ? (

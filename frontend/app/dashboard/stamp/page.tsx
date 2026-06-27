@@ -94,7 +94,7 @@ function StampContent() {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Sadakat kampanyası yüklenemedi.");
+      toast.error("Müdavim kampanyası yüklenemedi.");
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ function StampContent() {
         : await client.stamp_card.createBusiness(payload);
 
       if (res.success) {
-        toast.success(stampCampaign ? "Kampanya güncellendi!" : "Sadakat kampanyası başarıyla aktifleştirildi!");
+        toast.success(stampCampaign ? "Kampanya güncellendi!" : "Müdavim kampanyası başarıyla aktifleştirildi!");
         setIsEditMode(false);
         await loadData();
       } else {

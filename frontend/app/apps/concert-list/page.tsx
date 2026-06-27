@@ -131,17 +131,23 @@ export default function ConcertListPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#09090b] text-gray-100 relative overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 relative overflow-hidden selection:bg-pink-100">
       <Toaster position="top-center" />
+
+      {/* Subtle Premium Background Blur (Light) */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-10 bg-pink-200" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] rounded-full blur-[100px] opacity-10 bg-violet-100" />
+      </div>
 
       <main className="flex-1 px-4 py-8 pb-32 max-w-xl mx-auto w-full relative z-10">
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => window.location.href = getAppRootUrl()}
-            className="group flex items-center gap-2 text-zinc-400 text-xs font-semibold hover:text-white transition-all bg-zinc-900/50 px-3 py-1.5 rounded-lg border border-zinc-800 active:scale-95"
+            className="group flex items-center gap-2 text-gray-500 text-xs font-bold hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm active:scale-95"
           >
-            <CaretLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+            <CaretLeft size={14} weight="bold" className="text-pink-500 shrink-0" />
             <span>Katalog</span>
           </button>
 
@@ -149,7 +155,7 @@ export default function ConcertListPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowImportDrawer(true)}
-                className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-zinc-800"
+                className="bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-gray-200 shadow-sm"
               >
                 <ArrowSquareIn size={14} weight="bold" />
                 <span>İçe Aktar</span>
@@ -159,7 +165,7 @@ export default function ConcertListPage() {
                   setSelectedConcertForEdit(null);
                   setShowAddDrawer(true);
                 }}
-                className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-pink-900/10"
+                className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-lg shadow-pink-900/10"
               >
                 <Plus size={14} weight="bold" />
                 <span>Yeni Konser</span>
@@ -170,7 +176,7 @@ export default function ConcertListPage() {
 
         {/* Hero Section */}
         <div className="mb-6 mt-2">
-          <h1 className="text-2xl font-black tracking-tight uppercase leading-none bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent flex items-center gap-2">
+          <h1 className="text-2xl font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-2">
             <MusicNotes size={26} weight="fill" className="text-pink-500" />
             My Concert <span className="text-pink-500">List</span>
           </h1>
@@ -184,44 +190,44 @@ export default function ConcertListPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Sanatçı, mekan veya yıl ara..."
-            className="w-full bg-zinc-900/40 border border-zinc-800/80 rounded-xl px-4 py-3 text-sm focus:border-pink-500/40 outline-none transition-all placeholder:text-zinc-500 text-white"
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-pink-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900 shadow-sm"
           />
         </div>
 
         {/* Timelines / Lists */}
         {loading ? (
-          <div className="text-center py-20 text-gray-400 text-xs font-semibold uppercase tracking-widest animate-pulse">
+          <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
             Zaman tüneli yükleniyor...
           </div>
         ) : !user ? (
-          <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center p-6">
-            <MusicNotes size={40} className="text-gray-600 mb-4" />
-            <p className="text-sm font-semibold text-gray-400">Konser listeni görebilmek ve yeni konserler eklemek için giriş yapmalısın.</p>
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
+            <MusicNotes size={40} className="text-gray-200 mb-4" />
+            <p className="text-sm font-bold text-gray-400">Konser listeni görebilmek ve yeni konserler eklemek için giriş yapmalısın.</p>
           </div>
         ) : concerts.length === 0 ? (
-          <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-3xl border border-white/5 flex flex-col items-center justify-center p-6">
-            <MusicNotes size={40} className="text-gray-600 mb-4" />
-            <p className="text-sm font-semibold text-gray-400 mb-6">Henüz kayıtlı bir konser yok.</p>
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
+            <MusicNotes size={40} className="text-gray-200 mb-4" />
+            <p className="text-sm font-bold text-gray-400 mb-6">Henüz kayıtlı bir konser yok.</p>
             <div className="flex flex-col gap-3 w-full max-w-xs">
               <button
                 onClick={() => {
                   setSelectedConcertForEdit(null);
                   setShowAddDrawer(true);
                 }}
-                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg active:scale-98 text-sm"
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white font-black py-3.5 px-6 rounded-xl transition-all shadow-lg active:scale-98 text-sm uppercase tracking-widest"
               >
                 İlk Konserini Ekle
               </button>
             </div>
           </div>
         ) : filteredConcerts.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 text-xs font-semibold">Aradığınız kriterlere uygun konser bulunamadı.</div>
+          <div className="text-center py-16 text-gray-400 text-xs font-bold uppercase tracking-widest">Aradığınız kriterlere uygun konser bulunamadı.</div>
         ) : (
           <div className="relative border-l-2 border-pink-500/10 pl-6 ml-3 space-y-12">
             {sortedYears.map((year) => (
               <div key={year} className="relative">
                 {/* Year Marker */}
-                <div className="absolute left-[-37px] top-0 bg-[#09090b] px-2 py-1 rounded-md text-pink-500 font-black text-sm tracking-wider border border-pink-500/20 shadow-md">
+                <div className="absolute left-[-37px] top-0 bg-white px-2 py-1 rounded-md text-pink-500 font-black text-sm tracking-wider border border-pink-500/20 shadow-sm">
                   {year}
                 </div>
 
@@ -250,20 +256,20 @@ export default function ConcertListPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={concert.id}
-                        className="bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/5 relative group hover:border-pink-500/20 hover:bg-white/10 active:scale-[0.99] transition-all cursor-pointer"
+                        className="bg-white rounded-2xl p-5 border border-gray-200/50 relative group hover:border-pink-500/20 hover:bg-gray-50 active:scale-[0.99] transition-all cursor-pointer shadow-sm"
                         onClick={() => {
                           setSelectedConcertForEdit(concert);
                           setShowAddDrawer(true);
                         }}
                       >
                         {/* Timeline node dot */}
-                        <div className="absolute left-[-33px] top-6 w-3 h-3 rounded-full bg-pink-500 ring-4 ring-pink-500/20" />
+                        <div className="absolute left-[-33px] top-6 w-3 h-3 rounded-full bg-pink-500 ring-4 ring-pink-500/10" />
 
                         <div className="flex justify-between items-start gap-4">
                           <div className="flex items-center gap-3">
                             <ArtistAvatar artistName={concert.artist} customImageUrl={concert.imageUrl} />
                             <div>
-                              <h3 className="text-lg font-black text-white leading-tight group-hover:text-pink-300 transition-colors">
+                              <h3 className="text-lg font-black text-gray-900 leading-tight group-hover:text-pink-600 transition-colors">
                                 {concert.artist}
                               </h3>
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400 mt-2">
@@ -283,21 +289,21 @@ export default function ConcertListPage() {
                         </div>
 
                         {concert.notes && (
-                          <div className="mt-4 pt-3 border-t border-white/5 flex items-start gap-2 text-xs text-gray-400 leading-relaxed italic">
+                          <div className="mt-4 pt-3 border-t border-gray-50 flex items-start gap-2 text-xs text-gray-500 leading-relaxed italic">
                             <Notebook size={14} className="shrink-0 text-violet-400/70 mt-0.5" />
                             <p>{concert.notes}</p>
                           </div>
                         )}
 
                         {companions.length > 0 && (
-                          <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-2">
-                            <span className="text-[10px] text-zinc-500 font-extrabold uppercase tracking-wider shrink-0">Beraber:</span>
+                          <div className="mt-4 pt-3 border-t border-gray-50 flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400 font-black uppercase tracking-wider shrink-0">Beraber:</span>
                             <div className="flex -space-x-1.5 overflow-hidden shrink-0">
                               {companions.map((companion) => (
                                 <div
                                   key={companion.id}
                                   title={companion.username || "Arkadaş"}
-                                  className="w-5.5 h-5.5 rounded-full bg-zinc-800 border border-[#09090b] flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 overflow-hidden shrink-0"
+                                  className="w-5.5 h-5.5 rounded-full bg-gray-100 border border-white flex items-center justify-center text-[9px] font-black uppercase text-gray-400 overflow-hidden shrink-0"
                                 >
                                   {companion.avatar ? (
                                     <img src={companion.avatar} alt={companion.username || ""} className="w-full h-full object-cover" />
@@ -307,7 +313,7 @@ export default function ConcertListPage() {
                                 </div>
                               ))}
                             </div>
-                            <span className="text-[10px] text-zinc-400 font-medium truncate">
+                            <span className="text-[10px] text-gray-400 font-bold truncate">
                               {companions.map((c) => c.username || "Arkadaş").join(", ")}
                             </span>
                           </div>
@@ -332,14 +338,14 @@ export default function ConcertListPage() {
         }}
       >
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-[#09090b] text-white flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-zinc-800">
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-[#FAF9F7] text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-200 shadow-2xl">
             <div className="p-6 overflow-y-auto flex-1">
-              <div className="mx-auto w-12 h-1 rounded-full bg-zinc-800 mb-6" />
+              <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
               <Drawer.Title className="text-2xl font-black mb-1 uppercase tracking-tight">
                 {selectedConcertForEdit ? "Konseri Düzenle" : "Yeni Konser Ekle"}
               </Drawer.Title>
-              <Drawer.Description className="text-xs text-zinc-400 mb-6">
+              <Drawer.Description className="text-xs text-gray-400 mb-6">
                 {selectedConcertForEdit
                   ? (selectedConcertForEdit.userId === internalUserId
                     ? "Konser detaylarını ve katılan arkadaşlarını güncelleyebilirsiniz."
@@ -367,14 +373,14 @@ export default function ConcertListPage() {
         onOpenChange={setShowImportDrawer}
       >
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-[#09090b] text-white flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-zinc-800">
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Content className="bg-[#FAF9F7] text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-200 shadow-2xl">
             <div className="p-6 overflow-y-auto flex-1">
-              <div className="mx-auto w-12 h-1 rounded-full bg-zinc-800 mb-6" />
+              <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
               <Drawer.Title className="text-2xl font-black mb-1 uppercase tracking-tight">
                 Metinden Konser Aktar
               </Drawer.Title>
-              <Drawer.Description className="text-xs text-zinc-400 mb-6">
+              <Drawer.Description className="text-xs text-gray-400 mb-6">
                 Her satıra bir konser gelecek şekilde listenizi yapıştırın.
               </Drawer.Description>
               <BulkImportForm
@@ -391,27 +397,27 @@ export default function ConcertListPage() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteTargetId && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="w-full max-w-xs bg-zinc-950 border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6"
+              className="w-full max-w-xs bg-white border border-gray-200 rounded-3xl p-6 shadow-2xl space-y-6"
             >
               <div className="space-y-3 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
                   <Trash size={20} weight="fill" />
                 </div>
-                <h3 className="text-base font-bold text-white">Konseri Sil</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <h3 className="text-base font-black text-gray-900">Konseri Sil</h3>
+                <p className="text-xs text-gray-400 leading-relaxed font-medium">
                   Bu konser anısını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
                 </p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setDeleteTargetId(null)}
-                  className="flex-1 h-10 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5"
+                  className="flex-1 h-10 bg-gray-50 hover:bg-gray-100 text-gray-600 text-xs font-bold rounded-xl transition-all border border-gray-200"
                 >
                   Vazgeç
                 </button>
@@ -422,7 +428,7 @@ export default function ConcertListPage() {
                       setDeleteTargetId(null);
                     }
                   }}
-                  className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-red-600/20"
+                  className="flex-1 h-10 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-red-900/10"
                 >
                   Sil
                 </button>

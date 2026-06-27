@@ -13,11 +13,11 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-background"
+      className="min-h-screen flex items-center justify-center bg-[#FAF9F7]"
     >
       <div className="text-center">
         <div className="w-8 h-8 bg-blue-500 rounded-full animate-pulse mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Yükleniyor...</p>
+        <p className="text-gray-500 font-bold">Yükleniyor...</p>
       </div>
     </div>
   );

@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Plus,
   MagnifyingGlass,
-  Star,
-  Fire,
-  Sparkle,
-  Clock,
 } from "@phosphor-icons/react";
 
 // Local imports
@@ -23,9 +19,8 @@ import { createBrowserClient } from "@/lib/api";
 const client = createBrowserClient();
 
 export default function GamesPage() {
-  const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
+  const { user: clerkUser, isLoaded: isClerkLoaded } = useClerkUser();
   const router = useRouter();
-  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   
   const games = MOCK_GAMES;
   // Generate gameLists dynamically by grouping games by their listName from games.json
@@ -65,25 +60,6 @@ export default function GamesPage() {
     router.push("/apps/game-companion/search");
   };
 
-  // Get user's favorite games based on play frequency
-  const getFavoriteGames = () => {
-    if (!gameSaves || !games) return [];
-
-    const gamePlayCount = gameSaves.reduce(
-      (acc: any, save: any) => {
-        const gameId = save.gameTemplate;
-        acc[gameId] = (acc[gameId] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    return games
-      .filter((game: any) => gamePlayCount[game._id] > 0)
-      .sort((a: any, b: any) => (gamePlayCount[b._id] || 0) - (gamePlayCount[a._id] || 0))
-      .slice(0, 4);
-  };
-
   // Get games in a specific list
   const getGamesInList = (listId: string) => {
     if (!games) return [];
@@ -109,8 +85,7 @@ export default function GamesPage() {
 
   return (
     <div
-      className="min-h-screen pb-20 lg:pb-0"
-      style={{ backgroundColor: "var(--background)" }}
+      className="min-h-screen pb-20 lg:pb-0 bg-[#FAF9F7]"
     >
       {/* Header for mobile screens */}
       <div className="lg:hidden">
@@ -123,7 +98,7 @@ export default function GamesPage() {
       {/* Main content area */}
       <div className="lg:ml-64">
         {/* Main Content */}
-        <div className="px-4 py-6 pt-20 lg:pt-6">
+        <div className="px-4 py-6 pt-24 lg:pt-6">
           {/* Search Button */}
           <div className="mb-6">
             <div className="relative">
@@ -133,11 +108,7 @@ export default function GamesPage() {
               />
               <button
                 onClick={handleSearchClick}
-                className="w-full bg-white dark:bg-[var(--card-background)] rounded-lg border border-gray-200 dark:border-gray-700 pl-10 pr-4 py-3 text-left text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[var(--card-background)]/80 transition-colors cursor-pointer"
-                style={{
-                  boxShadow:
-                    resolvedTheme === "dark" ? "none" : "0 0 8px 5px #297dff0a",
-                }}
+                className="w-full bg-white rounded-xl border border-gray-200/60 pl-10 pr-4 py-3 text-left text-gray-500 hover:bg-gray-50 transition-all cursor-pointer shadow-sm"
               >
                 Oyun ara...
               </button>
@@ -150,24 +121,16 @@ export default function GamesPage() {
             <div className="space-y-8 mb-8">
               {["Loading..."].map((section, index) => (
                 <div key={index}>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32 mb-4"></div>
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-4"></div>
                   <div className="grid grid-cols-2 gap-3">
                     {Array.from({ length: 4 }).map((_, gameIndex) => (
                       <div
                         key={gameIndex}
-                        className="bg-white dark:bg-[var(--card-background)] rounded-lg"
-                        style={{
-                          padding: "16px",
-                          height: "100px",
-                          boxShadow:
-                            resolvedTheme === "dark"
-                              ? "none"
-                              : "0 0 8px 5px #297dff0a",
-                        }}
+                        className="bg-white rounded-xl border border-gray-200/50 h-[100px] p-4 shadow-sm"
                       >
                         <div className="flex flex-col justify-center h-full">
-                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20 mb-2"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16"></div>
+                          <div className="h-5 bg-gray-200 rounded animate-pulse w-20 mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
                         </div>
                       </div>
                     ))}
@@ -177,10 +140,10 @@ export default function GamesPage() {
             </div>
           ) : games.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Plus size={32} className="text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
+              <h3 className="text-lg font-medium text-gray-500 mb-2">
                 Henüz oyun eklenmemiş
               </h3>
             </div>
@@ -192,22 +155,17 @@ export default function GamesPage() {
                   {getRecentlyPlayedGames().map((game: any) => (
                     <div
                       key={game._id}
-                      className="bg-white dark:bg-[var(--card-background)] rounded-lg cursor-pointer transition-all duration-200 hover:scale-105"
-                      style={{
-                        padding: "12px",
-                        height: "50px",
-                        minHeight: "50px",
-                      }}
+                      className="bg-white rounded-xl border border-gray-200/50 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md p-3 h-[50px] flex items-center shadow-sm"
                       onClick={() => handleGameSelect(game._id)}
                     >
-                      <div className="flex items-center h-full">
+                      <div className="flex items-center h-full w-full">
                         <GameImage
                           game={game}
                           size="md"
                           className="mr-3 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 dark:text-gray-200 dark:hover:text-gray-200 text-sm leading-tight truncate">
+                          <h3 className="font-bold text-gray-900 text-sm leading-tight truncate">
                             {game.name}
                           </h3>
                         </div>
@@ -226,7 +184,7 @@ export default function GamesPage() {
                     return (
                       <div key={list._id}>
                         <div className="flex items-center gap-2 mb-4">
-                          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+                          <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
                             {list.name}
                           </h2>
                         </div>
@@ -234,28 +192,17 @@ export default function GamesPage() {
                           {gamesInList.map((game: any) => (
                             <div
                               key={game._id}
-                              className="bg-white dark:bg-[var(--card-background)] rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 flex-shrink-0"
-                              style={{
-                                padding: "16px",
-                                height: "100px",
-                                width: "140px",
-                                boxShadow:
-                                  resolvedTheme === "dark"
-                                    ? "none"
-                                    : "0 0 8px 5px #297dff0a",
-                              }}
+                              className="bg-white rounded-xl border border-gray-200/50 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md flex-shrink-0 w-[140px] h-[100px] p-4 flex flex-col justify-center items-center text-center shadow-sm"
                               onClick={() => handleGameSelect(game._id)}
                             >
-                              <div className="flex flex-col justify-center items-center text-center h-full">
-                                <GameImage
-                                  game={game}
-                                  size="lg"
-                                  className="mb-1"
-                                />
-                                <h3 className="font-medium text-gray-900 dark:text-gray-200 dark:hover:text-gray-200 text-sm leading-tight mb-1">
-                                  {game.name}
-                                </h3>
-                              </div>
+                              <GameImage
+                                game={game}
+                                size="lg"
+                                className="mb-1"
+                              />
+                              <h3 className="font-bold text-gray-900 text-sm leading-tight truncate w-full">
+                                {game.name}
+                              </h3>
                             </div>
                           ))}
                         </div>
@@ -267,7 +214,7 @@ export default function GamesPage() {
               {/* Tüm Oyunlar - Always show as last section */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
                     Tüm Oyunlar
                   </h2>
                 </div>
@@ -275,24 +222,13 @@ export default function GamesPage() {
                   {games?.map((game: any) => (
                     <div
                       key={game._id}
-                      className="bg-white dark:bg-[var(--card-background)] rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 flex-shrink-0"
-                      style={{
-                        padding: "16px",
-                        height: "100px",
-                        width: "140px",
-                        boxShadow:
-                          resolvedTheme === "dark"
-                            ? "none"
-                            : "0 0 8px 5px #297dff0a",
-                      }}
+                      className="bg-white rounded-xl border border-gray-200/50 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md flex-shrink-0 w-[140px] h-[100px] p-4 flex flex-col justify-center items-center text-center shadow-sm"
                       onClick={() => handleGameSelect(game._id)}
                     >
-                      <div className="flex flex-col justify-center items-center text-center h-full">
-                        <GameImage game={game} size="lg" className="mb-1" />
-                        <h3 className="font-medium text-gray-900 dark:text-gray-200 dark:hover:text-gray-200 text-sm leading-tight mb-1">
-                          {game.name}
-                        </h3>
-                      </div>
+                      <GameImage game={game} size="lg" className="mb-1" />
+                      <h3 className="font-bold text-gray-900 text-sm leading-tight truncate w-full">
+                        {game.name}
+                      </h3>
                     </div>
                   ))}
                 </div>
@@ -303,8 +239,6 @@ export default function GamesPage() {
           {/* Banner Ad */}
         </div>
       </div>
-
-
 
       {/* AppBar for mobile screens */}
       <div className="lg:hidden">

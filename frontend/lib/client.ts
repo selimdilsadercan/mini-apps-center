@@ -51,6 +51,7 @@ export default class Client {
     public readonly feedback: feedback.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
+    public readonly hub: hub.ServiceClient
     public readonly icon_set_guide: icon_set_guide.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
@@ -110,6 +111,7 @@ export default class Client {
         this.feedback = new feedback.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
+        this.hub = new hub.ServiceClient(base)
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
@@ -3359,6 +3361,47 @@ export namespace hobby_center {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/hobby-center/update`, JSON.stringify(params))
             return await resp.json() as UpdateUserHobbyResponse
+        }
+    }
+}
+
+/**
+ * Hub service aggregates data from other services for the home page widgets
+ */
+export namespace hub {
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface HomeWidgetsResponse {
+        places: workplaces.Place[]
+        events: campus_events.CampusEvent[]
+        series: series_track.UserSeries[]
+        subscriptions: subcenter.Subscription[]
+        budgetProjects: budget.Project[]
+        savingsStats: tasarruf_challenges.StatsResponse | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getHomeWidgets = this.getHomeWidgets.bind(this)
+        }
+
+        /**
+         * Aggregates data for the home page widgets from various services
+         */
+        public async getHomeWidgets(params: GetHomeWidgetsRequest): Promise<HomeWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets`, undefined, {query})
+            return await resp.json() as HomeWidgetsResponse
         }
     }
 }

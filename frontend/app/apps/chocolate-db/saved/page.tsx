@@ -93,11 +93,11 @@ export default function SavedChocolatesPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#FDF5E6] dark:bg-[#1A0F0A] text-[#4A2C2A] dark:text-[#F3E5D8] flex flex-col items-center justify-center p-6">
-        <p className="text-lg font-bold mb-4">{t.loginRequired}</p>
+      <div className="min-h-screen bg-[#FAF9F7] text-gray-900 flex flex-col items-center justify-center p-6">
+        <p className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">{t.loginRequired}</p>
         <button 
           onClick={() => router.push("/apps/chocolate-db")}
-          className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#4A2C2A] text-white font-bold cursor-pointer hover:opacity-90 transition-all shadow-lg"
+          className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-white border border-gray-100 text-gray-900 font-black text-[11px] uppercase tracking-widest cursor-pointer hover:bg-gray-50 transition-all shadow-sm active:scale-95"
         >
           <ArrowLeft size={18} weight="bold" />
           {lang === "tr" ? "Geri Dön" : "Go Back"}
@@ -107,84 +107,83 @@ export default function SavedChocolatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDF5E6] dark:bg-[#1A0F0A] text-[#4A2C2A] dark:text-[#F3E5D8] font-sans">
+    <div className="min-h-screen bg-[#FAF9F7] text-gray-900 font-sans pb-20">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-[#4A2C2A] pt-20 pb-12 px-4 sm:px-6 md:py-16 lg:px-8">
+      <div className="relative bg-white pt-20 pb-12 px-5 border-b border-gray-100">
         <button
           onClick={() => router.push("/apps/chocolate-db")}
-          className="absolute top-4 left-4 md:top-6 md:left-6 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-[#F3E5D8]/10 hover:bg-[#F3E5D8]/20 border border-[#F3E5D8]/20 text-[#F3E5D8] transition-all cursor-pointer shadow-lg"
+          className="absolute top-6 left-5 z-10 flex items-center justify-center w-10 h-10 rounded-2xl bg-white border border-gray-100 text-gray-900 transition-all cursor-pointer shadow-sm active:scale-95 hover:bg-gray-50"
           title={lang === "tr" ? "Geri Dön" : "Go Back"}
         >
           <ArrowLeft size={20} weight="bold" />
         </button>
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]"></div>
-        <div className="relative max-w-7xl mx-auto text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#D4AF37] mb-2 tracking-tight drop-shadow-md">
+        <div className="relative max-w-lg mx-auto text-center">
+          <h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter uppercase leading-none mb-2">
             {t.title}
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-[#F3E5D8] opacity-90 max-w-2xl mx-auto font-medium px-4">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
             {t.subtitle}
           </p>
         </div>
       </div>
 
-      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-lg mx-auto px-5 py-8">
         {/* Navigation Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide border-b border-[#4A2C2A]/10 dark:border-white/10">
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar -mx-5 px-5">
           <button
             onClick={() => setActiveTab("wishlist")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border cursor-pointer transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
               activeTab === "wishlist"
-                ? "bg-amber-500 text-white border-amber-500 shadow-md font-bold"
-                : "bg-white dark:bg-[#2A1812] text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/10"
+                ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
             }`}
           >
-            <BookmarkSimple size={16} weight="fill" />
+            <BookmarkSimple size={14} weight="fill" />
             {t.wishlist}
           </button>
           <button
             onClick={() => setActiveTab("tried")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border cursor-pointer transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
               activeTab === "tried"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-md font-bold"
-                : "bg-white dark:bg-[#2A1812] text-emerald-600 dark:text-emerald-400 border-emerald-600/20 hover:bg-emerald-600/10"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
             }`}
           >
-            <Check size={16} weight="bold" />
+            <Check size={14} weight="bold" />
             {t.tried}
           </button>
           <button
             onClick={() => setActiveTab("rated")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border cursor-pointer transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
               activeTab === "rated"
-                ? "bg-[#D4AF37] text-[#1A0F0A] border-[#D4AF37] shadow-md font-bold"
-                : "bg-white dark:bg-[#2A1812] text-[#D4AF37] border-[#D4AF37]/20 hover:bg-[#D4AF37]/10"
+                ? "bg-yellow-500 text-white border-yellow-500 shadow-md"
+                : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
             }`}
           >
-            <Star size={16} weight="fill" />
+            <Star size={14} weight="fill" />
             {t.rated}
           </button>
           <button
             onClick={() => setActiveTab("dislike")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border cursor-pointer transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
               activeTab === "dislike"
-                ? "bg-rose-600 text-white border-rose-600 shadow-md font-bold"
-                : "bg-white dark:bg-[#2A1812] text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/10"
+                ? "bg-rose-600 text-white border-rose-600 shadow-md"
+                : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
             }`}
           >
-            <Prohibit size={16} weight="fill" />
+            <Prohibit size={14} weight="fill" />
             {t.dislike}
           </button>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="aspect-[3/4] bg-[#EEDCC5] dark:bg-[#2A1812] animate-pulse rounded-xl sm:rounded-2xl"></div>
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="aspect-[3/4] bg-white border border-gray-100 animate-pulse rounded-[2rem]"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {filteredChocolates.map((choco) => (
               <ChocolateCard key={choco.id} choco={choco} onReview={fetchChocolates} lang={lang} />
             ))}
@@ -192,8 +191,8 @@ export default function SavedChocolatesPage() {
         )}
 
         {!loading && filteredChocolates.length === 0 && (
-          <div className="text-center py-24 bg-[#EEDCC5] dark:bg-[#2A1812] rounded-2xl sm:rounded-3xl border-4 border-dashed border-[#4A2C2A]/10">
-            <p className="text-base sm:text-lg opacity-60 font-bold px-4">{t.noResults}</p>
+          <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">{t.noResults}</p>
           </div>
         )}
       </div>
@@ -272,8 +271,6 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
     }
   };
 
-  const chocoDesc = (lang === "tr" ? choco.description_tr : (choco.description_en || choco.description_tr)) || t.emptyDescription;
-
   return (
     <>
       <div 
@@ -284,169 +281,120 @@ function ChocolateCard({ choco, onReview, lang }: { choco: chocolate_db.Chocolat
           }
           setShowModal(true);
         }}
-        className="group relative bg-white dark:bg-[#2A1812] rounded-xl sm:rounded-2xl p-3 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col h-full cursor-pointer border border-[#4A2C2A]/5 dark:border-white/5"
+        className="group relative bg-white rounded-[2rem] p-4 border border-gray-100 shadow-sm active:scale-[0.98] transition-all flex flex-col h-full cursor-pointer"
       >
-        <div className="aspect-square relative overflow-hidden rounded-lg sm:rounded-xl bg-gray-50/80 dark:bg-black/20 flex items-center justify-center">
+        <div className="aspect-square relative overflow-hidden rounded-2xl bg-gray-50 mb-4">
           <img 
             src={choco.image_url || "https://images.unsplash.com/photo-1511381939415-e44015466834?q=80&w=2000&auto=format&fit=crop"} 
             alt={choco.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
+          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-black text-gray-900 uppercase tracking-wider border border-white/50 flex items-center gap-1">
+            <Star size={10} weight="fill" className="text-yellow-400" />
+            {choco.avg_rating.toFixed(1)}
+          </div>
         </div>
 
-        <div className="pt-3 pb-0 flex flex-col flex-grow justify-between gap-3 text-[#4A2C2A] dark:text-[#F3E5D8]">
-          <div className="flex flex-col gap-1.5">
-            <h3 className="text-xs sm:text-sm font-bold line-clamp-1 text-[#4A2C2A] dark:text-[#F3E5D8]">{choco.name}</h3>
-            <div className="flex items-center gap-1 bg-[#D4AF37]/10 dark:bg-[#D4AF37]/20 px-2 py-0.5 rounded-full text-[#D4AF37] w-fit text-[10px] sm:text-xs font-bold">
-              <Star weight="fill" className="size-3 sm:size-3.5" />
-              <span>{choco.avg_rating.toFixed(1)}</span>
-            </div>
-            {choco.category && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#4A2C2A]/5 dark:bg-[#D4AF37]/10 text-[#4A2C2A]/60 dark:text-[#D4AF37] w-fit">
-                {choco.category}
-              </span>
-            )}
-          </div>
-
-          <p className="text-[10px] sm:text-xs opacity-60 line-clamp-2 font-medium leading-relaxed">
-            {chocoDesc}
+        <div className="flex flex-col flex-grow gap-1">
+          <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight line-clamp-1">{choco.name}</h3>
+          <p className="text-[9px] text-gray-400 font-bold line-clamp-2 leading-relaxed h-7">
+            {choco.brand}
           </p>
-
-          {/* JustWatch style states buttons - Grid for absolute equal width */}
-          <div className="grid grid-cols-4 gap-1 w-full border-t border-[#4A2C2A]/10 dark:border-white/10 pt-3 mt-1">
-            <div className="relative group/btn flex justify-center">
-              <button
-                onClick={(e) => handleStateToggle(e, "wishlist")}
-                title={t.wishlist}
-                className={`w-full py-1.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
-                  choco.user_state === "wishlist"
-                    ? "bg-amber-500 border-amber-500 text-white font-bold"
-                    : "border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400"
-                }`}
-              >
-                <BookmarkSimple weight={choco.user_state === "wishlist" ? "fill" : "regular"} className="size-4 flex-shrink-0" />
-              </button>
-              <div className="absolute bottom-full mb-2 opacity-0 pointer-events-none group-hover/btn:opacity-100 translate-y-1 group-hover/btn:translate-y-0 transition-all duration-200 bg-[#4A2C2A] dark:bg-[#F3E5D8] text-[#F3E5D8] dark:text-[#4A2C2A] text-[10px] font-bold py-1 px-2 rounded-md shadow-lg whitespace-nowrap z-20 border border-[#D4AF37]/30">
-                {t.wishlist}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#4A2C2A] dark:border-t-[#F3E5D8]"></div>
-              </div>
-            </div>
-            
-            <div className="relative group/btn flex justify-center">
-              <button
-                onClick={(e) => handleStateToggle(e, "tried")}
-                title={t.tried}
-                className={`w-full py-1.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
-                  choco.user_state === "tried"
-                    ? "bg-emerald-600 border-emerald-600 text-white font-bold"
-                    : "border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-emerald-600/10 hover:text-emerald-600 dark:hover:text-emerald-400"
-                }`}
-              >
-                <Check weight={choco.user_state === "tried" ? "bold" : "regular"} className="size-4 flex-shrink-0" />
-              </button>
-              <div className="absolute bottom-full mb-2 opacity-0 pointer-events-none group-hover/btn:opacity-100 translate-y-1 group-hover/btn:translate-y-0 transition-all duration-200 bg-[#4A2C2A] dark:bg-[#F3E5D8] text-[#F3E5D8] dark:text-[#4A2C2A] text-[10px] font-bold py-1 px-2 rounded-md shadow-lg whitespace-nowrap z-20 border border-[#D4AF37]/30">
-                {t.tried}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#4A2C2A] dark:border-t-[#F3E5D8]"></div>
-              </div>
-            </div>
-
-            <div className="relative group/btn flex justify-center">
-              <button
-                onClick={(e) => handleStateToggle(e, "dislike")}
-                title={t.dislike}
-                className={`w-full py-1.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
-                  choco.user_state === "dislike"
-                    ? "bg-rose-500 border-rose-500 text-white font-bold"
-                    : "border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
-                }`}
-              >
-                <Prohibit weight={choco.user_state === "dislike" ? "fill" : "regular"} className="size-4 flex-shrink-0" />
-              </button>
-              <div className="absolute bottom-full mb-2 opacity-0 pointer-events-none group-hover/btn:opacity-100 translate-y-1 group-hover/btn:translate-y-0 transition-all duration-200 bg-[#4A2C2A] dark:bg-[#F3E5D8] text-[#F3E5D8] dark:text-[#4A2C2A] text-[10px] font-bold py-1 px-2 rounded-md shadow-lg whitespace-nowrap z-20 border border-[#D4AF37]/30">
-                {t.dislike}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#4A2C2A] dark:border-t-[#F3E5D8]"></div>
-              </div>
-            </div>
-
-            <div className="relative group/btn flex justify-center">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!user) {
-                    alert(t.loginRequired);
-                    return;
-                  }
-                  setShowModal(true);
-                }}
-                title={`${t.rateTitle} (${choco.user_rating ? `${choco.user_rating} ★` : ""})`}
-                className={`w-full py-1.5 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
-                  choco.user_rating && choco.user_rating > 0
-                    ? "bg-[#D4AF37] border-[#D4AF37] text-[#1A0F0A] font-bold shadow-md"
-                    : "border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] dark:hover:text-[#D4AF37]"
-                }`}
-              >
-                <Star 
-                  weight={choco.user_rating && choco.user_rating > 0 ? "fill" : "regular"} 
-                  className="size-4 flex-shrink-0" 
-                />
-              </button>
-              <div className="absolute bottom-full mb-2 opacity-0 pointer-events-none group-hover/btn:opacity-100 translate-y-1 group-hover/btn:translate-y-0 transition-all duration-200 bg-[#4A2C2A] dark:bg-[#F3E5D8] text-[#F3E5D8] dark:text-[#4A2C2A] text-[10px] font-bold py-1 px-2 rounded-md shadow-lg whitespace-nowrap z-20 border border-[#D4AF37]/30">
-                {choco.user_rating ? `${t.rateTitle} (${choco.user_rating} ★)` : t.rateTitle}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#4A2C2A] dark:border-t-[#F3E5D8]"></div>
-              </div>
+          
+          {/* State Indicators */}
+          <div className="flex gap-1 mt-2">
+            <button
+              onClick={(e) => handleStateToggle(e, "wishlist")}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                choco.user_state === "wishlist"
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+              }`}
+            >
+              <BookmarkSimple weight={choco.user_state === "wishlist" ? "fill" : "bold"} size={14} />
+            </button>
+            <button
+              onClick={(e) => handleStateToggle(e, "tried")}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                choco.user_state === "tried"
+                  ? "bg-emerald-100 text-emerald-600"
+                  : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+              }`}
+            >
+              <Check weight="bold" size={14} />
+            </button>
+            <div
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                choco.user_rating && choco.user_rating > 0
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-gray-50 text-gray-400"
+              }`}
+            >
+              <Star weight={choco.user_rating && choco.user_rating > 0 ? "fill" : "bold"} size={14} />
             </div>
           </div>
         </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-[#4A2C2A]/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          <div className="relative bg-[#FDF5E6] dark:bg-[#1A0F0A] w-full max-w-sm rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-3xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+          <div className="relative bg-[#FAF9F7] w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-2xl overflow-hidden">
             <button 
               onClick={() => setShowModal(false)}
-              className="absolute top-6 right-6 p-2 hover:bg-[#4A2C2A]/5 rounded-full transition-colors cursor-pointer"
+              className="absolute top-6 right-6 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-gray-900 cursor-pointer active:scale-95"
             >
-              <X weight="bold" className="size-6 text-[#4A2C2A]" />
+              <X weight="bold" className="size-5" />
             </button>
 
-            <h2 className="text-lg sm:text-xl font-bold text-[#4A2C2A] dark:text-[#D4AF37] mb-6 text-center pr-8">
-              {t.rateTitle} {choco.name}
+            <h2 className="text-2xl font-[1000] text-gray-900 tracking-tighter uppercase leading-none mb-2 text-center">
+              {t.rateTitle}
             </h2>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center mb-10">
+              {choco.name}
+            </p>
 
-            <div className="space-y-6 sm:space-y-8">
-              <div className="flex justify-center gap-2 sm:gap-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="focus:outline-none transition-all hover:scale-125 cursor-pointer"
-                  >
-                    <Star 
-                      weight={rating >= star ? "fill" : "regular"} 
-                      className={`size-10 sm:size-12 ${rating >= star ? "text-[#D4AF37]" : "text-[#4A2C2A]/20 dark:text-white/10"}`} 
-                    />
-                  </button>
-                ))}
+            <div className="space-y-10">
+              <div className="flex flex-col items-center gap-6">
+                <div className="text-5xl font-[1000] text-gray-900 tracking-tighter">
+                  {rating || 0}<span className="text-xl text-gray-300 ml-1">/10</span>
+                </div>
+                
+                <div className="flex justify-center gap-1 sm:gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none transition-all hover:scale-125 cursor-pointer"
+                    >
+                      <Star 
+                        weight={rating >= star ? "fill" : "bold"} 
+                        className={`size-7 sm:size-8 ${rating >= star ? "text-yellow-400" : "text-gray-200"}`} 
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <button 
-                onClick={handleSubmitReview} 
-                disabled={isSubmitting || rating === 0}
-                className="w-full bg-[#4A2C2A] dark:bg-[#D4AF37] text-white dark:text-[#4A2C2A] py-3 rounded-xl font-bold text-sm sm:text-base shadow-2xl hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {isSubmitting ? t.submitting : t.saveReview}
-              </button>
-
-              {choco.user_rating && choco.user_rating > 0 ? (
+              <div className="space-y-3">
                 <button 
-                  onClick={handleDeleteReview} 
-                  disabled={isSubmitting}
-                  className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all disabled:opacity-50 cursor-pointer border border-rose-500/20"
+                  onClick={handleSubmitReview} 
+                  disabled={isSubmitting || rating === 0}
+                  className="w-full bg-gray-900 text-white py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {t.deleteReview}
+                  {isSubmitting ? t.submitting : t.saveReview}
                 </button>
-              ) : null}
+
+                {choco.user_rating && choco.user_rating > 0 ? (
+                  <button 
+                    onClick={handleDeleteReview} 
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest text-rose-500 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {t.deleteReview}
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

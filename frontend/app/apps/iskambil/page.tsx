@@ -8,16 +8,7 @@ import {
   Users,
   Cards,
   Note,
-  ClipboardText,
-  Tag,
-  Star,
-  FloppyDisk,
-  X,
-  XCircle,
-  Hash,
-  Play,
-  CheckCircle,
-  ArrowLeft
+  CheckCircle
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
@@ -194,21 +185,10 @@ export default function IskambilRehberi() {
 
   useEffect(() => {
     if (!isUserLoaded) return;
-    // Giriş yoksa da oyun listesini göster (favori/not DB'si boş kalır)
     const userId = user?.id ?? "guest";
     fetchGames(userId);
   }, [isUserLoaded, user?.id]);
 
-  // Kategoriler
-  const categories = useMemo(() => {
-    const list = new Set(games.map(g => lang === "tr" ? g.category_tr : g.category_en));
-    return [
-      { id: "all", label: t.all },
-      ...Array.from(list).map(cat => ({ id: cat, label: cat }))
-    ];
-  }, [games, lang, t]);
-
-  // Oyuncu Sayısı Seçenekleri
   const playerOptions = [
     { id: "all", label: t.all },
     { id: "1", label: t.onePlayer },
@@ -217,7 +197,6 @@ export default function IskambilRehberi() {
     { id: "5+", label: t.fivePlusPlayers }
   ];
 
-  // Kategoriye ve ardından alfabetik isme göre sıralanmış oyunlar
   const sortedGames = useMemo(() => {
     return [...games].sort((a, b) => {
       const catA = lang === "tr" ? a.category_tr : a.category_en;
@@ -231,15 +210,12 @@ export default function IskambilRehberi() {
     });
   }, [games, lang]);
 
-  // Filtrelenmiş Oyunlar
   const filteredGames = useMemo(() => {
     return sortedGames.filter(game => {
-      // Casino / Bahis kategorisindeki oyunları gizle
       if (game.category_tr === "Casino / Bahis" || game.category_en === "Casino / Betting") {
         return false;
       }
 
-      // Arama filtresi
       const name = lang === "tr" ? game.name_tr : game.name_en;
       const desc = lang === "tr" ? game.description_tr : game.description_en;
       const rules = lang === "tr" ? game.rules_tr : game.rules_en;
@@ -250,7 +226,6 @@ export default function IskambilRehberi() {
         (game.original_name && game.original_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
         rules.some(r => r.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // Kategori filtresi
       let matchesCategory = true;
       if (selectedCategory === "favorites") {
         matchesCategory = game.is_favorite;
@@ -261,7 +236,6 @@ export default function IskambilRehberi() {
         matchesCategory = catValue === selectedCategory;
       }
 
-      // Oyuncu sayısı filtresi
       let matchesPlayers = true;
       if (selectedPlayers === "1") {
         matchesPlayers = game.min_players === 1;
@@ -276,25 +250,6 @@ export default function IskambilRehberi() {
       return matchesSearch && matchesCategory && matchesPlayers;
     });
   }, [sortedGames, searchQuery, selectedCategory, selectedPlayers, lang]);
-
-  // Kategorilere göre gruplanmış oyunlar
-  const groupedGames = useMemo(() => {
-    const groups: { [key: string]: Game[] } = {};
-    filteredGames.forEach(game => {
-      const cat = lang === "tr" ? game.category_tr : game.category_en;
-      if (!groups[cat]) {
-        groups[cat] = [];
-      }
-      groups[cat].push(game);
-    });
-    
-    return Object.keys(groups)
-      .sort()
-      .reduce((acc, key) => {
-        acc[key] = groups[key];
-        return acc;
-      }, {} as { [key: string]: Game[] });
-  }, [filteredGames, lang]);
 
   const handleToggleFavorite = async (gameId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -334,17 +289,17 @@ export default function IskambilRehberi() {
 
   if (!isUserLoaded || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f1ea] text-[#0c3122]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7] text-gray-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-emerald-200 border-t-[#0c3122] rounded-full animate-spin" />
-          <p className="text-sm font-black uppercase tracking-widest text-[#0c3122]">{t.loading}</p>
+          <div className="w-12 h-12 border-4 border-gray-100 border-t-zinc-900 rounded-full animate-spin" />
+          <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t.loading}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-gray-200 overflow-x-hidden">
 
       {/* Header */}
       <IskambilAppBar activeTab="discover" />
@@ -359,16 +314,16 @@ export default function IskambilRehberi() {
             placeholder={t.searchPlaceholder} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#ffffff] border border-[#e2dec5] rounded-xl py-3 pl-11 pr-4 text-xs font-semibold focus:outline-none focus:border-emerald-600 focus:bg-[#fbf9f3] transition-all text-slate-800 placeholder-slate-400"
+            className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-zinc-500 transition-all text-gray-900 placeholder-gray-400 shadow-sm"
           />
-          <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
         {/* Filters Panel */}
-        <section className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-4 flex flex-col gap-4 shadow-sm">
+        <section className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-4 shadow-sm">
           {/* Player Count Filter */}
           <div className="flex flex-col gap-2">
-            <span className="text-[9px] font-black text-[#0c3122]/70 tracking-widest px-1">{t.playerCount}</span>
+            <span className="text-[9px] font-black text-gray-400 tracking-widest px-1 uppercase">{t.playerCount}</span>
             <div className="flex flex-wrap gap-2">
               {playerOptions.map((playOpt) => (
                 <button
@@ -376,8 +331,8 @@ export default function IskambilRehberi() {
                   onClick={() => setSelectedPlayers(playOpt.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     selectedPlayers === playOpt.id
-                      ? "bg-[#0c3122] text-white border-[#0c3122]"
-                      : "bg-[#f5f2e9] text-[#0c3122] border border-[#e2dcc8] hover:bg-[#eae6df]"
+                      ? "bg-zinc-900 text-white border-zinc-900 shadow-lg shadow-zinc-900/20"
+                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 shadow-sm"
                   }`}
                 >
                   {playOpt.label}
@@ -389,7 +344,7 @@ export default function IskambilRehberi() {
 
         {/* Results Info */}
         <div className="flex justify-between items-center px-1">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-black uppercase tracking-wider text-gray-400">
             {filteredGames.length} {t.gamesListed}
           </span>
         </div>
@@ -397,8 +352,8 @@ export default function IskambilRehberi() {
         {/* Games List (Unified Grid) */}
         <div>
           {filteredGames.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-[#e2dec5] rounded-2xl">
-              <p className="text-sm font-bold text-slate-500">{t.searchNoResult}</p>
+            <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
+              <p className="text-sm font-bold text-gray-400">{t.searchNoResult}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -416,10 +371,10 @@ export default function IskambilRehberi() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       onClick={() => router.push(`/apps/iskambil/${game.id}`)}
-                      className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-[#1a2d22]"
+                      className="bg-white border border-gray-200 rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-gray-900"
                     >
                       {/* Decorative suit symbol inside background of card */}
-                      <div className="absolute -bottom-10 -right-10 text-[10rem] font-serif opacity-[0.03] group-hover:opacity-[0.07] transition-all duration-500 pointer-events-none select-none text-[#0c3122]">
+                      <div className="absolute -bottom-10 -right-10 text-[10rem] font-serif opacity-[0.03] group-hover:opacity-[0.05] transition-all duration-500 pointer-events-none select-none text-zinc-900">
                         {game.category_tr === "Tek Kişilik" && "♠"}
                         {game.category_tr === "Kozlu / Löf" && "♣"}
                         {game.category_tr === "Casino / Bahis" && "♦"}
@@ -428,40 +383,40 @@ export default function IskambilRehberi() {
                       </div>
 
                       <div className="flex justify-between items-start mb-4">
-                        <span className="text-[10px] font-black text-white bg-[#0c3122] px-3 py-1 rounded-full tracking-widest">
-                          {gameCategory.toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US")}
+                        <span className="text-[10px] font-black text-white bg-zinc-900 px-3 py-1 rounded-full tracking-widest uppercase">
+                          {gameCategory}
                         </span>
                         <div className="flex gap-2">
                           <button
                             onClick={(e) => handleToggleKnown(game.id, e)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] text-slate-500 hover:text-emerald-700 transition-all active:scale-90 cursor-pointer"
+                            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-zinc-50 border border-gray-200 text-gray-400 hover:text-zinc-900 transition-all active:scale-90 cursor-pointer"
                             title={t.known}
                           >
-                            <CheckCircle size={16} weight={game.is_known ? "fill" : "bold"} className={game.is_known ? "text-emerald-600" : ""} />
+                            <CheckCircle size={16} weight={game.is_known ? "fill" : "bold"} className={game.is_known ? "text-zinc-900" : ""} />
                           </button>
 
                           <button
                             onClick={(e) => handleToggleFavorite(game.id, e)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] text-slate-500 hover:text-red-500 transition-all active:scale-90 cursor-pointer"
+                            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-rose-50 border border-gray-200 text-gray-400 hover:text-rose-500 transition-all active:scale-90 cursor-pointer"
                             title={t.favorite}
                           >
-                            <Heart size={16} weight={game.is_favorite ? "fill" : "bold"} className={game.is_favorite ? "text-red-500" : ""} />
+                            <Heart size={16} weight={game.is_favorite ? "fill" : "bold"} className={game.is_favorite ? "text-rose-500" : ""} />
                           </button>
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-black text-[#0c3122] tracking-tight transition-colors duration-300">
-                        {gameName.toLocaleUpperCase(lang === "tr" ? "tr-TR" : "en-US")}
+                      <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase">
+                        {gameName}
                       </h3>
 
-                      <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed font-medium">
                         {gameRules.length > 0 ? gameRules[0] : t.noRules}
                       </p>
 
                       {/* Footer statistics */}
-                      <div className="flex gap-4 border-t border-[#f0ede4] pt-4 mt-auto">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500">
-                          <Users size={14} className="text-[#0c3122]/60" />
+                      <div className="flex gap-4 border-t border-gray-50 pt-4 mt-auto">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
+                          <Users size={14} className="text-gray-300" />
                           <span>
                             {game.min_players === game.max_players
                               ? `${game.min_players} ${t.players}`
@@ -469,13 +424,13 @@ export default function IskambilRehberi() {
                           </span>
                         </div>
                         {deckCount !== "1 Deste" && deckCount !== "1" && deckCount !== "1 Deck" && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500">
-                            <Cards size={14} className="text-[#0c3122]/60" />
+                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
+                            <Cards size={14} className="text-gray-300" />
                             <span>{deckCount}</span>
                           </div>
                         )}
                         {game.is_known && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 ml-auto">
+                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-900 ml-auto">
                             <CheckCircle size={14} weight="fill" />
                             <span>{t.known}</span>
                           </div>
@@ -496,9 +451,6 @@ export default function IskambilRehberi() {
         </div>
 
       </main>
-
-
-
     </div>
   );
 }

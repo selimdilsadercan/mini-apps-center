@@ -128,12 +128,12 @@ export default function BottomInputArea({
 
   return (
     <div
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white dark:bg-[var(--card-background)] shadow-lg"
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white shadow-2xl border-t border-gray-100"
       style={{ zIndex: 60 }}
     >
       {showSettings ? (
         /* Settings Modal */
-        <div className="p-4 border-b border-gray-200 dark:border-[var(--card-border)]">
+        <div className="p-4 border-b border-gray-100">
           <div className="space-y-3">
             <button 
               onClick={() =>
@@ -144,10 +144,10 @@ export default function BottomInputArea({
                   isDestructive: true,
                 })
               }
-              className="flex items-center space-x-2 text-red-600 hover:text-red-700 w-full justify-start py-2"
+              className="flex items-center space-x-2 text-rose-600 hover:text-rose-700 w-full justify-start py-3 px-4 bg-rose-50 rounded-xl font-bold transition-all"
             >
-              <ArrowCounterClockwise size={16} />
-              <span className="text-sm font-medium">Son Turu Geri Al</span>
+              <ArrowCounterClockwise size={18} weight="bold" />
+              <span className="text-sm">Son Turu Geri Al</span>
             </button>
             <button 
               onClick={() =>
@@ -159,16 +159,16 @@ export default function BottomInputArea({
                   isDestructive: true,
                 })
               }
-              className="flex items-center space-x-2 text-red-600 hover:text-red-700 w-full justify-start py-2"
+              className="flex items-center space-x-2 text-rose-600 hover:text-rose-700 w-full justify-start py-3 px-4 bg-rose-50 rounded-xl font-bold transition-all"
             >
-              <Trash size={16} />
-              <span className="text-sm font-medium">Turları Sıfırla</span>
+              <Trash size={18} weight="bold" />
+              <span className="text-sm">Turları Sıfırla</span>
             </button>
           </div>
         </div>
       ) : (
         /* Current Round Score Input */
-        <div className="p-4 border-b border-gray-200 dark:border-[var(--card-border)]">
+        <div className="p-4 border-b border-gray-100">
           <div
             className={`grid ${
               gameSave?.settings?.gameplay === "herkes-tek" &&
@@ -203,11 +203,11 @@ export default function BottomInputArea({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                    className="w-6 h-6 rounded-full object-cover border border-white dark:border-[var(--card-background)]"
+                                    className="w-6 h-6 rounded-full object-cover border border-white"
                                   />
                                 ) : (
-                                  <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center border border-white dark:border-[var(--card-background)]">
-                                    <span className="text-blue-600 dark:text-blue-300 font-semibold text-xs">
+                                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-white">
+                                    <span className="text-blue-600 font-bold text-[10px]">
                                       {player.initial}
                                     </span>
                                   </div>
@@ -215,8 +215,8 @@ export default function BottomInputArea({
                               </div>
                             ))}
                             {redTeamPlayers.length > 2 && (
-                              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center border border-white dark:border-[var(--card-background)]">
-                                <span className="text-gray-600 dark:text-gray-300 font-semibold text-xs">
+                              <div className="w-6 h-6 bg-gray-50 rounded-full flex items-center justify-center border border-white">
+                                <span className="text-gray-400 font-bold text-[10px]">
                                   +{redTeamPlayers.length - 2}
                                 </span>
                               </div>
@@ -224,13 +224,13 @@ export default function BottomInputArea({
                           </div>
                         ) : (
                           <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-xs">
+                            <span className="text-white font-bold text-[10px]">
                               K
                             </span>
                           </div>
                         )}
                       </div>
-                      <span className="font-medium text-gray-800 dark:text-gray-200 text-sm truncate max-w-[100px]">
+                      <span className="font-bold text-gray-900 text-xs truncate max-w-[100px] uppercase tracking-tight">
                         {redTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Kırmızı Takım"}
                       </span>
@@ -245,13 +245,13 @@ export default function BottomInputArea({
                             redTeam: !prev["redTeam"],
                           }));
                         }}
-                        className={`p-1 ${
+                        className={`p-2 rounded-xl transition-all ${
                           crownWinners["redTeam"]
-                            ? "text-blue-600"
-                            : "text-gray-400"
+                            ? "bg-yellow-50 text-yellow-500 shadow-sm"
+                            : "bg-gray-50 text-gray-300"
                         }`}
                       >
-                        <CrownSimple size={20} weight="fill" />
+                        <CrownSimple size={24} weight="fill" />
                       </button>
                     ) : gameSave?.settings.pointsPerRound === "Multiple" ? (
                       /* Multiple Scores Mode for Teams - Multiple input fields with horizontal buttons */
@@ -282,10 +282,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                style={{
-                                  borderColor: "rgba(134, 189, 255, 0.4)",
-                                }}
+                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -299,11 +296,10 @@ export default function BottomInputArea({
                                 redTeam: [...(prev["redTeam"] || []), 0],
                               }))
                             }
-                            className="w-6 h-6 flex items-center justify-center"
+                            className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
                           >
                             <Plus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                           </button>
@@ -317,7 +313,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores["redTeam"] || [0]).length <= 1
                             }
-                            className={`w-6 h-6 flex items-center justify-center ${
+                            className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
                               (multipleScores["redTeam"] || [0]).length <= 1
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -325,7 +321,6 @@ export default function BottomInputArea({
                           >
                             <Minus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                           </button>
@@ -344,8 +339,7 @@ export default function BottomInputArea({
                               redTeam: Math.max(0, value),
                             }));
                           }}
-                          className="w-20 h-10 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          style={{ borderColor: "rgba(134, 189, 255, 0.4)" }}
+                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                           placeholder="0"
                         />
                       </div>
@@ -377,11 +371,11 @@ export default function BottomInputArea({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                      className="w-6 h-6 rounded-full object-cover border border-white dark:border-[var(--card-background)]"
+                                      className="w-6 h-6 rounded-full object-cover border border-white"
                                   />
                                 ) : (
-                                    <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center border border-white dark:border-[var(--card-background)]">
-                                      <span className="text-blue-600 dark:text-blue-300 font-semibold text-xs">
+                                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-white">
+                                      <span className="text-blue-600 font-bold text-[10px]">
                                         {player.initial}
                                       </span>
                                   </div>
@@ -389,8 +383,8 @@ export default function BottomInputArea({
                               </div>
                             ))}
                             {blueTeamPlayers.length > 2 && (
-                              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center border border-white dark:border-[var(--card-background)]">
-                                <span className="text-gray-600 dark:text-gray-300 font-semibold text-xs">
+                              <div className="w-6 h-6 bg-gray-50 rounded-full flex items-center justify-center border border-white">
+                                <span className="text-gray-400 font-bold text-[10px]">
                                   +{blueTeamPlayers.length - 2}
                                 </span>
                               </div>
@@ -398,13 +392,13 @@ export default function BottomInputArea({
                           </div>
                         ) : (
                           <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-xs">
+                            <span className="text-white font-bold text-[10px]">
                               M
                             </span>
                           </div>
                         )}
                       </div>
-                      <span className="font-medium text-gray-800 dark:text-gray-200 text-sm truncate max-w-[100px]">
+                      <span className="font-bold text-gray-900 text-xs truncate max-w-[100px] uppercase tracking-tight">
                         {blueTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Mavi Takım"}
                       </span>
@@ -419,13 +413,13 @@ export default function BottomInputArea({
                             blueTeam: !prev["blueTeam"],
                           }));
                         }}
-                        className={`p-1 ${
+                        className={`p-2 rounded-xl transition-all ${
                           crownWinners["blueTeam"]
-                            ? "text-blue-600"
-                            : "text-gray-400"
+                            ? "bg-yellow-50 text-yellow-500 shadow-sm"
+                            : "bg-gray-50 text-gray-300"
                         }`}
                       >
-                        <CrownSimple size={20} weight="fill" />
+                        <CrownSimple size={24} weight="fill" />
                       </button>
                     ) : gameSave?.settings.pointsPerRound === "Multiple" ? (
                       /* Multiple Scores Mode for Teams - Multiple input fields with horizontal buttons */
@@ -456,10 +450,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                style={{
-                                  borderColor: "rgba(134, 189, 255, 0.4)",
-                                }}
+                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -473,11 +464,10 @@ export default function BottomInputArea({
                                 blueTeam: [...(prev["blueTeam"] || []), 0],
                               }))
                             }
-                            className="w-6 h-6 flex items-center justify-center"
+                            className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
                           >
                             <Plus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                           </button>
@@ -491,7 +481,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores["blueTeam"] || [0]).length <= 1
                             }
-                            className={`w-6 h-6 flex items-center justify-center ${
+                            className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
                               (multipleScores["blueTeam"] || [0]).length <= 1
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -499,7 +489,6 @@ export default function BottomInputArea({
                           >
                             <Minus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                           </button>
@@ -518,8 +507,7 @@ export default function BottomInputArea({
                               blueTeam: Math.max(0, value),
                             }));
                           }}
-                          className="w-20 h-10 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          style={{ borderColor: "rgba(134, 189, 255, 0.4)" }}
+                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                           placeholder="0"
                         />
                       </div>
@@ -553,13 +541,13 @@ export default function BottomInputArea({
                         className="w-6 h-6 rounded-full object-cover mr-2"
                       />
                     ) : (
-                        <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-2">
-                          <span className="text-blue-600 dark:text-blue-300 font-semibold text-xs">
+                        <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center mr-2">
+                          <span className="text-blue-600 font-bold text-[10px]">
                             {player.initial}
                           </span>
                       </div>
                     )}
-                      <span className="font-medium text-gray-800 dark:text-gray-200 text-sm truncate max-w-[200px]">
+                      <span className="font-bold text-gray-900 text-xs truncate max-w-[200px] uppercase tracking-tight">
                         {player.name}
                       </span>
                   </div>
@@ -568,13 +556,13 @@ export default function BottomInputArea({
                     /* Crown Mode - Toggle crown for 1 point */
                     <button
                       onClick={() => toggleCrown(player._id)}
-                      className={`p-1 ${
+                      className={`p-2 rounded-xl transition-all ${
                         crownWinners[player._id] 
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-gray-400 dark:text-gray-500"
+                            ? "bg-yellow-50 text-yellow-500 shadow-sm"
+                            : "bg-gray-50 text-gray-300"
                       }`}
                     >
-                      <CrownSimple size={20} weight="fill" />
+                      <CrownSimple size={24} weight="fill" />
                     </button>
                     ) : gameSave?.settings.pointsPerRound === "Multiple" ? (
                     /* Multiple Scores Mode - Multiple input fields with horizontal buttons */
@@ -596,10 +584,7 @@ export default function BottomInputArea({
                                     value
                                   );
                             }}
-                                className="w-24 h-12 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                style={{
-                                  borderColor: "rgba(134, 189, 255, 0.4)",
-                                }}
+                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                             placeholder="0"
                           />
                         </div>
@@ -608,11 +593,10 @@ export default function BottomInputArea({
                       <div className="flex items-center space-x-2">
                              <button
                                onClick={() => addScoreInput(player._id)}
-                               className="w-6 h-6 flex items-center justify-center"
+                               className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
                              >
                             <Plus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                              </button>
@@ -621,7 +605,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores[player._id] || [0]).length <= 1
                             }
-                               className={`w-6 h-6 flex items-center justify-center ${
+                               className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
                                  (multipleScores[player._id] || [0]).length <= 1 
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -629,7 +613,6 @@ export default function BottomInputArea({
                              >
                             <Minus
                               size={18}
-                              className="text-gray-600 dark:text-gray-300"
                               weight="bold"
                             />
                              </button>
@@ -648,8 +631,7 @@ export default function BottomInputArea({
                               [player._id]: Math.max(0, value),
                           }));
                         }}
-                          className="w-20 h-10 bg-white dark:bg-[var(--card-background)] border-2 rounded-lg text-center font-medium text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          style={{ borderColor: "rgba(134, 189, 255, 0.4)" }}
+                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                         placeholder="0"
                       />
                     </div>
@@ -663,26 +645,26 @@ export default function BottomInputArea({
       )}
 
       {/* Action Buttons */}
-      <div className="p-4">
-        <div className="flex items-center justify-between">
+      <div className="p-4 pb-8">
+        <div className="flex items-center justify-between gap-3">
           <button
             onClick={endRound}
-            className="flex-1 bg-blue-500 text-white h-12 rounded-xl font-medium flex items-center justify-center hover:bg-blue-600"
+            className="flex-1 bg-blue-600 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
           >
             {getNextRoundNumber()}. Turu Bitir
           </button>
           <button 
             onClick={() => setShowSettings(!showSettings)}
-            className={`ml-2 w-12 h-12 rounded-xl flex items-center justify-center ${
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg ${
               showSettings 
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "border-2 border-blue-500 text-blue-500 bg-white dark:bg-[var(--card-background)] hover:bg-blue-50 dark:hover:bg-[var(--card-background)]"
+                ? "bg-zinc-900 text-white shadow-zinc-900/20"
+                : "bg-white border-2 border-gray-100 text-gray-400 hover:text-gray-900 shadow-sm"
             }`}
           >
             {showSettings ? (
-              <X size={20} weight="bold" />
+              <X size={24} weight="bold" />
             ) : (
-              <Gear size={20} weight="bold" />
+              <Gear size={24} weight="bold" />
             )}
           </button>
         </div>

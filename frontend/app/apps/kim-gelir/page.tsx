@@ -26,7 +26,7 @@ import { friendship, kim_gelir, workplaces } from "@/lib/client";
 import { Drawer } from "vaul";
 import dynamic from "next/dynamic";
 
-const StudyPlacesMap = dynamic(() => import("../workplaces/StudyPlacesMap"), {
+const StudyPlacesMap = dynamic(() => import("../_workplaces/StudyPlacesMap"), {
   ssr: false,
 });
 
@@ -402,28 +402,25 @@ function KimGelirContent() {
 
       <main className="flex-1 px-4 max-w-md mx-auto w-full pt-6">
         {/* Navigation & Header */}
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between h-20 mb-8">
+          <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push("/home")} 
-              className="p-2 -ml-2 hover:bg-gray-150 rounded-full transition-colors active:scale-95"
+              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200/60 rounded-xl shadow-sm hover:bg-gray-50 transition-all active:scale-95"
             >
-              <ArrowLeft size={24} color="#374151" />
+              <ArrowLeft size={20} weight="bold" className="text-gray-500" />
             </button>
-            <div>
-              <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
-                Ne Yapsak?
-              </h1>
-              <p className="text-xs text-gray-400 font-medium mt-1">Hızlı Aktivite Planlayıcı</p>
-            </div>
+            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">
+              Ne Yapsak?
+            </h1>
           </div>
           
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-[#FF6B6B] hover:bg-[#ff5252] text-white rounded-2xl font-bold text-xs shadow-md shadow-red-100 transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-5 py-3 bg-[#FF6B6B] hover:bg-[#ff5252] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-900/20 transition-all active:scale-95 cursor-pointer"
           >
             <Plus size={16} weight="bold" />
-            Aktivite Aç
+            <span>Aktivite Aç</span>
           </button>
         </header>
 

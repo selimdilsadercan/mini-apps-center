@@ -7,7 +7,6 @@ import {
   Cards,
   Note,
   CheckCircle,
-  Play,
   ArrowRight,
   Sparkle
 } from "@phosphor-icons/react";
@@ -148,10 +147,10 @@ export default function ForYouPage() {
 
   if (!isUserLoaded || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f1ea] text-[#0c3122]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7] text-gray-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-emerald-200 border-t-[#0c3122] rounded-full animate-spin" />
-          <p className="text-sm font-black uppercase tracking-widest text-[#0c3122]">{t.loading}</p>
+          <div className="w-12 h-12 border-4 border-gray-100 border-t-zinc-900 rounded-full animate-spin" />
+          <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t.loading}</p>
         </div>
       </div>
     );
@@ -170,10 +169,10 @@ export default function ForYouPage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        onClick={() => router.push(`/apps/iskambil/game?gameId=${game.id}`)}
-        className="bg-[#ffffff] border border-[#e2dec5] rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-[#1a2d22]"
+        onClick={() => router.push(`/apps/iskambil/${game.id}`)}
+        className="bg-white border border-gray-200 rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-gray-900"
       >
-        <div className="absolute -bottom-10 -right-10 text-[10rem] font-serif opacity-[0.03] pointer-events-none select-none text-[#0c3122]">
+        <div className="absolute -bottom-10 -right-10 text-[10rem] font-serif opacity-[0.03] group-hover:opacity-[0.05] transition-all duration-500 pointer-events-none select-none text-zinc-900">
           {game.category_tr === "Tek Kişilik" && "♠"}
           {game.category_tr === "Kozlu / Löf" && "♣"}
           {game.category_tr === "Casino / Bahis" && "♦"}
@@ -182,39 +181,39 @@ export default function ForYouPage() {
         </div>
 
         <div className="flex justify-between items-start mb-4">
-          <span className="text-[10px] font-black text-white bg-[#0c3122] px-3 py-1 rounded-full tracking-widest uppercase">
+          <span className="text-[10px] font-black text-white bg-zinc-900 px-3 py-1 rounded-full tracking-widest uppercase">
             {gameCategory}
           </span>
           <div className="flex gap-2">
             <button
               onClick={(e) => handleToggleKnown(game.id, e)}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] text-slate-500 hover:text-emerald-700 transition-all active:scale-90 cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-zinc-50 border border-gray-200 text-gray-400 hover:text-zinc-900 transition-all active:scale-90 cursor-pointer"
               title={t.known}
             >
-              <CheckCircle size={16} weight={game.is_known ? "fill" : "bold"} className={game.is_known ? "text-emerald-600" : ""} />
+              <CheckCircle size={16} weight={game.is_known ? "fill" : "bold"} className={game.is_known ? "text-zinc-900" : ""} />
             </button>
 
             <button
               onClick={(e) => handleToggleFavorite(game.id, e)}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-[#f5f2e9] hover:bg-[#eae6df] border border-[#e2dcc8] text-slate-500 hover:text-red-500 transition-all active:scale-90 cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-rose-50 border border-gray-200 text-gray-400 hover:text-rose-500 transition-all active:scale-90 cursor-pointer"
               title={t.favorite}
             >
-              <Heart size={16} weight={game.is_favorite ? "fill" : "bold"} className={game.is_favorite ? "text-red-500" : ""} />
+              <Heart size={16} weight={game.is_favorite ? "fill" : "bold"} className={game.is_favorite ? "text-rose-500" : ""} />
             </button>
           </div>
         </div>
 
-        <h3 className="text-lg font-black text-[#0c3122] tracking-tight uppercase">
+        <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase">
           {gameName}
         </h3>
 
-        <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+        <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed font-medium">
           {gameRules.length > 0 ? gameRules[0] : t.noRules}
         </p>
 
-        <div className="flex gap-4 border-t border-[#f0ede4] pt-4 mt-auto">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500">
-            <Users size={14} className="text-[#0c3122]/60" />
+        <div className="flex gap-4 border-t border-gray-50 pt-4 mt-auto">
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
+            <Users size={14} className="text-gray-300" />
             <span>
               {game.min_players === game.max_players
                 ? `${game.min_players} ${t.players}`
@@ -222,13 +221,13 @@ export default function ForYouPage() {
             </span>
           </div>
           {deckCount !== "1 Deste" && deckCount !== "1" && deckCount !== "1 Deck" && (
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500">
-              <Cards size={14} className="text-[#0c3122]/60" />
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
+              <Cards size={14} className="text-gray-300" />
               <span>{deckCount}</span>
             </div>
           )}
           {game.is_known && (
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 ml-auto">
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-900 ml-auto">
               <CheckCircle size={14} weight="fill" />
               <span>{t.known}</span>
             </div>
@@ -245,7 +244,7 @@ export default function ForYouPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f1ea] text-[#1a2d22] font-sans selection:bg-[#0c3122] selection:text-white overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-gray-200 overflow-x-hidden">
 
       {/* Shared AppBar */}
       <IskambilAppBar activeTab="foryou" />
@@ -259,20 +258,20 @@ export default function ForYouPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center py-20 px-6 bg-white border border-[#e2dec5] rounded-3xl shadow-sm flex flex-col items-center max-w-2xl mx-auto mt-8"
+              className="text-center py-20 px-6 bg-white border border-gray-200 rounded-3xl shadow-sm flex flex-col items-center max-w-2xl mx-auto mt-8"
             >
-              <div className="w-16 h-16 rounded-full bg-[#fdfcf7] border border-[#e2dec5] flex items-center justify-center text-[#0c3122] mb-6 shadow-inner">
+              <div className="w-16 h-16 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-zinc-900 mb-6 shadow-inner">
                 <Sparkle size={32} weight="fill" className="animate-pulse text-amber-500" />
               </div>
-              <h2 className="text-xl font-black text-[#0c3122] tracking-tight uppercase mb-2">
+              <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase mb-2">
                 {t.emptyState}
               </h2>
-              <p className="text-sm text-slate-500 max-w-md mb-8 leading-relaxed font-semibold">
+              <p className="text-sm text-gray-500 max-w-md mb-8 leading-relaxed font-bold">
                 {t.emptySubtitle}
               </p>
               <button
                 onClick={() => router.push("/apps/iskambil")}
-                className="flex items-center gap-2 bg-[#0c3122] hover:bg-[#12422f] text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 active:translate-y-0"
+                className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all cursor-pointer shadow-lg shadow-zinc-900/20 hover:-translate-y-0.5 active:translate-y-0"
               >
                 <span>{t.discoverButton}</span>
                 <ArrowRight size={14} weight="bold" />
@@ -289,15 +288,15 @@ export default function ForYouPage() {
                 <div className="space-y-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-6 bg-red-500 rounded-full" />
-                      <h2 className="text-sm font-black text-[#0c3122] tracking-[0.2em] uppercase">
+                      <span className="w-1.5 h-6 bg-rose-500 rounded-full" />
+                      <h2 className="text-sm font-black text-gray-900 tracking-[0.2em] uppercase">
                         {t.favoritesTitle}
                       </h2>
-                      <span className="text-[10px] font-bold text-slate-500">
+                      <span className="text-[10px] font-bold text-gray-400">
                         ({favoriteGames.length})
                       </span>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 tracking-wider">
+                    <p className="text-[10px] font-bold text-gray-400 tracking-wider">
                       {t.favoritesSubtitle}
                     </p>
                   </div>
@@ -318,15 +317,15 @@ export default function ForYouPage() {
                 <div className="space-y-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                      <h2 className="text-sm font-black text-[#0c3122] tracking-[0.2em] uppercase">
+                      <span className="w-1.5 h-6 bg-zinc-900 rounded-full" />
+                      <h2 className="text-sm font-black text-gray-900 tracking-[0.2em] uppercase">
                         {t.knownTitle}
                       </h2>
-                      <span className="text-[10px] font-bold text-slate-500">
+                      <span className="text-[10px] font-bold text-gray-400">
                         ({knownGames.length})
                       </span>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 tracking-wider">
+                    <p className="text-[10px] font-bold text-gray-400 tracking-wider">
                       {t.knownSubtitle}
                     </p>
                   </div>

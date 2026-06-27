@@ -163,7 +163,7 @@ function EventDetailContent() {
   const isInterested = event.user_status === "interested";
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-800 font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased">
       <Toaster position="top-center" />
 
       {/* Header / Cover Image */}
@@ -184,7 +184,7 @@ function EventDetailContent() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="absolute top-6 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10"
+          className="absolute top-6 left-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10 flex items-center justify-center"
         >
           <CaretLeft size={20} weight="bold" />
         </button>
@@ -195,7 +195,7 @@ function EventDetailContent() {
             navigator.clipboard.writeText(window.location.href);
             toast.success("Link kopyalandı!");
           }}
-          className="absolute top-6 right-6 p-2.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10"
+          className="absolute top-6 right-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10 flex items-center justify-center"
         >
           <ShareNetwork size={20} weight="bold" />
         </button>

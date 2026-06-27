@@ -1,7 +1,7 @@
 "use client";
 import { getAppRootUrl } from "@/lib/apps";
 
-import { Cards, ArrowLeft, Compass, Heart } from "@phosphor-icons/react";
+import { Cards, SquaresFour, Compass, Heart } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -15,14 +15,14 @@ const translations = {
     archiveSubtitle: "Popüler Kart Oyunları Arşivi",
     discoverTab: "Keşfet",
     foryouTab: "Sana Özel",
-    back: "Geri"
+    back: "Geri Dön"
   },
   en: {
     archiveTitle: "Card Games Guide",
     archiveSubtitle: "Popular Card Games Archive",
     discoverTab: "Discover",
     foryouTab: "For You",
-    back: "Back"
+    back: "Go Back"
   }
 };
 
@@ -34,28 +34,29 @@ export default function IskambilAppBar({ activeTab }: IskambilAppBarProps) {
   return (
     <>
       {/* Top Header (Title & Back button) */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#ffffff] border-b border-[#e2dec5] shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
           
           {/* Brand/Title & Back Button */}
           <div className="flex items-center gap-4 min-w-0">
             <button
               onClick={() => window.location.href = getAppRootUrl()}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#f5f2e9] border border-[#e2dcc8] text-[#0c3122] hover:bg-[#eae6df] transition-all cursor-pointer flex-shrink-0"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 rounded-xl border border-gray-200/60 h-9 shadow-sm transition-all active:scale-95 flex-shrink-0"
               title={t.back}
             >
-              <ArrowLeft size={18} weight="bold" />
+              <SquaresFour size={16} weight="fill" className="text-zinc-900 shrink-0" />
+              <span className="text-xs font-bold">{t.back}</span>
             </button>
             
             <div className="flex flex-col min-w-0">
               <h1 
                 onClick={() => router.push("/apps/iskambil")}
-                className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-[#0c3122] cursor-pointer hover:opacity-85 select-none truncate"
+                className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-gray-900 cursor-pointer hover:opacity-85 select-none truncate"
               >
-                <Cards size={24} weight="fill" className="text-[#0c3122] flex-shrink-0" />
+                <Cards size={24} weight="fill" className="text-zinc-900 flex-shrink-0" />
                 {t.archiveTitle}
               </h1>
-              <p className="text-[9px] text-emerald-600 font-black uppercase tracking-[0.2em] mt-1 hidden sm:block truncate">
+              <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1 hidden sm:block truncate">
                 {t.archiveSubtitle}
               </p>
             </div>
@@ -64,32 +65,38 @@ export default function IskambilAppBar({ activeTab }: IskambilAppBarProps) {
         </div>
       </header>
 
-      {/* Bottom Appbar (Tab Navigation) */}
+      {/* Bottom Appbar (Navigation) */}
       {activeTab !== "none" && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-md bg-white/95 backdrop-blur-md border border-[#e2dec5] p-2 rounded-2xl shadow-lg flex items-center justify-around gap-2">
-          <button
-            onClick={() => router.push("/apps/iskambil")}
-            className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === "discover"
-                ? "bg-[#0c3122]/10 text-[#0c3122]"
-                : "text-[#0c3122]/60 hover:bg-[#0c3122]/5"
-            }`}
-          >
-            <Compass size={18} weight={activeTab === "discover" ? "fill" : "bold"} />
-            <span>{t.discoverTab}</span>
-          </button>
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-gray-100 flex items-center justify-around px-4 py-2 pb-safe-area-inset-bottom">
+          <div className="flex items-center w-full max-w-md mx-auto gap-1">
+            <button
+              onClick={() => router.push("/apps/iskambil")}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-200 ${
+                activeTab === "discover"
+                  ? "text-zinc-900 bg-zinc-50"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "discover" ? "bg-zinc-100" : ""}`}>
+                <Compass size={20} weight={activeTab === "discover" ? "fill" : "bold"} />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider">{t.discoverTab}</span>
+            </button>
 
-          <button
-            onClick={() => router.push("/apps/iskambil/for-you")}
-            className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === "foryou"
-                ? "bg-[#0c3122]/10 text-[#0c3122]"
-                : "text-[#0c3122]/60 hover:bg-[#0c3122]/5"
-            }`}
-          >
-            <Heart size={18} weight={activeTab === "foryou" ? "fill" : "bold"} />
-            <span>{t.foryouTab}</span>
-          </button>
+            <button
+              onClick={() => router.push("/apps/iskambil/for-you")}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-200 ${
+                activeTab === "foryou"
+                  ? "text-zinc-900 bg-zinc-50"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "foryou" ? "bg-zinc-100" : ""}`}>
+                <Heart size={20} weight={activeTab === "foryou" ? "fill" : "bold"} />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider">{t.foryouTab}</span>
+            </button>
+          </div>
         </div>
       )}
     </>

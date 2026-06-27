@@ -64,10 +64,26 @@ export const APP_HOME_PATH = "/home";
  * Capacitor'da relative path; web'de my subdomain tam URL.
  */
 export function getAppRootUrl(): string {
-  if (typeof window === "undefined") return APP_HOME_PATH;
+  let path = APP_HOME_PATH;
+  
+  if (typeof window !== "undefined") {
+    // Priority 1: If we came from a business profile page, go back there
+    const lastBusinessUrl = localStorage.getItem("last_business_url");
+    if (lastBusinessUrl) {
+      return lastBusinessUrl;
+    }
+
+    // Priority 2: Go back to the last active tab on the home page
+    const lastTab = localStorage.getItem("last_active_tab");
+    if (lastTab && lastTab !== "discover") {
+      path = `${APP_HOME_PATH}?tab=${lastTab}`;
+    }
+  }
+
+  if (typeof window === "undefined") return path;
 
   if (isCapacitorNative()) {
-    return APP_HOME_PATH;
+    return path;
   }
 
   const hostname = window.location.hostname;
@@ -76,11 +92,11 @@ export function getAppRootUrl(): string {
 
   if (isLocalWebDev(hostname)) {
     const primary = port ? `my.localhost:${port}` : "my.localhost";
-    return `${protocol}//${primary}/dashboard`;
+    return `${protocol}//${primary}${path}`;
   }
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-  return `${protocol}//my.${rootDomain}/dashboard`;
+  return `${protocol}//my.${rootDomain}${path}`;
 }
 
 /**

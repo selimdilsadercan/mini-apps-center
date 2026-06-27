@@ -128,6 +128,21 @@ export const getOwnedBusinesses = api(
 export const getAllBusinesses = api(
   { expose: true, method: "GET", path: "/digital-menu/all-businesses" },
   async (): Promise<{ businesses: Business[] }> => {
+    // 1. Get all business IDs that have at least one item
+    // We do this by selecting business_id from categories that have items
+    const { data: activeBizData, error: activeBizError } = await supabase
+      .schema("digital_menu")
+      .from("categories")
+      .select("business_id, items!inner(id)");
+
+    if (activeBizError) {
+      console.error("getAllBusinesses activeBizError:", activeBizError);
+      // If this fails, we'll just continue and return all businesses as a fallback
+    }
+
+    const activeBizIds = new Set((activeBizData || []).map((row: any) => row.business_id));
+
+    // 2. Fetch all businesses
     const { data, error } = await supabase
       .schema("business")
       .from("businesses")
@@ -139,7 +154,10 @@ export const getAllBusinesses = api(
       throw APIError.internal(`Failed to get all businesses: ${error.message}`);
     }
 
-    return { businesses: data || [] };
+    // 3. Filter businesses that have items
+    const filteredBusinesses = (data || []).filter((biz) => activeBizIds.has(biz.id));
+
+    return { businesses: filteredBusinesses };
   }
 );
 

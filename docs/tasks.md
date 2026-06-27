@@ -22,11 +22,11 @@
 
 ### Digital Menu
 
-- [ ] Yönetim paneli düzeltmeleri (dashboard layout, sidebar, form akışları). 🔵 Aktif
-- [ ] QR kod oluşturma ve indirme (paylaşım sayfası şu an placeholder). 🔵 Aktif
-- [ ] Görsel yükleme altyapısı (ürün ve logo için dosya upload, R2/storage entegrasyonu). 🔵 Aktif
+- [x] Yönetim paneli düzeltmeleri (dashboard layout, sidebar, form akışları). 🔵 Aktif
+- [x] QR kod oluşturma ve indirme (paylaşım sayfası şu an placeholder). 🔵 Aktif
+- [x] Görsel yükleme altyapısı (ürün ve logo için dosya upload, R2/storage entegrasyonu). 🔵 Aktif
 - [ ] Kategori sıralama (sürükle-bırak)
-- [ ] Müşteri menüsü UI cilası 
+- [x] Müşteri menüsü UI cilası 
 
 ### Suggest
 

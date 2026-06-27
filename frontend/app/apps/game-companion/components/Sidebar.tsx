@@ -102,63 +102,40 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <>
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-50 lg:bg-white dark:bg-[var(--card-background)] lg:border-r lg:border-gray-200 dark:border-[var(--card-border)]">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-50 lg:bg-white lg:border-r lg:border-gray-200">
         {/* Sidebar Header */}
-        <div className="flex items-center px-6 py-6 border-b border-gray-200 dark:border-[var(--card-border)]">
+        <div className="flex items-center px-6 py-6 border-b border-gray-100 h-20">
           <Link href="/apps/game-companion/games" className="flex items-center gap-3">
-            <img
-              src="/game-companion/logo.png"
-              alt="Game Companion Logo"
-              className="h-10 w-auto"
-            />
+            <h1 className="text-xl font-black tracking-tight text-gray-900 uppercase">
+              Yazboz
+            </h1>
           </Link>
         </div>
 
         {/* Sidebar Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {/* Back to Home Link */}
-          <Link
-            href={getAppRootUrl()}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-[var(--card-background)] transition-all duration-200 mb-4 border-b border-gray-100 dark:border-gray-800 pb-4"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span className="font-medium text-sm">Ana Merkez</span>
-          </Link>
-
           {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${
                 isActive(item.page)
-                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-[var(--card-background)]"
-                  : "text-gray-900 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-[var(--card-background)]"
+                  ? "text-blue-600 bg-blue-50 shadow-sm shadow-blue-900/5"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
             >
               {item.icon}
-              <span className="font-medium">{item.label}</span>
+              <span className="font-bold">{item.label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="px-4 py-4 border-t border-gray-200 dark:border-[var(--card-border)]">
+        <div className="px-4 py-4 border-t border-gray-200">
           <div className="flex items-center gap-3 px-3 py-2 mb-3">
-            <div className="w-8 h-8 bg-gray-200 dark:bg-[var(--card-background)] rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
               <svg
-                className="w-4 h-4 text-gray-800 dark:text-gray-400"
+                className="w-4 h-4 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -172,10 +149,10 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">
+              <p className="text-sm font-bold text-gray-900 truncate">
                 {player?.name || "Kullanıcı"}
               </p>
-              <p className="text-xs text-gray-700 dark:text-gray-400 truncate">
+              <p className="text-xs text-gray-500 truncate">
                 {user?.primaryEmailAddress?.emailAddress || ""}
               </p>
             </div>
@@ -183,7 +160,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-[var(--card-background)] rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors"
           >
             <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
               <svg
@@ -200,26 +177,26 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                 />
               </svg>
             </div>
-            <span className="text-sm font-medium">Çıkış Yap</span>
+            <span className="text-sm font-bold">Çıkış Yap</span>
           </button>
         </div>
       </div>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-[var(--card-background)] rounded-2xl p-6 mx-4 max-w-sm w-full">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">Çıkış Yap</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Hesabınızdan çıkmak istediğinizden emin misiniz?</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Çıkış Yap</h3>
+              <p className="text-sm text-gray-500 mb-6">Hesabınızdan çıkmak istediğinizden emin misiniz?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 dark:text-gray-300 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 font-bold transition-colors hover:bg-gray-50"
                 >
                   İptal
                 </button>
@@ -229,7 +206,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                     setShowLogoutConfirm(false);
                     router.push("/apps/game-companion");
                   }}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20"
                 >
                   Çıkış Yap
                 </button>

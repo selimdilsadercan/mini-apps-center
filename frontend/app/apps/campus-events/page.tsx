@@ -74,8 +74,68 @@ export default function CampusEventsPage() {
     );
   });
 
+  const upcomingEvents = filteredEvents.filter((e: campus_events.CampusEvent) => new Date(e.event_date) >= new Date());
+  const pastEvents = filteredEvents.filter((e: campus_events.CampusEvent) => new Date(e.event_date) < new Date());
+
+  const EventCard = ({ event }: { event: campus_events.CampusEvent }) => (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      key={event.id}
+      className="group flex flex-col relative"
+    >
+      {/* Image Section */}
+      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
+        <div className="relative w-full aspect-square overflow-hidden rounded-xl md:rounded-2xl mb-3 md:mb-5">
+          {event.image_url ? (
+            <img 
+              src={event.image_url} 
+              alt={event.title} 
+              className="w-full h-full object-contain bg-slate-50" 
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+              <Megaphone size={32} className="text-slate-200 md:hidden" />
+              <Megaphone size={48} className="text-slate-200 hidden md:block" />
+            </div>
+          )}
+        </div>
+      </Link>
+
+      {/* Content Section */}
+      <div className="flex flex-col flex-1 px-1">
+        <Link href={`/apps/campus-events/event?id=${event.id}`} className="block group/title">
+          <h3 className="text-sm md:text-lg font-[900] text-slate-800 leading-tight mb-1 md:mb-1.5 group-hover/title:text-[#00aeef] transition-colors line-clamp-2">
+            {event.title}
+          </h3>
+        </Link>
+
+        {/* Event Details List */}
+        <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
+          <div className="space-y-1 md:space-y-1.5 mt-2">
+            {event.location && (
+              <div className="flex items-center gap-2 text-slate-500">
+                <MapPin size={12} weight="bold" className="text-slate-300 shrink-0" />
+                <span className="text-[10px] md:text-xs font-bold truncate">
+                  {event.location}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-slate-500">
+              <Calendar size={12} weight="bold" className="text-slate-300 shrink-0" />
+              <span className="text-[10px] md:text-xs font-bold">
+                {formatDate(event.event_date)}
+              </span>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
       <Toaster 
         position="top-center" 
         toastOptions={{
@@ -89,24 +149,19 @@ export default function CampusEventsPage() {
       />
 
       {/* Brand Header */}
-      <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
-              className="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors flex items-center justify-center border border-slate-200/60 shadow-xs"
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200/60 text-gray-500 hover:text-gray-900 shadow-sm transition-all active:scale-95"
               title="Geri"
             >
-              <CaretLeft size={18} weight="bold" />
+              <CaretLeft size={20} weight="bold" />
             </button>
-            <button
-              onClick={() => (window.location.href = getAppRootUrl())}
-              className="flex items-center gap-1.5 group"
-            >
-              <span className="text-xl font-[900] text-slate-800 tracking-tight flex items-center gap-1">
-                Events
-              </span>
-            </button>
+            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">
+              Events
+            </h1>
           </div>
 
           <div className="flex gap-2.5">
@@ -118,10 +173,10 @@ export default function CampusEventsPage() {
                 }
                 setShowAddDrawer(true);
               }}
-              className="bg-[#00aeef] hover:bg-[#009bcf] text-white text-xs font-black px-4.5 py-2.5 rounded-full active:scale-95 transition-all flex items-center gap-1.5 shadow-sm"
+              className="bg-[#00aeef] hover:bg-[#009bcf] text-white text-xs font-black px-5 py-3 rounded-2xl active:scale-95 transition-all flex items-center gap-1.5 shadow-lg shadow-[#00aeef]/20"
             >
-              <Plus size={14} weight="bold" />
-              <span>Etkinlik Paylaş</span>
+              <Plus size={16} weight="bold" />
+              <span className="uppercase tracking-widest">Etkinlik Paylaş</span>
             </button>
           </div>
         </div>
@@ -130,88 +185,61 @@ export default function CampusEventsPage() {
       <main className="flex-1 px-4 py-10 pb-32 max-w-6xl mx-auto w-full">
         {/* Search Bar */}
         <div className="relative mb-12 shadow-sm rounded-2xl max-w-2xl mx-auto">
-          <MagnifyingGlass size={18} className="absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <MagnifyingGlass size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Etkinlik başlığı, topluluk veya salon ara..."
-            className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-slate-400 text-slate-800 font-semibold"
+            className="w-full bg-white border border-gray-200 rounded-2xl pl-14 pr-5 py-4.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-gray-300 text-gray-900 font-bold"
           />
         </div>
 
-            {/* Events Grid View */}
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <div className="w-8 h-8 border-2 border-slate-200 border-t-[#00aeef] rounded-full animate-spin" />
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
-              </div>
-            ) : filteredEvents.length === 0 ? (
-              <div className="text-center py-20 bg-white border border-slate-200/60 rounded-[2.5rem] flex flex-col items-center justify-center p-8 shadow-sm">
-                <Megaphone size={42} className="text-slate-300 mb-4" />
-                <p className="text-sm font-bold text-slate-500">Eşleşen etkinlik bulunamadı.</p>
-                <p className="text-xs text-slate-400 mt-1">İlk etkinliği siz paylaşarak topluluğa katkıda bulunabilirsiniz!</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
-                {filteredEvents.map((event) => (
-                  <motion.div 
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={event.id}
-                    className="group flex flex-col relative"
-                  >
-                    {/* Image Section */}
-                    <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
-                      <div className="relative w-full aspect-square overflow-hidden rounded-xl md:rounded-2xl mb-3 md:mb-5">
-                        {event.image_url ? (
-                          <img 
-                            src={event.image_url} 
-                            alt={event.title} 
-                            className="w-full h-full object-contain bg-slate-50" 
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-                            <Megaphone size={32} className="text-slate-200 md:hidden" />
-                            <Megaphone size={48} className="text-slate-200 hidden md:block" />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-
-                    {/* Content Section */}
-                    <div className="flex flex-col flex-1 px-1">
-                      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block group/title">
-                        <h3 className="text-sm md:text-lg font-[900] text-slate-800 leading-tight mb-1 md:mb-1.5 group-hover/title:text-[#00aeef] transition-colors line-clamp-2">
-                          {event.title}
-                        </h3>
-                      </Link>
-
-                      {/* Event Details List */}
-                      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
-                        <div className="space-y-1 md:space-y-1.5 mt-2">
-                          {event.location && (
-                            <div className="flex items-center gap-2 text-slate-500">
-                              <MapPin size={12} weight="bold" className="text-slate-300 shrink-0" />
-                              <span className="text-[10px] md:text-xs font-bold truncate">
-                                {event.location}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 text-slate-500">
-                            <Calendar size={12} weight="bold" className="text-slate-300 shrink-0" />
-                            <span className="text-[10px] md:text-xs font-bold">
-                              {formatDate(event.event_date)}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+        {/* Events Grid View */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="w-8 h-8 border-2 border-slate-200 border-t-[#00aeef] rounded-full animate-spin" />
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="text-center py-20 bg-white border border-slate-200/60 rounded-[2.5rem] flex flex-col items-center justify-center p-8 shadow-sm">
+            <Megaphone size={42} className="text-slate-300 mb-4" />
+            <p className="text-sm font-bold text-slate-500">Eşleşen etkinlik bulunamadı.</p>
+            <p className="text-xs text-slate-400 mt-1">İlk etkinliği siz paylaşarak topluluğa katkıda bulunabilirsiniz!</p>
+          </div>
+        ) : (
+          <div className="space-y-16">
+            {/* Upcoming Events */}
+            {upcomingEvents.length > 0 && (
+              <section className="space-y-8">
+                <div className="flex items-center gap-3 px-1">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Gelecek Etkinlikler</h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
+                  {upcomingEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </section>
             )}
+
+            {/* Past Events */}
+            {pastEvents.length > 0 && (
+              <section className="space-y-8">
+                <div className="flex items-center gap-3 px-1">
+                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+                  <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Geçmiş Etkinlikler</h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
+                  {pastEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Suggest Event Drawer */}

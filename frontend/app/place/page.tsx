@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Globe, 
   InstagramLogo, 
@@ -25,7 +25,7 @@ import {
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { business_page } from "@/lib/client";
-import { BUSINESS_APPS } from "@/lib/apps";
+import { BUSINESS_APPS, navigateToMiniApp } from "@/lib/apps";
 
 const client = createBrowserClient();
 
@@ -60,26 +60,53 @@ const SOCIAL_CONFIG = [
 ];
 
 const PROMOTABLE_APPS = [
-  { id: "game-companion", name: "Yazboz", description: "Dijital Skor\nTablosu", color: "#228BE6", url: "https://yazboz.allminiapps.com" },
-  { id: "iskambil", name: "İskambil", description: "Oyun Kuralları\nRehberi", color: "#e03131", url: "https://cardgames.allminiapps.com" },
-  { id: "suggest", name: "Suggest", description: "Arkadaşlarına\nÖner", color: "#6366f1", url: "https://suggest.allminiapps.com" },
-  { id: "kim-gelir", name: "Ne Yapsak?", description: "Etkinlik\nPlanla", color: "#FF5252", url: "https://kimgelir.allminiapps.com" },
-  { id: "workplaces", name: "Workplaces", description: "Çalışma Alanı\nKeşfet", color: "#6F4E37", url: "https://workplaces.allminiapps.com" },
-  { id: "standups", name: "Standups", description: "Stand-up\nKeşfet", color: "#FFD43B", url: "https://standups.allminiapps.com" },
+  { id: "game-companion", name: "Yazboz", description: "Dijital Skor Tablosu", color: "#228BE6", url: "https://yazboz.allminiapps.com" },
+  { id: "iskambil", name: "İskambil", description: "Oyun Kuralları Rehberi", color: "#e03131", url: "https://cardgames.allminiapps.com" },
+  { id: "suggest", name: "Suggest", description: "Arkadaşlarına Öner", color: "#6366f1", url: "https://suggest.allminiapps.com" },
+  { id: "kim-gelir", name: "Ne Yapsak?", description: "Etkinlik Planla", color: "#FF5252", url: "https://kimgelir.allminiapps.com" },
+  { id: "workplaces", name: "Workplaces", description: "Çalışma Alanı Keşfet", color: "#6F4E37", url: "https://workplaces.allminiapps.com" },
+  { id: "standups", name: "Standups", description: "Stand-up Keşfet", color: "#FFD43B", url: "https://standups.allminiapps.com" },
 ];
 
 export default function PublicBusinessPage() {
-  return <PublicBusinessPageContent />;
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="w-8 h-8 border-4 border-stone-100 border-t-stone-900 rounded-full animate-spin"></div>
+      </div>
+    }>
+      <PublicBusinessPageContent />
+    </Suspense>
+  );
 }
 
 function PublicBusinessPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const slug = searchParams.get("slug") || searchParams.get("biz");
   const isPreview = searchParams.get("preview") === "true";
 
   const [business, setBusiness] = useState<any>(null);
   const [links, setLinks] = useState<business_page.Link[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleLinkClick = (e: React.MouseEvent, link: business_page.Link) => {
+    // Try to find the app by ID first, then by URL
+    let businessApp = link.app_id ? BUSINESS_APPS.find(a => a.id === link.app_id) : null;
+    
+    if (!businessApp) {
+      // Try to match by URL if it's one of our promotable apps
+      const promoApp = PROMOTABLE_APPS.find(p => p.url === link.url);
+      if (promoApp) {
+        businessApp = BUSINESS_APPS.find(a => a.id === promoApp.id) || null;
+      }
+    }
+    
+    if (businessApp) {
+      e.preventDefault();
+      navigateToMiniApp(businessApp, router);
+    }
+  };
 
   useEffect(() => {
     if (!slug) {
@@ -171,8 +198,6 @@ function PublicBusinessPageContent() {
                 <a 
                   key={social.key} 
                   href={existingLink.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="w-7 h-7 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center text-stone-400 shadow-sm active:scale-95 transition-transform"
                 >
                   <IconComp size={14} weight="fill" />
@@ -203,8 +228,7 @@ function PublicBusinessPageContent() {
               <a 
                 key={link.id}
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={(e) => handleLinkClick(e, link)}
                 className={`w-full py-2.5 px-4 bg-stone-50 border border-stone-100 rounded-2xl flex items-center relative group active:scale-[0.98] transition-all ${isApp ? "bg-white shadow-sm border-stone-200" : ""}`}
               >
                 <div 
@@ -215,9 +239,13 @@ function PublicBusinessPageContent() {
                   <IconComp size={14} weight="fill" color={isApp ? "white" : undefined} className="relative z-10" />
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-stone-800 truncate leading-tight">{link.title}</p>
+                  <p className="text-[11px] font-black text-stone-800 truncate leading-tight">
+                    {(link.subtitle || link.title)?.replace("Sadakat Kartı", "Müdavim Kartı")}
+                  </p>
                   {link.subtitle && (
-                    <p className="text-[9px] font-bold text-stone-400 truncate leading-tight mt-0.5">{link.subtitle}</p>
+                    <p className="text-[9px] font-bold text-stone-400 truncate leading-tight mt-0.5">
+                      {link.title?.replace("Sadakat Kartı", "Müdavim Kartı")}
+                    </p>
                   )}
                 </div>
                 {!isApp && <ArrowSquareOut size={12} weight="bold" className="text-stone-300 ml-2" />}
@@ -237,8 +265,7 @@ function PublicBusinessPageContent() {
                   <a 
                     key={link.id}
                     href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={(e) => handleLinkClick(e, link)}
                     className="bg-transparent flex flex-col items-center text-center group py-2 w-[22%] active:scale-95 transition-transform"
                   >
                     <div 
@@ -249,8 +276,12 @@ function PublicBusinessPageContent() {
                       <IconComp size={14} weight="fill" color="white" className="relative z-10" />
                     </div>
                     <div className="w-full">
-                      <p className="text-[8px] font-black text-stone-800 truncate leading-tight mb-0.5">{promoApp?.name || link.subtitle}</p>
-                      <p className="text-[6px] font-bold text-stone-400 leading-tight whitespace-pre-line line-clamp-2">{promoApp?.description || link.title}</p>
+                      <p className="text-[8px] font-black text-stone-800 truncate leading-tight mb-0.5">
+                        {(link.subtitle || link.title)?.replace("Sadakat Kartı", "Müdavim Kartı")}
+                      </p>
+                      <p className="text-[6px] font-bold text-stone-400 leading-tight whitespace-pre-line line-clamp-2">
+                        {link.subtitle ? link.title?.replace("Sadakat Kartı", "Müdavim Kartı") : ""}
+                      </p>
                     </div>
                   </a>
                 );

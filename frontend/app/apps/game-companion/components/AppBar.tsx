@@ -59,24 +59,24 @@ export default function AppBar({ currentPage }: AppBarProps) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[var(--background)] border-t border-gray-200 dark:border-[var(--card-border)]">
-      <div className="max-w-md mx-auto">
-        <div className="flex items-center py-3 px-4 gap-1">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all duration-200 ${
-                isActive(item.page)
-                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-[var(--card-background)]"
-                  : "text-gray-900 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
-              }`}
-            >
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-gray-100 flex items-center justify-around px-4 py-2 pb-safe-area-inset-bottom">
+      <div className="flex items-center w-full max-w-md mx-auto gap-1">
+        {navigationItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-200 ${
+              isActive(item.page)
+                ? "text-blue-600 bg-blue-50/50"
+                : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <div className={`p-1.5 rounded-lg transition-colors ${isActive(item.page) ? "bg-blue-100/50" : ""}`}>
               {item.icon}
-              <span className="text-xs font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </div>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+          </Link>
+        ))}
       </div>
     </div>
   );

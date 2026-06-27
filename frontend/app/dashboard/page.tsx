@@ -166,7 +166,7 @@ export default function BusinessPanelPage() {
 
   if (!isUserLoaded || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
         <div className="w-10 h-10 border-4 border-red-100 border-t-red-500 rounded-full animate-spin"></div>
       </div>
     );
@@ -174,7 +174,7 @@ export default function BusinessPanelPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAF9F7] p-6 text-center">
         <Storefront size={48} className="text-gray-900 mb-4" />
         <h1 className="text-2xl font-black mb-2">İşletme Girişi</h1>
         <p className="text-gray-500 text-sm max-w-xs mb-6 font-medium">
@@ -191,7 +191,7 @@ export default function BusinessPanelPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white pb-12">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] pb-12">
       <Toaster position="top-center" />
 
       <main className="px-5 py-2 max-w-lg mx-auto w-full">
@@ -270,7 +270,7 @@ export default function BusinessPanelPage() {
       {/* Account Switcher Drawer */}
       <Drawer.Root open={isSwitcherOpen} onOpenChange={setIsSwitcherOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
           <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-100 shadow-2xl">
             <div className="p-6 overflow-y-auto">
               <div className="mx-auto w-12 h-1.5 bg-gray-100 rounded-full mb-8" />
@@ -354,7 +354,7 @@ export default function BusinessPanelPage() {
       {/* Create Business Drawer */}
       <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
           <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-lg mx-auto border-t border-gray-100 shadow-2xl">
             <div className="p-6 overflow-y-auto">
               <div className="mx-auto w-12 h-1.5 bg-gray-100 rounded-full mb-8" />

@@ -563,22 +563,22 @@ function SuggestPageContent() {
       <main className="flex-1 px-4 py-8 max-w-md mx-auto w-full relative z-10">
         
         {/* Navigation Bar / Return */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between h-20 mb-8">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
-              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-2xl shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+              className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200/60 rounded-xl shadow-sm hover:bg-gray-50 transition-all active:scale-95"
             >
-              <ArrowLeft size={20} weight="bold" className="text-gray-600" />
+              <ArrowLeft size={20} weight="bold" className="text-gray-500" />
             </button>
-            <h1 className="text-2xl font-[1000] text-gray-900 tracking-tight leading-none">
+            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">
               Suggest
             </h1>
           </div>
 
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-md shadow-indigo-100 transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-900/20 transition-all active:scale-95 cursor-pointer"
           >
             <Plus size={16} weight="bold" />
             <span>Öner</span>

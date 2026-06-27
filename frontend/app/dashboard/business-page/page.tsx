@@ -79,7 +79,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "game-companion", 
     name: "Yazboz", 
-    description: "Dijital Skor\nTablosu", 
+    description: "Dijital Skor Tablosu", 
     icon: GameController, 
     iconName: "GameController", 
     color: "#228BE6", 
@@ -88,7 +88,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "iskambil", 
     name: "İskambil", 
-    description: "Oyun Kuralları\nRehberi", 
+    description: "Oyun Kuralları Rehberi", 
     icon: Cards, 
     iconName: "Cards", 
     color: "#e03131", 
@@ -97,7 +97,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "suggest", 
     name: "Suggest", 
-    description: "Arkadaşlarına\nÖner", 
+    description: "Arkadaşlarına Öner", 
     icon: PaperPlaneTilt, 
     iconName: "PaperPlaneTilt", 
     color: "#6366f1", 
@@ -106,7 +106,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "kim-gelir", 
     name: "Ne Yapsak?", 
-    description: "Etkinlik\nPlanla", 
+    description: "Etkinlik Planla", 
     icon: Users, 
     iconName: "Users", 
     color: "#FF5252", 
@@ -115,7 +115,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "workplaces", 
     name: "Workplaces", 
-    description: "Çalışma Alanı\nKeşfet", 
+    description: "Çalışma Alanı Keşfet", 
     icon: Coffee, 
     iconName: "Coffee", 
     color: "#6F4E37", 
@@ -124,7 +124,7 @@ const PROMOTABLE_APPS = [
   { 
     id: "standups", 
     name: "Standups", 
-    description: "Stand-up\nKeşfet", 
+    description: "Stand-up Keşfet", 
     icon: Microphone, 
     iconName: "Microphone", 
     color: "#FFD43B", 
@@ -288,8 +288,8 @@ export default function BusinessPageDashboard() {
             setIsSaving(true);
             await client.business_page.upsertLink({
               businessId: id,
-              title: promoApp.description,
-              subtitle: promoApp.name,
+              title: promoApp.name,
+              subtitle: promoApp.description,
               url: promoApp.url,
               icon: promoApp.iconName,
               sortOrder: links.length
@@ -355,8 +355,8 @@ export default function BusinessPageDashboard() {
       setIsSaving(true);
       await client.business_page.upsertLink({
         businessId: id,
-        title: quickAddApp?.description || app.name,
-        subtitle: app.name,
+        title: app.name,
+        subtitle: quickAddApp?.description || app.description,
         appId: appId,
         url: appUrl,
         icon: quickAddApp?.iconName || "Link",
@@ -529,9 +529,9 @@ export default function BusinessPageDashboard() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h4 className="text-base font-black text-stone-900 truncate">{app.description}</h4>
+                        <h4 className="text-base font-black text-stone-900 truncate">{appInfo?.name}</h4>
                       </div>
-                      <p className="text-xs text-stone-400 truncate font-medium">{appInfo?.name}</p>
+                      <p className="text-xs text-stone-400 truncate font-medium">{app.description}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -599,13 +599,17 @@ export default function BusinessPageDashboard() {
                         </div>
                         
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-base font-black text-stone-900 truncate">{link.title}</h4>
+                        <h4 className="text-base font-black text-stone-900 truncate">
+                          {link.title?.replace("Sadakat Kartı", "Müdavim Kartı")}
+                        </h4>
                         <div className="flex items-center gap-2">
                           <p className="text-xs text-stone-400 truncate font-medium">{link.url}</p>
                           {link.subtitle && (
                             <>
                               <span className="w-1 h-1 rounded-full bg-stone-200" />
-                              <p className="text-xs text-emerald-600 font-bold truncate">{link.subtitle}</p>
+                              <p className="text-xs text-emerald-600 font-bold truncate">
+                                {link.subtitle?.replace("Sadakat Kartı", "Müdavim Kartı")}
+                              </p>
                             </>
                           )}
                         </div>
@@ -665,9 +669,9 @@ export default function BusinessPageDashboard() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <h4 className="text-base font-black text-stone-900 truncate">{app.description}</h4>
+                          <h4 className="text-base font-black text-stone-900 truncate">{app.name}</h4>
                         </div>
-                        <p className="text-xs text-stone-400 truncate font-medium">{app.name}</p>
+                        <p className="text-xs text-stone-400 truncate font-medium">{app.description}</p>
                       </div>
 
                       <div className="flex items-center gap-2">

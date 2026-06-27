@@ -94,7 +94,7 @@ function VenueDetailContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-800 font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased">
       <Toaster position="top-center" />
 
       {/* Header / Cover Image */}
@@ -115,7 +115,7 @@ function VenueDetailContent() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="absolute top-6 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20"
+          className="absolute top-6 left-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 flex items-center justify-center"
         >
           <CaretLeft size={20} weight="bold" />
         </button>

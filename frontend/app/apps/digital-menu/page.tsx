@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   CaretLeft,
+  CaretRight,
   Storefront,
   Sparkle,
   Check,
@@ -20,14 +21,16 @@ import {
   UploadSimple,
   Trash,
   X,
-  ChefHat
+  ChefHat,
+  MapPin
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
-import { digital_menu } from "@/lib/client";
+import { digital_menu, workplaces } from "@/lib/client";
 import { uploadImage } from "@/lib/image";
 import { useRef } from "react";
+import Link from "next/link";
 
 const client = createBrowserClient();
 
@@ -102,12 +105,7 @@ const getGroupedItems = (items: digital_menu.MenuItem[]): GroupedMenuItem[] => {
 };
 
 const getFontClass = (font: string | null | undefined) => {
-  switch (font) {
-    case "serif": return "font-serif";
-    case "mono": return "font-mono";
-    case "display": return "font-black";
-    default: return "font-sans";
-  }
+  return "font-sans";
 };
 
 export default function DigitalMenuPage() {
@@ -117,6 +115,7 @@ export default function DigitalMenuPage() {
   // Business lists
   const [allBusinesses, setAllBusinesses] = useState<digital_menu.Business[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<digital_menu.Business | null>(null);
+  const [associatedPlace, setAssociatedPlace] = useState<workplaces.Place | null>(null);
   const [selectedItem, setSelectedItem] = useState<GroupedMenuItem | null>(null);
   const [isItemDetailOpen, setIsItemDetailOpen] = useState(false);
 
@@ -196,8 +195,17 @@ export default function DigitalMenuPage() {
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
-      if (window.scrollY < 150 && !isScrollingToCategory) {
+      if (window.scrollY < 200 && !isScrollingToCategory) {
         setActiveCategory("all");
+        
+        // Scroll the sticky header back to the start
+        const scrollContainer = document.getElementById('category-scroll-container');
+        if (scrollContainer) {
+          scrollContainer.scrollTo({
+            left: 0,
+            behavior: 'smooth'
+          });
+        }
       }
     };
     window.addEventListener("scroll", handleScroll);
@@ -211,10 +219,18 @@ export default function DigitalMenuPage() {
       const bizRes = await client.digital_menu.getBusiness(bizId);
       if (bizRes.business) {
         setSelectedBusiness(bizRes.business);
-        // Load menu
-        const menuRes = await client.digital_menu.getMenuData(bizId);
+        // Load menu and place
+        const [menuRes, placeRes] = await Promise.all([
+          client.digital_menu.getMenuData(bizId),
+          client.workplaces.listPlacesByBusiness(bizId)
+        ]);
         setMenuCategories(menuRes.categories || []);
         setMenuItems(menuRes.items || []);
+        if (placeRes.places && placeRes.places.length > 0) {
+          setAssociatedPlace(placeRes.places[0]);
+        } else {
+          setAssociatedPlace(null);
+        }
       } else {
         toast.error("İşletme bulunamadı. Genel listeye yönlendiriliyorsunuz.");
         fetchAllBusinesses();
@@ -310,9 +326,17 @@ export default function DigitalMenuPage() {
     setSelectedBusiness(biz);
     try {
       setLoading(true);
-      const menuRes = await client.digital_menu.getMenuData(biz.id);
+      const [menuRes, placeRes] = await Promise.all([
+        client.digital_menu.getMenuData(biz.id),
+        client.workplaces.listPlacesByBusiness(biz.id)
+      ]);
       setMenuCategories(menuRes.categories || []);
       setMenuItems(menuRes.items || []);
+      if (placeRes.places && placeRes.places.length > 0) {
+        setAssociatedPlace(placeRes.places[0]);
+      } else {
+        setAssociatedPlace(null);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -421,6 +445,17 @@ export default function DigitalMenuPage() {
   const scrollToCategory = (categoryId: string) => {
     setActiveCategory(categoryId);
     setIsScrollingToCategory(true);
+
+    // Scroll the sticky header to the active category
+    const navElement = document.getElementById(`nav-item-${categoryId}`);
+    const scrollContainer = document.getElementById('category-scroll-container');
+    if (navElement && scrollContainer) {
+      scrollContainer.scrollTo({
+        left: navElement.offsetLeft - 100,
+        behavior: 'smooth'
+      });
+    }
+
     setTimeout(() => {
       const element = document.getElementById(`category-${categoryId}`);
       if (element) {
@@ -460,8 +495,9 @@ export default function DigitalMenuPage() {
           
           // Scroll the sticky header to the active category
           const navElement = document.getElementById(`nav-item-${categoryId}`);
-          if (navElement) {
-            navElement.parentElement?.scrollTo({
+          const scrollContainer = document.getElementById('category-scroll-container');
+          if (navElement && scrollContainer) {
+            scrollContainer.scrollTo({
               left: navElement.offsetLeft - 100,
               behavior: 'smooth'
             });
@@ -486,16 +522,16 @@ export default function DigitalMenuPage() {
         style={{ backgroundImage: `radial-gradient(${currentThemeColor} 0.5px, transparent 0.5px)`, backgroundSize: '24px 24px' }} 
       />
 
-      <main className="flex-1 max-w-md mx-auto w-full relative z-10">
+      <main className="flex-1 w-full relative z-10">
         
         {/* Navigation & Header */}
         {!selectedBusiness && (
-          <div className="px-6 pt-10 mb-6 flex items-center justify-between">
+          <div className="max-w-md md:max-w-5xl mx-auto px-6 pt-10 mb-6 flex items-center justify-between">
             <button
               onClick={() => {
                 window.location.href = getAppRootUrl();
               }}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-all bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm active:scale-95 text-[11px] font-bold uppercase tracking-wider cursor-pointer"
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-all bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm active:scale-95 text-[11px] font-semibold uppercase tracking-wider cursor-pointer"
             >
               <SquaresFour size={18} weight="bold" />
               <span>Geri</span>
@@ -505,11 +541,11 @@ export default function DigitalMenuPage() {
 
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
-          <div className="px-6 space-y-6 pb-20">
+          <div className="max-w-md md:max-w-5xl mx-auto px-6 space-y-6 pb-20">
             {/* Favorites List */}
             {favoriteBusinesses.length > 0 && (
               <div className="space-y-4">
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {favoriteBusinesses.map((biz) => (
                     <div
                       key={biz.id}
@@ -527,7 +563,7 @@ export default function DigitalMenuPage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                         <div className="absolute bottom-4 left-5 right-4 flex items-end justify-between">
                           <div className="min-w-0">
-                            <h3 className="font-black text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
+                            <h3 className="font-semibold text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
                             {biz.description && (
                               <p className="text-xs text-white/80 truncate font-medium drop-shadow-sm">{biz.description}</p>
                             )}
@@ -551,20 +587,20 @@ export default function DigitalMenuPage() {
               {loading ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-4">
                   <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Yükleniyor</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Yükleniyor</span>
                 </div>
               ) : allBusinesses.length === 0 ? (
                 <div className="py-16 text-center bg-white rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-8">
                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                     <Storefront size={32} className="text-slate-300" />
                   </div>
-                  <p className="text-slate-900 text-sm font-bold mb-1">Henüz İşletme Yok</p>
+                  <p className="text-slate-900 text-sm font-semibold mb-1">Henüz İşletme Yok</p>
                   <p className="text-slate-400 text-xs max-w-[200px] leading-relaxed font-medium">
                     Sistemde henüz kayıtlı bir dijital menü işletmesi bulunmuyor.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {normalBusinesses.map((biz) => (
                     <div
                       key={biz.id}
@@ -582,7 +618,7 @@ export default function DigitalMenuPage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                         <div className="absolute bottom-4 left-5 right-4 flex items-end justify-between">
                           <div className="min-w-0">
-                            <h3 className="font-black text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
+                            <h3 className="font-semibold text-xl text-white truncate tracking-tight drop-shadow-sm">{biz.name}</h3>
                             {biz.description && (
                               <p className="text-xs text-white/80 truncate font-medium drop-shadow-sm">{biz.description}</p>
                             )}
@@ -606,83 +642,95 @@ export default function DigitalMenuPage() {
           <div className="flex flex-col pb-32">
             
             {/* STICKY CATEGORY NAV (HEADER STYLE) */}
-            <div className="sticky top-[-1px] z-40 bg-[#FDFBF9] border-b border-stone-200/60 shadow-sm will-change-transform flex items-center">
-              {/* Fixed Left Part: Digital Menu Logo */}
-              <div className="shrink-0 flex items-center h-16 px-4 bg-[#FDFBF9] border-r border-stone-200/60 z-10">
-                <div className="w-9 h-9 rounded-xl bg-[#EF4444] flex items-center justify-center shadow-md shadow-red-200/50">
-                  <ChefHat size={20} weight="fill" className="text-white" />
-                </div>
-              </div>
-
-              {/* Scrolling Right Part: Categories */}
-              <div className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-16">
-                <button
-                  onClick={() => {
-                    setActiveCategory("all");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
-                    activeCategory === "all" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
-                    <SquaresFour size={14} weight="bold" className="text-stone-600" />
+            <div className="sticky top-[-1px] z-40 bg-[#FDFBF9] border-b border-stone-200/60 shadow-sm will-change-transform w-full">
+              <div className="flex items-center w-full">
+                {/* Fixed Left Part: Digital Menu Logo */}
+                <div className="shrink-0 flex items-center h-16 px-4 bg-[#FDFBF9] border-r border-stone-200/60 z-10">
+                  <div className="w-9 h-9 rounded-xl bg-[#EF4444] flex items-center justify-center shadow-md shadow-red-200/50">
+                    <ChefHat size={20} weight="fill" className="text-white" />
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-tight text-stone-800">KATEGORİLER</span>
-                </button>
+                </div>
 
-                {menuCategories.map((cat) => {
-                  const img = cat.image_url || getCategoryImageUrl(cat.name);
-                  const isActive = activeCategory === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      id={`nav-item-${cat.id}`}
-                      onClick={() => scrollToCategory(cat.id)}
-                      className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
-                        isActive 
-                          ? "bg-[#F5F1E9] border-b-2 border-stone-800" 
-                          : "opacity-60 hover:opacity-100"
-                      }`}
-                    >
-                      <div 
-                        className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 ${
-                          isActive ? "shadow-sm ring-1 ring-stone-200" : "border border-stone-200"
+                {/* Scrolling Right Part: Categories */}
+                <div id="category-scroll-container" className="flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-1 h-16 relative">
+                  <button
+                    id="nav-item-all"
+                    onClick={() => {
+                      setActiveCategory("all");
+                      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
+                      activeCategory === "all" ? "bg-[#F5F1E9] border-b-2 border-stone-800" : "opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center border border-stone-200 shadow-sm">
+                      <SquaresFour size={14} weight="bold" className="text-stone-600" />
+                    </div>
+                    <span className="text-[7px] font-semibold uppercase tracking-tight text-stone-800">KATEGORİLER</span>
+                  </button>
+
+                  {menuCategories.map((cat) => {
+                    const img = cat.image_url || getCategoryImageUrl(cat.name);
+                    const isActive = activeCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        id={`nav-item-${cat.id}`}
+                        onClick={() => scrollToCategory(cat.id)}
+                        className={`flex flex-col items-center justify-center gap-1 shrink-0 px-4 h-full transition-all ${
+                          isActive 
+                            ? "bg-[#F5F1E9] border-b-2 border-stone-800" 
+                            : "opacity-60 hover:opacity-100"
                         }`}
                       >
-                        <img src={img} alt={cat.name} className="w-full h-full object-cover" />
-                      </div>
-                      <span className={`text-[7px] font-black uppercase tracking-tight text-center w-14 truncate transition-colors text-stone-800`}>
-                        {cat.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <div 
+                          className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 ${
+                            isActive ? "shadow-sm ring-1 ring-stone-200" : "border border-stone-200"
+                          }`}
+                        >
+                          <img src={img} alt={cat.name} className="w-full h-full object-cover" />
+                        </div>
+                        <span className={`text-[7px] font-semibold uppercase tracking-tight text-center w-14 truncate transition-colors text-stone-800`}>
+                          {cat.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Main Header Banner */}
-            <div className="px-4 mt-6 mb-8">
-              <div className="relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-48 shrink-0">
+            <div className="max-w-md md:max-w-5xl mx-auto w-full">
+              {/* Main Header Banner */}
+              <div className="px-4 mt-6 mb-8">
+              <Link 
+                href={`/place?slug=${selectedBusiness.id}`}
+                className="block relative rounded-[2.5rem] overflow-hidden bg-stone-900 border border-stone-200/80 shadow-lg h-48 md:h-64 shrink-0 active:scale-[0.98] transition-transform"
+              >
                 <img
                   src={selectedBusiness.header_url || selectedBusiness.logo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80"}
                   alt={selectedBusiness.name}
                   className="w-full h-full object-cover opacity-60"
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[1px] p-4 text-center">
-                  <h2 className="font-serif font-black text-white text-xl tracking-wide drop-shadow-lg">{selectedBusiness.name}</h2>
-                  <p className="text-[10px] text-white/90 font-bold uppercase tracking-[0.2em] mt-2 drop-shadow-md">{selectedBusiness.description || "Hoş Geldiniz"}</p>
+                  <h2 className="font-sans font-semibold text-white text-xl tracking-tight drop-shadow-lg">{selectedBusiness.name}</h2>
+                  <p className="text-[10px] text-white/90 font-semibold uppercase tracking-[0.2em] mt-2 drop-shadow-md mb-4">{selectedBusiness.description || "Hoş Geldiniz"}</p>
+                  
+                  <div className="bg-white/20 backdrop-blur-md border border-white/30 px-4 py-1.5 rounded-full flex items-center gap-2 group-hover:bg-white/30 transition-all">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider">More</span>
+                    <CaretRight size={12} weight="bold" className="text-white" />
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Category Grid */}
             <div className="px-4 mb-12">
               <div className="flex justify-between items-center px-1 mb-6">
-                <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Kategoriler</h3>
+                <h3 className="text-[10px] font-semibold text-stone-400 uppercase tracking-widest">Kategoriler</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6">
                 {menuCategories.map((cat) => {
                   const img = cat.image_url || getCategoryImageUrl(cat.name);
                   return (
@@ -691,10 +739,10 @@ export default function DigitalMenuPage() {
                       onClick={() => scrollToCategory(cat.id)}
                       className="flex flex-col gap-2 cursor-pointer group hover:-translate-y-0.5 transition-all"
                     >
-                      <div className="h-28 w-full rounded-2xl overflow-hidden shadow-sm border border-stone-200/40 relative">
+                      <div className="h-28 md:h-40 w-full rounded-2xl overflow-hidden shadow-sm border border-stone-200/40 relative">
                         <img src={img} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <span className="font-serif font-black text-stone-800 text-xs uppercase tracking-wider text-center block">
+                      <span className="font-sans font-semibold text-stone-800 text-xs tracking-tight text-center block">
                         {cat.name}
                       </span>
                     </div>
@@ -713,14 +761,14 @@ export default function DigitalMenuPage() {
                   <section key={cat.id} id={`category-${cat.id}`} className="scroll-mt-28 space-y-8">
                     {/* Category Header */}
                     <div className="flex items-start gap-4 px-1">
-                      <h3 className="font-serif font-black text-xl uppercase tracking-wider" style={{ color: currentThemeColor }}>
+                      <h3 className="font-sans font-semibold text-xl tracking-tight" style={{ color: currentThemeColor }}>
                         {cat.name}
                       </h3>
                       <div className="h-[1px] flex-1 bg-stone-200/60 mt-4" />
                     </div>
 
                     {/* Standard List with Integrated Images */}
-                    <div className="space-y-12 px-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12 px-1">
                       {allGroupedItems.map((group) => (
                         <div 
                           key={group.baseName} 
@@ -738,14 +786,14 @@ export default function DigitalMenuPage() {
                           <div className="flex-1 min-w-0 space-y-1.5">
                             <div className="flex justify-between items-start gap-4">
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-serif font-black text-sm uppercase tracking-wide leading-tight text-stone-800 line-clamp-2">
+                                <h4 className="font-sans font-semibold text-sm tracking-tight leading-tight text-stone-800 line-clamp-2">
                                   {group.baseName}
                                 </h4>
                               </div>
                               
                               <div className="flex items-center gap-3 shrink-0 pt-0.5">
                                 {group.variations.length === 1 && !group.variations[0].optionName && (
-                                  <span className="font-serif font-black text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
+                                  <span className="font-sans font-semibold text-sm whitespace-nowrap" style={{ color: currentThemeColor }}>
                                     {group.variations[0].price.toFixed(2)} ₺
                                   </span>
                                 )}
@@ -767,9 +815,9 @@ export default function DigitalMenuPage() {
                               <div className="space-y-1.5 pt-1">
                                 {group.variations.map((v) => (
                                   <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
-                                    <span className="font-serif font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
+                                    <span className="font-sans font-medium text-stone-600 shrink-0">{v.optionName || "Porsiyon"}</span>
                                     <div className="flex-1 border-b border-dashed border-stone-200 h-3 mx-1" />
-                                    <span className="font-serif font-black shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                                    <span className="font-sans font-semibold shrink-0" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
                                   </div>
                                 ))}
                               </div>
@@ -782,9 +830,9 @@ export default function DigitalMenuPage() {
                 );
               })}
             </div>
-            
           </div>
-        )}
+        </div>
+      )}
 
       </main>
 
@@ -802,7 +850,7 @@ export default function DigitalMenuPage() {
       {/* Item Detail Drawer */}
       <Drawer.Root open={isItemDetailOpen} onOpenChange={setIsItemDetailOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/70 z-[60]" />
           <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-md mx-auto border-t border-stone-200 shadow-2xl overflow-hidden">
             <div className="p-0 overflow-y-auto">
               {selectedItem && (
@@ -835,11 +883,11 @@ export default function DigitalMenuPage() {
                   <div className={`px-8 space-y-6 ${selectedItem.image_url ? 'mt-8' : 'mt-16'}`}>
                     <div className="space-y-2">
                       <div className="flex justify-between items-start gap-4">
-                        <h2 className="text-2xl font-serif font-black text-stone-900 uppercase tracking-tight leading-tight">
+                        <h2 className="text-2xl font-sans font-semibold text-stone-900 uppercase tracking-tight leading-tight">
                           {selectedItem.baseName}
                         </h2>
                         {selectedItem.variations.length === 1 && !selectedItem.variations[0].optionName && (
-                          <span className="text-xl font-serif font-black shrink-0" style={{ color: currentThemeColor }}>
+                          <span className="text-xl font-sans font-semibold shrink-0" style={{ color: currentThemeColor }}>
                             {selectedItem.variations[0].price.toFixed(2)} ₺
                           </span>
                         )}
@@ -847,7 +895,7 @@ export default function DigitalMenuPage() {
                       
                       <div className="flex gap-2">
                         {selectedItem.dietary_flags.map((flag) => (
-                          <span key={flag} className="px-2 py-1 bg-stone-100 rounded-lg text-[10px] font-black uppercase tracking-wider text-stone-500">
+                          <span key={flag} className="px-2 py-1 bg-stone-100 rounded-lg text-[10px] font-semibold uppercase tracking-wider text-stone-500">
                             {flag === "vegan" ? "🌱 VEGAN" : flag === "gluten-free" ? "🌾 GLUTEN-FREE" : flag}
                           </span>
                         ))}
@@ -856,7 +904,7 @@ export default function DigitalMenuPage() {
 
                     {selectedItem.description && (
                       <div className="space-y-2">
-                        <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">İçerik & Detaylar</h4>
+                        <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em]">İçerik & Detaylar</h4>
                         <p className="text-sm text-stone-600 font-medium leading-relaxed">
                           {selectedItem.description}
                         </p>
@@ -865,12 +913,12 @@ export default function DigitalMenuPage() {
 
                     {(selectedItem.variations.length > 1 || (selectedItem.variations.length === 1 && selectedItem.variations[0].optionName)) && (
                       <div className="space-y-4">
-                        <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Seçenekler</h4>
+                        <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em]">Seçenekler</h4>
                         <div className="space-y-3">
                           {selectedItem.variations.map((v) => (
                             <div key={v.id} className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-100">
-                              <span className="font-serif font-bold text-stone-800">{v.optionName || "Porsiyon"}</span>
-                              <span className="font-serif font-black" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
+                              <span className="font-sans font-semibold text-stone-800">{v.optionName || "Porsiyon"}</span>
+                              <span className="font-sans font-semibold" style={{ color: currentThemeColor }}>{v.price.toFixed(2)} ₺</span>
                             </div>
                           ))}
                         </div>
@@ -887,41 +935,41 @@ export default function DigitalMenuPage() {
       {/* Create Business Drawer */}
       <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/70 z-[60]" />
           <Drawer.Content className="bg-white flex flex-col rounded-t-[3rem] fixed bottom-0 left-0 right-0 max-h-[92vh] outline-none z-[70] max-w-md mx-auto border-t border-stone-200 shadow-2xl">
             <div className="p-6 overflow-y-auto">
               <div className="mx-auto w-12 h-1 bg-stone-200 rounded-full mb-6" />
-              <Drawer.Title className="text-xl font-black text-stone-900 tracking-tight mb-1">
+              <Drawer.Title className="text-xl font-semibold text-stone-900 tracking-tight mb-1">
                 İŞLETME <span className="text-red-500">EKLE</span>
               </Drawer.Title>
-              <Drawer.Description className="text-stone-400 text-[9px] font-black uppercase tracking-wider mb-6">
+              <Drawer.Description className="text-stone-400 text-[9px] font-semibold uppercase tracking-wider mb-6">
                 Yeni dükkanınız için işletme profili oluşturun
               </Drawer.Description>
 
               <form onSubmit={handleCreateBusiness} className="space-y-4 pb-12">
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Adı</label>
+                  <label className="text-[9px] uppercase font-semibold text-stone-400 tracking-wider">İşletme Adı</label>
                   <input
                     required
                     placeholder="Brew Lab Coffee"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-semibold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Açıklama / Slogan</label>
+                  <label className="text-[9px] uppercase font-semibold text-stone-400 tracking-wider">Açıklama / Slogan</label>
                   <input
                     placeholder="En taze gurme kahveler ve el yapımı kruvasanlar"
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-bold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-semibold text-stone-850 focus:border-red-500 focus:bg-white outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">İşletme Logosu</label>
+                  <label className="text-[9px] uppercase font-semibold text-stone-400 tracking-wider">İşletme Logosu</label>
                   <div className="flex items-center gap-4 bg-stone-50 border border-stone-200 rounded-2xl p-3">
                     <div className="w-14 h-14 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
                       {newLogo ? (
@@ -955,7 +1003,7 @@ export default function DigitalMenuPage() {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploadingLogo}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-semibold uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
                       >
                         <UploadSimple size={14} weight="bold" />
                         {newLogo ? "Logoyu Değiştir" : "Logo Seç"}
@@ -965,7 +1013,7 @@ export default function DigitalMenuPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider">Geniş Logo / Banner (Opsiyonel)</label>
+                  <label className="text-[9px] uppercase font-semibold text-stone-400 tracking-wider">Geniş Logo / Banner (Opsiyonel)</label>
                   <div className="flex flex-col gap-3 bg-stone-50 border border-stone-200 rounded-2xl p-3">
                     <div className="w-full h-24 rounded-xl bg-white border border-stone-150 flex items-center justify-center overflow-hidden shrink-0 relative group shadow-sm">
                       {newHeader ? (
@@ -999,7 +1047,7 @@ export default function DigitalMenuPage() {
                         type="button"
                         onClick={() => headerInputRef.current?.click()}
                         disabled={uploadingHeader}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-200 rounded-xl text-[9px] font-semibold uppercase tracking-widest hover:bg-stone-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
                       >
                         <UploadSimple size={14} weight="bold" />
                         {newHeader ? "Görseli Değiştir" : "Geniş Logo Seç"}
@@ -1009,7 +1057,7 @@ export default function DigitalMenuPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-black text-stone-400 tracking-wider block mb-1">Tema Rengi</label>
+                  <label className="text-[9px] uppercase font-semibold text-stone-400 tracking-wider block mb-1">Tema Rengi</label>
                   <div className="flex gap-2">
                     {["#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#845EF7", "#EC4899"].map((color) => (
                       <button
@@ -1027,7 +1075,7 @@ export default function DigitalMenuPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-md transition-all active:scale-98 mt-4"
+                  className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-4 rounded-2xl text-xs uppercase tracking-widest shadow-md transition-all active:scale-98 mt-4"
                 >
                   İşletmeyi Kaydet
                 </button>

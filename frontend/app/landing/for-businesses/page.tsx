@@ -50,7 +50,7 @@ export default function ForBusinessesPage() {
     },
     {
       icon: <Cards size={32} weight="duotone" className="text-rose-600" />,
-      title: "Sadakat Kartı",
+      title: "Müdavim Kartı",
       description: "“8 kahve al, 1 kahve bizden” gibi kampanyaları dijital hale getirin. Müşteri kart kaybetmeden damga toplasın."
     },
     {
@@ -69,7 +69,7 @@ export default function ForBusinessesPage() {
       features: [
         "Dijital vitrin",
         "Dijital menü",
-        "Sadakat kartı",
+        "Müdavim kartı",
         "Kampanya alanı",
         "Feedback alanı",
         "QR kod",
@@ -271,7 +271,7 @@ export default function ForBusinessesPage() {
               </p>
             </motion.div>
 
-            {/* Sadakat Kartı */}
+            {/* Müdavim Kartı */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
               className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all group flex flex-col h-full"
@@ -285,7 +285,7 @@ export default function ForBusinessesPage() {
                 </div>
                 <Cards size={80} className="absolute -bottom-4 -right-4 text-rose-200/50 -rotate-12" />
               </div>
-              <h3 className="text-xl font-[1000] mb-3">Sadakat Kartı</h3>
+              <h3 className="text-xl font-[1000] mb-3">Müdavim Kartı</h3>
               <p className="text-gray-500 font-medium text-sm leading-relaxed">
                 “8 kahve al, 1 kahve bizden” gibi kampanyaları dijital hale getirin. Müşteri kart kaybetmeden damga toplasın.
               </p>
@@ -345,7 +345,7 @@ export default function ForBusinessesPage() {
             </h2>
             <div className="space-y-6 text-lg text-indigo-50 font-medium leading-relaxed">
               <p>
-                Everything, farklı ihtiyaçlar için geliştirilen modüllerden oluşan bir ekosistemdir. İşletmeniz bu ekosistemin içinde dijital menü, kampanya, sadakat kartı, müşteri geri bildirimi ve keşif alanlarıyla daha görünür hale gelir.
+                Everything, farklı ihtiyaçlar için geliştirilen modüllerden oluşan bir ekosistemdir. İşletmeniz bu ekosistemin içinde dijital menü, kampanya, müdavim kartı, müşteri geri bildirimi ve keşif alanlarıyla daha görünür hale gelir.
               </p>
               <p className="font-black text-white">
                 Bugün dijital vitrininizi kurarsınız. Yarın yeni modüllerle işletmenizi daha fazla noktada gösterebilirsiniz.

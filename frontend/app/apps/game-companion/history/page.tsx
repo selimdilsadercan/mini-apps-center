@@ -17,7 +17,6 @@ const client = createBrowserClient();
 export default function HistoryPage() {
   const { user: clerkUser, isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const router = useRouter();
-  const resolvedTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
 
@@ -80,18 +79,6 @@ export default function HistoryPage() {
   const handleGameClick = (gameSaveId: string) => {
     router.push(`/apps/game-companion/game-session?gameSaveId=${gameSaveId}`);
   };
-
-  const allPlayerIds = gameSaves
-    ? Array.from(
-        new Set(
-          gameSaves.flatMap((gs: any) => [
-            ...(gs.players || []),
-            ...(gs.redTeam || []),
-            ...(gs.blueTeam || []),
-          ]),
-        ),
-      )
-    : [];
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -175,16 +162,9 @@ export default function HistoryPage() {
       .filter(Boolean);
   };
 
-  const getGameName = (gameTemplateId: string) => {
-    if (!games) return "Oyun";
-    const game = games.find((g: any) => g._id === gameTemplateId);
-    return game?.name || "Oyun";
-  };
-
   return (
     <div
-      className="min-h-screen pb-20 lg:pb-0"
-      style={{ backgroundColor: "var(--background)" }}
+      className="min-h-screen pb-20 lg:pb-0 bg-[#FAF9F7]"
     >
       {/* Header for mobile screens */}
       <div className="lg:hidden">
@@ -197,7 +177,7 @@ export default function HistoryPage() {
       {/* Main content area */}
       <div className="lg:ml-64">
         {/* Main Content */}
-        <div className="px-4 py-6 pt-20 lg:pt-6">
+        <div className="px-4 py-6 pt-24 lg:pt-6">
           {/* Game History List */}
           <div className="space-y-6">
             {gameSaves === undefined ? (
@@ -205,20 +185,14 @@ export default function HistoryPage() {
               Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="bg-white dark:bg-[var(--card-background)] rounded-lg p-4 flex items-center justify-between"
-                  style={{
-                    boxShadow:
-                      resolvedTheme === "dark"
-                        ? "none"
-                        : "0 0 8px 5px #297dff0a",
-                  }}
+                  className="bg-white rounded-xl p-4 flex items-center justify-between border border-gray-200/50 shadow-sm"
                 >
                   <div className="flex-1">
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32 mb-2"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48 mb-1"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-40"></div>
+                    <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-48 mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-40"></div>
                   </div>
-                  <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               ))
             ) : gameSaves.length > 0 ? (
@@ -227,13 +201,11 @@ export default function HistoryPage() {
                 return Object.entries(groupedGameSaves).map(
                   ([groupName, groupGameSaves]) => (
                     <div key={groupName} className="space-y-3">
-                      <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 px-2">
+                      <h2 className="text-sm font-black text-gray-400 px-2 uppercase tracking-widest">
                         {groupName}
                       </h2>
                       <div className="space-y-2">
                         {groupGameSaves.map((gameSave) => {
-                          const gameName = getGameName(gameSave.gameTemplate);
-                          // Get all players from the game save (including teams)
                           const allPlayerIdsInGame = [
                             ...(gameSave.players || []),
                             ...(gameSave.redTeam || []),
@@ -246,8 +218,6 @@ export default function HistoryPage() {
                           // Oyunculara skor/puan ekle
                           const playerData = getPlayerData(uniquePlayerIds).map(
                             (player) => {
-                              // gameSave'de playerScores, scores, puanlar veya benzeri bir alan varsa buradan çek
-                              // Örnek: gameSave.scores = [{playerId, score}]
                               let score = null;
                               if (
                                 gameSave.scores &&
@@ -258,7 +228,6 @@ export default function HistoryPage() {
                                 );
                                 if (found) score = found.score;
                               }
-                              // Alternatif olarak gameSave.puanlar veya player.puan/score
                               if (
                                 score == null &&
                                 gameSave.puanlar &&
@@ -269,13 +238,9 @@ export default function HistoryPage() {
                                 );
                                 if (found) score = found.puan;
                               }
-                              // Eğer player objesinde score/puan varsa onu da kullan
                               score = score ?? player.score ?? player.puan ?? 0;
                               return { ...player, score };
                             },
-                          );
-                          const formattedDate = formatDate(
-                            gameSave.createdTime,
                           );
 
                           return (
@@ -297,13 +262,13 @@ export default function HistoryPage() {
               })()
             ) : (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-gray-400 text-2xl">📊</span>
                 </div>
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
                   Henüz oyun geçmişi yok
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-gray-500 font-medium">
                   İlk oyununuzu oluşturarak başlayın
                 </p>
               </div>
