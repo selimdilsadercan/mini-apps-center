@@ -66,6 +66,7 @@ export default class Client {
     public readonly scrape: scrape.ServiceClient
     public readonly series_track: series_track.ServiceClient
     public readonly stamp_card: stamp_card.ServiceClient
+    public readonly standups: standups.ServiceClient
     public readonly storage: storage.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
@@ -124,6 +125,7 @@ export default class Client {
         this.scrape = new scrape.ServiceClient(base)
         this.series_track = new series_track.ServiceClient(base)
         this.stamp_card = new stamp_card.ServiceClient(base)
+        this.standups = new standups.ServiceClient(base)
         this.storage = new storage.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
@@ -5351,6 +5353,160 @@ export namespace stamp_card {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/stamp-card/reward/use`, JSON.stringify(params))
             return await resp.json() as UseRewardResponse
+        }
+    }
+}
+
+export namespace standups {
+    export interface Comedian {
+        id: string
+        "business_id": string | null
+        name: string
+        bio: string | null
+        "image_url": string | null
+        "youtube_channel_id": string | null
+        "instagram_username": string | null
+        "created_at": string
+    }
+
+    export interface ComedianDetailsResponse {
+        comedian: Comedian
+        shows: Show[]
+        videos: Video[]
+    }
+
+    export interface ListComediansResponse {
+        comedians: Comedian[]
+    }
+
+    export interface ListShowsResponse {
+        shows: Show[]
+    }
+
+    export interface Show {
+        id: string
+        "comedian_id": string
+        "venue_business_id": string | null
+        "venue_name": string | null
+        title: string
+        description: string | null
+        "show_date": string
+        "ticket_url": string | null
+        "created_at": string
+        comedian?: Comedian
+    }
+
+    export interface Video {
+        id: string
+        "comedian_id": string
+        "youtube_video_id": string
+        title: string | null
+        "thumbnail_url": string | null
+        "created_at": string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addVideo = this.addVideo.bind(this)
+            this.getComedianDetails = this.getComedianDetails.bind(this)
+            this.listComedians = this.listComedians.bind(this)
+            this.listUpcomingShows = this.listUpcomingShows.bind(this)
+            this.upsertComedian = this.upsertComedian.bind(this)
+            this.upsertShow = this.upsertShow.bind(this)
+        }
+
+        /**
+         * Add a video to a comedian
+         */
+        public async addVideo(params: {
+    "comedian_id": string
+    "youtube_video_id": string
+    title?: string
+    "thumbnail_url"?: string
+}): Promise<{
+    video: Video
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/standups/video`, JSON.stringify(params))
+            return await resp.json() as {
+    video: Video
+}
+        }
+
+        /**
+         * Get comedian details with shows and videos
+         */
+        public async getComedianDetails(id: string): Promise<ComedianDetailsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/standups/comedian/${encodeURIComponent(id)}`)
+            return await resp.json() as ComedianDetailsResponse
+        }
+
+        /**
+         * List all comedians
+         */
+        public async listComedians(): Promise<ListComediansResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/standups/comedians`)
+            return await resp.json() as ListComediansResponse
+        }
+
+        /**
+         * Get all upcoming shows
+         */
+        public async listUpcomingShows(): Promise<ListShowsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/standups/shows`)
+            return await resp.json() as ListShowsResponse
+        }
+
+        /**
+         * Create or update a comedian (Admin/Business owner)
+         */
+        public async upsertComedian(params: {
+    id?: string
+    "business_id"?: string | null
+    name: string
+    bio?: string | null
+    "image_url"?: string | null
+    "youtube_channel_id"?: string | null
+    "instagram_username"?: string | null
+    "created_at"?: string
+}): Promise<{
+    comedian: Comedian
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/standups/comedian`, JSON.stringify(params))
+            return await resp.json() as {
+    comedian: Comedian
+}
+        }
+
+        /**
+         * Create or update a show
+         */
+        public async upsertShow(params: {
+    id?: string
+    "comedian_id": string
+    "venue_business_id"?: string | null
+    "venue_name"?: string | null
+    title: string
+    description?: string | null
+    "show_date": string
+    "ticket_url"?: string | null
+    "created_at"?: string
+    comedian?: Comedian
+}): Promise<{
+    show: Show
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/standups/show`, JSON.stringify(params))
+            return await resp.json() as {
+    show: Show
+}
         }
     }
 }

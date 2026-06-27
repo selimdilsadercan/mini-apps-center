@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   ChatTeardropDots,
   MagnifyingGlass,
-  Star,
   UserCircle
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo } from "react";
@@ -21,7 +20,7 @@ import { useTranslations } from "@/contexts/LanguageContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useHome } from "@/contexts/HomeContext";
 
-type TabType = "for-you" | "favorites";
+type TabType = "all" | "favorites";
 
 export default function Home() {
   const { isLoaded, user } = useUser();
@@ -40,7 +39,7 @@ export default function Home() {
     togglePin: contextTogglePin 
   } = useHome();
 
-  const [activeTab, setActiveTab] = useState<TabType>("for-you");
+  const [activeTab, setActiveTab] = useState<TabType>("all");
   const [apps, setApps] = useState<MiniApp[]>([]);
 
   useEffect(() => {
@@ -48,39 +47,10 @@ export default function Home() {
     setApps(implementedApps);
   }, []);
 
-  // Smarter Ranking Algorithm
-  const sortedApps = useMemo(() => {
-    return [...apps].sort((a, b) => {
-      // 1. Calculate scores for "Senin İçin"
-      const getScore = (appId: string) => {
-        const count = usageCounts[appId] || 0;
-        const lastTime = lastUsed[appId] || 0;
-        const now = Date.now();
-        
-        // Recency factor: How many hours ago was it used? (Max 1 week)
-        const hoursAgo = Math.min((now - lastTime) / (1000 * 60 * 60), 168);
-        const recencyScore = Math.max(0, 1 - hoursAgo / 168); // 1 to 0
-
-        // Frequency factor: Logarithmic scale to prevent massive jumps
-        const frequencyScore = Math.log10(count + 1);
-
-        // Final score: 70% recency, 30% frequency
-        return (recencyScore * 0.7) + (frequencyScore * 0.3);
-      };
-
-      const scoreA = getScore(a.id);
-      const scoreB = getScore(b.id);
-
-      return scoreB - scoreA;
-    });
-  }, [apps, lastUsed, usageCounts]);
-
-  // "Favoriler" grouping
-  const favoriteAppsGrouped = useMemo(() => {
-    const pinned = apps.filter(app => pinnedIds.includes(app.id));
+  // Group apps by category
+  const groupedApps = useMemo(() => {
     const grouped: Record<string, MiniApp[]> = {};
     
-    // Define the category order based on docs/apps.md
     const categoryOrder = [
       "Sosyal & Etkinlik",
       "Şehrini Keşfet",
@@ -90,17 +60,20 @@ export default function Home() {
       "Kampüslülere Özel"
     ];
 
-    pinned.forEach(app => {
+    apps.forEach(app => {
       if (!grouped[app.category]) grouped[app.category] = [];
       grouped[app.category].push(app);
     });
 
-    // Sort the grouped entries based on categoryOrder
     return Object.entries(grouped).sort(([catA], [catB]) => {
       const indexA = categoryOrder.indexOf(catA);
       const indexB = categoryOrder.indexOf(catB);
       return (indexA > -1 ? indexA : 99) - (indexB > -1 ? indexB : 99);
     });
+  }, [apps]);
+
+  const pinnedApps = useMemo(() => {
+    return apps.filter(app => pinnedIds.includes(app.id));
   }, [apps, pinnedIds]);
 
   const handleAppClick = (app: MiniApp) => {
@@ -151,9 +124,9 @@ export default function Home() {
         {/* Pills (Tabs) */}
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => setActiveTab("for-you")}
+            onClick={() => setActiveTab("all")}
             className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
-              activeTab === "for-you" 
+              activeTab === "all" 
                 ? "bg-gray-900 text-white shadow-lg shadow-gray-200" 
                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
             }`}
@@ -203,24 +176,33 @@ export default function Home() {
 
         {/* Main Content Area */}
         <AnimatePresence mode="wait">
-          {activeTab === "for-you" ? (
+          {activeTab === "all" ? (
             <motion.div
-              key="for-you"
+              key="all"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="space-y-0"
+              className="space-y-10 mt-8"
             >
-              {sortedApps.map((app, index) => (
-                <AppRow 
-                  key={app.id} 
-                  app={app} 
-                  index={index} 
-                  tApps={tApps}
-                  isPinned={pinnedIds.includes(app.id)}
-                  onPin={(e) => togglePin(e, app.id)}
-                  onClick={() => handleAppClick(app)}
-                />
+              {groupedApps.map(([category, categoryApps]) => (
+                <section key={category} className="space-y-3">
+                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] px-1">
+                    {category}
+                  </h2>
+                  <div className="space-y-0">
+                    {categoryApps.map((app, index) => (
+                      <AppRow 
+                        key={app.id} 
+                        app={app} 
+                        index={index} 
+                        tApps={tApps}
+                        isPinned={pinnedIds.includes(app.id)}
+                        onPin={(e) => togglePin(e, app.id)}
+                        onClick={() => handleAppClick(app)}
+                      />
+                    ))}
+                  </div>
+                </section>
               ))}
             </motion.div>
           ) : (
@@ -229,32 +211,25 @@ export default function Home() {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="space-y-8"
+              className="space-y-8 mt-8"
             >
-              {favoriteAppsGrouped.length > 0 ? (
-                favoriteAppsGrouped.map(([category, categoryApps]) => (
-                  <div key={category} className="space-y-2">
-                    <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">
-                      {category}
-                    </h2>
-                    <div className="space-y-0">
-                      {categoryApps.map((app, index) => (
-                        <AppRow 
-                          key={app.id} 
-                          app={app} 
-                          index={index} 
-                          tApps={tApps}
-                          isPinned={true}
-                          onPin={(e) => togglePin(e, app.id)}
-                          onClick={() => handleAppClick(app)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))
+              {pinnedApps.length > 0 ? (
+                <div className="space-y-0">
+                  {pinnedApps.map((app, index) => (
+                    <AppRow 
+                      key={`fav-${app.id}`} 
+                      app={app} 
+                      index={index} 
+                      tApps={tApps}
+                      isPinned={true}
+                      onPin={(e) => togglePin(e, app.id)}
+                      onClick={() => handleAppClick(app)}
+                    />
+                  ))}
+                </div>
               ) : (
                 <div className="py-20 text-center">
-                  <Star size={40} weight="light" className="mx-auto text-gray-200 mb-4" />
+                  <Heart size={40} weight="light" className="mx-auto text-gray-200 mb-4" />
                   <p className="text-gray-400 text-sm font-medium">Henüz favori uygulaman yok.</p>
                 </div>
               )}

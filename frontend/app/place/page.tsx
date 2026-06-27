@@ -20,7 +20,8 @@ import {
   ChatTeardropDots,
   PaperPlaneTilt,
   Users,
-  SealCheck
+  SealCheck,
+  Microphone
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { business_page } from "@/lib/client";
@@ -45,6 +46,7 @@ const ICON_MAP: Record<string, any> = {
   ChatTeardropDots,
   PaperPlaneTilt,
   Users,
+  Microphone: Microphone
 };
 
 const SOCIAL_CONFIG = [
@@ -63,6 +65,7 @@ const PROMOTABLE_APPS = [
   { id: "suggest", name: "Suggest", description: "Arkadaşlarına\nÖner", color: "#6366f1", url: "https://suggest.allminiapps.com" },
   { id: "kim-gelir", name: "Ne Yapsak?", description: "Etkinlik\nPlanla", color: "#FF5252", url: "https://kimgelir.allminiapps.com" },
   { id: "workplaces", name: "Workplaces", description: "Çalışma Alanı\nKeşfet", color: "#6F4E37", url: "https://workplaces.allminiapps.com" },
+  { id: "standups", name: "Standups", description: "Stand-up\nKeşfet", color: "#FFD43B", url: "https://standups.allminiapps.com" },
 ];
 
 export default function PublicBusinessPage() {

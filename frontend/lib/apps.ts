@@ -31,6 +31,7 @@ import {
   Megaphone,
   ChatTeardropDots,
   Storefront,
+  Microphone,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -125,6 +126,21 @@ export function navigateToMiniApp(
 }
 
 const RAW_MINI_APPS: MiniApp[] = [
+  {
+    id: "standups",
+    name: "Standups",
+    description: "Stand-up gösterilerini takip et, bilet al ve özel içerikleri izle.",
+    icon: Microphone,
+    category: "Eğlence & Hobi",
+    color: "#FFD43B",
+    href: "/apps/standups",
+    isImplemented: true,
+    subdomain: "standups",
+    statusBarColor: "#09090b",
+    statusBarStyle: "dark",
+    navigationBarColor: "#09090b",
+    navigationBarStyle: "dark",
+  },
   {
     id: "campus-events",
     name: "Events",
@@ -776,6 +792,17 @@ const RAW_BUSINESS_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "tutorplace",
     isCancelled: true,
+  },
+  {
+    id: "standups",
+    name: "Standups",
+    description: "Komedyenleri ve gösterileri yönetin, içerik ekleyin.",
+    icon: Microphone,
+    category: "Eğlence & Hobi",
+    color: "#FFD43B",
+    href: "/apps/standups",
+    isImplemented: true,
+    subdomain: "standups",
   },
 ];
 

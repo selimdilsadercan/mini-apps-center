@@ -32,7 +32,8 @@ import {
   PaperPlaneTilt,
   Users,
   SealCheck,
-  ShareNetwork
+  ShareNetwork,
+  Microphone
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { toast } from "react-hot-toast";
@@ -61,12 +62,14 @@ const PRESET_ICONS = [
   { name: "ChatTeardropDots", icon: ChatTeardropDots },
   { name: "PaperPlaneTilt", icon: PaperPlaneTilt },
   { name: "Users", icon: Users },
+  { name: "Microphone", icon: Microphone },
 ];
 
 const QUICK_ADD_APPS = [
   { id: "digital-menu", icon: ChefHat, iconName: "ChefHat", color: "text-red-500", bgColor: "bg-red-50", description: "Menümüzü İnceleyin" },
   { id: "stamp-card", icon: Cards, iconName: "Cards", color: "text-amber-500", bgColor: "bg-amber-50", description: "Müdavimimiz Olun, İkram Kazanın" },
   { id: "campus-events", icon: Megaphone, iconName: "Megaphone", color: "text-sky-500", bgColor: "bg-sky-50", description: "Etkinliklerimize Göz Atın" },
+  { id: "standups", icon: Microphone, iconName: "Microphone", color: "text-yellow-500", bgColor: "bg-yellow-50", description: "Stand-up Gösterilerini Görün" },
   { id: "workplaces", icon: Coffee, iconName: "Coffee", color: "text-[#6F4E37]", bgColor: "bg-[#6F4E37]/10", description: "Çalışma Alanlarımızı Görün" },
   { id: "board-game-clubs", icon: GameController, iconName: "GameController", color: "text-[#D4A830]", bgColor: "bg-[#D4A830]/10", description: "Kutu Oyunlarımızı Keşfedin" },
   { id: "feedback-board", icon: ChatTeardropDots, iconName: "ChatTeardropDots", color: "text-violet-500", bgColor: "bg-violet-50", description: "Görüşlerinizi Bizimle Paylaşın" },
@@ -117,6 +120,15 @@ const PROMOTABLE_APPS = [
     iconName: "Coffee", 
     color: "#6F4E37", 
     url: "https://workplaces.allminiapps.com" 
+  },
+  { 
+    id: "standups", 
+    name: "Standups", 
+    description: "Stand-up\nKeşfet", 
+    icon: Microphone, 
+    iconName: "Microphone", 
+    color: "#FFD43B", 
+    url: "https://standups.allminiapps.com" 
   },
 ];
 
