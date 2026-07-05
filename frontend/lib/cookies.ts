@@ -5,7 +5,9 @@ export function setCookie(name: string, value: string, days = 365) {
   const hostname = window.location.hostname;
   
   let domain = "";
-  if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+  if (hostname.endsWith(".localhost")) {
+    domain = "; domain=.localhost";
+  } else if (hostname !== "localhost" && hostname !== "127.0.0.1") {
     const parts = hostname.split(".");
     if (parts.length >= 2) {
       // For allminiapps.com, root domain is allminiapps.com

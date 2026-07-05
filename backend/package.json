@@ -24,7 +24,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1075.0",
     "@supabase/supabase-js": "^2.86.2",
     "axios": "^1.13.2",
-    "encore.dev": "^1.57.5",
+    "encore.dev": "^1.57.9",
     "node-html-parser": "^6.1.13",
     "puppeteer": "^24.32.1",
     "puppeteer-extra": "^3.3.6",

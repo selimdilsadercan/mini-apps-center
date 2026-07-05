@@ -34,6 +34,7 @@ import { stampCardAssistant } from "../stamp-card/assistant";
 import { applyTrackerAssistant } from "../apply-tracker/assistant";
 import { digitalMenuAssistant } from "../digital-menu/assistant";
 import { businessAssistant } from "../business/assistant";
+import { eksikVarAssistant } from "../eksik-var/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   birikimAssistant,
@@ -67,6 +68,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   applyTrackerAssistant,
   digitalMenuAssistant,
   businessAssistant,
+  eksikVarAssistant,
 ];
 
 const assistantByAppId = new Map(

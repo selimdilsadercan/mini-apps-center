@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 const SUBDOMAIN_ROUTES: Record<string, string> = {
   cardgames: "/apps/iskambil",
   kiler: "/apps/kiler",
+  eksikvar: "/apps/eksik-var",
   maptracker: "/apps/map-tracker",
   movies: "/apps/movies-this-year",
   chocolatedb: "/apps/chocolate-db",
