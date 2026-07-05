@@ -226,7 +226,7 @@ function HomeContent() {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">
                 {activeTab === "discover" ? "Bugün" : 
                  activeTab === "explore" ? "Şehrini Keşfet" : 
-                 activeTab === "hobby" ? "Hobiler" : 
+                 activeTab === "hobby" ? "Hobi" : 
                  activeTab === "wallet" ? "Cüzdan" : "Yaşam"}
               </p>
             </div>
@@ -554,7 +554,7 @@ function HomeContent() {
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
                     <Heart size={14} weight="bold" className="text-gray-900" />
-                    Hobilerini Takip Et
+                    Hobi Dünyan
                   </h2>
                 </div>
                 <div className="space-y-0">

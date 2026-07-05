@@ -16,6 +16,7 @@ import { mapTrackerAssistant } from "../map-tracker/assistant";
 import { memedexAssistant } from "../memedex/assistant";
 import { moviesThisYearAssistant } from "../movies-this-year/assistant";
 import { recipeAssistant } from "../recipe/assistant";
+import { seriesTrackAssistant } from "../series-track/assistant";
 import { subcenterAssistant } from "../subcenter/assistant";
 import { tournamentAssistant } from "../tournament/assistant";
 import { tasketAssistant } from "../tasket/assistant";
@@ -41,6 +42,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   kilerAssistant,
   subcenterAssistant,
   recipeAssistant,
+  seriesTrackAssistant,
   concertListAssistant,
   hobbyCenterAssistant,
   mapTrackerAssistant,

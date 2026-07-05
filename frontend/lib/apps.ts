@@ -32,6 +32,7 @@ import {
   ChatTeardropDots,
   Storefront,
   Microphone,
+  Television,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -219,6 +220,7 @@ const RAW_MINI_APPS: MiniApp[] = [
     navigationBarColor: "#FDFBF7",
     navigationBarStyle: "light",
   },
+
   {
     id: "series-track",
     name: "SeriesTrack",

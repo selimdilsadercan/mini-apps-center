@@ -103,7 +103,7 @@ export default function AppBar({ activePage }: AppBarProps) {
               weight={isActive(ActivePage.HOBBY) ? "fill" : "bold"}
               className="flex-shrink-0"
             />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Hobilerim</span>
+            <span className="text-[9px] font-black uppercase tracking-tighter">Hobi</span>
           </Link>
 
           {/* Cüzdan */}

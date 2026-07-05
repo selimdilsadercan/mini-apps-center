@@ -3,6 +3,7 @@
 import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
   CaretLeft,
   SquaresFour,
@@ -17,6 +18,12 @@ import {
   Info,
   ArrowSquareOut,
   Play,
+  Television,
+  PlayCircle,
+  Clock,
+  Smiley,
+  TrendUp,
+  Shield,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -46,7 +53,7 @@ const setLocalCache = (key: string, data: any) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {}
+  } catch (e) { }
 };
 
 const STATUS_LABELS: Record<series_track.SeriesStatus, { label: string; color: string; bg: string }> = {
@@ -58,8 +65,196 @@ const STATUS_LABELS: Record<series_track.SeriesStatus, { label: string; color: s
 
 export default function SeriesTrackPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
+  const { isAdmin } = useIsAdmin();
   const [mySeries, setMySeries] = useState<series_track.UserSeries[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // TV Flow States
+  const [activeTab, setActiveTab] = useState<'my-series' | 'tv-flow'>('tv-flow');
+  const [channels, setChannels] = useState<series_track.TvChannel[]>([]);
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [tvProgram, setTvProgram] = useState<series_track.TvProgramDetails | null>(null);
+  const [selectedTvEpisode, setSelectedTvEpisode] = useState<series_track.TvEpisode | null>(null);
+  const [tvEpisodeStats, setTvEpisodeStats] = useState<series_track.TvEpisodeStatsResponse | null>(null);
+
+  const [channelsLoading, setChannelsLoading] = useState(true);
+  const [tvProgramLoading, setTvProgramLoading] = useState(false);
+  const [tvStatsLoading, setTvStatsLoading] = useState(false);
+  const [screenStatic, setScreenStatic] = useState(false);
+  const [epgExpanded, setEpgExpanded] = useState(true);
+
+  // Admin Panel states
+  const [adminSelectedEpisodeNumber, setAdminSelectedEpisodeNumber] = useState<number>(1);
+
+  const handleAdminSetEpisode = async () => {
+    if (!tvProgram) return;
+    try {
+      await client.series_track.setTvActiveEpisode({
+        programId: tvProgram.id,
+        episodeNumber: adminSelectedEpisodeNumber,
+      });
+      toast.success("Aktif bölüm güncellendi!");
+      fetchTvProgramDetails(tvProgram.id);
+    } catch (err) {
+      console.error(err);
+      toast.error("Aktif bölüm güncellenemedi.");
+    }
+  };
+
+  // Dynamic EPG season & episode rebuild states
+  const [showAdminDrawer, setShowAdminDrawer] = useState(false);
+  const [adminSelectedTmdbId, setAdminSelectedTmdbId] = useState<number>(37680); // Suits
+  const [adminSeriesDetails, setAdminSeriesDetails] = useState<any>(null);
+  const [adminSelectedSeason, setAdminSelectedSeason] = useState<number>(1);
+  const [adminSelectedEpisode, setAdminSelectedEpisode] = useState<number>(1);
+  const [adminLoadingDetails, setAdminLoadingDetails] = useState(false);
+  const [adminStartDate, setAdminStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [adminScheduleType, setAdminScheduleType] = useState<string>("daily");
+
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  const [loadingCalendar, setLoadingCalendar] = useState(false);
+
+  const ADMIN_POPULAR_SHOWS = [
+    { id: 37680, name: "Suits" },
+    { id: 2316, name: "The Office" },
+    { id: 42009, name: "Black Mirror" },
+    { id: 1396, name: "Breaking Bad" },
+    { id: 1668, name: "Friends" },
+    { id: 1399, name: "Game of Thrones" },
+    { id: 1410, name: "Modern Family" },
+  ];
+
+  useEffect(() => {
+    if (showAdminDrawer && adminSelectedTmdbId) {
+      loadAdminSeriesDetails(adminSelectedTmdbId);
+    }
+  }, [adminSelectedTmdbId, showAdminDrawer]);
+
+  const loadAdminSeriesDetails = async (tmdbId: number) => {
+    try {
+      setAdminLoadingDetails(true);
+      const details = await client.series_track.getSeriesDetails(tmdbId);
+      setAdminSeriesDetails(details);
+      setAdminSelectedSeason(details.seasons?.[0]?.season_number || 1);
+      setAdminSelectedEpisode(1);
+    } catch (err) {
+      console.error(err);
+      toast.error("Seri detayları TMDB'den yüklenemedi.");
+    } finally {
+      setAdminLoadingDetails(false);
+    }
+  };
+
+  const fetchCalendarEvents = async () => {
+    try {
+      setLoadingCalendar(true);
+      const res = await client.series_track.getTvCalendarEvents();
+      setCalendarEvents(res.events || []);
+    } catch (err) {
+      console.error("fetchCalendarEvents error:", err);
+    } finally {
+      setLoadingCalendar(false);
+    }
+  };
+
+  // Multi-season EPG states
+  const [tvSeriesTmdbDetails, setTvSeriesTmdbDetails] = useState<any>(null);
+  const [epgSelectedSeason, setEpgSelectedSeason] = useState<number>(1);
+  const [epgSeasonEpisodes, setEpgSeasonEpisodes] = useState<any[]>([]);
+  const [loadingEpgSeason, setLoadingEpgSeason] = useState(false);
+
+  useEffect(() => {
+    if (tvProgram && tvProgram.tmdb_id) {
+      client.series_track.getSeriesDetails(tvProgram.tmdb_id).then(details => {
+        setTvSeriesTmdbDetails(details);
+      }).catch(console.error);
+      setEpgSelectedSeason(tvProgram.season_number || 1);
+    } else {
+      setTvSeriesTmdbDetails(null);
+    }
+  }, [tvProgram]);
+
+  useEffect(() => {
+    if (tvProgram && tvProgram.tmdb_id && epgSelectedSeason) {
+      setLoadingEpgSeason(true);
+      client.series_track.getSeasonDetails(tvProgram.tmdb_id, epgSelectedSeason).then(res => {
+        setEpgSeasonEpisodes(res.episodes || []);
+      }).catch(console.error).finally(() => {
+        setLoadingEpgSeason(false);
+      });
+    } else {
+      setEpgSeasonEpisodes([]);
+    }
+  }, [tvProgram, epgSelectedSeason]);
+
+  function getEpisodeOffset(targetSeason: number, targetEpisode: number): number {
+    if (!tvSeriesTmdbDetails || !tvProgram) return 0;
+    const activeSeason = tvProgram.season_number || 1;
+    const activeEpisode = tvProgram.episodes?.filter(e => e.is_released).length || 1;
+    
+    let offset = 0;
+    
+    if (targetSeason === activeSeason) {
+      return targetEpisode - activeEpisode;
+    }
+    
+    const seasons = tvSeriesTmdbDetails.seasons || [];
+    
+    if (targetSeason > activeSeason) {
+      const activeSeasonDetails = seasons.find((s: any) => s.season_number === activeSeason);
+      const activeSeasonCount = activeSeasonDetails?.episode_count || 16;
+      offset += (activeSeasonCount - activeEpisode);
+      
+      for (let s = activeSeason + 1; s < targetSeason; s++) {
+        const sDetails = seasons.find((x: any) => x.season_number === s);
+        offset += (sDetails?.episode_count || 16);
+      }
+      
+      offset += targetEpisode;
+    } else {
+      const targetSeasonDetails = seasons.find((s: any) => s.season_number === targetSeason);
+      const targetSeasonCount = targetSeasonDetails?.episode_count || 16;
+      offset -= (targetSeasonCount - targetEpisode);
+      
+      for (let s = targetSeason + 1; s < activeSeason; s++) {
+        const sDetails = seasons.find((x: any) => x.season_number === s);
+        offset -= (sDetails?.episode_count || 16);
+      }
+      
+      offset -= activeEpisode;
+    }
+    
+    return offset;
+  }
+
+  useEffect(() => {
+    if (activeTab === "tv-flow") {
+      fetchCalendarEvents();
+    }
+  }, [activeTab]);
+
+  const handleAdminChangeSeasonEpisode = async () => {
+    if (!tvProgram) return;
+    try {
+      await client.series_track.changeTvProgramSeasonEpisode({
+        programId: tvProgram.id,
+        tmdbId: adminSelectedTmdbId,
+        seasonNumber: adminSelectedSeason,
+        episodeNumber: adminSelectedEpisode,
+        startDate: new Date(adminStartDate).toISOString(),
+        scheduleType: adminScheduleType,
+      });
+      toast.success("Yayın akışı başarıyla güncellendi!");
+      setShowAdminDrawer(false);
+      fetchTvProgramDetails(tvProgram.id);
+      fetchCalendarEvents();
+    } catch (err) {
+      console.error(err);
+      toast.error("Yayın akışı güncellenemedi.");
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -77,25 +272,172 @@ export default function SeriesTrackPage() {
   const [allSeasonsData, setAllSeasonsData] = useState<Record<number, any>>({});
   const [loadingGraph, setLoadingGraph] = useState(false);
 
+
+
+  // Load TV Channels
+  useEffect(() => {
+    if (activeTab === 'tv-flow') {
+      fetchTvChannels();
+    }
+  }, [activeTab]);
+
+  async function fetchTvChannels() {
+    try {
+      setChannelsLoading(true);
+      const res = await client.series_track.getTvChannels();
+      setChannels(res.channels || []);
+
+      // Auto-select first channel
+      if (res.channels && res.channels.length > 0 && !activeChannelId) {
+        setActiveChannelId(res.channels[0].id);
+        if (res.channels[0].active_program) {
+          setSelectedProgramId(res.channels[0].active_program.id);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Kanallar yüklenirken bir hata oluştu.");
+    } finally {
+      setChannelsLoading(false);
+    }
+  }
+
+  // Load TV Program details
+  useEffect(() => {
+    if (activeTab === 'tv-flow' && selectedProgramId) {
+      fetchTvProgramDetails(selectedProgramId);
+    } else {
+      setTvProgram(null);
+    }
+  }, [selectedProgramId, activeTab, user]);
+
+  async function fetchTvProgramDetails(id: string) {
+    try {
+      setTvProgramLoading(true);
+      const res = await client.series_track.getTvProgramDetails(id, {
+        userId: user?.id || "",
+      });
+      setTvProgram(res);
+
+      if (res.episodes && res.episodes.length > 0) {
+        const released = res.episodes.filter(e => e.is_released);
+        const latestReleased = released.length > 0 ? released[released.length - 1] : res.episodes[0];
+        setSelectedTvEpisode(latestReleased);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Yayın detayları yüklenemedi.");
+    } finally {
+      setTvProgramLoading(false);
+    }
+  }
+
+  // Fetch TV episode stats
+  useEffect(() => {
+    if (activeTab === 'tv-flow' && selectedTvEpisode) {
+      fetchTvEpisodeStats(selectedTvEpisode.id);
+    } else {
+      setTvEpisodeStats(null);
+    }
+  }, [selectedTvEpisode, activeTab]);
+
+  async function fetchTvEpisodeStats(epId: string) {
+    try {
+      setTvStatsLoading(true);
+      const res = await client.series_track.getTvEpisodeStats(epId);
+      setTvEpisodeStats(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTvStatsLoading(false);
+    }
+  }
+
+  const triggerTvTransition = (action: () => void) => {
+    setScreenStatic(true);
+    setTimeout(() => {
+      action();
+      setTimeout(() => {
+        setScreenStatic(false);
+      }, 300);
+    }, 200);
+  };
+
+  const handleChannelSwitch = (channel: series_track.TvChannel) => {
+    triggerTvTransition(() => {
+      setActiveChannelId(channel.id);
+      if (channel.active_program) {
+        setSelectedProgramId(channel.active_program.id);
+      } else {
+        setSelectedProgramId(null);
+        setSelectedTvEpisode(null);
+      }
+    });
+  };
+
+  const handleTvWatchToggle = async (episode: series_track.TvEpisode, emoji?: string) => {
+    if (!user) {
+      toast.error("İzleme durumunu kaydetmek için lütfen giriş yapın.", { icon: "🔒" });
+      return;
+    }
+
+    try {
+      const sendingEmoji = emoji === episode.emoji_reaction ? "none" : (emoji || "");
+      const res = await client.series_track.toggleTvEpisodeWatched(episode.id, {
+        userId: user.id,
+        emojiReaction: sendingEmoji,
+      });
+
+      if (tvProgram) {
+        const updatedEpisodes = tvProgram.episodes.map(e => {
+          if (e.id === episode.id) {
+            return {
+              ...e,
+              watched: res.watched,
+              emoji_reaction: res.emoji_reaction,
+            };
+          }
+          return e;
+        });
+        setTvProgram({ ...tvProgram, episodes: updatedEpisodes });
+
+        if (selectedTvEpisode && selectedTvEpisode.id === episode.id) {
+          setSelectedTvEpisode({
+            ...selectedTvEpisode,
+            watched: res.watched,
+            emoji_reaction: res.emoji_reaction,
+          });
+        }
+      }
+
+      toast.success(res.watched ? "Bölüm izlendi!" : "Bölüm izleme kaydı kaldırıldı.");
+      fetchTvEpisodeStats(episode.id);
+      await silentFetchMySeries();
+    } catch (err) {
+      console.error(err);
+      toast.error("İşlem gerçekleştirilemedi.");
+    }
+  };
+
   // Audio feedback helper
   const playClickSound = () => {
     if (typeof window === 'undefined') return;
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
+
       const playPulse = (time: number, freq: number, dur: number) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, time);
         osc.frequency.exponentialRampToValueAtTime(freq / 2, time + dur);
-        
+
         gain.gain.setValueAtTime(0.08, time);
         gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
-        
+
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
+
         osc.start(time);
         osc.stop(time + dur);
       };
@@ -103,7 +445,7 @@ export default function SeriesTrackPage() {
       // Modern "double-tap" feedback
       playPulse(audioCtx.currentTime, 1000, 0.03);
       playPulse(audioCtx.currentTime + 0.05, 1200, 0.04);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   useEffect(() => {
@@ -131,7 +473,7 @@ export default function SeriesTrackPage() {
       // Fetch progress for all
       const progressPromises = seriesList.map(s => client.series_track.getUserProgress(user.id, s.id));
       const progressResults = await Promise.all(progressPromises);
-      
+
       const progressMap: Record<string, series_track.UserProgress[]> = {};
       seriesList.forEach((s, i) => {
         progressMap[s.id] = progressResults[i].progress || [];
@@ -141,7 +483,7 @@ export default function SeriesTrackPage() {
       // Fetch details for missing or old cache (older than 12h)
       const now = Date.now();
       const CACHE_STALE_TIME = 1000 * 60 * 60 * 12; // 12 hours
-      
+
       const seriesToFetch = seriesList.filter(s => {
         const cached = allSeriesDetails[s.id];
         if (!cached) return true;
@@ -152,7 +494,7 @@ export default function SeriesTrackPage() {
       if (seriesToFetch.length > 0) {
         const detailsPromises = seriesToFetch.map(s => client.series_track.getSeriesDetails(s.tmdb_id));
         const detailsResults = await Promise.all(detailsPromises);
-        
+
         const newDetailsMap = { ...allSeriesDetails };
         seriesToFetch.forEach((s, i) => {
           newDetailsMap[s.id] = {
@@ -168,6 +510,26 @@ export default function SeriesTrackPage() {
       toast.error("Dizileriniz yüklenirken hata oluştu.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const silentFetchMySeries = async () => {
+    if (!user) return;
+    try {
+      const res = await client.series_track.getUserSeries(user.id);
+      const seriesList = res.series || [];
+      setMySeries(seriesList);
+
+      const progressPromises = seriesList.map(s => client.series_track.getUserProgress(user.id, s.id));
+      const progressResults = await Promise.all(progressPromises);
+
+      const progressMap: Record<string, series_track.UserProgress[]> = {};
+      seriesList.forEach((s, i) => {
+        progressMap[s.id] = progressResults[i].progress || [];
+      });
+      setAllSeriesProgress(progressMap);
+    } catch (error) {
+      console.error("silentFetchMySeries error:", error);
     }
   };
 
@@ -228,13 +590,13 @@ export default function SeriesTrackPage() {
           }
         }
       }
-      return { 
-        season: 1, 
-        episode: 1, 
-        totalLeft: isAired ? Math.max(0, totalUnwatchedAired - 1) : totalUnwatchedAired, 
-        isAired, 
-        airDate, 
-        isFinished: false 
+      return {
+        season: 1,
+        episode: 1,
+        totalLeft: isAired ? Math.max(0, totalUnwatchedAired - 1) : totalUnwatchedAired,
+        isAired,
+        airDate,
+        isFinished: false
       };
     }
 
@@ -242,7 +604,7 @@ export default function SeriesTrackPage() {
     let nextSeasonNum = 0;
     let nextEpisodeNum = 0;
     const currentSeason = details.seasons.find((s: any) => s.season_number === lastSeason);
-    
+
     if (currentSeason && lastEpisode < currentSeason.episode_count) {
       nextSeasonNum = lastSeason;
       nextEpisodeNum = lastEpisode + 1;
@@ -264,8 +626,8 @@ export default function SeriesTrackPage() {
     const nextToAir = details.next_episode_to_air;
 
     if (lastAiredInfo) {
-      if (nextSeasonNum > lastAiredInfo.season_number || 
-         (nextSeasonNum === lastAiredInfo.season_number && nextEpisodeNum > lastAiredInfo.episode_number)) {
+      if (nextSeasonNum > lastAiredInfo.season_number ||
+        (nextSeasonNum === lastAiredInfo.season_number && nextEpisodeNum > lastAiredInfo.episode_number)) {
         isAired = false;
         if (nextToAir && nextSeasonNum === nextToAir.season_number && nextEpisodeNum === nextToAir.episode_number) {
           airDate = nextToAir.air_date;
@@ -277,9 +639,9 @@ export default function SeriesTrackPage() {
       }
     }
 
-    return { 
-      season: nextSeasonNum, 
-      episode: nextEpisodeNum, 
+    return {
+      season: nextSeasonNum,
+      episode: nextEpisodeNum,
       totalLeft: isAired ? Math.max(0, totalUnwatchedAired - 1) : totalUnwatchedAired,
       isAired,
       airDate,
@@ -312,7 +674,7 @@ export default function SeriesTrackPage() {
 
   const addToMyList = async (series: any) => {
     if (!user) return;
-    
+
     // Audio and Haptic feedback
     playClickSound();
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -344,32 +706,32 @@ export default function SeriesTrackPage() {
       setSeasonDetails({});
       setAllSeasonsData({});
       setViewMode('list');
-      
+
       const [details, progress] = await Promise.all([
         client.series_track.getSeriesDetails(series.tmdb_id),
         client.series_track.getUserProgress(user.id, series.id)
       ]);
-      
+
       setSeriesDetails(details);
       const userProgressList = progress.progress || [];
       setUserProgress(userProgressList);
-      
+
       if (details.seasons && details.seasons.length > 0) {
         let seasonToOpen = 1;
-        
+
         if (userProgressList.length > 0) {
           const maxSeason = Math.max(...userProgressList.map(p => p.season_number));
           if (maxSeason > 1) {
             seasonToOpen = maxSeason;
           }
         }
-        
+
         // Sezonun mevcut olduğundan emin ol
         const seasonExists = details.seasons.some((s: any) => s.season_number === seasonToOpen);
         if (!seasonExists) {
           const validSeasons = details.seasons.filter((s: any) => s.season_number > 0);
-          seasonToOpen = validSeasons.length > 0 
-            ? validSeasons[0].season_number 
+          seasonToOpen = validSeasons.length > 0
+            ? validSeasons[0].season_number
             : details.seasons[0].season_number;
         }
 
@@ -386,7 +748,7 @@ export default function SeriesTrackPage() {
     setLoadingGraph(true);
     try {
       const seasons = seriesDetails.seasons.filter((s: any) => s.season_number > 0);
-      const promises = seasons.map((s: any) => 
+      const promises = seasons.map((s: any) =>
         client.series_track.getSeasonDetails(selectedSeries.tmdb_id, s.season_number)
       );
       const results = await Promise.all(promises);
@@ -428,7 +790,7 @@ export default function SeriesTrackPage() {
 
   const toggleWatched = async (seriesId: string, seasonNum: number, episodeNum: number) => {
     if (!user) return;
-    
+
     // Audio and Haptic feedback
     playClickSound();
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -442,7 +804,7 @@ export default function SeriesTrackPage() {
         seasonNumber: seasonNum,
         episodeNumber: episodeNum,
       });
-      
+
       if (res.isWatched) {
         toast.success(`S${seasonNum} E${episodeNum} izlendi olarak işaretlendi.`, {
           icon: '✅',
@@ -480,7 +842,7 @@ export default function SeriesTrackPage() {
 
   const markSeasonAsWatched = async () => {
     if (!user || !selectedSeries || !seasonDetails[activeSeason]) return;
-    
+
     // Audio and Haptic feedback
     playClickSound();
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -525,7 +887,7 @@ export default function SeriesTrackPage() {
 
   const markAllAsWatched = async () => {
     if (!user || !selectedSeries || !seriesDetails) return;
-    
+
     // Audio and Haptic feedback
     playClickSound();
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -593,13 +955,13 @@ export default function SeriesTrackPage() {
       // Normalize both dates to midnight local time for accurate day difference
       const targetDate = new Date(dateStr);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const diffTime = targetDate.getTime() - today.getTime();
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-      
+
       const dayMonth = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(targetDate);
 
       if (diffDays === 0) return `Bugün (${dayMonth})`;
@@ -607,7 +969,7 @@ export default function SeriesTrackPage() {
       if (diffDays > 1 && diffDays < 7) return `${diffDays} gün sonra (${dayMonth})`;
       if (diffDays === -1) return `Dün (${dayMonth})`;
       if (diffDays < -1 && diffDays > -7) return `${Math.abs(diffDays)} gün önce (${dayMonth})`;
-      
+
       return formatDateTurkish(dateStr);
     } catch (e) {
       return dateStr;
@@ -632,7 +994,7 @@ export default function SeriesTrackPage() {
 
   const removeFromList = async (seriesId: string) => {
     if (!user) return;
-    
+
     // Audio and Haptic feedback
     playClickSound();
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
@@ -677,6 +1039,8 @@ export default function SeriesTrackPage() {
     }
   };
 
+  const activeChannel = channels.find(c => c.id === activeChannelId);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-indigo-100">
       <Toaster position="top-center" />
@@ -714,154 +1078,542 @@ export default function SeriesTrackPage() {
           <p className="text-gray-500 text-sm">İzlediğin dizileri takip et, bölüm kaçırma.</p>
         </div>
 
-        {/* Status Tabs */}
-        <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
-          {(["watching", "plan_to_watch", "dropped", "completed"] as series_track.SeriesStatus[]).map((status) => (
-            <button
-              key={status}
-              onClick={() => setActiveStatusTab(status)}
-              className={`px-6 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap border ${
-                activeStatusTab === status
-                  ? "bg-white border-gray-200 text-gray-900 shadow-sm"
-                  : "bg-transparent border-transparent text-gray-400 hover:text-gray-600"
+        {/* Feature Tabs (Segment Control) */}
+        <div className="flex bg-gray-200/50 p-1.5 rounded-2xl w-fit mb-8 border border-gray-200/40 relative z-20">
+          <button
+            onClick={() => setActiveTab('tv-flow')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${activeTab === 'tv-flow'
+                ? "bg-white text-pink-600 shadow-sm border border-pink-250/20"
+                : "text-gray-400 hover:text-gray-700"
               }`}
-            >
-              {STATUS_LABELS[status].label}
-              <span className="ml-2 opacity-50">
-                {mySeries.filter(s => s.status === status).length}
-              </span>
-            </button>
-          ))}
+          >
+            <Television size={15} weight="fill" />
+            <span>Televizyon Akışı</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('my-series')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'my-series'
+                ? "bg-white text-gray-900 shadow-sm border border-gray-250/20"
+                : "text-gray-400 hover:text-gray-700"
+              }`}
+          >
+            Dizilerim
+          </button>
         </div>
 
-        {/* My List */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-48 bg-white rounded-3xl animate-pulse border border-gray-100" />
-            ))}
-          </div>
-        ) : mySeries.filter(s => s.status === activeStatusTab).length === 0 ? (
-          <div className="text-center py-32 bg-white border border-gray-200/50 rounded-3xl shadow-sm">
-            <Monitor size={48} className="mx-auto text-gray-200 mb-4" />
-            <p className="text-gray-400 font-medium">Bu kategoride henüz dizi yok.</p>
-            {activeStatusTab === "watching" && (
-              <button 
-                onClick={() => setShowSearch(true)}
-                className="mt-4 text-indigo-600 font-bold text-sm hover:underline"
-              >
-                Hemen bir dizi ara
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mySeries
-              .filter(s => s.status === activeStatusTab)
-              .map((series) => {
-              const nextEp = getNextEpisode(series.id);
-              const progress = allSeriesProgress[series.id] || [];
-              const details = allSeriesDetails[series.id];
-              const progressPercent = details ? (progress.length / details.number_of_episodes) * 100 : 0;
-
-              return (
-                <motion.div
-                  layoutId={series.id}
-                  key={series.id}
-                  onClick={() => fetchSeriesDetails(series)}
-                  className="group cursor-pointer relative bg-white border border-gray-200/50 hover:border-gray-300 rounded-[2rem] p-4 flex gap-6 transition-all hover:shadow-md shadow-sm"
+        {activeTab === 'my-series' ? (
+          <>
+            {/* Status Tabs */}
+            <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+              {(["watching", "plan_to_watch", "dropped", "completed"] as series_track.SeriesStatus[]).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setActiveStatusTab(status)}
+                  className={`px-6 py-2.5 rounded-2xl text-xs font-black transition-all whitespace-nowrap border ${activeStatusTab === status
+                      ? "bg-white border-gray-200 text-gray-900 shadow-sm"
+                      : "bg-transparent border-transparent text-gray-400 hover:text-gray-600"
+                    }`}
                 >
-                  {/* Poster Area */}
-                  <div className="w-32 aspect-[2/3] rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 relative shrink-0 shadow-sm">
-                    {series.poster_path ? (
-                      <img 
-                        src={`https://image.tmdb.org/t/p/w500${series.poster_path}`} 
-                        alt={series.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold text-center p-2 text-[10px]">
-                        {series.title}
-                      </div>
-                    )}
-                    
-                    {/* Bookmark Tag */}
-                    <div className="absolute top-0 left-2 w-4 h-6 bg-yellow-400 rounded-b-sm shadow-sm flex items-center justify-center">
-                      <div className="w-1 h-1 bg-yellow-600/30 rounded-full" />
-                    </div>
+                  {STATUS_LABELS[status].label}
+                  <span className="ml-2 opacity-50">
+                    {mySeries.filter(s => s.status === status).length}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-                    {/* Progress Bar */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPercent}%` }}
-                        className="h-full bg-emerald-500"
-                      />
-                    </div>
-                  </div>
+            {/* My List */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-48 bg-white rounded-3xl animate-pulse border border-gray-100" />
+                ))}
+              </div>
+            ) : mySeries.filter(s => s.status === activeStatusTab).length === 0 ? (
+              <div className="text-center py-32 bg-white border border-gray-200/50 rounded-3xl shadow-sm">
+                <Monitor size={48} className="mx-auto text-gray-200 mb-4" />
+                <p className="text-gray-400 font-medium">Bu kategoride henüz dizi yok.</p>
+                {activeStatusTab === "watching" && (
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className="mt-4 text-indigo-600 font-bold text-sm hover:underline"
+                  >
+                    Hemen bir dizi ara
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {mySeries
+                  .filter(s => s.status === activeStatusTab)
+                  .map((series) => {
+                    const nextEp = getNextEpisode(series.id);
+                    const progress = allSeriesProgress[series.id] || [];
+                    const details = allSeriesDetails[series.id];
+                    const progressPercent = details ? (progress.length / details.number_of_episodes) * 100 : 0;
 
-                  {/* Info Area */}
-                  <div className="flex-1 min-w-0 py-2 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 truncate mb-4">{series.title}</h3>
-                      
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-black tracking-tighter text-gray-900">
-                          {nextEp.isFinished ? "Bitti" : `S${nextEp.season} E${nextEp.episode}`}
-                        </span>
-                        {nextEp.totalLeft > 0 && (
-                          <span className="text-sm font-bold text-indigo-600">+{nextEp.totalLeft}</span>
-                        )}
-                      </div>
-                      
-                      <p className="text-xs text-gray-400 mt-2 truncate font-medium">
-                        {nextEp.isFinished 
-                          ? "Tüm bölümleri izledin." 
-                          : `Sıradaki: Sezon ${nextEp.season}, Bölüm ${nextEp.episode}`}
-                      </p>
-                    </div>
+                    return (
+                      <motion.div
+                        layoutId={series.id}
+                        key={series.id}
+                        onClick={() => fetchSeriesDetails(series)}
+                        className="group cursor-pointer relative bg-white border border-gray-200/50 hover:border-gray-300 rounded-[2rem] p-4 flex gap-6 transition-all hover:shadow-md shadow-sm"
+                      >
+                        {/* Poster Area */}
+                        <div className="w-32 aspect-[2/3] rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 relative shrink-0 shadow-sm">
+                          {series.poster_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w500${series.poster_path}`}
+                              alt={series.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold text-center p-2 text-[10px]">
+                              {series.title}
+                            </div>
+                          )}
 
-                    <div className="flex items-center justify-end mt-4">
-                      <div className="flex items-center gap-2">
-                        {nextEp.isFinished ? (
-                          <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                            Tamamlandı 🎉
+                          {/* Bookmark Tag */}
+                          <div className="absolute top-0 left-2 w-4 h-6 bg-yellow-400 rounded-b-sm shadow-sm flex items-center justify-center">
+                            <div className="w-1 h-1 bg-yellow-600/30 rounded-full" />
                           </div>
-                        ) : nextEp.isAired ? (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleWatch(series, nextEp.season, nextEp.episode);
-                              }}
-                              className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-sm hover:border-indigo-200 active:scale-95 cursor-pointer"
-                            >
-                              <Play size={14} weight="fill" className="text-indigo-600" />
-                              <span>İZLE</span>
-                            </button>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleWatched(series.id, nextEp.season, nextEp.episode);
-                              }}
-                              className="w-10 h-10 rounded-full bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 flex items-center justify-center transition-all group/btn cursor-pointer active:scale-90"
-                            >
-                              <CheckCircle size={20} weight="bold" className="text-gray-300 group-hover/btn:text-emerald-500" />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl text-[10px] font-black text-amber-600">
-                            <Calendar size={14} weight="bold" className="shrink-0" />
-                            <span>{nextEp.airDate ? getRelativeDate(nextEp.airDate) : "YAKINDA"}</span>
+                          {/* Progress Bar */}
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${progressPercent}%` }}
+                              className="h-full bg-emerald-500"
+                            />
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+
+                        {/* Info Area */}
+                        <div className="flex-1 min-w-0 py-2 flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900 truncate mb-4">{series.title}</h3>
+
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-2xl font-black tracking-tighter text-gray-900">
+                                {nextEp.isFinished ? "Bitti" : `S${nextEp.season} E${nextEp.episode}`}
+                              </span>
+                              {nextEp.totalLeft > 0 && (
+                                <span className="text-sm font-bold text-indigo-600">+{nextEp.totalLeft}</span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-gray-400 mt-2 truncate font-medium">
+                              {nextEp.isFinished
+                                ? "Tüm bölümleri izledin."
+                                : `Sıradaki: Sezon ${nextEp.season}, Bölüm ${nextEp.episode}`}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-end mt-4">
+                            <div className="flex items-center gap-2">
+                              {nextEp.isFinished ? (
+                                <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                                  Tamamlandı 🎉
+                                </div>
+                              ) : nextEp.isAired ? (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleWatch(series, nextEp.season, nextEp.episode);
+                                    }}
+                                    className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-sm hover:border-indigo-200 active:scale-95 cursor-pointer"
+                                  >
+                                    <Play size={14} weight="fill" className="text-indigo-600" />
+                                    <span>İZLE</span>
+                                  </button>
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleWatched(series.id, nextEp.season, nextEp.episode);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-200 flex items-center justify-center transition-all group/btn cursor-pointer active:scale-90"
+                                  >
+                                    <CheckCircle size={20} weight="bold" className="text-gray-300 group-hover/btn:text-emerald-500" />
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-1.5 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl text-[10px] font-black text-amber-600">
+                                  <Calendar size={14} weight="bold" className="shrink-0" />
+                                  <span>{nextEp.airDate ? getRelativeDate(nextEp.airDate) : "YAKINDA"}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </div>
+            )}
+          </>
+        ) : (
+          /* ==================== TV GUIDE / ANALOG FLOW VIEW ==================== */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            {/* Left Column: Channels List */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="bg-white border border-gray-200/60 rounded-3xl p-4 shadow-sm">
+                <h3 className="text-xs font-black tracking-widest text-gray-400 uppercase mb-3 flex items-center gap-2 font-mono">
+                  <Television size={16} className="text-pink-500" /> 1. Kanallar
+                </h3>
+
+                {channelsLoading ? (
+                  <div className="space-y-3 py-4">
+                    {[1, 2, 3].map(n => (
+                      <div key={n} className="h-16 bg-gray-150/40 rounded-2xl animate-pulse" />
+                    ))}
                   </div>
-                </motion.div>
-              );
-            })}
+                ) : (
+                  <div className="space-y-2">
+                    {channels.map((chan) => {
+                      const isActive = chan.id === activeChannelId;
+                      return (
+                        <button
+                          key={chan.id}
+                          onClick={() => handleChannelSwitch(chan)}
+                          className={`w-full text-left p-3.5 rounded-2xl border transition-all duration-300 relative group flex items-start gap-3.5 overflow-hidden ${isActive
+                              ? "bg-white border-gray-300 shadow-sm"
+                              : "bg-transparent border-transparent hover:bg-gray-100/50 hover:border-gray-200"
+                            }`}
+                        >
+                          {isActive && (
+                            <div
+                              className="absolute left-0 top-0 bottom-0 w-1"
+                              style={{ backgroundColor: chan.color }}
+                            />
+                          )}
+
+                          <div
+                            className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex-shrink-0"
+                            style={{ color: isActive ? chan.color : "#94a3b8" }}
+                          >
+                            <Television size={20} weight={isActive ? "fill" : "regular"} />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <h4 className={`font-bold font-mono text-sm group-hover:text-gray-900 transition-colors ${isActive ? "text-gray-900" : "text-gray-500"
+                              }`}>
+                              {chan.name}
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">{chan.description}</p>
+
+                            {chan.active_program ? (
+                              <div className="mt-2 flex items-center gap-1.5 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded bg-gray-50 border border-gray-100 w-fit text-gray-500 font-mono">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                <span>Yayında: {chan.active_program.title}</span>
+                              </div>
+                            ) : (
+                              <div className="mt-2 text-[9px] text-gray-400 font-mono">
+                                Kapalı Yayın
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* TV Screen and Integrated EPG / Stats */}
+            <div className="lg:col-span-8 space-y-6">
+
+              {/* Consolidated White EPG panel with split layout */}
+              <div className="relative w-full bg-white border border-gray-200/60 rounded-[2rem] overflow-hidden shadow-sm flex flex-col h-[520px] text-gray-900">
+
+                {/* TV Content */}
+                <div className="flex-1 relative flex flex-col p-6 overflow-hidden select-text z-10">
+                  {tvProgramLoading ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 font-mono gap-3">
+                      <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                      <span>Yayın Bilgileri Yükleniyor...</span>
+                    </div>
+                  ) : selectedTvEpisode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full min-h-0">
+
+                      {/* Left Side: Episode Info & Program Info & Watch Actions */}
+                      <div className={`flex flex-col justify-between h-full min-h-0 transition-all duration-300 ${epgExpanded ? "md:col-span-8 pr-2" : "md:col-span-12"
+                        }`}>
+                        <div className="space-y-4">
+                          {/* Channel & Program Header */}
+                          <div className="flex items-center justify-between border-b border-gray-150 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: activeChannel?.color || "#EC4899" }} />
+                              <span className="text-[10px] font-mono tracking-widest uppercase font-black" style={{ color: activeChannel?.color || "#EC4899" }}>
+                                {activeChannel?.name || "Yayın Akışı"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono text-gray-400">
+                                Yayın: {selectedTvEpisode.release_date ? new Date(selectedTvEpisode.release_date).toLocaleDateString() : ""}
+                              </span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => setShowAdminDrawer(true)}
+                                  className="h-8 px-3 rounded-xl border border-rose-200 flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-mono text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-xs"
+                                  title="Yayını Düzenle"
+                                >
+                                  <Shield size={14} />
+                                  <span>Düzenle</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setEpgExpanded(!epgExpanded)}
+                                className="w-8 h-8 rounded-xl border border-gray-200 flex items-center justify-center bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 transition-all active:scale-95 cursor-pointer shadow-xs"
+                                title={epgExpanded ? "Yayın Akışını Gizle" : "Yayın Akışını Göster"}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                                  <path d="M15 3v18" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Active Program Info (No separate card anymore) */}
+                          {tvProgram && (
+                            <div className="bg-gray-50 border border-gray-200/50 p-3.5 rounded-2xl flex gap-4">
+                              {tvProgram.cover_image && (
+                                <img
+                                  src={tvProgram.cover_image}
+                                  alt={tvProgram.title}
+                                  className="w-12 aspect-[2/3] object-cover rounded-xl border border-gray-200 shadow-xs shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[9px] font-black uppercase font-mono text-pink-600 tracking-wider">Aktif Program</span>
+                                  <span className="text-[9px] font-mono text-gray-400">{tvProgram.total_episodes} Bölüm</span>
+                                </div>
+                                <h4 className="text-xs font-black text-gray-900 mb-1">
+                                  {tvProgram.title} {tvProgram.season_number && `(S${tvProgram.season_number} B${tvProgram.episodes?.filter(e => e.is_released).length || 1})`}
+                                </h4>
+                                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2">{tvProgram.description}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Episode Title & Overview */}
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-mono font-bold text-pink-600">
+                              Bölüm {selectedTvEpisode.episode_number}
+                            </span>
+                            <h3 className="text-lg font-black tracking-tight text-gray-950 line-clamp-1">
+                              {selectedTvEpisode.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 leading-relaxed overflow-y-auto max-h-24 pr-1 scrollbar-thin">
+                              {selectedTvEpisode.description || "Bu bölüm için detaylı yayın açıklaması bulunmuyor."}
+                            </p>
+                          </div>
+
+                          {/* Watch Button */}
+                          <button
+                            onClick={() => {
+                              const query = `${tvProgram?.title || "Dizi"} Sezon ${tvProgram?.season_number || 1} Bölüm ${selectedTvEpisode.episode_number} izle`;
+                              const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                              window.open(url, '_blank');
+                            }}
+                            className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl transition-all flex items-center gap-2 shadow-sm hover:border-pink-250 active:scale-95 cursor-pointer w-fit"
+                          >
+                            <Play size={14} weight="fill" className="text-pink-600" />
+                            <span>İZLE</span>
+                          </button>
+                        </div>
+
+                        {/* Watch Action & Stats Panel */}
+                        <div className="space-y-3.5 pt-4 border-t border-gray-150">
+                          {/* Integrated Stats bar */}
+                          {tvEpisodeStats && (
+                            <div className="flex items-center justify-between bg-gray-50 border border-gray-200/60 px-3 py-2 rounded-xl text-[10px] font-mono">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-gray-400">İzleyen:</span>
+                                <span className="font-extrabold text-pink-600">{tvEpisodeStats.watch_count} kişi</span>
+                              </div>
+                              {Object.keys(tvEpisodeStats.emojis).length > 0 && (
+                                <div className="flex items-center gap-1.5">
+                                  {Object.entries(tvEpisodeStats.emojis).slice(0, 3).map(([emoji, count]) => (
+                                    <span key={emoji} className="bg-white border border-gray-200 px-2 py-0.5 rounded text-[9px] font-black">
+                                      {emoji} {count}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Watch / Emoji buttons */}
+                          {(() => {
+                            const currentSeriesRecord = mySeries.find(s => s.tmdb_id === tvProgram?.tmdb_id);
+                            const seriesProgress = currentSeriesRecord ? allSeriesProgress[currentSeriesRecord.id] || [] : [];
+                            const isEpWatched = !!(selectedTvEpisode && (
+                              selectedTvEpisode.watched || 
+                              seriesProgress?.some(p => p.season_number === (epgSelectedSeason || tvProgram?.season_number || 1) && p.episode_number === selectedTvEpisode.episode_number)
+                            ));
+
+                            return (
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <button
+                                  onClick={() => handleTvWatchToggle(selectedTvEpisode)}
+                                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs transition-all duration-300 cursor-pointer ${isEpWatched
+                                      ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-250/60 active:scale-95"
+                                    }`}
+                                >
+                                  <CheckCircle size={16} weight={isEpWatched ? "fill" : "regular"} />
+                                  <span>{isEpWatched ? "İzledim!" : "İzledim"}</span>
+                                </button>
+
+                                {isEpWatched && (
+                                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200/60 p-1 rounded-xl">
+                                    {['🔥', '😂', '😢', '😮', '👍'].map(emoji => {
+                                      const isSelected = selectedTvEpisode.emoji_reaction === emoji;
+                                      return (
+                                        <button
+                                          key={emoji}
+                                          onClick={() => handleTvWatchToggle(selectedTvEpisode, emoji)}
+                                          className={`h-7 w-7 flex items-center justify-center text-sm rounded-lg transition-all cursor-pointer ${isSelected
+                                              ? "bg-pink-100/80 scale-105"
+                                              : "hover:bg-gray-200/60"
+                                            }`}
+                                        >
+                                          {emoji}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                      </div>
+
+                      {/* Right Side: Scrollable EPG Guide List (Collapsible) */}
+                      {epgExpanded && (
+                        <div className="md:col-span-4 flex flex-col h-full min-h-0 border-l border-gray-150 pl-6 space-y-3 transition-all duration-300">
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-150">
+                            <h4 className="text-[10px] font-black tracking-widest text-gray-400 uppercase font-mono flex items-center gap-1.5">
+                              <Calendar size={14} className="text-pink-500" /> Yayın Akışı
+                            </h4>
+                            {tvSeriesTmdbDetails && (
+                              <select
+                                value={epgSelectedSeason}
+                                onChange={(e) => setEpgSelectedSeason(Number(e.target.value))}
+                                className="bg-transparent text-xs font-mono font-bold text-gray-500 outline-none cursor-pointer hover:text-gray-900 border border-gray-200/40 rounded-lg px-2 py-0.5"
+                              >
+                                {tvSeriesTmdbDetails.seasons?.map((s: any) => (
+                                  <option key={s.season_number} value={s.season_number}>
+                                    Sezon {s.season_number}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+
+                          {/* Scrollable EPG episodes list */}
+                          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                            {loadingEpgSeason ? (
+                              <div className="flex justify-center py-12 text-gray-400 font-mono text-[10px]">
+                                <div className="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mr-2" />
+                                <span>Yükleniyor...</span>
+                              </div>
+                            ) : epgSeasonEpisodes?.map((ep) => {
+                              const offset = getEpisodeOffset(epgSelectedSeason, ep.episode_number);
+                              const releaseDate = new Date();
+                              if (tvProgram?.schedule_type === "weekly") {
+                                releaseDate.setDate(releaseDate.getDate() + offset * 7);
+                              } else {
+                                releaseDate.setDate(releaseDate.getDate() + offset);
+                              }
+                              const isReleased = releaseDate <= new Date();
+
+                              const currentSeriesRecord = mySeries.find(s => s.tmdb_id === tvProgram?.tmdb_id);
+                              const seriesProgress = currentSeriesRecord ? allSeriesProgress[currentSeriesRecord.id] || [] : [];
+                              const isWatched = epgSelectedSeason === tvProgram?.season_number
+                                ? tvProgram?.episodes?.find(x => x.episode_number === ep.episode_number)?.watched
+                                : seriesProgress?.some(p => p.season_number === epgSelectedSeason && p.episode_number === ep.episode_number);
+
+                              const isSelected = selectedTvEpisode?.episode_number === ep.episode_number && epgSelectedSeason === tvProgram?.season_number;
+
+                              return (
+                                <button
+                                  key={ep.id}
+                                  disabled={!isReleased}
+                                  onClick={() => {
+                                    if (epgSelectedSeason === tvProgram?.season_number) {
+                                      const matchedDbEp = tvProgram?.episodes?.find(x => x.episode_number === ep.episode_number);
+                                      if (matchedDbEp) setSelectedTvEpisode(matchedDbEp);
+                                    } else {
+                                      // Render custom EPG episode display state
+                                      setSelectedTvEpisode({
+                                        id: ep.id,
+                                        episode_number: ep.episode_number,
+                                        title: ep.name || `Bölüm ${ep.episode_number}`,
+                                        description: ep.overview || "",
+                                        stream_info: "Netflix",
+                                        release_date: releaseDate.toISOString(),
+                                        is_released: isReleased,
+                                        watched: isWatched || false,
+                                        emoji_reaction: null
+                                      });
+                                    }
+                                  }}
+                                  className={`w-full text-left p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all duration-200 cursor-pointer ${!isReleased
+                                      ? "bg-gray-50/40 border-gray-100 opacity-40 cursor-not-allowed"
+                                      : isSelected
+                                        ? "bg-pink-50/50 border-pink-200/60 text-pink-700"
+                                        : "bg-transparent border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-150"
+                                    }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className={`h-fit px-1.5 py-0.5 rounded-lg flex items-center justify-center text-[9px] font-mono font-bold flex-shrink-0 ${
+                                      isSelected ? "bg-pink-600 text-white" : "bg-gray-100 text-gray-400 border border-gray-200/60"
+                                    }`}>
+                                      S{epgSelectedSeason} B{ep.episode_number}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h5 className={`text-xs font-bold truncate ${
+                                        isSelected ? "text-pink-700" : "text-gray-700"
+                                      }`}>{ep.name || ep.title}</h5>
+                                      <span className="text-[9px] font-mono text-gray-400 block mt-0.5">
+                                        Yayın: {releaseDate.toLocaleDateString("tr-TR", { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                    {isWatched && (
+                                      <span className="text-emerald-600">
+                                        <CheckCircle size={14} weight="fill" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-500 font-mono">
+                      <span>Bu kanalda şu an aktif yayın programı bulunmuyor.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -877,7 +1629,7 @@ export default function SeriesTrackPage() {
               <Drawer.Description className="text-gray-500 text-xs mb-6">
                 İzlemek istediğiniz diziyi TMDB üzerinden arayın ve listenize ekleyin.
               </Drawer.Description>
-              
+
               <form onSubmit={handleSearch} className="relative mb-8">
                 <MagnifyingGlass size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -940,14 +1692,14 @@ export default function SeriesTrackPage() {
                 <div className="relative min-h-screen pb-32">
                   {/* Backdrop */}
                   <div className="h-[40vh] md:h-[50vh] relative overflow-hidden">
-                    <img 
-                      src={`https://image.tmdb.org/t/p/original${seriesDetails.backdrop_path}`} 
+                    <img
+                      src={`https://image.tmdb.org/t/p/original${seriesDetails.backdrop_path}`}
                       className="w-full h-full object-cover opacity-20 blur-[2px] scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#FAF9F7] via-[#FAF9F7]/60 to-transparent" />
-                    
+
                     <div className="absolute top-0 left-0 right-0 p-6 md:p-10 flex items-center justify-between z-20">
-                      <button 
+                      <button
                         onClick={() => setSelectedSeries(null)}
                         className="w-11 h-11 bg-white border border-gray-200 rounded-2xl flex items-center justify-center hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
                       >
@@ -955,7 +1707,7 @@ export default function SeriesTrackPage() {
                       </button>
 
                       <div className="flex items-center gap-3">
-                        <button 
+                        <button
                           onClick={() => selectedSeries && removeFromList(selectedSeries.id)}
                           className="w-11 h-11 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl flex items-center justify-center transition-all active:scale-95"
                           title="Listeden Kaldır"
@@ -979,7 +1731,7 @@ export default function SeriesTrackPage() {
                         </Drawer.Description>
                         <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-gray-500 mb-6">
                           <span className="flex items-center gap-1.5 text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-xl border border-yellow-100">
-                            <Star size={16} weight="fill" /> 
+                            <Star size={16} weight="fill" />
                             <span className="text-base">{seriesDetails.vote_average?.toFixed(1)}</span>
                           </span>
                           <span className="bg-white px-3 py-1.5 rounded-xl border border-gray-200">{seriesDetails.first_air_date?.split('-')[0]}</span>
@@ -997,11 +1749,10 @@ export default function SeriesTrackPage() {
                             <button
                               key={s.id}
                               onClick={() => updateSeriesStatus(s.id as any)}
-                              className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-wider ${
-                                selectedSeries?.status === s.id 
-                                  ? "bg-white text-gray-900 shadow-sm border border-gray-200" 
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-wider ${selectedSeries?.status === s.id
+                                  ? "bg-white text-gray-900 shadow-sm border border-gray-200"
                                   : "text-gray-400 hover:text-gray-600"
-                              }`}
+                                }`}
                             >
                               {s.label}
                             </button>
@@ -1010,7 +1761,7 @@ export default function SeriesTrackPage() {
 
                         {selectedSeries?.status === "watching" && (
                           <div className="flex flex-wrap items-center gap-2 mb-8">
-                            <button 
+                            <button
                               onClick={markAllAsWatched}
                               className="px-4 py-2 bg-white border border-gray-200 text-emerald-600 text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-emerald-50 hover:border-emerald-200 active:scale-95 shadow-sm uppercase tracking-wider"
                             >
@@ -1018,7 +1769,7 @@ export default function SeriesTrackPage() {
                               <span>Tümünü İzledim</span>
                             </button>
 
-                            <button 
+                            <button
                               onClick={markSeasonAsWatched}
                               className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-indigo-50 hover:border-indigo-200 active:scale-95 shadow-sm uppercase tracking-wider"
                             >
@@ -1063,11 +1814,10 @@ export default function SeriesTrackPage() {
                                 setActiveSeason(s.season_number);
                                 fetchSeasonDetails(seriesDetails.id, s.season_number);
                               }}
-                              className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
-                                activeSeason === s.season_number 
-                                  ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20" 
+                              className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${activeSeason === s.season_number
+                                  ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20"
                                   : "bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-300"
-                              }`}
+                                }`}
                             >
                               Sezon {s.season_number}
                             </button>
@@ -1085,9 +1835,9 @@ export default function SeriesTrackPage() {
                               {seasonDetails[activeSeason].episodes?.map((ep: any) => {
                                 const watched = isEpisodeWatched(activeSeason, ep.episode_number);
                                 const aired = hasEpisodeAired(ep.air_date);
-                                
+
                                 return (
-                                  <div 
+                                  <div
                                     key={ep.id}
                                     onClick={() => {
                                       if (!aired && !watched) {
@@ -1099,13 +1849,12 @@ export default function SeriesTrackPage() {
                                     className={`group cursor-pointer flex items-center gap-5 py-4 border-b border-gray-50 hover:bg-white transition-all px-3 rounded-2xl -mx-3 active:scale-[0.98] ${!aired ? 'opacity-40' : ''}`}
                                   >
                                     {/* Checkbox */}
-                                    <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                                      watched 
-                                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/10" 
+                                    <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all ${watched
+                                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/10"
                                         : !aired
                                           ? "bg-gray-100 text-gray-200 border border-gray-200"
                                           : "bg-white text-gray-200 border border-gray-200 group-hover:border-gray-400"
-                                    }`}>
+                                      }`}>
                                       <CheckCircle size={22} weight="bold" />
                                     </div>
 
@@ -1201,6 +1950,220 @@ export default function SeriesTrackPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      {/* Admin Panel Drawer */}
+      <Drawer.Root open={showAdminDrawer} onOpenChange={setShowAdminDrawer}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fade-in" />
+          <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[85dvh] outline-none z-50 max-w-2xl mx-auto border-t border-gray-200">
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-200 mb-4" />
+              <div>
+                <Drawer.Title className="text-2xl font-black mb-1 flex items-center gap-2">
+                  <Shield size={24} className="text-rose-600" />
+                  <span>Akış Yönetim Paneli</span>
+                </Drawer.Title>
+                <Drawer.Description className="text-gray-500 text-xs">
+                  Bu kanalda yayınlanan programın içeriğini, aktif sezonunu ve yayındaki aktif bölümünü değiştirin.
+                </Drawer.Description>
+              </div>
+
+              {/* 1. Dizi Seçimi */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider">1. Program Dizisi Seç</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {ADMIN_POPULAR_SHOWS.map((show) => {
+                    const isSelected = adminSelectedTmdbId === show.id;
+                    return (
+                      <button
+                        key={show.id}
+                        onClick={() => setAdminSelectedTmdbId(show.id)}
+                        className={`p-3 rounded-2xl border text-left text-xs font-black transition-all cursor-pointer ${isSelected
+                            ? "bg-rose-50 border-rose-200 text-rose-700 font-bold"
+                            : "bg-gray-50 border-gray-200/60 text-gray-700 hover:bg-gray-100"
+                          }`}
+                      >
+                        {show.name}
+                      </button>
+                    );
+                  })}
+                  {/* Custom TMDB ID input option */}
+                  <div className="p-2 rounded-2xl border border-gray-200/60 bg-gray-50 flex items-center gap-1.5 col-span-2 md:col-span-1">
+                    <input
+                      type="number"
+                      placeholder="TMDB ID..."
+                      value={adminSelectedTmdbId || ""}
+                      onChange={(e) => setAdminSelectedTmdbId(Number(e.target.value))}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-mono outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Sezon & Bölüm Seçimi (Sezonlara Göre Gruplanmış Bölümler) */}
+              {adminLoadingDetails ? (
+                <div className="flex items-center justify-center py-12 text-gray-400 font-mono text-xs">
+                  <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Dizi detayları yükleniyor...</span>
+                </div>
+              ) : adminSeriesDetails ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Season selector */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider block">2. Sezon Seç</label>
+                      <select
+                        value={adminSelectedSeason}
+                        onChange={(e) => {
+                          setAdminSelectedSeason(Number(e.target.value));
+                          setAdminSelectedEpisode(1);
+                        }}
+                        className="w-full bg-white border border-gray-200 text-xs font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer"
+                      >
+                        {adminSeriesDetails.seasons?.map((s: any) => (
+                          <option key={s.season_number} value={s.season_number}>
+                            {s.name || `Sezon ${s.season_number}`} ({s.episode_count} Bölüm)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Episode selector */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider block">3. Yayındaki Bölüm</label>
+                      <select
+                        value={adminSelectedEpisode}
+                        onChange={(e) => setAdminSelectedEpisode(Number(e.target.value))}
+                        className="w-full bg-white border border-gray-200 text-xs font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer font-mono"
+                      >
+                        {Array.from({
+                          length: adminSeriesDetails.seasons?.find((s: any) => s.season_number === adminSelectedSeason)?.episode_count || 0
+                        }).map((_, idx) => (
+                          <option key={idx + 1} value={idx + 1}>
+                            Bölüm {idx + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Schedule details */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider block">Başlangıç Tarihi</label>
+                      <input
+                        type="date"
+                        value={adminStartDate}
+                        onChange={(e) => setAdminStartDate(e.target.value)}
+                        className="w-full bg-white border border-gray-200 text-xs font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider block">Tekrar Sıklığı</label>
+                      <select
+                        value={adminScheduleType}
+                        onChange={(e) => setAdminScheduleType(e.target.value)}
+                        className="w-full bg-white border border-gray-200 text-xs font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer"
+                      >
+                        <option value="daily">Günlük (Her Gün 1 Bölüm)</option>
+                        <option value="weekly">Haftalık (Her Hafta 1 Bölüm)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 font-mono">Dizi seçildiğinde sezon bilgisi burada listelenecektir.</p>
+              )}
+
+              {/* 3. Takvim Görünümü (Calendar View) */}
+              <div className="space-y-3 pt-4 border-t border-gray-150">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-400 font-mono uppercase tracking-wider">Yayın Takvimi (Önizleme)</label>
+                  <span className="text-[9px] font-mono text-gray-400">Gelecek 28 Gün</span>
+                </div>
+                {loadingCalendar ? (
+                  <div className="flex justify-center py-6">
+                    <div className="w-5 h-5 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : calendarEvents.length > 0 ? (
+                  <div className="grid grid-cols-7 gap-1.5 p-3 bg-gray-50 border border-gray-150 rounded-2xl max-h-72 overflow-y-auto">
+                    {/* Calendar days labels */}
+                    {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((d) => (
+                      <div key={d} className="text-center text-[9px] font-black text-gray-400 uppercase font-mono py-1">
+                        {d}
+                      </div>
+                    ))}
+                    {(() => {
+                      const today = new Date();
+                      const startOfWeek = new Date(today);
+                      const dayDiff = startOfWeek.getDay() === 0 ? 6 : startOfWeek.getDay() - 1;
+                      startOfWeek.setDate(startOfWeek.getDate() - dayDiff); // Monday
+
+                      return Array.from({ length: 28 }).map((_, idx) => {
+                        const cellDate = new Date(startOfWeek);
+                        cellDate.setDate(cellDate.getDate() + idx);
+                        const isToday = cellDate.toDateString() === today.toDateString();
+
+                        // Find EPG episodes for this day
+                        const dayEvents = calendarEvents.filter((ev) => {
+                          const evDate = new Date(ev.release_date);
+                          return evDate.toDateString() === cellDate.toDateString();
+                        });
+
+                        return (
+                          <div
+                            key={idx}
+                            className={`min-h-[55px] p-1.5 rounded-xl border flex flex-col justify-between ${isToday
+                                ? "bg-rose-50/60 border-rose-200"
+                                : "bg-white border-gray-200/50"
+                              }`}
+                          >
+                            <span className={`text-[9px] font-mono font-bold ${isToday ? "text-rose-600 font-extrabold" : "text-gray-400"}`}>
+                              {cellDate.getDate()}
+                            </span>
+                            <div className="flex flex-col gap-0.5 mt-1 overflow-hidden">
+                              {dayEvents.map((ev, eIdx) => (
+                                <div
+                                  key={eIdx}
+                                  title={`${ev.program_title} - Sezon ${ev.season_number} Bölüm ${ev.episode_number}: ${ev.title}`}
+                                  className="text-[8px] font-black px-1 py-0.5 rounded-md truncate leading-tight bg-pink-100/75 text-pink-750 border border-pink-200/30"
+                                >
+                                  {ev.program_title.split(" ")[0]} S{ev.season_number}E{ev.episode_number}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 font-mono py-2">Henüz takvimde planlanmış bir bölüm yok.</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-150">
+                <button
+                  disabled={adminLoadingDetails || !adminSeriesDetails}
+                  onClick={handleAdminChangeSeasonEpisode}
+                  className="flex-1 py-3.5 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-black rounded-2xl text-xs uppercase tracking-wider font-mono shadow-sm transition-all active:scale-95 cursor-pointer"
+                  style={{ backgroundColor: (adminLoadingDetails || !adminSeriesDetails) ? "" : "#E11D48" }}
+                >
+                  Yayın Akışını Güncelle
+                </button>
+                <button
+                  onClick={() => setShowAdminDrawer(false)}
+                  className="px-6 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 font-black rounded-2xl text-xs uppercase tracking-wider font-mono transition-all active:scale-95 cursor-pointer"
+                >
+                  Kapat
+                </button>
+              </div>
+
             </div>
           </Drawer.Content>
         </Drawer.Portal>

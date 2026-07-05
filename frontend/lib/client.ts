@@ -4978,6 +4978,15 @@ export namespace series_track {
         watchUrlSlug?: string
     }
 
+    export interface ChangeTvProgramSeasonEpisodeRequest {
+        programId: string
+        tmdbId: number
+        seasonNumber: number
+        episodeNumber: number
+        startDate: string
+        scheduleType: string
+    }
+
     export interface GetUserProgressResponse {
         progress: UserProgress[]
     }
@@ -5007,6 +5016,11 @@ export namespace series_track {
     }
 
     export type SeriesStatus = "watching" | "plan_to_watch" | "completed" | "dropped"
+
+    export interface SetTvActiveEpisodeRequest {
+        programId: string
+        episodeNumber: number
+    }
 
     export interface TmdbSearchResponse {
         results: {
@@ -5075,6 +5089,94 @@ export namespace series_track {
         isWatched: boolean
     }
 
+    export interface TvCalendarEvent {
+        id: string
+        "program_id": string
+        title: string
+        "program_title": string
+        "episode_number": number
+        "season_number": number
+        "release_date": string
+        "stream_info": string
+    }
+
+    export interface TvCalendarEventsResponse {
+        events: TvCalendarEvent[]
+    }
+
+    export interface TvChannel {
+        id: string
+        name: string
+        description: string
+        slug: string
+        icon: string
+        color: string
+        "active_program": TvProgramSummary | null
+    }
+
+    export interface TvEpisode {
+        id: string
+        "episode_number": number
+        title: string
+        description: string | null
+        "stream_info": string
+        "release_date": string
+        "is_released": boolean
+        watched: boolean
+        "emoji_reaction": string | null
+    }
+
+    export interface TvEpisodeStatsResponse {
+        "watch_count": number
+        emojis: { [key: string]: number }
+    }
+
+    export interface TvGetChannelsResponse {
+        channels: TvChannel[]
+    }
+
+    export interface TvGetProgramRequest {
+        userId?: string
+    }
+
+    export interface TvProgramDetails {
+        id: string
+        "channel_id": string
+        title: string
+        description: string
+        "cover_image": string
+        status: string
+        "start_date": string
+        "schedule_type": string
+        "total_episodes": number
+        "tmdb_id"?: number | null
+        "season_number"?: number | null
+        episodes: TvEpisode[]
+    }
+
+    export interface TvProgramSummary {
+        id: string
+        title: string
+        description: string
+        "cover_image": string
+        status: string
+        "start_date": string
+        "schedule_type": string
+        "total_episodes": number
+        "tmdb_id"?: number | null
+        "season_number"?: number | null
+    }
+
+    export interface TvToggleWatchRequest {
+        userId: string
+        emojiReaction?: string
+    }
+
+    export interface TvToggleWatchResponse {
+        watched: boolean
+        "emoji_reaction": string | null
+    }
+
     export interface UpdateUserSeriesStatusRequest {
         userId: string
         seriesId: string
@@ -5105,16 +5207,23 @@ export namespace series_track {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addUserSeries = this.addUserSeries.bind(this)
+            this.changeTvProgramSeasonEpisode = this.changeTvProgramSeasonEpisode.bind(this)
             this.deleteUserSeries = this.deleteUserSeries.bind(this)
             this.getSeasonDetails = this.getSeasonDetails.bind(this)
             this.getSeriesDetails = this.getSeriesDetails.bind(this)
+            this.getTvCalendarEvents = this.getTvCalendarEvents.bind(this)
+            this.getTvChannels = this.getTvChannels.bind(this)
+            this.getTvEpisodeStats = this.getTvEpisodeStats.bind(this)
+            this.getTvProgramDetails = this.getTvProgramDetails.bind(this)
             this.getUserProgress = this.getUserProgress.bind(this)
             this.getUserSeries = this.getUserSeries.bind(this)
             this.markAllEpisodesWatched = this.markAllEpisodesWatched.bind(this)
             this.markEpisodesWatched = this.markEpisodesWatched.bind(this)
             this.searchSeries = this.searchSeries.bind(this)
+            this.setTvActiveEpisode = this.setTvActiveEpisode.bind(this)
             this.testTmdbKey = this.testTmdbKey.bind(this)
             this.toggleEpisodeWatched = this.toggleEpisodeWatched.bind(this)
+            this.toggleTvEpisodeWatched = this.toggleTvEpisodeWatched.bind(this)
             this.updateUserSeriesStatus = this.updateUserSeriesStatus.bind(this)
         }
 
@@ -5128,6 +5237,20 @@ export namespace series_track {
             const resp = await this.baseClient.callTypedAPI("POST", `/series-track/series/add`, JSON.stringify(params))
             return await resp.json() as {
     series: UserSeries | null
+}
+        }
+
+        /**
+         * TV programının sezonunu, başlangıç tarihini, tekrar sıklığını ve aktif bölümünü değiştirir.
+         * POST /series-track/tv/admin/change-season-episode
+         */
+        public async changeTvProgramSeasonEpisode(params: ChangeTvProgramSeasonEpisodeRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/admin/change-season-episode`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
 }
         }
 
@@ -5160,6 +5283,51 @@ export namespace series_track {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/series-track/details/${encodeURIComponent(tmdbId)}`)
             return await resp.json() as TmdbSeriesDetails
+        }
+
+        /**
+         * Takvim etkinliklerini (tüm EPG bölümlerini) tarih sırasıyla getirir.
+         * GET /series-track/tv/admin/calendar-events
+         */
+        public async getTvCalendarEvents(): Promise<TvCalendarEventsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/tv/admin/calendar-events`)
+            return await resp.json() as TvCalendarEventsResponse
+        }
+
+        /**
+         * Sabit kanalları ve o kanallardaki aktif programları getirir.
+         * GET /series-track/tv/channels
+         */
+        public async getTvChannels(): Promise<TvGetChannelsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/tv/channels`)
+            return await resp.json() as TvGetChannelsResponse
+        }
+
+        /**
+         * Bölüm istatistiklerini (toplam izleme, emoji tepkileri) getirir.
+         * GET /series-track/tv/episode/:episodeId/stats
+         */
+        public async getTvEpisodeStats(episodeId: string): Promise<TvEpisodeStatsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/tv/episode/${encodeURIComponent(episodeId)}/stats`)
+            return await resp.json() as TvEpisodeStatsResponse
+        }
+
+        /**
+         * Belirli bir programın detaylarını ve bölümlerini (kullanıcı izleme durumuyla birlikte) getirir.
+         * GET /series-track/tv/program/:programId
+         */
+        public async getTvProgramDetails(programId: string, params: TvGetProgramRequest): Promise<TvProgramDetails> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/tv/program/${encodeURIComponent(programId)}`, undefined, {query})
+            return await resp.json() as TvProgramDetails
         }
 
         /**
@@ -5221,6 +5389,20 @@ export namespace series_track {
         }
 
         /**
+         * TV programının aktif (yayındaki) bölümünü değiştirir (Sadece admin için).
+         * POST /series-track/tv/admin/set-episode
+         */
+        public async setTvActiveEpisode(params: SetTvActiveEpisodeRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/admin/set-episode`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
          * API Key test endpoint
          */
         public async testTmdbKey(): Promise<{
@@ -5244,6 +5426,16 @@ export namespace series_track {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/series-track/progress/toggle`, JSON.stringify(params))
             return await resp.json() as ToggleEpisodeWatchedResponse
+        }
+
+        /**
+         * Bölümü izlendi/izlenmedi yapar veya emoji tepkisini günceller.
+         * POST /series-track/tv/episode/:episodeId/watch
+         */
+        public async toggleTvEpisodeWatched(episodeId: string, params: TvToggleWatchRequest): Promise<TvToggleWatchResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/episode/${encodeURIComponent(episodeId)}/watch`, JSON.stringify(params))
+            return await resp.json() as TvToggleWatchResponse
         }
 
         /**
