@@ -3,15 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "bunx --yes kill-port 3000 4000; bunx concurrently --kill-others-on-fail -n frontend,encore,generate -c blue,green,yellow \\\"bun run frontend\\\" \\\"bun run encore\\\" \\\"bun run watch\\\"",
-    "frontend": "ENCORE_PROXY_TARGET=http://localhost:4000 NEXT_PUBLIC_ENCORE_ENVIRONMENT=local bun run --cwd frontend dev",
-    "watch": "bun -e \"await Bun.sleep(3000)\" && bun run --cwd backend generate:watch",
-    "encore": "bun run --cwd backend dev",
-    "build": "cd frontend && bun run build",
-    "mobile": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run store",
-    "apk": "cd frontend && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && export PATH=\"$JAVA_HOME/bin:$PATH\" && bun run mobile",
-    "ios": "cd frontend && bun run ios",
-    "ota": "cd frontend && bun run ota",
-    "secret": "cd backend && encore secret set --type local,dev,prod"
+    "dev": "bun docs/scripts/dev.ts",
+    "build": "bun docs/scripts/frontend/build.ts",
+    "mobile": "bun docs/scripts/frontend/mobile.ts",
+    "apk": "bun docs/scripts/frontend/apk.ts",
+    "ios": "bun docs/scripts/frontend/ios.ts",
+    "ota": "bun docs/scripts/frontend/ota.ts",
+    "secret": "bun docs/scripts/backend/secret.ts"
   }
 }

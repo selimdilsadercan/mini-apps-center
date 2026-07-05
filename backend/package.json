@@ -6,11 +6,11 @@
   "license": "MPL-2.0",
   "type": "module",
   "scripts": {
-    "dev": "encore run",
-    "test": "vitest",
-    "generate": "encore gen client mini-apps-center-8u7i -e local --output=../frontend/lib/client.ts",
-    "generate:watch": "nodemon --watch . --ext ts --ignore node_modules --exec \"bun run generate\"",
-    "clean": "rimraf node_modules .encore"
+    "dev": "bun ../docs/scripts/backend/dev.ts",
+    "test": "bun ../docs/scripts/backend/test.ts",
+    "generate": "bun ../docs/scripts/backend/generate.ts",
+    "generate:watch": "bun ../docs/scripts/backend/generate-watch.ts",
+    "clean": "bun ../docs/scripts/backend/clean.ts"
   },
   "devDependencies": {
     "@types/cheerio": "^1.0.0",
