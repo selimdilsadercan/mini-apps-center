@@ -2874,6 +2874,7 @@ export namespace eksik_var {
     export interface AddItemRequest {
         userId: string
         name: string
+        category?: string
     }
 
     export interface AddItemResponse {
@@ -2914,6 +2915,7 @@ export namespace eksik_var {
         "user_id": string
         name: string
         "is_used": boolean
+        category?: string | null
         "created_at": string
     }
 
@@ -2950,6 +2952,17 @@ export namespace eksik_var {
         item: MissingItem | null
     }
 
+    export interface UpdateItemRequest {
+        userId: string
+        name?: string
+        isUsed?: boolean
+        category?: string
+    }
+
+    export interface UpdateItemResponse {
+        item: MissingItem | null
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -2965,6 +2978,7 @@ export namespace eksik_var {
             this.removeSharedMember = this.removeSharedMember.bind(this)
             this.shareWithFriend = this.shareWithFriend.bind(this)
             this.toggleItemUsed = this.toggleItemUsed.bind(this)
+            this.updateItem = this.updateItem.bind(this)
         }
 
         /**
@@ -3070,6 +3084,16 @@ export namespace eksik_var {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/eksik-var/item/${encodeURIComponent(id)}/toggle-used`, JSON.stringify(params))
             return await resp.json() as ToggleItemUsedResponse
+        }
+
+        /**
+         * Eksik listesindeki ürünü günceller (ad veya alındı durumu)
+         * PUT /eksik-var/item/:id
+         */
+        public async updateItem(id: string, params: UpdateItemRequest): Promise<UpdateItemResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/eksik-var/item/${encodeURIComponent(id)}`, JSON.stringify(params))
+            return await resp.json() as UpdateItemResponse
         }
     }
 }

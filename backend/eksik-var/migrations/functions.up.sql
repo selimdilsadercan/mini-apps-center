@@ -9,6 +9,7 @@
 -- 8. eksik_var.get_shared_members
 -- 9. eksik_var.remove_shared_member
 -- 10. eksik_var.share_list_with_friend
+-- 11. eksik_var.update_missing_item
 
 -- 1. Get Missing Items
 DROP FUNCTION IF EXISTS eksik_var.get_missing_items(TEXT);
@@ -30,9 +31,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. Add Missing Item
 DROP FUNCTION IF EXISTS eksik_var.add_missing_item(TEXT, TEXT);
+DROP FUNCTION IF EXISTS eksik_var.add_missing_item(TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION eksik_var.add_missing_item(
     clerk_id_param TEXT,
-    name_param TEXT
+    name_param TEXT,
+    category_param TEXT DEFAULT NULL
 )
 RETURNS eksik_var.missing_items AS $$
 DECLARE
@@ -45,9 +48,9 @@ BEGIN
     END IF;
     
     INSERT INTO eksik_var.missing_items (
-        user_id, name
+        user_id, name, category
     ) VALUES (
-        v_user_id, name_param
+        v_user_id, name_param, category_param
     ) RETURNING * INTO v_new_item;
     
     RETURN v_new_item;
@@ -288,5 +291,45 @@ BEGIN
     ON CONFLICT (owner_id, member_id) DO NOTHING;
 
     RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 11. Update Missing Item
+DROP FUNCTION IF EXISTS eksik_var.update_missing_item(UUID, TEXT, TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS eksik_var.update_missing_item(UUID, TEXT, TEXT, BOOLEAN, TEXT);
+CREATE OR REPLACE FUNCTION eksik_var.update_missing_item(
+    item_id_param UUID,
+    clerk_id_param TEXT,
+    name_param TEXT DEFAULT NULL,
+    is_used_param BOOLEAN DEFAULT NULL,
+    category_param TEXT DEFAULT NULL
+)
+RETURNS eksik_var.missing_items AS $$
+DECLARE
+    v_user_id UUID;
+    v_item eksik_var.missing_items;
+BEGIN
+    v_user_id := public.get_internal_user_id(clerk_id_param);
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    UPDATE eksik_var.missing_items
+    SET
+        name = COALESCE(name_param, name),
+        is_used = COALESCE(is_used_param, is_used),
+        category = COALESCE(category_param, category)
+    WHERE id = item_id_param AND (
+        user_id = v_user_id
+        OR user_id IN (SELECT owner_id FROM eksik_var.shared_lists WHERE member_id = v_user_id)
+        OR user_id IN (SELECT member_id FROM eksik_var.shared_lists WHERE owner_id = v_user_id)
+    )
+    RETURNING * INTO v_item;
+
+    IF v_item IS NULL THEN
+        RAISE EXCEPTION 'Item not found';
+    END IF;
+
+    RETURN v_item;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

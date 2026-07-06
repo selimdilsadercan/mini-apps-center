@@ -9,6 +9,7 @@
 --------------------------------------------------------------------------------
 
 ALTER TABLE eksik_var.missing_items ADD COLUMN IF NOT EXISTS is_used BOOLEAN DEFAULT FALSE NOT NULL;
+ALTER TABLE eksik_var.missing_items ADD COLUMN IF NOT EXISTS category TEXT;
 
 CREATE TABLE IF NOT EXISTS eksik_var.shared_lists (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS eksik_var.missing_items (
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     is_used BOOLEAN DEFAULT FALSE NOT NULL,
+    category TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 

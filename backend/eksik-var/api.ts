@@ -15,6 +15,7 @@ export interface MissingItem {
   user_id: string;
   name: string;
   is_used: boolean;
+  category?: string | null;
   created_at: string;
 }
 
@@ -43,6 +44,7 @@ interface GetItemsResponse {
 interface AddItemRequest {
   userId: string;
   name: string;
+  category?: string;
 }
 
 interface AddItemResponse {
@@ -64,6 +66,18 @@ interface ToggleItemUsedRequest {
 }
 
 interface ToggleItemUsedResponse {
+  item: MissingItem | null;
+}
+
+interface UpdateItemRequest {
+  id: string;
+  userId: string;
+  name?: string;
+  isUsed?: boolean;
+  category?: string;
+}
+
+interface UpdateItemResponse {
   item: MissingItem | null;
 }
 
@@ -142,10 +156,11 @@ export const getItems = api(
  */
 export const addItem = api(
   { expose: true, method: "POST", path: "/eksik-var/add" },
-  async ({ userId, name }: AddItemRequest): Promise<AddItemResponse> => {
+  async ({ userId, name, category }: AddItemRequest): Promise<AddItemResponse> => {
     const { data, error } = await supabase.schema("eksik_var").rpc("add_missing_item", {
       clerk_id_param: userId,
       name_param: name,
+      category_param: category ?? null,
     });
 
     if (error) {
@@ -193,6 +208,30 @@ export const toggleItemUsed = api(
     if (error) {
       console.error("toggleItemUsed error:", error);
       throw APIError.internal(`Failed to toggle item used state: ${error.message}`);
+    }
+
+    return { item: (data as MissingItem) || null };
+  }
+);
+
+/**
+ * Eksik listesindeki ürünü günceller (ad veya alındı durumu)
+ * PUT /eksik-var/item/:id
+ */
+export const updateItem = api(
+  { expose: true, method: "PUT", path: "/eksik-var/item/:id" },
+  async ({ id, userId, name, isUsed, category }: UpdateItemRequest): Promise<UpdateItemResponse> => {
+    const { data, error } = await supabase.schema("eksik_var").rpc("update_missing_item", {
+      item_id_param: id,
+      clerk_id_param: userId,
+      name_param: name ?? null,
+      is_used_param: isUsed ?? null,
+      category_param: category ?? null,
+    });
+
+    if (error) {
+      console.error("updateItem error:", error);
+      throw APIError.internal(`Failed to update missing item: ${error.message}`);
     }
 
     return { item: (data as MissingItem) || null };

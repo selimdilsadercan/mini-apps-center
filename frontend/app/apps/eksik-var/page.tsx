@@ -1,7 +1,7 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   ListChecks,
@@ -14,31 +14,413 @@ import {
   Copy,
   X,
   Check,
+  PencilSimple,
+  ArrowsClockwise,
+  House,
+  Cheese,
+  Fish,
+  Bread,
+  Grains,
+  JarLabel,
+  Carrot,
+  Orange,
+  Nut,
+  Egg,
+  Popcorn,
+  Coffee,
+  BeerBottle,
+  Snowflake,
+  Jar,
+  Pepper,
+  Star,
+  Baby,
+  SprayBottle,
+  Shower,
+  Notebook,
+  Package,
+  ListBullets,
+  MagnifyingGlass,
+  type Icon,
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { eksik_var } from "@/lib/client";
+import toast, { Toaster } from "react-hot-toast";
 
 const client = createBrowserClient();
 
 import COMMON_ITEMS from "./common_items.json";
+import { getItemImageUrl, getItemInitial, normalizeItemNameForAdd, formatItemName } from "./item-images";
+
+type CommonItem = {
+  name: string;
+  category: string;
+  slug?: string;
+  atlasCategory?: string;
+};
+type Suggestion = { name: string; category?: string };
+
+const ALL_COMMON_ITEMS: CommonItem[] = COMMON_ITEMS.flatMap((group) =>
+  group.items.map((item) => ({
+    name: item.name,
+    category: group.category,
+    slug: item.slug,
+    atlasCategory: item.atlasCategory,
+  }))
+);
+
+const CATEGORY_BY_NAME = new Map(
+  ALL_COMMON_ITEMS.map((item) => [item.name.toLocaleLowerCase("tr-TR"), item.category])
+);
+
+const CATEGORY_ORDER = [...COMMON_ITEMS.map((group) => group.category), "Diğer"];
+
+const CATEGORY_ICONS: Record<string, Icon> = {
+  "Süt Ürünleri": Cheese,
+  "Et ve Balık": Fish,
+  "Ekmek ve Unlu Mamül": Bread,
+  "Bakliyat ve Makarna": Grains,
+  "Yağ, Sos ve Salça": JarLabel,
+  Sebze: Carrot,
+  Meyve: Orange,
+  Kuruyemiş: Nut,
+  Kahvaltılık: Egg,
+  Atıştırmalık: Popcorn,
+  "Kahve ve Çay": Coffee,
+  İçecek: BeerBottle,
+  "Dondurulmuş ve Hazır": Snowflake,
+  "Konserve ve Turşu": Jar,
+  "Baharat ve Temel Malzeme": Pepper,
+  "Özel Ürünler": Star,
+  Bebek: Baby,
+  Temizlik: SprayBottle,
+  "Kişisel Bakım": Shower,
+  "Ev ve Kırtasiye": Notebook,
+  Diğer: Package,
+};
+
+const CATEGORY_SUPER_GROUPS: { title: string; categories: string[] }[] = [
+  {
+    title: "Gıda",
+    categories: [
+      "Süt Ürünleri",
+      "Et ve Balık",
+      "Ekmek ve Unlu Mamül",
+      "Bakliyat ve Makarna",
+      "Yağ, Sos ve Salça",
+      "Sebze",
+      "Meyve",
+      "Kuruyemiş",
+      "Kahvaltılık",
+      "Baharat ve Temel Malzeme",
+    ],
+  },
+  {
+    title: "Atıştırma & İçecek",
+    categories: ["Atıştırmalık", "Kahve ve Çay", "İçecek"],
+  },
+  {
+    title: "Dolap",
+    categories: ["Dondurulmuş ve Hazır", "Konserve ve Turşu"],
+  },
+  {
+    title: "Ev & Kişisel",
+    categories: ["Temizlik", "Kişisel Bakım", "Ev ve Kırtasiye", "Bebek"],
+  },
+  {
+    title: "Diğer",
+    categories: ["Özel Ürünler", "Diğer"],
+  },
+];
+
+function getItemCategory(name: string): string {
+  return CATEGORY_BY_NAME.get(name.toLocaleLowerCase("tr-TR")) ?? "Diğer";
+}
+
+function getDisplayCategory(item: { name: string; category?: string | null }): string {
+  return item.category ?? getItemCategory(item.name);
+}
+
+function isCustomItemName(name: string): boolean {
+  return !CATEGORY_BY_NAME.has(name.toLocaleLowerCase("tr-TR"));
+}
+
+function getSuggestionScore(name: string, query: string): number {
+  const lower = name.toLocaleLowerCase("tr-TR");
+  if (lower === query) return 0;
+  if (lower.startsWith(query)) return 100;
+  if (lower.split(/\s+/).some((word) => word.startsWith(query))) return 200;
+  return 300 + lower.indexOf(query);
+}
+
+function sortByRelevance(items: CommonItem[], query: string): CommonItem[] {
+  return [...items].sort((a, b) => {
+    const scoreDiff = getSuggestionScore(a.name, query) - getSuggestionScore(b.name, query);
+    if (scoreDiff !== 0) return scoreDiff;
+    return a.name.length - b.name.length;
+  });
+}
+
+function groupItemsByCategory<T extends { name: string; category?: string | null }>(items: T[]) {
+  const groups = new Map<string, T[]>();
+
+  for (const item of items) {
+    const category = getDisplayCategory(item);
+    const group = groups.get(category);
+    if (group) {
+      group.push(item);
+    } else {
+      groups.set(category, [item]);
+    }
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
+    .map(([category, groupItems]) => ({ category, items: groupItems }));
+}
+
+function ItemThumbnail({
+  name,
+  faded = false,
+  size = "card",
+}: {
+  name: string;
+  faded?: boolean;
+  size?: "card" | "sheet" | "suggestion";
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const imageUrl = getItemImageUrl(name);
+  const initial = getItemInitial(name);
+  const boxClass =
+    size === "sheet"
+      ? "w-20 h-20 text-2xl"
+      : size === "suggestion"
+        ? "w-8 h-8 text-xs shrink-0"
+        : "w-11 h-11 text-base mb-1.5";
+  const fadedClass = faded ? "opacity-50" : "";
+  const roundClass = size === "suggestion" ? "rounded-lg" : "rounded-xl";
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [name, imageUrl]);
+
+  if (imageUrl && !imageFailed) {
+    return (
+      <img
+        src={imageUrl}
+        alt=""
+        loading="lazy"
+        onError={() => setImageFailed(true)}
+        className={`${boxClass} object-contain ${roundClass} ${fadedClass}`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${boxClass} ${roundClass} bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 ${fadedClass}`}
+    >
+      {initial}
+    </div>
+  );
+}
+
+function ListSectionHeader({
+  title,
+  count,
+  icon,
+}: {
+  title: string;
+  count: number;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 mb-4 px-4 py-3.5 rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="shrink-0 text-gray-500">{icon}</span>
+        <span className="text-sm font-black uppercase tracking-wide truncate text-gray-900">
+          {title}
+        </span>
+      </div>
+      <span className="text-xs font-black shrink-0 text-gray-500">{count} ürün</span>
+    </div>
+  );
+}
+
+function CategoryPicker({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (category: string) => void;
+}) {
+  return (
+    <div className="max-h-[360px] overflow-y-auto pr-1 space-y-4">
+      {CATEGORY_SUPER_GROUPS.map((group) => (
+        <div key={group.title}>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
+            {group.title}
+          </p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {group.categories.map((category) => {
+              const IconComponent = CATEGORY_ICONS[category] ?? Package;
+              const isSelected = value === category;
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => onChange(category)}
+                  className={`flex flex-col items-center justify-center gap-1 min-h-[68px] text-[9px] font-bold leading-tight px-1 py-2 rounded-xl border transition-all active:scale-[0.98] ${
+                    isSelected
+                      ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-900/10"
+                      : "bg-gray-50 text-gray-700 border-gray-200 hover:border-emerald-500/30"
+                  }`}
+                >
+                  <IconComponent
+                    size={18}
+                    weight={isSelected ? "fill" : "duotone"}
+                    className={isSelected ? "text-white" : "text-emerald-600"}
+                  />
+                  <span className="text-center line-clamp-2">{category}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const MOVE_TOAST_DURATION_MS = 3000;
+const MOVE_TOAST_MAX_VISIBLE = 2;
+const MOVE_TOASTER_ID = "eksik-var-moves";
+const moveToastQueue: string[] = [];
+
+function showItemMovedToast(
+  name: string,
+  isNowAtHome: boolean,
+  onUndo: () => void
+) {
+  while (moveToastQueue.length >= MOVE_TOAST_MAX_VISIBLE) {
+    const oldest = moveToastQueue.shift();
+    if (oldest) {
+      toast.dismiss(oldest, MOVE_TOASTER_ID);
+      toast.remove(oldest, MOVE_TOASTER_ID);
+    }
+  }
+
+  const id = toast.custom(
+    (t) => (
+      <div
+        className={`${
+          t.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        } flex items-center gap-3 bg-gray-900 text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-xl max-w-[min(calc(100vw-2rem),24rem)] transition-all duration-200`}
+      >
+        <span className="flex-1 min-w-0 leading-snug">
+          <span className="text-white">{name}</span>
+          <span className="text-gray-300 font-semibold">
+            {isNowAtHome ? " evde vara taşındı" : " eksiklere geri alındı"}
+          </span>
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            const index = moveToastQueue.indexOf(t.id);
+            if (index >= 0) moveToastQueue.splice(index, 1);
+            toast.dismiss(t.id, MOVE_TOASTER_ID);
+            onUndo();
+          }}
+          className="shrink-0 text-emerald-400 font-black text-xs uppercase tracking-wide hover:text-emerald-300 active:scale-95 transition-all"
+        >
+          Geri Al
+        </button>
+      </div>
+    ),
+    {
+      duration: MOVE_TOAST_DURATION_MS,
+      position: "bottom-center",
+      toasterId: MOVE_TOASTER_ID,
+    }
+  );
+
+  moveToastQueue.push(id);
+  window.setTimeout(() => {
+    const index = moveToastQueue.indexOf(id);
+    if (index >= 0) moveToastQueue.splice(index, 1);
+  }, MOVE_TOAST_DURATION_MS + 400);
+}
 
 export default function EksikVarPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const [items, setItems] = useState<eksik_var.MissingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
 
   // Sharing states
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showCatalogSheet, setShowCatalogSheet] = useState(false);
+  const [catalogQuery, setCatalogQuery] = useState("");
   const [sharedMembers, setSharedMembers] = useState<eksik_var.SharedMember[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
   const [loadingShareData, setLoadingShareData] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [editingItem, setEditingItem] = useState<eksik_var.MissingItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [pendingCustomName, setPendingCustomName] = useState<string | null>(null);
+  const [selectedAddCategory, setSelectedAddCategory] = useState<string | null>(null);
+  const [savingCategoryAdd, setSavingCategoryAdd] = useState(false);
+  const [scrollToItemId, setScrollToItemId] = useState<string | null>(null);
+
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const totalCatalogItems = useMemo(
+    () => COMMON_ITEMS.reduce((sum, group) => sum + group.items.length, 0),
+    []
+  );
+
+  const filteredCatalog = useMemo(() => {
+    const query = catalogQuery.trim().toLocaleLowerCase("tr-TR");
+    if (!query) return COMMON_ITEMS;
+
+    return COMMON_ITEMS.map((group) => ({
+      category: group.category,
+      items: group.items.filter(
+        (item) =>
+          item.name.toLocaleLowerCase("tr-TR").includes(query) ||
+          group.category.toLocaleLowerCase("tr-TR").includes(query)
+      ),
+    })).filter((group) => group.items.length > 0);
+  }, [catalogQuery]);
+
+  const closeCatalogSheet = () => {
+    setShowCatalogSheet(false);
+    setCatalogQuery("");
+  };
+
+  const isInActiveList = (name: string) =>
+    items.some(
+      (item) =>
+        !item.is_used &&
+        item.name.toLocaleLowerCase("tr-TR") === name.toLocaleLowerCase("tr-TR")
+    );
+
+  const handleCatalogItemTap = (name: string) => {
+    if (isInActiveList(name)) return;
+    handleAddItem(name);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -55,6 +437,20 @@ export default function EksikVarPage() {
       fetchShareData();
     }
   }, [showShareSheet, user]);
+
+  useEffect(() => {
+    if (!scrollToItemId) return;
+
+    const timer = window.setTimeout(() => {
+      const el = itemRefs.current.get(scrollToItemId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      setScrollToItemId(null);
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [scrollToItemId, items]);
 
   const fetchShareData = async () => {
     if (!user) return;
@@ -141,42 +537,97 @@ export default function EksikVarPage() {
 
   const handleInputChange = (val: string) => {
     setInputValue(val);
-    if (!val.trim()) {
+    const trimmed = val.trim();
+    if (!trimmed) {
       setSuggestions([]);
+      setSelectedSuggestionIndex(0);
       return;
     }
-    const filtered = COMMON_ITEMS.filter(item =>
-      item.toLocaleLowerCase("tr-TR").includes(val.toLocaleLowerCase("tr-TR"))
-    ).slice(0, 5);
-    setSuggestions(filtered);
+    const query = trimmed.toLocaleLowerCase("tr-TR");
+    const matches = ALL_COMMON_ITEMS.filter((item) =>
+      item.name.toLocaleLowerCase("tr-TR").includes(query)
+    );
+    const sorted = sortByRelevance(matches, query);
+    const hasExactMatch =
+      sorted.length > 0 && sorted[0].name.toLocaleLowerCase("tr-TR") === query;
+
+    setSuggestions(
+      hasExactMatch
+        ? sorted.slice(0, 5)
+        : [{ name: formatItemName(trimmed) }, ...sorted.slice(0, 4)]
+    );
+    setSelectedSuggestionIndex(0);
     setShowSuggestions(true);
   };
 
-  const handleAddItem = async (nameToAdd: string) => {
-    const trimmed = nameToAdd.trim();
-    if (!trimmed) return;
+  const getActiveSuggestionName = () => {
+    if (showSuggestions && suggestions.length > 0) {
+      return suggestions[selectedSuggestionIndex]?.name ?? inputValue;
+    }
+    return inputValue;
+  };
+
+  const handleAddItem = async (nameToAdd: string, categoryOverride?: string) => {
+    const normalized = normalizeItemNameForAdd(nameToAdd);
+    if (!normalized) return;
     if (!user) {
       return;
     }
 
-    if (items.some(item => !item.is_used && item.name.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      items.some(
+        (item) =>
+          !item.is_used &&
+          item.name.toLocaleLowerCase("tr-TR") === normalized.toLocaleLowerCase("tr-TR")
+      )
+    ) {
+      return;
+    }
+
+    const isCustom = isCustomItemName(normalized);
+    if (isCustom && !categoryOverride) {
+      setPendingCustomName(normalized);
+      setSelectedAddCategory(null);
+      setCategoryModalOpen(true);
+      setShowSuggestions(false);
       return;
     }
 
     try {
+      setSavingCategoryAdd(true);
       const response = await client.eksik_var.addItem({
         userId: user.id,
-        name: trimmed
+        name: normalized,
+        ...(categoryOverride ? { category: categoryOverride } : {}),
       });
       if (response.item) {
         setItems(prev => [response.item!, ...prev]);
+        setScrollToItemId(response.item.id);
       }
       setInputValue("");
       setSuggestions([]);
+      setSelectedSuggestionIndex(0);
       setShowSuggestions(false);
+      setCategoryModalOpen(false);
+      setPendingCustomName(null);
+      setSelectedAddCategory(null);
     } catch (error) {
       console.error("handleAddItem error:", error);
+    } finally {
+      setSavingCategoryAdd(false);
     }
+  };
+
+  const closeCategoryModal = () => {
+    setCategoryModalOpen(false);
+    setPendingCustomName(null);
+    setSelectedAddCategory(null);
+    setSavingCategoryAdd(false);
+  };
+
+  const handleConfirmCategoryAdd = async () => {
+    if (!pendingCustomName || !selectedAddCategory) return;
+    await handleAddItem(pendingCustomName, selectedAddCategory);
   };
 
   const handleDeleteItem = async (id: string, name: string) => {
@@ -195,48 +646,181 @@ export default function EksikVarPage() {
       const response = await client.eksik_var.toggleItemUsed(id, { userId: user.id });
       if (response.item) {
         setItems(prev => prev.map(item => item.id === id ? response.item! : item));
+
+        const isNowAtHome = response.item.is_used;
+        showItemMovedToast(name, isNowAtHome, async () => {
+          if (!user) return;
+          try {
+            const undoResponse = await client.eksik_var.toggleItemUsed(id, { userId: user.id });
+            if (undoResponse.item) {
+              setItems((prev) =>
+                prev.map((item) => (item.id === id ? undoResponse.item! : item))
+              );
+            }
+          } catch (error) {
+            console.error("handleToggleUsed undo error:", error);
+          }
+        });
       }
     } catch (error) {
       console.error("handleToggleUsed error:", error);
     }
   };
 
+  const openEditSheet = (item: eksik_var.MissingItem) => {
+    setEditingItem(item);
+    setEditName(item.name);
+    setEditCategory(getDisplayCategory(item));
+  };
+
+  const closeEditSheet = () => {
+    setEditingItem(null);
+    setEditName("");
+    setEditCategory(null);
+    setSavingEdit(false);
+  };
+
+  const startLongPress = (item: eksik_var.MissingItem) => {
+    longPressTriggeredRef.current = false;
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      openEditSheet(item);
+      navigator.vibrate?.(40);
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleItemTap = (item: eksik_var.MissingItem, currentlyUsed: boolean) => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+      return;
+    }
+    handleToggleUsed(item.id, item.name, currentlyUsed);
+  };
+
+  const getLongPressProps = (item: eksik_var.MissingItem) => ({
+    onTouchStart: () => startLongPress(item),
+    onTouchEnd: cancelLongPress,
+    onTouchMove: cancelLongPress,
+    onTouchCancel: cancelLongPress,
+    onMouseDown: () => startLongPress(item),
+    onMouseUp: cancelLongPress,
+    onMouseLeave: cancelLongPress,
+    onContextMenu: (e: React.MouseEvent) => {
+      e.preventDefault();
+      openEditSheet(item);
+    },
+  });
+
+  const handleSaveEdit = async () => {
+    if (!user || !editingItem) return;
+    const normalized = normalizeItemNameForAdd(editName);
+    if (!normalized) return;
+
+    const nameChanged =
+      normalized.toLocaleLowerCase("tr-TR") !== editingItem.name.toLocaleLowerCase("tr-TR");
+    const categoryChanged =
+      editCategory !== null && editCategory !== (editingItem.category ?? getItemCategory(editingItem.name));
+    const isCustom = isCustomItemName(normalized) || !!editingItem.category;
+
+    if (
+      nameChanged &&
+      items.some(
+        (item) =>
+          item.id !== editingItem.id &&
+          !item.is_used &&
+          item.name.toLocaleLowerCase("tr-TR") === normalized.toLocaleLowerCase("tr-TR")
+      )
+    ) {
+      return;
+    }
+
+    if (!nameChanged && !(isCustom && categoryChanged)) {
+      closeEditSheet();
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+      const response = await client.eksik_var.updateItem(editingItem.id, {
+        userId: user.id,
+        ...(nameChanged ? { name: normalized } : {}),
+        ...(isCustom && categoryChanged && editCategory ? { category: editCategory } : {}),
+      });
+      if (response.item) {
+        setItems((prev) =>
+          prev.map((item) => (item.id === editingItem.id ? response.item! : item))
+        );
+      }
+      closeEditSheet();
+    } catch (error) {
+      console.error("handleSaveEdit error:", error);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleEditToggle = async () => {
+    if (!editingItem) return;
+    await handleToggleUsed(editingItem.id, editingItem.name, editingItem.is_used);
+    closeEditSheet();
+  };
+
+  const handleEditDelete = async () => {
+    if (!editingItem) return;
+    await handleDeleteItem(editingItem.id, editingItem.name);
+    closeEditSheet();
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-emerald-100">
-
-
-      <main className="flex-1 px-4 py-8 pb-32 max-w-xl mx-auto w-full">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => window.location.href = getAppRootUrl()}
-            className="group flex items-center gap-2 text-gray-500 text-xs font-bold hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm active:scale-95"
-          >
-            <CaretLeft size={14} weight="bold" className="text-emerald-500 shrink-0" />
-          </button>
-
-          {user && (
+      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
+          <div className="flex items-center gap-2 mb-2.5">
             <button
-              onClick={() => setShowShareSheet(true)}
-              className="group flex items-center gap-2 text-gray-500 text-xs font-bold hover:text-emerald-600 hover:bg-emerald-50/30 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm active:scale-95"
+              onClick={() => window.location.href = getAppRootUrl()}
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
             >
-              <ShareNetwork size={14} weight="bold" className="text-emerald-500 shrink-0" />
-              <span>Listeyi Paylaş</span>
+              <CaretLeft size={14} weight="bold" className="text-emerald-500" />
             </button>
-          )}
-        </div>
 
-        {/* Hero Section */}
-        <div className="mb-6 mt-2">
-          <h1 className="text-2xl font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-2">
-            <ListChecks size={26} weight="fill" className="text-emerald-500" />
-            Eksik <span className="text-emerald-500">Var!</span>
-          </h1>
-        </div>
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+              <ListChecks size={18} weight="fill" className="text-emerald-500 shrink-0" />
+              <span className="truncate">
+                Eksik <span className="text-emerald-500">Var!</span>
+              </span>
+            </h1>
+
+            {user && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => setShowCatalogSheet(true)}
+                  className="flex items-center justify-center w-8 h-8 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+                  title="Ürün Listesi"
+                >
+                  <ListBullets size={16} weight="bold" />
+                </button>
+                <button
+                  onClick={() => setShowShareSheet(true)}
+                  className="flex items-center justify-center w-8 h-8 text-emerald-500 hover:bg-emerald-50 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+                  title="Listeyi Paylaş"
+                >
+                  <ShareNetwork size={16} weight="bold" />
+                </button>
+              </div>
+            )}
+          </div>
 
         {/* Input & Autocomplete */}
         {user && (
-          <div className="mb-6 relative" ref={suggestionsRef}>
+          <div className="relative" ref={suggestionsRef}>
             <div className="flex gap-2">
               <input
                 ref={inputRef}
@@ -244,17 +828,38 @@ export default function EksikVarPage() {
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddItem(inputValue);
+                  if (showSuggestions && suggestions.length > 0) {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setSelectedSuggestionIndex((index) =>
+                        Math.min(index + 1, suggestions.length - 1)
+                      );
+                      return;
+                    }
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setSelectedSuggestionIndex((index) => Math.max(index - 1, 0));
+                      return;
+                    }
+                    if (e.key === "Escape") {
+                      setShowSuggestions(false);
+                      return;
+                    }
+                  }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddItem(getActiveSuggestionName());
+                  }
                 }}
                 onFocus={() => {
                   if (inputValue.trim()) setShowSuggestions(true);
                 }}
                 placeholder="Eksik ürün yazın..."
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900 shadow-sm"
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
               />
               <button
-                onClick={() => handleAddItem(inputValue)}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition-all shrink-0"
+                onClick={() => handleAddItem(getActiveSuggestionName())}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all shrink-0"
               >
                 <Plus size={18} weight="bold" />
               </button>
@@ -262,26 +867,45 @@ export default function EksikVarPage() {
 
             {/* Autocomplete suggestions */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[3.2rem] bg-white border border-gray-200/50 rounded-xl shadow-lg overflow-hidden z-30">
+              <div className="absolute left-0 right-0 top-[2.75rem] bg-white border border-gray-200/50 rounded-xl shadow-lg overflow-hidden z-30">
                 <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                   Öneriler
                 </div>
-                {suggestions.map((item) => (
+                {suggestions.map((item, index) => {
+                  const isSelected = index === selectedSuggestionIndex;
+                  return (
                   <button
-                    key={item}
-                    onClick={() => handleAddItem(item)}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm font-bold text-gray-700 hover:text-emerald-600 transition-all flex items-center justify-between border-b border-gray-50 last:border-b-0"
+                    key={`${item.name}-${item.category ?? index}`}
+                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                    onClick={() => handleAddItem(item.name)}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0 ${
+                      isSelected
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
+                    }`}
                   >
-                    <span>{item}</span>
-                    <Plus size={14} weight="bold" className="text-gray-300" />
+                    <ItemThumbnail name={item.name} size="suggestion" />
+                    <span className="min-w-0 truncate flex-1">{item.name}</span>
+                    {item.category && (
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                          isSelected ? "text-emerald-400" : "text-gray-300"
+                        }`}
+                      >
+                        {item.category}
+                      </span>
+                    )}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         )}
+        </div>
+      </header>
 
-        {/* Content */}
+      <main className="flex-1 px-4 pt-4 pb-32 max-w-xl mx-auto w-full">
         {loading ? (
           <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
             Yükleniyor...
@@ -291,95 +915,372 @@ export default function EksikVarPage() {
             <Basket size={40} className="text-gray-200 mb-4" />
             <p className="text-sm font-bold text-gray-400">Eksik listeni görebilmek için giriş yapmalısın.</p>
           </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-            <Basket size={40} className="text-gray-200 mb-4" />
-            <p className="text-sm font-bold text-gray-400 mb-1">Alışveriş listen boş.</p>
-            <p className="text-xs text-gray-300">Yukarıdaki alana yazarak eksiklerini ekleyebilirsin.</p>
-          </div>
-        ) : (() => {
+        ) : user ? (() => {
           const activeItems = items.filter(i => !i.is_used);
           const usedItems = items.filter(i => i.is_used);
           return (
           <>
-            {/* Active Items Section */}
-            <div className="flex items-center justify-between mb-4 px-1">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Eksiklerim</span>
-              <span className="text-xs font-black text-emerald-600">{activeItems.length} ürün</span>
-            </div>
+            <ListSectionHeader
+              title="Eksiklerim"
+              count={activeItems.length}
+              icon={<Basket size={18} weight="fill" />}
+            />
 
             {activeItems.length === 0 ? (
               <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm mb-8">
                 <Basket size={32} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-xs font-bold text-gray-400">Tüm eksikler alınmış!</p>
+                <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2 mb-8">
-                {activeItems.map((item) => {
-                  const isToday = new Date(item.created_at).toDateString() === new Date().toDateString();
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleToggleUsed(item.id, item.name, false)}
-                      className="bg-white rounded-xl border border-gray-200/50 relative flex items-center justify-center px-3 py-8 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full"
-                    >
-                      {isToday && (
-                        <span className="absolute top-1.5 left-1.5 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-wider px-1 py-0.5 rounded leading-none">
-                          Yeni
-                        </span>
-                      )}
-
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id, item.name); }}
-                        className="absolute top-1.5 right-1.5 w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                      >
-                        <Trash size={12} weight="bold" />
-                      </button>
-
-                      <h3 className="text-[13px] font-bold text-gray-900 text-center leading-tight line-clamp-2">
-                        {item.name}
-                      </h3>
-                    </button>
-                  );
-                })}
+              <div className="mb-8 space-y-6">
+                {groupItemsByCategory(activeItems).map(({ category, items: categoryItems }) => (
+                  <div key={category}>
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        {category}
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-300">
+                        {categoryItems.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {categoryItems.map((item) => (
+                        <div
+                          key={item.id}
+                          ref={(el) => {
+                            if (el) itemRefs.current.set(item.id, el);
+                            else itemRefs.current.delete(item.id);
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          {...getLongPressProps(item)}
+                          onClick={() => handleItemTap(item, false)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleItemTap(item, false);
+                            }
+                          }}
+                          className="scroll-mt-28 bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
+                        >
+                          <ItemThumbnail name={item.name} />
+                          <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
+                            {item.name}
+                          </h3>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Used Items Section */}
-            {usedItems.length > 0 && (
-              <>
-                <div className="flex items-center justify-between mb-4 px-1">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Son Kullanılan</span>
-                  <span className="text-xs font-black text-gray-400">{usedItems.length} ürün</span>
-                </div>
+            <ListSectionHeader
+              title="Evde Var"
+              count={usedItems.length}
+              icon={<House size={18} weight="fill" />}
+            />
 
-                <div className="grid grid-cols-3 gap-2">
-                  {usedItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleToggleUsed(item.id, item.name, true)}
-                      className="bg-gray-50 rounded-xl border border-gray-200/40 relative flex items-center justify-center px-3 py-8 group hover:border-emerald-500/20 transition-all overflow-hidden active:scale-95 cursor-pointer text-left w-full"
-                    >
-                      {/* Delete */}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id, item.name); }}
-                        className="absolute top-1.5 right-1.5 w-5 h-5 rounded flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                      >
-                        <Trash size={12} weight="bold" />
-                      </button>
-
-                      <h3 className="text-[13px] font-bold text-gray-400 text-center leading-tight line-clamp-2 line-through">
-                        {item.name}
-                      </h3>
-                    </button>
+            {usedItems.length === 0 ? (
+              <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+                <House size={32} className="text-gray-200 mx-auto mb-2" />
+                <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
+              </div>
+            ) : (
+                <div className="space-y-6">
+                  {groupItemsByCategory(usedItems).map(({ category, items: categoryItems }) => (
+                    <div key={category}>
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                          {category}
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-300">
+                          {categoryItems.length}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {categoryItems.map((item) => (
+                          <div
+                            key={item.id}
+                            role="button"
+                            tabIndex={0}
+                            {...getLongPressProps(item)}
+                            onClick={() => handleItemTap(item, true)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleItemTap(item, true);
+                              }
+                            }}
+                            className="bg-gray-50 rounded-xl border border-gray-200/40 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-emerald-500/20 transition-all overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
+                          >
+                            <ItemThumbnail name={item.name} faded />
+                            <h3 className="text-[12px] font-bold text-gray-600 text-center leading-tight line-clamp-2 px-1">
+                              {item.name}
+                            </h3>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </>
             )}
           </>
           );
-        })()}
+        })() : null}
       </main>
+
+      {/* Category Picker Modal (custom items) */}
+      {categoryModalOpen && pendingCustomName && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+            onClick={closeCategoryModal}
+          />
+
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-100">
+              <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                Kategori Seç
+              </h2>
+              <button
+                onClick={closeCategoryModal}
+                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+              >
+                <X size={16} weight="bold" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                <ItemThumbnail name={pendingCustomName} size="suggestion" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                    Yeni ürün
+                  </p>
+                  <p className="text-sm font-black text-gray-900 truncate">{pendingCustomName}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  Hangi kategoride?
+                </label>
+                <CategoryPicker
+                  value={selectedAddCategory}
+                  onChange={setSelectedAddCategory}
+                />
+              </div>
+
+              <button
+                onClick={handleConfirmCategoryAdd}
+                disabled={savingCategoryAdd || !selectedAddCategory}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
+              >
+                <Plus size={16} weight="bold" />
+                {savingCategoryAdd ? "Ekleniyor..." : "Listeye Ekle"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Bottom Sheet */}
+      {editingItem && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+            onClick={closeEditSheet}
+          />
+
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
+              <h2 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+                <PencilSimple size={20} className="text-emerald-500" />
+                Ürünü Düzenle
+              </h2>
+              <button
+                onClick={closeEditSheet}
+                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+              >
+                <X size={16} weight="bold" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <ItemThumbnail
+                  name={editName.trim() || editingItem.name}
+                  size="sheet"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                  Ürün Adı
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveEdit();
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:border-emerald-500/40 outline-none transition-all"
+                  autoFocus
+                />
+              </div>
+
+              {(isCustomItemName(editName.trim() || editingItem.name) || editingItem.category) ? (
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                    Kategori
+                  </label>
+                  <CategoryPicker
+                    value={editCategory}
+                    onChange={setEditCategory}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Kategori
+                  </span>
+                  <span className="text-xs font-bold text-gray-500">
+                    {getItemCategory(editName.trim() || editingItem.name)}
+                  </span>
+                </div>
+              )}
+
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit || !editName.trim()}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
+              >
+                <Check size={16} weight="bold" />
+                {savingEdit ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+
+              <button
+                onClick={handleEditToggle}
+                className="w-full bg-white border border-gray-200 hover:border-emerald-500/30 text-gray-700 font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              >
+                <ArrowsClockwise size={16} weight="bold" className="text-emerald-500" />
+                {editingItem.is_used ? "Eksiklere Geri Al" : "Evde Var Olarak İşaretle"}
+              </button>
+
+              <button
+                onClick={handleEditDelete}
+                className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              >
+                <Trash size={16} weight="bold" />
+                Listeden Sil
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Catalog Bottom Sheet */}
+      {showCatalogSheet && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+            onClick={closeCatalogSheet}
+          />
+
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 shrink-0">
+              <div>
+                <h2 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+                  <ListBullets size={20} className="text-emerald-500" />
+                  Ürün Listesi
+                </h2>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                  {totalCatalogItems} ürün · {COMMON_ITEMS.length} kategori
+                </p>
+              </div>
+              <button
+                onClick={closeCatalogSheet}
+                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+              >
+                <X size={16} weight="bold" />
+              </button>
+            </div>
+
+            <div className="relative mb-4 shrink-0">
+              <MagnifyingGlass
+                size={16}
+                weight="bold"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300"
+              />
+              <input
+                type="text"
+                value={catalogQuery}
+                onChange={(e) => setCatalogQuery(e.target.value)}
+                placeholder="Ürün veya kategori ara..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-5">
+              {filteredCatalog.length === 0 ? (
+                <p className="text-center text-xs font-bold text-gray-400 py-8">
+                  Aramanla eşleşen ürün bulunamadı.
+                </p>
+              ) : (
+                filteredCatalog.map((group) => {
+                  const CategoryIcon = CATEGORY_ICONS[group.category] ?? Package;
+
+                  return (
+                    <div key={group.category}>
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <CategoryIcon size={14} weight="duotone" className="text-emerald-600 shrink-0" />
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                          {group.category}
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-300 ml-auto">
+                          {group.items.length}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {group.items.map((item) => {
+                          const alreadyAdded = isInActiveList(item.name);
+
+                          return (
+                            <button
+                              key={item.name}
+                              type="button"
+                              onClick={() => handleCatalogItemTap(item.name)}
+                              disabled={alreadyAdded}
+                              className={`rounded-xl border relative flex flex-col items-center justify-center px-2 py-3 transition-all text-left w-full ${
+                                alreadyAdded
+                                  ? "bg-emerald-50/60 border-emerald-200/60 opacity-70 cursor-default"
+                                  : "bg-gray-50 border-gray-200/80 hover:border-emerald-500/30 active:scale-95"
+                              }`}
+                            >
+                              {alreadyAdded && (
+                                <Check
+                                  size={12}
+                                  weight="bold"
+                                  className="absolute top-1.5 right-1.5 text-emerald-500"
+                                />
+                              )}
+                              <ItemThumbnail name={item.name} size="suggestion" />
+                              <span className="text-[10px] font-bold text-gray-800 text-center leading-tight line-clamp-2 mt-1.5">
+                                {item.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Share Bottom Sheet */}
       {showShareSheet && (
@@ -551,6 +1452,19 @@ export default function EksikVarPage() {
           </div>
         </>
       )}
+
+      <Toaster
+        toasterId={MOVE_TOASTER_ID}
+        position="bottom-center"
+        containerStyle={{ bottom: 16 }}
+        gutter={8}
+        reverseOrder={false}
+        toastOptions={{
+          className: "!bg-transparent !shadow-none !p-0",
+          duration: MOVE_TOAST_DURATION_MS,
+          custom: { duration: MOVE_TOAST_DURATION_MS },
+        }}
+      />
     </div>
   );
 }

@@ -1,302 +1,1521 @@
 [
-  "Süt",
-  "Yoğurt",
-  "Ayran",
-  "Kefir",
-  "Kaşar peyniri",
-  "Beyaz peynir",
-  "Tulum peyniri",
-  "Labne",
-  "Krema",
-  "Tereyağı",
-  "Margarin",
-  "Yumurta",
-  "Dana kıyma",
-  "Dana kuşbaşı",
-  "Tavuk göğsü",
-  "Tavuk but",
-  "Hindi füme",
-  "Sucuk",
-  "Salam",
-  "Sosis",
-  "Pastırma",
-  "Ton balığı",
-  "Somon fileto",
-  "Hamsi",
-  "Karides",
-  "Ekmek",
-  "Tam buğday ekmeği",
-  "Lavaş",
-  "Bazlama",
-  "Simit",
-  "Galeta",
-  "Un",
-  "Toz şeker",
-  "Pudra şekeri",
-  "Esmer şeker",
-  "Tuz",
-  "Kaya tuzu",
-  "Pirinç",
-  "Bulgur",
-  "Kuskus",
-  "Makarna",
-  "Şehriye",
-  "Erişte",
-  "Yulaf ezmesi",
-  "Mısır unu",
-  "Nohut",
-  "Kuru fasulye",
-  "Mercimek",
-  "Barbunya",
-  "Börülce",
-  "Kırmızı mercimek",
-  "Yeşil mercimek",
-  "Zeytinyağı",
-  "Ayçiçek yağı",
-  "Mısır yağı",
-  "Sirke",
-  "Nar ekşisi",
-  "Limon suyu",
-  "Ketçap",
-  "Mayonez",
-  "Hardal",
-  "Acı sos",
-  "Soya sosu",
-  "Domates salçası",
-  "Biber salçası",
-  "Domates",
-  "Salatalık",
-  "Marul",
-  "Roka",
-  "Maydanoz",
-  "Dereotu",
-  "Ispanak",
-  "Pırasa",
-  "Brokoli",
-  "Karnabahar",
-  "Patates",
-  "Soğan",
-  "Sarımsak",
-  "Havuç",
-  "Kabak",
-  "Patlıcan",
-  "Dolmalık biber",
-  "Sivri biber",
-  "Kırmızı biber",
-  "Mantar",
-  "Mısır",
-  "Bezelye",
-  "Lahana",
-  "Kırmızı lahana",
-  "Turp",
-  "Elma",
-  "Armut",
-  "Muz",
-  "Portakal",
-  "Mandalina",
-  "Limon",
-  "Greyfurt",
-  "Çilek",
-  "Kiraz",
-  "Vişne",
-  "Üzüm",
-  "Şeftali",
-  "Kayısı",
-  "Erik",
-  "Karpuz",
-  "Kavun",
-  "Ananas",
-  "Kivi",
-  "Mango",
-  "Avokado",
-  "Hurma",
-  "İncir",
-  "Nar",
-  "Ceviz",
-  "Fındık",
-  "Badem",
-  "Antep fıstığı",
-  "Kaju",
-  "Leblebi",
-  "Kabak çekirdeği",
-  "Ay çekirdeği",
-  "Kuru üzüm",
-  "Kuru kayısı",
-  "Kuru incir",
-  "Bal",
-  "Reçel",
-  "Tahin",
-  "Pekmez",
-  "Fıstık ezmesi",
-  "Çikolata kreması",
-  "Bitter çikolata",
-  "Sütlü çikolata",
-  "Beyaz çikolata",
-  "Gofret",
-  "Bisküvi",
-  "Kraker",
-  "Kek",
-  "Kurabiye",
-  "Cips",
-  "Patlamış mısır",
-  "Jelibon",
-  "Sakız",
-  "Naneli şeker",
-  "Lokum",
-  "Helva",
-  "Tahin helvası",
-  "Dondurma",
-  "Puding",
-  "Jöle",
-  "Kakao",
-  "Türk kahvesi",
-  "Filtre kahve",
-  "Hazır kahve",
-  "Espresso kahvesi",
-  "Siyah çay",
-  "Yeşil çay",
-  "Ihlamur",
-  "Adaçayı",
-  "Papatya çayı",
-  "Meyve çayı",
-  "Sıcak çikolata",
-  "Maden suyu",
-  "İçme suyu",
-  "Soda",
-  "Kola",
-  "Gazoz",
-  "Limonata",
-  "Meyve suyu",
-  "Enerji içeceği",
-  "Soğuk çay",
-  "Şalgam suyu",
-  "Boza",
-  "Kakao sütü",
-  "Muzlu süt",
-  "Vanilyalı süt",
-  "Dondurulmuş pizza",
-  "Dondurulmuş patates",
-  "Dondurulmuş bezelye",
-  "Dondurulmuş mısır",
-  "Dondurulmuş köfte",
-  "Hazır mantı",
-  "Hazır çorba",
-  "Tavuk suyu bulyon",
-  "Et suyu bulyon",
-  "Konserve mısır",
-  "Konserve bezelye",
-  "Konserve fasulye",
-  "Konserve ton balığı",
-  "Konserve domates",
-  "Kornişon turşu",
-  "Salatalık turşusu",
-  "Biber turşusu",
-  "Zeytin",
-  "Siyah zeytin",
-  "Yeşil zeytin",
-  "Kapari",
-  "Baharat karışımı",
-  "Karabiber",
-  "Pul biber",
-  "Kimyon",
-  "Kekik",
-  "Nane",
-  "Tarçın",
-  "Zerdeçal",
-  "Zencefil",
-  "Köri",
-  "Sumak",
-  "Yenibahar",
-  "Defne yaprağı",
-  "Vanilin",
-  "Kabartma tozu",
-  "Karbonat",
-  "Maya",
-  "Mısır nişastası",
-  "Buğday nişastası",
-  "Pirinç unu",
-  "Hindistan cevizi",
-  "Susam",
-  "Chia tohumu",
-  "Keten tohumu",
-  "Kinoa",
-  "Karabuğday",
-  "Organik bal",
-  "Organik yumurta",
-  "Organik süt",
-  "Laktozsuz süt",
-  "Glutensiz un",
-  "Glutensiz makarna",
-  "Vegan süt",
-  "Badem sütü",
-  "Yulaf sütü",
-  "Hindistan cevizi sütü",
-  "Protein bar",
-  "Granola",
-  "Müsli",
-  "Bebek maması",
-  "Bebek bezi",
-  "Islak mendil",
-  "Tuvalet kağıdı",
-  "Kağıt havlu",
-  "Peçete",
-  "Alüminyum folyo",
-  "Streç film",
-  "Çöp poşeti",
-  "Bulaşık deterjanı",
-  "Bulaşık tableti",
-  "Çamaşır deterjanı",
-  "Yumuşatıcı",
-  "Çamaşır suyu",
-  "Yüzey temizleyici",
-  "Cam temizleyici",
-  "Banyo temizleyici",
-  "Kireç çözücü",
-  "Sünger",
-  "Bulaşık teli",
-  "Sabun",
-  "Sıvı sabun",
-  "Şampuan",
-  "Saç kremi",
-  "Duş jeli",
-  "Diş macunu",
-  "Diş fırçası",
-  "Diş ipi",
-  "Ağız gargarası",
-  "Deodorant",
-  "Tıraş köpüğü",
-  "Tıraş bıçağı",
-  "Pamuk",
-  "Kulak çubuğu",
-  "Güneş kremi",
-  "El kremi",
-  "Vücut losyonu",
-  "Dudak balmı",
-  "Kolonya",
-  "Oda spreyi",
-  "Çamaşır parfümü",
-  "Mum",
-  "Kibrit",
-  "Çakmak",
-  "Pil",
-  "Ampul",
-  "Not defteri",
-  "Kalem",
-  "Bant",
-  "Yapıştırıcı",
-  "Çocuk bisküvisi",
-  "Meyveli yoğurt",
-  "Çikolatalı süt",
-  "Dondurulmuş sebze karışımı",
-  "Hazır salata",
-  "Sandviç ekmeği",
-  "Tortilla",
-  "Çikolatalı gofret",
-  "Tuzlu kraker",
-  "Mısır gevreği",
-  "Protein içeceği",
-  "Bitki çayı karışımı",
-  "Elma sirkesi",
-  "Organik zeytinyağı",
-  "Balzamik sirke"
+  {
+    "category": "Süt Ürünleri",
+    "items": [
+      {
+        "name": "Süt",
+        "slug": "milk",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Yoğurt",
+        "slug": "yogurt",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Ayran"
+      },
+      {
+        "name": "Kefir",
+        "slug": "kefir",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Peynir"
+      },
+      {
+        "name": "Kaşar",
+        "slug": "cheddar-cheese",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Beyaz peynir",
+        "slug": "feta",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Tulum peyniri"
+      },
+      {
+        "name": "Labne",
+        "slug": "labneh",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Krema",
+        "slug": "heavy-cream",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Tereyağı",
+        "slug": "butter",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Margarin"
+      },
+      {
+        "name": "Yumurta",
+        "slug": "egg",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Organik yumurta"
+      },
+      {
+        "name": "Organik süt"
+      },
+      {
+        "name": "Laktozsuz süt",
+        "slug": "2-milk",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Vegan süt"
+      },
+      {
+        "name": "Badem sütü",
+        "slug": "almond-milk",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Yulaf sütü",
+        "slug": "oat-milk",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Hindistan cevizi sütü",
+        "slug": "coconut-milk-beverage",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Meyveli yoğurt"
+      }
+    ]
+  },
+  {
+    "category": "Et ve Balık",
+    "items": [
+      {
+        "name": "Et",
+        "slug": "beef",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Tavuk",
+        "slug": "whole-chicken",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Balık"
+      },
+      {
+        "name": "Dana kıyma",
+        "slug": "ground-beef",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Dana kuşbaşı"
+      },
+      {
+        "name": "Tavuk göğsü",
+        "slug": "chicken-breast",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Tavuk but",
+        "slug": "chicken-thighs",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Hindi füme",
+        "slug": "turkey",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Sucuk",
+        "slug": "sausage",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Salam",
+        "slug": "salami",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Sosis",
+        "slug": "hot-dog",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Pastırma",
+        "slug": "pastrami",
+        "atlasCategory": "meat"
+      },
+      {
+        "name": "Ton balığı",
+        "slug": "tuna-in-oil",
+        "atlasCategory": "seafood"
+      },
+      {
+        "name": "Somon fileto",
+        "slug": "salmon",
+        "atlasCategory": "seafood"
+      },
+      {
+        "name": "Hamsi",
+        "slug": "preserved-anchovies",
+        "atlasCategory": "seafood"
+      },
+      {
+        "name": "Karides",
+        "slug": "shrimp",
+        "atlasCategory": "seafood"
+      },
+      {
+        "name": "Dondurulmuş köfte"
+      }
+    ]
+  },
+  {
+    "category": "Ekmek ve Unlu Mamül",
+    "items": [
+      {
+        "name": "Ekmek",
+        "slug": "bread",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Tam buğday ekmeği",
+        "slug": "whole-wheat-bread",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Lavaş",
+        "slug": "pita-bread",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Bazlama",
+        "slug": "flatbread",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Simit",
+        "slug": "bagel",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Galeta"
+      },
+      {
+        "name": "Sandviç ekmeği",
+        "slug": "hamburger-bun",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Tortilla",
+        "slug": "tortilla",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Un",
+        "slug": "flour",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Mısır unu",
+        "slug": "cornstarch",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Pirinç unu",
+        "slug": "rice-flour",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Buğday nişastası"
+      },
+      {
+        "name": "Mısır nişastası",
+        "slug": "cornstarch",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Glutensiz un"
+      }
+    ]
+  },
+  {
+    "category": "Bakliyat ve Makarna",
+    "items": [
+      {
+        "name": "Pirinç",
+        "slug": "rice",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Bulgur",
+        "slug": "bulgur",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Kuskus",
+        "slug": "dry-couscous",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Makarna",
+        "slug": "pasta",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Şehriye",
+        "slug": "orzo",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Erişte",
+        "slug": "egg-noodle",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Yulaf ezmesi",
+        "slug": "rolled-oats",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Nohut",
+        "slug": "chickpeas",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Kuru fasulye",
+        "slug": "kidney-bean",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Mercimek",
+        "slug": "lentils",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Barbunya",
+        "slug": "fresh-cranberry-bean",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Börülce",
+        "slug": "black-eyed-pea",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Kırmızı mercimek",
+        "slug": "lentils",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Yeşil mercimek",
+        "slug": "lentils",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Kinoa",
+        "slug": "quinoa",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Karabuğday",
+        "slug": "buckwheat",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Müsli",
+        "slug": "muesli",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Granola",
+        "slug": "granola",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Mısır gevreği"
+      },
+      {
+        "name": "Glutensiz makarna",
+        "slug": "corn-dry-gluten-free-pasta",
+        "atlasCategory": "grains"
+      }
+    ]
+  },
+  {
+    "category": "Yağ, Sos ve Salça",
+    "items": [
+      {
+        "name": "Zeytinyağı",
+        "slug": "olive-oil",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Organik zeytinyağı"
+      },
+      {
+        "name": "Ayçiçek yağı",
+        "slug": "sunflower-oil",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Mısır yağı",
+        "slug": "vegetable-oil",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Sirke",
+        "slug": "white-vinegar",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Elma sirkesi",
+        "slug": "apple-cider-vinegar",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Balzamik sirke",
+        "slug": "balsamic-vinegar",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Nar ekşisi",
+        "slug": "pomegranate-molasses",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Limon suyu",
+        "slug": "lemon-juice",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Ketçap",
+        "slug": "ketchup",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Mayonez",
+        "slug": "mayonnaise",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Hardal",
+        "slug": "mustard",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Acı sos",
+        "slug": "hot-sauce",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Soya sosu",
+        "slug": "soy-sauce",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Domates salçası",
+        "slug": "tomato-paste",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Biber salçası"
+      }
+    ]
+  },
+  {
+    "category": "Sebze",
+    "items": [
+      {
+        "name": "Sebze",
+        "slug": "frozen-mixed-unprepared-vegetable",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Domates",
+        "slug": "tomato",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Salatalık",
+        "slug": "cucumber",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Marul",
+        "slug": "lettuce",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Roka",
+        "slug": "arugula",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Maydanoz",
+        "slug": "parsley",
+        "atlasCategory": "herbs"
+      },
+      {
+        "name": "Dereotu",
+        "slug": "dill",
+        "atlasCategory": "herbs"
+      },
+      {
+        "name": "Ispanak",
+        "slug": "spinach",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Pırasa",
+        "slug": "leek",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Brokoli",
+        "slug": "broccoli",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Karnabahar",
+        "slug": "cauliflower",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Patates",
+        "slug": "potato",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Soğan",
+        "slug": "onion",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Sarımsak",
+        "slug": "garlic",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Havuç",
+        "slug": "carrot",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kabak",
+        "slug": "zucchini",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Patlıcan",
+        "slug": "eggplant",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Dolmalık biber",
+        "slug": "bell-pepper",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Sivri biber",
+        "slug": "jalapeno",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kırmızı biber",
+        "slug": "red-bell-pepper",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Mantar",
+        "slug": "mushroom",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Mısır",
+        "slug": "corn",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Bezelye",
+        "slug": "pea",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Lahana",
+        "slug": "cabbage",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kırmızı lahana",
+        "slug": "red-cabbage",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Turp",
+        "slug": "white-icicle-radish",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Hazır salata",
+        "slug": "spring-mix-salad-greens",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Dondurulmuş sebze karışımı",
+        "slug": "frozen-vegetables",
+        "atlasCategory": "frozen"
+      }
+    ]
+  },
+  {
+    "category": "Meyve",
+    "items": [
+      {
+        "name": "Meyve"
+      },
+      {
+        "name": "Elma",
+        "slug": "apple",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Armut",
+        "slug": "bartlett-pear",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Muz",
+        "slug": "banana",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Portakal",
+        "slug": "orange",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Mandalina",
+        "slug": "tangerine",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Limon",
+        "slug": "lemon",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Greyfurt",
+        "slug": "florida-pink-red-grapefruit",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Çilek",
+        "slug": "strawberry",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kiraz",
+        "slug": "sweet-cherry",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Vişne",
+        "slug": "sour-cherry",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Üzüm",
+        "slug": "american-type-grape",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Şeftali",
+        "slug": "yellow-peach",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kayısı",
+        "slug": "apricot",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Erik",
+        "slug": "plum",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Karpuz",
+        "slug": "watermelon",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kavun",
+        "slug": "cantaloupe-melon",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Ananas",
+        "slug": "pineapple",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Kivi",
+        "slug": "green-kiwifruit",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Mango",
+        "slug": "mango",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Avokado",
+        "slug": "avocado",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Hurma",
+        "slug": "dried-dates",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "İncir",
+        "slug": "fig",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Nar",
+        "slug": "pomegranate",
+        "atlasCategory": "produce"
+      }
+    ]
+  },
+  {
+    "category": "Kuruyemiş",
+    "items": [
+      {
+        "name": "Ceviz",
+        "slug": "walnuts",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Fındık",
+        "slug": "hazelnut",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Badem",
+        "slug": "almonds",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Antep fıstığı",
+        "slug": "pistachio",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Kaju",
+        "slug": "cashew",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Leblebi"
+      },
+      {
+        "name": "Kabak çekirdeği",
+        "slug": "pumpkin-seeds",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Ay çekirdeği",
+        "slug": "sunflower-seeds",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Kuru üzüm",
+        "slug": "raisins",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Kuru kayısı",
+        "slug": "dried-apricots",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Kuru incir",
+        "slug": "dried-figs",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Hindistan cevizi",
+        "slug": "desiccated-coconut",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Susam",
+        "slug": "sesame-seed",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Chia tohumu",
+        "slug": "chia-seed",
+        "atlasCategory": "nuts"
+      },
+      {
+        "name": "Keten tohumu",
+        "slug": "flaxseed",
+        "atlasCategory": "nuts"
+      }
+    ]
+  },
+  {
+    "category": "Kahvaltılık",
+    "items": [
+      {
+        "name": "Bal",
+        "slug": "honey",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Organik bal"
+      },
+      {
+        "name": "Reçel",
+        "slug": "jam",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Tahin",
+        "slug": "tahini",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Pekmez",
+        "slug": "date-syrup",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Fıstık ezmesi",
+        "slug": "peanut-butter",
+        "atlasCategory": "legumes"
+      },
+      {
+        "name": "Çikolata kreması",
+        "slug": "chocolate-hazelnut-spread",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Helva"
+      },
+      {
+        "name": "Tahin helvası"
+      }
+    ]
+  },
+  {
+    "category": "Atıştırmalık",
+    "items": [
+      {
+        "name": "Bitter çikolata",
+        "slug": "dark-chocolate",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Sütlü çikolata",
+        "slug": "milk-chocolate",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Beyaz çikolata",
+        "slug": "white-chocolate",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Gofret",
+        "slug": "pain-au-chocolat",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Bisküvi",
+        "slug": "milk-snack-cakes",
+        "atlasCategory": "snacks"
+      },
+      {
+        "name": "Kraker",
+        "slug": "water-crackers",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Tuzlu kraker"
+      },
+      {
+        "name": "Kek"
+      },
+      {
+        "name": "Kurabiye"
+      },
+      {
+        "name": "Çocuk bisküvisi",
+        "slug": "rice-cakes",
+        "atlasCategory": "grains"
+      },
+      {
+        "name": "Çikolatalı gofret"
+      },
+      {
+        "name": "Cips",
+        "slug": "bear-shaped-potato-snacks",
+        "atlasCategory": "snacks"
+      },
+      {
+        "name": "Patlamış mısır",
+        "slug": "sweet-popcorn",
+        "atlasCategory": "snacks"
+      },
+      {
+        "name": "Jelibon",
+        "slug": "chocolate-dark-candy",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Sakız",
+        "slug": "peppermint",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Naneli şeker",
+        "slug": "peppermint-tea",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Lokum"
+      },
+      {
+        "name": "Dondurma",
+        "slug": "vanilla-ice-cream",
+        "atlasCategory": "frozen"
+      },
+      {
+        "name": "Puding",
+        "slug": "cream",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Jöle",
+        "slug": "gelatin",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Kakao",
+        "slug": "cocoa-powder",
+        "atlasCategory": "pantry"
+      }
+    ]
+  },
+  {
+    "category": "Kahve ve Çay",
+    "items": [
+      {
+        "name": "Türk kahvesi",
+        "slug": "ground-coffee",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Filtre kahve"
+      },
+      {
+        "name": "Hazır kahve",
+        "slug": "instant-espresso-powder",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Espresso kahvesi",
+        "slug": "espresso",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Siyah çay",
+        "slug": "black-tea",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Yeşil çay",
+        "slug": "green-tea",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Ihlamur"
+      },
+      {
+        "name": "Adaçayı",
+        "slug": "sage",
+        "atlasCategory": "herbs"
+      },
+      {
+        "name": "Papatya çayı",
+        "slug": "chamomile-tea",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Meyve çayı",
+        "slug": "herbal-tea-blend",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Bitki çayı karışımı"
+      },
+      {
+        "name": "Sıcak çikolata"
+      }
+    ]
+  },
+  {
+    "category": "İçecek",
+    "items": [
+      {
+        "name": "Su",
+        "slug": "water",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Maden suyu",
+        "slug": "sparkling-water",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "İçme suyu"
+      },
+      {
+        "name": "Soda",
+        "slug": "club-soda",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Kola"
+      },
+      {
+        "name": "Gazoz"
+      },
+      {
+        "name": "Limonata",
+        "slug": "bottled-lemon-juice",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Meyve suyu",
+        "slug": "orange-juice",
+        "atlasCategory": "beverages"
+      },
+      {
+        "name": "Enerji içeceği"
+      },
+      {
+        "name": "Soğuk çay"
+      },
+      {
+        "name": "Şalgam suyu",
+        "slug": "turnip",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Boza"
+      },
+      {
+        "name": "Kakao sütü"
+      },
+      {
+        "name": "Muzlu süt"
+      },
+      {
+        "name": "Vanilyalı süt"
+      },
+      {
+        "name": "Çikolatalı süt"
+      },
+      {
+        "name": "Protein içeceği"
+      }
+    ]
+  },
+  {
+    "category": "Dondurulmuş ve Hazır",
+    "items": [
+      {
+        "name": "Dondurulmuş pizza",
+        "slug": "frozen-pizza-dough",
+        "atlasCategory": "frozen"
+      },
+      {
+        "name": "Dondurulmuş patates",
+        "slug": "frozen-fries",
+        "atlasCategory": "frozen"
+      },
+      {
+        "name": "Dondurulmuş bezelye",
+        "slug": "frozen-peas",
+        "atlasCategory": "frozen"
+      },
+      {
+        "name": "Dondurulmuş mısır",
+        "slug": "frozen-corn",
+        "atlasCategory": "frozen"
+      },
+      {
+        "name": "Hazır mantı"
+      },
+      {
+        "name": "Hazır çorba",
+        "slug": "chicken-broth-soup",
+        "atlasCategory": "condiments"
+      }
+    ]
+  },
+  {
+    "category": "Konserve ve Turşu",
+    "items": [
+      {
+        "name": "Tavuk suyu bulyon",
+        "slug": "chicken-broth",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Et suyu bulyon",
+        "slug": "beef-broth-bouillon-canned-soup",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Konserve mısır",
+        "slug": "canned-corn",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Konserve bezelye"
+      },
+      {
+        "name": "Konserve fasulye",
+        "slug": "canned-kidney-beans",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Konserve ton balığı"
+      },
+      {
+        "name": "Konserve domates",
+        "slug": "canned-tomatoes",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Kornişon turşu"
+      },
+      {
+        "name": "Salatalık turşusu",
+        "slug": "pickle-relish",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Biber turşusu",
+        "slug": "pickled-jalapenos",
+        "atlasCategory": "condiments"
+      },
+      {
+        "name": "Zeytin",
+        "slug": "kalamata-olives",
+        "atlasCategory": "produce"
+      },
+      {
+        "name": "Siyah zeytin"
+      },
+      {
+        "name": "Yeşil zeytin"
+      },
+      {
+        "name": "Kapari",
+        "slug": "capers",
+        "atlasCategory": "condiments"
+      }
+    ]
+  },
+  {
+    "category": "Baharat ve Temel Malzeme",
+    "items": [
+      {
+        "name": "Toz şeker",
+        "slug": "sugar",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Pudra şekeri",
+        "slug": "powdered-sugar",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Esmer şeker",
+        "slug": "brown-sugar",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Tuz",
+        "slug": "salt",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Kaya tuzu"
+      },
+      {
+        "name": "Baharat karışımı",
+        "slug": "italian-seasoning",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Karabiber",
+        "slug": "black-pepper",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Pul biber",
+        "slug": "red-pepper-flakes",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Kimyon",
+        "slug": "cumin",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Kekik",
+        "slug": "oregano",
+        "atlasCategory": "herbs"
+      },
+      {
+        "name": "Nane",
+        "slug": "dried-mint",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Tarçın",
+        "slug": "cinnamon",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Zerdeçal",
+        "slug": "turmeric",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Zencefil",
+        "slug": "ginger",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Köri",
+        "slug": "curry-powder",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Sumak",
+        "slug": "sumac",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Yenibahar",
+        "slug": "allspice",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Defne yaprağı",
+        "slug": "bay-leaf",
+        "atlasCategory": "herbs"
+      },
+      {
+        "name": "Vanilin",
+        "slug": "vanilla-extract",
+        "atlasCategory": "spices"
+      },
+      {
+        "name": "Kabartma tozu",
+        "slug": "baking-powder",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Karbonat",
+        "slug": "baking-soda",
+        "atlasCategory": "bakery"
+      },
+      {
+        "name": "Maya",
+        "slug": "yeast",
+        "atlasCategory": "bakery"
+      }
+    ]
+  },
+  {
+    "category": "Özel Ürünler",
+    "items": [
+      {
+        "name": "Protein bar"
+      }
+    ]
+  },
+  {
+    "category": "Bebek",
+    "items": [
+      {
+        "name": "Bebek maması",
+        "slug": "bottle-nipples",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bebek bezi",
+        "slug": "diapers",
+        "atlasCategory": "household"
+      }
+    ]
+  },
+  {
+    "category": "Temizlik",
+    "items": [
+      {
+        "name": "Islak mendil",
+        "slug": "baby-wipes",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Tuvalet kağıdı",
+        "slug": "toilet-paper",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Kağıt havlu",
+        "slug": "paper-towels",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Peçete"
+      },
+      {
+        "name": "Alüminyum folyo",
+        "slug": "aluminum-foil",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Streç film",
+        "slug": "plastic-wrap",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çöp poşeti",
+        "slug": "trash-bags",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bulaşık deterjanı",
+        "slug": "dish-soap",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bulaşık tableti",
+        "slug": "dishwasher-tablets",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çamaşır deterjanı",
+        "slug": "laundry-detergent",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Yumuşatıcı",
+        "slug": "fabric-softener",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çamaşır suyu",
+        "slug": "oxygen-bleach",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Yüzey temizleyici",
+        "slug": "all-purpose-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Cam temizleyici",
+        "slug": "glass-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Banyo temizleyici",
+        "slug": "bathroom-spray",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Kireç çözücü",
+        "slug": "drain-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Sünger",
+        "slug": "sponges",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bulaşık teli"
+      },
+      {
+        "name": "Oda spreyi",
+        "slug": "air-freshener",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çamaşır parfümü"
+      }
+    ]
+  },
+  {
+    "category": "Kişisel Bakım",
+    "items": [
+      {
+        "name": "Sabun",
+        "slug": "bar-soap",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Sıvı sabun",
+        "slug": "hand-soap",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Şampuan",
+        "slug": "shampoo",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Saç kremi",
+        "slug": "conditioner",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Duş jeli",
+        "slug": "body-wash",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Diş macunu",
+        "slug": "kids-toothpaste",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Diş fırçası",
+        "slug": "child-toothbrushes",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Diş ipi",
+        "slug": "dental-floss",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Ağız gargarası",
+        "slug": "mouthwash",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Deodorant",
+        "slug": "deodorant",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Tıraş köpüğü",
+        "slug": "shaving-cream",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Tıraş bıçağı",
+        "slug": "razors",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Pamuk",
+        "slug": "cotton-pads",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Kulak çubuğu",
+        "slug": "cotton-swabs",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Güneş kremi",
+        "slug": "sunscreen",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "El kremi",
+        "slug": "hand-cream",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Vücut losyonu",
+        "slug": "body-lotion",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Dudak balmı",
+        "slug": "lip-balm",
+        "atlasCategory": "personal"
+      },
+      {
+        "name": "Kolonya",
+        "slug": "hand-sanitizer",
+        "atlasCategory": "personal"
+      }
+    ]
+  },
+  {
+    "category": "Ev ve Kırtasiye",
+    "items": [
+      {
+        "name": "Mum"
+      },
+      {
+        "name": "Kibrit"
+      },
+      {
+        "name": "Çakmak"
+      },
+      {
+        "name": "Pil",
+        "slug": "batteries",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Ampul",
+        "slug": "light-bulbs",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Not defteri"
+      },
+      {
+        "name": "Kalem"
+      },
+      {
+        "name": "Bant",
+        "slug": "packing-tape",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Yapıştırıcı",
+        "slug": "super-glue",
+        "atlasCategory": "household"
+      }
+    ]
+  }
 ]

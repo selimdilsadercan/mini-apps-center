@@ -61,6 +61,7 @@
         "framer-motion": "^12.38.0",
         "html-to-image": "^1.11.13",
         "html2pdf.js": "^0.14.0",
+        "ingredient-atlas": "^0.1.2",
         "leaflet": "^1.9.4",
         "lodash": "^4.18.1",
         "lru-cache": "^11.3.3",
@@ -1583,6 +1584,8 @@
     "index-array-by": ["index-array-by@1.4.2", "", {}, "sha512-SP23P27OUKzXWEC/TOyWlwLviofQkCSCKONnc62eItjp69yCZZPqDQtr3Pw5gJDnPeUMqExmKydNZaJO0FU9pw=="],
 
     "inflight": ["inflight@1.0.6", "", { "dependencies": { "once": "^1.3.0", "wrappy": "1" } }, "sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA=="],
+
+    "ingredient-atlas": ["ingredient-atlas@0.1.2", "", {}, "sha512-iyrcbYsfWv71jXoOxDdkFFFmNP5+pvGhpb5GTiBf7dElU2BwrSsPQ2SntOYgr23oGKaCc/t30KmF7oN+zBBZYg=="],
 
     "inherits": ["inherits@2.0.4", "", {}, "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="],
 
