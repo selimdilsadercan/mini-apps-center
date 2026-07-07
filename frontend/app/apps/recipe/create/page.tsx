@@ -1,41 +1,44 @@
 "use client";
-import { getAppRootUrl } from "@/lib/apps";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
-import { X, Image, CaretDown, CaretUp } from "@phosphor-icons/react";
-import { parseRecipeText } from "@/lib/text-to-recipe";
+import { CaretLeft, CaretDown, CaretUp } from "@phosphor-icons/react";
+import { parseRecipeInput } from "../parse-recipe-input";
+import { RECIPE_JSON_EXAMPLE } from "../recipe-json-format";
 import { createRecipe, getOrCreateUserAction } from "./actions";
 import { useShareIntent } from "@/lib/use-share-intent";
+import RecipeJsonGuide from "../components/RecipeJsonGuide";
+
+type CreateMode = "text" | "json";
 
 function CreateRecipeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoaded } = useUser();
   const sharedTextFromIntent = useShareIntent();
-  
+
   const [recipeText, setRecipeText] = useState("");
+  const [createMode, setCreateMode] = useState<CreateMode>("text");
   const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tipsOpen, setTipsOpen] = useState(true);
 
-  // Handle shared text from Instagram or other apps
   useEffect(() => {
-    // Check URL params first
-    const sharedTextFromUrl = searchParams.get('sharedText');
+    const sharedTextFromUrl = searchParams.get("sharedText");
     if (sharedTextFromUrl) {
-      setRecipeText(decodeURIComponent(sharedTextFromUrl));
-    } 
-    // Then check native share intent
-    else if (sharedTextFromIntent) {
+      const decoded = decodeURIComponent(sharedTextFromUrl);
+      setRecipeText(decoded);
+      setCreateMode(decoded.trim().startsWith("{") ? "json" : "text");
+    } else if (sharedTextFromIntent) {
       setRecipeText(sharedTextFromIntent);
+      setCreateMode(sharedTextFromIntent.trim().startsWith("{") ? "json" : "text");
     }
   }, [searchParams, sharedTextFromIntent]);
 
   async function handleImport() {
     if (!recipeText.trim()) {
-      setError("Lütfen tarif metnini yapıştırın");
+      setError("Lütfen tarif içeriğini girin");
       return;
     }
 
@@ -44,16 +47,9 @@ function CreateRecipeContent() {
       return;
     }
 
-    // Parse recipe text
-    const parsed = parseRecipeText(recipeText);
-    
-    if (!parsed) {
-      setError("Tarif formatı hatalı. 'Malzemeler:' ve 'Yapılış:' satırlarını kontrol edin.");
-      return;
-    }
-
-    if (!parsed.title) {
-      setError("Tarif başlığı bulunamadı. İlk satırda başlık olmalı.");
+    const { data: parsed, error: parseError } = parseRecipeInput(recipeText, createMode);
+    if (parseError || !parsed) {
+      setError(parseError ?? "Tarif okunamadı");
       return;
     }
 
@@ -61,14 +57,12 @@ function CreateRecipeContent() {
       setIsImporting(true);
       setError(null);
 
-      // Get user via server action
       const userResult = await getOrCreateUserAction(user.id);
       if (userResult.error || !userResult.data) {
         setError(userResult.error || "Kullanıcı bilgisi alınamadı");
         return;
       }
 
-      // Create recipe via server action
       const recipeResult = await createRecipe(
         parsed.title,
         userResult.data.id,
@@ -76,13 +70,12 @@ function CreateRecipeContent() {
         parsed.instructions
       );
 
-      if (recipeResult.error) {
-        setError(recipeResult.error);
+      if (recipeResult.data) {
+        router.push(`/apps/recipe?id=${recipeResult.data.id}`);
         return;
       }
 
-      // Redirect to home
-      window.location.href = getAppRootUrl();
+      setError(recipeResult.error || "Tarif kaydedilemedi");
     } catch (err) {
       console.error("Import error:", err);
       setError("Tarif kaydedilemedi. Lütfen tekrar deneyin.");
@@ -91,16 +84,19 @@ function CreateRecipeContent() {
     }
   }
 
-  // Loading state
+  const tabClass = (active: boolean) =>
+    `flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${
+      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    }`;
+
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     );
   }
 
-  // Not logged in
   if (!user) {
     router.push("/sign-in");
     return null;
@@ -108,73 +104,87 @@ function CreateRecipeContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
-        <button
-          onClick={() => router.back()}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <X size={24} color="#374151" />
-        </button>
-        
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Image size={24} color="#374151" />
+      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
+          <button
+            onClick={() => router.back()}
+            className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95"
+          >
+            <CaretLeft size={14} weight="bold" className="text-orange-500" />
           </button>
-          
           <button
             onClick={handleImport}
             disabled={isImporting || !recipeText.trim()}
-            className="px-4 py-2 text-[#FF6B35] font-semibold hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all active:scale-95"
           >
-            {isImporting ? "Kaydediliyor..." : "Import"}
+            {isImporting ? "Kaydediliyor..." : "Kaydet"}
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 px-5 py-4 overflow-y-auto">
-        {/* İçe Aktarma İpuçları */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl mb-4 overflow-hidden">
-          <button
-            onClick={() => setTipsOpen(!tipsOpen)}
-            className="w-full flex items-center justify-between px-4 py-3"
-          >
-            <span className="text-amber-800 font-medium">💡 İçe Aktarma İpuçları</span>
-            {tipsOpen ? (
-              <CaretUp size={20} color="#92400e" />
-            ) : (
-              <CaretDown size={20} color="#92400e" />
-            )}
+      <main className="flex-1 px-4 py-4 max-w-xl mx-auto w-full overflow-y-auto">
+        <div className="flex gap-1 p-1 rounded-xl bg-gray-100 mb-4">
+          <button type="button" onClick={() => setCreateMode("text")} className={tabClass(createMode === "text")}>
+            Metin
           </button>
-          
-          {tipsOpen && (
-            <div className="px-4 pb-3 text-amber-700 text-sm space-y-2">
-              <p>Tarifin doğru algılanması için şu formata uyun:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>İlk satır:</strong> Tarif başlığı</li>
-                <li><strong>Malzemeler:</strong> satırından sonra her malzeme ayrı satırda</li>
-                <li><strong>Yapılış:</strong> satırından sonra numaralı adımlar (1. 2. 3.)</li>
-              </ul>
-            </div>
-          )}
+          <button type="button" onClick={() => setCreateMode("json")} className={tabClass(createMode === "json")}>
+            JSON
+          </button>
         </div>
 
-        {/* Error Message */}
+        {createMode === "text" ? (
+          <div className="bg-orange-50 border border-orange-200/60 rounded-xl mb-4 overflow-hidden">
+            <button
+              onClick={() => setTipsOpen(!tipsOpen)}
+              className="w-full flex items-center justify-between px-4 py-3"
+            >
+              <span className="text-orange-800 font-bold text-sm">İçe aktarma ipuçları</span>
+              {tipsOpen ? (
+                <CaretUp size={18} className="text-orange-700" />
+              ) : (
+                <CaretDown size={18} className="text-orange-700" />
+              )}
+            </button>
+
+            {tipsOpen && (
+              <div className="px-4 pb-3 text-orange-700 text-sm space-y-2">
+                <p>Tarifin doğru algılanması için şu formata uyun:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>
+                    <strong>İlk satır:</strong> Tarif başlığı
+                  </li>
+                  <li>
+                    <strong>Malzemeler:</strong> satırından sonra her malzeme ayrı satırda
+                  </li>
+                  <li>
+                    <strong>Yapılış:</strong> satırından sonra numaralı adımlar (1. 2. 3.)
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mb-4">
+            <RecipeJsonGuide />
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-red-700 text-sm">
             {error}
           </div>
         )}
 
-        {/* Recipe Text Area */}
         <textarea
           value={recipeText}
           onChange={(e) => {
             setRecipeText(e.target.value);
             setError(null);
           }}
-          placeholder={`Körili Kremalı Tavuklu Makarna
+          placeholder={
+            createMode === "json"
+              ? RECIPE_JSON_EXAMPLE
+              : `Körili Kremalı Tavuklu Makarna
 
 Malzemeler:
 125 g makarna
@@ -185,8 +195,12 @@ Malzemeler:
 Yapılış:
 1. 1 litre kaynar suya 1 tatlı kaşığı tuz ekle...
 2. 8–10 dakika haşla...
-...`}
-          className="w-full h-[calc(100vh-280px)] p-4 bg-white border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent text-gray-900 placeholder-gray-400 text-base leading-relaxed"
+...`
+          }
+          spellCheck={createMode === "text"}
+          className={`w-full h-[calc(100vh-280px)] p-4 bg-white border border-gray-200 rounded-xl resize-none focus:outline-none focus:border-orange-500/40 text-gray-900 placeholder:text-gray-400 text-sm leading-relaxed ${
+            createMode === "json" ? "font-mono text-xs" : ""
+          }`}
         />
       </main>
     </div>
@@ -195,11 +209,13 @@ Yapılış:
 
 export default function CreateRecipePage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        </div>
+      }
+    >
       <CreateRecipeContent />
     </Suspense>
   );

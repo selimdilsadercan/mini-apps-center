@@ -1,9 +1,8 @@
 "use client";
 
-import { getAppRootUrl } from "@/lib/apps";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useUser, SignInButton } from "@clerk/clerk-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   ListChecks,
   CheckCircle,
@@ -15,10 +14,9 @@ import { createBrowserClient } from "@/lib/api";
 
 const client = createBrowserClient();
 
-export default function InviteAcceptPage() {
+function InviteAcceptContent() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const inviteId = searchParams.get("t");
 
   const [loading, setLoading] = useState(true);
@@ -162,5 +160,21 @@ export default function InviteAcceptPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function InviteAcceptPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col bg-[#FAF9F7] items-center justify-center">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">
+            Davet Detayları Yükleniyor...
+          </div>
+        </div>
+      }
+    >
+      <InviteAcceptContent />
+    </Suspense>
   );
 }

@@ -33,18 +33,51 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { lib } from "@/lib/client";
+import RecipeJsonGuide from "../components/RecipeJsonGuide";
+import { toApiIngredients, toApiInstructions } from "../recipe-api-map";
 
 // Local types for editing (with id for drag-drop)
 interface EditableIngredient {
   id: string;
   name: string;
   amount?: string;
+  key?: string;
+  optional?: boolean;
+  defaultOn?: boolean;
+  label?: string;
 }
 
 interface EditableInstruction {
   id: string;
-  step: number;
   text: string;
+  index?: number;
+  step?: number;
+  requires?: string[];
+}
+
+type EditView = "form" | "json";
+
+interface RecipeJsonPayload {
+  title: string;
+  ingredients: Omit<EditableIngredient, "id">[];
+  instructions: Omit<EditableInstruction, "id">[];
+}
+
+function stripIngredient(item: EditableIngredient): Omit<EditableIngredient, "id"> {
+  const { id, name, amount, key, optional, defaultOn, label } = item;
+  const out: Omit<EditableIngredient, "id"> = { name };
+  if (amount) out.amount = amount;
+  if (key) out.key = key;
+  if (optional) out.optional = optional;
+  if (defaultOn === false) out.defaultOn = false;
+  if (label) out.label = label;
+  return out;
+}
+
+function stripInstruction(item: EditableInstruction, order: number) {
+  const out: { text: string; index: number; requires?: string[] } = { text: item.text, index: order };
+  if (item.requires?.length) out.requires = item.requires;
+  return out;
 }
 
 // Sortable Item Components
@@ -81,14 +114,14 @@ function SortableIngredientItem({
         value={item.amount || ""}
         onChange={(e) => onUpdate(item.id, { amount: e.target.value })}
         placeholder="Miktar"
-        className="w-20 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-[#FF6B35]"
+        className="w-20 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500"
       />
       <input
         type="text"
         value={item.name}
         onChange={(e) => onUpdate(item.id, { name: e.target.value })}
         placeholder="Malzeme adı"
-        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-[#FF6B35]"
+        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500"
       />
       <button
         onClick={() => onDelete(item.id)}
@@ -130,7 +163,7 @@ function SortableInstructionItem({
       <button {...attributes} {...listeners} className="cursor-grab touch-none text-gray-400 hover:text-gray-600 mt-1">
         <DotsSixVertical size={20} />
       </button>
-      <div className="w-7 h-7 rounded-full bg-[#FF6B35] text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
+      <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
         {index + 1}
       </div>
       <textarea
@@ -138,7 +171,7 @@ function SortableInstructionItem({
         onChange={(e) => onUpdate(item.id, { text: e.target.value })}
         placeholder="Adım açıklaması"
         rows={2}
-        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-[#FF6B35] resize-none"
+        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500 resize-none"
       />
       <button
         onClick={() => onDelete(item.id)}
@@ -166,6 +199,9 @@ function EditRecipeContent() {
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [editView, setEditView] = useState<EditView>("form");
+  const [jsonText, setJsonText] = useState("");
+  const [jsonError, setJsonError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -177,38 +213,121 @@ function EditRecipeContent() {
   // Generate unique ID
   const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Convert lib types to editable types
   const toEditableIngredients = (items: lib.Ingredient[] | null): EditableIngredient[] => {
     if (!items) return [];
-    return items.map((item) => ({
-      id: generateId(),
-      name: item.name,
-      amount: item.amount,
-    }));
+    return items.map((item) => {
+      const raw = item as lib.Ingredient & {
+        key?: string;
+        optional?: boolean;
+        defaultOn?: boolean;
+        label?: string;
+      };
+      return {
+        id: generateId(),
+        name: raw.name,
+        amount: raw.amount,
+        key: raw.key,
+        optional: raw.optional,
+        defaultOn: raw.defaultOn,
+        label: raw.label,
+      };
+    });
   };
 
   const toEditableInstructions = (items: lib.Instruction[] | null): EditableInstruction[] => {
     if (!items) return [];
-    return items.map((item) => ({
-      id: generateId(),
-      step: item.step,
-      text: item.text,
-    }));
+    return items.map((item) => {
+      const raw = item as lib.Instruction & { index?: number; requires?: string[] };
+      return {
+        id: generateId(),
+        index: raw.index ?? raw.step,
+        text: raw.text,
+        requires: raw.requires,
+      };
+    });
   };
 
-  // Convert back to lib types
+  const buildRecipePayload = useCallback((): RecipeJsonPayload => {
+    return {
+      title,
+      ingredients: ingredients.map(stripIngredient),
+      instructions: instructions.map((item, idx) => stripInstruction(item, idx + 1)),
+    };
+  }, [title, ingredients, instructions]);
+
+  const serializeToJson = useCallback((): string => {
+    return JSON.stringify(buildRecipePayload(), null, 2);
+  }, [buildRecipePayload]);
+
+  const applyRecipePayload = useCallback((payload: RecipeJsonPayload): string | null => {
+    if (!payload.title?.trim()) return "title alanı gerekli";
+    if (!Array.isArray(payload.ingredients)) return "ingredients bir dizi olmalı";
+    if (!Array.isArray(payload.instructions)) return "instructions bir dizi olmalı";
+
+    setTitle(payload.title.trim());
+    setIngredients(
+      payload.ingredients.map((item) => ({
+        id: generateId(),
+        name: item.name ?? "",
+        amount: item.amount,
+        key: item.key,
+        optional: item.optional,
+        defaultOn: item.defaultOn,
+        label: item.label,
+      }))
+    );
+    setInstructions(
+      payload.instructions.map((item, idx) => ({
+        id: generateId(),
+        index: item.index ?? item.step ?? idx + 1,
+        text: item.text ?? "",
+        requires: item.requires,
+      }))
+    );
+    return null;
+  }, []);
+
+  const parseJsonPayload = useCallback((text: string): { payload?: RecipeJsonPayload; error?: string } => {
+    try {
+      const parsed = JSON.parse(text) as RecipeJsonPayload;
+      if (!parsed.title?.trim()) return { error: "title alanı gerekli" };
+      if (!Array.isArray(parsed.ingredients)) return { error: "ingredients bir dizi olmalı" };
+      if (!Array.isArray(parsed.instructions)) return { error: "instructions bir dizi olmalı" };
+      return { payload: parsed };
+    } catch {
+      return { error: "Geçersiz JSON formatı" };
+    }
+  }, []);
+
+  const payloadToEditable = useCallback(
+    (payload: RecipeJsonPayload) => ({
+      title: payload.title.trim(),
+      ingredients: payload.ingredients.map((item) => ({
+        id: generateId(),
+        name: item.name ?? "",
+        amount: item.amount,
+        key: item.key,
+        optional: item.optional,
+        defaultOn: item.defaultOn,
+        label: item.label,
+      })),
+      instructions: payload.instructions.map((item, idx) => ({
+        id: generateId(),
+        index: item.index ?? item.step ?? idx + 1,
+        text: item.text ?? "",
+        requires: item.requires,
+      })),
+    }),
+    []
+  );
+
+  // Convert back to lib types (API: step + varyant alanları)
   const toLibIngredients = (items: EditableIngredient[]): lib.Ingredient[] => {
-    return items.map((item) => ({
-      name: item.name,
-      amount: item.amount,
-    }));
+    return toApiIngredients(items);
   };
 
   const toLibInstructions = (items: EditableInstruction[]): lib.Instruction[] => {
-    return items.map((item, idx) => ({
-      step: idx + 1,
-      text: item.text,
-    }));
+    return toApiInstructions(items);
   };
 
   // Check for changes
@@ -264,9 +383,27 @@ function EditRecipeContent() {
   async function handleSave() {
     if (!recipeId || !user?.id) return;
 
+    let saveTitle = title;
+    let saveIngredients = ingredients;
+    let saveInstructions = instructions;
+
+    if (editView === "json") {
+      const { payload, error: parseError } = parseJsonPayload(jsonText);
+      if (parseError || !payload) {
+        setJsonError(parseError ?? "Geçersiz JSON");
+        setError(parseError ?? "Geçersiz JSON");
+        return;
+      }
+      const editable = payloadToEditable(payload);
+      saveTitle = editable.title;
+      saveIngredients = editable.ingredients;
+      saveInstructions = editable.instructions;
+    }
+
     try {
       setSaving(true);
       setError(null);
+      setJsonError(null);
 
       // Get Supabase user ID
       const userResult = await getOrCreateUserAction(user.id);
@@ -278,14 +415,14 @@ function EditRecipeContent() {
       const result = await updateRecipeAction(
         recipeId,
         userResult.data.id,
-        title,
-        toLibIngredients(ingredients),
-        toLibInstructions(instructions)
+        saveTitle,
+        toLibIngredients(saveIngredients),
+        toLibInstructions(saveInstructions)
       );
 
       if (result.data) {
         setHasChanges(false);
-        router.push(`/recipe?id=${recipeId}`);
+        router.push(`/apps/recipe?id=${recipeId}`);
       } else {
         setError(result.error || "Tarif güncellenemedi");
       }
@@ -337,7 +474,28 @@ function EditRecipeContent() {
   }
 
   function handleInstructionAdd() {
-    setInstructions((prev) => [...prev, { id: generateId(), step: prev.length + 1, text: "" }]);
+    setInstructions((prev) => [...prev, { id: generateId(), index: prev.length + 1, text: "" }]);
+    setHasChanges(true);
+  }
+
+  function switchEditView(next: EditView) {
+    if (next === editView) return;
+
+    if (next === "json") {
+      setJsonText(serializeToJson());
+      setJsonError(null);
+      setEditView("json");
+      return;
+    }
+
+    const { payload, error: parseError } = parseJsonPayload(jsonText);
+    if (parseError || !payload) {
+      setJsonError(parseError ?? "Geçersiz JSON");
+      return;
+    }
+    applyRecipePayload(payload);
+    setJsonError(null);
+    setEditView("form");
     setHasChanges(true);
   }
 
@@ -357,7 +515,7 @@ function EditRecipeContent() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -366,37 +524,44 @@ function EditRecipeContent() {
   if (error && !originalRecipe) {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <header className="flex items-center px-5 py-4">
+        <header className="px-4 py-3 max-w-xl mx-auto w-full">
           <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
             <ArrowLeft size={24} color="#374151" />
           </button>
         </header>
-        <main className="flex-1 flex items-center justify-center px-5">
+        <main className="flex-1 flex items-center justify-center px-4 max-w-xl mx-auto w-full">
           <p className="text-red-500">{error}</p>
         </main>
       </div>
     );
   }
 
+  const viewTabClass = (active: boolean) =>
+    `flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${
+      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    }`;
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
       {/* Header */}
-      <header className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-10">
-        <button onClick={handleBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft size={24} color="#374151" />
-        </button>
-        <h1 className="font-semibold text-gray-900">Tarifi Düzenle</h1>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="p-2 -mr-2 hover:bg-green-50 rounded-full transition-colors text-green-600 disabled:opacity-50"
-        >
-          {saving ? (
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          ) : (
-            <Check size={24} weight="bold" />
-          )}
-        </button>
+      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
+          <button onClick={handleBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+            <ArrowLeft size={24} color="#374151" />
+          </button>
+          <h1 className="font-semibold text-gray-900">Tarifi Düzenle</h1>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="p-2 -mr-2 hover:bg-green-50 rounded-full transition-colors text-green-600 disabled:opacity-50"
+          >
+            {saving ? (
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+            ) : (
+              <Check size={24} weight="bold" />
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Exit Confirmation Dialog */}
@@ -422,13 +587,45 @@ function EditRecipeContent() {
 
       {/* Error Banner */}
       {error && (
-        <div className="mx-5 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600 text-sm">{error}</p>
+        <div className="px-4 mt-4 max-w-xl mx-auto w-full">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
         </div>
       )}
 
       {/* Content */}
-      <main className="flex-1 px-5 py-4 overflow-y-auto pb-20">
+      <main className="flex-1 px-4 py-4 pb-20 max-w-xl mx-auto w-full overflow-y-auto">
+        <div className="flex gap-1 p-1 rounded-xl bg-gray-100 mb-4">
+          <button type="button" onClick={() => switchEditView("form")} className={viewTabClass(editView === "form")}>
+            Form
+          </button>
+          <button type="button" onClick={() => switchEditView("json")} className={viewTabClass(editView === "json")}>
+            JSON
+          </button>
+        </div>
+
+        {editView === "json" ? (
+          <div>
+            <RecipeJsonGuide />
+            {jsonError && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {jsonError}
+              </div>
+            )}
+            <textarea
+              value={jsonText}
+              onChange={(e) => {
+                setJsonText(e.target.value);
+                setJsonError(null);
+                setHasChanges(true);
+              }}
+              spellCheck={false}
+              className="w-full min-h-[calc(100vh-220px)] p-4 bg-white border border-gray-200 rounded-xl font-mono text-xs leading-relaxed resize-y focus:outline-none focus:border-orange-500/40"
+            />
+          </div>
+        ) : (
+          <>
         {/* Title Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Tarif Adı</label>
@@ -440,7 +637,7 @@ function EditRecipeContent() {
               setHasChanges(true);
             }}
             placeholder="Tarif adını girin"
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FF6B35] text-lg"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 text-lg"
           />
         </div>
 
@@ -450,7 +647,7 @@ function EditRecipeContent() {
             <label className="text-sm font-medium text-gray-700">Malzemeler</label>
             <button
               onClick={handleIngredientAdd}
-              className="flex items-center gap-1 text-[#FF6B35] text-sm font-medium hover:text-[#e55a2b]"
+              className="flex items-center gap-1 text-orange-500 text-sm font-medium hover:text-orange-600"
             >
               <Plus size={18} />
               Ekle
@@ -479,7 +676,7 @@ function EditRecipeContent() {
             <label className="text-sm font-medium text-gray-700">Yapılış</label>
             <button
               onClick={handleInstructionAdd}
-              className="flex items-center gap-1 text-[#FF6B35] text-sm font-medium hover:text-[#e55a2b]"
+              className="flex items-center gap-1 text-orange-500 text-sm font-medium hover:text-orange-600"
             >
               <Plus size={18} />
               Ekle
@@ -502,6 +699,8 @@ function EditRecipeContent() {
             <p className="text-gray-400 text-sm text-center py-4">Henüz yapılış adımı eklenmedi</p>
           )}
         </div>
+          </>
+        )}
       </main>
     </div>
   );
@@ -512,7 +711,7 @@ export default function EditRecipePage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6B35]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
         </div>
       }
     >

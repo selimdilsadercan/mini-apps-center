@@ -49,6 +49,33 @@ export async function getOrCreateUserAction(
 }
 
 /**
+ * Kullanıcının tariflerini getirir
+ */
+export async function getUserRecipesAction(
+  userId: string
+): Promise<ActionResponse<lib.RecipeSummary[]>> {
+  try {
+    const client = createBrowserClient();
+
+    const response = await client.recipe.getUserRecipes(userId);
+
+    return {
+      data: response.recipes ?? [],
+      error: null,
+    };
+  } catch (error) {
+    if (isUnauthenticatedError(error)) {
+      return { data: null, error: "UNAUTHENTICATED" };
+    }
+    console.error("Failed to fetch user recipes:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
  * Recipe ID ile tarif detayını getirir
  */
 export async function getRecipeByIdAction(

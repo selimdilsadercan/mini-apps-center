@@ -24,7 +24,7 @@ import {
   Clock,
 } from "@phosphor-icons/react";
 
-const StudyPlacesMap = dynamic(() => import("./StudyPlacesMap"), {
+const StudyPlacesMap = dynamic(() => import("@/components/maps/StudyPlacesMap"), {
   ssr: false,
 });
 import toast from "react-hot-toast";

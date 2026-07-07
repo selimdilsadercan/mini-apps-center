@@ -1,8 +1,10 @@
 #!/usr/bin/env bun
 /** OTA update build */
-import { incrementVersion } from "../lib/capacitor-build";
+import { runIncrementVersion } from "../../../frontend/scripts/increment-version.ts";
 import { run } from "../lib/exec";
 import { frontendDir } from "../lib/frontend";
 
-await incrementVersion();
-await run(["bunx", "tsx", "scripts/ota-build.ts"], frontendDir());
+const args = process.argv.slice(2);
+
+await runIncrementVersion(args);
+await run(["bun", "scripts/ota-build.ts"], frontendDir());

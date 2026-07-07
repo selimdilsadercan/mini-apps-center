@@ -99,7 +99,6 @@ function HomeContent() {
   } = useHome();
 
   const [apps, setApps] = useState<MiniApp[]>([]);
-  const [cancelledApps, setCancelledApps] = useState<MiniApp[]>([]);
   
   // Integrated Content State
   const [places, setPlaces] = useState<workplaces.Place[]>([]);
@@ -114,9 +113,7 @@ function HomeContent() {
 
   useEffect(() => {
     const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
-    const cancelled = MINI_APPS.filter((app) => app.isCancelled);
     setApps(implementedApps);
-    setCancelledApps(cancelled);
   }, []);
 
   const fetchIntegratedContent = useCallback(async () => {
@@ -175,7 +172,17 @@ function HomeContent() {
   }, []);
 
   const lifeApps = useMemo(() => {
-    return apps.filter(app => app.category === "Kampüslülere Özel");
+    const order = ["eksik-var", "meal-planner"];
+    return apps
+      .filter((app) => app.category === "Kampüslülere Özel")
+      .sort((a, b) => {
+        const ia = order.indexOf(a.id);
+        const ib = order.indexOf(b.id);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
   }, [apps]);
 
   const toolsApps = useMemo(() => {

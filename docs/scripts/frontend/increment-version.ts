@@ -2,4 +2,5 @@
 /** Uygulama sürüm numarasını artır */
 import { incrementVersion } from "../lib/capacitor-build";
 
-await incrementVersion();
+const args = process.argv.slice(2);
+await incrementVersion(args);

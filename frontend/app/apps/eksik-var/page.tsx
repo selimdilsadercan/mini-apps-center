@@ -1,7 +1,7 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import {
   ListChecks,
@@ -40,6 +40,8 @@ import {
   Package,
   ListBullets,
   MagnifyingGlass,
+  SquaresFour,
+  List,
   type Icon,
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
@@ -180,11 +182,9 @@ function groupItemsByCategory<T extends { name: string; category?: string | null
 
 function ItemThumbnail({
   name,
-  faded = false,
   size = "card",
 }: {
   name: string;
-  faded?: boolean;
   size?: "card" | "sheet" | "suggestion";
 }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -196,7 +196,6 @@ function ItemThumbnail({
       : size === "suggestion"
         ? "w-8 h-8 text-xs shrink-0"
         : "w-11 h-11 text-base mb-1.5";
-  const fadedClass = faded ? "opacity-50" : "";
   const roundClass = size === "suggestion" ? "rounded-lg" : "rounded-xl";
 
   useEffect(() => {
@@ -210,38 +209,184 @@ function ItemThumbnail({
         alt=""
         loading="lazy"
         onError={() => setImageFailed(true)}
-        className={`${boxClass} object-contain ${roundClass} ${fadedClass}`}
+        className={`${boxClass} object-contain ${roundClass}`}
       />
     );
   }
 
   return (
     <div
-      className={`${boxClass} ${roundClass} bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 ${fadedClass}`}
+      className={`${boxClass} ${roundClass} bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500`}
     >
       {initial}
     </div>
   );
 }
 
-function ListSectionHeader({
-  title,
-  count,
-  icon,
+function ListToolbar({
+  activeTab,
+  onTabChange,
+  missingCount,
+  homeCount,
+  viewMode,
+  onViewModeChange,
 }: {
-  title: string;
-  count: number;
-  icon: ReactNode;
+  activeTab: "missing" | "home";
+  onTabChange: (tab: "missing" | "home") => void;
+  missingCount: number;
+  homeCount: number;
+  viewMode: "grid" | "list";
+  onViewModeChange: (mode: "grid" | "list") => void;
 }) {
+  const segmentClass = (active: boolean) =>
+    `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${
+      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    }`;
+
+  const viewSegmentClass = (active: boolean) =>
+    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${
+      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+    }`;
+
   return (
-    <div className="flex items-center justify-between gap-3 mb-4 px-4 py-3.5 rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="shrink-0 text-gray-500">{icon}</span>
-        <span className="text-sm font-black uppercase tracking-wide truncate text-gray-900">
-          {title}
-        </span>
+    <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+        <button type="button" onClick={() => onTabChange("missing")} className={segmentClass(activeTab === "missing")}>
+          <Basket size={14} weight={activeTab === "missing" ? "fill" : "duotone"} />
+          <span className="uppercase tracking-wide whitespace-nowrap">Eksiklerim</span>
+          <span
+            className={`tabular-nums ${activeTab === "missing" ? "text-emerald-600" : "text-gray-400"}`}
+          >
+            {missingCount}
+          </span>
+        </button>
+        <button type="button" onClick={() => onTabChange("home")} className={segmentClass(activeTab === "home")}>
+          <House size={14} weight={activeTab === "home" ? "fill" : "duotone"} />
+          <span className="uppercase tracking-wide whitespace-nowrap">Evde Var</span>
+          <span className={`tabular-nums ${activeTab === "home" ? "text-emerald-600" : "text-gray-400"}`}>
+            {homeCount}
+          </span>
+        </button>
       </div>
-      <span className="text-xs font-black shrink-0 text-gray-500">{count} ürün</span>
+
+      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 shrink-0">
+        <button
+          type="button"
+          onClick={() => onViewModeChange("grid")}
+          className={viewSegmentClass(viewMode === "grid")}
+          aria-label="Izgara görünümü"
+        >
+          <SquaresFour size={14} weight={viewMode === "grid" ? "fill" : "duotone"} />
+        </button>
+        <button
+          type="button"
+          onClick={() => onViewModeChange("list")}
+          className={viewSegmentClass(viewMode === "list")}
+          aria-label="Liste görünümü"
+        >
+          <List size={14} weight={viewMode === "list" ? "fill" : "duotone"} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ChecklistToggle({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center transition-colors ${
+        checked ? "bg-emerald-500 text-white" : "border-2 border-gray-300 bg-white"
+      }`}
+      aria-hidden
+    >
+      {checked && <Check size={12} weight="bold" />}
+    </span>
+  );
+}
+
+function ItemsByCategory({
+  items,
+  viewMode,
+  isHomeList,
+  onItemTap,
+  getLongPressProps,
+  registerItemRef,
+}: {
+  items: eksik_var.MissingItem[];
+  viewMode: "grid" | "list";
+  isHomeList: boolean;
+  onItemTap: (item: eksik_var.MissingItem) => void;
+  getLongPressProps: (item: eksik_var.MissingItem) => Record<string, unknown>;
+  registerItemRef?: (id: string, el: HTMLDivElement | null) => void;
+}) {
+  const cardClass =
+    "bg-white rounded-xl border border-gray-200/50 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-[0.98] cursor-pointer select-none";
+
+  return (
+    <div className="space-y-6">
+      {groupItemsByCategory(items).map(({ category, items: categoryItems }) => (
+        <div key={category}>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              {category}
+            </span>
+            <span className="text-[10px] font-bold text-gray-300">{categoryItems.length}</span>
+          </div>
+
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-3 gap-2">
+              {categoryItems.map((item) => (
+                <div
+                  key={item.id}
+                  ref={(el) => registerItemRef?.(item.id, el)}
+                  role="button"
+                  tabIndex={0}
+                  {...getLongPressProps(item)}
+                  onClick={() => onItemTap(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onItemTap(item);
+                    }
+                  }}
+                  className={`scroll-mt-28 ${cardClass} relative flex flex-col items-center justify-center px-2 py-4 text-left w-full`}
+                >
+                  <ItemThumbnail name={item.name} />
+                  <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
+                    {item.name}
+                  </h3>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200/60 overflow-hidden divide-y divide-gray-100 shadow-sm">
+              {categoryItems.map((item) => (
+                <div
+                  key={item.id}
+                  ref={(el) => registerItemRef?.(item.id, el)}
+                  role="button"
+                  tabIndex={0}
+                  {...getLongPressProps(item)}
+                  onClick={() => onItemTap(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onItemTap(item);
+                    }
+                  }}
+                  className="scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-gray-50/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full"
+                >
+                  <ChecklistToggle checked={isHomeList} />
+                  <ItemThumbnail name={item.name} size="suggestion" />
+                  <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 flex-1 min-w-0">
+                    {item.name}
+                  </h3>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -379,6 +524,8 @@ export default function EksikVarPage() {
   const [selectedAddCategory, setSelectedAddCategory] = useState<string | null>(null);
   const [savingCategoryAdd, setSavingCategoryAdd] = useState(false);
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null);
+  const [activeListTab, setActiveListTab] = useState<"missing" | "home">("missing");
+  const [listViewMode, setListViewMode] = useState<"grid" | "list">("grid");
 
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -602,6 +749,7 @@ export default function EksikVarPage() {
       });
       if (response.item) {
         setItems(prev => [response.item!, ...prev]);
+        setActiveListTab("missing");
         setScrollToItemId(response.item.id);
       }
       setInputValue("");
@@ -920,110 +1068,47 @@ export default function EksikVarPage() {
           const usedItems = items.filter(i => i.is_used);
           return (
           <>
-            <ListSectionHeader
-              title="Eksiklerim"
-              count={activeItems.length}
-              icon={<Basket size={18} weight="fill" />}
+            <ListToolbar
+              activeTab={activeListTab}
+              onTabChange={setActiveListTab}
+              missingCount={activeItems.length}
+              homeCount={usedItems.length}
+              viewMode={listViewMode}
+              onViewModeChange={setListViewMode}
             />
 
-            {activeItems.length === 0 ? (
-              <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm mb-8">
-                <Basket size={32} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
-              </div>
-            ) : (
-              <div className="mb-8 space-y-6">
-                {groupItemsByCategory(activeItems).map(({ category, items: categoryItems }) => (
-                  <div key={category}>
-                    <div className="flex items-center justify-between mb-2 px-1">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        {category}
-                      </span>
-                      <span className="text-[10px] font-bold text-gray-300">
-                        {categoryItems.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {categoryItems.map((item) => (
-                        <div
-                          key={item.id}
-                          ref={(el) => {
-                            if (el) itemRefs.current.set(item.id, el);
-                            else itemRefs.current.delete(item.id);
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          {...getLongPressProps(item)}
-                          onClick={() => handleItemTap(item, false)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              handleItemTap(item, false);
-                            }
-                          }}
-                          className="scroll-mt-28 bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
-                        >
-                          <ItemThumbnail name={item.name} />
-                          <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
-                            {item.name}
-                          </h3>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <ListSectionHeader
-              title="Evde Var"
-              count={usedItems.length}
-              icon={<House size={18} weight="fill" />}
-            />
-
-            {usedItems.length === 0 ? (
+            {activeListTab === "missing" ? (
+              activeItems.length === 0 ? (
+                <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+                  <Basket size={32} className="text-gray-200 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
+                </div>
+              ) : (
+                <ItemsByCategory
+                  items={activeItems}
+                  viewMode={listViewMode}
+                  isHomeList={false}
+                  onItemTap={(item) => handleItemTap(item, false)}
+                  getLongPressProps={getLongPressProps}
+                  registerItemRef={(id, el) => {
+                    if (el) itemRefs.current.set(id, el);
+                    else itemRefs.current.delete(id);
+                  }}
+                />
+              )
+            ) : usedItems.length === 0 ? (
               <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
                 <House size={32} className="text-gray-200 mx-auto mb-2" />
                 <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
               </div>
             ) : (
-                <div className="space-y-6">
-                  {groupItemsByCategory(usedItems).map(({ category, items: categoryItems }) => (
-                    <div key={category}>
-                      <div className="flex items-center justify-between mb-2 px-1">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                          {category}
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-300">
-                          {categoryItems.length}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {categoryItems.map((item) => (
-                          <div
-                            key={item.id}
-                            role="button"
-                            tabIndex={0}
-                            {...getLongPressProps(item)}
-                            onClick={() => handleItemTap(item, true)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                handleItemTap(item, true);
-                              }
-                            }}
-                            className="bg-gray-50 rounded-xl border border-gray-200/40 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-emerald-500/20 transition-all overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
-                          >
-                            <ItemThumbnail name={item.name} faded />
-                            <h3 className="text-[12px] font-bold text-gray-600 text-center leading-tight line-clamp-2 px-1">
-                              {item.name}
-                            </h3>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <ItemsByCategory
+                items={usedItems}
+                viewMode={listViewMode}
+                isHomeList={true}
+                onItemTap={(item) => handleItemTap(item, true)}
+                getLongPressProps={getLongPressProps}
+              />
             )}
           </>
           );

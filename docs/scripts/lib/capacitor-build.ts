@@ -3,8 +3,9 @@ import { run } from "./exec";
 import { CAPACITOR_ENV, frontendDir } from "./frontend";
 import { removeNextDir } from "./platform";
 
-export async function incrementVersion() {
-  await run(["bunx", "tsx", "scripts/increment-version.ts"], frontendDir());
+export async function incrementVersion(args: string[] = []) {
+  const cmd = ["bun", "scripts/increment-version.ts", ...args];
+  await run(cmd, frontendDir());
 }
 
 export async function capacitorNextBuild() {

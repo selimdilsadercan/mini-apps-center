@@ -1276,6 +1276,16 @@
         "name": "Bebek bezi",
         "slug": "diapers",
         "atlasCategory": "household"
+      },
+      {
+        "name": "Bebek çamaşır deterjanı",
+        "slug": "baby-laundry-detergent",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Emzik",
+        "slug": "pacifiers",
+        "atlasCategory": "household"
       }
     ]
   },
@@ -1298,7 +1308,12 @@
         "atlasCategory": "household"
       },
       {
-        "name": "Peçete"
+        "name": "Peçete",
+        "slug": "tissues",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Mendil"
       },
       {
         "name": "Alüminyum folyo",
@@ -1316,6 +1331,26 @@
         "atlasCategory": "household"
       },
       {
+        "name": "Geri dönüşüm poşeti",
+        "slug": "recycling-bags",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Dondurucu poşeti",
+        "slug": "freezer-bags",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Sandviç poşeti",
+        "slug": "sandwich-bags",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Yağlı pişirme kağıdı",
+        "slug": "parchment-paper",
+        "atlasCategory": "household"
+      },
+      {
         "name": "Bulaşık deterjanı",
         "slug": "dish-soap",
         "atlasCategory": "household"
@@ -1323,6 +1358,36 @@
       {
         "name": "Bulaşık tableti",
         "slug": "dishwasher-tablets",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bulaşık makinesi tuzu",
+        "slug": "dishwasher-salt",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Bulaşık makinesi parlatıcısı",
+        "slug": "dishwasher-rinse-aid",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çamaşır makinesi temizleyici",
+        "slug": "washing-machine-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Leke çıkarıcı",
+        "slug": "stain-remover",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Fırın temizleyici",
+        "slug": "oven-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Klozet temizleyici",
+        "slug": "toilet-bowl-cleaner",
         "atlasCategory": "household"
       },
       {
@@ -1336,6 +1401,16 @@
         "atlasCategory": "household"
       },
       {
+        "name": "Kurutma mendili",
+        "slug": "dryer-sheets",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Çamaşır dezenfektanı",
+        "slug": "clothes-disinfectant",
+        "atlasCategory": "household"
+      },
+      {
         "name": "Çamaşır suyu",
         "slug": "oxygen-bleach",
         "atlasCategory": "household"
@@ -1343,6 +1418,21 @@
       {
         "name": "Yüzey temizleyici",
         "slug": "all-purpose-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Yer temizleyici",
+        "slug": "floor-cleaner",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Dezenfektan sprey",
+        "slug": "disinfectant-spray",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Antibakteriyel mendil",
+        "slug": "disinfecting-wipes",
         "atlasCategory": "household"
       },
       {
@@ -1361,12 +1451,42 @@
         "atlasCategory": "household"
       },
       {
+        "name": "Kireç giderici",
+        "slug": "limescale-remover",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Ahşap cila",
+        "slug": "wood-polish",
+        "atlasCategory": "household"
+      },
+      {
         "name": "Sünger",
         "slug": "sponges",
         "atlasCategory": "household"
       },
       {
         "name": "Bulaşık teli"
+      },
+      {
+        "name": "Temizlik eldiveni",
+        "slug": "rubber-gloves",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Mikrofiber bez",
+        "slug": "microfiber-cloths",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Banyo fırçası",
+        "slug": "scrub-brushes",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Tüy toplayıcı",
+        "slug": "lint-roller",
+        "atlasCategory": "household"
       },
       {
         "name": "Oda spreyi",
@@ -1514,6 +1634,26 @@
       {
         "name": "Yapıştırıcı",
         "slug": "super-glue",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Kablo uzatıcı",
+        "slug": "extension-cord",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Boya bantı",
+        "slug": "painter-tape",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Saklama kutusu",
+        "slug": "storage-bins",
+        "atlasCategory": "household"
+      },
+      {
+        "name": "Kablo bağı",
+        "slug": "zip-ties",
         "atlasCategory": "household"
       }
     ]

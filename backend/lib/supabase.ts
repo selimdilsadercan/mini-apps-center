@@ -5,11 +5,16 @@ export interface Ingredient {
   name: string;
   amount?: string;
   unit?: string;
+  key?: string;
+  optional?: boolean;
+  defaultOn?: boolean;
+  label?: string;
 }
 
 export interface Instruction {
   step: number;
   text: string;
+  requires?: string[];
 }
 
 export interface Recipe {

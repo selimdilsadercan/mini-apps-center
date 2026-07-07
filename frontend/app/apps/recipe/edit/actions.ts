@@ -6,6 +6,7 @@
 import { createBrowserClient } from "@/lib/api";
 import { isUnauthenticatedError, getErrorMessage } from "@/lib/api-error-handler";
 import type { lib } from "@/lib/client";
+import { toApiIngredients, toApiInstructions } from "../recipe-api-map";
 
 // Standardized response format
 interface ActionResponse<T> {
@@ -81,8 +82,8 @@ export async function updateRecipeAction(
   recipeId: string,
   userId: string,
   title: string,
-  ingredients: lib.Ingredient[] | null,
-  instructions: lib.Instruction[] | null
+  ingredients: Parameters<typeof toApiIngredients>[0] | lib.Ingredient[] | null,
+  instructions: Parameters<typeof toApiInstructions>[0] | lib.Instruction[] | null
 ): Promise<ActionResponse<lib.Recipe>> {
   try {
     const client = createBrowserClient();
@@ -90,8 +91,8 @@ export async function updateRecipeAction(
     const response = await client.recipe.updateRecipe(recipeId, {
       userId,
       title,
-      ingredients,
-      instructions
+      ingredients: ingredients ? toApiIngredients(ingredients) : null,
+      instructions: instructions ? toApiInstructions(instructions) : null,
     });
     
     return {

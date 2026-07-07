@@ -7,46 +7,17 @@
 import { createBrowserClient } from "@/lib/api";
 import { isUnauthenticatedError, getErrorMessage } from "@/lib/api-error-handler";
 import type { lib } from "@/lib/client";
+import {
+  toApiIngredients,
+  toApiInstructions,
+  type RecipeIngredientInput,
+  type RecipeInstructionInput,
+} from "../recipe-api-map";
 
 // Standardized response format
 interface ActionResponse<T> {
   data: T | null;
   error: string | null;
-}
-
-// text-to-recipe formatındaki tipler (uyumluluk için)
-interface ParsedIngredient {
-  index?: number;
-  name: string;
-  amount?: string;
-  unit?: string;
-}
-
-interface ParsedInstruction {
-  index?: number;
-  step?: number;
-  text: string;
-}
-
-/**
- * text-to-recipe ingredient'i client lib formatına dönüştürür
- */
-function convertIngredient(ing: ParsedIngredient): lib.Ingredient {
-  return {
-    name: ing.name,
-    amount: ing.amount,
-    unit: ing.unit
-  };
-}
-
-/**
- * text-to-recipe instruction'ı client lib formatına dönüştürür
- */
-function convertInstruction(inst: ParsedInstruction): lib.Instruction {
-  return {
-    step: inst.step ?? inst.index ?? 1,
-    text: inst.text
-  };
 }
 
 /**
@@ -55,21 +26,17 @@ function convertInstruction(inst: ParsedInstruction): lib.Instruction {
 export async function createRecipe(
   title: string,
   userId: string,
-  ingredients?: ParsedIngredient[] | null,
-  instructions?: ParsedInstruction[] | null
+  ingredients?: RecipeIngredientInput[] | null,
+  instructions?: RecipeInstructionInput[] | null
 ): Promise<ActionResponse<lib.Recipe>> {
   try {
     const client = createBrowserClient();
-    
-    // Tipleri dönüştür
-    const convertedIngredients = ingredients?.map(convertIngredient);
-    const convertedInstructions = instructions?.map(convertInstruction);
-    
+
     const response = await client.recipe.createRecipe({
       title,
       userId,
-      ingredients: convertedIngredients,
-      instructions: convertedInstructions
+      ingredients: ingredients ? toApiIngredients(ingredients) : null,
+      instructions: instructions ? toApiInstructions(instructions) : null,
     });
     
     return {
