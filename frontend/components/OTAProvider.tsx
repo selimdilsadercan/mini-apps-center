@@ -3,60 +3,20 @@
 import { useEffect, useState, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { CapacitorUpdater } from "@capgo/capacitor-updater";
+import { App } from "@capacitor/app";
 import { createBrowserClient } from "@/lib/api";
-import { APP_CONFIG } from "@/lib/config";
 import { Loader2, Download, CheckCircle2 } from "lucide-react";
+import {
+  formatCapgoVersion,
+  getEffectiveBuildNumber,
+  notifyOTAReady,
+  persistInstalledBuild,
+} from "@/lib/ota-build";
 
 interface OTAState {
   isDownloading: boolean;
   progress: number;
   isReady: boolean;
-}
-
-const OTA_BUILD_STORAGE_KEY = "ota_installed_build_number";
-
-function formatCapgoVersion(version: string, buildNumber: number) {
-  return `${version}-b${buildNumber}`;
-}
-
-function parseBuildFromCapgoVersion(version: string): number | null {
-  const match = version.match(/-b(\d+)$/);
-  if (!match) return null;
-  const parsed = parseInt(match[1], 10);
-  return Number.isNaN(parsed) ? null : parsed;
-}
-
-async function getEffectiveBuildNumber(): Promise<number> {
-  let build = Number(APP_CONFIG.buildNumber);
-
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(OTA_BUILD_STORAGE_KEY);
-    if (stored) {
-      const parsed = parseInt(stored, 10);
-      if (!Number.isNaN(parsed)) {
-        build = Math.max(build, parsed);
-      }
-    }
-  }
-
-  try {
-    const { bundle } = await CapacitorUpdater.current();
-    if (bundle.id !== "builtin") {
-      const capgoBuild = parseBuildFromCapgoVersion(bundle.version);
-      if (capgoBuild !== null) {
-        build = Math.max(build, capgoBuild);
-      }
-    }
-  } catch {
-    // Capgo current() bazen ilk açılışta hazır olmayabilir
-  }
-
-  return build;
-}
-
-function persistInstalledBuild(buildNumber: number) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(OTA_BUILD_STORAGE_KEY, String(buildNumber));
 }
 
 export default function OTAProvider({ children }: { children: React.ReactNode }) {
@@ -113,7 +73,7 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
 
           setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
 
-          await new Promise((r) => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 500));
 
           sessionStorage.setItem("ota_reloaded", "true");
           persistInstalledBuild(latestBuild);
@@ -134,27 +94,32 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const initOTA = async () => {
+    const confirmReady = async () => {
       try {
-        if (Capacitor.getPlatform() !== "web") {
-          await CapacitorUpdater.notifyAppReady();
-        }
+        await notifyOTAReady();
       } catch (e) {
         console.error("[OTA] notifyAppReady failed:", e);
       }
     };
 
-    initOTA();
+    void confirmReady();
 
+    let updateTimer: number | undefined;
     const hasReloaded = sessionStorage.getItem("ota_reloaded");
-
     if (hasReloaded) {
       sessionStorage.removeItem("ota_reloaded");
     } else {
-      setTimeout(() => {
-        checkAndApplyUpdates();
-      }, 3000);
+      updateTimer = window.setTimeout(() => {
+        void checkAndApplyUpdates();
+      }, 1500);
     }
+
+    const resumeListener = App.addListener("resume", () => {
+      void confirmReady();
+      if (!isUpdatingRef.current) {
+        void checkAndApplyUpdates();
+      }
+    });
 
     const handleForceInstall = async (e: Event) => {
       const bundle = (e as CustomEvent).detail;
@@ -190,6 +155,8 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
     window.addEventListener("ota-force-install", handleForceInstall);
 
     return () => {
+      if (updateTimer !== undefined) window.clearTimeout(updateTimer);
+      void resumeListener.then((l) => l.remove());
       window.removeEventListener("ota-force-install", handleForceInstall);
     };
   }, []);

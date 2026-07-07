@@ -36,7 +36,7 @@ const config: CapacitorConfig = {
     } as any,
     CapacitorUpdater: {
       autoUpdate: false,
-      appReadyTimeout: 30000,
+      appReadyTimeout: 60000,
       resetWhenUpdate: false
     }
   },
