@@ -1,28 +1,42 @@
 "use client";
 
-import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import Link from "next/link";
 import {
   Megaphone,
-  Plus,
   Calendar,
   MapPin,
-  CaretLeft,
   MagnifyingGlass,
   InstagramLogo,
   ArrowRight,
-  Star,
-  ChatCircleText
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { campus_events } from "@/lib/client";
+import EventsShell, { type EventsTab } from "./components/EventsShell";
 
 const client = createBrowserClient();
+const ACCENT = "#00aeef";
+
+const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"] as const;
+
+function formatEventDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return {
+    day: d.getDate(),
+    month: TR_MONTHS[d.getMonth()],
+    time: d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
+    full: d.toLocaleDateString("tr-TR", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+}
 
 export default function CampusEventsPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -30,6 +44,7 @@ export default function CampusEventsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const [activeTab, setActiveTab] = useState<EventsTab>("upcoming");
 
   // Load events
   useEffect(() => {
@@ -53,17 +68,6 @@ export default function CampusEventsPage() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    const dateFormatted = d.toLocaleDateString("tr-TR", { 
-      day: "numeric", 
-      month: "short", 
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-    return dateFormatted;
-  };
-
   const filteredEvents = events.filter((e) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -74,185 +78,126 @@ export default function CampusEventsPage() {
     );
   });
 
-  const upcomingEvents = filteredEvents.filter((e: campus_events.CampusEvent) => new Date(e.event_date) >= new Date());
-  const pastEvents = filteredEvents.filter((e: campus_events.CampusEvent) => new Date(e.event_date) < new Date());
+  const upcomingEvents = filteredEvents.filter((e) => new Date(e.event_date) >= new Date());
+  const pastEvents = filteredEvents.filter((e) => new Date(e.event_date) < new Date());
+  const displayEvents = activeTab === "upcoming" ? upcomingEvents : pastEvents;
 
-  const EventCard = ({ event }: { event: campus_events.CampusEvent }) => (
-    <motion.div 
-      layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      key={event.id}
-      className="group flex flex-col relative"
-    >
-      {/* Image Section */}
-      <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
-        <div className="relative w-full aspect-square overflow-hidden rounded-xl md:rounded-2xl mb-3 md:mb-5">
-          {event.image_url ? (
-            <img 
-              src={event.image_url} 
-              alt={event.title} 
-              className="w-full h-full object-contain bg-slate-50" 
-            />
-          ) : (
-            <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-              <Megaphone size={32} className="text-slate-200 md:hidden" />
-              <Megaphone size={48} className="text-slate-200 hidden md:block" />
+  const handleAdd = () => {
+    if (!user) {
+      toast.error("Etkinlik eklemek için giriş yapmalısınız.");
+      return;
+    }
+    setShowAddDrawer(true);
+  };
+
+  const EventCard = ({ event }: { event: campus_events.CampusEvent }) => {
+    const { day, month, time } = formatEventDate(event.event_date);
+    const isPast = new Date(event.event_date) < new Date();
+
+    return (
+      <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} key={event.id}>
+        <Link
+          href={`/apps/campus-events/event?id=${event.id}`}
+          className="flex gap-3 bg-white border border-gray-200/60 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-all hover:border-sky-200"
+        >
+          <div className="relative shrink-0 w-[72px]">
+            <div className="w-[72px] aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+              {event.image_url ? (
+                <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Megaphone size={24} className="text-gray-200" />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </Link>
+            <div
+              className={`absolute -top-1 -left-1 w-10 rounded-lg flex flex-col items-center justify-center py-0.5 shadow-sm border ${
+                isPast ? "bg-gray-100 border-gray-200 text-gray-500" : "bg-white border-gray-200"
+              }`}
+            >
+              <span className="text-xs font-black leading-none">{day}</span>
+              <span className="text-[8px] font-bold uppercase leading-none text-gray-500">{month}</span>
+            </div>
+          </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col flex-1 px-1">
-        <Link href={`/apps/campus-events/event?id=${event.id}`} className="block group/title">
-          <h3 className="text-sm md:text-lg font-[900] text-slate-800 leading-tight mb-1 md:mb-1.5 group-hover/title:text-[#00aeef] transition-colors line-clamp-2">
-            {event.title}
-          </h3>
-        </Link>
-
-        {/* Event Details List */}
-        <Link href={`/apps/campus-events/event?id=${event.id}`} className="block">
-          <div className="space-y-1 md:space-y-1.5 mt-2">
+          <div className="min-w-0 flex-1 py-0.5">
+            <h3 className="text-sm font-black text-gray-900 leading-snug line-clamp-2">{event.title}</h3>
+            {event.organizer_club && (
+              <p className="text-[10px] font-bold mt-0.5 truncate" style={{ color: ACCENT }}>
+                {event.organizer_club}
+              </p>
+            )}
+            <div className="flex items-center gap-1.5 text-gray-400 mt-2 text-[10px] font-medium">
+              <Calendar size={12} weight="bold" className="shrink-0" />
+              <span>{time}</span>
+            </div>
             {event.location && (
-              <div className="flex items-center gap-2 text-slate-500">
-                <MapPin size={12} weight="bold" className="text-slate-300 shrink-0" />
-                <span className="text-[10px] md:text-xs font-bold truncate">
-                  {event.location}
-                </span>
+              <div className="flex items-center gap-1.5 text-gray-400 mt-0.5 text-[10px] font-medium">
+                <MapPin size={12} weight="bold" className="shrink-0" />
+                <span className="truncate">{event.location}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-slate-500">
-              <Calendar size={12} weight="bold" className="text-slate-300 shrink-0" />
-              <span className="text-[10px] md:text-xs font-bold">
-                {formatDate(event.event_date)}
-              </span>
-            </div>
           </div>
         </Link>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased selection:bg-[#00aeef]/20 selection:text-[#00aeef]">
-      <Toaster 
-        position="top-center" 
-        toastOptions={{
-          style: {
-            background: '#ffffff',
-            color: '#0f172a',
-            border: '1px solid rgba(0,0,0,0.05)',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
-          }
-        }} 
-      />
+    <>
+    <EventsShell activeTab={activeTab} onTabChange={setActiveTab} onAdd={handleAdd}>
+      <Toaster position="top-center" />
 
-      {/* Brand Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => (window.location.href = getAppRootUrl())}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200/60 text-gray-500 hover:text-gray-900 shadow-sm transition-all active:scale-95"
-              title="Geri"
-            >
-              <CaretLeft size={20} weight="bold" />
-            </button>
-            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">
-              Events
-            </h1>
-          </div>
+      <div className="relative mb-4">
+        <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Etkinlik, topluluk veya mekan ara…"
+          className="w-full bg-white border border-gray-200/60 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-sky-400 outline-none transition-all placeholder:text-gray-400 text-gray-900"
+        />
+      </div>
 
-          <div className="flex gap-2.5">
-            <button
-              onClick={() => {
-                if (!user) {
-                  toast.error("Etkinlik eklemek için giriş yapmalısınız.");
-                  return;
-                }
-                setShowAddDrawer(true);
-              }}
-              className="bg-[#00aeef] hover:bg-[#009bcf] text-white text-xs font-black px-5 py-3 rounded-2xl active:scale-95 transition-all flex items-center gap-1.5 shadow-lg shadow-[#00aeef]/20"
-            >
-              <Plus size={16} weight="bold" />
-              <span className="uppercase tracking-widest">Etkinlik Paylaş</span>
-            </button>
-          </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="w-7 h-7 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-gray-400 text-xs font-medium">Yükleniyor…</span>
         </div>
-      </header>
-
-      <main className="flex-1 px-4 py-10 pb-32 max-w-6xl mx-auto w-full">
-        {/* Search Bar */}
-        <div className="relative mb-12 shadow-sm rounded-2xl max-w-2xl mx-auto">
-          <MagnifyingGlass size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Etkinlik başlığı, topluluk veya salon ara..."
-            className="w-full bg-white border border-gray-200 rounded-2xl pl-14 pr-5 py-4.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none transition-all placeholder:text-gray-300 text-gray-900 font-bold"
-          />
+      ) : displayEvents.length === 0 ? (
+        <div className="text-center py-14 bg-white border border-gray-200/60 rounded-2xl flex flex-col items-center p-6 shadow-sm">
+          <Megaphone size={36} className="text-gray-200 mb-3" />
+          <p className="text-sm font-bold text-gray-500">
+            {activeTab === "upcoming" ? "Yaklaşan etkinlik yok." : "Geçmiş etkinlik yok."}
+          </p>
+          {activeTab === "upcoming" && (
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="mt-4 text-xs font-bold px-4 py-2 rounded-xl text-white active:scale-95 transition-all"
+              style={{ backgroundColor: ACCENT }}
+            >
+              Etkinlik Paylaş
+            </button>
+          )}
         </div>
+      ) : (
+        <div className="space-y-3">
+          {displayEvents.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </div>
+      )}
+    </EventsShell>
 
-        {/* Events Grid View */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="w-8 h-8 border-2 border-slate-200 border-t-[#00aeef] rounded-full animate-spin" />
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-slate-200/60 rounded-[2.5rem] flex flex-col items-center justify-center p-8 shadow-sm">
-            <Megaphone size={42} className="text-slate-300 mb-4" />
-            <p className="text-sm font-bold text-slate-500">Eşleşen etkinlik bulunamadı.</p>
-            <p className="text-xs text-slate-400 mt-1">İlk etkinliği siz paylaşarak topluluğa katkıda bulunabilirsiniz!</p>
-          </div>
-        ) : (
-          <div className="space-y-16">
-            {/* Upcoming Events */}
-            {upcomingEvents.length > 0 && (
-              <section className="space-y-8">
-                <div className="flex items-center gap-3 px-1">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Gelecek Etkinlikler</h2>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
-                  {upcomingEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Past Events */}
-            {pastEvents.length > 0 && (
-              <section className="space-y-8">
-                <div className="flex items-center gap-3 px-1">
-                  <div className="w-2 h-2 rounded-full bg-gray-300" />
-                  <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Geçmiş Etkinlikler</h2>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-12">
-                  {pastEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* Suggest Event Drawer */}
       <Drawer.Root open={showAddDrawer} onOpenChange={setShowAddDrawer}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[60]" />
-          <Drawer.Content className="bg-white text-slate-800 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
-            <div className="p-6 overflow-y-auto flex-1 scrollbar-none">
-              <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-6" />
-              <Drawer.Title className="text-xl font-[800] mb-1 tracking-tight text-slate-900">
-                Etkinlik Ekle
-              </Drawer.Title>
-              <Drawer.Description className="text-xs text-slate-400 mb-6 font-medium">
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-50 max-w-xl mx-auto border-t border-gray-200">
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-100 mb-6" />
+              <Drawer.Title className="text-xl font-black mb-1">Etkinlik Ekle</Drawer.Title>
+              <Drawer.Description className="text-xs text-gray-500 mb-6">
                 Topluluğun adına veya genel bir etkinliği buraya gir.
               </Drawer.Description>
               <SuggestEventForm
@@ -265,74 +210,7 @@ export default function CampusEventsPage() {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
-    </div>
-  );
-}
-
-// Attendance Action Button Component
-function AttendanceButton({
-  event,
-  isUserLoaded,
-  user,
-  onRefresh
-}: {
-  event: campus_events.CampusEvent;
-  isUserLoaded: boolean;
-  user: any;
-  onRefresh: () => void;
-}) {
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleToggleAttendance = async (status: string) => {
-    if (!isUserLoaded || !user) {
-      toast.error("Katılım işaretlemek için giriş yapmalısınız.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      await client.campus_events.setAttendance({
-        userId: user.id,
-        eventId: event.id,
-        status: event.user_status === status ? "none" : status
-      });
-      onRefresh();
-    } catch (e) {
-      console.error(e);
-      toast.error("Katılım güncellenirken bir hata oluştu.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const isGoing = event.user_status === "going";
-  const isInterested = event.user_status === "interested";
-
-  return (
-    <div className="flex gap-2">
-      <button
-        onClick={() => handleToggleAttendance("interested")}
-        disabled={submitting}
-        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
-          isInterested 
-            ? "bg-[#00aeef]/10 text-[#00aeef]"
-            : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-        }`}
-      >
-        İlgileniyorum
-      </button>
-      <button
-        onClick={() => handleToggleAttendance("going")}
-        disabled={submitting}
-        className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
-          isGoing 
-            ? "bg-[#00aeef] text-white shadow-md shadow-[#00aeef]/20"
-            : "bg-slate-800 text-white hover:bg-slate-900"
-        }`}
-      >
-        Katılıyorum
-      </button>
-    </div>
+    </>
   );
 }
 
@@ -428,7 +306,7 @@ function SuggestEventForm({
             value={instagramUrl}
             onChange={(e) => setInstagramUrl(e.target.value)}
             placeholder="Post veya Reel linki yapıştır..."
-            className="flex-1 bg-white border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-slate-800 font-semibold"
+            className="flex-1 bg-white border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-gray-800 font-semibold"
           />
           <button
             type="button"
@@ -450,81 +328,82 @@ function SuggestEventForm({
 
       {/* Title */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
         <input
           required
           type="text"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Örn: Python Giriş Workshop'ı"
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
         />
       </div>
 
       {/* Organizer Club */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Düzenleyen Topluluk</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Düzenleyen Topluluk</label>
         <input
           type="text"
           value={formData.organizerClub}
           onChange={(e) => setFormData({ ...formData, organizerClub: e.target.value })}
           placeholder="Örn: Şehir Koşu Grubu"
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
         />
       </div>
 
       {/* Date */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Tarih & Saat</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tarih & Saat</label>
         <input
           required
           type="datetime-local"
           value={formData.eventDate}
           onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
         />
       </div>
 
       {/* Location */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Konum / Mekan</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Konum / Mekan</label>
         <input
           type="text"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           placeholder="Örn: Beşiktaş Sahil"
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
         />
       </div>
 
       {/* Image URL */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Afiş / Görsel Linki (Opsiyonel)</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Afiş / Görsel Linki (Opsiyonel)</label>
         <input
           type="url"
           value={formData.imageUrl}
           onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
           placeholder="Örn: https://example.com/banner.png"
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Açıklama / Detaylar</label>
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Açıklama / Detaylar</label>
         <textarea
           rows={3}
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Etkinlik içeriği ve katılım şartları hakkında bilgi girin..."
-          className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold resize-none"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold resize-none"
         />
       </div>
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full h-14 bg-[#00aeef] hover:bg-[#009bcf] text-white font-[900] rounded-[1.5rem] flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-lg shadow-[#00aeef]/20 active:scale-[0.98]"
+        className="w-full h-12 font-black rounded-xl flex items-center justify-center transition-all disabled:opacity-50 text-sm text-white active:scale-[0.98]"
+        style={{ backgroundColor: ACCENT }}
       >
         {submitting ? "Ekleniyor..." : "Etkinlik Paylaş"}
       </button>

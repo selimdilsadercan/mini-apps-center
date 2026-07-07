@@ -2,40 +2,41 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { 
-  CaretLeft, 
-  MapPin, 
-  Calendar, 
-  Megaphone, 
+import Link from "next/link";
+import {
+  CaretLeft,
+  MapPin,
+  Calendar,
+  Megaphone,
   InstagramLogo,
   Globe,
   Phone,
-  Info
+  Info,
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { campus_events, business } from "@/lib/client";
-import { getAppRootUrl } from "@/lib/apps";
 import toast, { Toaster } from "react-hot-toast";
 
 const client = createBrowserClient();
+const ACCENT = "#00aeef";
 
-// Helper to format date
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("tr-TR", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
+const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"] as const;
+
+function formatEventDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return {
+    day: d.getDate(),
+    month: TR_MONTHS[d.getMonth()],
+    time: d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
 
 function VenueDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const venueId = searchParams.get("id");
-  
+
   const [venue, setVenue] = useState<business.Business | null>(null);
   const [events, setEvents] = useState<campus_events.CampusEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,7 @@ function VenueDetailContent() {
         setLoading(true);
         const [venueRes, eventsRes] = await Promise.all([
           client.business.getBusiness(venueId),
-          client.campus_events.getEvents({ businessId: venueId })
+          client.campus_events.getEvents({ businessId: venueId }),
         ]);
 
         setVenue(venueRes.business);
@@ -70,22 +71,23 @@ function VenueDetailContent() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-[#00aeef] rounded-full animate-spin" />
-        <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">Yükleniyor...</span>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FAF9F7]">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#00aeef] rounded-full animate-spin" />
+        <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
       </div>
     );
   }
 
   if (!venue) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-        <Info size={48} className="text-slate-200 mb-4" />
-        <h1 className="text-xl font-black text-slate-800 mb-2">Mekan Bulunamadı</h1>
-        <p className="text-slate-500 mb-6">Aradığınız mekan sistemde kayıtlı olmayabilir.</p>
-        <button 
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-[#FAF9F7]">
+        <Info size={40} className="text-gray-200 mb-4" />
+        <h1 className="text-lg font-black text-gray-900 mb-2">Mekan Bulunamadı</h1>
+        <p className="text-gray-500 text-sm mb-6">Aradığınız mekan sistemde kayıtlı olmayabilir.</p>
+        <button
           onClick={() => router.push("/apps/campus-events")}
-          className="bg-[#00aeef] text-white px-6 py-3 rounded-full font-bold shadow-lg active:scale-95 transition-all"
+          className="text-white px-5 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-all"
+          style={{ backgroundColor: ACCENT }}
         >
           Etkinliklere Dön
         </button>
@@ -94,159 +96,152 @@ function VenueDetailContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans antialiased">
       <Toaster position="top-center" />
 
-      {/* Header / Cover Image */}
-      <div className="relative h-64 md:h-80 w-full overflow-hidden">
-        {venue.header_url ? (
-          <img 
-            src={venue.header_url} 
-            alt={venue.name} 
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-            <Megaphone size={64} className="text-slate-200" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-6 left-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 flex items-center justify-center"
-        >
-          <CaretLeft size={20} weight="bold" />
-        </button>
+      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <div className="flex items-center gap-2 px-4 py-3 max-w-xl mx-auto w-full">
+          <button
+            onClick={() => router.back()}
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all"
+          >
+            <CaretLeft size={14} weight="bold" style={{ color: ACCENT }} />
+          </button>
+          <h1 className="flex-1 min-w-0 text-sm font-black uppercase tracking-tight truncate">Mekan</h1>
+        </div>
+      </header>
 
-        {/* Venue Info Overlay */}
-        <div className="absolute bottom-8 left-6 right-6">
-          <div className="flex items-end gap-4 md:gap-6">
-            <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-white p-1 shadow-2xl overflow-hidden shrink-0">
+      <main className="flex-1 px-4 py-4 pb-8 max-w-xl mx-auto w-full space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
               {venue.logo_url ? (
-                <img src={venue.logo_url} alt={venue.name} className="w-full h-full object-cover rounded-[inherit]" />
+                <img src={venue.logo_url} alt={venue.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-slate-50 flex items-center justify-center rounded-[inherit]">
-                  <span className="text-2xl font-black text-slate-200">{venue.name[0]}</span>
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-xl font-black text-gray-200">{venue.name[0]}</span>
                 </div>
               )}
             </div>
-            <div className="mb-1 md:mb-2">
-              <h1 className="text-2xl md:text-4xl font-[900] text-white leading-tight drop-shadow-md">
-                {venue.name}
-              </h1>
-              <div className="flex items-center gap-2 text-white/90 text-sm md:text-base font-bold mt-1">
-                <MapPin size={16} weight="fill" className="text-[#00aeef]" />
-                <span className="drop-shadow-sm">Kampüs İçi</span>
+            <div className="min-w-0">
+              <h1 className="text-base font-black text-gray-900 leading-snug">{venue.name}</h1>
+              <div className="flex items-center gap-1.5 text-gray-400 mt-1 text-[10px] font-medium">
+                <MapPin size={12} weight="bold" className="shrink-0" style={{ color: ACCENT }} />
+                <span>Kampüs İçi</span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
 
-      <main className="flex-1 px-6 py-10 max-w-6xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
-          {/* Left Column: Events */}
-          <div className="lg:col-span-2">
-            <h2 className="text-xl md:text-2xl font-[900] text-slate-800 mb-8 flex items-center gap-3">
-              <Calendar size={24} weight="bold" className="text-[#00aeef]" />
-              Mekandaki Etkinlikler
-            </h2>
+        <section>
+          <h2 className="text-xs font-black text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5 px-0.5">
+            <Calendar size={14} weight="bold" style={{ color: ACCENT }} />
+            Etkinlikler
+          </h2>
 
-            {events.length === 0 ? (
-              <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-12 text-center flex flex-col items-center">
-                <Megaphone size={48} className="text-slate-200 mb-4" />
-                <p className="text-slate-500 font-bold">Bu mekanda şu an planlanmış bir etkinlik bulunmuyor.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {events.map((event) => (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={event.id}
-                    className="group flex flex-col"
-                  >
-                    <div className="relative w-full aspect-square overflow-hidden rounded-2xl mb-4 shadow-sm">
-                      {event.image_url ? (
-                        <img 
-                          src={event.image_url} 
-                          alt={event.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-slate-50 flex items-center justify-center">
-                          <Megaphone size={48} className="text-slate-200" />
+          {events.length === 0 ? (
+            <div className="bg-white border border-gray-200/60 rounded-xl p-8 text-center">
+              <Megaphone size={32} className="text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm font-medium">Bu mekanda planlanmış etkinlik yok.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {events.map((event) => {
+                const { day, month, time } = formatEventDate(event.event_date);
+                const isPast = new Date(event.event_date) < new Date();
+
+                return (
+                  <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} key={event.id}>
+                    <Link
+                      href={`/apps/campus-events/event?id=${event.id}`}
+                      className="flex gap-3 bg-white border border-gray-200/60 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-all hover:border-sky-200"
+                    >
+                      <div className="relative shrink-0 w-[72px]">
+                        <div className="w-[72px] aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+                          {event.image_url ? (
+                            <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Megaphone size={24} className="text-gray-200" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="px-1">
-                      <h3 className="text-lg font-[900] text-slate-800 leading-tight mb-2 group-hover:text-[#00aeef] transition-colors line-clamp-2">
-                        {event.title}
-                      </h3>
-                      <div className="text-slate-400 text-xs font-bold">
-                        {formatDate(event.event_date)}
+                        <div
+                          className={`absolute -top-1 -left-1 w-10 rounded-lg flex flex-col items-center justify-center py-0.5 shadow-sm border ${
+                            isPast ? "bg-gray-100 border-gray-200 text-gray-500" : "bg-white border-gray-200"
+                          }`}
+                        >
+                          <span className="text-xs font-black leading-none">{day}</span>
+                          <span className="text-[8px] font-bold uppercase leading-none text-gray-500">{month}</span>
+                        </div>
                       </div>
-                    </div>
+
+                      <div className="min-w-0 flex-1 py-0.5">
+                        <h3 className="text-sm font-black text-gray-900 leading-snug line-clamp-2">{event.title}</h3>
+                        <div className="flex items-center gap-1.5 text-gray-400 mt-2 text-[10px] font-medium">
+                          <Calendar size={12} weight="bold" className="shrink-0" />
+                          <span>{time}</span>
+                        </div>
+                      </div>
+                    </Link>
                   </motion.div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm">
+          <h3 className="text-sm font-black text-gray-900 mb-2 flex items-center gap-1.5">
+            <Info size={16} weight="bold" style={{ color: ACCENT }} />
+            Hakkında
+          </h3>
+          <p className="text-gray-600 text-sm leading-relaxed font-medium">
+            {venue.description || "Bu mekan hakkında henüz bir açıklama girilmemiş."}
+          </p>
+        </section>
+
+        <section className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm">
+          <h3 className="text-sm font-black text-gray-900 mb-3 flex items-center gap-1.5">
+            <Phone size={16} weight="bold" style={{ color: ACCENT }} />
+            İletişim
+          </h3>
+          <div className="space-y-2">
+            {venue.contact_info?.instagram && (
+              <a
+                href={`https://instagram.com/${venue.contact_info.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-gray-600 hover:text-[#00aeef] transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100">
+                  <InstagramLogo size={16} weight="bold" />
+                </div>
+                <span className="text-xs font-bold">@{venue.contact_info.instagram}</span>
+              </a>
+            )}
+            {venue.contact_info?.website && (
+              <a
+                href={venue.contact_info.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-gray-600 hover:text-[#00aeef] transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100">
+                  <Globe size={16} weight="bold" />
+                </div>
+                <span className="text-xs font-bold">Web Sitesi</span>
+              </a>
+            )}
+            {!venue.contact_info?.instagram && !venue.contact_info?.website && (
+              <p className="text-gray-400 text-xs font-medium">İletişim bilgisi bulunmuyor.</p>
             )}
           </div>
-
-          {/* Right Column: About & Contact */}
-          <div className="space-y-8">
-            <section className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
-              <h3 className="text-lg font-[900] text-slate-800 mb-4 flex items-center gap-2">
-                <Info size={20} weight="bold" className="text-[#00aeef]" />
-                Hakkında
-              </h3>
-              <p className="text-slate-600 text-sm leading-relaxed font-medium">
-                {venue.description || "Bu mekan hakkında henüz bir açıklama girilmemiş."}
-              </p>
-            </section>
-
-            <section className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
-              <h3 className="text-lg font-[900] text-slate-800 mb-6 flex items-center gap-2">
-                <Phone size={20} weight="bold" className="text-[#00aeef]" />
-                İletişim
-              </h3>
-              <div className="space-y-4">
-                {venue.contact_info?.instagram && (
-                  <a 
-                    href={`https://instagram.com/${venue.contact_info.instagram}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-slate-600 hover:text-[#00aeef] transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-100 group-hover:border-[#00aeef]/20">
-                      <InstagramLogo size={20} weight="bold" />
-                    </div>
-                    <span className="text-sm font-bold">@{venue.contact_info.instagram}</span>
-                  </a>
-                )}
-                {venue.contact_info?.website && (
-                  <a 
-                    href={venue.contact_info.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-slate-600 hover:text-[#00aeef] transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-slate-100 group-hover:border-[#00aeef]/20">
-                      <Globe size={20} weight="bold" />
-                    </div>
-                    <span className="text-sm font-bold">Web Sitesi</span>
-                  </a>
-                )}
-                {!venue.contact_info?.instagram && !venue.contact_info?.website && (
-                  <p className="text-slate-400 text-xs font-bold italic">İletişim bilgisi bulunmuyor.</p>
-                )}
-              </div>
-            </section>
-          </div>
-        </div>
+        </section>
       </main>
     </div>
   );
@@ -254,12 +249,14 @@ function VenueDetailContent() {
 
 export default function VenueDetailPage() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-[#00aeef] rounded-full animate-spin" />
-        <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">Yükleniyor...</span>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FAF9F7]">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-[#00aeef] rounded-full animate-spin" />
+          <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
+        </div>
+      }
+    >
       <VenueDetailContent />
     </Suspense>
   );

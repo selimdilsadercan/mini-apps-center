@@ -37,7 +37,8 @@ const config: CapacitorConfig = {
     CapacitorUpdater: {
       autoUpdate: false,
       appReadyTimeout: 60000,
-      resetWhenUpdate: false
+      resetWhenUpdate: false,
+      autoDeleteFailed: true,
     }
   },
   android: {

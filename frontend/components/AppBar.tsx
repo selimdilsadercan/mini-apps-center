@@ -106,21 +106,6 @@ export default function AppBar({ activePage }: AppBarProps) {
             <span className="text-[9px] font-black uppercase tracking-tighter">Hobi</span>
           </Link>
 
-          {/* Cüzdan */}
-          <Link
-            href="/home?tab=wallet"
-            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
-              isActive(ActivePage.WALLET) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
-            }`}
-          >
-            <Wallet 
-              size={20} 
-              weight={isActive(ActivePage.WALLET) ? "fill" : "bold"}
-              className="flex-shrink-0"
-            />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Cüzdan</span>
-          </Link>
-
           {/* Yaşam */}
           <Link
             href="/home?tab=life"
@@ -134,6 +119,21 @@ export default function AppBar({ activePage }: AppBarProps) {
               className="flex-shrink-0"
             />
             <span className="text-[9px] font-black uppercase tracking-tighter">Yaşam</span>
+          </Link>
+
+          {/* Cüzdan */}
+          <Link
+            href="/home?tab=wallet"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.WALLET) ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <Wallet 
+              size={20} 
+              weight={isActive(ActivePage.WALLET) ? "fill" : "bold"}
+              className="flex-shrink-0"
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Cüzdan</span>
           </Link>
         </div>
       </div>

@@ -3,57 +3,47 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
-import { 
-  CaretLeft, 
-  MapPin, 
-  Calendar, 
-  Megaphone, 
-  InstagramLogo, 
-  Globe, 
-  Phone, 
-  Info, 
-  Users, 
-  ShareNetwork, 
+import {
+  CaretLeft,
+  MapPin,
+  Calendar,
+  Megaphone,
+  Info,
+  ShareNetwork,
   Clock,
   ListChecks,
   CheckCircle,
-  X
+  X,
 } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { campus_events } from "@/lib/client";
-import { getAppRootUrl } from "@/lib/apps";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import { Drawer } from "vaul";
 
 const client = createBrowserClient();
+const ACCENT = "#00aeef";
 
-// Helper to format date
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("tr-TR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    weekday: "long",
-  }).format(date);
-};
+const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"] as const;
 
-const formatTime = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
+function formatEventDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return {
+    day: d.getDate(),
+    month: TR_MONTHS[d.getMonth()],
+    weekday: d.toLocaleDateString("tr-TR", { weekday: "long" }),
+    date: d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }),
+    time: d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
 
 function EventDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isLoaded: isUserLoaded } = useUser();
   const eventId = searchParams.get("id");
-  
+
   const [event, setEvent] = useState<campus_events.CampusEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -97,7 +87,7 @@ function EventDetailContent() {
       await client.campus_events.setAttendance({
         userId: user.id,
         eventId: event!.id,
-        status: event!.user_status === status ? "none" : status
+        status: event!.user_status === status ? "none" : status,
       });
       fetchEvent();
       toast.success(event!.user_status === status ? "Katılım iptal edildi." : "Katılım durumunuz güncellendi.");
@@ -121,7 +111,7 @@ function EventDetailContent() {
       await client.campus_events.submitForm({
         userId: user.id,
         eventId: event!.id,
-        answers: formAnswers
+        answers: formAnswers,
       });
       toast.success("Başvurunuz başarıyla alındı!");
       setShowApplyDrawer(false);
@@ -136,22 +126,23 @@ function EventDetailContent() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-[#00aeef] rounded-full animate-spin" />
-        <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">Yükleniyor...</span>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FAF9F7]">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-[#00aeef] rounded-full animate-spin" />
+        <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-        <Info size={48} className="text-slate-200 mb-4" />
-        <h1 className="text-xl font-black text-slate-800 mb-2">Etkinlik Bulunamadı</h1>
-        <p className="text-slate-500 mb-6">Aradığınız etkinlik sistemde kayıtlı olmayabilir veya kaldırılmış olabilir.</p>
-        <button 
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-[#FAF9F7]">
+        <Info size={40} className="text-gray-200 mb-4" />
+        <h1 className="text-lg font-black text-gray-900 mb-2">Etkinlik Bulunamadı</h1>
+        <p className="text-gray-500 text-sm mb-6">Aradığınız etkinlik sistemde kayıtlı olmayabilir.</p>
+        <button
           onClick={() => router.push("/apps/campus-events")}
-          className="bg-[#00aeef] text-white px-6 py-3 rounded-full font-bold shadow-lg active:scale-95 transition-all"
+          className="text-white px-5 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-all"
+          style={{ backgroundColor: ACCENT }}
         >
           Etkinliklere Dön
         </button>
@@ -159,159 +150,172 @@ function EventDetailContent() {
     );
   }
 
+  const { day, month, date, time } = formatEventDate(event.event_date);
   const isGoing = event.user_status === "going";
   const isInterested = event.user_status === "interested";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans antialiased">
       <Toaster position="top-center" />
 
-      {/* Header / Cover Image */}
-      <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
-        {event.image_url ? (
-          <img 
-            src={event.image_url} 
-            alt={event.title} 
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-            <Megaphone size={80} className="text-slate-200" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-6 left-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10 flex items-center justify-center"
-        >
-          <CaretLeft size={20} weight="bold" />
-        </button>
-
-        {/* Share Button */}
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
-            toast.success("Link kopyalandı!");
-          }}
-          className="absolute top-6 right-6 w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all border border-white/20 z-10 flex items-center justify-center"
-        >
-          <ShareNetwork size={20} weight="bold" />
-        </button>
-
-        {/* Event Title Overlay */}
-        <div className="absolute bottom-10 left-6 right-6 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
+          <button
+            onClick={() => router.back()}
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all"
           >
+            <CaretLeft size={14} weight="bold" style={{ color: ACCENT }} />
+          </button>
+          <h1 className="text-sm font-black uppercase tracking-tight truncate px-2">Etkinlik</h1>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link kopyalandı!");
+            }}
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all"
+          >
+            <ShareNetwork size={14} weight="bold" style={{ color: ACCENT }} />
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-4 pb-8 max-w-xl mx-auto w-full space-y-4">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+          <div className="relative">
+            <div className="aspect-[16/9] bg-gray-50">
+              {event.image_url ? (
+                <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Megaphone size={40} className="text-gray-200" />
+                </div>
+              )}
+            </div>
+            <div className="absolute top-3 left-3 w-11 rounded-lg flex flex-col items-center justify-center py-1 shadow-sm border bg-white border-gray-200">
+              <span className="text-sm font-black leading-none">{day}</span>
+              <span className="text-[8px] font-bold uppercase leading-none text-gray-500">{month}</span>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-3">
             {event.organizer_club && (
-              <div className="mb-4">
+              <div>
                 {event.businessId ? (
-                  <Link 
+                  <Link
                     href={`/apps/campus-events/venue?id=${event.businessId}`}
-                    className="bg-[#00aeef] text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-lg inline-flex items-center gap-2 hover:bg-[#009bcf] transition-colors"
+                    className="text-[10px] font-black uppercase tracking-wide"
+                    style={{ color: ACCENT }}
                   >
                     {event.organizer_club}
                   </Link>
                 ) : (
-                  <span className="bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase border border-white/20">
-                    {event.organizer_club}
-                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wide text-gray-500">{event.organizer_club}</span>
                 )}
               </div>
             )}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-[950] text-white leading-tight drop-shadow-2xl mb-4">
-              {event.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-white/90 text-sm md:text-lg font-bold">
-              <div className="flex items-center gap-2">
-                <Calendar size={20} weight="fill" className="text-[#00aeef]" />
-                <span className="drop-shadow-md">{formatDate(event.event_date)}</span>
+            <h1 className="text-lg font-black text-gray-900 leading-snug">{event.title}</h1>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium">
+                <Calendar size={13} weight="bold" className="shrink-0" style={{ color: ACCENT }} />
+                <span>{date}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock size={20} weight="fill" className="text-[#00aeef]" />
-                <span className="drop-shadow-md">{formatTime(event.event_date)}</span>
+              <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium">
+                <Clock size={13} weight="bold" className="shrink-0" style={{ color: ACCENT }} />
+                <span>{time}</span>
               </div>
               {event.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin size={20} weight="fill" className="text-[#00aeef]" />
-                  <span className="drop-shadow-md">{event.location}</span>
+                <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium">
+                  <MapPin size={13} weight="bold" className="shrink-0" style={{ color: ACCENT }} />
+                  <span>{event.location}</span>
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleToggleAttendance("interested")}
+            disabled={submitting}
+            className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all active:scale-[0.98] disabled:opacity-50 ${
+              isInterested ? "text-white" : "bg-white border border-gray-200/60 text-gray-500"
+            }`}
+            style={isInterested ? { backgroundColor: ACCENT } : undefined}
+          >
+            İlgileniyorum
+          </button>
+          <button
+            onClick={() => handleToggleAttendance("going")}
+            disabled={submitting}
+            className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all active:scale-[0.98] disabled:opacity-50 ${
+              isGoing ? "text-white" : "bg-gray-900 text-white"
+            }`}
+            style={isGoing ? { backgroundColor: ACCENT } : undefined}
+          >
+            Katılıyorum
+          </button>
         </div>
-      </div>
 
-      <main className="flex-1 px-6 py-12 max-w-4xl mx-auto w-full">
-        <div className="space-y-10">
-          {/* Registration Section */}
-          {event.has_form && (
-            <section className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <ListChecks size={24} weight="bold" className="text-[#00aeef]" />
-                    Başvuru Gerekli
-                  </h3>
-                  <p className="text-slate-500 font-medium">Bu etkinliğe katılmak için başvuru formunu doldurmanız gerekmektedir.</p>
-                </div>
-                {event.user_submission ? (
-                  <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-6 py-3 rounded-2xl font-black text-sm border border-emerald-100">
-                    <CheckCircle size={20} weight="fill" />
-                    Başvurunuz Alındı
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowApplyDrawer(true)}
-                    className="bg-[#00aeef] hover:bg-[#009bcf] text-white px-8 py-4 rounded-2xl font-black text-sm shadow-lg shadow-[#00aeef]/20 active:scale-95 transition-all"
-                  >
-                    Hemen Başvur
-                  </button>
-                )}
+        {event.has_form && (
+          <section className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-sm font-black text-gray-900 flex items-center gap-1.5">
+                  <ListChecks size={16} weight="bold" style={{ color: ACCENT }} />
+                  Başvuru Gerekli
+                </h3>
+                <p className="text-gray-500 text-[11px] font-medium mt-1">Katılmak için başvuru formunu doldurun.</p>
               </div>
-            </section>
-          )}
-
-          <section>
-            <h2 className="text-2xl font-[900] text-slate-800 mb-6 flex items-center gap-3">
-              <Info size={28} weight="bold" className="text-[#00aeef]" />
-              Etkinlik Hakkında
-            </h2>
-            <div className="text-slate-600 text-lg leading-relaxed font-medium whitespace-pre-wrap">
-              {event.description || "Bu etkinlik için bir açıklama girilmemiş."}
+              {event.user_submission ? (
+                <div className="shrink-0 flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-3 py-2 rounded-lg text-[10px] font-black border border-emerald-100">
+                  <CheckCircle size={14} weight="fill" />
+                  Alındı
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowApplyDrawer(true)}
+                  className="shrink-0 text-white px-4 py-2 rounded-xl font-black text-[10px] active:scale-95 transition-all"
+                  style={{ backgroundColor: ACCENT }}
+                >
+                  Başvur
+                </button>
+              )}
             </div>
           </section>
-        </div>
+        )}
+
+        <section className="bg-white border border-gray-200/60 rounded-xl p-4 shadow-sm">
+          <h2 className="text-sm font-black text-gray-900 mb-3 flex items-center gap-1.5">
+            <Info size={16} weight="bold" style={{ color: ACCENT }} />
+            Etkinlik Hakkında
+          </h2>
+          <p className="text-gray-600 text-sm leading-relaxed font-medium whitespace-pre-wrap">
+            {event.description || "Bu etkinlik için bir açıklama girilmemiş."}
+          </p>
+        </section>
       </main>
 
-      {/* Apply Drawer */}
       <Drawer.Root open={showApplyDrawer} onOpenChange={setShowApplyDrawer}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[60]" />
-          <Drawer.Content className="bg-white text-slate-800 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
-            <div className="p-8 overflow-y-auto flex-1 scrollbar-none">
-              <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-8" />
-              <div className="flex items-center justify-between mb-6">
+          <Drawer.Overlay className="fixed inset-0 bg-gray-950/40 backdrop-blur-xs z-[60]" />
+          <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-xl mx-auto border-t border-gray-200">
+            <div className="p-6 overflow-y-auto flex-1 scrollbar-none">
+              <div className="mx-auto w-10 h-1 rounded-full bg-gray-200 mb-6" />
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <Drawer.Title className="text-2xl font-[900] tracking-tight text-slate-900">
-                    Başvuru Formu
-                  </Drawer.Title>
-                  <Drawer.Description className="text-sm text-slate-500 font-medium mt-1">
-                    {event.title}
-                  </Drawer.Description>
+                  <Drawer.Title className="text-lg font-black tracking-tight text-gray-900">Başvuru Formu</Drawer.Title>
+                  <Drawer.Description className="text-xs text-gray-500 font-medium mt-0.5">{event.title}</Drawer.Description>
                 </div>
-                <button onClick={() => setShowApplyDrawer(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                  <X size={24} weight="bold" className="text-slate-400" />
+                <button onClick={() => setShowApplyDrawer(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                  <X size={20} weight="bold" className="text-gray-400" />
                 </button>
               </div>
 
-              <form onSubmit={handleFormSubmit} className="space-y-6 pb-10">
-                {event.form_questions?.map((q: any, idx: number) => (
-                  <div key={idx} className="space-y-2">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">
+              <form onSubmit={handleFormSubmit} className="space-y-4 pb-8">
+                {event.form_questions?.map((q: { label: string; required?: boolean; type?: string }, idx: number) => (
+                  <div key={idx} className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-wide px-0.5">
                       {q.label} {q.required && <span className="text-red-500">*</span>}
                     </label>
                     {q.type === "textarea" ? (
@@ -319,7 +323,7 @@ function EventDetailContent() {
                         required={q.required}
                         value={formAnswers[q.label] || ""}
                         onChange={(e) => setFormAnswers({ ...formAnswers, [q.label]: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold resize-none h-32"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-[#00aeef] focus:ring-2 focus:ring-[#00aeef]/10 outline-none text-gray-800 font-medium resize-none h-28"
                         placeholder="Cevabınız..."
                       />
                     ) : (
@@ -328,7 +332,7 @@ function EventDetailContent() {
                         type={q.type === "number" ? "number" : "text"}
                         value={formAnswers[q.label] || ""}
                         onChange={(e) => setFormAnswers({ ...formAnswers, [q.label]: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-slate-800 font-semibold"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-[#00aeef] focus:ring-2 focus:ring-[#00aeef]/10 outline-none text-gray-800 font-medium"
                         placeholder="Cevabınız..."
                       />
                     )}
@@ -338,10 +342,11 @@ function EventDetailContent() {
                 <button
                   type="submit"
                   disabled={submittingForm}
-                  className="w-full h-14 bg-[#00aeef] hover:bg-[#009bcf] text-white font-[900] rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 text-sm shadow-lg shadow-[#00aeef]/20 active:scale-[0.98] mt-4"
+                  className="w-full h-12 text-white font-black rounded-xl flex items-center justify-center transition-all disabled:opacity-50 text-sm active:scale-[0.98] mt-2"
+                  style={{ backgroundColor: ACCENT }}
                 >
                   {submittingForm ? (
-                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     "Başvuruyu Gönder"
                   )}
@@ -357,12 +362,14 @@ function EventDetailContent() {
 
 export default function EventDetailPage() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-slate-100 border-t-[#00aeef] rounded-full animate-spin" />
-        <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">Yükleniyor...</span>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#FAF9F7]">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-[#00aeef] rounded-full animate-spin" />
+          <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Yükleniyor...</span>
+        </div>
+      }
+    >
       <EventDetailContent />
     </Suspense>
   );

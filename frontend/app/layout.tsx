@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import trMessages from "@/locales/tr/index";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import OTAProvider from "@/components/OTAProvider";
+import OtaBootstrap from "@/components/OtaBootstrap";
 import { MobileThemeProvider } from "@/components/MobileThemeManager";
 import { HomeProvider } from "@/contexts/HomeContext";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <OtaBootstrap />
         <OTAProvider>
           <LanguageProvider messages={trMessages}>
             <AuthProvider>

@@ -1,8 +1,9 @@
 import { Capacitor } from "@capacitor/core";
 import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { APP_CONFIG } from "@/lib/config";
+import { otaDebugLog, OTA_BUILD_STORAGE_KEY } from "@/lib/ota-debug";
 
-export const OTA_BUILD_STORAGE_KEY = "ota_installed_build_number";
+export { OTA_BUILD_STORAGE_KEY } from "@/lib/ota-debug";
 
 export function formatCapgoVersion(version: string, buildNumber: number) {
   return `${version}-b${buildNumber}`;
@@ -25,12 +26,18 @@ export function clearPersistedBuild() {
   localStorage.removeItem(OTA_BUILD_STORAGE_KEY);
 }
 
+function isNativeApp() {
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() !== "web";
+}
+
 /**
  * Gerçekte çalışan bundle'ın build numarası.
  * Capgo rollback sonrası localStorage şişmesini önler.
  */
 export async function getEffectiveBuildNumber(): Promise<number> {
   const builtinBuild = Number(APP_CONFIG.buildNumber);
+
+  if (!isNativeApp()) return builtinBuild;
 
   try {
     const { bundle } = await CapacitorUpdater.current();
@@ -44,22 +51,92 @@ export async function getEffectiveBuildNumber(): Promise<number> {
       return builtinBuild;
     }
 
-    // builtin'e düşüldüyse localStorage'daki yüksek build'e güvenme
     clearPersistedBuild();
+    otaDebugLog("builtin bundle aktif — localStorage temizlendi", "warn");
     return builtinBuild;
   } catch {
+    clearPersistedBuild();
     return builtinBuild;
   }
 }
 
 export async function notifyOTAReady(): Promise<void> {
-  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() === "web") return;
+  if (!isNativeApp()) return;
   await CapacitorUpdater.notifyAppReady();
 }
 
-// React yüklenmeden önce Capgo'ya "uygulama hazır" de (30sn rollback penceresini kaçırmamak için)
-if (typeof window !== "undefined") {
-  void notifyOTAReady().catch((error) => {
-    console.error("[OTA] early notifyAppReady failed:", error);
-  });
+/**
+ * Rollback sonrası hatalı bundle'ları sil — Capgo aynı bundle'ı tekrar denemeyebilir.
+ */
+export async function recoverFailedBundles(): Promise<void> {
+  if (!isNativeApp()) return;
+
+  try {
+    const failed = await CapacitorUpdater.getFailedUpdate();
+    if (failed?.bundle?.id && failed.bundle.id !== "builtin") {
+      otaDebugLog(`Failed bundle siliniyor: ${failed.bundle.id}`, "warn");
+      try {
+        await CapacitorUpdater.delete({ id: failed.bundle.id });
+      } catch {
+        // aktif veya next olabilir
+      }
+    }
+
+    const { bundles } = await CapacitorUpdater.list();
+    const { bundle: current } = await CapacitorUpdater.current();
+    const next = await CapacitorUpdater.getNextBundle();
+
+    for (const b of bundles) {
+      if (b.id === "builtin" || b.id === current.id || b.id === next?.id) continue;
+      if (b.status === "error") {
+        try {
+          await CapacitorUpdater.delete({ id: b.id });
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (current.id === "builtin") {
+      clearPersistedBuild();
+    }
+  } catch (error) {
+    console.error("[OTA] recoverFailedBundles:", error);
+  }
+}
+
+let bootstrapStarted = false;
+
+/**
+ * Mümkün olan en erken notifyAppReady — React/provider yüklenmeden önce çalışmalı.
+ */
+export function startOTABootstrap() {
+  if (bootstrapStarted || typeof window === "undefined" || !isNativeApp()) return;
+  bootstrapStarted = true;
+  otaDebugLog("Bootstrap başladı — notifyAppReady deneniyor");
+
+  const attemptNotify = async (attempt: number): Promise<void> => {
+    try {
+      await CapacitorUpdater.notifyAppReady();
+      otaDebugLog(`notifyAppReady OK (deneme ${attempt + 1})`);
+      return;
+    } catch (error) {
+      if (attempt >= 40) {
+        otaDebugLog(`notifyAppReady 40 denemede başarısız: ${error}`, "error");
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 250));
+      return attemptNotify(attempt + 1);
+    }
+  };
+
+  void attemptNotify(0);
+
+  // İlk 15 sn boyunca güvenlik ağı
+  let pings = 0;
+  const interval = window.setInterval(() => {
+    pings += 1;
+    void CapacitorUpdater.notifyAppReady().catch(() => {});
+    if (pings >= 5) window.clearInterval(interval);
+  }, 3000);
 }

@@ -10,13 +10,21 @@ import {
   formatCapgoVersion,
   getEffectiveBuildNumber,
   notifyOTAReady,
-  persistInstalledBuild,
+  recoverFailedBundles,
 } from "@/lib/ota-build";
+import { otaDebugLog, setOTAServerInfo } from "@/lib/ota-debug";
 
 interface OTAState {
   isDownloading: boolean;
   progress: number;
   isReady: boolean;
+}
+
+async function applyDownloadedBundle(bundle: { id: string }) {
+  otaDebugLog(`Bundle uygulanıyor: ${bundle.id} → next + reload`);
+  sessionStorage.setItem("ota_reloaded", "true");
+  await CapacitorUpdater.next({ id: bundle.id });
+  await CapacitorUpdater.reload();
 }
 
 export default function OTAProvider({ children }: { children: React.ReactNode }) {
@@ -33,8 +41,11 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
 
     try {
       isUpdatingRef.current = true;
+      await recoverFailedBundles();
+
       const platform = Capacitor.getPlatform();
       const currentBuildNumber = await getEffectiveBuildNumber();
+      otaDebugLog(`checkUpdate: effective=b${currentBuildNumber}`);
       const api = createBrowserClient();
 
       const result = await api.ota.checkUpdate({
@@ -42,15 +53,23 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
         currentBuildNumber,
       });
 
+      setOTAServerInfo(
+        result.latestBundle?.build_number ?? null,
+        result.updateAvailable ?? false
+      );
+
       if (result.updateAvailable && result.latestBundle) {
         const latestBuild = result.latestBundle.build_number;
+        otaDebugLog(`Sunucu: b${latestBuild} mevcut (şu an b${currentBuildNumber})`);
 
         if (latestBuild <= currentBuildNumber) {
+          otaDebugLog("Güncelleme atlandı: zaten güncel");
           isUpdatingRef.current = false;
           return;
         }
 
         const capgoVersion = formatCapgoVersion(result.latestBundle.version, latestBuild);
+        otaDebugLog(`İndirme başlıyor: ${capgoVersion}`);
         setState((s) => ({ ...s, isDownloading: true }));
 
         const listener = await CapacitorUpdater.addListener("download", (data) => {
@@ -72,20 +91,18 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
           >;
 
           setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
-
-          await new Promise((r) => setTimeout(r, 500));
-
-          sessionStorage.setItem("ota_reloaded", "true");
-          persistInstalledBuild(latestBuild);
-          await CapacitorUpdater.set(bundle);
+          otaDebugLog(`İndirme tamam: ${bundle.id}`);
+          await new Promise((r) => setTimeout(r, 400));
+          await applyDownloadedBundle(bundle);
         } finally {
           listener.remove();
         }
       } else {
+        otaDebugLog("Sunucuda yeni güncelleme yok");
         isUpdatingRef.current = false;
       }
     } catch (error) {
-      console.error("[OTA] Kritik Hata:", error);
+      otaDebugLog(`Kritik hata: ${error}`, "error");
       setState((s) => ({ ...s, isDownloading: false, isReady: false, progress: 0 }));
       isUpdatingRef.current = false;
     }
@@ -94,31 +111,36 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const confirmReady = async () => {
-      try {
-        await notifyOTAReady();
-      } catch (e) {
-        console.error("[OTA] notifyAppReady failed:", e);
-      }
-    };
+    void notifyOTAReady().catch((e) => {
+      console.error("[OTA] notifyAppReady backup failed:", e);
+    });
 
-    void confirmReady();
-
-    let updateTimer: number | undefined;
-    const hasReloaded = sessionStorage.getItem("ota_reloaded");
-    if (hasReloaded) {
+    const hadReload = sessionStorage.getItem("ota_reloaded") === "true";
+    if (hadReload) {
       sessionStorage.removeItem("ota_reloaded");
-    } else {
-      updateTimer = window.setTimeout(() => {
-        void checkAndApplyUpdates();
-      }, 1500);
+      otaDebugLog("OTA reload sonrası açılış");
     }
 
+    const updateTimer = window.setTimeout(() => {
+      void checkAndApplyUpdates();
+    }, hadReload ? 2500 : 1500);
+
     const resumeListener = App.addListener("resume", () => {
-      void confirmReady();
+      otaDebugLog("App resume");
+      void notifyOTAReady().catch(() => {});
       if (!isUpdatingRef.current) {
-        void checkAndApplyUpdates();
+        void recoverFailedBundles().then(() => checkAndApplyUpdates());
       }
+    });
+
+    const failedListener = CapacitorUpdater.addListener("updateFailed", (ev) => {
+      otaDebugLog(`updateFailed event: ${ev?.bundle?.id ?? "?"}`, "rollback");
+      isUpdatingRef.current = false;
+      void recoverFailedBundles().then(() => checkAndApplyUpdates());
+    });
+
+    const downloadFailedListener = CapacitorUpdater.addListener("downloadFailed", (ev) => {
+      otaDebugLog(`downloadFailed: ${JSON.stringify(ev)}`, "error");
     });
 
     const handleForceInstall = async (e: Event) => {
@@ -140,13 +162,11 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
         });
 
         setState((s) => ({ ...s, isDownloading: false, isReady: true, progress: 100 }));
-
-        sessionStorage.setItem("ota_reloaded", "true");
-        persistInstalledBuild(bundle.build_number);
-        await CapacitorUpdater.set(result);
+        await applyDownloadedBundle(result);
       } catch (err) {
         console.error("[OTA] Manuel kurulum hatası:", err);
         setState((s) => ({ ...s, isDownloading: false, isReady: false, progress: 0 }));
+        isUpdatingRef.current = false;
       } finally {
         dlListener?.remove();
       }
@@ -155,8 +175,10 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
     window.addEventListener("ota-force-install", handleForceInstall);
 
     return () => {
-      if (updateTimer !== undefined) window.clearTimeout(updateTimer);
+      window.clearTimeout(updateTimer);
       void resumeListener.then((l) => l.remove());
+      void failedListener.then((l) => l.remove());
+      void downloadFailedListener.then((l) => l.remove());
       window.removeEventListener("ota-force-install", handleForceInstall);
     };
   }, []);
