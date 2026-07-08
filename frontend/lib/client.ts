@@ -51,6 +51,7 @@ export default class Client {
     public readonly feed: feed.ServiceClient
     public readonly feedback: feedback.ServiceClient
     public readonly friendship: friendship.ServiceClient
+    public readonly gym: gym.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly hub: hub.ServiceClient
     public readonly icon_set_guide: icon_set_guide.ServiceClient
@@ -112,6 +113,7 @@ export default class Client {
         this.feed = new feed.ServiceClient(base)
         this.feedback = new feedback.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
+        this.gym = new gym.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.hub = new hub.ServiceClient(base)
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
@@ -3539,6 +3541,150 @@ export namespace friendship {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/friendship/request/send`, JSON.stringify(params))
             return await resp.json() as SendRequestResponse
+        }
+    }
+}
+
+export namespace gym {
+    export interface ExerciseRef {
+        slug: string
+        name: string
+    }
+
+    export interface GymStats {
+        weekMinutes: number
+        totalWorkouts: number
+    }
+
+    export interface Routine {
+        id: string
+        name: string
+        exercises: ExerciseRef[]
+        createdAt: string
+    }
+
+    export interface Workout {
+        id: string
+        routineId: string | null
+        name: string
+        exercises: WorkoutExercise[]
+        startedAt: string
+        finishedAt: string | null
+        durationSeconds: number
+        totalVolumeKg: number
+    }
+
+    export interface WorkoutExercise {
+        slug: string
+        name: string
+        sets: WorkoutSet[]
+        note?: string
+    }
+
+    export interface WorkoutSet {
+        reps: number | null
+        weightKg: number | null
+        completed: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createRoutine = this.createRoutine.bind(this)
+            this.deleteRoutine = this.deleteRoutine.bind(this)
+            this.getPreviousSets = this.getPreviousSets.bind(this)
+            this.getRoutines = this.getRoutines.bind(this)
+            this.getStats = this.getStats.bind(this)
+            this.getWorkouts = this.getWorkouts.bind(this)
+            this.saveWorkout = this.saveWorkout.bind(this)
+        }
+
+        public async createRoutine(params: {
+    userId: string
+    name: string
+    exercises: ExerciseRef[]
+}): Promise<{
+    routine: Routine
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gym/routine`, JSON.stringify(params))
+            return await resp.json() as {
+    routine: Routine
+}
+        }
+
+        public async deleteRoutine(userId: string, routineId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/gym/routine/${encodeURIComponent(userId)}/${encodeURIComponent(routineId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getPreviousSets(userId: string, exerciseSlug: string): Promise<{
+    sets: WorkoutSet[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/previous/${encodeURIComponent(userId)}/${encodeURIComponent(exerciseSlug)}`)
+            return await resp.json() as {
+    sets: WorkoutSet[]
+}
+        }
+
+        public async getRoutines(userId: string): Promise<{
+    routines: Routine[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/routines/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    routines: Routine[]
+}
+        }
+
+        public async getStats(userId: string): Promise<GymStats> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/stats/${encodeURIComponent(userId)}`)
+            return await resp.json() as GymStats
+        }
+
+        public async getWorkouts(userId: string, params: {
+    limit?: number
+}): Promise<{
+    workouts: Workout[]
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/workouts/${encodeURIComponent(userId)}`, undefined, {query})
+            return await resp.json() as {
+    workouts: Workout[]
+}
+        }
+
+        public async saveWorkout(params: {
+    userId: string
+    name: string
+    routineId?: string | null
+    exercises: WorkoutExercise[]
+    startedAt: string
+    finishedAt: string
+    durationSeconds: number
+    totalVolumeKg: number
+}): Promise<{
+    workout: Workout
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gym/workout`, JSON.stringify(params))
+            return await resp.json() as {
+    workout: Workout
+}
         }
     }
 }

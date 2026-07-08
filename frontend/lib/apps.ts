@@ -33,6 +33,7 @@ import {
   Storefront,
   Microphone,
   Television,
+  Barbell,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -566,6 +567,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/recipe",
     isImplemented: true,
     subdomain: "recipe",
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "gym",
+    name: "Gym",
+    description: "Antrenmanlarını kaydet, rutinler oluştur ve ilerlemeni takip et.",
+    cta: "Antrenmanına Başla",
+    icon: Barbell,
+    category: "Kampüslülere Özel",
+    color: "#8B5CF6",
+    href: "/apps/gym",
+    isImplemented: true,
+    subdomain: "gym",
     statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",

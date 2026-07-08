@@ -172,7 +172,7 @@ function HomeContent() {
   }, []);
 
   const lifeApps = useMemo(() => {
-    const order = ["eksik-var", "meal-planner"];
+    const order = ["eksik-var", "meal-planner", "gym"];
     return apps
       .filter((app) => app.category === "Kampüslülere Özel")
       .sort((a, b) => {

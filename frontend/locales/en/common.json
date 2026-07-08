@@ -322,6 +322,14 @@
     "campus-concerts": {
       "name": "Campus Concerts",
       "description": "Track concerts on campuses and mark your attendance."
+    },
+    "gym": {
+      "name": "Gym",
+      "description": "Log workouts, create routines, and track your progress."
+    },
+    "meal-planner": {
+      "name": "Meal Planner",
+      "description": "Save your recipes and plan your weekly meals."
     }
   },
   "birikim": {

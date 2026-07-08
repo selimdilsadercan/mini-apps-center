@@ -318,6 +318,14 @@
     "campus-concerts": {
       "name": "Campus Concerts",
       "description": "Kampüslerdeki konserleri takip et, katılımını işaretle."
+    },
+    "gym": {
+      "name": "Gym",
+      "description": "Antrenmanlarını kaydet, rutinler oluştur ve ilerlemeni takip et."
+    },
+    "meal-planner": {
+      "name": "Meal Planner",
+      "description": "Tariflerini kaydet, haftalık yemek planını oluştur."
     }
   },
   "birikim": {
