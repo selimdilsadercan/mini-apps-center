@@ -38,6 +38,7 @@ import {
   Shower,
   Notebook,
   Package,
+  Cookie,
   ListBullets,
   MagnifyingGlass,
   SquaresFour,
@@ -92,6 +93,7 @@ const CATEGORY_ICONS: Record<string, Icon> = {
   "Dondurulmuş ve Hazır": Snowflake,
   "Konserve ve Turşu": Jar,
   "Baharat ve Temel Malzeme": Pepper,
+  "Tatlı Malzemeleri": Cookie,
   "Özel Ürünler": Star,
   Bebek: Baby,
   Temizlik: SprayBottle,
@@ -114,6 +116,7 @@ const CATEGORY_SUPER_GROUPS: { title: string; categories: string[] }[] = [
       "Kuruyemiş",
       "Kahvaltılık",
       "Baharat ve Temel Malzeme",
+      "Tatlı Malzemeleri",
     ],
   },
   {

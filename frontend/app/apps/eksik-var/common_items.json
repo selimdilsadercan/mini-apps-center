@@ -902,21 +902,6 @@
         "name": "Dondurma",
         "slug": "vanilla-ice-cream",
         "atlasCategory": "frozen"
-      },
-      {
-        "name": "Puding",
-        "slug": "cream",
-        "atlasCategory": "dairy"
-      },
-      {
-        "name": "Jöle",
-        "slug": "gelatin",
-        "atlasCategory": "pantry"
-      },
-      {
-        "name": "Kakao",
-        "slug": "cocoa-powder",
-        "atlasCategory": "pantry"
       }
     ]
   },
@@ -1233,7 +1218,12 @@
         "name": "Defne yaprağı",
         "slug": "bay-leaf",
         "atlasCategory": "herbs"
-      },
+      }
+    ]
+  },
+  {
+    "category": "Tatlı Malzemeleri",
+    "items": [
       {
         "name": "Vanilin",
         "slug": "vanilla-extract",
@@ -1253,6 +1243,30 @@
         "name": "Maya",
         "slug": "yeast",
         "atlasCategory": "bakery"
+      },
+      {
+        "name": "Kremşanti"
+      },
+      {
+        "name": "Tatlılık çikolata"
+      },
+      {
+        "name": "Kakao",
+        "slug": "cocoa-powder",
+        "atlasCategory": "pantry"
+      },
+      {
+        "name": "Puding",
+        "slug": "cream",
+        "atlasCategory": "dairy"
+      },
+      {
+        "name": "Damla çikolata"
+      },
+      {
+        "name": "Jöle",
+        "slug": "gelatin",
+        "atlasCategory": "pantry"
       }
     ]
   },

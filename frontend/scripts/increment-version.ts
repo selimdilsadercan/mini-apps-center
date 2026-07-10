@@ -225,7 +225,7 @@ Options:
   console.log(`- Updated: lib/config.ts`);
 }
 
-if (import.meta.main) {
+if ((import.meta as any).main) {
   runIncrementVersion().catch((error: Error) => {
     console.error("❌ Error:", error.message);
     process.exit(1);
