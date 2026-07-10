@@ -10,7 +10,14 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
+type MealType = "breakfast" | "lunch" | "dinner";
+
 type AddMealTab = "custom" | "recipes";
+const mealTypeLabels: Array<{ value: MealType; label: string }> = [
+  { value: "breakfast", label: "Kahvaltı" },
+  { value: "lunch", label: "Öğle" },
+  { value: "dinner", label: "Akşam" },
+];
 
 export default function AddMealDrawer({
   open,
@@ -18,6 +25,7 @@ export default function AddMealDrawer({
   dayLabel,
   recipes,
   recipesLoading,
+  defaultMealType,
   onSelectRecipe,
   onAddCustom,
 }: {
@@ -26,30 +34,40 @@ export default function AddMealDrawer({
   dayLabel: string;
   recipes: lib.RecipeSummary[];
   recipesLoading: boolean;
-  onSelectRecipe: (recipe: lib.RecipeSummary) => void;
-  onAddCustom: (title: string) => void;
+  defaultMealType?: MealType;
+  onSelectRecipe: (recipe: lib.RecipeSummary, mealType: MealType) => void;
+  onAddCustom: (title: string, mealType: MealType) => void;
 }) {
   const [activeTab, setActiveTab] = useState<AddMealTab>("recipes");
   const [customTitle, setCustomTitle] = useState("");
+  const [mealType, setMealType] = useState<MealType>(defaultMealType ?? "dinner");
 
   useEffect(() => {
-    if (!open) {
+    if (open && defaultMealType) {
+      setMealType(defaultMealType);
+    }
+  }, [open, defaultMealType]);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
       setCustomTitle("");
       setActiveTab("recipes");
+      setMealType(defaultMealType ?? "dinner");
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  }
 
   function handleAddCustom() {
     const title = customTitle.trim();
     if (!title) return;
-    onAddCustom(title);
+    onAddCustom(title, mealType);
     setCustomTitle("");
-    onOpenChange(false);
+    handleOpenChange(false);
   }
 
   function handleSelectRecipe(recipe: lib.RecipeSummary) {
-    onSelectRecipe(recipe);
-    onOpenChange(false);
+    onSelectRecipe(recipe, mealType);
+    handleOpenChange(false);
   }
 
   const tabClass = (active: boolean) =>
@@ -58,7 +76,7 @@ export default function AddMealDrawer({
     }`;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-w-xl mx-auto rounded-t-3xl border-t border-gray-200/60">
         <DrawerHeader className="px-4 pt-2 pb-0 text-left">
           <div className="flex items-center justify-between">
@@ -67,7 +85,7 @@ export default function AddMealDrawer({
             </DrawerTitle>
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
             >
               <X size={16} weight="bold" />
@@ -77,13 +95,32 @@ export default function AddMealDrawer({
         </DrawerHeader>
 
         <div className="px-4 pt-3">
-          <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
-            <button type="button" onClick={() => setActiveTab("custom")} className={tabClass(activeTab === "custom")}>
-              Yemek yaz
-            </button>
-            <button type="button" onClick={() => setActiveTab("recipes")} className={tabClass(activeTab === "recipes")}>
-              Tariflerim
-            </button>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex gap-1 p-1 rounded-xl bg-orange-50">
+              {mealTypeLabels.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setMealType(item.value)}
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
+                    mealType === item.value
+                      ? "bg-white text-orange-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
+              <button type="button" onClick={() => setActiveTab("custom")} className={tabClass(activeTab === "custom")}>
+                Yemek yaz
+              </button>
+              <button type="button" onClick={() => setActiveTab("recipes")} className={tabClass(activeTab === "recipes")}>
+                Tariflerim
+              </button>
+            </div>
           </div>
         </div>
 

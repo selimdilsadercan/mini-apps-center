@@ -6,6 +6,8 @@
 -- 5. gym.save_workout
 -- 6. gym.get_previous_sets
 -- 7. gym.get_stats
+-- 8. gym.get_weekly_plan
+-- 9. gym.set_weekly_plan_day
 
 -- 1. Get Routines
 DROP FUNCTION IF EXISTS gym.get_routines(TEXT);
@@ -185,5 +187,75 @@ BEGIN
         'totalWorkouts', v_total_workouts
     );
     RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. Get Weekly Plan (all 7 days with routine details)
+DROP FUNCTION IF EXISTS gym.get_weekly_plan(TEXT);
+CREATE OR REPLACE FUNCTION gym.get_weekly_plan(p_clerk_id TEXT)
+RETURNS TABLE (
+    day_of_week SMALLINT,
+    routine_id UUID,
+    routine_name TEXT,
+    exercises JSONB
+) AS $$
+DECLARE
+    v_user_id UUID := public.get_internal_user_id(p_clerk_id);
+BEGIN
+    RETURN QUERY
+    SELECT
+        days.day_of_week,
+        r.id AS routine_id,
+        r.name AS routine_name,
+        r.exercises
+    FROM (
+        SELECT generate_series(1, 7)::SMALLINT AS day_of_week
+    ) days
+    LEFT JOIN gym.weekly_plan wp
+        ON wp.user_id = v_user_id AND wp.day_of_week = days.day_of_week
+    LEFT JOIN gym.routines r
+        ON r.id = wp.routine_id AND r.user_id = v_user_id
+    ORDER BY days.day_of_week;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 9. Set routine for a weekday
+DROP FUNCTION IF EXISTS gym.set_weekly_plan_day(TEXT, SMALLINT, UUID);
+CREATE OR REPLACE FUNCTION gym.set_weekly_plan_day(
+    p_clerk_id TEXT,
+    p_day_of_week SMALLINT,
+    p_routine_id UUID DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_user_id UUID := public.get_internal_user_id(p_clerk_id);
+BEGIN
+    IF p_day_of_week < 1 OR p_day_of_week > 7 THEN
+        RAISE EXCEPTION 'day_of_week must be between 1 and 7';
+    END IF;
+
+    IF p_routine_id IS NOT NULL THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM gym.routines
+            WHERE id = p_routine_id AND user_id = v_user_id
+        ) THEN
+            RAISE EXCEPTION 'Routine not found';
+        END IF;
+    END IF;
+
+    IF p_routine_id IS NULL THEN
+        DELETE FROM gym.weekly_plan
+        WHERE user_id = v_user_id AND day_of_week = p_day_of_week;
+        RETURN TRUE;
+    END IF;
+
+    INSERT INTO gym.weekly_plan (user_id, day_of_week, routine_id)
+    VALUES (v_user_id, p_day_of_week, p_routine_id)
+    ON CONFLICT (user_id, day_of_week)
+    DO UPDATE SET
+        routine_id = EXCLUDED.routine_id,
+        updated_at = NOW();
+
+    RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

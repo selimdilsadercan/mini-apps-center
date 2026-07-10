@@ -3,12 +3,12 @@
 	"lang": "typescript",
 	"global_cors": {
 		"allow_origins_with_credentials": [
-			"http://localhost:3000",
-			"http://localhost:4000",
-			"http://my.localhost:3000",
-			"http://my.localhost:4000",
-			"http://127.0.0.1:3000",
-			"http://127.0.0.1:4000",
+			"http://localhost:5000",
+			"http://localhost:8000",
+			"http://my.localhost:5000",
+			"http://my.localhost:8000",
+			"http://127.0.0.1:5000",
+			"http://127.0.0.1:8000",
 			"https://allminiapps.com",
 			"https://my.allminiapps.com",
 			"https://*.allminiapps.com",

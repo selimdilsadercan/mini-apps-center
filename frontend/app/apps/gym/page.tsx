@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
-import { Barbell, CaretDown } from "@phosphor-icons/react";
+import { Barbell } from "@phosphor-icons/react";
 import GymShell from "./components/GymShell";
 import RoutineCard, { RoutineActions } from "./components/RoutineCard";
 import CreateRoutineModal from "./components/CreateRoutineModal";
@@ -12,8 +12,9 @@ import {
   createRoutineAction,
   deleteRoutineAction,
 } from "./actions";
-import type { Routine, ExerciseRef, ActiveSession } from "./types";
-import { ACTIVE_SESSION_KEY, createExerciseFromRef } from "./types";
+import type { Routine, ExerciseRef } from "./types";
+import { startGymSession } from "./types";
+import WeeklyPlanPicker from "./components/WeeklyPlanPicker";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function GymWorkoutPage() {
@@ -24,7 +25,6 @@ export default function GymWorkoutPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -52,19 +52,9 @@ export default function GymWorkoutPage() {
     }
   }
 
-  function startSession(name: string, routineId: string | null, exercises: ExerciseRef[]) {
-    const session: ActiveSession = {
-      name,
-      routineId,
-      exercises: exercises.map((e) => createExerciseFromRef(e)),
-      startedAt: new Date().toISOString(),
-    };
-    sessionStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(session));
-    router.push("/apps/gym/session");
-  }
-
   function handleStartRoutine(routine: Routine) {
-    startSession(routine.name, routine.id, routine.exercises);
+    startGymSession(routine.name, routine.id, routine.exercises);
+    router.push("/apps/gym/session");
   }
 
   async function handleCreate(name: string, exercises: ExerciseRef[]) {
@@ -114,44 +104,30 @@ export default function GymWorkoutPage() {
   return (
     <GymShell activeTab="workout">
       <div className="space-y-5">
-        <RoutineActions onNewRoutine={() => setShowCreate(true)} />
+        <WeeklyPlanPicker userId={user.id} routines={routines} />
 
-        {error && (
-          <p className="text-red-500 text-sm font-bold text-center">{error}</p>
-        )}
+        <section className="space-y-3">
+          <RoutineActions onNewRoutine={() => setShowCreate(true)} />
 
-        <div>
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="flex items-center gap-1.5 text-xs font-black text-gray-500 uppercase tracking-wider mb-3"
-          >
-            <CaretDown
-              size={12}
-              weight="bold"
-              className={`transition-transform ${collapsed ? "-rotate-90" : ""}`}
-            />
-            Rutinlerim ({routines.length})
-          </button>
-
-          {!collapsed && (
-            <div className="space-y-3">
-              {routines.length === 0 ? (
-                <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                  <p className="text-xs font-bold text-gray-400">Henüz rutin yok</p>
-                </div>
-              ) : (
-                routines.map((routine) => (
-                  <RoutineCard
-                    key={routine.id}
-                    routine={routine}
-                    onStart={() => handleStartRoutine(routine)}
-                    onDelete={() => handleDelete(routine)}
-                  />
-                ))
-              )}
-            </div>
+          {error && (
+            <p className="text-red-500 text-sm font-bold text-center">{error}</p>
           )}
-        </div>
+
+          {routines.length === 0 ? (
+            <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+              <p className="text-xs font-bold text-gray-400">Henüz rutin yok</p>
+            </div>
+          ) : (
+            routines.map((routine) => (
+              <RoutineCard
+                key={routine.id}
+                routine={routine}
+                onStart={() => handleStartRoutine(routine)}
+                onDelete={() => handleDelete(routine)}
+              />
+            ))
+          )}
+        </section>
       </div>
 
       <CreateRoutineModal

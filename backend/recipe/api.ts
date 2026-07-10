@@ -38,6 +38,32 @@ interface GetRecipeByIdResponse {
   recipe: Recipe | null;
 }
 
+interface MealPlanMeal {
+  id: string;
+  title: string;
+  recipeId?: string;
+  mealType: "breakfast" | "lunch" | "dinner";
+}
+
+type MealPlanData = Record<string, MealPlanMeal[]>;
+
+interface GetMealPlanRequest {
+  userId: string;
+}
+
+interface GetMealPlanResponse {
+  plan: MealPlanData;
+}
+
+interface SetMealPlanRequest {
+  userId: string;
+  plan: MealPlanData;
+}
+
+interface SetMealPlanResponse {
+  success: boolean;
+}
+
 // ==================== API ENDPOINTS ====================
 
 /**
@@ -122,6 +148,70 @@ export const getRecipeById = api(
         instructions: row.instructions,
       } : null 
     };
+  }
+);
+
+/**
+ * Kullanıcının yemek planını getirir
+ * GET /recipe/plan/:userId
+ */
+export const getMealPlan = api(
+  { expose: true, method: "GET", path: "/recipe/plan/:userId" },
+  async ({ userId }: GetMealPlanRequest): Promise<GetMealPlanResponse> => {
+    const { data, error } = await supabase.schema("recipe").rpc("get_plan", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error("getMealPlan error:", error);
+      throw APIError.internal("Yemek plani yuklenemedi");
+    }
+
+    const rows = (data ?? []) as Array<{
+      id: string;
+      day_key: string;
+      title: string;
+      meal_type: string | null;
+      recipe_id: string | null;
+    }>;
+
+    const plan: MealPlanData = {};
+    for (const row of rows) {
+      const dayMeals = plan[row.day_key] ?? [];
+      dayMeals.push({
+        id: row.id,
+        title: row.title,
+        mealType:
+          row.meal_type === "breakfast" || row.meal_type === "lunch" || row.meal_type === "dinner"
+            ? row.meal_type
+            : "dinner",
+        recipeId: row.recipe_id ?? undefined,
+      });
+      plan[row.day_key] = dayMeals;
+    }
+
+    return { plan };
+  }
+);
+
+/**
+ * Kullanıcının yemek planını tam olarak günceller
+ * PUT /recipe/plan/:userId
+ */
+export const setMealPlan = api(
+  { expose: true, method: "PUT", path: "/recipe/plan/:userId" },
+  async ({ userId, plan }: SetMealPlanRequest): Promise<SetMealPlanResponse> => {
+    const { data, error } = await supabase.schema("recipe").rpc("set_plan", {
+      p_user_id: userId,
+      plan_data: plan ?? {},
+    });
+
+    if (error) {
+      console.error("setMealPlan error:", error);
+      throw APIError.internal("Yemek plani kaydedilemedi");
+    }
+
+    return { success: Boolean(data) };
   }
 );
 

@@ -54,7 +54,7 @@ function getBrowserBaseURL() {
 
   // Phone browser on LAN hits Encore directly
   if (isLocalIP || hostname === "127.0.0.1") {
-    return `http://${hostname}:4000`;
+    return `http://${hostname}:8000`;
   }
 
   // localhost, *.localhost, my.allminiapps.com, budget.allminiapps.com, etc.

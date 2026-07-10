@@ -77,10 +77,10 @@ docs/scripts/
 
 ### `dev.ts` → `bun run dev`
 
-1. 3000 ve 4000 portlarını temizler
+1. 5000 ve 8000 portlarını temizler
 2. Paralel süreçler:
-   - **frontend** — Next.js (`frontend/dev`)
-   - **encore** — Backend API
+   - **frontend** — Next.js (`http://localhost:5000`)
+   - **encore** — Backend API (`http://localhost:8000`)
    - **generate** — 3 sn sonra client codegen watcher
 
 ### `secret.ts` → `bun run secret`
@@ -91,7 +91,7 @@ Encore secret tanımlama (`backend/secret.ts`).
 
 | Script | Komut | Ne yapar |
 |--------|-------|----------|
-| `dev.ts` | `dev` | `encore run` — API sunucusu |
+| `dev.ts` | `dev` | `encore run --port 8000` — API sunucusu |
 | `test.ts` | `test` | Vitest test suite |
 | `generate.ts` | `generate` | Encore client → `frontend/lib/client.ts` |
 | `generate-watch.ts` | `generate:watch` | `.ts` değişince otomatik codegen |

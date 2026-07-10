@@ -1,0 +1,39 @@
+[
+  {
+    "category": "Mutfak",
+    "items": [
+      { "slug": "dishes", "name": "Bulaşık", "icon": "🍽️" },
+      { "slug": "kitchen-counter", "name": "Tezgah Temizliği", "icon": "🧽" },
+      { "slug": "stove", "name": "Ocak Temizliği", "icon": "🔥" },
+      { "slug": "fridge", "name": "Buzdolabı Düzeni", "icon": "🧊" },
+      { "slug": "trash-kitchen", "name": "Mutfak Çöpü", "icon": "🗑️" }
+    ]
+  },
+  {
+    "category": "Genel",
+    "items": [
+      { "slug": "trash", "name": "Çöp Çıkarma", "icon": "♻️" },
+      { "slug": "sweep", "name": "Süpürme", "icon": "🧹" },
+      { "slug": "mop", "name": "Paspas", "icon": "🪣" },
+      { "slug": "dust", "name": "Toz Alma", "icon": "✨" },
+      { "slug": "vacuum", "name": "Elektrikli Süpürge", "icon": "🌀" }
+    ]
+  },
+  {
+    "category": "Banyo & Çamaşır",
+    "items": [
+      { "slug": "bathroom", "name": "Banyo Temizliği", "icon": "🚿" },
+      { "slug": "laundry-wash", "name": "Çamaşır Yıkama", "icon": "👕" },
+      { "slug": "laundry-dry", "name": "Çamaşır Asma", "icon": "🧺" },
+      { "slug": "laundry-fold", "name": "Çamaşır Katlama", "icon": "🧦" }
+    ]
+  },
+  {
+    "category": "Dışarı",
+    "items": [
+      { "slug": "groceries", "name": "Market Alışverişi", "icon": "🛒" },
+      { "slug": "plants", "name": "Bitki Sulama", "icon": "🪴" },
+      { "slug": "balcony", "name": "Balkon Temizliği", "icon": "🌤️" }
+    ]
+  }
+]

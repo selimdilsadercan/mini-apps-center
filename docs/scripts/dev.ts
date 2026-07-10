@@ -1,12 +1,13 @@
 #!/usr/bin/env bun
 /**
  * Geliştirme ortamını başlatır:
- * - 3000 ve 4000 portlarını temizler
+ * - 5000 ve 8000 portlarını temizler
  * - frontend (Next.js), encore (backend), generate:watch süreçlerini paralel çalıştırır
  */
 import { rootDir } from "./lib/root";
 import { killPorts } from "./lib/kill-ports";
 import { runCommand, stopAll, type ManagedProcess } from "./lib/run";
+import { BACKEND_DEV_URL, FRONTEND_DEV_PORT, BACKEND_DEV_PORT } from "./lib/ports";
 
 const root = rootDir();
 const processes: ManagedProcess[] = [];
@@ -23,8 +24,8 @@ function trackProcess(managed: ManagedProcess) {
 }
 
 async function main() {
-  console.log("Clearing ports 3000 and 4000...");
-  await killPorts([3000, 4000]);
+  console.log(`Clearing ports ${FRONTEND_DEV_PORT} and ${BACKEND_DEV_PORT}...`);
+  await killPorts([FRONTEND_DEV_PORT, BACKEND_DEV_PORT]);
 
   trackProcess(
     runCommand(
@@ -32,7 +33,7 @@ async function main() {
       ["bun", "run", "dev"],
       `${root}/frontend`,
       {
-        ENCORE_PROXY_TARGET: "http://localhost:4000",
+        ENCORE_PROXY_TARGET: BACKEND_DEV_URL,
         NEXT_PUBLIC_ENCORE_ENVIRONMENT: "local",
       }
     )

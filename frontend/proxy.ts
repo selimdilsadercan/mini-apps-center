@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
  * These pages are public-facing — auth is handled client-side by Clerk.
  */
 const SUBDOMAIN_ROUTES: Record<string, string> = {
+  kalimba: "/apps/kalimba",
   cardgames: "/apps/iskambil",
   kiler: "/apps/kiler",
   eksikvar: "/apps/eksik-var",
@@ -30,6 +31,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   sticker: "/apps/sticker-editor",
   recipe: "/apps/recipe",
   gym: "/apps/gym",
+  evisleri: "/apps/ev-isleri",
   neyapsam: "/apps/stop-scroll",
   concerts: "/apps/concert-list",
   kampus: "/apps/campus-concerts",
@@ -55,10 +57,10 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
 
 /**
  * Extracts the subdomain from the request host.
- *   iskambil.localhost:3000  → "iskambil"
+ *   iskambil.localhost:5000  → "iskambil"
  *   iskambil.theverything.site  → "iskambil"
  *   theverything.site           → null  (root)
- *   localhost:3000           → null  (root)
+ *   localhost:5000           → null  (root)
  */
 function getSubdomain(host: string): string | null {
   const hostname = host.split(":")[0]; // strip port

@@ -5,7 +5,6 @@ import { MINI_APPS, MiniApp, navigateToMiniApp, AppCategory } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { 
   Sparkle, 
-  CaretRight, 
   Heart,
   Storefront,
   ShieldCheck,
@@ -14,10 +13,7 @@ import {
   UserCircle,
   Prohibit,
   MapPin,
-  Megaphone,
   ArrowRight,
-  Coffee,
-  Calendar,
   Compass,
   Wallet,
   Users,
@@ -30,10 +26,20 @@ import {
   Wrench,
   VideoCamera,
   PaperPlaneTilt,
-  CheckCircle
+  CheckCircle,
+  Play,
+  BookmarkSimple,
+  Check,
+  X,
+  Question,
+  Barbell,
+  ChefHat,
+  Broom,
+  Clock,
 } from "@phosphor-icons/react";
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-hot-toast";
 import AppBar, { ActivePage } from "@/components/AppBar";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -42,25 +48,32 @@ import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 import { 
   workplaces, 
-  campus_events, 
   series_track, 
   hub,
   subcenter,
   budget,
   tasarruf_challenges,
   suggest,
-  kim_gelir
+  kim_gelir,
+  gym,
+  recipe,
+  ev_isleri,
 } from "@/lib/client";
 import Link from "next/link";
+import { startGymSession } from "@/app/apps/gym/types";
+import {
+  getMondayWeekStart,
+  getIsoWeekday,
+} from "@/app/apps/ev-isleri/types";
 
 const client = createBrowserClient();
 
 export default function Home() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen flex-col bg-white">
+      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
         </main>
       </div>
     }>
@@ -102,18 +115,116 @@ function HomeContent() {
   
   // Integrated Content State
   const [places, setPlaces] = useState<workplaces.Place[]>([]);
-  const [events, setEvents] = useState<campus_events.CampusEvent[]>([]);
   const [userSeries, setUserSeries] = useState<series_track.UserSeries[]>([]);
   const [subscriptions, setSubscriptions] = useState<subcenter.Subscription[]>([]);
   const [budgetProjects, setBudgetProjects] = useState<budget.Project[]>([]);
   const [savingsStats, setSavingsStats] = useState<tasarruf_challenges.StatsResponse | null>(null);
   const [suggestions, setSuggestions] = useState<suggest.InboxSuggestion[]>([]);
   const [activities, setActivities] = useState<kim_gelir.Activity[]>([]);
-  const [loadingContent, setLoadingContent] = useState(false);
+  const [todaySeries, setTodaySeries] = useState<TodaySeriesItem[]>([]);
+  const [todayGymPlan, setTodayGymPlan] = useState<gym.TodayPlan | null>(null);
+  const [todayMeals, setTodayMeals] = useState<recipe.MealPlanMeal[]>([]);
+  const [weeklyChores, setWeeklyChores] = useState<HomeWeeklyChores | null>(null);
+  const [loadingContent, setLoadingContent] = useState(true);
+  const [loadingTodaySeries, setLoadingTodaySeries] = useState(false);
+  const [loadingTodayGym, setLoadingTodayGym] = useState(false);
+  const [loadingTodayMeals, setLoadingTodayMeals] = useState(false);
+  const [loadingWeeklyChores, setLoadingWeeklyChores] = useState(false);
 
   useEffect(() => {
     const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
     setApps(implementedApps);
+  }, []);
+
+  const loadTodaySeries = useCallback(async (series: series_track.UserSeries[], userId?: string) => {
+    if (!series.length) {
+      setTodaySeries([]);
+      return;
+    }
+
+    try {
+      setLoadingTodaySeries(true);
+      const { events } = await client.series_track.getTvCalendarEvents();
+      const items = await buildTodaySeriesItems(series, events || []);
+      const itemsWithProgress = userId ? await attachWatchedState(items, userId) : items;
+      setTodaySeries(itemsWithProgress);
+    } catch (err) {
+      console.error("Failed to fetch today's series:", err);
+      setTodaySeries([]);
+    } finally {
+      setLoadingTodaySeries(false);
+    }
+  }, []);
+
+  const loadTodayGymPlan = useCallback(async (userId?: string) => {
+    if (!userId) {
+      setTodayGymPlan(null);
+      return;
+    }
+
+    try {
+      setLoadingTodayGym(true);
+      const plan = await client.gym.getTodayPlan(userId);
+      setTodayGymPlan(plan);
+    } catch (err) {
+      console.error("Failed to fetch today's gym plan:", err);
+      setTodayGymPlan(null);
+    } finally {
+      setLoadingTodayGym(false);
+    }
+  }, []);
+
+  const loadTodayMeals = useCallback(async (userId?: string) => {
+    if (!userId) {
+      setTodayMeals([]);
+      return;
+    }
+
+    try {
+      setLoadingTodayMeals(true);
+      const { plan } = await client.recipe.getMealPlan(userId);
+      const todayKey = getTodayDateKey();
+      setTodayMeals(plan[todayKey] ?? []);
+    } catch (err) {
+      console.error("Failed to fetch today's meal plan:", err);
+      setTodayMeals([]);
+    } finally {
+      setLoadingTodayMeals(false);
+    }
+  }, []);
+
+  const loadWeeklyChores = useCallback(async (userId?: string) => {
+    if (!userId) {
+      setWeeklyChores(null);
+      return;
+    }
+
+    try {
+      setLoadingWeeklyChores(true);
+      const { boards } = await client.ev_isleri.getBoards(userId);
+      if (!boards?.length) {
+        setWeeklyChores(null);
+        return;
+      }
+
+      const board = boards[0];
+      const weekStart = getMondayWeekStart();
+      const { assignments } = await client.ev_isleri.getWeekPlan(board.id, userId, {
+        weekStart,
+      });
+
+      setWeeklyChores({
+        boardId: board.id,
+        boardName: board.name,
+        weekStart,
+        assignments: assignments ?? [],
+      });
+    } catch (err) {
+      console.error("Failed to fetch weekly chores:", err);
+      setWeeklyChores(null);
+    } finally {
+      setLoadingWeeklyChores(false);
+    }
   }, []);
 
   const fetchIntegratedContent = useCallback(async () => {
@@ -124,7 +235,6 @@ function HomeContent() {
       const res = await client.hub.getHomeWidgets({ userId: user?.id });
 
       setPlaces(res.places?.slice(0, 6) || []);
-      setEvents(res.events?.slice(0, 6) || []);
       
       // Sort series by updated_at and prioritize "watching" status
       const sortedSeries = (res.series || []).sort((a: any, b: any) => {
@@ -132,7 +242,13 @@ function HomeContent() {
         if (a.status !== "watching" && b.status === "watching") return 1;
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       });
-      setUserSeries(sortedSeries.slice(0, 2));
+      setUserSeries(sortedSeries);
+      await Promise.all([
+        loadTodaySeries(sortedSeries, user?.id),
+        loadTodayGymPlan(user?.id),
+        loadTodayMeals(user?.id),
+        loadWeeklyChores(user?.id),
+      ]);
       
       setSubscriptions(res.subscriptions?.slice(0, 6) || []);
       setBudgetProjects(res.budgetProjects?.slice(0, 6) || []);
@@ -144,20 +260,15 @@ function HomeContent() {
     } finally {
       setLoadingContent(false);
     }
-  }, [user?.id]);
+  }, [user?.id, loadTodaySeries, loadTodayGymPlan, loadTodayMeals, loadWeeklyChores]);
 
   useEffect(() => {
-    if (isLoaded) {
-      fetchIntegratedContent();
-    }
+    if (!isLoaded) return;
+    fetchIntegratedContent();
   }, [isLoaded, fetchIntegratedContent]);
 
   const hobbyApps = useMemo(() => {
     return apps.filter(app => app.category === "Eğlence & Hobi");
-  }, [apps]);
-
-  const socialApps = useMemo(() => {
-    return apps.filter(app => app.category === "Sosyal");
   }, [apps]);
 
   const exploreApps = useMemo(() => {
@@ -172,7 +283,7 @@ function HomeContent() {
   }, []);
 
   const lifeApps = useMemo(() => {
-    const order = ["eksik-var", "meal-planner", "gym"];
+    const order = ["eksik-var", "ev-isleri", "meal-planner", "gym"];
     return apps
       .filter((app) => app.category === "Kampüslülere Özel")
       .sort((a, b) => {
@@ -199,11 +310,20 @@ function HomeContent() {
     contextTogglePin(appId);
   };
 
-  if (!isLoaded || !isDataLoaded) {
+  const isHomeLoading =
+    !isLoaded ||
+    !isDataLoaded ||
+    loadingContent ||
+    loadingTodaySeries ||
+    loadingTodayGym ||
+    loadingTodayMeals ||
+    loadingWeeklyChores;
+
+  if (isHomeLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-white">
+      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
         </main>
       </div>
     );
@@ -237,7 +357,25 @@ function HomeContent() {
                  activeTab === "wallet" ? "Cüzdan" : "Yaşam"}
               </p>
             </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                onClick={() => router.push("/admin")}
+                title="Yönetim Paneli"
+                className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+              >
+                <ShieldCheck size={20} weight="bold" />
+              </button>
+            )}
+            {(isAdmin || hasBusinesses) && (
+              <button
+                onClick={() => router.push("/dashboard")}
+                title="İşletme Paneli"
+                className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+              >
+                <Storefront size={20} weight="bold" />
+              </button>
+            )}
             {isAdmin && (
               <button 
                 onClick={() => router.push("/home/list")}
@@ -269,138 +407,26 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              {/* Special Admin/Business Section */}
-              {(isAdmin || hasBusinesses) && (
-                <section className="space-y-1">
-                  {isAdmin && (
-                    <SpecialRow 
-                      title="Yönetim Paneli" 
-                      subtitle="Sistem ayarları ve kullanıcı yönetimi"
-                      icon={ShieldCheck}
-                      color="#4F46E5"
-                      onClick={() => router.push("/admin")}
-                    />
-                  )}
-                  {(isAdmin || hasBusinesses) && (
-                    <SpecialRow 
-                      title="İşletme Paneli" 
-                      subtitle="İşletmeni yönet ve istatistikleri gör"
-                      icon={Storefront}
-                      color="#EF4444"
-                      onClick={() => router.push("/dashboard")}
-                    />
-                  )}
-                </section>
-              )}
-
-              {/* Events Section */}
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Megaphone size={14} weight="bold" className="text-gray-900" />
-                    Yaklaşan Etkinlikler
-                  </h2>
-                  <Link href="/apps/campus-events" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                    Tümünü Gör
-                  </Link>
-                </div>
-                
-                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                  {loadingContent ? (
-                    [1, 2, 3].map(i => (
-                      <div key={i} className="w-64 h-40 bg-white rounded-3xl animate-pulse shrink-0 border border-gray-100" />
-                    ))
-                  ) : events.length > 0 ? (
-                    events.map(event => (
-                      <Link 
-                        key={event.id} 
-                        href={`/apps/campus-events/event?id=${event.id}`}
-                        className="w-64 bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm shrink-0 group active:scale-[0.98] transition-all"
-                      >
-                        <div className="h-32 relative overflow-hidden bg-gray-50">
-                          {event.image_url ? (
-                            <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-200">
-                              <Megaphone size={40} weight="fill" />
-                            </div>
-                          )}
-                                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-black text-gray-900 uppercase tracking-wider border border-white/50">
-                                    {new Date(event.event_date).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
-                                  </div>
-                        </div>
-                        <div className="p-3">
-                          <h3 className="text-xs font-black text-gray-900 truncate uppercase tracking-tight">{event.title}</h3>
-                          <p className="text-[10px] text-gray-400 font-bold mt-0.5 truncate flex items-center gap-1">
-                            <MapPin size={10} weight="fill" />
-                            {event.location}
-                          </p>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="w-full py-10 text-center bg-white rounded-3xl border border-dashed border-gray-200">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Henüz etkinlik yok</p>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* Places Section */}
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Coffee size={14} weight="bold" className="text-gray-900" />
-                    Popüler Mekanlar
-                  </h2>
-                  <Link href="/apps/workplaces" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                    Keşfet
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  {loadingContent ? (
-                    [1, 2, 3].map(i => (
-                      <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />
-                    ))
-                  ) : places.length > 0 ? (
-                    places.map(place => (
-                      <Link 
-                        key={place.id} 
-                        href={`/apps/workplaces/place?placeId=${place.id}`}
-                        className="flex items-center gap-4 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all group"
-                      >
-                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-50">
-                          {place.image_url ? (
-                            <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-200">
-                              <MapPin size={24} weight="fill" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-black text-gray-900 truncate uppercase tracking-tight">{place.name}</h3>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[9px] font-black text-gray-900 bg-gray-50 px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                                      {place.district}
-                                    </span>
-                            {place.rating && (
-                              <span className="text-[9px] font-black text-gray-400 flex items-center gap-0.5">
-                                ★ {place.rating}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <ArrowRight size={16} weight="bold" className="text-gray-300 group-hover:text-gray-900 transition-colors" />
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="w-full py-10 text-center bg-white rounded-3xl border border-dashed border-gray-200">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mekan bulunamadı</p>
-                    </div>
-                  )}
-                </div>
+              <section className="space-y-3">
+                <HomeSummaryCards
+                  suggestions={suggestions}
+                  setSuggestions={setSuggestions}
+                  activities={activities}
+                  setActivities={setActivities}
+                  todaySeries={todaySeries}
+                  setTodaySeries={setTodaySeries}
+                  todayGymPlan={todayGymPlan}
+                  todayMeals={todayMeals}
+                  weeklyChores={weeklyChores}
+                  setWeeklyChores={setWeeklyChores}
+                  userId={user?.id}
+                  loadingSuggestions={loadingContent}
+                  loadingActivities={loadingContent}
+                  loadingTodaySeries={loadingTodaySeries}
+                  loadingTodayGym={loadingTodayGym}
+                  loadingTodayMeals={loadingTodayMeals}
+                  loadingWeeklyChores={loadingWeeklyChores}
+                />
               </section>
 
               {/* Pratik Araçlar Section (Tools) */}
@@ -517,7 +543,7 @@ function HomeContent() {
                 
                 {userSeries.length > 0 ? (
                   <div className="grid grid-cols-1 gap-3">
-                    {userSeries.map(series => (
+                    {userSeries.slice(0, 2).map(series => (
                       <Link 
                         key={series.id} 
                         href={`/apps/series-track`}
@@ -848,31 +874,6 @@ function HomeContent() {
                 </section>
               )}
 
-              {/* Arkadaşlarınla Section (Social) */}
-              {socialApps.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Users size={14} weight="bold" className="text-gray-900" />
-                      Arkadaşlarınla
-                    </h2>
-                  </div>
-                  <div className="space-y-0">
-                    {socialApps.map((app, index) => (
-                      <AppRow 
-                        key={app.id} 
-                        app={app} 
-                        index={index} 
-                        tApps={tApps}
-                        isPinned={pinnedIds.includes(app.id)}
-                        onPin={(e) => togglePin(e, app.id)}
-                        onClick={() => handleAppClick(app)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -902,32 +903,986 @@ function HomeContent() {
   );
 }
 
-function SpecialRow({ title, subtitle, icon: Icon, color, onClick }: any) {
+type HomeWeeklyChores = {
+  boardId: string;
+  boardName: string;
+  weekStart: string;
+  assignments: ev_isleri.WeekAssignment[];
+};
+
+type TodaySeriesItem = {
+  id: string;
+  seriesId: string;
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  watchUrlSlug: string | null;
+  streamInfo: string | null;
+  season: number;
+  episode: number;
+  episodeTitle?: string;
+  airDate: string;
+  source: "tmdb" | "episode-club";
+  isWatched: boolean;
+};
+
+const SERIES_DAILY_AIR_HOUR = 19;
+
+function getSeriesEpisodeAirDateTime(airDateStr: string): Date {
+  const datePart = airDateStr.split("T")[0];
+  const [y, m, d] = datePart.split("-").map(Number);
+  return new Date(y, m - 1, d, SERIES_DAILY_AIR_HOUR, 0, 0, 0);
+}
+
+function isSeriesEpisodeAvailableNow(airDateStr: string): boolean {
+  return Date.now() >= getSeriesEpisodeAirDateTime(airDateStr).getTime();
+}
+
+function formatSeriesAirLabels(airDateStr: string) {
+  const dt = getSeriesEpisodeAirDateTime(airDateStr);
+  return {
+    timeLabel: dt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
+    dateLabel: dt.toLocaleDateString("tr-TR", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    }),
+  };
+}
+
+function SeriesAirTimeBadge({ airDate }: { airDate: string }) {
+  const { timeLabel, dateLabel } = formatSeriesAirLabels(airDate);
   return (
-    <div
+    <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-red-50 border border-red-100">
+      <Clock size={14} weight="fill" className="text-red-500 shrink-0" />
+      <div className="flex flex-col leading-none min-w-0">
+        <span className="text-[10px] font-black text-red-700 tabular-nums">{timeLabel}</span>
+        <span className="text-[8px] font-bold text-red-400 capitalize truncate">{dateLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+async function attachWatchedState(items: TodaySeriesItem[], userId: string) {
+  const seriesIds = [...new Set(items.map((item) => item.seriesId))];
+  const progressMap = new Map<string, series_track.UserProgress[]>();
+
+  await Promise.all(
+    seriesIds.map(async (seriesId) => {
+      try {
+        const res = await client.series_track.getUserProgress(userId, seriesId);
+        progressMap.set(seriesId, res.progress || []);
+      } catch {
+        progressMap.set(seriesId, []);
+      }
+    })
+  );
+
+  return items.map((item) => ({
+    ...item,
+    isWatched:
+      progressMap.get(item.seriesId)?.some(
+        (progress) =>
+          progress.season_number === item.season && progress.episode_number === item.episode
+      ) ?? false,
+  }));
+}
+
+function isDateToday(dateStr: string) {
+  const date = new Date(dateStr);
+  const today = new Date();
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+}
+
+async function buildTodaySeriesItems(
+  series: series_track.UserSeries[],
+  calendarEvents: series_track.TvCalendarEvent[]
+): Promise<TodaySeriesItem[]> {
+  const items: TodaySeriesItem[] = [];
+  const seen = new Set<string>();
+  const followedTmdbIds = new Set(series.map((s) => s.tmdb_id));
+  const seriesByTmdb = new Map(series.map((s) => [s.tmdb_id, s]));
+
+  const addItem = (item: TodaySeriesItem) => {
+    const key = `${item.tmdbId}-${item.season}-${item.episode}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push(item);
+  };
+
+  for (const event of calendarEvents) {
+    if (!event.tmdb_id || !followedTmdbIds.has(event.tmdb_id)) continue;
+    if (!isDateToday(event.release_date)) continue;
+
+    const userSeries = seriesByTmdb.get(event.tmdb_id);
+    if (!userSeries) continue;
+
+    addItem({
+      id: event.id,
+      seriesId: userSeries.id,
+      tmdbId: event.tmdb_id,
+      title: userSeries.title,
+      posterPath: userSeries.poster_path,
+      watchUrlSlug: userSeries.watch_url_slug,
+      streamInfo: event.stream_info || null,
+      season: event.season_number,
+      episode: event.episode_number,
+      episodeTitle: event.title,
+      airDate: event.release_date.split("T")[0],
+      source: "episode-club",
+      isWatched: false,
+    });
+  }
+
+  const activeSeries = series.filter(
+    (s) => s.status === "watching" || s.status === "plan_to_watch"
+  );
+
+  const detailsResults = await Promise.allSettled(
+    activeSeries.map((s) => client.series_track.getSeriesDetails(s.tmdb_id))
+  );
+
+  detailsResults.forEach((result, index) => {
+    if (result.status !== "fulfilled") return;
+
+    const userSeries = activeSeries[index];
+    const details = result.value;
+    const episodeCandidates = [details.next_episode_to_air, details.last_episode_to_air].filter(Boolean);
+
+    for (const episode of episodeCandidates) {
+      if (!episode?.air_date || !isDateToday(episode.air_date)) continue;
+
+      addItem({
+        id: `${userSeries.id}-${episode.season_number}-${episode.episode_number}`,
+        seriesId: userSeries.id,
+        tmdbId: userSeries.tmdb_id,
+        title: userSeries.title,
+        posterPath: userSeries.poster_path,
+        watchUrlSlug: userSeries.watch_url_slug,
+        streamInfo: null,
+        season: episode.season_number,
+        episode: episode.episode_number,
+        episodeTitle: episode.name,
+        airDate: episode.air_date.split("T")[0],
+        source: "tmdb",
+        isWatched: false,
+      });
+    }
+  });
+
+  return items;
+}
+
+function getSuggestionCategoryLabel(category: suggest.InboxSuggestion["category"]) {
+  switch (category) {
+    case "movie": return "Film";
+    case "tv": return "Dizi";
+    case "song": return "Şarkı";
+    case "place": return "Mekan";
+    case "book": return "Kitap";
+    case "video": return "Video";
+    default: return "Öneri";
+  }
+}
+
+function getTodayDateKey() {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getMealTypeLabel(mealType: recipe.MealPlanMeal["mealType"]) {
+  switch (mealType) {
+    case "breakfast":
+      return "Kahvaltı";
+    case "lunch":
+      return "Öğle";
+    case "dinner":
+      return "Akşam";
+    default:
+      return "Yemek";
+  }
+}
+
+function isMealTypeVisibleAtTime(
+  mealType: recipe.MealPlanMeal["mealType"],
+  now: Date = new Date()
+): boolean {
+  const hour = now.getHours();
+  switch (mealType) {
+    case "breakfast":
+      return hour < 12;
+    case "lunch":
+      return hour < 15;
+    case "dinner":
+      return hour < 22;
+    default:
+      return true;
+  }
+}
+
+const MEAL_TYPE_ORDER: recipe.MealPlanMeal["mealType"][] = ["breakfast", "lunch", "dinner"];
+
+function HomeSummaryCards({
+  suggestions,
+  setSuggestions,
+  activities,
+  setActivities,
+  todaySeries,
+  setTodaySeries,
+  todayGymPlan,
+  todayMeals,
+  weeklyChores,
+  setWeeklyChores,
+  userId,
+  loadingSuggestions,
+  loadingActivities,
+  loadingTodaySeries,
+  loadingTodayGym,
+  loadingTodayMeals,
+  loadingWeeklyChores,
+}: {
+  suggestions: suggest.InboxSuggestion[];
+  setSuggestions: React.Dispatch<React.SetStateAction<suggest.InboxSuggestion[]>>;
+  activities: kim_gelir.Activity[];
+  setActivities: React.Dispatch<React.SetStateAction<kim_gelir.Activity[]>>;
+  todaySeries: TodaySeriesItem[];
+  setTodaySeries: React.Dispatch<React.SetStateAction<TodaySeriesItem[]>>;
+  todayGymPlan: gym.TodayPlan | null;
+  todayMeals: recipe.MealPlanMeal[];
+  weeklyChores: HomeWeeklyChores | null;
+  setWeeklyChores: React.Dispatch<React.SetStateAction<HomeWeeklyChores | null>>;
+  userId?: string;
+  loadingSuggestions: boolean;
+  loadingActivities: boolean;
+  loadingTodaySeries: boolean;
+  loadingTodayGym: boolean;
+  loadingTodayMeals: boolean;
+  loadingWeeklyChores: boolean;
+}) {
+  const router = useRouter();
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const previewSuggestions = suggestions.slice(0, 2);
+  const previewActivities = activities.slice(0, 2);
+  const pendingTodaySeries = todaySeries
+    .filter((item) => !item.isWatched)
+    .sort((a, b) => {
+      const aAired = isSeriesEpisodeAvailableNow(a.airDate);
+      const bAired = isSeriesEpisodeAvailableNow(b.airDate);
+      if (aAired !== bAired) return aAired ? -1 : 1;
+      return 0;
+    });
+  const completedTodaySeries = todaySeries.filter((item) => item.isWatched);
+  const seriesEmptyText = "Bugün bölüm yok";
+  const previewTodayMeals = [...todayMeals]
+    .filter((meal) => isMealTypeVisibleAtTime(meal.mealType))
+    .sort(
+      (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
+    );
+  const todayChoresAll =
+    weeklyChores?.weekStart === getMondayWeekStart()
+      ? weeklyChores.assignments.filter((item) => item.dayOfWeek === getIsoWeekday())
+      : [];
+  const pendingTodayChores = todayChoresAll
+    .filter((item) => !item.completedAt)
+    .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
+  const completedTodayChores = todayChoresAll
+    .filter((item) => !!item.completedAt)
+    .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
+  const choresEmptyText = !weeklyChores ? "Henüz board yok" : "Bugün görev yok";
+
+  const handleSuggestionStatus = async (shareId: string, status: suggest.RecipientStatus) => {
+    if (!userId) return;
+    const actionKey = `suggest-${shareId}-${status}`;
+    try {
+      setActionLoading(actionKey);
+      await client.suggest.updateStatus({
+        recipientClerkId: userId,
+        suggestionId: shareId,
+        status,
+      });
+      setSuggestions((prev) =>
+        prev.map((item) => (item.shareId === shareId ? { ...item, status } : item))
+      );
+      toast.success(
+        status === "saved"
+          ? "Öneri kaydedildi"
+          : status === "completed"
+            ? "Tamamlandı"
+            : "Yok sayıldı"
+      );
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleActivityRespond = async (
+    activityId: string,
+    status: "gelirim" | "belki" | "gelemem"
+  ) => {
+    if (!userId) return;
+    const actionKey = `activity-${activityId}-${status}`;
+    try {
+      setActionLoading(actionKey);
+      await client.kim_gelir.respondToActivity({
+        activityId,
+        userId,
+        status,
+        selectedOptions: [],
+      });
+      setActivities((prev) =>
+        prev.map((activity) => {
+          if (activity.id !== activityId) return activity;
+          const responses = activity.responses.map((response) =>
+            response.userId === userId
+              ? { ...response, status, selectedOptions: [], updatedAt: new Date().toISOString() }
+              : response
+          );
+          if (!responses.some((response) => response.userId === userId)) {
+            responses.push({
+              userId,
+              username: null,
+              avatar: null,
+              status,
+              selectedOptions: [],
+              updatedAt: new Date().toISOString(),
+            });
+          }
+          return { ...activity, responses };
+        })
+      );
+      toast.success("Cevabın iletildi");
+    } catch {
+      toast.error("Cevap iletilemedi");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openSeriesWatch = (item: TodaySeriesItem) => {
+    let query = `${item.title} Sezon ${item.season} Bölüm ${item.episode} izle`;
+    if (item.watchUrlSlug) query += ` ${item.watchUrlSlug}`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
+  };
+
+  const handleToggleWatched = async (item: TodaySeriesItem) => {
+    if (!userId) return;
+    const actionKey = `series-${item.id}`;
+    try {
+      setActionLoading(actionKey);
+      const res = await client.series_track.toggleEpisodeWatched({
+        userId,
+        seriesId: item.seriesId,
+        seasonNumber: item.season,
+        episodeNumber: item.episode,
+      });
+      setTodaySeries((prev) =>
+        prev.map((seriesItem) =>
+          seriesItem.id === item.id ? { ...seriesItem, isWatched: res.isWatched } : seriesItem
+        )
+      );
+      toast.success(
+        res.isWatched
+          ? `S${item.season} B${item.episode} izlendi`
+          : `S${item.season} B${item.episode} işareti kaldırıldı`
+      );
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleChoreComplete = async (assignmentId: string) => {
+    if (!userId) return;
+    const actionKey = `chore-${assignmentId}`;
+    try {
+      setActionLoading(actionKey);
+      const res = await client.ev_isleri.toggleAssignmentComplete(assignmentId, userId);
+      setWeeklyChores((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          assignments: prev.assignments.map((item) =>
+            item.id === assignmentId
+              ? {
+                  ...item,
+                  completedAt: res.completed ? new Date().toISOString() : null,
+                }
+              : item
+          ),
+        };
+      });
+      toast.success(res.completed ? "Görev tamamlandı" : "Görev işareti kaldırıldı");
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const widgets = [
+    {
+      key: "suggest",
+      loading: loadingSuggestions,
+      hasContent: previewSuggestions.length > 0,
+      card: (
+        <HomeSummaryCard
+          href="/apps/suggest"
+          icon={PaperPlaneTilt}
+          color="#6366f1"
+          title="Gelen Öneriler"
+          subtitle="Suggest"
+          loading={loadingSuggestions}
+          emptyText="Yeni öneri yok"
+          hasContent={previewSuggestions.length > 0}
+        >
+          {previewSuggestions.map((suggestion) => (
+            <div key={suggestion.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                  {suggestion.imageUrl ? (
+                    <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <PaperPlaneTilt size={16} weight="fill" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-gray-900 truncate">{suggestion.title}</p>
+                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                    @{suggestion.senderUsername || "birisi"} · {getSuggestionCategoryLabel(suggestion.category)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {suggestion.externalLink && (
+                  <WidgetActionButton
+                    onClick={() => window.open(suggestion.externalLink!, "_blank")}
+                    icon={Play}
+                  >
+                    Aç
+                  </WidgetActionButton>
+                )}
+                {suggestion.status !== "saved" && suggestion.status !== "completed" && (
+                  <WidgetActionButton
+                    onClick={() => handleSuggestionStatus(suggestion.shareId, "saved")}
+                    loading={actionLoading === `suggest-${suggestion.shareId}-saved`}
+                    icon={BookmarkSimple}
+                  >
+                    Kaydet
+                  </WidgetActionButton>
+                )}
+                {suggestion.status !== "completed" && (
+                  <WidgetActionButton
+                    onClick={() => handleSuggestionStatus(suggestion.shareId, "completed")}
+                    loading={actionLoading === `suggest-${suggestion.shareId}-completed`}
+                    icon={Check}
+                    variant="success"
+                  >
+                    Tamamla
+                  </WidgetActionButton>
+                )}
+                {suggestion.status === "pending" && (
+                  <WidgetActionButton
+                    onClick={() => handleSuggestionStatus(suggestion.shareId, "ignored")}
+                    loading={actionLoading === `suggest-${suggestion.shareId}-ignored`}
+                    icon={X}
+                    variant="muted"
+                  >
+                    Yok say
+                  </WidgetActionButton>
+                )}
+              </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "activities",
+      loading: loadingActivities,
+      hasContent: previewActivities.length > 0,
+      card: (
+        <HomeSummaryCard
+          href="/apps/kim-gelir"
+          icon={Users}
+          color="#FF5252"
+          title="Plan Davetleri"
+          subtitle="Ne Yapsak?"
+          loading={loadingActivities}
+          emptyText="Aktif davet yok"
+          hasContent={previewActivities.length > 0}
+        >
+          {previewActivities.map((activity) => {
+            const myResponse = activity.responses.find((response) => response.userId === userId)?.status;
+            return (
+              <div key={activity.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
+                    <Users size={16} weight="fill" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-gray-900 truncate">{activity.title}</p>
+                    <p className="text-[9px] text-gray-400 font-bold truncate">
+                      {activity.location || "Konum belirtilmedi"} · {activity.responses.length} yanıt
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <WidgetActionButton
+                    onClick={() => handleActivityRespond(activity.id, "gelirim")}
+                    loading={actionLoading === `activity-${activity.id}-gelirim`}
+                    icon={Check}
+                    variant={myResponse === "gelirim" ? "success" : "default"}
+                  >
+                    Gelirim
+                  </WidgetActionButton>
+                  <WidgetActionButton
+                    onClick={() => handleActivityRespond(activity.id, "belki")}
+                    loading={actionLoading === `activity-${activity.id}-belki`}
+                    icon={Question}
+                    variant={myResponse === "belki" ? "warning" : "default"}
+                  >
+                    Belki
+                  </WidgetActionButton>
+                  <WidgetActionButton
+                    onClick={() => handleActivityRespond(activity.id, "gelemem")}
+                    loading={actionLoading === `activity-${activity.id}-gelemem`}
+                    icon={X}
+                    variant={myResponse === "gelemem" ? "danger" : "default"}
+                  >
+                    Gelemiyorum
+                  </WidgetActionButton>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "series",
+      loading: loadingTodaySeries,
+      hasContent: pendingTodaySeries.length > 0,
+      card: (
+        <HomeSummaryCard
+          href="/apps/series-track"
+          icon={VideoCamera}
+          color="#E50914"
+          title="Bugünün Dizileri"
+          subtitle="SeriesTrack"
+          loading={loadingTodaySeries}
+          emptyText={seriesEmptyText}
+          hasContent={pendingTodaySeries.length > 0}
+          emptyFooter={
+            completedTodaySeries.length > 0 ? (
+              <>
+                {completedTodaySeries.map((item) => (
+                  <div key={item.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5 opacity-60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                        {item.posterPath ? (
+                          <img
+                            src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <VideoCamera size={16} weight="fill" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-black text-gray-900 truncate line-through">
+                          {item.title}
+                        </p>
+                        <p className="text-[9px] text-gray-400 font-bold truncate">
+                          S{item.season} B{item.episode}
+                          {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
+                        </p>
+                      </div>
+                      <SeriesAirTimeBadge airDate={item.airDate} />
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <WidgetActionButton
+                        onClick={() => handleToggleWatched(item)}
+                        loading={actionLoading === `series-${item.id}`}
+                        icon={CheckCircle}
+                        variant="success"
+                      >
+                        İzlendi
+                      </WidgetActionButton>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : undefined
+          }
+        >
+          {pendingTodaySeries.map((item) => {
+            const isAired = isSeriesEpisodeAvailableNow(item.airDate);
+            const { timeLabel } = formatSeriesAirLabels(item.airDate);
+            return (
+            <div key={item.id} className={`px-4 py-3 border-t border-gray-50 space-y-2.5 ${!isAired ? "opacity-80" : ""}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                  {item.posterPath ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <VideoCamera size={16} weight="fill" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-gray-900 truncate">{item.title}</p>
+                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                    S{item.season} B{item.episode}
+                    {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
+                    {" · "}
+                    {item.source === "episode-club" ? "Episode Club" : "Yeni Bölüm"}
+                  </p>
+                </div>
+                <SeriesAirTimeBadge airDate={item.airDate} />
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {isAired ? (
+                  <>
+                    <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
+                      İzle
+                    </WidgetActionButton>
+                    <WidgetActionButton
+                      onClick={() => handleToggleWatched(item)}
+                      loading={actionLoading === `series-${item.id}`}
+                      icon={CheckCircle}
+                    >
+                      İzlendi işaretle
+                    </WidgetActionButton>
+                  </>
+                ) : (
+                  <span className="px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[9px] font-black uppercase tracking-wide text-gray-400">
+                    {timeLabel}&apos;da yayında
+                  </span>
+                )}
+              </div>
+            </div>
+            );
+          })}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "gym",
+      loading: loadingTodayGym,
+      hasContent: !!todayGymPlan?.routine,
+      card: (
+        <HomeSummaryCard
+          href="/apps/gym"
+          icon={Barbell}
+          color="#8B5CF6"
+          title="Bugünün Antrenmanı"
+          subtitle="Gym"
+          loading={loadingTodayGym}
+          emptyText="Bugün antrenman yok"
+          hasContent={!!todayGymPlan?.routine}
+        >
+          {todayGymPlan?.routine && (
+            <div className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 border border-violet-100 text-violet-600">
+                  <Barbell size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-gray-900 truncate">
+                    {todayGymPlan.routine.name}
+                  </p>
+                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                    {todayGymPlan.routine.exercises.length} egzersiz
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <WidgetActionButton
+                  onClick={() => {
+                    startGymSession(
+                      todayGymPlan.routine!.name,
+                      todayGymPlan.routine!.id,
+                      todayGymPlan.routine!.exercises
+                    );
+                    router.push("/apps/gym/session");
+                  }}
+                  icon={Play}
+                  variant="success"
+                >
+                  Başlat
+                </WidgetActionButton>
+              </div>
+            </div>
+          )}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "chores",
+      loading: loadingWeeklyChores,
+      hasContent: pendingTodayChores.length > 0,
+      card: (
+        <HomeSummaryCard
+          href={
+            weeklyChores?.boardId
+              ? `/apps/ev-isleri/board/${weeklyChores.boardId}`
+              : "/apps/ev-isleri"
+          }
+          icon={Broom}
+          color="#14B8A6"
+          title="Bugünün İşleri"
+          subtitle={weeklyChores?.boardName ?? "Ev İşleri"}
+          loading={loadingWeeklyChores}
+          emptyText={choresEmptyText}
+          hasContent={pendingTodayChores.length > 0}
+          emptyFooter={
+            completedTodayChores.length > 0 ? (
+              <>
+                {completedTodayChores.map((item) => {
+                  const isMine = item.assigneeClerkId === userId;
+                  return (
+                    <div
+                      key={item.id}
+                      className="px-4 py-3 border-t border-gray-50 flex items-center gap-3 opacity-60"
+                    >
+                      <button
+                        type="button"
+                        disabled={actionLoading === `chore-${item.id}`}
+                        onClick={() => void handleToggleChoreComplete(item.id)}
+                        className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-emerald-500 border-emerald-500 text-white"
+                      >
+                        <CheckCircle size={18} weight="fill" />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-black truncate text-gray-400 line-through">
+                          {item.choreIcon ? `${item.choreIcon} ` : ""}
+                          {item.choreName}
+                        </p>
+                        <p className="text-[9px] text-gray-400 font-bold truncate">
+                          {item.assigneeUsername ?? "Üye"}
+                          {isMine ? " · Sen" : ""}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            ) : undefined
+          }
+        >
+          {pendingTodayChores.map((item) => {
+            const isMine = item.assigneeClerkId === userId;
+            return (
+              <div
+                key={item.id}
+                className="px-4 py-3 border-t border-gray-50 flex items-center gap-3"
+              >
+                <button
+                  type="button"
+                  disabled={actionLoading === `chore-${item.id}`}
+                  onClick={() => void handleToggleChoreComplete(item.id)}
+                  className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-gray-50 border-gray-100 text-gray-300 hover:border-emerald-200 hover:text-emerald-500"
+                >
+                  <CheckCircle size={18} weight="regular" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black truncate text-gray-900">
+                    {item.choreIcon ? `${item.choreIcon} ` : ""}
+                    {item.choreName}
+                  </p>
+                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                    {item.assigneeUsername ?? "Üye"}
+                    {isMine ? " · Sen" : ""}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "meals",
+      loading: loadingTodayMeals,
+      hasContent: previewTodayMeals.length > 0,
+      card: (
+        <HomeSummaryCard
+          href="/apps/recipe/plan"
+          icon={ChefHat}
+          color="#F97316"
+          title="Bugünün Yemek Planı"
+          subtitle="Meal Planner"
+          loading={loadingTodayMeals}
+          emptyText="Bugün plan yok"
+          hasContent={previewTodayMeals.length > 0}
+        >
+          {previewTodayMeals.map((meal) => (
+            <div key={meal.id} className="px-4 py-3 border-t border-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 text-orange-500 font-black text-sm">
+                  {meal.title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-gray-900 truncate">{meal.title}</p>
+                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                    {getMealTypeLabel(meal.mealType)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      ),
+    },
+  ];
+
+  const activeWidgets = widgets.filter((widget) => widget.loading || widget.hasContent);
+  const emptyWidgets = widgets.filter((widget) => !widget.loading && !widget.hasContent);
+
+  return (
+    <>
+      {activeWidgets.map((widget) => (
+        <div key={widget.key}>{widget.card}</div>
+      ))}
+
+      {activeWidgets.length > 0 && emptyWidgets.length > 0 && <HomeWidgetsDivider />}
+
+      {emptyWidgets.map((widget) => (
+        <div key={widget.key}>{widget.card}</div>
+      ))}
+    </>
+  );
+}
+
+function HomeWidgetsDivider() {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <div className="flex-1 border-t border-dashed border-gray-200" />
+      <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">—</span>
+      <div className="flex-1 border-t border-dashed border-gray-200" />
+    </div>
+  );
+}
+
+function WidgetActionButton({
+  onClick,
+  icon: Icon,
+  children,
+  loading,
+  variant = "default",
+}: {
+  onClick: () => void;
+  icon: ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
+  children: ReactNode;
+  loading?: boolean;
+  variant?: "default" | "success" | "warning" | "danger" | "muted";
+}) {
+  const variantClass =
+    variant === "success"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+      : variant === "warning"
+        ? "bg-amber-50 text-amber-700 border-amber-100"
+        : variant === "danger"
+          ? "bg-rose-50 text-rose-700 border-rose-100"
+          : variant === "muted"
+            ? "bg-gray-50 text-gray-500 border-gray-100"
+            : "bg-white text-gray-900 border-gray-200";
+
+  return (
+    <button
+      type="button"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      className="w-full flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] group text-left border-b border-gray-50 last:border-0 cursor-pointer"
+      disabled={loading}
+      className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide flex items-center gap-1 active:scale-95 transition-all disabled:opacity-50 ${variantClass}`}
     >
-      <div 
-        className="w-11 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"
-        style={{ backgroundColor: color }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-        <Icon size={22} weight="fill" className="text-white relative z-10" />
+      <Icon size={12} weight="bold" />
+      {children}
+    </button>
+  );
+}
+
+function HomeSummaryCard({
+  href,
+  icon: Icon,
+  color,
+  title,
+  subtitle,
+  loading,
+  emptyText,
+  hasContent,
+  emptyFooter,
+  children,
+}: {
+  href: string;
+  icon: ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
+  color: string;
+  title: string;
+  subtitle: string;
+  loading: boolean;
+  emptyText: string;
+  hasContent: boolean;
+  emptyFooter?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
+          style={{ backgroundColor: color }}
+        >
+          <Icon size={20} weight="fill" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] font-black text-gray-900 tracking-tight">{title}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{subtitle}</p>
+        </div>
+        <Link
+          href={href}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-900 hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+          aria-label={`${title} uygulamasını aç`}
+        >
+          <ArrowRight size={16} weight="bold" />
+        </Link>
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-gray-900 text-[15px] tracking-tight truncate group-hover:text-gray-600 transition-colors mb-0.5">
-          {title}
-        </h3>
-        <p className="text-[11px] font-medium text-gray-400 truncate leading-tight">
-          {subtitle}
-        </p>
-      </div>
-      <div className="shrink-0 transition-opacity">
-        <CaretRight size={16} weight="bold" className="text-gray-300" />
-      </div>
+
+      {loading ? (
+        <div className="px-4 py-4 border-t border-gray-50 space-y-2">
+          <div className="h-9 bg-gray-50 rounded-xl animate-pulse" />
+          <div className="h-9 bg-gray-50 rounded-xl animate-pulse" />
+        </div>
+      ) : hasContent ? (
+        children
+      ) : (
+        <div className="border-t border-gray-50">
+          {!emptyFooter && (
+            <div className="px-4 py-4 text-center">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{emptyText}</p>
+            </div>
+          )}
+          {emptyFooter}
+        </div>
+      )}
     </div>
   );
 }

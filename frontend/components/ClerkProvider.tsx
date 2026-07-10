@@ -119,7 +119,7 @@ export function ClerkProviderWrapper({
       const isSub = hostname !== primaryHost && hostname !== "localhost" && hostname !== "127.0.0.1";
       setIsSatellite(isSub);
       setDomain(port ? `${primaryHost}:${port}` : primaryHost);
-      setSignInUrl(`${protocol}//${primaryHost}:${port || "3000"}/sign-in`);
+      setSignInUrl(`${protocol}//${primaryHost}:${port || "5000"}/sign-in`);
     } else if (isNative || isCapacitorBuild) {
       // Native app (Capacitor) - Runs on allminiapps.com (iOS) or localhost (Android).
       // Since it runs directly on the root hostname, we set it as primary (non-satellite)

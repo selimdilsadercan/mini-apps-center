@@ -34,6 +34,7 @@ import {
   Microphone,
   Television,
   Barbell,
+  Broom,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -140,6 +141,22 @@ export function navigateToMiniApp(
 }
 
 const RAW_MINI_APPS: MiniApp[] = [
+  {
+    id: "kalimba",
+    name: "Kalimba",
+    description: "Kalimba notalarını interaktif olarak görüntüleyin, dinleyin ve çalın.",
+    cta: "Kalimba Çalmaya Başla",
+    icon: MusicNotes,
+    category: "Eğlence & Hobi",
+    color: "#8B5A2B",
+    href: "/apps/kalimba",
+    isImplemented: true,
+    subdomain: "kalimba",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
   {
     id: "standups",
     name: "Standups",
@@ -583,6 +600,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/gym",
     isImplemented: true,
     subdomain: "gym",
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "ev-isleri",
+    name: "Ev İşleri",
+    description: "Haftalık ev işi board'u oluştur, görevleri kişilere ata ve tamamla.",
+    cta: "Ev İşlerini Planla",
+    icon: Broom,
+    category: "Kampüslülere Özel",
+    color: "#14B8A6",
+    href: "/apps/ev-isleri",
+    isImplemented: true,
+    subdomain: "evisleri",
     statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",

@@ -50,6 +50,18 @@ export interface GymStats {
   totalWorkouts: number;
 }
 
+export interface WeeklyPlanDay {
+  dayOfWeek: number;
+  routineId: string | null;
+  routineName: string | null;
+  exercises: ExerciseRef[];
+}
+
+export interface TodayPlan {
+  dayOfWeek: number;
+  routine: Routine | null;
+}
+
 // ==================== HELPERS ====================
 
 function mapRoutine(row: Record<string, unknown>): Routine {
@@ -231,6 +243,91 @@ export const getStats = api(
     return {
       weekMinutes: stats.weekMinutes ?? 0,
       totalWorkouts: stats.totalWorkouts ?? 0,
+    };
+  }
+);
+
+function mapWeeklyPlanDay(row: Record<string, unknown>): WeeklyPlanDay {
+  return {
+    dayOfWeek: Number(row.day_of_week),
+    routineId: (row.routine_id as string) || null,
+    routineName: (row.routine_name as string) || null,
+    exercises: (row.exercises as ExerciseRef[]) || [],
+  };
+}
+
+function getIsoWeekday(date = new Date()): number {
+  const day = date.getDay();
+  return day === 0 ? 7 : day;
+}
+
+export const getWeeklyPlan = api(
+  { expose: true, method: "GET", path: "/gym/weekly-plan/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ days: WeeklyPlanDay[] }> => {
+    const { data, error } = await supabase.schema("gym").rpc("get_weekly_plan", {
+      p_clerk_id: userId,
+    });
+
+    if (error) {
+      console.error("getWeeklyPlan error:", error);
+      throw APIError.internal("Haftalık plan yüklenemedi");
+    }
+
+    return { days: (data as Record<string, unknown>[] || []).map(mapWeeklyPlanDay) };
+  }
+);
+
+export const setWeeklyPlanDay = api(
+  { expose: true, method: "PUT", path: "/gym/weekly-plan/:userId" },
+  async (req: {
+    userId: string;
+    dayOfWeek: number;
+    routineId?: string | null;
+  }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("gym").rpc("set_weekly_plan_day", {
+      p_clerk_id: req.userId,
+      p_day_of_week: req.dayOfWeek,
+      p_routine_id: req.routineId ?? null,
+    });
+
+    if (error) {
+      console.error("setWeeklyPlanDay error:", error);
+      throw APIError.internal("Haftalık plan güncellenemedi");
+    }
+
+    return { success: data as boolean };
+  }
+);
+
+export const getTodayPlan = api(
+  { expose: true, method: "GET", path: "/gym/today-plan/:userId" },
+  async ({ userId }: { userId: string }): Promise<TodayPlan> => {
+    const { data, error } = await supabase.schema("gym").rpc("get_weekly_plan", {
+      p_clerk_id: userId,
+    });
+
+    if (error) {
+      console.error("getTodayPlan error:", error);
+      throw APIError.internal("Bugünün planı yüklenemedi");
+    }
+
+    const today = getIsoWeekday();
+    const row = (data as Record<string, unknown>[] || []).find(
+      (entry) => Number(entry.day_of_week) === today
+    );
+
+    if (!row?.routine_id) {
+      return { dayOfWeek: today, routine: null };
+    }
+
+    return {
+      dayOfWeek: today,
+      routine: {
+        id: row.routine_id as string,
+        name: row.routine_name as string,
+        exercises: (row.exercises as ExerciseRef[]) || [],
+        createdAt: "",
+      },
     };
   }
 );

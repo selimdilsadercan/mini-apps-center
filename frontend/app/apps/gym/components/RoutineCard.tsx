@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DotsThree, ClipboardText } from "@phosphor-icons/react";
+import { DotsThree, Plus } from "@phosphor-icons/react";
 import type { Routine } from "../types";
 import {
   Popover,
@@ -69,16 +69,14 @@ export function RoutineActions({
   onNewRoutine: () => void;
 }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xs font-black text-gray-500 uppercase tracking-wider">Rutinler</h2>
-      </div>
+    <div className="flex items-center justify-between">
+      <h2 className="text-xs font-black text-gray-500 uppercase tracking-wider">Rutinler</h2>
       <button
         onClick={onNewRoutine}
-        className="w-full flex items-center justify-center gap-2 bg-white rounded-xl border border-gray-200/60 py-3 text-xs font-bold text-gray-700 hover:border-violet-300 hover:shadow-sm transition-all active:scale-[0.98]"
+        className="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-gray-200/60 text-gray-700 hover:border-violet-300 hover:text-violet-600 transition-all active:scale-95"
+        aria-label="Yeni rutin"
       >
-        <ClipboardText size={16} weight="duotone" className="text-violet-500" />
-        Yeni Rutin
+        <Plus size={16} weight="bold" />
       </button>
     </div>
   );

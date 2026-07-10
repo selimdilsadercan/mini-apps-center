@@ -10,7 +10,7 @@
  */
 export type BaseURL = string
 
-export const Local: BaseURL = "http://localhost:4000"
+export const Local: BaseURL = "http://localhost:8000"
 
 /**
  * Environment returns a BaseURL for calling the cloud environment with the given name.
@@ -48,6 +48,7 @@ export default class Client {
     public readonly digital_menu: digital_menu.ServiceClient
     public readonly eksik_var: eksik_var.ServiceClient
     public readonly esles: esles.ServiceClient
+    public readonly ev_isleri: ev_isleri.ServiceClient
     public readonly feed: feed.ServiceClient
     public readonly feedback: feedback.ServiceClient
     public readonly friendship: friendship.ServiceClient
@@ -110,6 +111,7 @@ export default class Client {
         this.digital_menu = new digital_menu.ServiceClient(base)
         this.eksik_var = new eksik_var.ServiceClient(base)
         this.esles = new esles.ServiceClient(base)
+        this.ev_isleri = new ev_isleri.ServiceClient(base)
         this.feed = new feed.ServiceClient(base)
         this.feedback = new feedback.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
@@ -3197,6 +3199,243 @@ export namespace esles {
     }
 }
 
+export namespace ev_isleri {
+    export interface Board {
+        id: string
+        name: string
+        ownerId: string
+        memberCount: number
+        myRole: "owner" | "member"
+        createdAt: string
+    }
+
+    export interface BoardInviteDetails {
+        boardId: string
+        boardName: string
+        creatorUsername: string | null
+        isExpired: boolean
+    }
+
+    export interface BoardMember {
+        userId: string
+        clerkId: string
+        username: string | null
+        avatarUrl: string | null
+        role: "owner" | "member"
+    }
+
+    export interface WeekAssignment {
+        id: string
+        dayOfWeek: number
+        choreSlug: string
+        choreName: string
+        choreIcon: string | null
+        assigneeId: string
+        assigneeClerkId: string
+        assigneeUsername: string | null
+        assigneeAvatarUrl: string | null
+        completedAt: string | null
+        completedBy: string | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.acceptBoardInvite = this.acceptBoardInvite.bind(this)
+            this.addBoardMember = this.addBoardMember.bind(this)
+            this.createBoard = this.createBoard.bind(this)
+            this.createBoardInvite = this.createBoardInvite.bind(this)
+            this.deleteBoard = this.deleteBoard.bind(this)
+            this.getBoard = this.getBoard.bind(this)
+            this.getBoardInviteDetails = this.getBoardInviteDetails.bind(this)
+            this.getBoardMembers = this.getBoardMembers.bind(this)
+            this.getBoards = this.getBoards.bind(this)
+            this.getWeekPlan = this.getWeekPlan.bind(this)
+            this.removeAssignment = this.removeAssignment.bind(this)
+            this.removeBoardMember = this.removeBoardMember.bind(this)
+            this.setAssignment = this.setAssignment.bind(this)
+            this.toggleAssignmentComplete = this.toggleAssignmentComplete.bind(this)
+        }
+
+        public async acceptBoardInvite(params: {
+    inviteId: string
+    userId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/invite/accept`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async addBoardMember(boardId: string, params: {
+    userId: string
+    friendUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/board/${encodeURIComponent(boardId)}/member`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async createBoard(params: {
+    userId: string
+    name: string
+}): Promise<{
+    board: Board
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/board`, JSON.stringify(params))
+            return await resp.json() as {
+    board: Board
+}
+        }
+
+        public async createBoardInvite(boardId: string, params: {
+    userId: string
+}): Promise<{
+    inviteId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/board/${encodeURIComponent(boardId)}/invite`, JSON.stringify(params))
+            return await resp.json() as {
+    inviteId: string
+}
+        }
+
+        public async deleteBoard(boardId: string, userId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/ev-isleri/board/${encodeURIComponent(boardId)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getBoard(boardId: string, userId: string): Promise<{
+    board: {
+        id: string
+        name: string
+        ownerId: string
+        createdAt: string
+    }
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/board/${encodeURIComponent(boardId)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    board: {
+        id: string
+        name: string
+        ownerId: string
+        createdAt: string
+    }
+}
+        }
+
+        public async getBoardInviteDetails(inviteId: string): Promise<BoardInviteDetails> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/invite/${encodeURIComponent(inviteId)}`)
+            return await resp.json() as BoardInviteDetails
+        }
+
+        public async getBoardMembers(boardId: string, userId: string): Promise<{
+    members: BoardMember[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/board/${encodeURIComponent(boardId)}/members/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    members: BoardMember[]
+}
+        }
+
+        public async getBoards(userId: string): Promise<{
+    boards: Board[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/boards/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    boards: Board[]
+}
+        }
+
+        public async getWeekPlan(boardId: string, userId: string, params: {
+    weekStart: string
+}): Promise<{
+    assignments: WeekAssignment[]
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                weekStart: params.weekStart,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/board/${encodeURIComponent(boardId)}/week/${encodeURIComponent(userId)}`, undefined, {query})
+            return await resp.json() as {
+    assignments: WeekAssignment[]
+}
+        }
+
+        public async removeAssignment(assignmentId: string, userId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/ev-isleri/assignment/${encodeURIComponent(assignmentId)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async removeBoardMember(boardId: string, params: {
+    userId: string
+    targetUserId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/board/${encodeURIComponent(boardId)}/member/remove`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async setAssignment(boardId: string, params: {
+    userId: string
+    weekStart: string
+    dayOfWeek: number
+    choreSlug: string
+    choreName: string
+    choreIcon?: string | null
+    assigneeUserId: string
+}): Promise<{
+    assignment: WeekAssignment
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/ev-isleri/board/${encodeURIComponent(boardId)}/assignment`, JSON.stringify(params))
+            return await resp.json() as {
+    assignment: WeekAssignment
+}
+        }
+
+        public async toggleAssignmentComplete(assignmentId: string, userId: string): Promise<{
+    completed: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ev-isleri/assignment/${encodeURIComponent(assignmentId)}/toggle/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    completed: boolean
+}
+        }
+    }
+}
+
 /**
  * Feed service
  */
@@ -3563,6 +3802,18 @@ export namespace gym {
         createdAt: string
     }
 
+    export interface TodayPlan {
+        dayOfWeek: number
+        routine: Routine | null
+    }
+
+    export interface WeeklyPlanDay {
+        dayOfWeek: number
+        routineId: string | null
+        routineName: string | null
+        exercises: ExerciseRef[]
+    }
+
     export interface Workout {
         id: string
         routineId: string | null
@@ -3597,8 +3848,11 @@ export namespace gym {
             this.getPreviousSets = this.getPreviousSets.bind(this)
             this.getRoutines = this.getRoutines.bind(this)
             this.getStats = this.getStats.bind(this)
+            this.getTodayPlan = this.getTodayPlan.bind(this)
+            this.getWeeklyPlan = this.getWeeklyPlan.bind(this)
             this.getWorkouts = this.getWorkouts.bind(this)
             this.saveWorkout = this.saveWorkout.bind(this)
+            this.setWeeklyPlanDay = this.setWeeklyPlanDay.bind(this)
         }
 
         public async createRoutine(params: {
@@ -3651,6 +3905,22 @@ export namespace gym {
             return await resp.json() as GymStats
         }
 
+        public async getTodayPlan(userId: string): Promise<TodayPlan> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/today-plan/${encodeURIComponent(userId)}`)
+            return await resp.json() as TodayPlan
+        }
+
+        public async getWeeklyPlan(userId: string): Promise<{
+    days: WeeklyPlanDay[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gym/weekly-plan/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    days: WeeklyPlanDay[]
+}
+        }
+
         public async getWorkouts(userId: string, params: {
     limit?: number
 }): Promise<{
@@ -3684,6 +3954,19 @@ export namespace gym {
             const resp = await this.baseClient.callTypedAPI("POST", `/gym/workout`, JSON.stringify(params))
             return await resp.json() as {
     workout: Workout
+}
+        }
+
+        public async setWeeklyPlanDay(userId: string, params: {
+    dayOfWeek: number
+    routineId?: string | null
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/gym/weekly-plan/${encodeURIComponent(userId)}`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
 }
         }
     }
@@ -5126,12 +5409,33 @@ export namespace recipe {
         success: boolean
     }
 
+    export interface GetMealPlanResponse {
+        plan: MealPlanData
+    }
+
     export interface GetRecipeByIdResponse {
         recipe: lib.Recipe | null
     }
 
     export interface GetUserRecipesResponse {
         recipes: lib.RecipeSummary[]
+    }
+
+    export type MealPlanData = { [key: string]: MealPlanMeal[] }
+
+    export interface MealPlanMeal {
+        id: string
+        title: string
+        recipeId?: string
+        mealType: "breakfast" | "lunch" | "dinner"
+    }
+
+    export interface SetMealPlanRequest {
+        plan: MealPlanData
+    }
+
+    export interface SetMealPlanResponse {
+        success: boolean
     }
 
     export interface UpdateRecipeRequest {
@@ -5152,8 +5456,10 @@ export namespace recipe {
             this.baseClient = baseClient
             this.createRecipe = this.createRecipe.bind(this)
             this.deleteRecipe = this.deleteRecipe.bind(this)
+            this.getMealPlan = this.getMealPlan.bind(this)
             this.getRecipeById = this.getRecipeById.bind(this)
             this.getUserRecipes = this.getUserRecipes.bind(this)
+            this.setMealPlan = this.setMealPlan.bind(this)
             this.updateRecipe = this.updateRecipe.bind(this)
         }
 
@@ -5183,6 +5489,16 @@ export namespace recipe {
         }
 
         /**
+         * Kullanıcının yemek planını getirir
+         * GET /recipe/plan/:userId
+         */
+        public async getMealPlan(userId: string): Promise<GetMealPlanResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/recipe/plan/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetMealPlanResponse
+        }
+
+        /**
          * Tek bir tarifin tüm detaylarını getirir
          * GET /recipe/:recipeId
          */
@@ -5200,6 +5516,16 @@ export namespace recipe {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/recipe/user/${encodeURIComponent(userId)}`)
             return await resp.json() as GetUserRecipesResponse
+        }
+
+        /**
+         * Kullanıcının yemek planını tam olarak günceller
+         * PUT /recipe/plan/:userId
+         */
+        public async setMealPlan(userId: string, params: SetMealPlanRequest): Promise<SetMealPlanResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/recipe/plan/${encodeURIComponent(userId)}`, JSON.stringify(params))
+            return await resp.json() as SetMealPlanResponse
         }
 
         /**
@@ -5405,6 +5731,7 @@ export namespace series_track {
         "season_number": number
         "release_date": string
         "stream_info": string
+        "tmdb_id": number | null
     }
 
     export interface TvCalendarEventsResponse {

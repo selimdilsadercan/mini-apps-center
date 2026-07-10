@@ -8,7 +8,9 @@
 --    moved to a historical record if necessary.
 --------------------------------------------------------------------------------
 
--- No legacy data to migrate for this service as it already uses UUIDs.
+-- Ensure meal_type exists on older meal_plan_entries tables.
+ALTER TABLE recipe.meal_plan_entries
+    ADD COLUMN IF NOT EXISTS meal_type TEXT NOT NULL DEFAULT 'dinner';
 
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
@@ -31,8 +33,21 @@ CREATE TABLE IF NOT EXISTS recipe.recipes (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+-- 3. Meal Plan Entries Table
+CREATE TABLE IF NOT EXISTS recipe.meal_plan_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    day_date DATE NOT NULL,
+    title TEXT NOT NULL,
+    meal_type TEXT NOT NULL DEFAULT 'dinner',
+    recipe_id UUID REFERENCES recipe.recipes(id) ON DELETE SET NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
 -- 3. Indexes
 CREATE INDEX IF NOT EXISTS idx_recipes_created_user_id ON recipe.recipes(created_user_id);
+CREATE INDEX IF NOT EXISTS idx_meal_plan_entries_user_day ON recipe.meal_plan_entries(created_user_id, day_date);
 
 -- 4. Grants
 GRANT ALL ON ALL TABLES IN SCHEMA recipe TO anon, authenticated, service_role;

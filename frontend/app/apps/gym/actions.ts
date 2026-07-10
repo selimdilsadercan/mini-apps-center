@@ -7,6 +7,8 @@ import type {
   GymStats,
   ExerciseRef,
   WorkoutSet,
+  WeeklyPlanDay,
+  TodayPlan,
 } from "./types";
 
 interface ActionResponse<T> {
@@ -141,6 +143,53 @@ export async function getStatsAction(
   try {
     const client = createBrowserClient();
     const response = await gymClient(client).getStats(clerkId);
+    return { data: response, error: null };
+  } catch (error) {
+    if (isUnauthenticatedError(error)) {
+      return { data: null, error: "UNAUTHENTICATED" };
+    }
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function getWeeklyPlanAction(
+  clerkId: string
+): Promise<ActionResponse<WeeklyPlanDay[]>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).getWeeklyPlan(clerkId);
+    return { data: response.days ?? [], error: null };
+  } catch (error) {
+    if (isUnauthenticatedError(error)) {
+      return { data: null, error: "UNAUTHENTICATED" };
+    }
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function setWeeklyPlanDayAction(
+  clerkId: string,
+  dayOfWeek: number,
+  routineId: string | null
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).setWeeklyPlanDay(clerkId, {
+      dayOfWeek,
+      routineId,
+    });
+    return { data: response.success, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function getTodayPlanAction(
+  clerkId: string
+): Promise<ActionResponse<TodayPlan>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).getTodayPlan(clerkId);
     return { data: response, error: null };
   } catch (error) {
     if (isUnauthenticatedError(error)) {

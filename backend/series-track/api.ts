@@ -907,6 +907,7 @@ export interface TvCalendarEvent {
   season_number: number;
   release_date: string;
   stream_info: string;
+  tmdb_id: number | null;
 }
 
 export interface TvCalendarEventsResponse {
@@ -932,7 +933,8 @@ export const getTvCalendarEvents = api(
         stream_info,
         programs (
           title,
-          season_number
+          season_number,
+          tmdb_id
         )
       `)
       .order("release_date", { ascending: true });
@@ -951,6 +953,7 @@ export const getTvCalendarEvents = api(
       season_number: row.programs?.season_number || 1,
       release_date: row.release_date,
       stream_info: row.stream_info,
+      tmdb_id: row.programs?.tmdb_id ?? null,
     }));
 
     return { events };
