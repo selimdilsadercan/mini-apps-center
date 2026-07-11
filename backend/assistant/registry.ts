@@ -11,7 +11,6 @@ import { hobbyCenterAssistant } from "../hobby-center/assistant";
 import { iconSetGuideAssistant } from "../icon-set-guide/assistant";
 import { iskambilAssistant } from "../iskambil/assistant";
 import { ituYemekhaneAssistant } from "../itu-yemekhane/assistant";
-import { kilerAssistant } from "../kiler/assistant";
 import { mapTrackerAssistant } from "../map-tracker/assistant";
 import { memedexAssistant } from "../memedex/assistant";
 import { moviesThisYearAssistant } from "../movies-this-year/assistant";
@@ -39,7 +38,6 @@ import { eksikVarAssistant } from "../eksik-var/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   birikimAssistant,
-  kilerAssistant,
   subcenterAssistant,
   recipeAssistant,
   seriesTrackAssistant,
