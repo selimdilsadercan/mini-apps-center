@@ -90,16 +90,27 @@ function HomeContent() {
   const t = useTranslations("home");
   const tApps = useTranslations("apps");
 
-  const activeTab = searchParams.get("tab") || "discover";
+  const [activeTab, setActiveTab] = useState<string>("discover");
 
-  // Store active tab in localStorage to remember it when coming back from mini apps
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("last_active_tab", activeTab);
+      const queryTab = searchParams.get("tab");
+      if (queryTab) {
+        setActiveTab(queryTab);
+        localStorage.setItem("last_active_tab", queryTab);
+        // Clear tab from query parameters to keep URL clean
+        const newUrl = window.location.pathname;
+        window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, "", newUrl);
+      } else {
+        const stored = localStorage.getItem("last_active_tab");
+        if (stored) {
+          setActiveTab(stored);
+        }
+      }
       // Clear business back target when we are on the home hub
       localStorage.removeItem("last_business_url");
     }
-  }, [activeTab]);
+  }, [searchParams]);
 
   const { 
     pinnedIds, 

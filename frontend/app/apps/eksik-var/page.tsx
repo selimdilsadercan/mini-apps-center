@@ -251,7 +251,7 @@ function ListToolbar({
     }`;
 
   return (
-    <div className="flex items-center justify-between gap-3 mb-4">
+    <div className="flex items-center justify-between gap-3">
       <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
         <button type="button" onClick={() => onTabChange("missing")} className={segmentClass(activeTab === "missing")}>
           <Basket size={14} weight={activeTab === "missing" ? "fill" : "duotone"} />
@@ -808,9 +808,17 @@ export default function EksikVarPage() {
         ...(categoryOverride ? { category: categoryOverride } : {}),
       });
       if (response.item) {
-        setItems(prev => [response.item!, ...prev]);
-        setActiveListTab("missing");
-        setScrollToItemId(response.item.id);
+        let finalItem = response.item;
+        if (activeListTab === "home") {
+          const toggleResponse = await client.eksik_var.toggleItemUsed(finalItem.id, { userId: user.id });
+          if (toggleResponse.item) {
+            finalItem = toggleResponse.item;
+          }
+        } else {
+          setActiveListTab("missing");
+        }
+        setItems(prev => [finalItem, ...prev]);
+        setScrollToItemId(finalItem.id);
       }
       setInputValue("");
       setSuggestions([]);
@@ -990,8 +998,8 @@ export default function EksikVarPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-emerald-100">
       <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
-        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
-          <div className="flex items-center gap-2 mb-2.5">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => window.location.href = getAppRootUrl()}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
@@ -1025,6 +1033,18 @@ export default function EksikVarPage() {
               </div>
             )}
           </div>
+
+          {/* Tabs & Toolbar */}
+          {user && (
+            <ListToolbar
+              activeTab={activeListTab}
+              onTabChange={setActiveListTab}
+              missingCount={items.filter((i) => !i.is_used).length}
+              homeCount={items.filter((i) => i.is_used).length}
+              viewMode={listViewMode}
+              onViewModeChange={setListViewMode}
+            />
+          )}
 
           {/* Input & Autocomplete */}
           {user && (
@@ -1062,7 +1082,11 @@ export default function EksikVarPage() {
                   onFocus={() => {
                     if (inputValue.trim()) setShowSuggestions(true);
                   }}
-                  placeholder="Eksik ürün yazın..."
+                  placeholder={
+                    activeListTab === "home"
+                      ? "Evde olan bir ürün yazın..."
+                      : "Eksik ürün yazın..."
+                  }
                   className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
                 />
                 <button
@@ -1158,15 +1182,6 @@ export default function EksikVarPage() {
           const usedItems = items.filter(i => i.is_used);
           return (
             <>
-              <ListToolbar
-                activeTab={activeListTab}
-                onTabChange={setActiveListTab}
-                missingCount={activeItems.length}
-                homeCount={usedItems.length}
-                viewMode={listViewMode}
-                onViewModeChange={setListViewMode}
-              />
-
               {activeListTab === "missing" ? (
                 activeItems.length === 0 ? (
                   <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">

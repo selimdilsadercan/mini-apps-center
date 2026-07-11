@@ -1,6 +1,5 @@
 export type AssistantCardType =
   | "subcenter"
-  | "kiler"
   | "recipe"
   | "concert"
   | "hobby"
