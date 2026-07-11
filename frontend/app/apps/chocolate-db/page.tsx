@@ -159,47 +159,58 @@ export default function ChocolateDBPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Hero Section */}
-      <div className="relative bg-white pt-20 pb-12 px-5 border-b border-gray-100">
-        {/* Back Button */}
-        <button
-          onClick={() => window.location.href = getAppRootUrl()}
-          className="absolute top-6 left-5 z-10 flex items-center justify-center w-10 h-10 rounded-2xl bg-white border border-gray-100 text-gray-900 transition-all cursor-pointer shadow-sm active:scale-95 hover:bg-gray-50"
-          title={lang === "tr" ? "Geri Dön" : "Go Back"}
-        >
-          <ArrowLeft size={20} weight="bold" />
-        </button>
 
-        {/* Saved Page Button */}
-        <button
-          onClick={() => router.push("/apps/chocolate-db/saved")}
-          className="absolute top-6 right-5 z-10 flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-gray-100 text-gray-900 transition-all cursor-pointer shadow-sm active:scale-95 hover:bg-gray-50 text-[10px] font-black uppercase tracking-wider"
-          title={lang === "tr" ? "Listelerim" : "My Lists"}
-        >
-          <BookmarkSimple size={18} weight="bold" />
-          <span>{lang === "tr" ? "Listelerim" : "My Lists"}</span>
-        </button>
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <div className="px-4 py-3 max-w-lg mx-auto w-full flex items-center gap-2">
+          <button
+            onClick={() => window.location.href = getAppRootUrl()}
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            title={lang === "tr" ? "Geri Dön" : "Go Back"}
+          >
+            <ArrowLeft size={14} weight="bold" className="text-amber-700" />
+          </button>
 
-        <div className="relative max-w-lg mx-auto text-center">
-          <h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter uppercase leading-none mb-2">
+          <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 truncate">
             ChocolateDB
           </h1>
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
-            {t.subtitle}
-          </p>
-          
-          <div className="max-w-xl mx-auto relative">
-            <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 size-5" />
-            <input 
+        </div>
+
+        {/* Tabs + Search row */}
+        <div className="px-4 pb-3 max-w-lg mx-auto w-full flex flex-col gap-2">
+          {/* Tabs */}
+          <div className="flex">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+              <button
+                onClick={() => {/* already on discover */}}
+                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all outline-none bg-white text-gray-900 shadow-sm`}
+              >
+                <MagnifyingGlass size={13} weight="bold" className="text-amber-700" />
+                <span className="normal-case">{lang === "tr" ? "Keşfet" : "Discover"}</span>
+              </button>
+              <button
+                onClick={() => router.push("/apps/chocolate-db/saved")}
+                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all outline-none text-gray-500 hover:text-gray-700`}
+              >
+                <BookmarkSimple size={13} weight="bold" className="text-gray-400" />
+                <span className="normal-case">{lang === "tr" ? "Listelerim" : "My Lists"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <MagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
+            <input
               type="text"
               placeholder={t.searchPlaceholder}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50/50 text-gray-900 placeholder:text-gray-400 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900/5 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200/80 bg-gray-50/80 text-gray-900 placeholder:text-gray-400 text-sm shadow-sm focus:outline-none focus:border-amber-300 transition-all"
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-lg mx-auto px-5 py-8">
         {/* Category Filter Pills */}

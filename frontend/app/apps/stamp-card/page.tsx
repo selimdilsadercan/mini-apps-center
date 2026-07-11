@@ -361,7 +361,7 @@ export default function StampCardPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 relative overflow-hidden selection:bg-amber-100 selection:text-amber-900">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 relative overflow-hidden selection:bg-amber-100 selection:text-amber-900">
       <Toaster position="top-center" />
 
       {/* Confetti Animation Elements */}
@@ -391,41 +391,37 @@ export default function StampCardPage() {
         </div>
       )}
 
-      {/* Decorative top header glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-64 bg-gradient-to-b from-amber-100/40 via-orange-50/20 to-transparent blur-3xl pointer-events-none" />
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <div className="px-4 py-3 max-w-xl mx-auto w-full flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={() => (window.location.href = getAppRootUrl())}
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            >
+              <CaretLeft size={14} weight="bold" className="text-amber-500" />
+            </button>
 
-      <main className="flex-1 px-4 py-8 pb-32 max-w-2xl mx-auto w-full relative z-10">
-        
-        {/* Header Navigation */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => (window.location.href = getAppRootUrl())}
-            className="group flex items-center gap-2 text-slate-600 text-xs font-bold hover:text-slate-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-slate-200/80 active:scale-95 shadow-sm shadow-slate-100"
-          >
-            <SquaresFour size={16} weight="bold" className="text-slate-500" />
-            <span>Geri</span>
-          </button>
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+              <Cards size={18} weight="fill" className="text-amber-500 shrink-0" />
+              <span className="truncate">Müdavim Kartı</span>
+            </h1>
+          </div>
 
           <button
             onClick={() => setIsAddCardDrawerOpen(true)}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 transition-all flex items-center gap-1.5 shadow-sm shadow-amber-200"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black px-3.5 py-2 rounded-xl active:scale-95 transition-all flex items-center gap-1.5 shadow-sm shadow-amber-200"
           >
-            <Plus size={14} weight="bold" />
-            <span>Kart Ekle</span>
+            <Plus size={12} weight="bold" />
+            <span>KART EKLE</span>
           </button>
         </div>
+      </header>
 
-        {/* Hero Banner */}
-        <div className="mb-10 flex items-center gap-4">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-amber-50 text-amber-600 shrink-0">
-            <Cards size={24} weight="fill" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 leading-none uppercase">
-              Müdavim <span className="text-amber-600">Kartı</span>
-            </h1>
-          </div>
-        </div>
+      {/* Decorative top header glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-64 bg-gradient-to-b from-amber-100/40 via-orange-50/20 to-transparent blur-3xl pointer-events-none" />
+
+      <main className="flex-1 px-4 py-6 pb-32 max-w-xl mx-auto w-full relative z-10">
 
         <div className="space-y-10">
           
