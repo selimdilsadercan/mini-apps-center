@@ -60,6 +60,27 @@ This guide documents the mandatory conventions and structure for adding new appl
     - This subdomain must also be registered in `frontend/proxy.ts` (Next.js Proxy/Middleware) in the `SUBDOMAIN_ROUTES` map to ensure correct routing.
     - The exported function in `frontend/proxy.ts` must be named `proxy`.
 
+### 🏠 Home Page Integration (`frontend/app/home/page.tsx`)
+Yeni bir mini-app sadece `apps.ts`'e eklenmekle bitmez — ana sayfada görünmesi için ilgili sekmeye de eklenmelidir.
+
+Ana sayfa sekmeleri ve hangi `category` değerinin nereye düştüğü:
+
+| Sekme (`activeTab`) | Bölüm adı | `apps.ts` category | `home/page.tsx` değişkeni |
+| :--- | :--- | :--- | :--- |
+| `discover` | Pratik Araçlar | `Pratik Araçlar` | `toolsApps` |
+| `explore` | Şehrini Keşfet | `Şehrini Keşfet` | `exploreApps` |
+| `hobby` | Hobi | `Eğlence & Hobi` | `hobbyApps` |
+| `wallet` | Cüzdan | `Finans & Tasarruf` | `walletApps` |
+| `life` | Yaşam | `Kampüslülere Özel` | `lifeApps` |
+
+**Zorunlu adımlar:**
+1. `frontend/lib/apps.ts` içinde uygulamanın `category` alanını doğru sekmeye göre ayarla.
+2. Sıralama önemliyse `home/page.tsx` içindeki ilgili `order` dizisine `app.id` ekle.
+    - Örnek (Yaşam sekmesi): `const order = ["eksik-var", "ev-isleri", "rutinler", "meal-planner", "gym"];`
+3. `frontend/locales/tr/common.json` ve `frontend/locales/en/common.json` dosyalarına `apps.[app-id].name` ve `apps.[app-id].description` ekle.
+
+**Not:** `lifeApps` gibi bazı listeler yalnızca belirli `category` değerlerini filtreler. Yanlış kategoride kayıtlı bir uygulama ana sayfada hiç görünmez.
+
 ### 🔄 Data Fetching & Loading States
 - **Authentication:** Many apps use `useUser()` from Clerk.
 - **Rule:** Always ensure `loading` states are resolved (set to `false`) even if the user is not logged in. This prevents infinite spinners for anonymous users.
@@ -87,13 +108,72 @@ This guide documents the mandatory conventions and structure for adding new appl
   ```
 
 ## ✨ UI/UX Standards
-- Use **Tailwind CSS** for all styling.
-- **Navigation:**
-    - Every mini-app must have a "Back" button that redirects to the user's personal hub.
-    - **Rule:** Use `window.location.href = getAppRootUrl()` for the back button. Import `getAppRootUrl` from `@/lib/apps`.
-    - Do NOT use `router.back()` or `getRootHomeUrl()` as they might not work correctly across subdomains.
-- **Not Found Page:**
-    - A global `frontend/app/not-found.tsx` is implemented to redirect any invalid paths back to the root domain's home page.
+
+> **Önemli:** Eskiden her uygulama için farklı bir görsel dil hedefleniyordu. Artık tüm mini-app'ler **aynı tasarım sistemini** paylaşmalıdır. Referans uygulamalar: **Eksik Var**, **Meal Planner** (`RecipeShell`), **Ev İşleri** (`EvIsleriShell`).
+
+### Ortak Sayfa Yapısı
+- Arka plan: `bg-[#FAF9F7]`
+- İçerik genişliği: `max-w-xl mx-auto`
+- Ana alan: `px-4 pt-4 pb-8` (veya `pb-32` sabit alt aksiyon varsa)
+- Kartlar: `bg-white rounded-2xl border border-gray-100 shadow-sm`
+- Vurgu rengi: `apps.ts` içindeki `color` alanı — buton, ikon ve başlık vurgularında tutarlı kullan
+
+### Header (Zorunlu Kalıp)
+Her mini-app'in header'ı aynı iskelete sahip olmalıdır. Özel/tek seferlik header tasarımları yapma.
+
+```tsx
+<header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+  <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
+    <div className="flex items-center gap-2">
+      {/* Geri butonu */}
+      <button
+        onClick={() => { window.location.href = getAppRootUrl(); }}
+        className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+      >
+        <CaretLeft size={14} weight="bold" className="text-[ACCENT]" />
+      </button>
+
+      {/* Başlık: ikon + uppercase, bir kelime accent renkte */}
+      <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+        <AppIcon size={18} weight="fill" className="text-[ACCENT] shrink-0" />
+        <span className="truncate">
+          Kelime <span className="text-[ACCENT]">Vurgu</span>
+        </span>
+      </h1>
+
+      {/* Sağ aksiyonlar (opsiyonel): w-8 h-8 rounded-lg border border-gray-200/60 */}
+    </div>
+
+    {/* Sekmeler / araç çubuğu (opsiyonel) */}
+    <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 mt-2.5">
+      {/* segment butonları: text-[10px] font-black uppercase */}
+    </div>
+  </div>
+</header>
+```
+
+**Header kuralları:**
+- Geri butonu her zaman sol üstte, `getAppRootUrl()` ile hub'a döner.
+- Başlık: `font-black uppercase tracking-tight`, Phosphor ikon `weight="fill"`, accent renk uygulaması.
+- Sağdaki aksiyon butonları: `w-8 h-8 rounded-lg border border-gray-200/60` — header yüksekliğini bozma.
+- Sekmeler varsa header içinde kalır; sayfa gövdesine taşınmaz.
+- Mümkünse mevcut shell bileşenlerini kopyala veya genişlet: `EvIsleriShell`, `RecipeShell`.
+
+### Shell Bileşeni Önerisi
+Çok sayfalı uygulamalarda `components/[AppName]Shell.tsx` oluştur ve tüm alt sayfalarda kullan. Header mantığını tek yerde tut.
+
+### Etkileşim & Geri Bildirim
+- `alert()` / `confirm()` kullanma → `useConfirmDialog` kullan.
+- Bottom sheet / drawer: `vaul` Drawer veya projedeki mevcut drawer bileşenleri.
+- Toast: `react-hot-toast`.
+
+### Navigation
+- Every mini-app must have a "Back" button that redirects to the user's personal hub.
+- **Rule:** Use `window.location.href = getAppRootUrl()` for the back button. Import `getAppRootUrl` from `@/lib/apps`.
+- Do NOT use `router.back()` or `getRootHomeUrl()` as they might not work correctly across subdomains.
+
+### Not Found Page
+- A global `frontend/app/not-found.tsx` is implemented to redirect any invalid paths back to the root domain's home page.
 
 ## 🌍 Localization (i18n)
 - **Cross-Subdomain Persistence:** 

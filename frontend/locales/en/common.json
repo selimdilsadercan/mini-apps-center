@@ -330,6 +330,10 @@
     "meal-planner": {
       "name": "Meal Planner",
       "description": "Save your recipes and plan your weekly meals."
+    },
+    "rutinler": {
+      "name": "My Routines",
+      "description": "Create and track your daily, weekly, and yearly routine tables."
     }
   },
   "birikim": {

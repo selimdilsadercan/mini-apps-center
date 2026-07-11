@@ -67,6 +67,7 @@ export default class Client {
     public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly recipe: recipe.ServiceClient
+    public readonly rutinler: rutinler.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly series_track: series_track.ServiceClient
     public readonly stamp_card: stamp_card.ServiceClient
@@ -130,6 +131,7 @@ export default class Client {
         this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
+        this.rutinler = new rutinler.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.series_track = new series_track.ServiceClient(base)
         this.stamp_card = new stamp_card.ServiceClient(base)
@@ -5861,6 +5863,140 @@ export namespace recipe {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("PUT", `/recipe/${encodeURIComponent(recipeId)}`, JSON.stringify(params))
             return await resp.json() as UpdateRecipeResponse
+        }
+    }
+}
+
+export namespace rutinler {
+    export interface AddEntryRequest {
+        userId: string
+        periodType: PeriodType
+        itemName: string
+        itemEmoji: string
+        itemSlug?: string
+        dailySlot?: DailySlot
+        /**
+         * "0" = unset, "1"-"7" = weekday
+         */
+        dayOfWeek: string
+
+        /**
+         * "0" = unset, "1"-"31" = day of month
+         */
+        dayOfMonth: string
+    }
+
+    export interface AddEntryResponse {
+        entry: RoutineEntry | null
+    }
+
+    export type DailySlot = "morning" | "afternoon" | "evening"
+
+    export interface DeleteEntryRequest {
+        userId: string
+    }
+
+    export interface DeleteEntryResponse {
+        success: boolean
+    }
+
+    export interface GetEntriesResponse {
+        entries: RoutineEntry[]
+    }
+
+    export type PeriodType = "daily" | "weekly" | "monthly"
+
+    export interface RoutineEntry {
+        id: string
+        "user_id": string
+        "period_type": PeriodType
+        "item_slug": string | null
+        "item_name": string
+        "item_emoji": string
+        "daily_slot": DailySlot | null
+        "day_of_week": number | null
+        "day_of_month": number | null
+        "sort_order": number
+        "created_at": string
+        "is_completed": boolean
+    }
+
+    export interface ToggleCompletionRequest {
+        entryId: string
+        userId: string
+        completed: boolean
+    }
+
+    export interface ToggleCompletionResponse {
+        success: boolean
+    }
+
+    export interface UpdateEntryRequest {
+        entryId: string
+        userId: string
+        itemName: string
+        itemEmoji: string
+        dailySlot?: DailySlot
+        /**
+         * "0" = unset, "1"-"7" = weekday
+         */
+        dayOfWeek: string
+
+        /**
+         * "0" = unset, "1"-"31" = day of month
+         */
+        dayOfMonth: string
+    }
+
+    export interface UpdateEntryResponse {
+        entry: RoutineEntry | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addEntry = this.addEntry.bind(this)
+            this.deleteEntry = this.deleteEntry.bind(this)
+            this.getEntries = this.getEntries.bind(this)
+            this.toggleCompletion = this.toggleCompletion.bind(this)
+            this.updateEntry = this.updateEntry.bind(this)
+        }
+
+        public async addEntry(params: AddEntryRequest): Promise<AddEntryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/entries`, JSON.stringify(params))
+            return await resp.json() as AddEntryResponse
+        }
+
+        public async deleteEntry(id: string, params: DeleteEntryRequest): Promise<DeleteEntryResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/rutinler/entries/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as DeleteEntryResponse
+        }
+
+        public async getEntries(userId: string): Promise<GetEntriesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/rutinler/entries/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetEntriesResponse
+        }
+
+        public async toggleCompletion(params: ToggleCompletionRequest): Promise<ToggleCompletionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/complete`, JSON.stringify(params))
+            return await resp.json() as ToggleCompletionResponse
+        }
+
+        public async updateEntry(params: UpdateEntryRequest): Promise<UpdateEntryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/entries/update`, JSON.stringify(params))
+            return await resp.json() as UpdateEntryResponse
         }
     }
 }

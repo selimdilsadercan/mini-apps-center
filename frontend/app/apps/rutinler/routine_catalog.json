@@ -1,0 +1,104 @@
+[
+  {
+    "category": "Sabah Rutini",
+    "items": [
+      { "slug": "wake-up", "name": "Uyanma", "emoji": "⏰" },
+      { "slug": "make-bed", "name": "Yatağı Toplama", "emoji": "🛏️" },
+      { "slug": "morning-water", "name": "Sabah Suyu", "emoji": "💧" },
+      { "slug": "stretch", "name": "Esneme", "emoji": "🧘" },
+      { "slug": "morning-shower", "name": "Duş", "emoji": "🚿" },
+      { "slug": "skincare", "name": "Cilt Bakımı", "emoji": "🧴", "keywords": ["yüz", "krem", "güzellik"] },
+      { "slug": "breakfast", "name": "Kahvaltı", "emoji": "🍳", "keywords": ["yemek", "öğün"] },
+      { "slug": "coffee", "name": "Kahve / Çay", "emoji": "☕", "keywords": ["içecek"] },
+      { "slug": "vitamins", "name": "Vitamin", "emoji": "💊", "keywords": ["ilaç", "besin takviyesi"] },
+      { "slug": "meditation", "name": "Meditasyon", "emoji": "🧘‍♀️" }
+    ]
+  },
+  {
+    "category": "Sağlık & Spor",
+    "items": [
+      { "slug": "workout", "name": "Antrenman", "emoji": "🏋️", "keywords": ["spor", "gym", "fitness", "idman"] },
+      { "slug": "run", "name": "Koşu", "emoji": "🏃", "keywords": ["spor", "kardiyo"] },
+      { "slug": "walk", "name": "Yürüyüş", "emoji": "🚶", "keywords": ["spor", "adım"] },
+      { "slug": "yoga", "name": "Yoga", "emoji": "🧘", "keywords": ["spor", "esneme", "pilates"] },
+      { "slug": "drink-water", "name": "Su İçme", "emoji": "🥤" },
+      { "slug": "healthy-meal", "name": "Sağlıklı Öğün", "emoji": "🥗" },
+      { "slug": "sleep-early", "name": "Erken Uyuma", "emoji": "😴" },
+      { "slug": "screen-break", "name": "Ekran Molası", "emoji": "👀" },
+      { "slug": "dental", "name": "Diş Fırçalama", "emoji": "🪥" }
+    ]
+  },
+  {
+    "category": "İş & Üretkenlik",
+    "items": [
+      { "slug": "plan-day", "name": "Gün Planlama", "emoji": "📋" },
+      { "slug": "deep-work", "name": "Derin Çalışma", "emoji": "💻" },
+      { "slug": "email-check", "name": "E-posta Kontrolü", "emoji": "📧" },
+      { "slug": "meeting", "name": "Toplantı", "emoji": "👥" },
+      { "slug": "study", "name": "Ders Çalışma", "emoji": "📚", "keywords": ["ödev", "sınav", "kütüphane", "okul"] },
+      { "slug": "review-goals", "name": "Hedef Gözden Geçirme", "emoji": "🎯", "keywords": ["plan", "vizyon"] },
+      { "slug": "journal", "name": "Günlük Yazma", "emoji": "📓", "keywords": ["defter", "not", "yazı"] },
+      { "slug": "inbox-zero", "name": "Gelen Kutusu Temizliği", "emoji": "📥" }
+    ]
+  },
+  {
+    "category": "Kişisel Bakım",
+    "items": [
+      { "slug": "haircare", "name": "Saç Bakımı", "emoji": "💇", "keywords": ["kuaför", "şampuan", "duş"] },
+      { "slug": "hand-nails", "name": "El Tırnak Bakımı", "emoji": "💅", "keywords": ["manikür", "kesme"] },
+      { "slug": "foot-nails", "name": "Ayak Tırnak Bakımı", "emoji": "✂️", "keywords": ["pedikür", "kesme"] },
+      { "slug": "body-shave", "name": "Vücut Tıraşı", "emoji": "🪒", "keywords": ["epilasyon", "tüy"] },
+      { "slug": "beard-shave", "name": "Sakal Tıraşı", "emoji": "🧔", "keywords": ["jilet", "makine"] },
+      { "slug": "barber", "name": "Berbere Git", "emoji": "💈", "keywords": ["kuaför", "saç", "sakal", "tıraş"] },
+      { "slug": "organize-closet", "name": "Dolap Düzeni", "emoji": "👔" }
+    ]
+  },
+  {
+    "category": "Sosyal & Hobi",
+    "items": [
+      { "slug": "call-family", "name": "Aileyle Konuşma", "emoji": "📞", "keywords": ["anne", "baba", "telefon"] },
+      { "slug": "meet-friends", "name": "Arkadaşlarla Buluşma", "emoji": "🤝", "keywords": ["sosyalleşme", "dışarı"] },
+      { "slug": "read-book", "name": "Kitap Okuma", "emoji": "📖", "keywords": ["kütüphane", "edebiyat"] },
+      { "slug": "music", "name": "Müzik / Enstrüman", "emoji": "🎸", "keywords": ["şarkı", "piyano", "gitar"] },
+      { "slug": "creative", "name": "Yaratıcı Aktivite", "emoji": "🎨", "keywords": ["sanat", "hobi", "boyama"] },
+      { "slug": "game", "name": "Oyun Oynama", "emoji": "🎮", "keywords": ["bilgisayar", "konsol", "ps5"] },
+      { "slug": "walk-dog", "name": "Köpek Gezdirme", "emoji": "🐕", "keywords": ["hayvan", "dışarı", "gezdirme"] }
+    ]
+  },
+  {
+    "category": "Akşam Rutini",
+    "items": [
+      { "slug": "dinner", "name": "Akşam Yemeği", "emoji": "🍽️", "keywords": ["yemek", "öğün"] },
+      { "slug": "evening-walk", "name": "Akşam Yürüyüşü", "emoji": "🌆" },
+      { "slug": "prep-tomorrow", "name": "Yarını Hazırlama", "emoji": "🌙", "keywords": ["plan", "çanta", "kıyafet"] },
+      { "slug": "skincare-night", "name": "Gece Bakımı", "emoji": "🌃" },
+      { "slug": "no-screens", "name": "Ekransız Zaman", "emoji": "📵" },
+      { "slug": "gratitude", "name": "Şükür / Minnet", "emoji": "🙏" },
+      { "slug": "wind-down", "name": "Rahatlama", "emoji": "🛋️", "keywords": ["dinlenme", "mola"] }
+    ]
+  },
+  {
+    "category": "Haftalık Bakım",
+    "items": [
+      { "slug": "meal-prep", "name": "Yemek Hazırlığı", "emoji": "🥡" },
+      { "slug": "budget-review", "name": "Bütçe Kontrolü", "emoji": "💰" },
+      { "slug": "weekly-plan", "name": "Haftalık Planlama", "emoji": "📅" },
+      { "slug": "backup-data", "name": "Yedekleme", "emoji": "💾" },
+      { "slug": "self-care", "name": "Kendine Zaman", "emoji": "🛁" }
+    ]
+  },
+  {
+    "category": "Aylık & Yıllık",
+    "items": [
+      { "slug": "annual-checkup", "name": "Sağlık Kontrolü", "emoji": "🏥" },
+      { "slug": "dental-checkup", "name": "Diş Kontrolü", "emoji": "🦷" },
+      { "slug": "tax-prep", "name": "Vergi Hazırlığı", "emoji": "🧾" },
+      { "slug": "insurance", "name": "Sigorta Yenileme", "emoji": "📄" },
+      { "slug": "goal-setting", "name": "Yıllık Hedefler", "emoji": "🎯" },
+      { "slug": "wardrobe-review", "name": "Gardırop Gözden Geçirme", "emoji": "👗" },
+      { "slug": "photo-backup", "name": "Fotoğraf Yedekleme", "emoji": "📸" },
+      { "slug": "passport-renew", "name": "Pasaport / Belge", "emoji": "🛂" },
+      { "slug": "car-service", "name": "Araç Bakımı", "emoji": "🚗" }
+    ]
+  }
+]

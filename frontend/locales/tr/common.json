@@ -326,6 +326,10 @@
     "meal-planner": {
       "name": "Meal Planner",
       "description": "Tariflerini kaydet, haftalık yemek planını oluştur."
+    },
+    "rutinler": {
+      "name": "Rutinlerim",
+      "description": "Günlük, haftalık ve yıllık rutin tablolarını oluştur ve takip et."
     }
   },
   "birikim": {

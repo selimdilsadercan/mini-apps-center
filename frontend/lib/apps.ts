@@ -35,6 +35,7 @@ import {
   Television,
   Barbell,
   Broom,
+  CalendarBlank,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -599,6 +600,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/ev-isleri",
     isImplemented: true,
     subdomain: "evisleri",
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "rutinler",
+    name: "Rutinlerim",
+    description: "Günlük, haftalık ve yıllık rutin tablolarını oluştur ve takip et.",
+    cta: "Rutinlerini Planla",
+    icon: CalendarBlank,
+    category: "Kampüslülere Özel",
+    color: "#7C3AED",
+    href: "/apps/rutinler",
+    isImplemented: true,
+    subdomain: "rutinler",
     statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",
