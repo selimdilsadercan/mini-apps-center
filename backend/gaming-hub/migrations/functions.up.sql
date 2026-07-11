@@ -8,9 +8,14 @@
 -- 5. gaming_hub.log_play_session(TEXT, TEXT, INTEGER)
 -- 6. gaming_hub.upsert_habit_limits(TEXT, INTEGER, INTEGER)
 -- 7. gaming_hub.get_play_stats(TEXT)
+-- 8. gaming_hub.delete_library_item(TEXT, UUID)
+-- 9. gaming_hub.get_daily_task(TEXT)
+-- 10. gaming_hub.set_daily_task(TEXT, TEXT, TEXT, TEXT, INTEGER)
+-- 11. gaming_hub.complete_daily_task(TEXT)
 
 -- 1. UPSERT LIBRARY ITEM
 DROP FUNCTION IF EXISTS gaming_hub.upsert_library_item(TEXT, TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT);
+DROP FUNCTION IF EXISTS gaming_hub.upsert_library_item(TEXT, TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION gaming_hub.upsert_library_item(
   p_clerk_id   TEXT,
   p_game_name  TEXT,
@@ -18,7 +23,10 @@ CREATE OR REPLACE FUNCTION gaming_hub.upsert_library_item(
   p_status     TEXT,
   p_play_time  INTEGER DEFAULT 0,
   p_rating     INTEGER DEFAULT NULL,
-  p_notes      TEXT DEFAULT NULL
+  p_notes      TEXT DEFAULT NULL,
+  p_game_mode  TEXT DEFAULT 'single',
+  p_igdb_id    TEXT DEFAULT NULL,
+  p_cover_url  TEXT DEFAULT NULL
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -33,14 +41,16 @@ BEGIN
     RAISE EXCEPTION 'User not found for clerk_id: %', p_clerk_id;
   END IF;
 
-  INSERT INTO gaming_hub.library (user_id, game_name, platform, status, play_time, rating, notes, updated_at)
-  VALUES (v_user_id, p_game_name, p_platform, p_status, p_play_time, p_rating, p_notes, now())
-  ON CONFLICT (user_id, game_name, platform)
+  INSERT INTO gaming_hub.library (user_id, game_name, platform, status, play_time, rating, notes, game_mode, igdb_id, cover_url, updated_at)
+  VALUES (v_user_id, p_game_name, p_platform, p_status, p_play_time, p_rating, p_notes, p_game_mode, p_igdb_id, p_cover_url, now())
+  ON CONFLICT (user_id, game_name, platform, game_mode)
   DO UPDATE SET
     status = EXCLUDED.status,
     play_time = EXCLUDED.play_time,
     rating = COALESCE(EXCLUDED.rating, gaming_hub.library.rating),
     notes = COALESCE(EXCLUDED.notes, gaming_hub.library.notes),
+    igdb_id = COALESCE(EXCLUDED.igdb_id, gaming_hub.library.igdb_id),
+    cover_url = COALESCE(EXCLUDED.cover_url, gaming_hub.library.cover_url),
     updated_at = now()
   RETURNING id INTO v_item_id;
 
@@ -59,6 +69,9 @@ RETURNS TABLE (
   play_time   INTEGER,
   rating      INTEGER,
   notes       TEXT,
+  game_mode   TEXT,
+  igdb_id     TEXT,
+  cover_url   TEXT,
   updated_at  TIMESTAMPTZ
 )
 LANGUAGE plpgsql
@@ -73,7 +86,8 @@ BEGIN
   END IF;
 
   RETURN QUERY
-  SELECT l.id, l.game_name, l.platform, l.status, l.play_time, l.rating, l.notes, l.updated_at
+  SELECT l.id, l.game_name, l.platform, l.status, l.play_time, l.rating, l.notes,
+         l.game_mode, l.igdb_id, l.cover_url, l.updated_at
   FROM gaming_hub.library l
   WHERE l.user_id = v_user_id
   ORDER BY l.updated_at DESC;
@@ -178,9 +192,9 @@ BEGIN
     WHERE user_id = v_user_id AND game_name = p_game_name AND platform = v_platform;
   ELSE
     -- If it doesn't exist, we upsert to library under "playing" status with default PC platform
-    INSERT INTO gaming_hub.library (user_id, game_name, platform, status, play_time)
-    VALUES (v_user_id, p_game_name, 'PC', 'playing', p_duration)
-    ON CONFLICT (user_id, game_name, platform)
+    INSERT INTO gaming_hub.library (user_id, game_name, platform, status, play_time, game_mode)
+    VALUES (v_user_id, p_game_name, 'PC', 'playing', p_duration, 'single')
+    ON CONFLICT (user_id, game_name, platform, game_mode)
     DO UPDATE SET play_time = gaming_hub.library.play_time + p_duration, updated_at = now();
   END IF;
 
@@ -266,5 +280,126 @@ BEGIN
   WHERE user_id = v_user_id AND log_date >= (current_date - INTERVAL '7 days');
 
   RETURN QUERY SELECT v_daily_lim, v_weekly_lim, v_today_mins, v_week_mins;
+END;
+$$;
+
+-- 8. DELETE LIBRARY ITEM
+DROP FUNCTION IF EXISTS gaming_hub.delete_library_item(TEXT, UUID);
+CREATE OR REPLACE FUNCTION gaming_hub.delete_library_item(
+  p_clerk_id TEXT,
+  p_item_id  UUID
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id UUID;
+  v_deleted INTEGER;
+BEGIN
+  v_user_id := public.get_internal_user_id(p_clerk_id);
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found for clerk_id: %', p_clerk_id;
+  END IF;
+
+  DELETE FROM gaming_hub.library
+  WHERE id = p_item_id AND user_id = v_user_id;
+
+  GET DIAGNOSTICS v_deleted = ROW_COUNT;
+  RETURN v_deleted > 0;
+END;
+$$;
+
+-- 9. GET DAILY TASK
+DROP FUNCTION IF EXISTS gaming_hub.get_daily_task(TEXT);
+CREATE OR REPLACE FUNCTION gaming_hub.get_daily_task(p_clerk_id TEXT)
+RETURNS TABLE (
+  id           UUID,
+  game_name    TEXT,
+  igdb_id      TEXT,
+  cover_url    TEXT,
+  goal_minutes INTEGER,
+  completed    BOOLEAN,
+  task_date    DATE
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  v_user_id := public.get_internal_user_id(p_clerk_id);
+  IF v_user_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY
+  SELECT d.id, d.game_name, d.igdb_id, d.cover_url, d.goal_minutes, d.completed, d.task_date
+  FROM gaming_hub.daily_tasks d
+  WHERE d.user_id = v_user_id AND d.task_date = current_date
+  LIMIT 1;
+END;
+$$;
+
+-- 10. SET DAILY TASK
+DROP FUNCTION IF EXISTS gaming_hub.set_daily_task(TEXT, TEXT, TEXT, TEXT, INTEGER);
+CREATE OR REPLACE FUNCTION gaming_hub.set_daily_task(
+  p_clerk_id     TEXT,
+  p_game_name    TEXT,
+  p_igdb_id      TEXT DEFAULT NULL,
+  p_cover_url    TEXT DEFAULT NULL,
+  p_goal_minutes INTEGER DEFAULT 60
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id UUID;
+  v_task_id UUID;
+BEGIN
+  v_user_id := public.get_internal_user_id(p_clerk_id);
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found for clerk_id: %', p_clerk_id;
+  END IF;
+
+  INSERT INTO gaming_hub.daily_tasks (user_id, game_name, igdb_id, cover_url, goal_minutes, task_date, updated_at)
+  VALUES (v_user_id, p_game_name, p_igdb_id, p_cover_url, p_goal_minutes, current_date, now())
+  ON CONFLICT (user_id, task_date)
+  DO UPDATE SET
+    game_name = EXCLUDED.game_name,
+    igdb_id = EXCLUDED.igdb_id,
+    cover_url = EXCLUDED.cover_url,
+    goal_minutes = EXCLUDED.goal_minutes,
+    completed = false,
+    updated_at = now()
+  RETURNING id INTO v_task_id;
+
+  RETURN v_task_id;
+END;
+$$;
+
+-- 11. COMPLETE DAILY TASK
+DROP FUNCTION IF EXISTS gaming_hub.complete_daily_task(TEXT);
+CREATE OR REPLACE FUNCTION gaming_hub.complete_daily_task(p_clerk_id TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_id UUID;
+  v_updated INTEGER;
+BEGIN
+  v_user_id := public.get_internal_user_id(p_clerk_id);
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found for clerk_id: %', p_clerk_id;
+  END IF;
+
+  UPDATE gaming_hub.daily_tasks
+  SET completed = true, updated_at = now()
+  WHERE user_id = v_user_id AND task_date = current_date;
+
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  RETURN v_updated > 0;
 END;
 $$;

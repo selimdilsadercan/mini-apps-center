@@ -59,7 +59,6 @@ export default class Client {
     public readonly icon_set_guide: icon_set_guide.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
-    public readonly kiler: kiler.ServiceClient
     public readonly kim_gelir: kim_gelir.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
@@ -123,7 +122,6 @@ export default class Client {
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
-        this.kiler = new kiler.ServiceClient(base)
         this.kim_gelir = new kim_gelir.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
@@ -3797,6 +3795,32 @@ export namespace gaming_hub {
         targetPrice: number
     }
 
+    export interface CatalogGame {
+        gameId: string
+        title: string
+        coverUrl: string | null
+        genres: string[]
+        platforms: string[]
+        rating: number | null
+        summary: string | null
+    }
+
+    export interface DailyTask {
+        id: string
+        gameName: string
+        igdbId: string | null
+        coverUrl: string | null
+        goalMinutes: number
+        completed: boolean
+        taskDate: string
+    }
+
+    export interface DiscoverGamesResponse {
+        games: CatalogGame[]
+    }
+
+    export type GameMode = "single" | "multi"
+
     export type GameStatus = "wishlist" | "backlog" | "playing" | "completed"
 
     export interface HabitLimitsRequest {
@@ -3810,6 +3834,9 @@ export namespace gaming_hub {
         gameName: string
         platform: string
         status: GameStatus
+        gameMode: GameMode
+        igdbId: string | null
+        coverUrl: string | null
         playTime: number
         rating: number | null
         notes: string | null
@@ -3847,11 +3874,18 @@ export namespace gaming_hub {
         alerts: PriceAlert[]
     }
 
+    export interface SearchGamesResponse {
+        games: CatalogGame[]
+    }
+
     export interface UpsertLibraryRequest {
         userId: string
         gameName: string
         platform: string
         status: GameStatus
+        gameMode?: GameMode
+        igdbId?: string
+        coverUrl?: string
         playTime?: number
         rating?: number
         notes?: string
@@ -3863,10 +3897,17 @@ export namespace gaming_hub {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addPriceAlert = this.addPriceAlert.bind(this)
+            this.completeDailyTask = this.completeDailyTask.bind(this)
+            this.deleteLibraryItem = this.deleteLibraryItem.bind(this)
+            this.discoverGames = this.discoverGames.bind(this)
+            this.getCatalogGame = this.getCatalogGame.bind(this)
+            this.getDailyTask = this.getDailyTask.bind(this)
             this.getPlayStats = this.getPlayStats.bind(this)
             this.getPriceAlerts = this.getPriceAlerts.bind(this)
             this.getUserLibrary = this.getUserLibrary.bind(this)
             this.logPlaySession = this.logPlaySession.bind(this)
+            this.searchCatalogGames = this.searchCatalogGames.bind(this)
+            this.setDailyTask = this.setDailyTask.bind(this)
             this.upsertHabitLimits = this.upsertHabitLimits.bind(this)
             this.upsertLibraryItem = this.upsertLibraryItem.bind(this)
         }
@@ -3882,6 +3923,90 @@ export namespace gaming_hub {
             const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/price-alerts`, JSON.stringify(params))
             return await resp.json() as {
     alertId: string
+}
+        }
+
+        /**
+         * Mark today's daily task as completed.
+         * POST /gaming-hub/daily-task/complete
+         */
+        public async completeDailyTask(params: {
+    userId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/daily-task/complete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Removes a game from the user's library.
+         * DELETE /gaming-hub/library/:itemId/:userId
+         */
+        public async deleteLibraryItem(itemId: string, userId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/gaming-hub/library/${encodeURIComponent(itemId)}/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Discover co-op and popular games from IGDB.
+         * GET /gaming-hub/games/discover
+         */
+        public async discoverGames(params: {
+    mode?: "coop" | "popular"
+    limit?: number
+}): Promise<DiscoverGamesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+                mode:  params.mode === undefined ? undefined : String(params.mode),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/games/discover`, undefined, {query})
+            return await resp.json() as DiscoverGamesResponse
+        }
+
+        /**
+         * Get a single game from IGDB by ID.
+         * GET /gaming-hub/games/:gameId
+         */
+        public async getCatalogGame(gameId: string): Promise<{
+    game: CatalogGame | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/games/${encodeURIComponent(gameId)}`)
+            return await resp.json() as {
+    game: CatalogGame | null
+}
+        }
+
+        /**
+         * Get today's daily gaming task.
+         * GET /gaming-hub/daily-task
+         */
+        public async getDailyTask(params: {
+    userId: string
+}): Promise<{
+    task: DailyTask | null
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/daily-task`, undefined, {query})
+            return await resp.json() as {
+    task: DailyTask | null
 }
         }
 
@@ -3947,6 +4072,45 @@ export namespace gaming_hub {
             const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/play-logs`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        /**
+         * Search games via IGDB catalog.
+         * GET /gaming-hub/games/search
+         */
+        public async searchCatalogGames(params: {
+    title: string
+    limit?: number
+}): Promise<SearchGamesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                limit: params.limit === undefined ? undefined : String(params.limit),
+                title: params.title,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/games/search`, undefined, {query})
+            return await resp.json() as SearchGamesResponse
+        }
+
+        /**
+         * Set today's daily gaming task.
+         * POST /gaming-hub/daily-task
+         */
+        public async setDailyTask(params: {
+    userId: string
+    gameName: string
+    igdbId?: string
+    coverUrl?: string
+    goalMinutes?: number
+}): Promise<{
+    taskId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/daily-task`, JSON.stringify(params))
+            return await resp.json() as {
+    taskId: string
 }
         }
 
@@ -4655,94 +4819,6 @@ export namespace itu_yemekhane {
     sent: number
     skipped: number
 }
-        }
-    }
-}
-
-export namespace kiler {
-    export interface AddItemRequest {
-        userId: string
-        name: string
-        amount: number
-        unit: string
-        storageType: StorageType
-        purchaseDate: string
-        expiryDate?: string
-    }
-
-    export interface AddItemResponse {
-        item: PantryItem | null
-    }
-
-    export interface DeleteItemRequest {
-        userId: string
-    }
-
-    export interface DeleteItemResponse {
-        success: boolean
-    }
-
-    export interface GetItemsResponse {
-        items: PantryItem[]
-    }
-
-    export interface PantryItem {
-        id: string
-        "user_id": string
-        name: string
-        amount: number
-        unit: string
-        "storage_type": StorageType
-        "purchase_date": string
-        "expiry_date"?: string | null
-        "created_at": string
-    }
-
-    export type StorageType = "fridge" | "freezer" | "pantry"
-
-    export class ServiceClient {
-        private baseClient: BaseClient
-
-        constructor(baseClient: BaseClient) {
-            this.baseClient = baseClient
-            this.addItem = this.addItem.bind(this)
-            this.deleteItem = this.deleteItem.bind(this)
-            this.getItems = this.getItems.bind(this)
-        }
-
-        /**
-         * Kilere yeni ürün ekler
-         * POST /kiler/add
-         */
-        public async addItem(params: AddItemRequest): Promise<AddItemResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/kiler/add`, JSON.stringify(params))
-            return await resp.json() as AddItemResponse
-        }
-
-        /**
-         * Kilerinden ürün siler
-         * DELETE /kiler/item/:id
-         */
-        public async deleteItem(id: string, params: DeleteItemRequest): Promise<DeleteItemResponse> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                userId: params.userId,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("DELETE", `/kiler/item/${encodeURIComponent(id)}`, undefined, {query})
-            return await resp.json() as DeleteItemResponse
-        }
-
-        /**
-         * Kullanıcının kilerindeki tüm ürünleri getirir
-         * GET /kiler/items/:userId
-         */
-        public async getItems(userId: string): Promise<GetItemsResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/kiler/items/${encodeURIComponent(userId)}`)
-            return await resp.json() as GetItemsResponse
         }
     }
 }

@@ -795,9 +795,9 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/gaming-hub",
     isImplemented: true,
     subdomain: "gaminghub",
-    statusBarColor: "#0F0A1E",
+    statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
-    navigationBarColor: "#0F0A1E",
+    navigationBarColor: "#FAF9F7",
     navigationBarStyle: "light",
   },
   {

@@ -1,6 +1,13 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import {
+  discoverCoopGames,
+  discoverPopularGames,
+  getGame,
+  searchGames,
+  type CatalogGame,
+} from "./igdb";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -10,16 +17,30 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 // ==================== TYPES ====================
 
 export type GameStatus = "wishlist" | "backlog" | "playing" | "completed";
+export type GameMode = "single" | "multi";
 
 export interface LibraryItem {
   id: string;
   gameName: string;
   platform: string;
   status: GameStatus;
+  gameMode: GameMode;
+  igdbId: string | null;
+  coverUrl: string | null;
   playTime: number; // in minutes
   rating: number | null;
   notes: string | null;
   updatedAt: string;
+}
+
+export interface DailyTask {
+  id: string;
+  gameName: string;
+  igdbId: string | null;
+  coverUrl: string | null;
+  goalMinutes: number;
+  completed: boolean;
+  taskDate: string;
 }
 
 export interface PriceAlert {
@@ -46,6 +67,9 @@ export interface UpsertLibraryRequest {
   gameName: string;
   platform: string;
   status: GameStatus;
+  gameMode?: GameMode;
+  igdbId?: string;
+  coverUrl?: string;
   playTime?: number;
   rating?: number;
   notes?: string;
@@ -78,7 +102,23 @@ export interface HabitLimitsRequest {
   weeklyLimit: number; // in minutes
 }
 
+// ==================== IGDB CATALOG TYPES ====================
+
+export type { CatalogGame };
+
+export interface SearchGamesResponse {
+  games: CatalogGame[];
+}
+
+export interface DiscoverGamesResponse {
+  games: CatalogGame[];
+}
+
 // ==================== API ENDPOINTS ====================
+
+function isMissingRpc(error: { code?: string } | null): boolean {
+  return error?.code === "PGRST202";
+}
 
 /**
  * Adds or updates a game in the user's library.
@@ -87,7 +127,7 @@ export interface HabitLimitsRequest {
 export const upsertLibraryItem = api(
   { expose: true, method: "POST", path: "/gaming-hub/library" },
   async (req: UpsertLibraryRequest): Promise<{ itemId: string }> => {
-    const { data, error } = await supabase.schema("gaming_hub").rpc("upsert_library_item", {
+    let { data, error } = await supabase.schema("gaming_hub").rpc("upsert_library_item", {
       p_clerk_id: req.userId,
       p_game_name: req.gameName,
       p_platform: req.platform,
@@ -95,11 +135,27 @@ export const upsertLibraryItem = api(
       p_play_time: req.playTime ?? 0,
       p_rating: req.rating ?? null,
       p_notes: req.notes ?? null,
+      p_game_mode: req.gameMode ?? "single",
+      p_igdb_id: req.igdbId ?? null,
+      p_cover_url: req.coverUrl ?? null,
     });
+
+    if (isMissingRpc(error)) {
+      console.warn("upsertLibraryItem: using legacy RPC signature");
+      ({ data, error } = await supabase.schema("gaming_hub").rpc("upsert_library_item", {
+        p_clerk_id: req.userId,
+        p_game_name: req.gameName,
+        p_platform: req.platform,
+        p_status: req.status,
+        p_play_time: req.playTime ?? 0,
+        p_rating: req.rating ?? null,
+        p_notes: req.notes ?? null,
+      }));
+    }
 
     if (error) {
       console.error("upsertLibraryItem error:", error);
-      throw APIError.internal(`Failed to upsert library item: ${error.message}`);
+      throw APIError.invalidArgument("Oyun eklenemedi. Lütfen tekrar deneyin.");
     }
 
     return { itemId: data };
@@ -127,6 +183,9 @@ export const getUserLibrary = api(
       gameName: row.game_name,
       platform: row.platform,
       status: row.status as GameStatus,
+      gameMode: (row.game_mode ?? "single") as GameMode,
+      igdbId: row.igdb_id ?? null,
+      coverUrl: row.cover_url ?? null,
       playTime: row.play_time,
       rating: row.rating,
       notes: row.notes,
@@ -134,6 +193,27 @@ export const getUserLibrary = api(
     }));
 
     return { items };
+  }
+);
+
+/**
+ * Removes a game from the user's library.
+ * DELETE /gaming-hub/library/:itemId/:userId
+ */
+export const deleteLibraryItem = api(
+  { expose: true, method: "DELETE", path: "/gaming-hub/library/:itemId/:userId" },
+  async (req: { itemId: string; userId: string }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("gaming_hub").rpc("delete_library_item", {
+      p_clerk_id: req.userId,
+      p_item_id: req.itemId,
+    });
+
+    if (error) {
+      console.error("deleteLibraryItem error:", error);
+      throw APIError.internal(`Failed to delete library item: ${error.message}`);
+    }
+
+    return { success: !!data };
   }
 );
 
@@ -258,5 +338,152 @@ export const getPlayStats = api(
       todayMinutes: row.today_minutes,
       weekMinutes: row.week_minutes,
     };
+  }
+);
+
+/**
+ * Get today's daily gaming task.
+ * GET /gaming-hub/daily-task
+ */
+export const getDailyTask = api(
+  { expose: true, method: "GET", path: "/gaming-hub/daily-task" },
+  async (req: { userId: string }): Promise<{ task: DailyTask | null }> => {
+    const { data, error } = await supabase.schema("gaming_hub").rpc("get_daily_task", {
+      p_clerk_id: req.userId,
+    });
+
+    if (error) {
+      // Migration not applied yet — treat as no task instead of surfacing 500.
+      if (error.code === "PGRST202") {
+        console.warn("getDailyTask: RPC missing, run gaming-hub migrations");
+        return { task: null };
+      }
+      console.error("getDailyTask error:", error);
+      throw APIError.internal(`Failed to get daily task: ${error.message}`);
+    }
+
+    const row = data?.[0];
+    if (!row) return { task: null };
+
+    return {
+      task: {
+        id: row.id,
+        gameName: row.game_name,
+        igdbId: row.igdb_id,
+        coverUrl: row.cover_url,
+        goalMinutes: row.goal_minutes,
+        completed: row.completed,
+        taskDate: row.task_date,
+      },
+    };
+  }
+);
+
+/**
+ * Set today's daily gaming task.
+ * POST /gaming-hub/daily-task
+ */
+export const setDailyTask = api(
+  { expose: true, method: "POST", path: "/gaming-hub/daily-task" },
+  async (req: {
+    userId: string;
+    gameName: string;
+    igdbId?: string;
+    coverUrl?: string;
+    goalMinutes?: number;
+  }): Promise<{ taskId: string }> => {
+    const { data, error } = await supabase.schema("gaming_hub").rpc("set_daily_task", {
+      p_clerk_id: req.userId,
+      p_game_name: req.gameName,
+      p_igdb_id: req.igdbId ?? null,
+      p_cover_url: req.coverUrl ?? null,
+      p_goal_minutes: req.goalMinutes ?? 60,
+    });
+
+    if (error) {
+      console.error("setDailyTask error:", error);
+      throw APIError.internal(`Failed to set daily task: ${error.message}`);
+    }
+
+    return { taskId: data };
+  }
+);
+
+/**
+ * Mark today's daily task as completed.
+ * POST /gaming-hub/daily-task/complete
+ */
+export const completeDailyTask = api(
+  { expose: true, method: "POST", path: "/gaming-hub/daily-task/complete" },
+  async (req: { userId: string }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("gaming_hub").rpc("complete_daily_task", {
+      p_clerk_id: req.userId,
+    });
+
+    if (error) {
+      console.error("completeDailyTask error:", error);
+      throw APIError.internal(`Failed to complete daily task: ${error.message}`);
+    }
+
+    return { success: !!data };
+  }
+);
+
+/**
+ * Search games via IGDB catalog.
+ * GET /gaming-hub/games/search
+ */
+export const searchCatalogGames = api(
+  { expose: true, method: "GET", path: "/gaming-hub/games/search" },
+  async (req: { title: string; limit?: number }): Promise<SearchGamesResponse> => {
+    if (!req.title?.trim()) {
+      return { games: [] };
+    }
+
+    try {
+      const games = await searchGames(req.title.trim(), req.limit ?? 10);
+      return { games };
+    } catch (err) {
+      console.error("searchCatalogGames error:", err);
+      throw APIError.internal("Oyun araması başarısız oldu");
+    }
+  }
+);
+
+/**
+ * Get a single game from IGDB by ID.
+ * GET /gaming-hub/games/:gameId
+ */
+export const getCatalogGame = api(
+  { expose: true, method: "GET", path: "/gaming-hub/games/:gameId" },
+  async (req: { gameId: string }): Promise<{ game: CatalogGame | null }> => {
+    try {
+      const game = await getGame(req.gameId);
+      return { game };
+    } catch (err) {
+      console.error("getCatalogGame error:", err);
+      throw APIError.internal("Oyun bilgisi alınamadı");
+    }
+  }
+);
+
+/**
+ * Discover co-op and popular games from IGDB.
+ * GET /gaming-hub/games/discover
+ */
+export const discoverGames = api(
+  { expose: true, method: "GET", path: "/gaming-hub/games/discover" },
+  async (req: { mode?: "coop" | "popular"; limit?: number }): Promise<DiscoverGamesResponse> => {
+    try {
+      const limit = req.limit ?? 20;
+      const games =
+        req.mode === "popular"
+          ? await discoverPopularGames(limit)
+          : await discoverCoopGames(limit);
+      return { games };
+    } catch (err) {
+      console.error("discoverGames error:", err);
+      throw APIError.internal("Oyun keşfi başarısız oldu");
+    }
   }
 );
