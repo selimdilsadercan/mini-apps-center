@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
-import { Barbell } from "@phosphor-icons/react";
+import { Barbell, Plus } from "@phosphor-icons/react";
 import GymShell from "./components/GymShell";
-import RoutineCard, { RoutineActions } from "./components/RoutineCard";
+import RoutineCard from "./components/RoutineCard";
 import CreateRoutineModal from "./components/CreateRoutineModal";
 import {
   getRoutinesAction,
@@ -14,11 +13,9 @@ import {
 } from "./actions";
 import type { Routine, ExerciseRef } from "./types";
 import { startGymSession } from "./types";
-import WeeklyPlanPicker from "./components/WeeklyPlanPicker";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function GymWorkoutPage() {
-  const router = useRouter();
   const { user, isLoaded } = useUser();
   const { confirm } = useConfirmDialog();
   const [routines, setRoutines] = useState<Routine[]>([]);
@@ -54,7 +51,7 @@ export default function GymWorkoutPage() {
 
   function handleStartRoutine(routine: Routine) {
     startGymSession(routine.name, routine.id, routine.exercises);
-    router.push("/apps/gym/session");
+    window.dispatchEvent(new Event("gym_session_started"));
   }
 
   async function handleCreate(name: string, exercises: ExerciseRef[]) {
@@ -104,30 +101,36 @@ export default function GymWorkoutPage() {
   return (
     <GymShell activeTab="workout">
       <div className="space-y-5">
-        <WeeklyPlanPicker userId={user.id} routines={routines} />
+        <button
+          onClick={() => setShowCreate(true)}
+          className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 hover:border-violet-300 hover:text-violet-600 py-3.5 text-sm font-bold text-gray-500 transition-all active:scale-[0.99] shadow-sm"
+        >
+          <Plus size={16} weight="bold" className="text-violet-500" />
+          Rutin Oluştur
+        </button>
 
-        <section className="space-y-3">
-          <RoutineActions onNewRoutine={() => setShowCreate(true)} />
+        {error && (
+          <p className="text-red-500 text-sm font-bold text-center">{error}</p>
+        )}
 
-          {error && (
-            <p className="text-red-500 text-sm font-bold text-center">{error}</p>
-          )}
-
-          {routines.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-              <p className="text-xs font-bold text-gray-400">Henüz rutin yok</p>
-            </div>
-          ) : (
-            routines.map((routine) => (
-              <RoutineCard
-                key={routine.id}
-                routine={routine}
-                onStart={() => handleStartRoutine(routine)}
-                onDelete={() => handleDelete(routine)}
-              />
-            ))
-          )}
-        </section>
+        {routines.length === 0 ? (
+          <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+            <p className="text-xs font-bold text-gray-400">Henüz rutin yok</p>
+          </div>
+        ) : (
+          routines.map((routine) => (
+            <RoutineCard
+              key={routine.id}
+              routine={routine}
+              onStart={() => handleStartRoutine(routine)}
+              onDelete={() => handleDelete(routine)}
+              onUpdated={(updated) =>
+                setRoutines((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
+              }
+              userId={user.id}
+            />
+          ))
+        )}
       </div>
 
       <CreateRoutineModal

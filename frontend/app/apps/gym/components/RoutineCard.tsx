@@ -1,36 +1,42 @@
 "use client";
-
 import { useState } from "react";
-import { DotsThree, Plus } from "@phosphor-icons/react";
+import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
+import { DotsThree, Plus, Barbell, PencilSimple } from "@phosphor-icons/react";
 import type { Routine } from "../types";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import EditRoutineModal from "./EditRoutineModal";
+import { showExerciseDetail, getExerciseBySlug } from "../exercises";
+import ExerciseThumbnail from "./ExerciseThumbnail";
 
 export default function RoutineCard({
   routine,
   onStart,
   onDelete,
+  onUpdated,
+  userId,
 }: {
   routine: Routine;
   onStart: () => void;
   onDelete: () => void;
+  onUpdated: (updated: Routine) => void;
+  userId: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const exerciseNames = routine.exercises.map((e) => e.name).join(", ");
+  const [showEdit, setShowEdit] = useState(false);
+  const { catalog } = useExerciseCatalog();
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-      <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-2">
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden hover:border-gray-300 transition-all duration-200">
+      <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-black text-gray-900 truncate">{routine.name}</h3>
-          {exerciseNames && (
-            <p className="text-[11px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">
-              {exerciseNames}
-            </p>
-          )}
+          <p className="text-[10px] text-gray-400 mt-0.5 font-bold uppercase tracking-wider">
+            {routine.exercises.length} Egzersiz
+          </p>
         </div>
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
@@ -51,14 +57,56 @@ export default function RoutineCard({
           </PopoverContent>
         </Popover>
       </div>
-      <div className="px-4 pb-4">
+
+      {/* Exercises Preview (Horizontal Thumbnails) */}
+      <div className="flex flex-wrap gap-2 px-4 pb-3">
+        {routine.exercises.map((ex, idx) => {
+          const item = getExerciseBySlug(catalog, ex.slug);
+          return (
+            <div
+              key={idx}
+              onClick={() => item && showExerciseDetail(item)}
+              className={`shrink-0 transition-transform active:scale-95 ${
+                item ? "cursor-pointer" : ""
+              }`}
+              title={item?.name || ex.name}
+            >
+              {item ? (
+                <ExerciseThumbnail exercise={item} size="sm" />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-[10px] text-gray-500 font-bold shrink-0">
+                  🏋️
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="px-4 pb-4 pt-1 flex gap-2">
+        <button
+          onClick={() => setShowEdit(true)}
+          className="flex-1 bg-gray-50 hover:bg-gray-100 active:scale-[0.98] text-gray-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-gray-200/60 flex items-center justify-center gap-1.5"
+        >
+          <PencilSimple size={16} weight="bold" />
+          Düzenle
+        </button>
         <button
           onClick={onStart}
-          className="w-full bg-violet-500 hover:bg-violet-600 text-white font-bold text-sm py-3 rounded-xl transition-all active:scale-[0.98]"
+          className="flex-1 bg-violet-50 hover:bg-violet-100 active:scale-[0.98] text-violet-700 font-bold text-xs py-2.5 rounded-xl transition-all border border-violet-100/60 flex items-center justify-center gap-1.5"
         >
-          Rutini Başlat
+          <Barbell size={16} weight="bold" />
+          Başlat
         </button>
       </div>
+
+      <EditRoutineModal
+        routine={routine}
+        open={showEdit}
+        onClose={() => setShowEdit(false)}
+        onUpdated={onUpdated}
+        userId={userId}
+      />
     </div>
   );
 }

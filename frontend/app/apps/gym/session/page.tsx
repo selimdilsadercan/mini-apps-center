@@ -159,7 +159,6 @@ function SessionContent() {
           </button>
           <h1 className="flex-1 text-center text-sm font-black text-gray-900">Antrenman Kaydet</h1>
           <div className="flex items-center gap-1.5">
-            <Timer size={18} className="text-violet-500" />
             <button
               onClick={handleFinish}
               disabled={saving}
@@ -282,20 +281,6 @@ function ExerciseBlock({
         </button>
       </div>
 
-      <div className="px-4 pb-2">
-        <input
-          type="text"
-          placeholder="Buraya not ekleyin..."
-          value={exercise.note ?? ""}
-          onChange={(e) => onChange({ ...exercise, note: e.target.value })}
-          className="w-full text-xs text-gray-400 bg-transparent border-none outline-none placeholder:text-gray-300"
-        />
-      </div>
-
-      <div className="px-4 pb-3 flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
-        <Timer size={12} className="text-violet-500" />
-        Dinlenme: KAPALI
-      </div>
 
       {/* Set table */}
       <div className="mx-4 mb-3 rounded-xl overflow-hidden border border-gray-100">
@@ -332,26 +317,28 @@ function ExerciseBlock({
               {usesWeight && (
                 <div className="px-1 py-1.5">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
                     placeholder="—"
                     value={set.weightKg ?? ""}
-                    onChange={(e) =>
-                      updateSet(setIdx, "weightKg", e.target.value ? Number(e.target.value) : null)
-                    }
+                    onChange={(e) => {
+                      const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
+                      updateSet(setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
+                    }}
                     className="w-full text-center text-xs font-bold bg-transparent border border-gray-200/60 rounded-lg py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-400 tabular-nums"
                   />
                 </div>
               )}
               <div className="px-1 py-1.5">
                 <input
-                  type="number"
+                  type="text"
                   inputMode="numeric"
                   placeholder="—"
                   value={set.reps ?? ""}
-                  onChange={(e) =>
-                    updateSet(setIdx, "reps", e.target.value ? Number(e.target.value) : null)
-                  }
+                  onChange={(e) => {
+                    const cleanVal = e.target.value.replace(/[^0-9]/g, "");
+                    updateSet(setIdx, "reps", cleanVal ? Number(cleanVal) : null);
+                  }}
                   className="w-full text-center text-xs font-bold bg-transparent border border-gray-200/60 rounded-lg py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-400 tabular-nums"
                 />
               </div>

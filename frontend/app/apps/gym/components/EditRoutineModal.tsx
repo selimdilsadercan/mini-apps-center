@@ -2,24 +2,39 @@
 
 import { useState } from "react";
 import { X, Plus, Trash } from "@phosphor-icons/react";
-import type { ExerciseRef, RoutineSet } from "../types";
+import type { Routine, ExerciseRef, RoutineSet } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "./ExercisePicker";
 import { getExerciseBySlug, resolveExerciseName, exerciseUsesWeight, showExerciseDetail } from "../exercises";
 import ExerciseThumbnail from "./ExerciseThumbnail";
+import { updateRoutineAction } from "../actions";
+import { toast } from "react-hot-toast";
 
-export default function CreateRoutineModal({
+export default function EditRoutineModal({
+  routine,
   open,
   onClose,
-  onCreate,
+  onUpdated,
+  userId,
 }: {
+  routine: Routine;
   open: boolean;
   onClose: () => void;
-  onCreate: (name: string, exercises: ExerciseRef[]) => void;
+  onUpdated: (updated: Routine) => void;
+  userId: string;
 }) {
   const { catalog, loading: catalogLoading } = useExerciseCatalog();
-  const [name, setName] = useState("");
-  const [exercises, setExercises] = useState<ExerciseRef[]>([]);
+  const [name, setName] = useState(routine.name);
+  const [exercises, setExercises] = useState<ExerciseRef[]>(
+    routine.exercises.map((ex) => ({
+      ...ex,
+      sets: ex.sets || [
+        { reps: null, weightKg: null },
+        { reps: null, weightKg: null },
+        { reps: null, weightKg: null },
+      ], // fallback to 3 sets if not present
+    }))
+  );
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -83,14 +98,24 @@ export default function CreateRoutineModal({
     );
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!name.trim() || exercises.length === 0) return;
     setSaving(true);
-    await onCreate(name.trim(), exercises);
+
+    const result = await updateRoutineAction(userId, {
+      routineId: routine.id,
+      name: name.trim(),
+      exercises,
+    });
+
+    if (result.data) {
+      toast.success("Rutin başarıyla güncellendi!");
+      onUpdated(result.data);
+      onClose();
+    } else {
+      toast.error(`Güncelleme hatası: ${result.error}`);
+    }
     setSaving(false);
-    setName("");
-    setExercises([]);
-    onClose();
   };
 
   return (
@@ -99,7 +124,7 @@ export default function CreateRoutineModal({
       <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl sm:rounded-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
-          <h2 className="text-sm font-black uppercase tracking-wide text-gray-900">Rutin Oluştur</h2>
+          <h2 className="text-sm font-black uppercase tracking-wide text-gray-900">Rutini Düzenle</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500 hover:text-gray-700 transition-colors"
@@ -248,11 +273,11 @@ export default function CreateRoutineModal({
         {/* Footer */}
         <div className="px-5 py-4 border-t border-gray-200/60 bg-white flex gap-3">
           <button
-            onClick={handleCreate}
+            onClick={handleSave}
             disabled={saving || !name.trim() || exercises.length === 0}
             className="flex-1 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20 disabled:opacity-50"
           >
-            Rutini Oluştur
+            {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
           </button>
         </div>
       </div>

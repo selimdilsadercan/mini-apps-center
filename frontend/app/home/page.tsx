@@ -1757,7 +1757,12 @@ function HomeSummaryCards({
   ];
 
   const activeWidgets = widgets.filter((widget) => widget.loading || widget.hasContent);
-  const emptyWidgets = widgets.filter((widget) => !widget.loading && !widget.hasContent);
+  const emptyWidgets = widgets.filter((widget) => {
+    if (widget.key === "suggest" || widget.key === "activities") {
+      return false;
+    }
+    return !widget.loading && !widget.hasContent;
+  });
 
   return (
     <>

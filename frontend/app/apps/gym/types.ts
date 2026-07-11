@@ -1,6 +1,12 @@
+export interface RoutineSet {
+  reps: number | null;
+  weightKg: number | null;
+}
+
 export interface ExerciseRef {
   slug: string;
   name: string;
+  sets?: RoutineSet[];
 }
 
 export interface WorkoutSet {
@@ -86,10 +92,13 @@ export function createEmptySet(): WorkoutSet {
   return { reps: null, weightKg: null, completed: false };
 }
 
-export function createExerciseFromRef(ref: ExerciseRef, defaultSets = 3): WorkoutExercise {
+export function createExerciseFromRef(ref: ExerciseRef): WorkoutExercise {
+  const sets = ref.sets && ref.sets.length > 0
+    ? ref.sets.map((s) => ({ reps: s.reps, weightKg: s.weightKg, completed: false }))
+    : Array.from({ length: 3 }, () => createEmptySet());
   return {
     slug: ref.slug,
     name: ref.name,
-    sets: Array.from({ length: defaultSets }, () => createEmptySet()),
+    sets,
   };
 }

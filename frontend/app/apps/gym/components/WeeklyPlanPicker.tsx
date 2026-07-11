@@ -80,46 +80,52 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
       </div>
 
       {loading ? (
-        <div className="px-4 py-4 space-y-2">
+        <div className="p-4 flex gap-2 overflow-x-auto">
           {WEEKDAY_LABELS.map((label) => (
-            <div key={label} className="h-10 bg-gray-50 rounded-xl animate-pulse" />
+            <div key={label} className="w-[85px] h-[72px] bg-gray-50 rounded-xl animate-pulse shrink-0" />
           ))}
         </div>
       ) : (
-        <div className="divide-y divide-gray-50">
-          {planDays.map((day) => {
-            const label = WEEKDAY_LABELS[day.dayOfWeek - 1];
-            const isToday = day.dayOfWeek === today;
-            return (
-              <div
-                key={day.dayOfWeek}
-                className={`flex items-center gap-3 px-4 py-2.5 ${isToday ? "bg-violet-50/40" : ""}`}
-              >
-                <span
-                  className={`w-9 text-[10px] font-black uppercase tracking-wider shrink-0 ${
-                    isToday ? "text-violet-600" : "text-gray-400"
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 p-4 min-w-[680px]">
+            {planDays.map((day) => {
+              const label = WEEKDAY_LABELS[day.dayOfWeek - 1];
+              const isToday = day.dayOfWeek === today;
+              return (
+                <div
+                  key={day.dayOfWeek}
+                  className={`flex-1 min-w-[85px] flex flex-col items-center justify-between p-2.5 rounded-xl border transition-all ${
+                    isToday
+                      ? "bg-violet-50/50 border-violet-200 shadow-sm shadow-violet-500/5"
+                      : "bg-gray-50/30 border-gray-100 hover:border-gray-200"
                   }`}
                 >
-                  {label}
-                </span>
-                <select
-                  value={day.routineId ?? ""}
-                  onChange={(event) =>
-                    handleChange(day.dayOfWeek, event.target.value || null)
-                  }
-                  disabled={savingDay === day.dayOfWeek}
-                  className="flex-1 min-w-0 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-[11px] font-bold text-gray-900 outline-none focus:border-violet-300 disabled:opacity-50"
-                >
-                  <option value="">Dinlenme</option>
-                  {routines.map((routine) => (
-                    <option key={routine.id} value={routine.id}>
-                      {routine.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            );
-          })}
+                  <span
+                    className={`text-[9px] font-black uppercase tracking-wider mb-2 shrink-0 ${
+                      isToday ? "text-violet-600" : "text-gray-400"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                  <select
+                    value={day.routineId ?? ""}
+                    onChange={(event) =>
+                      handleChange(day.dayOfWeek, event.target.value || null)
+                    }
+                    disabled={savingDay === day.dayOfWeek}
+                    className="w-full text-center bg-white border border-gray-200/80 rounded-lg py-1 px-1.5 text-[10px] font-bold text-gray-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-500/10 disabled:opacity-50 cursor-pointer transition-all"
+                  >
+                    <option value="">Dinlenme</option>
+                    {routines.map((routine) => (
+                      <option key={routine.id} value={routine.id}>
+                        {routine.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>

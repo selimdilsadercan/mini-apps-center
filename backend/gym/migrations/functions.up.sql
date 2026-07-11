@@ -8,6 +8,9 @@
 -- 7. gym.get_stats
 -- 8. gym.get_weekly_plan
 -- 9. gym.set_weekly_plan_day
+-- 10. gym.update_workout
+-- 11. gym.delete_workout
+-- 12. gym.update_routine
 
 -- 1. Get Routines
 DROP FUNCTION IF EXISTS gym.get_routines(TEXT);
@@ -257,5 +260,69 @@ BEGIN
         updated_at = NOW();
 
     RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 10. Update Workout
+DROP FUNCTION IF EXISTS gym.update_workout(TEXT, UUID, TEXT, JSONB, INTEGER, NUMERIC);
+CREATE OR REPLACE FUNCTION gym.update_workout(
+    p_clerk_id TEXT,
+    p_workout_id UUID,
+    p_name TEXT,
+    p_exercises JSONB,
+    p_duration_seconds INTEGER,
+    p_total_volume_kg NUMERIC
+)
+RETURNS gym.workouts AS $$
+DECLARE
+    v_user_id UUID := public.get_internal_user_id(p_clerk_id);
+    v_result gym.workouts;
+BEGIN
+    UPDATE gym.workouts
+    SET name = p_name,
+        exercises = p_exercises,
+        duration_seconds = p_duration_seconds,
+        total_volume_kg = p_total_volume_kg
+    WHERE id = p_workout_id AND user_id = v_user_id
+    RETURNING * INTO v_result;
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 11. Delete Workout
+DROP FUNCTION IF EXISTS gym.delete_workout(TEXT, UUID);
+CREATE OR REPLACE FUNCTION gym.delete_workout(
+    p_clerk_id TEXT,
+    p_workout_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_user_id UUID := public.get_internal_user_id(p_clerk_id);
+BEGIN
+    DELETE FROM gym.workouts
+    WHERE id = p_workout_id AND user_id = v_user_id;
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 12. Update Routine
+DROP FUNCTION IF EXISTS gym.update_routine(TEXT, UUID, TEXT, JSONB);
+CREATE OR REPLACE FUNCTION gym.update_routine(
+    p_clerk_id TEXT,
+    p_routine_id UUID,
+    p_name TEXT,
+    p_exercises JSONB
+)
+RETURNS gym.routines AS $$
+DECLARE
+    v_user_id UUID := public.get_internal_user_id(p_clerk_id);
+    v_result gym.routines;
+BEGIN
+    UPDATE gym.routines
+    SET name = p_name,
+        exercises = p_exercises
+    WHERE id = p_routine_id AND user_id = v_user_id
+    RETURNING * INTO v_result;
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

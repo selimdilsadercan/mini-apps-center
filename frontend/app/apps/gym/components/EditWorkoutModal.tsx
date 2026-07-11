@@ -1,41 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Trash } from "@phosphor-icons/react";
-import type { ExerciseRef, RoutineSet } from "../types";
+import { X, Plus, Check, Trash, Barbell } from "@phosphor-icons/react";
+import type { Workout, WorkoutExercise, WorkoutSet, ExerciseRef } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
-import ExercisePicker from "./ExercisePicker";
-import { getExerciseBySlug, resolveExerciseName, exerciseUsesWeight, showExerciseDetail } from "../exercises";
+import {
+  calcVolume,
+  exerciseUsesWeight,
+  getExerciseBySlug,
+  resolveExerciseName,
+  showExerciseDetail,
+} from "../exercises";
 import ExerciseThumbnail from "./ExerciseThumbnail";
+import ExercisePicker from "./ExercisePicker";
+import { updateWorkoutAction, deleteWorkoutAction } from "../actions";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "react-hot-toast";
 
-export default function CreateRoutineModal({
+export default function EditWorkoutModal({
+  workout,
   open,
   onClose,
-  onCreate,
+  onUpdated,
+  userId,
 }: {
+  workout: Workout;
   open: boolean;
   onClose: () => void;
-  onCreate: (name: string, exercises: ExerciseRef[]) => void;
+  onUpdated: () => void;
+  userId: string;
 }) {
+  const { confirm } = useConfirmDialog();
   const { catalog, loading: catalogLoading } = useExerciseCatalog();
-  const [name, setName] = useState("");
-  const [exercises, setExercises] = useState<ExerciseRef[]>([]);
+  const [name, setName] = useState(workout.name);
+  const [minutes, setMinutes] = useState(Math.round(workout.durationSeconds / 60).toString());
+  const [exercises, setExercises] = useState<WorkoutExercise[]>(workout.exercises);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [saving, setSaving] = useState(false);
 
   if (!open) return null;
 
-  const handleAddExercise = (ref: { slug: string; name: string }) => {
+  const handleAddExercise = (ref: ExerciseRef) => {
     setExercises((prev) => [
       ...prev,
       {
         slug: ref.slug,
         name: ref.name,
-        sets: [
-          { reps: null, weightKg: null },
-          { reps: null, weightKg: null },
-          { reps: null, weightKg: null },
-        ], // default to 3 empty sets
+        sets: [{ reps: null, weightKg: null, completed: true }],
       },
     ]);
     setShowAddExercise(false);
@@ -45,52 +56,93 @@ export default function CreateRoutineModal({
     setExercises((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleUpdateSetField = (
+  const handleUpdateSet = (
     exIdx: number,
     setIdx: number,
-    field: keyof RoutineSet,
-    value: number | null
+    field: keyof WorkoutSet,
+    value: number | boolean | null
   ) => {
     setExercises((prev) =>
-      prev.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        const currentSets = ex.sets || [];
-        const updatedSets = currentSets.map((s, j) =>
-          j === setIdx ? { ...s, [field]: value } : s
-        );
-        return { ...ex, sets: updatedSets };
-      })
+      prev.map((ex, i) =>
+        i === exIdx
+          ? {
+              ...ex,
+              sets: ex.sets.map((s, j) => (j === setIdx ? { ...s, [field]: value } : s)),
+            }
+          : ex
+      )
     );
   };
 
   const handleAddSet = (exIdx: number) => {
     setExercises((prev) =>
-      prev.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        const currentSets = ex.sets || [];
-        return { ...ex, sets: [...currentSets, { reps: null, weightKg: null }] };
-      })
+      prev.map((ex, i) =>
+        i === exIdx
+          ? {
+              ...ex,
+              sets: [...ex.sets, { reps: null, weightKg: null, completed: true }],
+            }
+          : ex
+      )
     );
   };
 
   const handleRemoveSet = (exIdx: number, setIdx: number) => {
     setExercises((prev) =>
-      prev.map((ex, i) => {
-        if (i !== exIdx) return ex;
-        const currentSets = ex.sets || [];
-        return { ...ex, sets: currentSets.filter((_, j) => j !== setIdx) };
-      })
+      prev.map((ex, i) =>
+        i === exIdx
+          ? {
+              ...ex,
+              sets: ex.sets.filter((_, j) => j !== setIdx),
+            }
+          : ex
+      )
     );
   };
 
-  const handleCreate = async () => {
-    if (!name.trim() || exercises.length === 0) return;
+  const handleSave = async () => {
+    if (!name.trim()) return;
     setSaving(true);
-    await onCreate(name.trim(), exercises);
-    setSaving(false);
-    setName("");
-    setExercises([]);
-    onClose();
+    const durationSeconds = Number(minutes.replace(/[^0-9]/g, "")) * 60;
+    const volume = calcVolume(exercises);
+
+    const result = await updateWorkoutAction(userId, {
+      workoutId: workout.id,
+      name: name.trim(),
+      exercises,
+      durationSeconds,
+      totalVolumeKg: volume,
+    });
+
+    if (result.data) {
+      toast.success("Antrenman başarıyla güncellendi!");
+      onUpdated();
+      onClose();
+    } else {
+      toast.error(`Güncelleme hatası: ${result.error}`);
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: "Antrenmanı sil?",
+      description: "Bu antrenman kalıcı olarak geçmişinizden silinecektir.",
+      confirmText: "Sil",
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    setSaving(true);
+    const result = await deleteWorkoutAction(userId, workout.id);
+    if (result.data) {
+      toast.success("Antrenman geçmişten silindi!");
+      onUpdated();
+      onClose();
+    } else {
+      toast.error(`Silme hatası: ${result.error}`);
+      setSaving(false);
+    }
   };
 
   return (
@@ -99,28 +151,54 @@ export default function CreateRoutineModal({
       <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl sm:rounded-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
-          <h2 className="text-sm font-black uppercase tracking-wide text-gray-900">Rutin Oluştur</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <X size={16} weight="bold" />
-          </button>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-wide text-gray-900">Antrenmanı Düzenle</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDelete}
+              disabled={saving}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-500 hover:bg-red-100 transition-colors"
+              title="Antrenmanı Sil"
+            >
+              <Trash size={16} weight="bold" />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X size={16} weight="bold" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          <div>
-            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
-              Rutin Adı
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="ör. Push Day"
-              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
-            />
+          {/* General Fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
+                Antrenman Adı
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
+                Süre (Dakika)
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value.replace(/[^0-9]/g, ""))}
+                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              />
+            </div>
           </div>
 
           {/* Exercises */}
@@ -129,23 +207,17 @@ export default function CreateRoutineModal({
             {exercises.map((ex, exIdx) => {
               const catalogItem = getExerciseBySlug(catalog, ex.slug);
               const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
-              const sets = ex.sets || [];
               return (
                 <div key={exIdx} className="bg-white rounded-2xl border border-gray-200/60 p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      onClick={() => catalogItem && showExerciseDetail(catalogItem)}
-                      className="flex-1 flex items-center gap-3 cursor-pointer group min-w-0"
-                    >
-                      {catalogItem ? (
-                        <ExerciseThumbnail exercise={catalogItem} size="sm" />
-                      ) : (
-                        <span className="text-lg">🏋️</span>
-                      )}
-                      <h4 className="flex-1 text-xs font-black text-violet-600 truncate group-hover:text-violet-700 transition-colors">
-                        {resolveExerciseName(catalog, ex.slug, ex.name)}
-                      </h4>
-                    </div>
+                    {catalogItem ? (
+                      <ExerciseThumbnail exercise={catalogItem} size="sm" />
+                    ) : (
+                      <span className="text-lg">🏋️</span>
+                    )}
+                    <h4 className="flex-1 text-xs font-black text-violet-600 truncate">
+                      {resolveExerciseName(catalog, ex.slug, ex.name)}
+                    </h4>
                     <button
                       onClick={() => handleRemoveExercise(exIdx)}
                       className="text-red-500 hover:text-red-700 transition-colors p-1"
@@ -170,7 +242,7 @@ export default function CreateRoutineModal({
                       <div />
                     </div>
 
-                    {sets.map((set, setIdx) => (
+                    {ex.sets.map((set, setIdx) => (
                       <div
                         key={setIdx}
                         className={`grid ${
@@ -192,7 +264,7 @@ export default function CreateRoutineModal({
                               value={set.weightKg ?? ""}
                               onChange={(e) => {
                                 const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
-                                handleUpdateSetField(exIdx, setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
+                                handleUpdateSet(exIdx, setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
                               }}
                               className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
                             />
@@ -206,16 +278,15 @@ export default function CreateRoutineModal({
                             value={set.reps ?? ""}
                             onChange={(e) => {
                               const cleanVal = e.target.value.replace(/[^0-9]/g, "");
-                              handleUpdateSetField(exIdx, setIdx, "reps", cleanVal ? Number(cleanVal) : null);
+                              handleUpdateSet(exIdx, setIdx, "reps", cleanVal ? Number(cleanVal) : null);
                             }}
                             className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
                           />
                         </div>
                         <div className="flex justify-center py-1">
                           <button
-                            disabled={sets.length <= 1}
                             onClick={() => handleRemoveSet(exIdx, setIdx)}
-                            className="w-7 h-7 text-gray-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors disabled:opacity-30"
+                            className="w-7 h-7 text-gray-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors"
                           >
                             <Trash size={14} weight="bold" />
                           </button>
@@ -237,7 +308,7 @@ export default function CreateRoutineModal({
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 py-3.5 text-xs font-bold text-gray-500 hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 py-3 text-xs font-bold text-gray-500 hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
             >
               <Plus size={14} weight="bold" />
               Egzersiz Ekle
@@ -248,11 +319,11 @@ export default function CreateRoutineModal({
         {/* Footer */}
         <div className="px-5 py-4 border-t border-gray-200/60 bg-white flex gap-3">
           <button
-            onClick={handleCreate}
-            disabled={saving || !name.trim() || exercises.length === 0}
+            onClick={handleSave}
+            disabled={saving || !name.trim()}
             className="flex-1 bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20 disabled:opacity-50"
           >
-            Rutini Oluştur
+            Değişiklikleri Kaydet
           </button>
         </div>
       </div>
@@ -260,7 +331,7 @@ export default function CreateRoutineModal({
       {showAddExercise && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddExercise(false)} />
-          <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
+          <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
               <h2 className="text-sm font-black uppercase tracking-wide">Egzersiz Ekle</h2>
               <button

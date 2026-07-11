@@ -9,9 +9,15 @@ const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
 
+export interface RoutineSet {
+  reps: number | null;
+  weightKg: number | null;
+}
+
 export interface ExerciseRef {
   slug: string;
   name: string;
+  sets?: RoutineSet[];
 }
 
 export interface WorkoutSet {
@@ -329,5 +335,80 @@ export const getTodayPlan = api(
         createdAt: "",
       },
     };
+  }
+);
+
+export const updateWorkout = api(
+  { expose: true, method: "POST", path: "/gym/workout/update" },
+  async (req: {
+    userId: string;
+    workoutId: string;
+    name: string;
+    exercises: WorkoutExercise[];
+    durationSeconds: number;
+    totalVolumeKg: number;
+  }): Promise<{ workout: Workout }> => {
+    const { data, error } = await supabase.schema("gym").rpc("update_workout", {
+      p_clerk_id: req.userId,
+      p_workout_id: req.workoutId,
+      p_name: req.name,
+      p_exercises: req.exercises,
+      p_duration_seconds: req.durationSeconds,
+      p_total_volume_kg: req.totalVolumeKg,
+    });
+
+    if (error) {
+      console.error("updateWorkout error:", error);
+      throw APIError.internal("Antrenman güncellenemedi");
+    }
+
+    return { workout: mapWorkout(data as Record<string, unknown>) };
+  }
+);
+
+export const deleteWorkout = api(
+  { expose: true, method: "DELETE", path: "/gym/workout/:userId/:workoutId" },
+  async ({
+    userId,
+    workoutId,
+  }: {
+    userId: string;
+    workoutId: string;
+  }): Promise<{ success: boolean }> => {
+    const { data, error } = await supabase.schema("gym").rpc("delete_workout", {
+      p_clerk_id: userId,
+      p_workout_id: workoutId,
+    });
+
+    if (error) {
+      console.error("deleteWorkout error:", error);
+      throw APIError.internal("Antrenman silinemedi");
+    }
+
+    return { success: data as boolean };
+  }
+);
+
+export const updateRoutine = api(
+  { expose: true, method: "POST", path: "/gym/routine/update" },
+  async (req: {
+    userId: string;
+    routineId: string;
+    name: string;
+    exercises: ExerciseRef[];
+  }): Promise<{ routine: Routine }> => {
+    const { data, error } = await supabase.schema("gym").rpc("update_routine", {
+      p_clerk_id: req.userId,
+      p_routine_id: req.routineId,
+      p_name: req.name,
+      p_exercises: req.exercises,
+    });
+
+    if (error) {
+      console.error("updateRoutine error:", error);
+      throw APIError.internal("Rutin güncellenemedi");
+    }
+
+    return { routine: mapRoutine(data as Record<string, unknown>) };
   }
 );

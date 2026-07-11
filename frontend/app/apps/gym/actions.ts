@@ -90,7 +90,7 @@ export async function getWorkoutsAction(
 ): Promise<ActionResponse<Workout[]>> {
   try {
     const client = createBrowserClient();
-    const response = await gymClient(client).getWorkouts(clerkId);
+    const response = await gymClient(client).getWorkouts(clerkId, {});
     return { data: response.workouts ?? [], error: null };
   } catch (error) {
     if (isUnauthenticatedError(error)) {
@@ -195,6 +195,61 @@ export async function getTodayPlanAction(
     if (isUnauthenticatedError(error)) {
       return { data: null, error: "UNAUTHENTICATED" };
     }
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function updateWorkoutAction(
+  clerkId: string,
+  payload: {
+    workoutId: string;
+    name: string;
+    exercises: WorkoutExercise[];
+    durationSeconds: number;
+    totalVolumeKg: number;
+  }
+): Promise<ActionResponse<Workout>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).updateWorkout({
+      userId: clerkId,
+      ...payload,
+    });
+    return { data: response.workout, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function deleteWorkoutAction(
+  clerkId: string,
+  workoutId: string
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).deleteWorkout(clerkId, workoutId);
+    return { data: response.success, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function updateRoutineAction(
+  clerkId: string,
+  payload: {
+    routineId: string;
+    name: string;
+    exercises: ExerciseRef[];
+  }
+): Promise<ActionResponse<Routine>> {
+  try {
+    const client = createBrowserClient();
+    const response = await gymClient(client).updateRoutine({
+      userId: clerkId,
+      ...payload,
+    });
+    return { data: response.routine, error: null };
+  } catch (error) {
     return { data: null, error: getErrorMessage(error) };
   }
 }

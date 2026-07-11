@@ -3788,6 +3788,7 @@ export namespace gym {
     export interface ExerciseRef {
         slug: string
         name: string
+        sets?: RoutineSet[]
     }
 
     export interface GymStats {
@@ -3800,6 +3801,11 @@ export namespace gym {
         name: string
         exercises: ExerciseRef[]
         createdAt: string
+    }
+
+    export interface RoutineSet {
+        reps: number | null
+        weightKg: number | null
     }
 
     export interface TodayPlan {
@@ -3845,6 +3851,7 @@ export namespace gym {
             this.baseClient = baseClient
             this.createRoutine = this.createRoutine.bind(this)
             this.deleteRoutine = this.deleteRoutine.bind(this)
+            this.deleteWorkout = this.deleteWorkout.bind(this)
             this.getPreviousSets = this.getPreviousSets.bind(this)
             this.getRoutines = this.getRoutines.bind(this)
             this.getStats = this.getStats.bind(this)
@@ -3853,6 +3860,8 @@ export namespace gym {
             this.getWorkouts = this.getWorkouts.bind(this)
             this.saveWorkout = this.saveWorkout.bind(this)
             this.setWeeklyPlanDay = this.setWeeklyPlanDay.bind(this)
+            this.updateRoutine = this.updateRoutine.bind(this)
+            this.updateWorkout = this.updateWorkout.bind(this)
         }
 
         public async createRoutine(params: {
@@ -3874,6 +3883,16 @@ export namespace gym {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("DELETE", `/gym/routine/${encodeURIComponent(userId)}/${encodeURIComponent(routineId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async deleteWorkout(userId: string, workoutId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/gym/workout/${encodeURIComponent(userId)}/${encodeURIComponent(workoutId)}`)
             return await resp.json() as {
     success: boolean
 }
@@ -3967,6 +3986,38 @@ export namespace gym {
             const resp = await this.baseClient.callTypedAPI("PUT", `/gym/weekly-plan/${encodeURIComponent(userId)}`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        public async updateRoutine(params: {
+    userId: string
+    routineId: string
+    name: string
+    exercises: ExerciseRef[]
+}): Promise<{
+    routine: Routine
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gym/routine/update`, JSON.stringify(params))
+            return await resp.json() as {
+    routine: Routine
+}
+        }
+
+        public async updateWorkout(params: {
+    userId: string
+    workoutId: string
+    name: string
+    exercises: WorkoutExercise[]
+    durationSeconds: number
+    totalVolumeKg: number
+}): Promise<{
+    workout: Workout
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gym/workout/update`, JSON.stringify(params))
+            return await resp.json() as {
+    workout: Workout
 }
         }
     }

@@ -95,7 +95,70 @@ export function getExerciseBySlug(
   catalog: ExerciseCatalogItem[],
   slug: string
 ): ExerciseCatalogItem | undefined {
-  return catalog.find((e) => e.slug === slug);
+  if (!slug) return undefined;
+  
+  // 1. Direct UUID slug match
+  const directMatch = catalog.find((e) => e.slug === slug);
+  if (directMatch) return directMatch;
+
+  // 2. Exact slugified nameEn or name match
+  const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const exactSlugMatch = catalog.find((e) => {
+    const slugEn = e.nameEn?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const slugTr = e.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    return slugEn === cleanSlug || slugTr === cleanSlug;
+  });
+  if (exactSlugMatch) return exactSlugMatch;
+
+  // 3. Fuzzy search: token similarity scoring
+  const normalize = (str: string) => {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove diacritics
+      .replace(/ı/g, "i")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ş/g, "s")
+      .replace(/ö/g, "o")
+      .replace(/ç/g, "c")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .split(/[\s-]+/)
+      .filter(Boolean);
+  };
+
+  const queryTokens = normalize(slug);
+  if (queryTokens.length === 0) return undefined;
+
+  let bestMatch: ExerciseCatalogItem | undefined = undefined;
+  let bestScore = 0;
+
+  for (const item of catalog) {
+    const itemTokens = [
+      ...normalize(item.name),
+      ...normalize(item.nameEn ?? ""),
+    ];
+
+    let matches = 0;
+    for (const token of queryTokens) {
+      if (itemTokens.includes(token)) {
+        matches++;
+      }
+    }
+
+    const score = matches / queryTokens.length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = item;
+    }
+  }
+
+  // If match quality is reasonable (at least 40% of the query tokens matched), return it
+  if (bestScore >= 0.4) {
+    return bestMatch;
+  }
+
+  return undefined;
 }
 
 const NO_WEIGHT_EQUIPMENT = new Set(["Body Only"]);
@@ -132,4 +195,10 @@ export function formatDuration(seconds: number): string {
   if (h > 0) return `${h}s ${m}dk`;
   if (m > 0) return `${m}dk ${s > 0 ? `${s}s` : ""}`.trim();
   return `${s}s`;
+}
+
+export function showExerciseDetail(exercise: ExerciseCatalogItem) {
+  if (typeof window !== "undefined") {
+    window.location.href = `/apps/gym/exercise/${exercise.slug}`;
+  }
 }
