@@ -103,25 +103,23 @@ function GameSessionContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col max-w-2xl mx-auto bg-[#FAF9F7]">
+    <div className="min-h-screen bg-[#FAF9F7]">
       {/* Fixed Header */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="px-4 py-4 flex items-center justify-between h-20">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200/60 text-gray-500 hover:text-gray-900 shadow-sm transition-all active:scale-95"
-            >
-              <ArrowLeft size={20} weight="bold" />
-            </button>
-            <h1 className="text-xl font-black text-gray-900 tracking-tight uppercase">{gameName}</h1>
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{getTimeAgo()}</span>
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <div className="px-4 py-3 max-w-xl mx-auto flex items-center gap-2">
+          <button
+            onClick={handleBack}
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+          >
+            <ArrowLeft size={14} weight="bold" className="text-blue-500" />
+          </button>
+          <h1 className="flex-1 min-w-0 text-base font-black text-gray-900 tracking-tight uppercase leading-none truncate">{gameName}</h1>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0">{getTimeAgo()}</span>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 pt-24 pb-6 overflow-y-auto">
+      <div className="pt-14 pb-6 max-w-xl mx-auto">
         {isWyrmspanGame ? (
           <WyrmspanHorizontalScorepad gameSaveId={gameSaveId as any} />
         ) : isCatanGame ? (

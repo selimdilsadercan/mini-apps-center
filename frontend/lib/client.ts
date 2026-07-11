@@ -59,7 +59,6 @@ export default class Client {
     public readonly icon_set_guide: icon_set_guide.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
-    public readonly kiler: kiler.ServiceClient
     public readonly kim_gelir: kim_gelir.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
@@ -123,7 +122,6 @@ export default class Client {
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
-        this.kiler = new kiler.ServiceClient(base)
         this.kim_gelir = new kim_gelir.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
@@ -4655,94 +4653,6 @@ export namespace itu_yemekhane {
     sent: number
     skipped: number
 }
-        }
-    }
-}
-
-export namespace kiler {
-    export interface AddItemRequest {
-        userId: string
-        name: string
-        amount: number
-        unit: string
-        storageType: StorageType
-        purchaseDate: string
-        expiryDate?: string
-    }
-
-    export interface AddItemResponse {
-        item: PantryItem | null
-    }
-
-    export interface DeleteItemRequest {
-        userId: string
-    }
-
-    export interface DeleteItemResponse {
-        success: boolean
-    }
-
-    export interface GetItemsResponse {
-        items: PantryItem[]
-    }
-
-    export interface PantryItem {
-        id: string
-        "user_id": string
-        name: string
-        amount: number
-        unit: string
-        "storage_type": StorageType
-        "purchase_date": string
-        "expiry_date"?: string | null
-        "created_at": string
-    }
-
-    export type StorageType = "fridge" | "freezer" | "pantry"
-
-    export class ServiceClient {
-        private baseClient: BaseClient
-
-        constructor(baseClient: BaseClient) {
-            this.baseClient = baseClient
-            this.addItem = this.addItem.bind(this)
-            this.deleteItem = this.deleteItem.bind(this)
-            this.getItems = this.getItems.bind(this)
-        }
-
-        /**
-         * Kilere yeni ürün ekler
-         * POST /kiler/add
-         */
-        public async addItem(params: AddItemRequest): Promise<AddItemResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/kiler/add`, JSON.stringify(params))
-            return await resp.json() as AddItemResponse
-        }
-
-        /**
-         * Kilerinden ürün siler
-         * DELETE /kiler/item/:id
-         */
-        public async deleteItem(id: string, params: DeleteItemRequest): Promise<DeleteItemResponse> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                userId: params.userId,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("DELETE", `/kiler/item/${encodeURIComponent(id)}`, undefined, {query})
-            return await resp.json() as DeleteItemResponse
-        }
-
-        /**
-         * Kullanıcının kilerindeki tüm ürünleri getirir
-         * GET /kiler/items/:userId
-         */
-        public async getItems(userId: string): Promise<GetItemsResponse> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/kiler/items/${encodeURIComponent(userId)}`)
-            return await resp.json() as GetItemsResponse
         }
     }
 }

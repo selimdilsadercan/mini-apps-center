@@ -145,19 +145,24 @@ export default function CampusEventsPage() {
 
   return (
     <>
-    <EventsShell activeTab={activeTab} onTabChange={setActiveTab} onAdd={handleAdd}>
+    <EventsShell
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onAdd={handleAdd}
+      searchBar={
+        <div className="relative">
+          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Etkinlik, topluluk veya mekan ara…"
+            className="w-full bg-white border border-gray-200/60 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-sky-400 outline-none transition-all placeholder:text-gray-400 text-gray-900 shadow-sm"
+          />
+        </div>
+      }
+    >
       <Toaster position="top-center" />
-
-      <div className="relative mb-4">
-        <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Etkinlik, topluluk veya mekan ara…"
-          className="w-full bg-white border border-gray-200/60 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-sky-400 outline-none transition-all placeholder:text-gray-400 text-gray-900"
-        />
-      </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">

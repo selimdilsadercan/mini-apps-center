@@ -1,7 +1,7 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { CaretLeft, Megaphone, Plus } from "@phosphor-icons/react";
+import { CaretLeft, Megaphone, Plus, Calendar, Clock } from "@phosphor-icons/react";
 
 export type EventsTab = "upcoming" | "past";
 
@@ -11,23 +11,25 @@ export default function EventsShell({
   activeTab,
   onTabChange,
   onAdd,
+  searchBar,
   children,
 }: {
   activeTab: EventsTab;
   onTabChange: (tab: EventsTab) => void;
   onAdd?: () => void;
+  searchBar?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const tabClass = (active: boolean) =>
-    `flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
+    `inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] outline-none ${
       active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
     }`;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-sky-100">
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
-        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
-          <div className="flex items-center gap-2 mb-2.5">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => {
@@ -56,14 +58,20 @@ export default function EventsShell({
             )}
           </div>
 
-          <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
-            <button type="button" onClick={() => onTabChange("upcoming")} className={tabClass(activeTab === "upcoming")}>
-              <span className="normal-case">Yaklaşan</span>
-            </button>
-            <button type="button" onClick={() => onTabChange("past")} className={tabClass(activeTab === "past")}>
-              <span className="normal-case">Geçmiş</span>
-            </button>
+          <div className="flex">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+              <button type="button" onClick={() => onTabChange("upcoming")} className={tabClass(activeTab === "upcoming")}>
+                <Calendar size={13} weight={activeTab === "upcoming" ? "fill" : "bold"} className={activeTab === "upcoming" ? "text-sky-500" : "text-gray-400"} />
+                <span className="normal-case">Yaklaşan</span>
+              </button>
+              <button type="button" onClick={() => onTabChange("past")} className={tabClass(activeTab === "past")}>
+                <Clock size={13} weight={activeTab === "past" ? "fill" : "bold"} className={activeTab === "past" ? "text-sky-500" : "text-gray-400"} />
+                <span className="normal-case">Geçmiş</span>
+              </button>
+            </div>
           </div>
+
+          {searchBar}
         </div>
       </header>
 

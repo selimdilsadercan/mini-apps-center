@@ -140,24 +140,30 @@ export default function ConcertListPage() {
         <div className="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] rounded-full blur-[100px] opacity-10 bg-violet-100" />
       </div>
 
-      <main className="flex-1 px-4 py-8 pb-32 max-w-xl mx-auto w-full relative z-10">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => window.location.href = getAppRootUrl()}
-            className="group flex items-center gap-2 text-gray-500 text-xs font-bold hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm active:scale-95"
-          >
-            <CaretLeft size={14} weight="bold" className="text-pink-500 shrink-0" />
-            <span>Katalog</span>
-          </button>
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <div className="px-4 py-3 max-w-xl mx-auto w-full flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={() => window.location.href = getAppRootUrl()}
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            >
+              <CaretLeft size={14} weight="bold" className="text-pink-500" />
+            </button>
+
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+              <MusicNotes size={18} weight="fill" className="text-pink-500 shrink-0" />
+              <span className="truncate">My Concert List</span>
+            </h1>
+          </div>
 
           {user && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setShowImportDrawer(true)}
-                className="bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-gray-200 shadow-sm"
+                className="bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-[10px] font-black px-2.5 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-gray-200 shadow-sm"
               >
-                <ArrowSquareIn size={14} weight="bold" />
+                <ArrowSquareIn size={12} weight="bold" />
                 <span>İçe Aktar</span>
               </button>
               <button
@@ -165,24 +171,17 @@ export default function ConcertListPage() {
                   setSelectedConcertForEdit(null);
                   setShowAddDrawer(true);
                 }}
-                className="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-lg shadow-pink-900/10"
+                className="bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm shadow-pink-200"
               >
-                <Plus size={14} weight="bold" />
-                <span>Yeni Konser</span>
+                <Plus size={12} weight="bold" />
+                <span>Yeni</span>
               </button>
             </div>
           )}
         </div>
+      </header>
 
-        {/* Hero Section */}
-        <div className="mb-6 mt-2">
-          <h1 className="text-2xl font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-2">
-            <MusicNotes size={26} weight="fill" className="text-pink-500" />
-            My Concert <span className="text-pink-500">List</span>
-          </h1>
-        </div>
-
-
+      <main className="flex-1 px-4 py-6 pb-32 max-w-xl mx-auto w-full relative z-10">
         {/* Filter Controls */}
         <div className="mb-6">
           <input

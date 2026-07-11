@@ -163,124 +163,107 @@ export default function HistoryPage() {
   };
 
   return (
-    <div
-      className="min-h-screen pb-20 lg:pb-0 bg-[#FAF9F7]"
-    >
-      {/* Header for mobile screens */}
-      <div className="lg:hidden">
-        <Header />
-      </div>
+    <div className="min-h-screen bg-[#FAF9F7]">
+      <Header activeTab="history" />
 
-      {/* Sidebar for wide screens */}
-      <Sidebar currentPage="history" />
-
-      {/* Main content area */}
-      <div className="lg:ml-64">
-        {/* Main Content */}
-        <div className="px-4 py-6 pt-24 lg:pt-6">
-          {/* Game History List */}
-          <div className="space-y-6">
-            {gameSaves === undefined ? (
-              // Skeleton loading for game history
-              Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-xl p-4 flex items-center justify-between border border-gray-200/50 shadow-sm"
-                >
-                  <div className="flex-1">
-                    <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-48 mb-1"></div>
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-40"></div>
-                  </div>
-                  <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+      <main className="px-4 py-6 pt-28 pb-8 max-w-xl mx-auto w-full">
+        {/* Game History List */}
+        <div className="space-y-6">
+          {gameSaves === undefined ? (
+            // Skeleton loading for game history
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl p-4 flex items-center justify-between border border-gray-200/50 shadow-sm"
+              >
+                <div className="flex-1">
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-48 mb-1"></div>
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-40"></div>
                 </div>
-              ))
-            ) : gameSaves.length > 0 ? (
-              (() => {
-                const groupedGameSaves = groupGameSavesByDate(gameSaves);
-                return Object.entries(groupedGameSaves).map(
-                  ([groupName, groupGameSaves]) => (
-                    <div key={groupName} className="space-y-3">
-                      <h2 className="text-sm font-black text-gray-400 px-2 uppercase tracking-widest">
-                        {groupName}
-                      </h2>
-                      <div className="space-y-2">
-                        {groupGameSaves.map((gameSave) => {
-                          const allPlayerIdsInGame = [
-                            ...(gameSave.players || []),
-                            ...(gameSave.redTeam || []),
-                            ...(gameSave.blueTeam || []),
-                          ];
-                          // Remove duplicates
-                          const uniquePlayerIds = Array.from(
-                            new Set(allPlayerIdsInGame),
-                          );
-                          // Oyunculara skor/puan ekle
-                          const playerData = getPlayerData(uniquePlayerIds).map(
-                            (player) => {
-                              let score = null;
-                              if (
-                                gameSave.scores &&
-                                Array.isArray(gameSave.scores)
-                              ) {
-                                const found = gameSave.scores.find(
-                                  (s: any) => s.playerId === player._id,
-                                );
-                                if (found) score = found.score;
-                              }
-                              if (
-                                score == null &&
-                                gameSave.puanlar &&
-                                Array.isArray(gameSave.puanlar)
-                              ) {
-                                const found = gameSave.puanlar.find(
-                                  (s: any) => s.playerId === player._id,
-                                );
-                                if (found) score = found.puan;
-                              }
-                              score = score ?? player.score ?? player.puan ?? 0;
-                              return { ...player, score };
-                            },
-                          );
-
-                          return (
-                            <GameHistoryCard
-                              key={gameSave._id}
-                              gameSave={gameSave}
-                              variant="full"
-                              players={playerData}
-                              onClick={() => handleGameClick(gameSave._id)}
-                              showDelete={true}
-                              onDelete={() => handleDelete(gameSave._id)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ),
-                );
-              })()
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-gray-400 text-2xl">📊</span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  Henüz oyun geçmişi yok
-                </h3>
-                <p className="text-gray-500 font-medium">
-                  İlk oyununuzu oluşturarak başlayın
-                </p>
+                <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+            ))
+          ) : gameSaves.length > 0 ? (
+            (() => {
+              const groupedGameSaves = groupGameSavesByDate(gameSaves);
+              return Object.entries(groupedGameSaves).map(
+                ([groupName, groupGameSaves]) => (
+                  <div key={groupName} className="space-y-3">
+                    <h2 className="text-sm font-black text-gray-400 px-2 uppercase tracking-widest">
+                      {groupName}
+                    </h2>
+                    <div className="space-y-2">
+                      {groupGameSaves.map((gameSave) => {
+                        const allPlayerIdsInGame = [
+                          ...(gameSave.players || []),
+                          ...(gameSave.redTeam || []),
+                          ...(gameSave.blueTeam || []),
+                        ];
+                        // Remove duplicates
+                        const uniquePlayerIds = Array.from(
+                          new Set(allPlayerIdsInGame),
+                        );
+                        // Oyunculara skor/puan ekle
+                        const playerData = getPlayerData(uniquePlayerIds).map(
+                          (player) => {
+                            let score = null;
+                            if (
+                              gameSave.scores &&
+                              Array.isArray(gameSave.scores)
+                            ) {
+                              const found = gameSave.scores.find(
+                                (s: any) => s.playerId === player._id,
+                              );
+                              if (found) score = found.score;
+                            }
+                            if (
+                              score == null &&
+                              gameSave.puanlar &&
+                              Array.isArray(gameSave.puanlar)
+                            ) {
+                              const found = gameSave.puanlar.find(
+                                (s: any) => s.playerId === player._id,
+                              );
+                              if (found) score = found.puan;
+                            }
+                            score = score ?? player.score ?? player.puan ?? 0;
+                            return { ...player, score };
+                          },
+                        );
 
-      {/* AppBar for mobile screens */}
-      <div className="lg:hidden">
-        <AppBar currentPage="history" />
-      </div>
+                        return (
+                          <GameHistoryCard
+                            key={gameSave._id}
+                            gameSave={gameSave}
+                            variant="full"
+                            players={playerData}
+                            onClick={() => handleGameClick(gameSave._id)}
+                            showDelete={true}
+                            onDelete={() => handleDelete(gameSave._id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ),
+              );
+            })()
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-gray-400 text-2xl">📊</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Henüz oyun geçmişi yok
+              </h3>
+              <p className="text-gray-500 font-medium">
+                İlk oyununuzu oluşturarak başlayın
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
 
       {/* Confirm Modal */}
       <ConfirmModal

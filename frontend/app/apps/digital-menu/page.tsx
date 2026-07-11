@@ -514,7 +514,7 @@ export default function DigitalMenuPage() {
   }, [menuCategories, isScrollingToCategory]);
 
   return (
-    <div className={`flex min-h-screen flex-col bg-slate-50 text-slate-900 relative font-sans antialiased`}>
+    <div className={`flex min-h-screen flex-col bg-[#FAF9F7] text-slate-900 relative font-sans antialiased`}>
       <Toaster position="top-center" />
 
       {/* Subtle background pattern */}
@@ -522,22 +522,28 @@ export default function DigitalMenuPage() {
         style={{ backgroundImage: `radial-gradient(${currentThemeColor} 0.5px, transparent 0.5px)`, backgroundSize: '24px 24px' }} 
       />
 
-      <main className="flex-1 w-full relative z-10">
-        
-        {/* Navigation & Header */}
-        {!selectedBusiness && (
-          <div className="max-w-md md:max-w-5xl mx-auto px-6 pt-10 mb-6 flex items-center justify-between">
+      {/* Navigation & Header */}
+      {!selectedBusiness && (
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+          <div className="px-4 py-3 max-w-xl mx-auto w-full flex items-center gap-2">
             <button
               onClick={() => {
                 window.location.href = getAppRootUrl();
               }}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-all bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm active:scale-95 text-[11px] font-semibold uppercase tracking-wider cursor-pointer"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
             >
-              <SquaresFour size={18} weight="bold" />
-              <span>Geri</span>
+              <CaretLeft size={14} weight="bold" className="text-red-500" />
             </button>
+
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+              <Storefront size={18} weight="fill" className="text-red-500 shrink-0" />
+              <span className="truncate">Dijital Menü</span>
+            </h1>
           </div>
-        )}
+        </header>
+      )}
+
+      <main className="flex-1 w-full relative z-10 pt-4">
 
         {/* RESTAURANT LIST VIEW */}
         {!selectedBusiness ? (
