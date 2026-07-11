@@ -9,7 +9,6 @@ import IskambilGameModal from "@/components/ai-chat/IskambilGameModal";
 
 const APP_LINKS: Partial<Record<string, string>> = {
   subcenter: "/apps/subcenter",
-  kiler: "/apps/kiler",
   recipe: "/apps/recipe",
   "concert-list": "/apps/concert-list",
   "hobby-center": "/apps/hobby-center",
@@ -121,33 +120,6 @@ function SubcenterCard({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-function KilerCard({ data }: { data: Record<string, unknown> }) {
-  const storage = str(data, "storageType", "pantry");
-  const styles =
-    storage === "freezer"
-      ? "from-cyan-500 to-cyan-700 border-cyan-900"
-      : storage === "fridge"
-        ? "from-indigo-500 to-indigo-700 border-indigo-900"
-        : "from-orange-400 to-orange-600 border-orange-800";
-
-  return (
-    <div
-      className={`flex-shrink-0 w-[130px] aspect-[4/5.5] rounded-2xl bg-gradient-to-br ${styles} border-b-[8px] shadow-lg overflow-hidden text-white`}
-    >
-      <div className="h-full p-3 flex flex-col justify-between relative z-10">
-        <span className="text-[9px] font-bold uppercase opacity-80">
-          {storage === "freezer" ? "Dondurucu" : storage === "fridge" ? "Buzdolabı" : "Kiler"}
-        </span>
-        <div>
-          <p className="text-sm font-black leading-tight line-clamp-2">{str(data, "name", "?")}</p>
-          <p className="text-[11px] font-semibold opacity-90 mt-1">
-            {num(data, "amount")} {str(data, "unit", "adet")}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RecipeCard({ data }: { data: Record<string, unknown> }) {
   return (
@@ -354,8 +326,6 @@ function CardByType({
   switch (type) {
     case "subcenter":
       return <SubcenterCard data={data} />;
-    case "kiler":
-      return <KilerCard data={data} />;
     case "recipe":
       return <RecipeCard data={data} />;
     case "concert":
@@ -390,7 +360,6 @@ function CardByType({
 function appLinkForCard(card: AssistantCard): string | undefined {
   const map: Record<string, string> = {
     subcenter: "subcenter",
-    kiler: "kiler",
     recipe: "recipe",
     concert: "concert-list",
     hobby: "hobby-center",

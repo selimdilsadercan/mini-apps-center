@@ -24,6 +24,7 @@ interface CreateRecipeRequest {
   userId: string;
   ingredients?: Ingredient[] | null;
   instructions?: Instruction[] | null;
+  category?: string | null;
 }
 
 interface CreateRecipeResponse {
@@ -92,12 +93,13 @@ export const getUserRecipes = api(
  */
 export const createRecipe = api(
   { expose: true, method: "POST", path: "/recipe/create" },
-  async ({ title, userId, ingredients, instructions }: CreateRecipeRequest): Promise<CreateRecipeResponse> => {
+  async ({ title, userId, ingredients, instructions, category }: CreateRecipeRequest): Promise<CreateRecipeResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("create", {
       title_param: title,
       p_user_id: userId,
       ingredients_param: ingredients || [],
       instructions_param: instructions || [],
+      category_param: category || null,
     });
 
     if (error) {
@@ -111,6 +113,7 @@ export const createRecipe = api(
         id: row.id,
         title: row.title,
         image_url: row.image_url,
+        category: row.category,
         created_at: row.created_at,
         created_user_id: row.created_user_id,
         ingredients: row.ingredients,
@@ -142,6 +145,7 @@ export const getRecipeById = api(
         id: row.id,
         title: row.title,
         image_url: row.image_url,
+        category: row.category,
         created_at: row.created_at,
         created_user_id: row.created_user_id,
         ingredients: row.ingredients,
@@ -259,6 +263,7 @@ interface UpdateRecipeRequest {
   title: string;
   ingredients: Ingredient[] | null;
   instructions: Instruction[] | null;
+  category?: string | null;
 }
 
 interface UpdateRecipeResponse {
@@ -271,13 +276,14 @@ interface UpdateRecipeResponse {
  */
 export const updateRecipe = api(
   { expose: true, method: "PUT", path: "/recipe/:recipeId" },
-  async ({ recipeId, userId, title, ingredients, instructions }: UpdateRecipeRequest): Promise<UpdateRecipeResponse> => {
+  async ({ recipeId, userId, title, ingredients, instructions, category }: UpdateRecipeRequest): Promise<UpdateRecipeResponse> => {
     const { data, error } = await supabase.schema("recipe").rpc("update", {
       recipe_id_param: recipeId,
       p_user_id: userId,
       title_param: title,
       ingredients_param: ingredients || [],
       instructions_param: instructions || [],
+      category_param: category || null,
     });
 
     if (error) {
@@ -295,6 +301,7 @@ export const updateRecipe = api(
         id: row.id,
         title: row.title,
         image_url: row.image_url,
+        category: row.category,
         created_at: row.created_at,
         created_user_id: row.created_user_id,
         ingredients: row.ingredients,

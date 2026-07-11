@@ -6,7 +6,7 @@ import {
   Trophy, 
   YoutubeLogo, 
   Timer, 
-  Basket, 
+  ListChecks, 
   Palette,
   Sparkle,
   House,
@@ -24,7 +24,7 @@ const PhoneScreen: React.FC<PhoneScreenProps> = ({ children }) => {
     { name: "Subcenter", icon: CreditCard, color: "#339AF0" },
     { name: "Tasket", icon: CreditCard, color: "#20c997" }, // using fallback or matching icons
     { name: "Pomodoro", icon: Timer, color: "#4dabf7" },
-    { name: "Kiler", icon: Basket, color: "#40C057" },
+    { name: "Eksik Var!", icon: ListChecks, color: "#10B981" },
     { name: "Turnuva", icon: Trophy, color: "#FCC419" },
     { name: "Guides", icon: Palette, color: "#4C6EF5" },
     { name: "Discover", icon: YoutubeLogo, color: "#FF0000" },

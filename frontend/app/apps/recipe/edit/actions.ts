@@ -83,7 +83,8 @@ export async function updateRecipeAction(
   userId: string,
   title: string,
   ingredients: Parameters<typeof toApiIngredients>[0] | lib.Ingredient[] | null,
-  instructions: Parameters<typeof toApiInstructions>[0] | lib.Instruction[] | null
+  instructions: Parameters<typeof toApiInstructions>[0] | lib.Instruction[] | null,
+  category?: string | null
 ): Promise<ActionResponse<lib.Recipe>> {
   try {
     const client = createBrowserClient();
@@ -93,6 +94,7 @@ export async function updateRecipeAction(
       title,
       ingredients: ingredients ? toApiIngredients(ingredients) : null,
       instructions: instructions ? toApiInstructions(instructions) : null,
+      category: category || null,
     });
     
     return {

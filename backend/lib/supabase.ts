@@ -21,6 +21,7 @@ export interface Recipe {
   id: string;
   title: string;
   image_url: string | null;
+  category: string | null;
   created_at: string;
   created_user_id: string;
   ingredients: Ingredient[] | null;
@@ -31,6 +32,7 @@ export interface RecipeSummary {
   id: string;
   title: string;
   image_url: string | null;
+  category: string | null;
   created_at: string;
 }
 

@@ -12,8 +12,10 @@ import {
   getUserRecipesAction,
   setMealPlanAction,
 } from "../actions";
+import { createRecipe } from "../create/actions";
 import RecipeShell from "../components/RecipeShell";
 import AddMealDrawer from "../components/AddMealDrawer";
+import { getRecipeEmoji } from "../recipe-emoji";
 
 type MealType = "breakfast" | "lunch" | "dinner";
 type ViewMode = "daily" | "weekly";
@@ -95,6 +97,7 @@ export default function PlanPage() {
   const [isEditingMeal, setIsEditingMeal] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editMealType, setEditMealType] = useState<MealType>("dinner");
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -102,6 +105,7 @@ export default function PlanPage() {
 
     async function loadInitialData() {
       try {
+        setPageLoading(true);
         const userResult = await getOrCreateUserAction(clerkId);
         if (!userResult.data?.id) return;
 
@@ -112,6 +116,8 @@ export default function PlanPage() {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setPageLoading(false);
       }
     }
 
@@ -247,51 +253,68 @@ export default function PlanPage() {
   }
 
   const viewTabClass = (active: boolean) =>
-    `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+    `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
     }`;
+
+  if (!isLoaded || pageLoading) {
+    return (
+      <RecipeShell activeTab="plan">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        </div>
+      </RecipeShell>
+    );
+  }
 
   return (
     <RecipeShell activeTab="plan">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <button
-          type="button"
-          onClick={() => shiftWeek(-1)}
-          className="w-8 h-8 flex items-center justify-center bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all shrink-0"
-          aria-label="Önceki hafta"
-        >
-          <CaretLeft size={16} weight="bold" className="text-gray-500" />
-        </button>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        {/* Date Selector (Left side) */}
+        <div className="flex items-center gap-1 bg-white border border-gray-200/60 rounded-xl p-1 shadow-sm shrink-0">
+          <button
+            type="button"
+            onClick={() => shiftWeek(-1)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            aria-label="Önceki hafta"
+          >
+            <CaretLeft size={14} weight="bold" className="text-gray-500" />
+          </button>
 
-        <span className="text-xs font-black uppercase tracking-wide text-gray-700 text-center min-w-0 truncate">
-          {formatDate(currentWeekStart)} – {formatDate(weekEndDate)}
-        </span>
+          <span className="text-[10px] font-black uppercase tracking-wide text-gray-700 px-1 min-w-[120px] text-center select-none leading-none">
+            {formatDate(currentWeekStart)} – {formatDate(weekEndDate)}
+          </span>
 
-        <button
-          type="button"
-          onClick={() => shiftWeek(1)}
-          className="w-8 h-8 flex items-center justify-center bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all shrink-0"
-          aria-label="Sonraki hafta"
-        >
-          <CaretRight size={16} weight="bold" className="text-gray-500" />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => shiftWeek(1)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            aria-label="Sonraki hafta"
+          >
+            <CaretRight size={14} weight="bold" className="text-gray-500" />
+          </button>
+        </div>
 
-      <div className="flex gap-1 p-1 rounded-xl bg-gray-100 mb-3">
-        <button
-          type="button"
-          onClick={() => setViewMode("daily")}
-          className={viewTabClass(viewMode === "daily")}
-        >
-          Günlük
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode("weekly")}
-          className={viewTabClass(viewMode === "weekly")}
-        >
-          Haftalık
-        </button>
+        {/* View Mode Switcher (Right side) */}
+        <div className="flex gap-0.5 p-1 rounded-xl bg-gray-100 border border-gray-200/40 w-36 shrink-0">
+          <button
+            type="button"
+            onClick={() => setViewMode("daily")}
+            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide text-center transition-all ${
+              viewMode === "daily" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Günlük
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("weekly")}
+            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide text-center transition-all ${
+              viewMode === "weekly" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Haftalık
+          </button>
+        </div>
       </div>
 
       {viewMode === "daily" && (
@@ -323,10 +346,7 @@ export default function PlanPage() {
 
       <AddMealDrawer
         open={drawerOpen}
-        onOpenChange={(open) => {
-          setDrawerOpen(open);
-          if (!open) setDrawerMealType(null);
-        }}
+        onOpenChange={setDrawerOpen}
         dayLabel={drawerDayLabel}
         recipes={recipes}
         recipesLoading={recipesLoading}
@@ -339,9 +359,18 @@ export default function PlanPage() {
             mealType,
           });
         }}
-        onAddCustom={(title, mealType) => {
-          if (!drawerDayKey) return;
-          addMeal(drawerDayKey, { title, mealType });
+        onAddCustom={async (title, category, mealType) => {
+          if (!drawerDayKey || !dbUserId) return;
+          const res = await createRecipe(title, dbUserId, [], [], category);
+          if (res.data) {
+            addMeal(drawerDayKey, {
+              title: res.data.title,
+              recipeId: res.data.id,
+              mealType,
+            });
+            const recipesResult = await getUserRecipesAction(dbUserId);
+            setRecipes(recipesResult.data ?? []);
+          }
         }}
       />
 
@@ -459,23 +488,20 @@ function DayStrip({
             key={day.key}
             type="button"
             onClick={() => onSelect(day.key)}
-            className={`min-w-0 py-2 rounded-xl border transition-all active:scale-95 ${
-              isSelected
+            className={`min-w-0 py-2 rounded-xl border transition-all active:scale-95 ${isSelected
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200/70 text-gray-600"
-            }`}
+              }`}
           >
             <span
-              className={`block text-[8px] font-bold uppercase tracking-wide truncate px-0.5 ${
-                isSelected ? "text-white/60" : "text-gray-400"
-              }`}
+              className={`block text-[8px] font-bold uppercase tracking-wide truncate px-0.5 ${isSelected ? "text-white/60" : "text-gray-400"
+                }`}
             >
               {day.shortName}
             </span>
             <span
-              className={`block text-sm font-black leading-none mt-0.5 tabular-nums ${
-                isToday && !isSelected ? "text-gray-900" : ""
-              }`}
+              className={`block text-sm font-black leading-none mt-0.5 tabular-nums ${isToday && !isSelected ? "text-gray-900" : ""
+                }`}
             >
               {day.date}
             </span>
@@ -528,11 +554,21 @@ function MealRow({
       >
         {imageUrl ? (
           <img src={imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200/60 flex items-center justify-center shrink-0">
-            <span className="text-sm font-black text-gray-500">{mealInitial(meal.title)}</span>
-          </div>
-        )}
+        ) : (() => {
+          const emoji = getRecipeEmoji(meal.title);
+          if (emoji) {
+            return (
+              <div className="w-10 h-10 rounded-lg bg-orange-50/60 border border-orange-100 flex items-center justify-center shrink-0 text-xl select-none">
+                {emoji}
+              </div>
+            );
+          }
+          return (
+            <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200/60 flex items-center justify-center shrink-0">
+              <span className="text-sm font-black text-gray-500">{mealInitial(meal.title)}</span>
+            </div>
+          );
+        })()}
         <p className="flex-1 text-[13px] font-bold text-gray-800 leading-snug">{meal.title}</p>
       </button>
     </li>
@@ -671,7 +707,7 @@ function WeeklyGrid({
                               section.type
                             )
                           }
-                          className="w-4 h-4 flex items-center justify-center text-gray-300 active:text-gray-600"
+                          className="w-4 h-4 flex items-center justify-center text-gray-300 active:text-gray-600 hover:text-gray-900"
                           aria-label={`${day.name} ${section.label} ekle`}
                         >
                           <Plus size={10} weight="bold" />

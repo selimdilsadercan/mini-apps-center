@@ -47,8 +47,16 @@ export function parseRecipeJson(text: string): { data?: ParsedRecipeInput; error
 export function parseRecipeTextInput(text: string): { data?: ParsedRecipeInput; error?: string } {
   const parsed = parseRecipeText(text);
   if (!parsed) {
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      return { error: "Tarif içeriği boş olamaz" };
+    }
     return {
-      error: "Tarif formatı hatalı. 'Malzemeler:' ve 'Yapılış:' satırlarını kontrol edin.",
+      data: {
+        title: lines[0],
+        ingredients: [],
+        instructions: [],
+      },
     };
   }
   if (!parsed.title?.trim()) {

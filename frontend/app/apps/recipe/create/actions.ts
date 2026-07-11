@@ -27,7 +27,8 @@ export async function createRecipe(
   title: string,
   userId: string,
   ingredients?: RecipeIngredientInput[] | null,
-  instructions?: RecipeInstructionInput[] | null
+  instructions?: RecipeInstructionInput[] | null,
+  category?: string | null
 ): Promise<ActionResponse<lib.Recipe>> {
   try {
     const client = createBrowserClient();
@@ -37,6 +38,7 @@ export async function createRecipe(
       userId,
       ingredients: ingredients ? toApiIngredients(ingredients) : null,
       instructions: instructions ? toApiInstructions(instructions) : null,
+      category: category || null,
     });
     
     return {

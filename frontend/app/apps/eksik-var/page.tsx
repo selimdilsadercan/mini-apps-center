@@ -8,6 +8,7 @@ import {
   Plus,
   Trash,
   CaretLeft,
+  CaretUp,
   Basket,
   ShareNetwork,
   UserMinus,
@@ -60,7 +61,7 @@ type CommonItem = {
   slug?: string;
   atlasCategory?: string;
 };
-type Suggestion = { name: string; category?: string };
+type Suggestion = { name: string; category?: string; existingItem?: eksik_var.MissingItem };
 
 const ALL_COMMON_ITEMS: CommonItem[] = COMMON_ITEMS.flatMap((group) =>
   group.items.map((item) => ({
@@ -242,17 +243,15 @@ function ListToolbar({
   onViewModeChange: (mode: "grid" | "list") => void;
 }) {
   const segmentClass = (active: boolean) =>
-    `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
     }`;
 
   const viewSegmentClass = (active: boolean) =>
-    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
     }`;
 
   return (
-    <div className="flex items-center justify-between gap-3 mb-4">
+    <div className="flex items-center justify-between gap-3">
       <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
         <button type="button" onClick={() => onTabChange("missing")} className={segmentClass(activeTab === "missing")}>
           <Basket size={14} weight={activeTab === "missing" ? "fill" : "duotone"} />
@@ -297,9 +296,8 @@ function ListToolbar({
 function ChecklistToggle({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center transition-colors ${
-        checked ? "bg-emerald-500 text-white" : "border-2 border-gray-300 bg-white"
-      }`}
+      className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center transition-colors ${checked ? "bg-emerald-500 text-white" : "border-2 border-gray-300 bg-white"
+        }`}
       aria-hidden
     >
       {checked && <Check size={12} weight="bold" />}
@@ -418,11 +416,10 @@ function CategoryPicker({
                   key={category}
                   type="button"
                   onClick={() => onChange(category)}
-                  className={`flex flex-col items-center justify-center gap-1 min-h-[68px] text-[9px] font-bold leading-tight px-1 py-2 rounded-xl border transition-all active:scale-[0.98] ${
-                    isSelected
+                  className={`flex flex-col items-center justify-center gap-1 min-h-[68px] text-[9px] font-bold leading-tight px-1 py-2 rounded-xl border transition-all active:scale-[0.98] ${isSelected
                       ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-900/10"
                       : "bg-gray-50 text-gray-700 border-gray-200 hover:border-emerald-500/30"
-                  }`}
+                    }`}
                 >
                   <IconComponent
                     size={18}
@@ -461,9 +458,8 @@ function showItemMovedToast(
   const id = toast.custom(
     (t) => (
       <div
-        className={`${
-          t.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-        } flex items-center gap-3 bg-gray-900 text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-xl max-w-[min(calc(100vw-2rem),24rem)] transition-all duration-200`}
+        className={`${t.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+          } flex items-center gap-3 bg-gray-900 text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-xl max-w-[min(calc(100vw-2rem),24rem)] transition-all duration-200`}
       >
         <span className="flex-1 min-w-0 leading-snug">
           <span className="text-white">{name}</span>
@@ -529,6 +525,23 @@ export default function EksikVarPage() {
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null);
   const [activeListTab, setActiveListTab] = useState<"missing" | "home">("missing");
   const [listViewMode, setListViewMode] = useState<"grid" | "list">("grid");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -694,17 +707,54 @@ export default function EksikVarPage() {
       return;
     }
     const query = trimmed.toLocaleLowerCase("tr-TR");
-    const matches = ALL_COMMON_ITEMS.filter((item) =>
+
+    // 1. Get matching items from user's list (both active and used)
+    const userMatches = items
+      .filter((item) => item.name.toLocaleLowerCase("tr-TR").includes(query))
+      .map((item) => ({
+        name: item.name,
+        category: getDisplayCategory(item),
+        existingItem: item,
+      }));
+
+    // 2. Get matching items from ALL_COMMON_ITEMS
+    const commonMatches = ALL_COMMON_ITEMS.filter((item) =>
       item.name.toLocaleLowerCase("tr-TR").includes(query)
     );
-    const sorted = sortByRelevance(matches, query);
+
+    // 3. Merge them, keeping user matches as priority (they have existingItem)
+    const mergedMap = new Map<string, Suggestion>();
+    for (const match of userMatches) {
+      mergedMap.set(match.name.toLocaleLowerCase("tr-TR"), match);
+    }
+    for (const match of commonMatches) {
+      const key = match.name.toLocaleLowerCase("tr-TR");
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, match);
+      }
+    }
+
+    const merged = Array.from(mergedMap.values());
+    const sorted = sortByRelevance(merged as CommonItem[], query);
     const hasExactMatch =
       sorted.length > 0 && sorted[0].name.toLocaleLowerCase("tr-TR") === query;
 
+    // Check if the trimmed input matches any existing item in user's list
+    const exactExisting = items.find(
+      (item) => item.name.toLocaleLowerCase("tr-TR") === query
+    );
+
     setSuggestions(
       hasExactMatch
-        ? sorted.slice(0, 5)
-        : [{ name: formatItemName(trimmed) }, ...sorted.slice(0, 4)]
+        ? (sorted as Suggestion[]).slice(0, 5)
+        : [
+          {
+            name: formatItemName(trimmed),
+            category: exactExisting ? getDisplayCategory(exactExisting) : undefined,
+            existingItem: exactExisting,
+          },
+          ...(sorted as Suggestion[]).slice(0, 4),
+        ]
     );
     setSelectedSuggestionIndex(0);
     setShowSuggestions(true);
@@ -715,6 +765,13 @@ export default function EksikVarPage() {
       return suggestions[selectedSuggestionIndex]?.name ?? inputValue;
     }
     return inputValue;
+  };
+
+  const handleSelectExistingItem = (existingItem: eksik_var.MissingItem) => {
+    setActiveListTab(existingItem.is_used ? "home" : "missing");
+    setScrollToItemId(existingItem.id);
+    setInputValue("");
+    setShowSuggestions(false);
   };
 
   const handleAddItem = async (nameToAdd: string, categoryOverride?: string) => {
@@ -751,9 +808,17 @@ export default function EksikVarPage() {
         ...(categoryOverride ? { category: categoryOverride } : {}),
       });
       if (response.item) {
-        setItems(prev => [response.item!, ...prev]);
-        setActiveListTab("missing");
-        setScrollToItemId(response.item.id);
+        let finalItem = response.item;
+        if (activeListTab === "home") {
+          const toggleResponse = await client.eksik_var.toggleItemUsed(finalItem.id, { userId: user.id });
+          if (toggleResponse.item) {
+            finalItem = toggleResponse.item;
+          }
+        } else {
+          setActiveListTab("missing");
+        }
+        setItems(prev => [finalItem, ...prev]);
+        setScrollToItemId(finalItem.id);
       }
       setInputValue("");
       setSuggestions([]);
@@ -933,8 +998,8 @@ export default function EksikVarPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-emerald-100">
       <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
-        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
-          <div className="flex items-center gap-2 mb-2.5">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => window.location.href = getAppRootUrl()}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
@@ -969,90 +1034,136 @@ export default function EksikVarPage() {
             )}
           </div>
 
-        {/* Input & Autocomplete */}
-        {user && (
-          <div className="relative" ref={suggestionsRef}>
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => handleInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (showSuggestions && suggestions.length > 0) {
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      setSelectedSuggestionIndex((index) =>
-                        Math.min(index + 1, suggestions.length - 1)
-                      );
-                      return;
-                    }
-                    if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      setSelectedSuggestionIndex((index) => Math.max(index - 1, 0));
-                      return;
-                    }
-                    if (e.key === "Escape") {
-                      setShowSuggestions(false);
-                      return;
-                    }
-                  }
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddItem(getActiveSuggestionName());
-                  }
-                }}
-                onFocus={() => {
-                  if (inputValue.trim()) setShowSuggestions(true);
-                }}
-                placeholder="Eksik ürün yazın..."
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
-              />
-              <button
-                onClick={() => handleAddItem(getActiveSuggestionName())}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all shrink-0"
-              >
-                <Plus size={18} weight="bold" />
-              </button>
-            </div>
+          {/* Tabs & Toolbar */}
+          {user && (
+            <ListToolbar
+              activeTab={activeListTab}
+              onTabChange={setActiveListTab}
+              missingCount={items.filter((i) => !i.is_used).length}
+              homeCount={items.filter((i) => i.is_used).length}
+              viewMode={listViewMode}
+              onViewModeChange={setListViewMode}
+            />
+          )}
 
-            {/* Autocomplete suggestions */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[2.75rem] bg-white border border-gray-200/50 rounded-xl shadow-lg overflow-hidden z-30">
-                <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                  Öneriler
-                </div>
-                {suggestions.map((item, index) => {
-                  const isSelected = index === selectedSuggestionIndex;
-                  return (
-                  <button
-                    key={`${item.name}-${item.category ?? index}`}
-                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                    onClick={() => handleAddItem(item.name)}
-                    className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0 ${
-                      isSelected
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
-                    }`}
-                  >
-                    <ItemThumbnail name={item.name} size="suggestion" />
-                    <span className="min-w-0 truncate flex-1">{item.name}</span>
-                    {item.category && (
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                          isSelected ? "text-emerald-400" : "text-gray-300"
-                        }`}
-                      >
-                        {item.category}
-                      </span>
-                    )}
-                  </button>
-                  );
-                })}
+          {/* Input & Autocomplete */}
+          {user && (
+            <div className="relative" ref={suggestionsRef}>
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (showSuggestions && suggestions.length > 0) {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectedSuggestionIndex((index) =>
+                          Math.min(index + 1, suggestions.length - 1)
+                        );
+                        return;
+                      }
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSelectedSuggestionIndex((index) => Math.max(index - 1, 0));
+                        return;
+                      }
+                      if (e.key === "Escape") {
+                        setShowSuggestions(false);
+                        return;
+                      }
+                    }
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddItem(getActiveSuggestionName());
+                    }
+                  }}
+                  onFocus={() => {
+                    if (inputValue.trim()) setShowSuggestions(true);
+                  }}
+                  placeholder={
+                    activeListTab === "home"
+                      ? "Evde olan bir ürün yazın..."
+                      : "Eksik ürün yazın..."
+                  }
+                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
+                />
+                <button
+                  onClick={() => handleAddItem(getActiveSuggestionName())}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all shrink-0"
+                >
+                  <Plus size={18} weight="bold" />
+                </button>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Autocomplete suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-[2.75rem] bg-white border border-gray-200/50 rounded-xl shadow-lg overflow-hidden z-30">
+                  <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                    Öneriler
+                  </div>
+                  {suggestions.map((item, index) => {
+                    const isSelected = index === selectedSuggestionIndex;
+                    const existingItem = item.existingItem || items.find(
+                      (i) => i.name.toLocaleLowerCase("tr-TR") === item.name.toLocaleLowerCase("tr-TR")
+                    );
+                    return (
+                      <div
+                        key={`${item.name}-${item.category ?? index}`}
+                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                        onClick={() => {
+                          if (existingItem) {
+                            handleSelectExistingItem(existingItem);
+                          } else {
+                            handleAddItem(item.name);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            if (existingItem) {
+                              handleSelectExistingItem(existingItem);
+                            } else {
+                              handleAddItem(item.name);
+                            }
+                          }
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0 cursor-pointer ${isSelected
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
+                          }`}
+                      >
+                        <ItemThumbnail name={item.name} size="suggestion" />
+                        <span className="min-w-0 truncate flex-1">{item.name}</span>
+                        {existingItem ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectExistingItem(existingItem);
+                            }}
+                            className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shrink-0 transition-colors active:scale-95"
+                          >
+                            Var
+                          </button>
+                        ) : item.category ? (
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${isSelected ? "text-emerald-400" : "text-gray-300"
+                              }`}
+                          >
+                            {item.category}
+                          </span>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -1070,50 +1181,41 @@ export default function EksikVarPage() {
           const activeItems = items.filter(i => !i.is_used);
           const usedItems = items.filter(i => i.is_used);
           return (
-          <>
-            <ListToolbar
-              activeTab={activeListTab}
-              onTabChange={setActiveListTab}
-              missingCount={activeItems.length}
-              homeCount={usedItems.length}
-              viewMode={listViewMode}
-              onViewModeChange={setListViewMode}
-            />
-
-            {activeListTab === "missing" ? (
-              activeItems.length === 0 ? (
+            <>
+              {activeListTab === "missing" ? (
+                activeItems.length === 0 ? (
+                  <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+                    <Basket size={32} className="text-gray-200 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
+                  </div>
+                ) : (
+                  <ItemsByCategory
+                    items={activeItems}
+                    viewMode={listViewMode}
+                    isHomeList={false}
+                    onItemTap={(item) => handleItemTap(item, false)}
+                    getLongPressProps={getLongPressProps}
+                    registerItemRef={(id, el) => {
+                      if (el) itemRefs.current.set(id, el);
+                      else itemRefs.current.delete(id);
+                    }}
+                  />
+                )
+              ) : usedItems.length === 0 ? (
                 <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                  <Basket size={32} className="text-gray-200 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
+                  <House size={32} className="text-gray-200 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
                 </div>
               ) : (
                 <ItemsByCategory
-                  items={activeItems}
+                  items={usedItems}
                   viewMode={listViewMode}
-                  isHomeList={false}
-                  onItemTap={(item) => handleItemTap(item, false)}
+                  isHomeList={true}
+                  onItemTap={(item) => handleItemTap(item, true)}
                   getLongPressProps={getLongPressProps}
-                  registerItemRef={(id, el) => {
-                    if (el) itemRefs.current.set(id, el);
-                    else itemRefs.current.delete(id);
-                  }}
                 />
-              )
-            ) : usedItems.length === 0 ? (
-              <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                <House size={32} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
-              </div>
-            ) : (
-              <ItemsByCategory
-                items={usedItems}
-                viewMode={listViewMode}
-                isHomeList={true}
-                onItemTap={(item) => handleItemTap(item, true)}
-                getLongPressProps={getLongPressProps}
-              />
-            )}
-          </>
+              )}
+            </>
           );
         })() : null}
       </main>
@@ -1340,11 +1442,10 @@ export default function EksikVarPage() {
                               type="button"
                               onClick={() => handleCatalogItemTap(item.name)}
                               disabled={alreadyAdded}
-                              className={`rounded-xl border relative flex flex-col items-center justify-center px-2 py-3 transition-all text-left w-full ${
-                                alreadyAdded
+                              className={`rounded-xl border relative flex flex-col items-center justify-center px-2 py-3 transition-all text-left w-full ${alreadyAdded
                                   ? "bg-emerald-50/60 border-emerald-200/60 opacity-70 cursor-default"
                                   : "bg-gray-50 border-gray-200/80 hover:border-emerald-500/30 active:scale-95"
-                              }`}
+                                }`}
                             >
                               {alreadyAdded && (
                                 <Check
@@ -1374,11 +1475,11 @@ export default function EksikVarPage() {
       {showShareSheet && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/40 z-40 transition-opacity" 
+          <div
+            className="fixed inset-0 bg-black/40 z-40 transition-opacity"
             onClick={() => setShowShareSheet(false)}
           />
-          
+
           {/* Sheet */}
           <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
@@ -1386,7 +1487,7 @@ export default function EksikVarPage() {
                 <ShareNetwork size={20} className="text-emerald-500" />
                 Listeyi Paylaş
               </h2>
-              <button 
+              <button
                 onClick={() => setShowShareSheet(false)}
                 className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
               >
@@ -1435,15 +1536,15 @@ export default function EksikVarPage() {
                   ) : (
                     <div className="space-y-2">
                       {sharedMembers.map((member) => (
-                        <div 
+                        <div
                           key={member.member_id}
                           className="flex items-center justify-between p-3 bg-gray-50/60 rounded-xl border border-gray-100"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {member.avatar_url ? (
-                              <img 
-                                src={member.avatar_url} 
-                                alt={member.username || ""} 
+                              <img
+                                src={member.avatar_url}
+                                alt={member.username || ""}
                                 className="w-7 h-7 rounded-full object-cover border border-gray-200"
                               />
                             ) : (
@@ -1489,7 +1590,7 @@ export default function EksikVarPage() {
                       const unsharedFriends = friends.filter(
                         (friend) => !sharedMembers.some((m) => m.member_id === friend.id)
                       );
-                      
+
                       if (unsharedFriends.length === 0) {
                         return (
                           <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl text-center border border-dashed border-gray-200">
@@ -1501,15 +1602,15 @@ export default function EksikVarPage() {
                       return (
                         <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                           {unsharedFriends.map((friend) => (
-                            <div 
+                            <div
                               key={friend.id}
                               className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-gray-150"
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {friend.avatar ? (
-                                  <img 
-                                    src={friend.avatar} 
-                                    alt={friend.username || ""} 
+                                  <img
+                                    src={friend.avatar}
+                                    alt={friend.username || ""}
                                     className="w-7 h-7 rounded-full object-cover border border-gray-200"
                                   />
                                 ) : (
@@ -1539,6 +1640,16 @@ export default function EksikVarPage() {
             )}
           </div>
         </>
+      )}
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-40 bg-emerald-500 hover:bg-emerald-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 duration-200 border border-emerald-400"
+          aria-label="Yukarı git"
+        >
+          <CaretUp size={24} weight="bold" />
+        </button>
       )}
 
       <Toaster

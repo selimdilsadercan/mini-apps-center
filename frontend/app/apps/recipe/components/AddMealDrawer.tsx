@@ -9,6 +9,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import CATEGORIES from "../categories.json";
 
 type MealType = "breakfast" | "lunch" | "dinner";
 
@@ -36,10 +37,11 @@ export default function AddMealDrawer({
   recipesLoading: boolean;
   defaultMealType?: MealType;
   onSelectRecipe: (recipe: lib.RecipeSummary, mealType: MealType) => void;
-  onAddCustom: (title: string, mealType: MealType) => void;
+  onAddCustom: (title: string, category: string, mealType: MealType) => void;
 }) {
   const [activeTab, setActiveTab] = useState<AddMealTab>("recipes");
   const [customTitle, setCustomTitle] = useState("");
+  const [category, setCategory] = useState<string>("Ana Yemek");
   const [mealType, setMealType] = useState<MealType>(defaultMealType ?? "dinner");
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export default function AddMealDrawer({
     if (!nextOpen) {
       setCustomTitle("");
       setActiveTab("recipes");
+      setCategory("Ana Yemek");
       setMealType(defaultMealType ?? "dinner");
     }
     onOpenChange(nextOpen);
@@ -60,7 +63,7 @@ export default function AddMealDrawer({
   function handleAddCustom() {
     const title = customTitle.trim();
     if (!title) return;
-    onAddCustom(title, mealType);
+    onAddCustom(title, category, mealType);
     setCustomTitle("");
     handleOpenChange(false);
   }
@@ -126,21 +129,45 @@ export default function AddMealDrawer({
 
         <div className="px-4 pb-6 pt-3 max-h-[60vh] overflow-y-auto">
           {activeTab === "custom" ? (
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
-                Yemek adı
-              </label>
-              <input
-                type="text"
-                value={customTitle}
-                onChange={(e) => setCustomTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddCustom();
-                }}
-                placeholder="Örn: Mercimek çorbası"
-                autoFocus
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 bg-white mb-3"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  Yemek adı
+                </label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddCustom();
+                  }}
+                  placeholder="Örn: Mercimek çorbası"
+                  autoFocus
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  Kategori
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategory(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${category === cat
+                          ? "bg-orange-500 text-white border-orange-500"
+                          : "bg-gray-50 text-gray-600 border-gray-200 hover:border-orange-200"
+                        }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={handleAddCustom}
