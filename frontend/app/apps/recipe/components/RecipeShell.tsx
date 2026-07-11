@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { getAppRootUrl } from "@/lib/apps";
-import { CaretLeft, ChefHat, Plus } from "@phosphor-icons/react";
+import { CaretLeft, ChefHat, Plus, Calendar } from "@phosphor-icons/react";
 
 export type RecipeTab = "recipes" | "plan";
 
@@ -58,6 +58,7 @@ export default function RecipeShell({
               <span>Tarifler</span>
             </Link>
             <Link href="/apps/recipe/plan" className={tabClass(activeTab === "plan")}>
+              <Calendar size={14} weight={activeTab === "plan" ? "fill" : "duotone"} />
               <span>Haftalık Plan</span>
             </Link>
           </div>

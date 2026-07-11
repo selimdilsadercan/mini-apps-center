@@ -2,9 +2,10 @@
 
 import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, Trash, Plus, DotsSixVertical } from "@phosphor-icons/react";
+import { CaretLeft, Check, Trash, Plus, DotsSixVertical } from "@phosphor-icons/react";
 import { useUser } from "@clerk/clerk-react";
 import { getRecipeByIdAction, updateRecipeAction, getOrCreateUserAction } from "./actions";
+import CATEGORIES from "../categories.json";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -104,9 +105,9 @@ function SortableIngredientItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-3 mb-2"
+      className="flex items-center gap-2 bg-white rounded-xl border border-gray-200/60 p-3 mb-2 shadow-sm"
     >
-      <button {...attributes} {...listeners} className="cursor-grab touch-none text-gray-400 hover:text-gray-600">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none text-gray-400 hover:text-gray-600 transition-colors">
         <DotsSixVertical size={20} />
       </button>
       <input
@@ -114,18 +115,18 @@ function SortableIngredientItem({
         value={item.amount || ""}
         onChange={(e) => onUpdate(item.id, { amount: e.target.value })}
         placeholder="Miktar"
-        className="w-20 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500"
+        className="w-20 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-bold"
       />
       <input
         type="text"
         value={item.name}
         onChange={(e) => onUpdate(item.id, { name: e.target.value })}
         placeholder="Malzeme adı"
-        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500"
+        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-bold"
       />
       <button
         onClick={() => onDelete(item.id)}
-        className="p-1 text-red-500 hover:bg-red-50 rounded"
+        className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all active:scale-95"
       >
         <Trash size={18} />
       </button>
@@ -158,12 +159,12 @@ function SortableInstructionItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-start gap-2 bg-white rounded-lg border border-gray-200 p-3 mb-2"
+      className="flex items-start gap-2 bg-white rounded-xl border border-gray-200/60 p-3 mb-2 shadow-sm"
     >
-      <button {...attributes} {...listeners} className="cursor-grab touch-none text-gray-400 hover:text-gray-600 mt-1">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none text-gray-400 hover:text-gray-600 transition-colors mt-1">
         <DotsSixVertical size={20} />
       </button>
-      <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm flex-shrink-0">
+      <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
         {index + 1}
       </div>
       <textarea
@@ -171,11 +172,11 @@ function SortableInstructionItem({
         onChange={(e) => onUpdate(item.id, { text: e.target.value })}
         placeholder="Adım açıklaması"
         rows={2}
-        className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-orange-500 resize-none"
+        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-bold resize-none leading-relaxed"
       />
       <button
         onClick={() => onDelete(item.id)}
-        className="p-1 text-red-500 hover:bg-red-50 rounded"
+        className="p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all active:scale-95 mt-0.5"
       >
         <Trash size={18} />
       </button>
@@ -191,6 +192,7 @@ function EditRecipeContent() {
 
   const [originalRecipe, setOriginalRecipe] = useState<lib.Recipe | null>(null);
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<EditableIngredient[]>([]);
   const [instructions, setInstructions] = useState<EditableInstruction[]>([]);
   
@@ -334,8 +336,7 @@ function EditRecipeContent() {
   const checkChanges = useCallback(() => {
     if (!originalRecipe) return false;
     if (title !== originalRecipe.title) return true;
-    // Simple check - could be more sophisticated
-    return true; // For now, assume there are changes after any edit
+    return true;
   }, [originalRecipe, title]);
 
   useEffect(() => {
@@ -357,6 +358,7 @@ function EditRecipeContent() {
       if (result.data) {
         setOriginalRecipe(result.data);
         setTitle(result.data.title);
+        setCategory(result.data.category || null);
         setIngredients(toEditableIngredients(result.data.ingredients));
         setInstructions(toEditableInstructions(result.data.instructions));
       } else {
@@ -417,7 +419,8 @@ function EditRecipeContent() {
         userResult.data.id,
         saveTitle,
         toLibIngredients(saveIngredients),
-        toLibInstructions(saveInstructions)
+        toLibInstructions(saveInstructions),
+        category
       );
 
       if (result.data) {
@@ -525,8 +528,8 @@ function EditRecipeContent() {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <header className="px-4 py-3 max-w-xl mx-auto w-full">
-          <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft size={24} color="#374151" />
+          <button onClick={() => router.back()} className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all">
+            <CaretLeft size={14} weight="bold" className="text-orange-500" />
           </button>
         </header>
         <main className="flex-1 flex items-center justify-center px-4 max-w-xl mx-auto w-full">
@@ -537,8 +540,7 @@ function EditRecipeContent() {
   }
 
   const viewTabClass = (active: boolean) =>
-    `flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    `flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
     }`;
 
   return (
@@ -546,19 +548,19 @@ function EditRecipeContent() {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
         <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
-          <button onClick={handleBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
-            <ArrowLeft size={24} color="#374151" />
+          <button onClick={handleBack} className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all">
+            <CaretLeft size={14} weight="bold" className="text-orange-500" />
           </button>
-          <h1 className="font-semibold text-gray-900">Tarifi Düzenle</h1>
+          <h1 className="flex-1 min-w-0 text-sm font-black text-gray-900 text-center uppercase tracking-tight leading-tight">Tarifi Düzenle</h1>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="p-2 -mr-2 hover:bg-green-50 rounded-full transition-colors text-green-600 disabled:opacity-50"
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-50 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
             ) : (
-              <Check size={24} weight="bold" />
+              <Check size={16} weight="bold" />
             )}
           </button>
         </div>
@@ -626,79 +628,103 @@ function EditRecipeContent() {
           </div>
         ) : (
           <>
-        {/* Title Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Tarif Adı</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setHasChanges(true);
-            }}
-            placeholder="Tarif adını girin"
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 text-lg"
-          />
-        </div>
+            {/* Title Input */}
+            <div className="mb-5">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tarif Adı</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setHasChanges(true);
+                }}
+                placeholder="Tarif adını girin"
+                className="w-full px-4 py-3 border border-gray-200/60 rounded-xl focus:outline-none focus:border-orange-500/40 focus:ring-2 focus:ring-orange-500/20 bg-white font-bold text-gray-800 text-base shadow-sm"
+              />
+            </div>
 
-        {/* Ingredients Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-gray-700">Malzemeler</label>
-            <button
-              onClick={handleIngredientAdd}
-              className="flex items-center gap-1 text-orange-500 text-sm font-medium hover:text-orange-600"
-            >
-              <Plus size={18} />
-              Ekle
-            </button>
-          </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleIngredientDragEnd}>
-            <SortableContext items={ingredients.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              {ingredients.map((ingredient) => (
-                <SortableIngredientItem
-                  key={ingredient.id}
-                  item={ingredient}
-                  onUpdate={handleIngredientUpdate}
-                  onDelete={handleIngredientDelete}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-          {ingredients.length === 0 && (
-            <p className="text-gray-400 text-sm text-center py-4">Henüz malzeme eklenmedi</p>
-          )}
-        </div>
+            {/* Category Selector */}
+            <div className="mb-6">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Kategori</label>
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setCategory(category === cat ? null : cat);
+                      setHasChanges(true);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                      category === cat
+                        ? "bg-orange-500 text-white border-orange-500 shadow-sm"
+                        : "bg-white text-gray-600 border-gray-200/60 hover:border-orange-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Instructions Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-gray-700">Yapılış</label>
-            <button
-              onClick={handleInstructionAdd}
-              className="flex items-center gap-1 text-orange-500 text-sm font-medium hover:text-orange-600"
-            >
-              <Plus size={18} />
-              Ekle
-            </button>
-          </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleInstructionDragEnd}>
-            <SortableContext items={instructions.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              {instructions.map((instruction, index) => (
-                <SortableInstructionItem
-                  key={instruction.id}
-                  item={instruction}
-                  index={index}
-                  onUpdate={handleInstructionUpdate}
-                  onDelete={handleInstructionDelete}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-          {instructions.length === 0 && (
-            <p className="text-gray-400 text-sm text-center py-4">Henüz yapılış adımı eklenmedi</p>
-          )}
-        </div>
+            {/* Ingredients Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Malzemeler</label>
+                <button
+                  onClick={handleIngredientAdd}
+                  className="flex items-center gap-1 text-orange-500 text-xs font-black uppercase hover:text-orange-600 tracking-wider active:scale-95 transition-all"
+                >
+                  <Plus size={16} weight="bold" />
+                  Ekle
+                </button>
+              </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleIngredientDragEnd}>
+                <SortableContext items={ingredients.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                  {ingredients.map((ingredient) => (
+                    <SortableIngredientItem
+                      key={ingredient.id}
+                      item={ingredient}
+                      onUpdate={handleIngredientUpdate}
+                      onDelete={handleIngredientDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+              {ingredients.length === 0 && (
+                <p className="text-gray-400 text-sm text-center py-4">Henüz malzeme eklenmedi</p>
+              )}
+            </div>
+
+            {/* Instructions Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Yapılış</label>
+                <button
+                  onClick={handleInstructionAdd}
+                  className="flex items-center gap-1 text-orange-500 text-xs font-black uppercase hover:text-orange-600 tracking-wider active:scale-95 transition-all"
+                >
+                  <Plus size={16} weight="bold" />
+                  Ekle
+                </button>
+              </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleInstructionDragEnd}>
+                <SortableContext items={instructions.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                  {instructions.map((instruction, index) => (
+                    <SortableInstructionItem
+                      key={instruction.id}
+                      item={instruction}
+                      index={index}
+                      onUpdate={handleInstructionUpdate}
+                      onDelete={handleInstructionDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+              {instructions.length === 0 && (
+                <p className="text-gray-400 text-sm text-center py-4">Henüz yapılış adımı eklenmedi</p>
+              )}
+            </div>
           </>
         )}
       </main>

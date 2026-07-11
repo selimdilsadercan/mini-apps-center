@@ -5446,6 +5446,7 @@ export namespace recipe {
         userId: string
         ingredients?: lib.Ingredient[] | null
         instructions?: lib.Instruction[] | null
+        category?: string | null
     }
 
     export interface CreateRecipeResponse {
@@ -5494,6 +5495,7 @@ export namespace recipe {
         title: string
         ingredients: lib.Ingredient[] | null
         instructions: lib.Instruction[] | null
+        category?: string | null
     }
 
     export interface UpdateRecipeResponse {
@@ -8839,6 +8841,7 @@ export namespace lib {
         id: string
         title: string
         "image_url": string | null
+        category: string | null
         "created_at": string
         "created_user_id": string
         ingredients: Ingredient[] | null
@@ -8849,6 +8852,7 @@ export namespace lib {
         id: string
         title: string
         "image_url": string | null
+        category: string | null
         "created_at": string
     }
 

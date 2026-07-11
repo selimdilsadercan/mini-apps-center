@@ -15,6 +15,7 @@ RETURNS TABLE (
     id UUID,
     title TEXT,
     image_url TEXT,
+    category TEXT,
     created_at TIMESTAMPTZ
 ) AS $$
 DECLARE
@@ -25,6 +26,7 @@ BEGIN
         r.id,
         r.title,
         r.image_url,
+        r.category,
         r.created_at
     FROM recipe.recipes r
     WHERE r.created_user_id = v_user_id
@@ -35,11 +37,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. Create Recipe
 DROP FUNCTION IF EXISTS recipe.create(TEXT, TEXT, JSONB, JSONB);
 DROP FUNCTION IF EXISTS recipe.create(TEXT, UUID, JSONB, JSONB);
+DROP FUNCTION IF EXISTS recipe.create(TEXT, TEXT, JSONB, JSONB, TEXT);
 CREATE OR REPLACE FUNCTION recipe.create(
     title_param TEXT,
     p_user_id TEXT,
     ingredients_param JSONB DEFAULT '[]'::jsonb,
-    instructions_param JSONB DEFAULT '[]'::jsonb
+    instructions_param JSONB DEFAULT '[]'::jsonb,
+    category_param TEXT DEFAULT NULL
 )
 RETURNS recipe.recipes AS $$
 DECLARE
@@ -50,12 +54,14 @@ BEGIN
         title, 
         created_user_id, 
         ingredients, 
-        instructions
+        instructions,
+        category
     ) VALUES (
         title_param, 
         v_user_id, 
         ingredients_param, 
-        instructions_param
+        instructions_param,
+        category_param
     ) RETURNING * INTO v_result;
 
     RETURN v_result;
@@ -77,12 +83,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 4. Update Recipe
 DROP FUNCTION IF EXISTS recipe.update(UUID, TEXT, TEXT, JSONB, JSONB);
 DROP FUNCTION IF EXISTS recipe.update(UUID, UUID, TEXT, JSONB, JSONB);
+DROP FUNCTION IF EXISTS recipe.update(UUID, TEXT, TEXT, JSONB, JSONB, TEXT);
 CREATE OR REPLACE FUNCTION recipe.update(
     recipe_id_param UUID,
     p_user_id TEXT,
     title_param TEXT,
     ingredients_param JSONB,
-    instructions_param JSONB
+    instructions_param JSONB,
+    category_param TEXT DEFAULT NULL
 )
 RETURNS recipe.recipes AS $$
 DECLARE
@@ -93,7 +101,8 @@ BEGIN
     SET 
         title = title_param,
         ingredients = ingredients_param,
-        instructions = instructions_param
+        instructions = instructions_param,
+        category = category_param
     WHERE id = recipe_id_param
       AND created_user_id = v_user_id
     RETURNING * INTO v_result;

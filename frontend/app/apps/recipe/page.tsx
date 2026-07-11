@@ -4,9 +4,10 @@ import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CaretLeft, PencilSimple, DotsThreeVertical, Trash } from "@phosphor-icons/react";
 import { useUser } from "@clerk/clerk-react";
-import { getRecipeByIdAction, deleteRecipeAction, getOrCreateUserAction } from "./actions";
+import { getRecipeByIdAction, deleteRecipeAction, getOrCreateUserAction, getMealPlanAction } from "./actions";
 import RecipeHub from "./components/RecipeHub";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { getRecipeEmoji } from "./recipe-emoji";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,8 @@ function RecipeContent() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [servings, setServings] = useState(1);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [dbUserId, setDbUserId] = useState<string | null>(null);
+  const [history, setHistory] = useState<Array<{ date: string; mealType: string }>>([]);
 
   useEffect(() => {
     if (recipeId) {
@@ -61,6 +64,39 @@ function RecipeContent() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
+
+  useEffect(() => {
+    if (!user) return;
+    async function loadUserAndHistory() {
+      try {
+        const userResult = await getOrCreateUserAction(user!.id);
+        if (userResult.data?.id) {
+          setDbUserId(userResult.data.id);
+          const planResult = await getMealPlanAction(userResult.data.id);
+          if (planResult.data && recipeId) {
+            const occurrences: Array<{ date: string; mealType: string }> = [];
+            for (const [dayKey, meals] of Object.entries(planResult.data)) {
+              for (const meal of meals) {
+                if (meal.recipeId === recipeId) {
+                  occurrences.push({
+                    date: dayKey,
+                    mealType: meal.mealType,
+                  });
+                }
+              }
+            }
+            occurrences.sort((a, b) => b.date.localeCompare(a.date));
+            setHistory(occurrences);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load history:", err);
+      }
+    }
+    if (recipeId) {
+      loadUserAndHistory();
+    }
+  }, [user, recipeId]);
 
   const allIngredients = useMemo(
     () => normalizeRecipeIngredients((recipe?.ingredients as unknown as RecipeIngredient[]) || []),
@@ -188,6 +224,7 @@ function RecipeContent() {
           </button>
 
           <h1 className="flex-1 min-w-0 text-sm font-black text-gray-900 truncate leading-tight">
+            {getRecipeEmoji(recipe.title) && <span className="mr-1.5 select-none">{getRecipeEmoji(recipe.title)}</span>}
             {recipe.title}
           </h1>
 
@@ -252,135 +289,209 @@ function RecipeContent() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-          <div className="px-3 pt-3">
-            <div className="flex items-center justify-between gap-3 mb-3 px-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">
-                Porsiyon
-              </span>
-              <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-gray-100 border border-gray-200/80">
-                <button
-                  type="button"
-                  onClick={() => setServings((s) => Math.max(1, s - 1))}
-                  disabled={servings <= 1}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
-                  aria-label="Porsiyon azalt"
-                >
-                  <Minus size={14} weight="bold" />
-                </button>
-                {[1, 2, 3, 4].map((n) => (
+        {allIngredients.length === 0 && allInstructions.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden p-6 py-12 text-center flex flex-col items-center justify-center">
+            <span className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 mb-4 text-2xl select-none">
+              {getRecipeEmoji(recipe.title) || <Plus size={24} weight="bold" />}
+            </span>
+            <h2 className="text-sm font-black text-gray-900 mb-1">Henüz tarif bilgisi eklenmedi</h2>
+            <p className="text-xs text-gray-400 font-bold mb-6 max-w-[280px] mx-auto">
+              Bu tarife malzeme ve yapılış adımları ekleyerek detaylandırabilirsiniz.
+            </p>
+            <button
+              onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-black text-xs px-6 py-3 rounded-xl transition-all active:scale-95 shadow-sm"
+            >
+              Tarif Ekle
+            </button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+            <div className="px-3 pt-3">
+              <div className="flex items-center justify-between gap-3 mb-3 px-1">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">
+                  Porsiyon
+                </span>
+                <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-gray-100 border border-gray-200/80">
                   <button
-                    key={n}
                     type="button"
-                    onClick={() => setServings(n)}
-                    className={portionBtnClass(servings === n)}
+                    onClick={() => setServings((s) => Math.max(1, s - 1))}
+                    disabled={servings <= 1}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+                    aria-label="Porsiyon azalt"
                   >
-                    {n}
+                    <Minus size={14} weight="bold" />
                   </button>
-                ))}
-                {servings > 4 && (
-                  <span className={portionBtnClass(true)}>{servings}</span>
-                )}
+                  {[1, 2, 3, 4].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setServings(n)}
+                      className={portionBtnClass(servings === n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  {servings > 4 && (
+                    <span className={portionBtnClass(true)}>{servings}</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setServings((s) => Math.min(12, s + 1))}
+                    disabled={servings >= 12}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+                    aria-label="Porsiyon artır"
+                  >
+                    <Plus size={14} weight="bold" />
+                  </button>
+                </div>
+              </div>
+
+              <OptionalIngredientToggles
+                toggles={optionalToggles}
+                selectedKeys={selectedKeys}
+                onToggle={(key, on) => setSelectedKeys((prev) => toggleIngredientKey(prev, key, on))}
+              />
+            </div>
+
+            <div className="p-3 pt-0">
+              <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
                 <button
                   type="button"
-                  onClick={() => setServings((s) => Math.min(12, s + 1))}
-                  disabled={servings >= 12}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
-                  aria-label="Porsiyon artır"
+                  onClick={() => setActiveTab("ingredients")}
+                  className={tabBtnClass(activeTab === "ingredients")}
                 >
-                  <Plus size={14} weight="bold" />
+                  Malzemeler
+                  {activeIngredients.length > 0 && (
+                    <span className="ml-1 text-[10px] tabular-nums text-orange-500">
+                      {activeIngredients.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("instructions")}
+                  className={tabBtnClass(activeTab === "instructions")}
+                >
+                  Yapılış
+                  {activeInstructions.length > 0 && (
+                    <span className="ml-1 text-[10px] tabular-nums text-orange-500">
+                      {activeInstructions.length}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
 
-            <OptionalIngredientToggles
-              toggles={optionalToggles}
-              selectedKeys={selectedKeys}
-              onToggle={(key, on) => setSelectedKeys((prev) => toggleIngredientKey(prev, key, on))}
-            />
-          </div>
-
-          <div className="p-3 pt-0">
-            <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
-              <button
-                type="button"
-                onClick={() => setActiveTab("ingredients")}
-                className={tabBtnClass(activeTab === "ingredients")}
-              >
-                Malzemeler
-                {activeIngredients.length > 0 && (
-                  <span className="ml-1 text-[10px] tabular-nums text-orange-500">
-                    {activeIngredients.length}
-                  </span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("instructions")}
-                className={tabBtnClass(activeTab === "instructions")}
-              >
-                Yapılış
-                {activeInstructions.length > 0 && (
-                  <span className="ml-1 text-[10px] tabular-nums text-orange-500">
-                    {activeInstructions.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="px-4 pb-4">
-            {activeTab === "ingredients" ? (
-              activeIngredients.length === 0 ? (
-                <p className="text-xs font-bold text-gray-400 text-center py-8">
-                  Malzeme bilgisi bulunmuyor
-                </p>
-              ) : (
-                <ul className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
-                  {activeIngredients.map((ingredient, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center gap-3 px-3 py-3 text-sm leading-snug"
+            <div className="px-4 pb-4">
+              {activeTab === "ingredients" ? (
+                activeIngredients.length === 0 ? (
+                  <div className="text-center py-10 flex flex-col items-center justify-center">
+                    <p className="text-xs font-bold text-gray-400 mb-3">
+                      Malzeme bilgisi bulunmuyor
+                    </p>
+                    <button
+                      onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
+                      className="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/60 font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95"
                     >
-                      <IngredientThumbnail name={ingredient.name} />
-                      <span className="text-gray-800">
-                        {ingredient.amount && (
-                          <span className="font-bold text-gray-900">
-                            {scaleIngredientAmount(ingredient.amount, servings)}{" "}
-                          </span>
-                        )}
-                        {ingredient.name}
+                      Malzeme Ekle
+                    </button>
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
+                    {activeIngredients.map((ingredient, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-center gap-3 px-3 py-3 text-sm leading-snug"
+                      >
+                        <IngredientThumbnail name={ingredient.name} />
+                        <span className="text-gray-800">
+                          {ingredient.amount && (
+                            <span className="font-bold text-gray-900">
+                              {scaleIngredientAmount(ingredient.amount, servings)}{" "}
+                            </span>
+                          )}
+                          {ingredient.name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : activeInstructions.length === 0 ? (
+                <div className="text-center py-10 flex flex-col items-center justify-center">
+                  <p className="text-xs font-bold text-gray-400 mb-3">
+                    Yapılış bilgisi bulunmuyor
+                  </p>
+                  <button
+                    onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
+                    className="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/60 font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95"
+                  >
+                    Yapılış Adımı Ekle
+                  </button>
+                </div>
+              ) : (
+                <ol className="space-y-3">
+                  {activeInstructions.map((instruction, idx) => (
+                    <li
+                      key={`${instruction.index}-${idx}`}
+                      className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3"
+                    >
+                      <span className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shrink-0">
+                        {idx + 1}
                       </span>
+                      <div className="text-sm text-gray-700 leading-relaxed pt-0.5">
+                        <InstructionText
+                          text={instruction.text}
+                          ingredients={activeIngredients}
+                          servings={servings}
+                        />
+                      </div>
                     </li>
                   ))}
-                </ul>
-              )
-            ) : activeInstructions.length === 0 ? (
-              <p className="text-xs font-bold text-gray-400 text-center py-8">
-                Yapılış bilgisi bulunmuyor
-              </p>
-            ) : (
-              <ol className="space-y-3">
-                {activeInstructions.map((instruction, idx) => (
-                  <li
-                    key={`${instruction.index}-${idx}`}
-                    className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3"
-                  >
-                    <span className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shrink-0">
-                      {idx + 1}
-                    </span>
-                    <div className="text-sm text-gray-700 leading-relaxed pt-0.5">
-                      <InstructionText
-                        text={instruction.text}
-                        ingredients={activeIngredients}
-                        servings={servings}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
+                </ol>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* Yemek Geçmişi Kartı */}
+        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden p-4 mt-4">
+          <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-3 px-1">
+            Yemek Geçmişi
+          </h3>
+          {history.length === 0 ? (
+            <p className="text-xs font-bold text-gray-400 py-3 text-center">
+              Henüz bu yemek planlanmadı.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {history.map((item, idx) => {
+                const dateObj = new Date(item.date);
+                const formatter = new Intl.DateTimeFormat("tr-TR", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                });
+                const formattedDate = formatter.format(dateObj);
+                const mealTypeLabel =
+                  item.mealType === "breakfast"
+                    ? "Kahvaltı"
+                    : item.mealType === "lunch"
+                    ? "Öğle"
+                    : "Akşam";
+
+                return (
+                  <li key={idx} className="py-2.5 flex justify-between items-center text-xs">
+                    <span className="font-bold text-gray-800">{formattedDate}</span>
+                    <span className="px-2.5 py-1 bg-orange-50 text-orange-600 rounded-lg font-black uppercase text-[9px] tracking-wide shrink-0">
+                      {mealTypeLabel}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </main>
     </div>

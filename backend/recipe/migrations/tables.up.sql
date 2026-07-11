@@ -12,6 +12,53 @@
 ALTER TABLE recipe.meal_plan_entries
     ADD COLUMN IF NOT EXISTS meal_type TEXT NOT NULL DEFAULT 'dinner';
 
+-- Add category column to recipes table
+ALTER TABLE recipe.recipes
+    ADD COLUMN IF NOT EXISTS category TEXT;
+
+-- Migrate old custom meal plan entries to mock recipes
+DO $$
+DECLARE
+    r RECORD;
+    v_recipe_id UUID;
+    v_category TEXT;
+BEGIN
+    -- Check if we have any custom meals to migrate
+    IF EXISTS (SELECT 1 FROM recipe.meal_plan_entries WHERE recipe_id IS NULL) THEN
+        FOR r IN 
+            SELECT id, created_user_id, title, meal_type 
+            FROM recipe.meal_plan_entries 
+            WHERE recipe_id IS NULL
+        LOOP
+            -- Map old meal_type to category
+            v_category := CASE
+                WHEN r.meal_type = 'breakfast' THEN 'Kahvaltı'
+                ELSE 'Ana Yemek'
+            END;
+
+            -- Insert new recipe
+            INSERT INTO recipe.recipes (
+                title, 
+                created_user_id, 
+                ingredients, 
+                instructions,
+                category
+            ) VALUES (
+                r.title, 
+                r.created_user_id, 
+                '[]'::jsonb, 
+                '[]'::jsonb,
+                v_category
+            ) RETURNING id INTO v_recipe_id;
+
+            -- Update meal plan entry to reference the new recipe
+            UPDATE recipe.meal_plan_entries
+            SET recipe_id = v_recipe_id
+            WHERE id = r.id;
+        END LOOP;
+    END IF;
+END $$;
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------
@@ -27,6 +74,7 @@ CREATE TABLE IF NOT EXISTS recipe.recipes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     image_url TEXT,
+    category TEXT,
     created_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     ingredients JSONB DEFAULT '[]'::jsonb NOT NULL,
     instructions JSONB DEFAULT '[]'::jsonb NOT NULL,

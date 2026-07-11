@@ -7,8 +7,18 @@ import { ChefHat } from "@phosphor-icons/react";
 import type { lib } from "@/lib/client";
 import { getMealPlanAction, getOrCreateUserAction, getUserRecipesAction } from "../actions";
 import RecipeShell from "./RecipeShell";
+import AddRecipeSheet from "./AddRecipeSheet";
+import { getRecipeEmoji } from "../recipe-emoji";
 
 function RecipeInitial({ title }: { title: string }) {
+  const emoji = getRecipeEmoji(title);
+  if (emoji) {
+    return (
+      <div className="w-11 h-11 mb-1.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-center text-xl select-none">
+        {emoji}
+      </div>
+    );
+  }
   const initial = title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?";
   return (
     <div className="w-11 h-11 mb-1.5 rounded-xl bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 text-base">
@@ -20,10 +30,8 @@ function RecipeInitial({ title }: { title: string }) {
 export default function RecipeHub() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [recipes, setRecipes] = useState<lib.RecipeSummary[]>([]);
-  const [customMeals, setCustomMeals] = useState<
-    Array<{ id: string; title: string; mealType: "breakfast" | "lunch" | "dinner"; dayKey: string }>
-  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,29 +58,6 @@ export default function RecipeHub() {
         }
 
         setRecipes(recipesResult.data ?? []);
-
-        const mealPlanResult = await getMealPlanAction(userResult.data.id);
-        if (mealPlanResult.data) {
-          const customMeals = Object.entries(mealPlanResult.data)
-            .flatMap(([dayKey, meals]) =>
-              meals.map((meal, index) => ({
-                id: meal.id,
-                title: meal.title,
-                mealType: meal.mealType,
-                dayKey,
-                index,
-                recipeId: meal.recipeId,
-              }))
-            )
-            .filter((meal) => !meal.recipeId)
-            .sort((a, b) => {
-              if (a.dayKey === b.dayKey) return b.index - a.index;
-              return a.dayKey < b.dayKey ? 1 : -1;
-            })
-            .map(({ id, title, mealType, dayKey }) => ({ id, title, mealType, dayKey }));
-
-          setCustomMeals(customMeals);
-        }
       } catch (err) {
         console.error(err);
         setError("Tarifler yüklenirken hata oluştu");
@@ -106,74 +91,81 @@ export default function RecipeHub() {
   }
 
   return (
-    <RecipeShell activeTab="recipes" onAdd={() => router.push("/apps/recipe/create")}>
-      {error ? (
-        <div className="text-center py-12">
-          <p className="text-red-500 text-sm font-bold">{error}</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {recipes.length === 0 ? (
-            <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-              <ChefHat size={32} className="text-gray-200 mx-auto mb-2" weight="duotone" />
-              <p className="text-xs font-bold text-gray-400 mb-4">Henüz tarif yok</p>
-              <button
-                onClick={() => router.push("/apps/recipe/create")}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all active:scale-95"
-              >
-                İlk Tarifini Ekle
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {recipes.map((recipe) => (
-                <button
-                  key={recipe.id}
-                  onClick={() => router.push(`/apps/recipe?id=${recipe.id}`)}
-                  className="bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
-                >
-                  {recipe.image_url ? (
-                    <img
-                      src={recipe.image_url}
-                      alt=""
-                      className="w-11 h-11 mb-1.5 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <RecipeInitial title={recipe.title} />
-                  )}
-                  <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
-                    {recipe.title}
-                  </h3>
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">Son Eklenenler</p>
-            {customMeals.length === 0 ? (
-              <p className="text-xs font-bold text-gray-300">Meal planner&apos;dan custom yemek eklenmedi</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {customMeals.map((meal) => (
-                  <div
-                    key={meal.id}
-                    className="bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 shadow-sm overflow-hidden text-left w-full select-none"
-                  >
-                    <RecipeInitial title={meal.title} />
-                    <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
-                      {meal.title}
-                    </h3>
-                    <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-gray-400">
-                      {meal.mealType === "breakfast" ? "Kahvaltı" : meal.mealType === "lunch" ? "Öğle" : "Akşam"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+    <>
+      <RecipeShell activeTab="recipes" onAdd={() => setShowAddSheet(true)}>
+        {error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 text-sm font-bold">{error}</p>
           </div>
-        </div>
-      )}
-    </RecipeShell>
+        ) : (
+          <div className="space-y-4">
+            {recipes.length === 0 ? (
+              <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+                <ChefHat size={32} className="text-gray-200 mx-auto mb-2" weight="duotone" />
+                <p className="text-xs font-bold text-gray-400 mb-4">Henüz tarif yok</p>
+                <button
+                  onClick={() => setShowAddSheet(true)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all active:scale-95"
+                >
+                  İlk Tarifini Ekle
+                </button>
+              </div>
+            ) : (() => {
+              const grouped = recipes.reduce<Record<string, lib.RecipeSummary[]>>((acc, recipe) => {
+                const cat = recipe.category || "Diğer";
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(recipe);
+                return acc;
+              }, {});
+
+              const order = ["Kahvaltı", "Tatlı", "Ana Yemek", "Yan Yemek", "Atıştırmalık", "Diğer"];
+              const sortedCats = Object.keys(grouped).sort((a, b) => {
+                const idxA = order.indexOf(a);
+                const idxB = order.indexOf(b);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a.localeCompare(b);
+              });
+
+              return (
+                <div className="space-y-5">
+                  {sortedCats.map((catName) => (
+                    <div key={catName} className="space-y-2">
+                      <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-1">
+                        {catName} ({grouped[catName].length})
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {grouped[catName].map((recipe) => (
+                          <button
+                            key={recipe.id}
+                            onClick={() => router.push(`/apps/recipe?id=${recipe.id}`)}
+                            className="bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
+                          >
+                            {recipe.image_url ? (
+                              <img
+                                src={recipe.image_url}
+                                alt=""
+                                className="w-11 h-11 mb-1.5 rounded-xl object-cover"
+                              />
+                            ) : (
+                              <RecipeInitial title={recipe.title} />
+                            )}
+                            <h4 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
+                              {recipe.title}
+                            </h4>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </RecipeShell>
+      <AddRecipeSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+    </>
   );
 }
