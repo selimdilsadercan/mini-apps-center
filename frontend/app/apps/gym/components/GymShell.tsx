@@ -86,7 +86,7 @@ export default function GymShell({
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-violet-100 relative pb-20">
       {activeTab !== "none" && (
-        <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
           <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2 min-w-0 flex-1">

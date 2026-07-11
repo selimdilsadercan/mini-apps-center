@@ -546,7 +546,7 @@ function EditRecipeContent() {
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
           <button onClick={handleBack} className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all">
             <CaretLeft size={14} weight="bold" className="text-orange-500" />

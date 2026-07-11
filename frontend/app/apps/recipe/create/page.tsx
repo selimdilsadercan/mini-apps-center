@@ -121,7 +121,7 @@ function CreateRecipeContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 max-w-xl mx-auto w-full">
           <button
             onClick={() => router.back()}

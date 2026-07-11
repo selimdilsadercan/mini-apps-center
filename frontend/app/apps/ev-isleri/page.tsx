@@ -102,7 +102,7 @@ export default function EvIsleriHomePage() {
   }
 
   return (
-    <EvIsleriShell subtitle="Haftalık ev işi board'ları">
+    <EvIsleriShell>
       <Toaster position="top-center" />
 
       <div className="flex items-center justify-between mb-4 px-1">

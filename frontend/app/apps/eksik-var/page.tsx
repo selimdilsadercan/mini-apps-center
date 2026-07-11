@@ -997,7 +997,7 @@ export default function EksikVarPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-emerald-100">
-      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <button
@@ -1010,7 +1010,7 @@ export default function EksikVarPage() {
             <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
               <ListChecks size={18} weight="fill" className="text-emerald-500 shrink-0" />
               <span className="truncate">
-                Eksik <span className="text-emerald-500">Var!</span>
+                Eksik <span className="text-emerald-500">Var</span>
               </span>
             </h1>
 

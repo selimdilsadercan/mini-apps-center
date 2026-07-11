@@ -169,7 +169,6 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
   return (
     <EvIsleriShell
       title={boardName || "Board"}
-      subtitle="Haftalık görev planı"
       onBack={() => router.push("/apps/ev-isleri")}
     >
       <Toaster position="top-center" />
