@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
  * These pages are public-facing — auth is handled client-side by Clerk.
  */
 const SUBDOMAIN_ROUTES: Record<string, string> = {
+  gaminghub: "/apps/gaming-hub",
   kalimba: "/apps/kalimba",
   cardgames: "/apps/iskambil",
   eksikvar: "/apps/eksik-var",

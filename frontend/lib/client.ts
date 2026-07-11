@@ -52,6 +52,7 @@ export default class Client {
     public readonly feed: feed.ServiceClient
     public readonly feedback: feedback.ServiceClient
     public readonly friendship: friendship.ServiceClient
+    public readonly gaming_hub: gaming_hub.ServiceClient
     public readonly gym: gym.ServiceClient
     public readonly hobby_center: hobby_center.ServiceClient
     public readonly hub: hub.ServiceClient
@@ -115,6 +116,7 @@ export default class Client {
         this.feed = new feed.ServiceClient(base)
         this.feedback = new feedback.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
+        this.gaming_hub = new gaming_hub.ServiceClient(base)
         this.gym = new gym.ServiceClient(base)
         this.hobby_center = new hobby_center.ServiceClient(base)
         this.hub = new hub.ServiceClient(base)
@@ -3780,6 +3782,200 @@ export namespace friendship {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/friendship/request/send`, JSON.stringify(params))
             return await resp.json() as SendRequestResponse
+        }
+    }
+}
+
+/**
+ * Gaming Hub Service Registration
+ */
+export namespace gaming_hub {
+    export interface AddPriceAlertRequest {
+        userId: string
+        gameName: string
+        platform: string
+        targetPrice: number
+    }
+
+    export type GameStatus = "wishlist" | "backlog" | "playing" | "completed"
+
+    export interface HabitLimitsRequest {
+        userId: string
+        dailyLimit: number
+        weeklyLimit: number
+    }
+
+    export interface LibraryItem {
+        id: string
+        gameName: string
+        platform: string
+        status: GameStatus
+        playTime: number
+        rating: number | null
+        notes: string | null
+        updatedAt: string
+    }
+
+    export interface LibraryResponse {
+        items: LibraryItem[]
+    }
+
+    export interface LogSessionRequest {
+        userId: string
+        gameName: string
+        duration: number
+    }
+
+    export interface PlayStats {
+        dailyLimit: number
+        weeklyLimit: number
+        todayMinutes: number
+        weekMinutes: number
+    }
+
+    export interface PriceAlert {
+        id: string
+        gameName: string
+        platform: string
+        targetPrice: number
+        currentPrice: number | null
+        isTriggered: boolean
+        createdAt: string
+    }
+
+    export interface PriceAlertsResponse {
+        alerts: PriceAlert[]
+    }
+
+    export interface UpsertLibraryRequest {
+        userId: string
+        gameName: string
+        platform: string
+        status: GameStatus
+        playTime?: number
+        rating?: number
+        notes?: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addPriceAlert = this.addPriceAlert.bind(this)
+            this.getPlayStats = this.getPlayStats.bind(this)
+            this.getPriceAlerts = this.getPriceAlerts.bind(this)
+            this.getUserLibrary = this.getUserLibrary.bind(this)
+            this.logPlaySession = this.logPlaySession.bind(this)
+            this.upsertHabitLimits = this.upsertHabitLimits.bind(this)
+            this.upsertLibraryItem = this.upsertLibraryItem.bind(this)
+        }
+
+        /**
+         * Registers a new target price alert for a game.
+         * POST /gaming-hub/price-alerts
+         */
+        public async addPriceAlert(params: AddPriceAlertRequest): Promise<{
+    alertId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/price-alerts`, JSON.stringify(params))
+            return await resp.json() as {
+    alertId: string
+}
+        }
+
+        /**
+         * Retrieves playtime statistics and limit compliance.
+         * GET /gaming-hub/stats
+         */
+        public async getPlayStats(params: {
+    userId: string
+}): Promise<PlayStats> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/stats`, undefined, {query})
+            return await resp.json() as PlayStats
+        }
+
+        /**
+         * Gets a list of user's price alerts.
+         * GET /gaming-hub/price-alerts
+         */
+        public async getPriceAlerts(params: {
+    userId: string
+}): Promise<PriceAlertsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/price-alerts`, undefined, {query})
+            return await resp.json() as PriceAlertsResponse
+        }
+
+        /**
+         * Retrieves the user's library.
+         * GET /gaming-hub/library
+         */
+        public async getUserLibrary(params: {
+    userId: string
+}): Promise<LibraryResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/library`, undefined, {query})
+            return await resp.json() as LibraryResponse
+        }
+
+        /**
+         * Logs a play session and increments library play time.
+         * POST /gaming-hub/play-logs
+         */
+        public async logPlaySession(params: LogSessionRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/play-logs`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Sets daily and weekly playtime limits.
+         * POST /gaming-hub/habits
+         */
+        public async upsertHabitLimits(params: HabitLimitsRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/habits`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Adds or updates a game in the user's library.
+         * POST /gaming-hub/library
+         */
+        public async upsertLibraryItem(params: UpsertLibraryRequest): Promise<{
+    itemId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/gaming-hub/library`, JSON.stringify(params))
+            return await resp.json() as {
+    itemId: string
+}
         }
     }
 }
