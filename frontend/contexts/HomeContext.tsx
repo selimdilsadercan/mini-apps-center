@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUserPreferencesAction, updateUserPreferencesAction } from "@/app/home/actions";
 import { createBrowserClient } from "@/lib/api";
 
@@ -22,91 +23,84 @@ const HomeContext = createContext<HomeContextType | undefined>(undefined);
 
 export function HomeProvider({ children }: { children: React.ReactNode }) {
   const { isLoaded, user } = useUser();
-  
-  // These states represent the "Session" view - they don't change after initial load
-  // unless explicitly refreshed, ensuring a stable UI during the session.
-  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
-  const [lastUsed, setLastUsed] = useState<Record<string, number>>({});
-  const [usageCounts, setUsageCounts] = useState<Record<string, number>>({});
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [hasBusinesses, setHasBusinesses] = useState(false);
+  const queryClient = useQueryClient();
 
-  const loadData = useCallback(async () => {
-    if (!isLoaded) return;
-
-    try {
+  // Queries for persistent data
+  const prefsQuery = useQuery({
+    queryKey: ["user", "preferences", user?.id || "guest"],
+    queryFn: async () => {
       if (user?.id) {
-        // Fetch preferences and business ownership in parallel
-        const [prefsRes, bizRes] = await Promise.all([
-          getUserPreferencesAction(user.id),
-          client.business.getOwnedBusinesses(user.id)
-        ]);
-
-        const { data } = prefsRes;
-        if (data) {
-          if (data.pinnedApps) setPinnedIds(data.pinnedApps);
-          if (data.usageCounts) setUsageCounts(data.usageCounts);
-          if (data.lastUsedApps) {
-            const lastUsedMap: Record<string, number> = {};
-            Object.entries(data.lastUsedApps).forEach(([id, time]) => {
-              lastUsedMap[id] = new Date(time).getTime();
-            });
-            setLastUsed(lastUsedMap);
-          }
-        }
-
-        setHasBusinesses((bizRes.businesses || []).length > 0);
+        const res = await getUserPreferencesAction(user.id);
+        return res.data;
       } else {
+        // Guest support from localStorage
         const savedPinned = localStorage.getItem(`pinned_apps_guest`);
-        if (savedPinned) setPinnedIds(JSON.parse(savedPinned));
-
         const savedLastUsed = localStorage.getItem(`last_used_apps_guest`);
-        if (savedLastUsed) setLastUsed(JSON.parse(savedLastUsed));
-
         const savedUsageCounts = localStorage.getItem(`usage_counts_guest`);
-        if (savedUsageCounts) setUsageCounts(JSON.parse(savedUsageCounts));
+        
+        return {
+          pinnedApps: savedPinned ? JSON.parse(savedPinned) : [],
+          lastUsedApps: savedLastUsed ? JSON.parse(savedLastUsed) : {},
+          usageCounts: savedUsageCounts ? JSON.parse(savedUsageCounts) : {},
+          isOnboardingFinished: true, // Guests skip onboarding
+        };
       }
-    } catch (error) {
-      console.error("Error loading home data:", error);
-    } finally {
-      setIsDataLoaded(true);
-    }
-  }, [user?.id, isLoaded]);
+    },
+    enabled: isLoaded,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const businessQuery = useQuery({
+    queryKey: ["user", "businesses", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { businesses: [] };
+      return client.business.getOwnedBusinesses(user.id);
+    },
+    enabled: isLoaded && !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Local state for session stability (optional, but keep it if we want stability)
+  // Or we can just use derived state from queries if we want them to stay in sync.
+  // The user said "loading becomes long", so using query data directly is faster.
+  
+  const pinnedIds = useMemo<string[]>(() => prefsQuery.data?.pinnedApps || [], [prefsQuery.data]);
+  const usageCounts = useMemo<Record<string, number>>(() => (prefsQuery.data?.usageCounts as Record<string, number>) || {}, [prefsQuery.data]);
+  const lastUsed = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (prefsQuery.data?.lastUsedApps) {
+      Object.entries(prefsQuery.data.lastUsedApps).forEach(([id, time]) => {
+        map[id] = new Date(time as string).getTime();
+      });
+    }
+    return map;
+  }, [prefsQuery.data]);
+
+  const hasBusinesses = useMemo(() => (businessQuery.data?.businesses || []).length > 0, [businessQuery.data]);
+  const isDataLoaded = !prefsQuery.isLoading && !businessQuery.isLoading;
 
   const updateAppUsage = async (appId: string) => {
     const now = Date.now();
-    
-    // We calculate the NEW values but we DON'T update the local state 
-    // that drives the UI sorting (pinnedIds, lastUsed, usageCounts).
-    // This ensures the home page order remains stable during the session.
-    
-    const currentCount = usageCounts[appId] || 0;
-    const newCount = currentCount + 1;
-    
-    // We update the persistent storage in the background
+    const updatedUsageCounts = { ...usageCounts, [appId]: (usageCounts[appId] || 0) + 1 };
+    const updatedLastUsedMap = { ...lastUsed, [appId]: now };
+    const lastUsedIso: Record<string, string> = {};
+    Object.entries(updatedLastUsedMap).forEach(([id, time]) => {
+      lastUsedIso[id] = new Date(time).toISOString();
+    });
+
+    // Optimistic Update
+    queryClient.setQueryData(["user", "preferences", user?.id || "guest"], (prev: any) => ({
+      ...prev,
+      lastUsedApps: lastUsedIso,
+      usageCounts: updatedUsageCounts,
+    }));
+
     if (user?.id) {
-      // Prepare the full lastUsed map for the backend
-      const updatedLastUsedMap = { ...lastUsed, [appId]: now };
-      const lastUsedIso: Record<string, string> = {};
-      Object.entries(updatedLastUsedMap).forEach(([id, time]) => {
-        lastUsedIso[id] = new Date(time).toISOString();
-      });
-
-      const updatedUsageCounts = { ...usageCounts, [appId]: newCount };
-
-      // Background update
       updateUserPreferencesAction(user.id, { 
         lastUsedApps: lastUsedIso,
         usageCounts: updatedUsageCounts
       });
     } else {
-      const updatedLastUsedMap = { ...lastUsed, [appId]: now };
-      const updatedUsageCounts = { ...usageCounts, [appId]: newCount };
-      
       localStorage.setItem(`last_used_apps_guest`, JSON.stringify(updatedLastUsedMap));
       localStorage.setItem(`usage_counts_guest`, JSON.stringify(updatedUsageCounts));
     }
@@ -114,12 +108,14 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
 
   const togglePin = async (appId: string) => {
     const newPinned = pinnedIds.includes(appId)
-      ? pinnedIds.filter(id => id !== appId)
+      ? pinnedIds.filter((id: string) => id !== appId)
       : [...pinnedIds, appId];
     
-    // For pinning, we DO update the state immediately because the user
-    // expects immediate visual feedback when they click the pin button.
-    setPinnedIds(newPinned);
+    // Optimistic Update
+    queryClient.setQueryData(["user", "preferences", user?.id || "guest"], (prev: any) => ({
+      ...prev,
+      pinnedApps: newPinned,
+    }));
     
     if (user?.id) {
       await updateUserPreferencesAction(user.id, { pinnedApps: newPinned });
@@ -129,7 +125,10 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshSessionData = async () => {
-    await loadData();
+    await Promise.all([
+      prefsQuery.refetch(),
+      businessQuery.refetch()
+    ]);
   };
 
   return (

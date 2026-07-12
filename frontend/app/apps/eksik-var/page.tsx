@@ -44,11 +44,15 @@ import {
   MagnifyingGlass,
   SquaresFour,
   List,
+  WifiSlash,
+  CloudArrowUp,
   type Icon,
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { eksik_var } from "@/lib/client";
 import toast, { Toaster } from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 
 const client = createBrowserClient();
 
@@ -323,10 +327,12 @@ function ItemsByCategory({
   const cardClass =
     "bg-white rounded-xl border border-gray-200/50 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-[0.98] cursor-pointer select-none";
 
+  const groups = groupItemsByCategory(items);
+
   return (
     <div className="space-y-6">
-      {groupItemsByCategory(items).map(({ category, items: categoryItems }) => (
-        <div key={category}>
+      {groups.map(({ category, items: categoryItems }) => (
+        <div key={category} className="category-group">
           <div className="flex items-center justify-between mb-2 px-1">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
               {category}
@@ -334,58 +340,74 @@ function ItemsByCategory({
             <span className="text-[10px] font-bold text-gray-300">{categoryItems.length}</span>
           </div>
 
-          {viewMode === "grid" ? (
-            <div className="grid grid-cols-3 gap-2">
-              {categoryItems.map((item) => (
-                <div
-                  key={item.id}
-                  ref={(el) => registerItemRef?.(item.id, el)}
-                  role="button"
-                  tabIndex={0}
-                  {...getLongPressProps(item)}
-                  onClick={() => onItemTap(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onItemTap(item);
+          <div className={viewMode === "grid" ? "grid grid-cols-3 gap-2" : "bg-white rounded-xl border border-gray-200/60 overflow-hidden divide-y divide-gray-100 shadow-sm"}>
+            <AnimatePresence initial={false}>
+              {categoryItems.map((item) => {
+                const isOptimistic = item.id.startsWith("temp-");
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.6,
+                      y: -50,
+                      filter: "blur(20px)",
+                      transition: { duration: 0.5, ease: "easeOut" }
+                    }}
+                    whileTap={{ scale: 0.9, transition: { duration: 0.1 } }}
+                    ref={(el) => registerItemRef?.(item.id, el as any)}
+                    role="button"
+                    tabIndex={0}
+                    {...getLongPressProps(item)}
+                    onClick={() => onItemTap(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onItemTap(item);
+                      }
+                    }}
+                    className={viewMode === "grid" 
+                      ? `scroll-mt-28 ${cardClass} relative flex flex-col items-center justify-center px-2 py-4 text-left w-full ${isOptimistic ? "opacity-60" : ""}`
+                      : `scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-gray-50/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full ${isOptimistic ? "opacity-60" : ""}`
                     }
-                  }}
-                  className={`scroll-mt-28 ${cardClass} relative flex flex-col items-center justify-center px-2 py-4 text-left w-full`}
-                >
-                  <ItemThumbnail name={item.name} />
-                  <h3 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
-                    {item.name}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-gray-200/60 overflow-hidden divide-y divide-gray-100 shadow-sm">
-              {categoryItems.map((item) => (
-                <div
-                  key={item.id}
-                  ref={(el) => registerItemRef?.(item.id, el)}
-                  role="button"
-                  tabIndex={0}
-                  {...getLongPressProps(item)}
-                  onClick={() => onItemTap(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onItemTap(item);
-                    }
-                  }}
-                  className="scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-gray-50/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full"
-                >
-                  <ChecklistToggle checked={isHomeList} />
-                  <ItemThumbnail name={item.name} size="suggestion" />
-                  <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 flex-1 min-w-0">
-                    {item.name}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          )}
+                  >
+                    {viewMode === "list" && <ChecklistToggle checked={isHomeList} />}
+                    <ItemThumbnail name={item.name} size={viewMode === "grid" ? "card" : "suggestion"} />
+                    
+                    <div className={viewMode === "grid" ? "w-full" : "flex-1 min-w-0"}>
+                      <div className={viewMode === "grid" ? "flex flex-col items-center" : "flex items-center gap-1.5"}>
+                        <h3 className={viewMode === "grid" 
+                          ? "text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1"
+                          : "text-sm font-bold text-gray-900 leading-snug line-clamp-2"
+                        }>
+                          {item.name}
+                        </h3>
+                        {isOptimistic && viewMode === "list" && (
+                          <CloudArrowUp size={12} weight="bold" className="text-emerald-500 animate-pulse shrink-0" />
+                        )}
+                      </div>
+                      {item.notes && (
+                        <p className={viewMode === "grid"
+                          ? "text-[9px] text-gray-400 text-center line-clamp-1 mt-1 px-1"
+                          : "text-[10px] text-gray-400 line-clamp-1"
+                        }>
+                          {item.notes}
+                        </p>
+                      )}
+                    </div>
+
+                    {viewMode === "grid" && isOptimistic && (
+                      <div className="absolute top-1.5 right-1.5 animate-pulse">
+                        <CloudArrowUp size={12} weight="bold" className="text-emerald-500" />
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
         </div>
       ))}
     </div>
@@ -497,8 +519,31 @@ function showItemMovedToast(
 
 export default function EksikVarPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
-  const [items, setItems] = useState<eksik_var.MissingItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const [isOnline, setIsOnline] = useState(true);
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["eksik-var", "items", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await client.eksik_var.getItems(user.id);
+      return response.items || [];
+    },
+    enabled: !!user,
+  });
+
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -516,16 +561,136 @@ export default function EksikVarPage() {
   const [editingItem, setEditingItem] = useState<eksik_var.MissingItem | null>(null);
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState<string | null>(null);
-  const [savingEdit, setSavingEdit] = useState(false);
+  const [editNotes, setEditNotes] = useState("");
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [pendingCustomName, setPendingCustomName] = useState<string | null>(null);
   const [selectedAddCategory, setSelectedAddCategory] = useState<string | null>(null);
-  const [savingCategoryAdd, setSavingCategoryAdd] = useState(false);
+  const [selectedAddNotes, setSelectedAddNotes] = useState("");
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null);
   const [activeListTab, setActiveListTab] = useState<"missing" | "home">("missing");
   const [listViewMode, setListViewMode] = useState<"grid" | "list">("grid");
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Mutations
+  const addItemMutation = useMutation({
+    mutationFn: async (vars: { name: string; category?: string; notes?: string }) => {
+      if (!user) throw new Error("No user");
+      const res = await client.eksik_var.addItem({
+        userId: user.id,
+        name: vars.name,
+        category: vars.category,
+        notes: vars.notes,
+      });
+      return res.item;
+    },
+    onMutate: async (newItem) => {
+      await queryClient.cancelQueries({ queryKey: ["eksik-var", "items", user?.id] });
+      const previousItems = queryClient.getQueryData<eksik_var.MissingItem[]>(["eksik-var", "items", user?.id]);
+      const optimisticItem: eksik_var.MissingItem = {
+        id: `temp-${Date.now()}`,
+        user_id: user?.id || "",
+        name: newItem.name,
+        category: newItem.category || null,
+        notes: newItem.notes || null,
+        is_used: activeListTab === "home",
+        created_at: new Date().toISOString(),
+      };
+      queryClient.setQueryData(["eksik-var", "items", user?.id], (old: any) => [optimisticItem, ...(old || [])]);
+      return { previousItems };
+    },
+    onError: (err, newItem, context) => {
+      queryClient.setQueryData(["eksik-var", "items", user?.id], context?.previousItems);
+      toast.error("Ürün eklenemedi.");
+    },
+    onSettled: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["eksik-var", "items", user?.id] });
+      if (data) setScrollToItemId(data.id);
+    },
+  });
+
+  const toggleUsedMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error("No user");
+      const res = await client.eksik_var.toggleItemUsed(id, { userId: user.id });
+      return res.item;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["eksik-var", "items", user?.id] });
+      const previousItems = queryClient.getQueryData<eksik_var.MissingItem[]>(["eksik-var", "items", user?.id]);
+      const item = previousItems?.find((i) => i.id === id);
+      if (item) {
+        queryClient.setQueryData(["eksik-var", "items", user?.id], (old: any) =>
+          old?.map((i: any) => (i.id === id ? { ...i, is_used: !i.is_used } : i))
+        );
+      }
+      return { previousItems, item };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(["eksik-var", "items", user?.id], context?.previousItems);
+      toast.error("İşlem başarısız.");
+    },
+    onSuccess: (data, id, context) => {
+      if (data) {
+        showItemMovedToast(data.name, data.is_used, () => {
+          toggleUsedMutation.mutate(id);
+        });
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["eksik-var", "items", user?.id] });
+    },
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error("No user");
+      return await client.eksik_var.deleteItem(id, { userId: user.id });
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["eksik-var", "items", user?.id] });
+      const previousItems = queryClient.getQueryData<eksik_var.MissingItem[]>(["eksik-var", "items", user?.id]);
+      queryClient.setQueryData(["eksik-var", "items", user?.id], (old: any) =>
+        old?.filter((i: any) => i.id !== id)
+      );
+      return { previousItems };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(["eksik-var", "items", user?.id], context?.previousItems);
+      toast.error("Silme işlemi başarısız.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["eksik-var", "items", user?.id] });
+    },
+  });
+
+  const updateItemMutation = useMutation({
+    mutationFn: async (vars: { id: string; name?: string; category?: string; notes?: string }) => {
+      if (!user) throw new Error("No user");
+      const res = await client.eksik_var.updateItem(vars.id, {
+        userId: user.id,
+        name: vars.name,
+        category: vars.category,
+        notes: vars.notes,
+      });
+      return res.item;
+    },
+    onMutate: async (vars) => {
+      await queryClient.cancelQueries({ queryKey: ["eksik-var", "items", user?.id] });
+      const previousItems = queryClient.getQueryData<eksik_var.MissingItem[]>(["eksik-var", "items", user?.id]);
+      queryClient.setQueryData(["eksik-var", "items", user?.id], (old: any) =>
+        old?.map((i: any) => (i.id === vars.id ? { ...i, ...vars } : i))
+      );
+      return { previousItems };
+    },
+    onError: (err, vars, context) => {
+      queryClient.setQueryData(["eksik-var", "items", user?.id], context?.previousItems);
+      toast.error("Güncelleme başarısız.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["eksik-var", "items", user?.id] });
+    },
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -638,8 +803,7 @@ export default function EksikVarPage() {
         userId: user.id,
         friendUserId: friendUserId,
       });
-      await fetchShareData();
-      await fetchItems();
+      fetchShareData();
     } catch (error) {
       console.error("handleShareWithFriend error:", error);
     }
@@ -652,8 +816,7 @@ export default function EksikVarPage() {
         userId: user.id,
         targetUserId: targetUserId,
       });
-      await fetchShareData();
-      await fetchItems();
+      fetchShareData();
     } catch (error) {
       console.error("handleRemoveMember error:", error);
     }
@@ -671,30 +834,6 @@ export default function EksikVarPage() {
       }
     } catch (error) {
       console.error("handleCreateInvite error:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isUserLoaded && user) {
-      fetchItems();
-    } else if (isUserLoaded && !user) {
-      setLoading(false);
-    }
-  }, [isUserLoaded, user]);
-
-  const fetchItems = async () => {
-    try {
-      setLoading(true);
-      if (!user) {
-        setItems([]);
-        return;
-      }
-      const response = await client.eksik_var.getItems(user.id);
-      setItems(response.items || []);
-    } catch (error) {
-      console.error("fetchItems error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -774,12 +913,10 @@ export default function EksikVarPage() {
     setShowSuggestions(false);
   };
 
-  const handleAddItem = async (nameToAdd: string, categoryOverride?: string) => {
+  const handleAddItem = async (nameToAdd: string, categoryOverride?: string, notesOverride?: string) => {
     const normalized = normalizeItemNameForAdd(nameToAdd);
     if (!normalized) return;
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     if (
       items.some(
@@ -795,105 +932,62 @@ export default function EksikVarPage() {
     if (isCustom && !categoryOverride) {
       setPendingCustomName(normalized);
       setSelectedAddCategory(null);
+      setSelectedAddNotes("");
       setCategoryModalOpen(true);
       setShowSuggestions(false);
       return;
     }
 
-    try {
-      setSavingCategoryAdd(true);
-      const response = await client.eksik_var.addItem({
-        userId: user.id,
-        name: normalized,
-        ...(categoryOverride ? { category: categoryOverride } : {}),
-      });
-      if (response.item) {
-        let finalItem = response.item;
-        if (activeListTab === "home") {
-          const toggleResponse = await client.eksik_var.toggleItemUsed(finalItem.id, { userId: user.id });
-          if (toggleResponse.item) {
-            finalItem = toggleResponse.item;
-          }
-        } else {
-          setActiveListTab("missing");
-        }
-        setItems(prev => [finalItem, ...prev]);
-        setScrollToItemId(finalItem.id);
-      }
-      setInputValue("");
-      setSuggestions([]);
-      setSelectedSuggestionIndex(0);
-      setShowSuggestions(false);
-      setCategoryModalOpen(false);
-      setPendingCustomName(null);
-      setSelectedAddCategory(null);
-    } catch (error) {
-      console.error("handleAddItem error:", error);
-    } finally {
-      setSavingCategoryAdd(false);
-    }
+    addItemMutation.mutate({
+      name: normalized,
+      category: categoryOverride,
+      notes: notesOverride,
+    });
+
+    setInputValue("");
+    setSuggestions([]);
+    setSelectedSuggestionIndex(0);
+    setShowSuggestions(false);
+    setCategoryModalOpen(false);
+    setPendingCustomName(null);
+    setSelectedAddCategory(null);
+    setSelectedAddNotes("");
   };
 
   const closeCategoryModal = () => {
     setCategoryModalOpen(false);
     setPendingCustomName(null);
     setSelectedAddCategory(null);
-    setSavingCategoryAdd(false);
+    setSelectedAddNotes("");
   };
 
   const handleConfirmCategoryAdd = async () => {
     if (!pendingCustomName || !selectedAddCategory) return;
-    await handleAddItem(pendingCustomName, selectedAddCategory);
+    handleAddItem(pendingCustomName, selectedAddCategory, selectedAddNotes);
   };
 
-  const handleDeleteItem = async (id: string, name: string) => {
+  const handleDeleteItem = async (id: string) => {
     if (!user) return;
-    try {
-      await client.eksik_var.deleteItem(id, { userId: user.id });
-      setItems(prev => prev.filter(item => item.id !== id));
-    } catch (error) {
-      console.error("handleDeleteItem error:", error);
-    }
+    deleteItemMutation.mutate(id);
   };
 
-  const handleToggleUsed = async (id: string, name: string, currentlyUsed: boolean) => {
+  const handleToggleUsed = async (id: string) => {
     if (!user) return;
-    try {
-      const response = await client.eksik_var.toggleItemUsed(id, { userId: user.id });
-      if (response.item) {
-        setItems(prev => prev.map(item => item.id === id ? response.item! : item));
-
-        const isNowAtHome = response.item.is_used;
-        showItemMovedToast(name, isNowAtHome, async () => {
-          if (!user) return;
-          try {
-            const undoResponse = await client.eksik_var.toggleItemUsed(id, { userId: user.id });
-            if (undoResponse.item) {
-              setItems((prev) =>
-                prev.map((item) => (item.id === id ? undoResponse.item! : item))
-              );
-            }
-          } catch (error) {
-            console.error("handleToggleUsed undo error:", error);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("handleToggleUsed error:", error);
-    }
+    toggleUsedMutation.mutate(id);
   };
 
   const openEditSheet = (item: eksik_var.MissingItem) => {
     setEditingItem(item);
     setEditName(item.name);
     setEditCategory(getDisplayCategory(item));
+    setEditNotes(item.notes || "");
   };
 
   const closeEditSheet = () => {
     setEditingItem(null);
     setEditName("");
     setEditCategory(null);
-    setSavingEdit(false);
+    setEditNotes("");
   };
 
   const startLongPress = (item: eksik_var.MissingItem) => {
@@ -913,12 +1007,12 @@ export default function EksikVarPage() {
     }
   };
 
-  const handleItemTap = (item: eksik_var.MissingItem, currentlyUsed: boolean) => {
+  const handleItemTap = (item: eksik_var.MissingItem) => {
     if (longPressTriggeredRef.current) {
       longPressTriggeredRef.current = false;
       return;
     }
-    handleToggleUsed(item.id, item.name, currentlyUsed);
+    handleToggleUsed(item.id);
   };
 
   const getLongPressProps = (item: eksik_var.MissingItem) => ({
@@ -944,6 +1038,7 @@ export default function EksikVarPage() {
       normalized.toLocaleLowerCase("tr-TR") !== editingItem.name.toLocaleLowerCase("tr-TR");
     const categoryChanged =
       editCategory !== null && editCategory !== (editingItem.category ?? getItemCategory(editingItem.name));
+    const notesChanged = editNotes !== (editingItem.notes || "");
     const isCustom = isCustomItemName(normalized) || !!editingItem.category;
 
     if (
@@ -958,40 +1053,29 @@ export default function EksikVarPage() {
       return;
     }
 
-    if (!nameChanged && !(isCustom && categoryChanged)) {
+    if (!nameChanged && !(isCustom && categoryChanged) && !notesChanged) {
       closeEditSheet();
       return;
     }
 
-    try {
-      setSavingEdit(true);
-      const response = await client.eksik_var.updateItem(editingItem.id, {
-        userId: user.id,
-        ...(nameChanged ? { name: normalized } : {}),
-        ...(isCustom && categoryChanged && editCategory ? { category: editCategory } : {}),
-      });
-      if (response.item) {
-        setItems((prev) =>
-          prev.map((item) => (item.id === editingItem.id ? response.item! : item))
-        );
-      }
-      closeEditSheet();
-    } catch (error) {
-      console.error("handleSaveEdit error:", error);
-    } finally {
-      setSavingEdit(false);
-    }
+    updateItemMutation.mutate({
+      id: editingItem.id,
+      ...(nameChanged ? { name: normalized } : {}),
+      ...(isCustom && categoryChanged && editCategory ? { category: editCategory } : {}),
+      ...(notesChanged ? { notes: editNotes } : {}),
+    });
+    closeEditSheet();
   };
 
   const handleEditToggle = async () => {
     if (!editingItem) return;
-    await handleToggleUsed(editingItem.id, editingItem.name, editingItem.is_used);
+    handleToggleUsed(editingItem.id);
     closeEditSheet();
   };
 
   const handleEditDelete = async () => {
     if (!editingItem) return;
-    await handleDeleteItem(editingItem.id, editingItem.name);
+    handleDeleteItem(editingItem.id);
     closeEditSheet();
   };
 
@@ -1012,6 +1096,12 @@ export default function EksikVarPage() {
               <span className="truncate">
                 Eksik <span className="text-emerald-500">Var</span>
               </span>
+              {!isOnline && (
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                  <WifiSlash size={10} weight="bold" />
+                  <span className="text-[8px] font-black uppercase tracking-wider">Çevrimdışı</span>
+                </div>
+              )}
             </h1>
 
             {user && (
@@ -1168,7 +1258,7 @@ export default function EksikVarPage() {
       </header>
 
       <main className="flex-1 px-4 pt-4 pb-32 max-w-xl mx-auto w-full">
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
             Yükleniyor...
           </div>
@@ -1178,44 +1268,40 @@ export default function EksikVarPage() {
             <p className="text-sm font-bold text-gray-400">Eksik listeni görebilmek için giriş yapmalısın.</p>
           </div>
         ) : user ? (() => {
-          const activeItems = items.filter(i => !i.is_used);
-          const usedItems = items.filter(i => i.is_used);
+          const filteredItems = items.filter(i => activeListTab === "missing" ? !i.is_used : i.is_used);
+          const isEmpty = filteredItems.length === 0;
+
           return (
-            <>
-              {activeListTab === "missing" ? (
-                activeItems.length === 0 ? (
-                  <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                    <Basket size={32} className="text-gray-200 mx-auto mb-2" />
-                    <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
-                  </div>
-                ) : (
-                  <ItemsByCategory
-                    items={activeItems}
-                    viewMode={listViewMode}
-                    isHomeList={false}
-                    onItemTap={(item) => handleItemTap(item, false)}
-                    getLongPressProps={getLongPressProps}
-                    registerItemRef={(id, el) => {
-                      if (el) itemRefs.current.set(id, el);
-                      else itemRefs.current.delete(id);
-                    }}
-                  />
-                )
-              ) : usedItems.length === 0 ? (
+            <div className="relative">
+              {isEmpty ? (
                 <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                  <House size={32} className="text-gray-200 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
+                  {activeListTab === "missing" ? (
+                    <>
+                      <Basket size={32} className="text-gray-200 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
+                    </>
+                  ) : (
+                    <>
+                      <House size={32} className="text-gray-200 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <ItemsByCategory
-                  items={usedItems}
+                  key={activeListTab}
+                  items={filteredItems}
                   viewMode={listViewMode}
-                  isHomeList={true}
-                  onItemTap={(item) => handleItemTap(item, true)}
+                  isHomeList={activeListTab === "home"}
+                  onItemTap={(item) => handleItemTap(item)}
                   getLongPressProps={getLongPressProps}
+                  registerItemRef={(id, el) => {
+                    if (el) itemRefs.current.set(id, el);
+                    else itemRefs.current.delete(id);
+                  }}
                 />
               )}
-            </>
+            </div>
           );
         })() : null}
       </main>
@@ -1262,13 +1348,25 @@ export default function EksikVarPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  Notlar (Opsiyonel)
+                </label>
+                <textarea
+                  value={selectedAddNotes}
+                  onChange={(e) => setSelectedAddNotes(e.target.value)}
+                  placeholder="Ürün hakkında not ekleyin..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
               <button
                 onClick={handleConfirmCategoryAdd}
-                disabled={savingCategoryAdd || !selectedAddCategory}
+                disabled={addItemMutation.isPending || !selectedAddCategory}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
               >
                 <Plus size={16} weight="bold" />
-                {savingCategoryAdd ? "Ekleniyor..." : "Listeye Ekle"}
+                {addItemMutation.isPending ? "Ekleniyor..." : "Listeye Ekle"}
               </button>
             </div>
           </div>
@@ -1320,6 +1418,18 @@ export default function EksikVarPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                  Notlar
+                </label>
+                <textarea
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Ürün hakkında not ekleyin..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
               {(isCustomItemName(editName.trim() || editingItem.name) || editingItem.category) ? (
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
@@ -1343,11 +1453,11 @@ export default function EksikVarPage() {
 
               <button
                 onClick={handleSaveEdit}
-                disabled={savingEdit || !editName.trim()}
+                disabled={updateItemMutation.isPending || !editName.trim()}
                 className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
               >
                 <Check size={16} weight="bold" />
-                {savingEdit ? "Kaydediliyor..." : "Kaydet"}
+                {updateItemMutation.isPending ? "Kaydediliyor..." : "Kaydet"}
               </button>
 
               <button

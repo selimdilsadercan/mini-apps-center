@@ -22,6 +22,7 @@ export const eksikVarAssistant: AppAssistantModule = {
       permission: "create",
       parameters: {
         name: { type: "string", description: "Ürün adı (örn: Süt, Yumurta)", required: true },
+        notes: { type: "string", description: "Ürün notu (örn: 2 paket, tam yağlı)", required: false },
       },
     },
     {
@@ -42,6 +43,7 @@ export const eksikVarAssistant: AppAssistantModule = {
       const res = await eksik_var.addItem({
         userId,
         name: requireString(args, "name"),
+        notes: args.notes as string | undefined,
       });
       return res.item ? [res.item] : [];
     },

@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS eksik_var.missing_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
+    notes TEXT,
     is_used BOOLEAN DEFAULT FALSE NOT NULL,
     category TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL

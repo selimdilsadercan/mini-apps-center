@@ -431,43 +431,64 @@ export default function RutinlerPage() {
     }
   }
 
-  async function handleToggleComplete(entry: rutinler.RoutineEntry) {
+  async function handleToggleComplete(entry: rutinler.RoutineEntry, isNext = false) {
     if (!user) return;
-    const newStatus = !entry.is_completed;
+    const currentStatus = isNext ? entry.is_next_completed : entry.is_completed;
+    const newStatus = !currentStatus;
 
-    if (newStatus) {
+    if (!isNext && newStatus) {
       setRecentlyCompletedIds((prev) => {
-        const next = new Set(prev);
-        next.add(entry.id);
-        return next;
+        const nextSet = new Set(prev);
+        nextSet.add(entry.id);
+        return nextSet;
       });
       // 800ms sonra listeden tamamen çıkart
       setTimeout(() => {
         setRecentlyCompletedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(entry.id);
-          return next;
+          const nextSet = new Set(prev);
+          nextSet.delete(entry.id);
+          return nextSet;
         });
       }, 800);
     }
 
     // Optimistic update
     setEntries((prev) =>
-      prev.map((e) => (e.id === entry.id ? { ...e, is_completed: newStatus } : e))
+      prev.map((e) =>
+        e.id === entry.id
+          ? { ...e, [isNext ? "is_next_completed" : "is_completed"]: newStatus }
+          : e
+      )
     );
+
+    if (editingEntry?.id === entry.id) {
+      setEditingEntry((prev) => 
+        prev ? { ...prev, [isNext ? "is_next_completed" : "is_completed"]: newStatus } : null
+      );
+    }
 
     try {
       await client.rutinler.toggleCompletion({
         entryId: entry.id,
         userId: user.id,
         completed: newStatus,
+        isNextPeriod: isNext,
       });
     } catch (error) {
       console.error("handleToggleComplete error:", error);
       // Rollback
       setEntries((prev) =>
-        prev.map((e) => (e.id === entry.id ? { ...e, is_completed: !newStatus } : e))
+        prev.map((e) =>
+          e.id === entry.id
+            ? { ...e, [isNext ? "is_next_completed" : "is_completed"]: !newStatus }
+            : e
+        )
       );
+      if (editingEntry?.id === entry.id) {
+        setEditingEntry((prev) => 
+          prev ? { ...prev, [isNext ? "is_next_completed" : "is_completed"]: !newStatus } : null
+        );
+      }
     }
   }
 
@@ -535,6 +556,8 @@ export default function RutinlerPage() {
   }
 
   function renderEntryRow(entry: rutinler.RoutineEntry, showComplete: boolean, isGrouped = false) {
+    const isRecurring = entry.period_type !== "once";
+
     return (
       <motion.div
         key={entry.id}
@@ -551,29 +574,32 @@ export default function RutinlerPage() {
         } ${isGrouped ? "border-b border-gray-50 last:border-0" : ""}`}
       >
         {showComplete && (
-          <button
-            type="button"
-            onClick={() => void handleToggleComplete(entry)}
-            className={`shrink-0 w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
-              entry.is_completed
-                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
-                : "bg-white border-gray-200 text-transparent"
-            }`}
-          >
-            <AnimatePresence mode="wait">
-              {entry.is_completed && (
-                <motion.div
-                  key="check"
-                  initial={{ scale: 0, rotate: -45 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  exit={{ scale: 0 }}
-                  transition={{ type: "spring", damping: 12, stiffness: 200 }}
-                >
-                  <Check size={14} weight="bold" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Mevcut Periyot */}
+            <button
+              type="button"
+              onClick={() => void handleToggleComplete(entry)}
+              className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
+                entry.is_completed
+                  ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                  : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
+              }`}
+            >
+              <AnimatePresence mode="wait">
+                {entry.is_completed && (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                  >
+                    <Check size={14} weight="bold" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
         )}
 
         <div
@@ -1098,6 +1124,27 @@ export default function RutinlerPage() {
                     className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-violet-400/40 placeholder:text-gray-400 placeholder:font-medium"
                   />
                 </div>
+
+                {/* Gelecek Periyot Tamamlama (Erken Tamamlama) */}
+                {editingEntry && editingEntry.period_type !== "once" && editingEntry.is_completed && (
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleToggleComplete(editingEntry, true)}
+                      className={`w-full py-3.5 rounded-xl border-2 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                        editingEntry.is_next_completed
+                          ? "bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-200"
+                          : "bg-white border-blue-100 text-blue-500 hover:bg-blue-50"
+                      }`}
+                    >
+                      <Check size={16} weight="bold" />
+                      {editingEntry.is_next_completed ? "Gelecek Periyot Tamamlandı" : "Gelecek Periyot İçin Erkenden Tamamla"}
+                    </button>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center mt-2 px-4">
+                      Bu rutini şimdiden yaparak bir sonraki periyot için (yarın/gelecek hafta/gelecek ay) tamamlanmış sayılmasını sağlayabilirsiniz.
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-2">
                   <button

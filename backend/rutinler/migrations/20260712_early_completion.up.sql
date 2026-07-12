@@ -1,10 +1,4 @@
--- FUNCTIONS
--- 1. rutinler.get_entries
--- 2. rutinler.add_entry
--- 3. rutinler.delete_entry
--- 4. rutinler.toggle_completion
-
--- 1. Get Entries
+-- 1. Get Entries (Update to include is_next_completed)
 DROP FUNCTION IF EXISTS rutinler.get_entries(TEXT);
 CREATE OR REPLACE FUNCTION rutinler.get_entries(clerk_id_param TEXT)
 RETURNS TABLE (
@@ -82,82 +76,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. Add Entry
-DROP FUNCTION IF EXISTS rutinler.add_entry(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT, SMALLINT);
-CREATE OR REPLACE FUNCTION rutinler.add_entry(
-    clerk_id_param TEXT,
-    period_type_param TEXT,
-    item_name_param TEXT,
-    item_emoji_param TEXT,
-    item_slug_param TEXT DEFAULT NULL,
-    daily_slot_param TEXT DEFAULT NULL,
-    day_of_week_param SMALLINT DEFAULT NULL,
-    day_of_month_param SMALLINT DEFAULT NULL
-)
-RETURNS SETOF rutinler.entries AS $$
-DECLARE
-    v_user_id UUID;
-    v_sort_order INTEGER;
-BEGIN
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    SELECT COALESCE(MAX(sort_order), 0) + 1 INTO v_sort_order
-    FROM rutinler.entries
-    WHERE user_id = v_user_id AND period_type = period_type_param;
-
-    RETURN QUERY
-    INSERT INTO rutinler.entries (
-        user_id,
-        period_type,
-        item_slug,
-        item_name,
-        item_emoji,
-        daily_slot,
-        day_of_week,
-        day_of_month,
-        sort_order
-    ) VALUES (
-        v_user_id,
-        period_type_param,
-        item_slug_param,
-        item_name_param,
-        COALESCE(NULLIF(item_emoji_param, ''), '✨'),
-        daily_slot_param,
-        day_of_week_param,
-        day_of_month_param,
-        v_sort_order
-    ) RETURNING *;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 3. Delete Entry
-DROP FUNCTION IF EXISTS rutinler.delete_entry(UUID, TEXT);
-CREATE OR REPLACE FUNCTION rutinler.delete_entry(
-    entry_id_param UUID,
-    clerk_id_param TEXT
-)
-RETURNS BOOLEAN AS $$
-DECLARE
-    v_user_id UUID;
-    deleted_count INTEGER;
-BEGIN
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    DELETE FROM rutinler.entries
-    WHERE id = entry_id_param AND user_id = v_user_id;
-
-    GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    RETURN deleted_count > 0;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 4. Toggle Completion
+-- 2. Toggle Completion (Update to include is_next_period_param)
 DROP FUNCTION IF EXISTS rutinler.toggle_completion(UUID, TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS rutinler.toggle_completion(UUID, TEXT, BOOLEAN, BOOLEAN);
 CREATE OR REPLACE FUNCTION rutinler.toggle_completion(
@@ -228,38 +147,5 @@ BEGIN
     END IF;
 
     RETURN TRUE;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 5. Update Entry
-DROP FUNCTION IF EXISTS rutinler.update_entry(UUID, TEXT, TEXT, TEXT, TEXT, SMALLINT, SMALLINT);
-CREATE OR REPLACE FUNCTION rutinler.update_entry(
-    entry_id_param UUID,
-    clerk_id_param TEXT,
-    item_name_param TEXT,
-    item_emoji_param TEXT,
-    daily_slot_param TEXT DEFAULT NULL,
-    day_of_week_param SMALLINT DEFAULT NULL,
-    day_of_month_param SMALLINT DEFAULT NULL
-)
-RETURNS SETOF rutinler.entries AS $$
-DECLARE
-    v_user_id UUID;
-BEGIN
-    v_user_id := public.get_internal_user_id(clerk_id_param);
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    RETURN QUERY
-    UPDATE rutinler.entries
-    SET 
-        item_name = item_name_param,
-        item_emoji = item_emoji_param,
-        daily_slot = daily_slot_param,
-        day_of_week = day_of_week_param,
-        day_of_month = day_of_month_param
-    WHERE id = entry_id_param AND user_id = v_user_id
-    RETURNING *;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

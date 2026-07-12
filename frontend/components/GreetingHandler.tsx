@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, UserCircle } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { createBrowserClient } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { getUserPreferencesAction } from "@/app/home/actions";
 
 import { useRouter, usePathname } from "next/navigation";
 
@@ -28,6 +30,28 @@ export function GreetingHandler() {
 
   const [hasUsername, setHasUsername] = useState<boolean | null>(null);
 
+  // Use the same query key as HomeContext to leverage caching
+  const prefsQuery = useQuery({
+    queryKey: ["user", "preferences", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const res = await getUserPreferencesAction(user.id);
+      return res.data;
+    },
+    enabled: isLoaded && !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (isLoaded && user && prefsQuery.data) {
+      const pref = prefsQuery.data;
+      const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
+      if (!pref.isOnboardingFinished && !ignoredPaths.includes(pathname)) {
+        router.replace("/onboarding");
+      }
+    }
+  }, [isLoaded, user, prefsQuery.data, pathname, router]);
+
   useEffect(() => {
     if (isLoaded && user) {
       // Veritabanı ile senkronize et
@@ -47,51 +71,13 @@ export function GreetingHandler() {
         } else {
           setGreetingStep(0);
         }
-
-        // Check onboarding status
-        client.users.getUserPreferences(user.id).then(pref => {
-          const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
-          if (!pref.isOnboardingFinished && !ignoredPaths.includes(pathname)) {
-            router.replace("/onboarding");
-          }
-        }).catch(err => {
-          console.error("Failed to check onboarding:", err);
-        });
       }).catch(err => {
         console.error("User sync error:", err);
       });
     }
-  }, [isLoaded, user, permission]);
-
-  // Poll for pending friend requests to update global badge state
-  useEffect(() => {
-    if (!isLoaded || !user) return;
-
-    const checkPendingRequests = async () => {
-      try {
-        const res = await client.friendship.getPendingRequests(user.id);
-        const hasPending = res.requests.length > 0;
-        localStorage.setItem("has_pending_requests", hasPending ? "true" : "false");
-        window.dispatchEvent(new CustomEvent("incoming-requests-badge", { detail: { hasPending } }));
-      } catch (err) {
-        console.error("Error checking pending requests:", err);
-      }
-    };
-
-    // Initial check
-    checkPendingRequests();
-
-    // Check on focus
-    const handleFocus = () => checkPendingRequests();
-    window.addEventListener("focus", handleFocus);
-
-    // Poll every 30 seconds
-    const interval = setInterval(checkPendingRequests, 30000);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      clearInterval(interval);
-    };
   }, [isLoaded, user]);
+
+  // Removed getPendingRequests polling to optimize initial load as requested
 
   const closeGreeting = () => {
     setGreetingStep(0);

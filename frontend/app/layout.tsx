@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "./globals.css"; // global styles
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationHandler } from "@/components/notifications/notification-handler";
 import { Toaster } from "react-hot-toast";
@@ -12,6 +12,7 @@ import OTAProvider from "@/components/OTAProvider";
 import OtaBootstrap from "@/components/OtaBootstrap";
 import { MobileThemeProvider } from "@/components/MobileThemeManager";
 import { HomeProvider } from "@/contexts/HomeContext";
+import QueryProvider from "@/contexts/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,16 +48,18 @@ export default function RootLayout({
         <OTAProvider>
           <LanguageProvider messages={trMessages}>
             <AuthProvider>
-              <HomeProvider>
-                <ConfirmDialogProvider>
-                  <MobileThemeProvider>
-                    <NotificationHandler />
-                    <GreetingHandler />
-                    {children}
-                    <Toaster position="top-center" />
-                  </MobileThemeProvider>
-                </ConfirmDialogProvider>
-              </HomeProvider>
+              <QueryProvider>
+                <HomeProvider>
+                  <ConfirmDialogProvider>
+                    <MobileThemeProvider>
+                      <NotificationHandler />
+                      <GreetingHandler />
+                      {children}
+                      <Toaster position="top-center" />
+                    </MobileThemeProvider>
+                  </ConfirmDialogProvider>
+                </HomeProvider>
+              </QueryProvider>
             </AuthProvider>
           </LanguageProvider>
         </OTAProvider>

@@ -2881,6 +2881,7 @@ export namespace eksik_var {
         userId: string
         name: string
         category?: string
+        notes?: string
     }
 
     export interface AddItemResponse {
@@ -2920,6 +2921,7 @@ export namespace eksik_var {
         id: string
         "user_id": string
         name: string
+        notes?: string | null
         "is_used": boolean
         category?: string | null
         "created_at": string
@@ -2963,6 +2965,7 @@ export namespace eksik_var {
         name?: string
         isUsed?: boolean
         category?: string
+        notes?: string
     }
 
     export interface UpdateItemResponse {
@@ -3226,6 +3229,13 @@ export namespace ev_isleri {
         role: "owner" | "member"
     }
 
+    export interface IntegratedTodayChores {
+        boardId: string
+        boardName: string
+        weekStart: string
+        assignments: WeekAssignment[]
+    }
+
     export interface WeekAssignment {
         id: string
         dayOfWeek: number
@@ -3254,6 +3264,7 @@ export namespace ev_isleri {
             this.getBoardInviteDetails = this.getBoardInviteDetails.bind(this)
             this.getBoardMembers = this.getBoardMembers.bind(this)
             this.getBoards = this.getBoards.bind(this)
+            this.getTodayIntegratedChores = this.getTodayIntegratedChores.bind(this)
             this.getWeekPlan = this.getWeekPlan.bind(this)
             this.removeAssignment = this.removeAssignment.bind(this)
             this.removeBoardMember = this.removeBoardMember.bind(this)
@@ -3365,6 +3376,19 @@ export namespace ev_isleri {
             const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/boards/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     boards: Board[]
+}
+        }
+
+        /**
+         * Bugünün görevlerini (ilk board için) getirir
+         */
+        public async getTodayIntegratedChores(userId: string): Promise<{
+    chores: IntegratedTodayChores | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ev-isleri/today/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    chores: IntegratedTodayChores | null
 }
         }
 
@@ -4450,8 +4474,46 @@ export namespace hobby_center {
  * Hub service aggregates data from other services for the home page widgets
  */
 export namespace hub {
+    export interface DiscoverWidgetsResponse {
+        suggestions: suggest.InboxSuggestion[]
+        activities: kim_gelir.Activity[]
+        todaySeries: series_track.TodaySeriesItem[]
+        todayGymPlan: gym.TodayPlan | null
+        todayMeals: recipe.MealPlanMeal[]
+        todayAgenda: rutinler.RoutineEntry[]
+        weeklyChores: ev_isleri.IntegratedTodayChores | null
+    }
+
+    export interface ExploreWidgetsResponse {
+        places: workplaces.Place[]
+    }
+
     export interface GetHomeWidgetsRequest {
         userId?: string
+    }
+
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface GetHomeWidgetsRequest {
+        userId?: string
+    }
+
+    export interface HobbyWidgetsResponse {
+        series: series_track.UserSeries[]
     }
 
     export interface HomeWidgetsResponse {
@@ -4465,12 +4527,70 @@ export namespace hub {
         activities: kim_gelir.Activity[]
     }
 
+    export interface LifeWidgetsResponse {
+        suggestions: suggest.InboxSuggestion[]
+        activities: kim_gelir.Activity[]
+    }
+
+    export interface WalletWidgetsResponse {
+        subscriptions: subcenter.Subscription[]
+        budgetProjects: budget.Project[]
+        savingsStats: tasarruf_challenges.StatsResponse | null
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.getDiscoverWidgets = this.getDiscoverWidgets.bind(this)
+            this.getExploreWidgets = this.getExploreWidgets.bind(this)
+            this.getHobbyWidgets = this.getHobbyWidgets.bind(this)
             this.getHomeWidgets = this.getHomeWidgets.bind(this)
+            this.getLifeWidgets = this.getLifeWidgets.bind(this)
+            this.getWalletWidgets = this.getWalletWidgets.bind(this)
+        }
+
+        /**
+         * Aggregates data for the "Discover" (Bugün) tab
+         */
+        public async getDiscoverWidgets(params: GetHomeWidgetsRequest): Promise<DiscoverWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets/discover`, undefined, {query})
+            return await resp.json() as DiscoverWidgetsResponse
+        }
+
+        /**
+         * Aggregates data for the "Explore" tab
+         */
+        public async getExploreWidgets(params: GetHomeWidgetsRequest): Promise<ExploreWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets/explore`, undefined, {query})
+            return await resp.json() as ExploreWidgetsResponse
+        }
+
+        /**
+         * Aggregates data for the "Hobby" tab
+         */
+        public async getHobbyWidgets(params: GetHomeWidgetsRequest): Promise<HobbyWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets/hobby`, undefined, {query})
+            return await resp.json() as HobbyWidgetsResponse
         }
 
         /**
@@ -4485,6 +4605,34 @@ export namespace hub {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets`, undefined, {query})
             return await resp.json() as HomeWidgetsResponse
+        }
+
+        /**
+         * Aggregates data for the "Life" tab
+         */
+        public async getLifeWidgets(params: GetHomeWidgetsRequest): Promise<LifeWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets/life`, undefined, {query})
+            return await resp.json() as LifeWidgetsResponse
+        }
+
+        /**
+         * Aggregates data for the "Wallet" tab
+         */
+        public async getWalletWidgets(params: GetHomeWidgetsRequest): Promise<WalletWidgetsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/hub/widgets/wallet`, undefined, {query})
+            return await resp.json() as WalletWidgetsResponse
         }
     }
 }
@@ -5785,6 +5933,7 @@ export namespace recipe {
             this.deleteRecipe = this.deleteRecipe.bind(this)
             this.getMealPlan = this.getMealPlan.bind(this)
             this.getRecipeById = this.getRecipeById.bind(this)
+            this.getTodayMeals = this.getTodayMeals.bind(this)
             this.getUserRecipes = this.getUserRecipes.bind(this)
             this.setMealPlan = this.setMealPlan.bind(this)
             this.updateRecipe = this.updateRecipe.bind(this)
@@ -5833,6 +5982,19 @@ export namespace recipe {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/recipe/${encodeURIComponent(recipeId)}`)
             return await resp.json() as GetRecipeByIdResponse
+        }
+
+        /**
+         * Bugünün yemek planını getirir
+         */
+        public async getTodayMeals(userId: string): Promise<{
+    meals: MealPlanMeal[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/recipe/today/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    meals: MealPlanMeal[]
+}
         }
 
         /**
@@ -5919,12 +6081,14 @@ export namespace rutinler {
         "sort_order": number
         "created_at": string
         "is_completed": boolean
+        "is_next_completed": boolean
     }
 
     export interface ToggleCompletionRequest {
         entryId: string
         userId: string
         completed: boolean
+        isNextPeriod?: boolean
     }
 
     export interface ToggleCompletionResponse {
@@ -5960,6 +6124,7 @@ export namespace rutinler {
             this.addEntry = this.addEntry.bind(this)
             this.deleteEntry = this.deleteEntry.bind(this)
             this.getEntries = this.getEntries.bind(this)
+            this.getTodayAgenda = this.getTodayAgenda.bind(this)
             this.toggleCompletion = this.toggleCompletion.bind(this)
             this.updateEntry = this.updateEntry.bind(this)
         }
@@ -5985,6 +6150,19 @@ export namespace rutinler {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/rutinler/entries/${encodeURIComponent(userId)}`)
             return await resp.json() as GetEntriesResponse
+        }
+
+        /**
+         * Bugün için geçerli olan (vakti gelmiş ve henüz tamamlanmamış) rutinleri getirir
+         */
+        public async getTodayAgenda(userId: string): Promise<{
+    entries: RoutineEntry[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/rutinler/today/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    entries: RoutineEntry[]
+}
         }
 
         public async toggleCompletion(params: ToggleCompletionRequest): Promise<ToggleCompletionResponse> {
@@ -6172,6 +6350,22 @@ export namespace series_track {
         } | null
     }
 
+    export interface TodaySeriesItem {
+        id: string
+        seriesId: string
+        tmdbId: number
+        title: string
+        posterPath: string | null
+        watchUrlSlug: string | null
+        streamInfo: string | null
+        season: number
+        episode: number
+        episodeTitle?: string
+        airDate: string
+        source: "tmdb" | "episode-club"
+        isWatched: boolean
+    }
+
     export interface ToggleEpisodeWatchedRequest {
         userId: string
         seriesId: string
@@ -6306,6 +6500,7 @@ export namespace series_track {
             this.deleteUserSeries = this.deleteUserSeries.bind(this)
             this.getSeasonDetails = this.getSeasonDetails.bind(this)
             this.getSeriesDetails = this.getSeriesDetails.bind(this)
+            this.getTodayEpisodes = this.getTodayEpisodes.bind(this)
             this.getTvCalendarEvents = this.getTvCalendarEvents.bind(this)
             this.getTvChannels = this.getTvChannels.bind(this)
             this.getTvEpisodeStats = this.getTvEpisodeStats.bind(this)
@@ -6378,6 +6573,19 @@ export namespace series_track {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/series-track/details/${encodeURIComponent(tmdbId)}`)
             return await resp.json() as TmdbSeriesDetails
+        }
+
+        /**
+         * Bugün yayınlanan veya izlenmesi gereken bölümleri getirir
+         */
+        public async getTodayEpisodes(userId: string): Promise<{
+    items: TodaySeriesItem[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/series-track/today/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    items: TodaySeriesItem[]
+}
         }
 
         /**

@@ -350,6 +350,52 @@ export const getWeekPlan = api(
   }
 );
 
+export interface IntegratedTodayChores {
+  boardId: string;
+  boardName: string;
+  weekStart: string;
+  assignments: WeekAssignment[];
+}
+
+/**
+ * Bugünün görevlerini (ilk board için) getirir
+ */
+export const getTodayIntegratedChores = api(
+  { expose: true, method: "GET", path: "/ev-isleri/today/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ chores: IntegratedTodayChores | null }> => {
+    const { boards } = await getBoards({ userId });
+    if (!boards || boards.length === 0) {
+      return { chores: null };
+    }
+
+    const board = boards[0];
+    const weekStart = getMondayWeekStart();
+    const { assignments } = await getWeekPlan({
+      boardId: board.id,
+      userId,
+      weekStart,
+    });
+
+    return {
+      chores: {
+        boardId: board.id,
+        boardName: board.name,
+        weekStart,
+        assignments: assignments || [],
+      },
+    };
+  }
+);
+
+function getMondayWeekStart(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+  return monday.toISOString();
+}
+
 export const setAssignment = api(
   { expose: true, method: "PUT", path: "/ev-isleri/board/:boardId/assignment" },
   async (req: {

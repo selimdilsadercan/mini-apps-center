@@ -39,6 +39,7 @@ import {
   Clock,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import AppBar, { ActivePage } from "@/components/AppBar";
@@ -64,7 +65,6 @@ import {
 import Link from "next/link";
 import { startGymSession } from "@/app/apps/gym/types";
 import {
-  getMondayWeekStart,
   getIsoWeekday,
 } from "@/app/apps/ev-isleri/types";
 
@@ -73,9 +73,20 @@ const client = createBrowserClient();
 export default function Home() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
+      <div className="flex min-h-screen flex-col bg-[#FAF9F7] pb-32">
+        <AppBar activePage={ActivePage.HOME} />
+        <main className="px-5 py-2 max-w-lg mx-auto w-full">
+          <section className="mt-8 mb-8 flex items-center justify-between">
+            <div className="flex flex-col">
+              <Skeleton className="h-8 w-32 mb-2" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-10 h-10 rounded-2xl" />
+              <Skeleton className="w-10 h-10 rounded-full" />
+            </div>
+          </section>
+          <HomeSkeleton />
         </main>
       </div>
     }>
@@ -83,6 +94,39 @@ export default function Home() {
     </Suspense>
   );
 }
+
+const Skeleton = ({ className }: { className?: string }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-2xl ${className}`} />
+);
+
+const HomeSkeleton = () => (
+  <div className="space-y-10">
+    <section className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-32 col-span-2" />
+        <Skeleton className="h-32" />
+        <Skeleton className="h-32" />
+      </div>
+    </section>
+
+    <section className="space-y-4">
+      <div className="flex items-center justify-between px-1">
+        <Skeleton className="h-3 w-32" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3 px-1">
+            <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-2 w-48" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+);
 
 function HomeContent() {
   const { isLoaded, user } = useUser();
@@ -126,216 +170,69 @@ function HomeContent() {
 
   const [apps, setApps] = useState<MiniApp[]>([]);
   
-  // Integrated Content State
-  const [places, setPlaces] = useState<workplaces.Place[]>([]);
-  const [userSeries, setUserSeries] = useState<series_track.UserSeries[]>([]);
-  const [subscriptions, setSubscriptions] = useState<subcenter.Subscription[]>([]);
-  const [budgetProjects, setBudgetProjects] = useState<budget.Project[]>([]);
-  const [savingsStats, setSavingsStats] = useState<tasarruf_challenges.StatsResponse | null>(null);
-  const [suggestions, setSuggestions] = useState<suggest.InboxSuggestion[]>([]);
-  const [activities, setActivities] = useState<kim_gelir.Activity[]>([]);
-  const [todaySeries, setTodaySeries] = useState<TodaySeriesItem[]>([]);
-  const [todayGymPlan, setTodayGymPlan] = useState<gym.TodayPlan | null>(null);
-  const [todayMeals, setTodayMeals] = useState<recipe.MealPlanMeal[]>([]);
-  const [todayAgenda, setTodayAgenda] = useState<rutinler.RoutineEntry[]>([]);
-  const [weeklyChores, setWeeklyChores] = useState<HomeWeeklyChores | null>(null);
-  const [loadingContent, setLoadingContent] = useState(true);
-  const [loadingTodaySeries, setLoadingTodaySeries] = useState(false);
-  const [loadingTodayGym, setLoadingTodayGym] = useState(false);
-  const [loadingTodayMeals, setLoadingTodayMeals] = useState(false);
-  const [loadingTodayAgenda, setLoadingTodayAgenda] = useState(false);
-  const [loadingWeeklyChores, setLoadingWeeklyChores] = useState(false);
+  // Queries
+  const discoverQuery = useQuery({
+    queryKey: ["hub", "discover", user?.id],
+    queryFn: () => client.hub.getDiscoverWidgets({ userId: user?.id }),
+    enabled: !!user?.id && activeTab === "discover",
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const exploreQuery = useQuery({
+    queryKey: ["hub", "explore", user?.id],
+    queryFn: () => client.hub.getExploreWidgets({ userId: user?.id }),
+    enabled: !!user?.id && activeTab === "explore",
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const hobbyQuery = useQuery({
+    queryKey: ["hub", "hobby", user?.id],
+    queryFn: () => client.hub.getHobbyWidgets({ userId: user?.id }),
+    enabled: !!user?.id && activeTab === "hobby",
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const walletQuery = useQuery({
+    queryKey: ["hub", "wallet", user?.id],
+    queryFn: () => client.hub.getWalletWidgets({ userId: user?.id }),
+    enabled: !!user?.id && activeTab === "wallet",
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const lifeQuery = useQuery({
+    queryKey: ["hub", "life", user?.id],
+    queryFn: () => client.hub.getLifeWidgets({ userId: user?.id }),
+    enabled: !!user?.id && activeTab === "life",
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Derived state from queries
+  const suggestions = discoverQuery.data?.suggestions || lifeQuery.data?.suggestions || [];
+  const activities = discoverQuery.data?.activities || lifeQuery.data?.activities || [];
+  const todaySeries = discoverQuery.data?.todaySeries || [];
+  const todayGymPlan = discoverQuery.data?.todayGymPlan || null;
+  const todayMeals = discoverQuery.data?.todayMeals || [];
+  const todayAgenda = discoverQuery.data?.todayAgenda || [];
+  const weeklyChores = discoverQuery.data?.weeklyChores || null;
+  const places = exploreQuery.data?.places || [];
+  const userSeries = hobbyQuery.data?.series || [];
+  const subscriptions = walletQuery.data?.subscriptions || [];
+  const budgetProjects = walletQuery.data?.budgetProjects || [];
+  const savingsStats = walletQuery.data?.savingsStats || null;
+
+  const loading = useMemo(() => {
+    if (activeTab === "discover") return discoverQuery.isLoading;
+    if (activeTab === "explore") return exploreQuery.isLoading;
+    if (activeTab === "hobby") return hobbyQuery.isLoading;
+    if (activeTab === "wallet") return walletQuery.isLoading;
+    if (activeTab === "life") return lifeQuery.isLoading;
+    return false;
+  }, [activeTab, discoverQuery.isLoading, exploreQuery.isLoading, hobbyQuery.isLoading, walletQuery.isLoading, lifeQuery.isLoading]);
 
   useEffect(() => {
     const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
     setApps(implementedApps);
   }, []);
-
-  const loadTodaySeries = useCallback(async (series: series_track.UserSeries[], userId?: string) => {
-    if (!series.length) {
-      setTodaySeries([]);
-      return;
-    }
-
-    try {
-      setLoadingTodaySeries(true);
-      const { events } = await client.series_track.getTvCalendarEvents();
-      const items = await buildTodaySeriesItems(series, events || []);
-      const itemsWithProgress = userId ? await attachWatchedState(items, userId) : items;
-      setTodaySeries(itemsWithProgress);
-    } catch (err) {
-      console.error("Failed to fetch today's series:", err);
-      setTodaySeries([]);
-    } finally {
-      setLoadingTodaySeries(false);
-    }
-  }, []);
-
-  const loadTodayGymPlan = useCallback(async (userId?: string) => {
-    if (!userId) {
-      setTodayGymPlan(null);
-      return;
-    }
-
-    try {
-      setLoadingTodayGym(true);
-      const plan = await client.gym.getTodayPlan(userId);
-      setTodayGymPlan(plan);
-    } catch (err) {
-      console.error("Failed to fetch today's gym plan:", err);
-      setTodayGymPlan(null);
-    } finally {
-      setLoadingTodayGym(false);
-    }
-  }, []);
-
-  const loadTodayMeals = useCallback(async (userId?: string) => {
-    if (!userId) {
-      setTodayMeals([]);
-      return;
-    }
-
-    try {
-      setLoadingTodayMeals(true);
-      const { plan } = await client.recipe.getMealPlan(userId);
-      const todayKey = getTodayDateKey();
-      setTodayMeals(plan[todayKey] ?? []);
-    } catch (err) {
-      console.error("Failed to fetch today's meal plan:", err);
-      setTodayMeals([]);
-    } finally {
-      setLoadingTodayMeals(false);
-    }
-  }, []);
-
-  const loadTodayAgenda = useCallback(async (userId?: string) => {
-    if (!userId) {
-      setTodayAgenda([]);
-      return;
-    }
-
-    try {
-      setLoadingTodayAgenda(true);
-      const res = await client.rutinler.getEntries(userId);
-      const entries = res.entries ?? [];
-      
-      const now = new Date();
-      const todayDayOfWeek = now.getDay() || 7;
-      const todayMonthDay = now.getDate();
-      const hour = now.getHours();
-      
-      let currentSlot: rutinler.DailySlot = "evening";
-      if (hour >= 5 && hour < 12) currentSlot = "morning";
-      else if (hour >= 12 && hour < 18) currentSlot = "afternoon";
-
-      const SLOT_ORDER: Record<rutinler.DailySlot, number> = {
-        morning: 0,
-        afternoon: 1,
-        evening: 2,
-      };
-
-      const filtered = entries.filter((e) => {
-        // One-off tasks only show if they are NOT completed
-        if (e.period_type === "once") return !e.is_completed;
-        
-        if (e.period_type === "daily") {
-          if (!e.daily_slot) return true;
-          return SLOT_ORDER[e.daily_slot] <= SLOT_ORDER[currentSlot];
-        }
-        if (e.period_type === "weekly") {
-          if (!e.day_of_week) return true;
-          return todayDayOfWeek >= e.day_of_week;
-        }
-        if (e.period_type === "monthly") {
-          if (!e.day_of_month) return true;
-          return todayMonthDay >= e.day_of_month;
-        }
-        return true;
-      });
-
-      setTodayAgenda(filtered);
-    } catch (err) {
-      console.error("Failed to fetch today's agenda:", err);
-      setTodayAgenda([]);
-    } finally {
-      setLoadingTodayAgenda(false);
-    }
-  }, []);
-
-  const loadWeeklyChores = useCallback(async (userId?: string) => {
-    if (!userId) {
-      setWeeklyChores(null);
-      return;
-    }
-
-    try {
-      setLoadingWeeklyChores(true);
-      const { boards } = await client.ev_isleri.getBoards(userId);
-      if (!boards?.length) {
-        setWeeklyChores(null);
-        return;
-      }
-
-      const board = boards[0];
-      const weekStart = getMondayWeekStart();
-      const { assignments } = await client.ev_isleri.getWeekPlan(board.id, userId, {
-        weekStart,
-      });
-
-      setWeeklyChores({
-        boardId: board.id,
-        boardName: board.name,
-        weekStart,
-        assignments: assignments ?? [],
-      });
-    } catch (err) {
-      console.error("Failed to fetch weekly chores:", err);
-      setWeeklyChores(null);
-    } finally {
-      setLoadingWeeklyChores(false);
-    }
-  }, []);
-
-  const fetchIntegratedContent = useCallback(async () => {
-    // Fetch content for all tabs that need it
-    try {
-      setLoadingContent(true);
-      
-      const res = await client.hub.getHomeWidgets({ userId: user?.id });
-
-      setPlaces(res.places?.slice(0, 6) || []);
-      
-      // Sort series by updated_at and prioritize "watching" status
-      const sortedSeries = (res.series || []).sort((a: any, b: any) => {
-        if (a.status === "watching" && b.status !== "watching") return -1;
-        if (a.status !== "watching" && b.status === "watching") return 1;
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      });
-      setUserSeries(sortedSeries);
-      await Promise.all([
-        loadTodaySeries(sortedSeries, user?.id),
-        loadTodayGymPlan(user?.id),
-        loadTodayMeals(user?.id),
-        loadTodayAgenda(user?.id),
-        loadWeeklyChores(user?.id),
-      ]);
-      
-      setSubscriptions(res.subscriptions?.slice(0, 6) || []);
-      setBudgetProjects(res.budgetProjects?.slice(0, 6) || []);
-      setSavingsStats(res.savingsStats);
-      setSuggestions(res.suggestions || []);
-      setActivities(res.activities || []);
-    } catch (err) {
-      console.error("Failed to fetch integrated content:", err);
-    } finally {
-      setLoadingContent(false);
-    }
-  }, [user?.id, loadTodaySeries, loadTodayGymPlan, loadTodayMeals, loadTodayAgenda, loadWeeklyChores]);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-    fetchIntegratedContent();
-  }, [isLoaded, fetchIntegratedContent]);
 
   const hobbyApps = useMemo(() => {
     return apps.filter(app => app.category === "Eğlence & Hobi");
@@ -383,22 +280,7 @@ function HomeContent() {
   const isHomeLoading =
     !isLoaded ||
     !isDataLoaded ||
-    loadingContent ||
-    loadingTodaySeries ||
-    loadingTodayGym ||
-    loadingTodayMeals ||
-    loadingTodayAgenda ||
-    loadingWeeklyChores;
-
-  if (isHomeLoading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
-        </main>
-      </div>
-    );
-  }
+    loading;
 
   const getActivePage = () => {
     switch (activeTab) {
@@ -429,47 +311,58 @@ function HomeContent() {
               </p>
             </div>
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <button
-                onClick={() => router.push("/admin")}
-                title="Yönetim Paneli"
-                className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-              >
-                <ShieldCheck size={20} weight="bold" />
-              </button>
+            {!isLoaded ? (
+              <>
+                <Skeleton className="w-10 h-10 rounded-2xl" />
+                <Skeleton className="w-10 h-10 rounded-full" />
+              </>
+            ) : (
+              <>
+                {isAdmin && (
+                  <button
+                    onClick={() => router.push("/admin")}
+                    title="Yönetim Paneli"
+                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+                  >
+                    <ShieldCheck size={20} weight="bold" />
+                  </button>
+                )}
+                {(isAdmin || hasBusinesses) && (
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    title="İşletme Paneli"
+                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+                  >
+                    <Storefront size={20} weight="bold" />
+                  </button>
+                )}
+                {isAdmin && (
+                  <button 
+                    onClick={() => router.push("/home/list")}
+                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
+                  >
+                    <List size={20} weight="bold" />
+                  </button>
+                )}
+                <button 
+                  onClick={() => router.push("/profile")}
+                  className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
+                >
+                  {user?.imageUrl ? (
+                    <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserCircle size={40} weight="fill" className="text-gray-300" />
+                  )}
+                </button>
+              </>
             )}
-            {(isAdmin || hasBusinesses) && (
-              <button
-                onClick={() => router.push("/dashboard")}
-                title="İşletme Paneli"
-                className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-              >
-                <Storefront size={20} weight="bold" />
-              </button>
-            )}
-            {isAdmin && (
-              <button 
-                onClick={() => router.push("/home/list")}
-                className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-              >
-                <List size={20} weight="bold" />
-              </button>
-            )}
-            <button 
-              onClick={() => router.push("/profile")}
-              className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
-            >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <UserCircle size={40} weight="fill" className="text-gray-300" />
-              )}
-            </button>
           </div>
         </section>
 
-        {/* Main Content Area */}
-        <AnimatePresence mode="wait">
+        {isHomeLoading ? (
+          <HomeSkeleton />
+        ) : (
+          <AnimatePresence mode="wait">
           {activeTab === "discover" && (
             <motion.div
               key="discover"
@@ -481,25 +374,14 @@ function HomeContent() {
               <section className="space-y-3">
                 <HomeSummaryCards
                   suggestions={suggestions}
-                  setSuggestions={setSuggestions}
                   activities={activities}
-                  setActivities={setActivities}
                   todaySeries={todaySeries}
-                  setTodaySeries={setTodaySeries}
                   todayGymPlan={todayGymPlan}
                   todayMeals={todayMeals}
                   todayAgenda={todayAgenda}
-                  setTodayAgenda={setTodayAgenda}
                   weeklyChores={weeklyChores}
-                  setWeeklyChores={setWeeklyChores}
                   userId={user?.id}
-                  loadingSuggestions={loadingContent}
-                  loadingActivities={loadingContent}
-                  loadingTodaySeries={loadingTodaySeries}
-                  loadingTodayGym={loadingTodayGym}
-                  loadingTodayMeals={loadingTodayMeals}
-                  loadingTodayAgenda={loadingTodayAgenda}
-                  loadingWeeklyChores={loadingWeeklyChores}
+                  loading={loading}
                 />
               </section>
 
@@ -972,33 +854,11 @@ function HomeContent() {
             </motion.div>
           )}
         </AnimatePresence>
+      )}
       </main>
     </div>
   );
 }
-
-type HomeWeeklyChores = {
-  boardId: string;
-  boardName: string;
-  weekStart: string;
-  assignments: ev_isleri.WeekAssignment[];
-};
-
-type TodaySeriesItem = {
-  id: string;
-  seriesId: string;
-  tmdbId: number;
-  title: string;
-  posterPath: string | null;
-  watchUrlSlug: string | null;
-  streamInfo: string | null;
-  season: number;
-  episode: number;
-  episodeTitle?: string;
-  airDate: string;
-  source: "tmdb" | "episode-club";
-  isWatched: boolean;
-};
 
 const SERIES_DAILY_AIR_HOUR = 19;
 
@@ -1037,120 +897,6 @@ function SeriesAirTimeBadge({ airDate }: { airDate: string }) {
   );
 }
 
-async function attachWatchedState(items: TodaySeriesItem[], userId: string) {
-  const seriesIds = [...new Set(items.map((item) => item.seriesId))];
-  const progressMap = new Map<string, series_track.UserProgress[]>();
-
-  await Promise.all(
-    seriesIds.map(async (seriesId) => {
-      try {
-        const res = await client.series_track.getUserProgress(userId, seriesId);
-        progressMap.set(seriesId, res.progress || []);
-      } catch {
-        progressMap.set(seriesId, []);
-      }
-    })
-  );
-
-  return items.map((item) => ({
-    ...item,
-    isWatched:
-      progressMap.get(item.seriesId)?.some(
-        (progress) =>
-          progress.season_number === item.season && progress.episode_number === item.episode
-      ) ?? false,
-  }));
-}
-
-function isDateToday(dateStr: string) {
-  const date = new Date(dateStr);
-  const today = new Date();
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
-}
-
-async function buildTodaySeriesItems(
-  series: series_track.UserSeries[],
-  calendarEvents: series_track.TvCalendarEvent[]
-): Promise<TodaySeriesItem[]> {
-  const items: TodaySeriesItem[] = [];
-  const seen = new Set<string>();
-  const followedTmdbIds = new Set(series.map((s) => s.tmdb_id));
-  const seriesByTmdb = new Map(series.map((s) => [s.tmdb_id, s]));
-
-  const addItem = (item: TodaySeriesItem) => {
-    const key = `${item.tmdbId}-${item.season}-${item.episode}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    items.push(item);
-  };
-
-  for (const event of calendarEvents) {
-    if (!event.tmdb_id || !followedTmdbIds.has(event.tmdb_id)) continue;
-    if (!isDateToday(event.release_date)) continue;
-
-    const userSeries = seriesByTmdb.get(event.tmdb_id);
-    if (!userSeries) continue;
-
-    addItem({
-      id: event.id,
-      seriesId: userSeries.id,
-      tmdbId: event.tmdb_id,
-      title: userSeries.title,
-      posterPath: userSeries.poster_path,
-      watchUrlSlug: userSeries.watch_url_slug,
-      streamInfo: event.stream_info || null,
-      season: event.season_number,
-      episode: event.episode_number,
-      episodeTitle: event.title,
-      airDate: event.release_date.split("T")[0],
-      source: "episode-club",
-      isWatched: false,
-    });
-  }
-
-  const activeSeries = series.filter(
-    (s) => s.status === "watching" || s.status === "plan_to_watch"
-  );
-
-  const detailsResults = await Promise.allSettled(
-    activeSeries.map((s) => client.series_track.getSeriesDetails(s.tmdb_id))
-  );
-
-  detailsResults.forEach((result, index) => {
-    if (result.status !== "fulfilled") return;
-
-    const userSeries = activeSeries[index];
-    const details = result.value;
-    const episodeCandidates = [details.next_episode_to_air, details.last_episode_to_air].filter(Boolean);
-
-    for (const episode of episodeCandidates) {
-      if (!episode?.air_date || !isDateToday(episode.air_date)) continue;
-
-      addItem({
-        id: `${userSeries.id}-${episode.season_number}-${episode.episode_number}`,
-        seriesId: userSeries.id,
-        tmdbId: userSeries.tmdb_id,
-        title: userSeries.title,
-        posterPath: userSeries.poster_path,
-        watchUrlSlug: userSeries.watch_url_slug,
-        streamInfo: null,
-        season: episode.season_number,
-        episode: episode.episode_number,
-        episodeTitle: episode.name,
-        airDate: episode.air_date.split("T")[0],
-        source: "tmdb",
-        isWatched: false,
-      });
-    }
-  });
-
-  return items;
-}
-
 function getSuggestionCategoryLabel(category: suggest.InboxSuggestion["category"]) {
   switch (category) {
     case "movie": return "Film";
@@ -1161,14 +907,6 @@ function getSuggestionCategoryLabel(category: suggest.InboxSuggestion["category"
     case "video": return "Video";
     default: return "Öneri";
   }
-}
-
-function getTodayDateKey() {
-  const date = new Date();
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function getMealTypeLabel(mealType: recipe.MealPlanMeal["mealType"]) {
@@ -1205,48 +943,27 @@ const MEAL_TYPE_ORDER: recipe.MealPlanMeal["mealType"][] = ["breakfast", "lunch"
 
 function HomeSummaryCards({
   suggestions,
-  setSuggestions,
   activities,
-  setActivities,
   todaySeries,
-  setTodaySeries,
   todayGymPlan,
   todayMeals,
   todayAgenda,
-  setTodayAgenda,
   weeklyChores,
-  setWeeklyChores,
   userId,
-  loadingSuggestions,
-  loadingActivities,
-  loadingTodaySeries,
-  loadingTodayGym,
-  loadingTodayMeals,
-  loadingTodayAgenda,
-  loadingWeeklyChores,
+  loading,
 }: {
   suggestions: suggest.InboxSuggestion[];
-  setSuggestions: React.Dispatch<React.SetStateAction<suggest.InboxSuggestion[]>>;
   activities: kim_gelir.Activity[];
-  setActivities: React.Dispatch<React.SetStateAction<kim_gelir.Activity[]>>;
-  todaySeries: TodaySeriesItem[];
-  setTodaySeries: React.Dispatch<React.SetStateAction<TodaySeriesItem[]>>;
+  todaySeries: series_track.TodaySeriesItem[];
   todayGymPlan: gym.TodayPlan | null;
   todayMeals: recipe.MealPlanMeal[];
   todayAgenda: rutinler.RoutineEntry[];
-  setTodayAgenda: React.Dispatch<React.SetStateAction<rutinler.RoutineEntry[]>>;
-  weeklyChores: HomeWeeklyChores | null;
-  setWeeklyChores: React.Dispatch<React.SetStateAction<HomeWeeklyChores | null>>;
+  weeklyChores: ev_isleri.IntegratedTodayChores | null;
   userId?: string;
-  loadingSuggestions: boolean;
-  loadingActivities: boolean;
-  loadingTodaySeries: boolean;
-  loadingTodayGym: boolean;
-  loadingTodayMeals: boolean;
-  loadingTodayAgenda: boolean;
-  loadingWeeklyChores: boolean;
+  loading: boolean;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
@@ -1268,15 +985,13 @@ function HomeSummaryCards({
     .sort(
       (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
     );
-  const todayChoresAll =
-    weeklyChores?.weekStart === getMondayWeekStart()
-      ? weeklyChores.assignments.filter((item) => item.dayOfWeek === getIsoWeekday())
-      : [];
+
+  const todayChoresAll = weeklyChores?.assignments || [];
   const pendingTodayChores = todayChoresAll
-    .filter((item) => !item.completedAt)
+    .filter((item) => !item.completedAt && item.dayOfWeek === getIsoWeekday())
     .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
   const completedTodayChores = todayChoresAll
-    .filter((item) => !!item.completedAt)
+    .filter((item) => !!item.completedAt && item.dayOfWeek === getIsoWeekday())
     .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
   const choresEmptyText = !weeklyChores ? "Henüz board yok" : "Bugün görev yok";
 
@@ -1290,9 +1005,29 @@ function HomeSummaryCards({
         suggestionId: shareId,
         status,
       });
-      setSuggestions((prev) =>
-        prev.map((item) => (item.shareId === shareId ? { ...item, status } : item))
-      );
+
+      // Update Discover Query Cache
+      queryClient.setQueryData(["hub", "discover", userId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          suggestions: prev.suggestions.map((item: any) => 
+            item.shareId === shareId ? { ...item, status } : item
+          )
+        };
+      });
+
+      // Update Life Query Cache
+      queryClient.setQueryData(["hub", "life", userId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          suggestions: prev.suggestions.map((item: any) => 
+            item.shareId === shareId ? { ...item, status } : item
+          )
+        };
+      });
+
       toast.success(
         status === "saved"
           ? "Öneri kaydedildi"
@@ -1321,27 +1056,36 @@ function HomeSummaryCards({
         status,
         selectedOptions: [],
       });
-      setActivities((prev) =>
-        prev.map((activity) => {
-          if (activity.id !== activityId) return activity;
-          const responses = activity.responses.map((response) =>
-            response.userId === userId
-              ? { ...response, status, selectedOptions: [], updatedAt: new Date().toISOString() }
-              : response
-          );
-          if (!responses.some((response) => response.userId === userId)) {
-            responses.push({
-              userId,
-              username: null,
-              avatar: null,
-              status,
-              selectedOptions: [],
-              updatedAt: new Date().toISOString(),
-            });
-          }
-          return { ...activity, responses };
-        })
-      );
+
+      const updateActivities = (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          activities: prev.activities.map((activity: any) => {
+            if (activity.id !== activityId) return activity;
+            const responses = activity.responses.map((response: any) =>
+              response.userId === userId
+                ? { ...response, status, selectedOptions: [], updatedAt: new Date().toISOString() }
+                : response
+            );
+            if (!responses.some((response: any) => response.userId === userId)) {
+              responses.push({
+                userId,
+                username: null,
+                avatar: null,
+                status,
+                selectedOptions: [],
+                updatedAt: new Date().toISOString(),
+              });
+            }
+            return { ...activity, responses };
+          })
+        };
+      };
+
+      queryClient.setQueryData(["hub", "discover", userId], updateActivities);
+      queryClient.setQueryData(["hub", "life", userId], updateActivities);
+
       toast.success("Cevabın iletildi");
     } catch {
       toast.error("Cevap iletilemedi");
@@ -1350,13 +1094,13 @@ function HomeSummaryCards({
     }
   };
 
-  const openSeriesWatch = (item: TodaySeriesItem) => {
+  const openSeriesWatch = (item: series_track.TodaySeriesItem) => {
     let query = `${item.title} Sezon ${item.season} Bölüm ${item.episode} izle`;
     if (item.watchUrlSlug) query += ` ${item.watchUrlSlug}`;
     window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
   };
 
-  const handleToggleWatched = async (item: TodaySeriesItem) => {
+  const handleToggleWatched = async (item: series_track.TodaySeriesItem) => {
     if (!userId) return;
     const actionKey = `series-${item.id}`;
     try {
@@ -1367,11 +1111,17 @@ function HomeSummaryCards({
         seasonNumber: item.season,
         episodeNumber: item.episode,
       });
-      setTodaySeries((prev) =>
-        prev.map((seriesItem) =>
-          seriesItem.id === item.id ? { ...seriesItem, isWatched: res.isWatched } : seriesItem
-        )
-      );
+
+      queryClient.setQueryData(["hub", "discover", userId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          todaySeries: prev.todaySeries.map((seriesItem: any) =>
+            seriesItem.id === item.id ? { ...seriesItem, isWatched: res.isWatched } : seriesItem
+          )
+        };
+      });
+
       toast.success(
         res.isWatched
           ? `S${item.season} B${item.episode} izlendi`
@@ -1390,20 +1140,25 @@ function HomeSummaryCards({
     try {
       setActionLoading(actionKey);
       const res = await client.ev_isleri.toggleAssignmentComplete(assignmentId, userId);
-      setWeeklyChores((prev) => {
-        if (!prev) return prev;
+
+      queryClient.setQueryData(["hub", "discover", userId], (prev: any) => {
+        if (!prev || !prev.weeklyChores) return prev;
         return {
           ...prev,
-          assignments: prev.assignments.map((item) =>
-            item.id === assignmentId
-              ? {
-                  ...item,
-                  completedAt: res.completed ? new Date().toISOString() : null,
-                }
-              : item
-          ),
+          weeklyChores: {
+            ...prev.weeklyChores,
+            assignments: prev.weeklyChores.assignments.map((item: any) =>
+              item.id === assignmentId
+                ? {
+                    ...item,
+                    completedAt: res.completed ? new Date().toISOString() : null,
+                  }
+                : item
+            )
+          }
         };
       });
+
       toast.success(res.completed ? "Görev tamamlandı" : "Görev işareti kaldırıldı");
     } catch {
       toast.error("İşlem başarısız");
@@ -1423,9 +1178,17 @@ function HomeSummaryCards({
         userId,
         completed: newStatus,
       });
-      setTodayAgenda((prev) =>
-        prev.map((item) => (item.id === entryId ? { ...item, is_completed: newStatus } : item))
-      );
+
+      queryClient.setQueryData(["hub", "discover", userId], (prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          todayAgenda: prev.todayAgenda.map((item: any) => 
+            item.id === entryId ? { ...item, is_completed: newStatus } : item
+          )
+        };
+      });
+
       toast.success(newStatus ? "Tamamlandı" : "İşaret kaldırıldı");
     } catch {
       toast.error("İşlem başarısız");
@@ -1437,7 +1200,7 @@ function HomeSummaryCards({
   const widgets = [
     {
       key: "agenda",
-      loading: loadingTodayAgenda,
+      loading: loading,
       hasContent: pendingTodayAgenda.length > 0,
       card: (
         <HomeSummaryCard
@@ -1446,7 +1209,7 @@ function HomeSummaryCards({
           color="#7C3AED"
           title="Bugünün Planı"
           subtitle="Ajanda"
-          loading={loadingTodayAgenda}
+          loading={loading}
           emptyText="Bugün plan yok"
           hasContent={pendingTodayAgenda.length > 0}
           emptyFooter={
@@ -1513,7 +1276,7 @@ function HomeSummaryCards({
     },
     {
       key: "suggest",
-      loading: loadingSuggestions,
+      loading: loading,
       hasContent: previewSuggestions.length > 0,
       card: (
         <HomeSummaryCard
@@ -1522,7 +1285,7 @@ function HomeSummaryCards({
           color="#6366f1"
           title="Gelen Öneriler"
           subtitle="Suggest"
-          loading={loadingSuggestions}
+          loading={loading}
           emptyText="Yeni öneri yok"
           hasContent={previewSuggestions.length > 0}
         >
@@ -1591,7 +1354,7 @@ function HomeSummaryCards({
     },
     {
       key: "activities",
-      loading: loadingActivities,
+      loading: loading,
       hasContent: previewActivities.length > 0,
       card: (
         <HomeSummaryCard
@@ -1600,7 +1363,7 @@ function HomeSummaryCards({
           color="#FF5252"
           title="Plan Davetleri"
           subtitle="Ne Yapsak?"
-          loading={loadingActivities}
+          loading={loading}
           emptyText="Aktif davet yok"
           hasContent={previewActivities.length > 0}
         >
@@ -1653,7 +1416,7 @@ function HomeSummaryCards({
     },
     {
       key: "series",
-      loading: loadingTodaySeries,
+      loading: loading,
       hasContent: pendingTodaySeries.length > 0,
       card: (
         <HomeSummaryCard
@@ -1662,7 +1425,7 @@ function HomeSummaryCards({
           color="#E50914"
           title="Bugünün Dizileri"
           subtitle="SeriesTrack"
-          loading={loadingTodaySeries}
+          loading={loading}
           emptyText={seriesEmptyText}
           hasContent={pendingTodaySeries.length > 0}
           emptyFooter={
@@ -1769,7 +1532,7 @@ function HomeSummaryCards({
     },
     {
       key: "gym",
-      loading: loadingTodayGym,
+      loading: loading,
       hasContent: !!todayGymPlan?.routine,
       card: (
         <HomeSummaryCard
@@ -1778,7 +1541,7 @@ function HomeSummaryCards({
           color="#8B5CF6"
           title="Bugünün Antrenmanı"
           subtitle="Gym"
-          loading={loadingTodayGym}
+          loading={loading}
           emptyText="Bugün antrenman yok"
           hasContent={!!todayGymPlan?.routine}
         >
@@ -1820,7 +1583,7 @@ function HomeSummaryCards({
     },
     {
       key: "chores",
-      loading: loadingWeeklyChores,
+      loading: loading,
       hasContent: pendingTodayChores.length > 0,
       card: (
         <HomeSummaryCard
@@ -1833,7 +1596,7 @@ function HomeSummaryCards({
           color="#14B8A6"
           title="Bugünün İşleri"
           subtitle={weeklyChores?.boardName ?? "Ev İşleri"}
-          loading={loadingWeeklyChores}
+          loading={loading}
           emptyText={choresEmptyText}
           hasContent={pendingTodayChores.length > 0}
           emptyFooter={
@@ -1904,7 +1667,7 @@ function HomeSummaryCards({
     },
     {
       key: "meals",
-      loading: loadingTodayMeals,
+      loading: loading,
       hasContent: previewTodayMeals.length > 0,
       card: (
         <HomeSummaryCard
@@ -1913,7 +1676,7 @@ function HomeSummaryCards({
           color="#F97316"
           title="Bugünün Yemek Planı"
           subtitle="Meal Planner"
-          loading={loadingTodayMeals}
+          loading={loading}
           emptyText="Bugün plan yok"
           hasContent={previewTodayMeals.length > 0}
         >

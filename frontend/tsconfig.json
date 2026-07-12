@@ -25,8 +25,9 @@
       "@clerk/clerk-react": ["./contexts/AuthContext.tsx"]
     }
   },
-  "include": [
+    "include": [
     "next-env.d.ts",
+    "app/global.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

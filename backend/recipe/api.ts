@@ -39,7 +39,7 @@ interface GetRecipeByIdResponse {
   recipe: Recipe | null;
 }
 
-interface MealPlanMeal {
+export interface MealPlanMeal {
   id: string;
   title: string;
   recipeId?: string;
@@ -195,6 +195,24 @@ export const getMealPlan = api(
     }
 
     return { plan };
+  }
+);
+
+/**
+ * Bugünün yemek planını getirir
+ */
+export const getTodayMeals = api(
+  { expose: true, method: "GET", path: "/recipe/today/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ meals: MealPlanMeal[] }> => {
+    const { plan } = await getMealPlan({ userId });
+    
+    const date = new Date();
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const todayKey = `${y}-${m}-${d}`;
+    
+    return { meals: plan[todayKey] ?? [] };
   }
 );
 

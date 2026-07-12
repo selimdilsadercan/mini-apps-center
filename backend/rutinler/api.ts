@@ -23,6 +23,7 @@ export interface RoutineEntry {
   sort_order: number;
   created_at: string;
   is_completed: boolean;
+  is_next_completed: boolean;
 }
 
 interface GetEntriesRequest {
@@ -63,6 +64,7 @@ interface ToggleCompletionRequest {
   entryId: string;
   userId: string;
   completed: boolean;
+  isNextPeriod?: boolean;
 }
 
 interface ToggleCompletionResponse {
@@ -113,6 +115,7 @@ function mapEntry(row: Record<string, unknown>): RoutineEntry {
     sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
     created_at: String(row.created_at),
     is_completed: Boolean(row.is_completed),
+    is_next_completed: Boolean(row.is_next_completed),
   };
 }
 
@@ -130,6 +133,52 @@ export const getEntries = api(
     return {
       entries: (data ?? []).map((row: Record<string, unknown>) => mapEntry(row)),
     };
+  }
+);
+
+/**
+ * Bugün için geçerli olan (vakti gelmiş ve henüz tamamlanmamış) rutinleri getirir
+ */
+export const getTodayAgenda = api(
+  { expose: true, method: "GET", path: "/rutinler/today/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ entries: RoutineEntry[] }> => {
+    const { entries } = await getEntries({ userId });
+    
+    const now = new Date();
+    const todayDayOfWeek = now.getDay() || 7;
+    const todayMonthDay = now.getDate();
+    const hour = now.getHours();
+    
+    let currentSlot: DailySlot = "evening";
+    if (hour >= 5 && hour < 12) currentSlot = "morning";
+    else if (hour >= 12 && hour < 18) currentSlot = "afternoon";
+
+    const SLOT_ORDER: Record<DailySlot, number> = {
+      morning: 0,
+      afternoon: 1,
+      evening: 2,
+    };
+
+    const filtered = entries.filter((e) => {
+      // One-off tasks only show if they are NOT completed
+      if (e.period_type === "once") return !e.is_completed;
+      
+      if (e.period_type === "daily") {
+        if (!e.daily_slot) return true;
+        return SLOT_ORDER[e.daily_slot] <= SLOT_ORDER[currentSlot];
+      }
+      if (e.period_type === "weekly") {
+        if (!e.day_of_week) return true;
+        return todayDayOfWeek >= e.day_of_week;
+      }
+      if (e.period_type === "monthly") {
+        if (!e.day_of_month) return true;
+        return todayMonthDay >= e.day_of_month;
+      }
+      return true;
+    });
+
+    return { entries: filtered };
   }
 );
 
@@ -181,6 +230,7 @@ export const toggleCompletion = api(
       entry_id_param: req.entryId,
       clerk_id_param: req.userId,
       completed_param: req.completed,
+      is_next_period_param: req.isNextPeriod ?? false,
     });
 
     if (error) {

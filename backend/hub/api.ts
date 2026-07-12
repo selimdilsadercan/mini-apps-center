@@ -3,12 +3,16 @@ import { api } from "encore.dev/api";
 // Import API functions directly from service API files
 import { listPlaces } from "../workplaces/api";
 import { getEvents } from "../campus-events/api";
-import { getUserSeries } from "../series-track/api";
+import { getUserSeries, getTodayEpisodes, TodaySeriesItem } from "../series-track/api";
 import { getUserSubscriptions } from "../subcenter/api";
 import { getUserProjects } from "../budget/api";
 import { getStats } from "../tasarruf-challenges/api";
 import { getInbox } from "../suggest/api";
 import { getActivities } from "../kim-gelir/api";
+import { getTodayPlan, TodayPlan } from "../gym/api";
+import { getTodayMeals, MealPlanMeal } from "../recipe/api";
+import { getTodayAgenda, RoutineEntry } from "../rutinler/api";
+import { getTodayIntegratedChores, IntegratedTodayChores } from "../ev-isleri/api";
 
 // Import types
 import { Place } from "../workplaces/api";
@@ -19,6 +23,35 @@ import { Project } from "../budget/api";
 import { StatsResponse } from "../tasarruf-challenges/api";
 import { InboxSuggestion } from "../suggest/api";
 import { Activity } from "../kim-gelir/api";
+
+export interface DiscoverWidgetsResponse {
+  suggestions: InboxSuggestion[];
+  activities: Activity[];
+  todaySeries: TodaySeriesItem[];
+  todayGymPlan: TodayPlan | null;
+  todayMeals: MealPlanMeal[];
+  todayAgenda: RoutineEntry[];
+  weeklyChores: IntegratedTodayChores | null;
+}
+
+export interface ExploreWidgetsResponse {
+  places: Place[];
+}
+
+export interface HobbyWidgetsResponse {
+  series: UserSeries[];
+}
+
+export interface WalletWidgetsResponse {
+  subscriptions: Subscription[];
+  budgetProjects: Project[];
+  savingsStats: StatsResponse | null;
+}
+
+export interface LifeWidgetsResponse {
+  suggestions: InboxSuggestion[];
+  activities: Activity[];
+}
 
 export interface HomeWidgetsResponse {
   places: Place[];
@@ -34,6 +67,120 @@ export interface HomeWidgetsResponse {
 export interface GetHomeWidgetsRequest {
   userId?: string;
 }
+
+const fetchWithFallback = async <T>(promise: Promise<T>, fallback: T): Promise<T> => {
+  try {
+    return await promise;
+  } catch (e) {
+    console.error("Hub aggregate fetch error:", e);
+    return fallback;
+  }
+};
+
+/**
+ * Aggregates data for the "Discover" (Bugün) tab
+ */
+export const getDiscoverWidgets = api(
+  { expose: true, method: "GET", path: "/hub/widgets/discover" },
+  async ({ userId }: GetHomeWidgetsRequest): Promise<DiscoverWidgetsResponse> => {
+    if (!userId) {
+      return {
+        suggestions: [],
+        activities: [],
+        todaySeries: [],
+        todayGymPlan: null,
+        todayMeals: [],
+        todayAgenda: [],
+        weeklyChores: null,
+      };
+    }
+
+    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes] = await Promise.all([
+      fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
+      fetchWithFallback(getActivities({ userId }), { activities: [] }),
+      fetchWithFallback(getTodayEpisodes({ userId }), { items: [] }),
+      fetchWithFallback(getTodayPlan({ userId }), null),
+      fetchWithFallback(getTodayMeals({ userId }), { meals: [] }),
+      fetchWithFallback(getTodayAgenda({ userId }), { entries: [] }),
+      fetchWithFallback(getTodayIntegratedChores({ userId }), { chores: null }),
+    ]);
+
+    return {
+      suggestions: suggestRes.suggestions || [],
+      activities: activityRes.activities || [],
+      todaySeries: seriesRes.items || [],
+      todayGymPlan: gymRes,
+      todayMeals: mealRes.meals || [],
+      todayAgenda: agendaRes.entries || [],
+      weeklyChores: choresRes.chores,
+    };
+  }
+);
+
+/**
+ * Aggregates data for the "Explore" tab
+ */
+export const getExploreWidgets = api(
+  { expose: true, method: "GET", path: "/hub/widgets/explore" },
+  async ({ userId }: GetHomeWidgetsRequest): Promise<ExploreWidgetsResponse> => {
+    const placesRes = await fetchWithFallback(listPlaces({ userId }), { places: [] });
+    return { places: placesRes.places || [] };
+  }
+);
+
+/**
+ * Aggregates data for the "Hobby" tab
+ */
+export const getHobbyWidgets = api(
+  { expose: true, method: "GET", path: "/hub/widgets/hobby" },
+  async ({ userId }: GetHomeWidgetsRequest): Promise<HobbyWidgetsResponse> => {
+    if (!userId) return { series: [] };
+    const seriesRes = await fetchWithFallback(getUserSeries({ userId }), { series: [] });
+    return { series: seriesRes.series || [] };
+  }
+);
+
+/**
+ * Aggregates data for the "Wallet" tab
+ */
+export const getWalletWidgets = api(
+  { expose: true, method: "GET", path: "/hub/widgets/wallet" },
+  async ({ userId }: GetHomeWidgetsRequest): Promise<WalletWidgetsResponse> => {
+    if (!userId) return { subscriptions: [], budgetProjects: [], savingsStats: null };
+    
+    const [subRes, budgetRes, savingsStats] = await Promise.all([
+      fetchWithFallback(getUserSubscriptions({ userId }), { subscriptions: [] }),
+      fetchWithFallback(getUserProjects({ userId }), { projects: [] }),
+      fetchWithFallback(getStats({ userId }), null),
+    ]);
+
+    return {
+      subscriptions: subRes.subscriptions || [],
+      budgetProjects: budgetRes.projects || [],
+      savingsStats,
+    };
+  }
+);
+
+/**
+ * Aggregates data for the "Life" tab
+ */
+export const getLifeWidgets = api(
+  { expose: true, method: "GET", path: "/hub/widgets/life" },
+  async ({ userId }: GetHomeWidgetsRequest): Promise<LifeWidgetsResponse> => {
+    if (!userId) return { suggestions: [], activities: [] };
+    
+    const [suggestRes, activityRes] = await Promise.all([
+      fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
+      fetchWithFallback(getActivities({ userId }), { activities: [] }),
+    ]);
+
+    return {
+      suggestions: suggestRes.suggestions || [],
+      activities: activityRes.activities || [],
+    };
+  }
+);
 
 /**
  * Aggregates data for the home page widgets from various services
