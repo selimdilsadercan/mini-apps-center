@@ -36,6 +36,7 @@ import {
   Barbell,
   Broom,
   CalendarBlank,
+  Leaf,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -154,6 +155,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     isImplemented: true,
     subdomain: "kalimba",
     statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "surdurulebilirlik",
+    name: "Sürdürülebiliriz",
+    description: "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun.",
+    cta: "Doğa Dostu Adımlarını Paylaş",
+    icon: Leaf,
+    category: "Kampüslülere Özel",
+    color: "#059669",
+    href: "/apps/surdurulebilirlik",
+    isImplemented: true,
+    subdomain: "surdurulebilirlik",
+    statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",
     navigationBarStyle: "light",

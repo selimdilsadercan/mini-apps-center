@@ -37,6 +37,7 @@ import {
   ChefHat,
   Broom,
   Clock,
+  Leaf,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -219,6 +220,7 @@ function HomeContent() {
   const subscriptions = walletQuery.data?.subscriptions || [];
   const budgetProjects = walletQuery.data?.budgetProjects || [];
   const savingsStats = walletQuery.data?.savingsStats || null;
+  const sustainabilityStats = lifeQuery.data?.sustainabilityStats || walletQuery.data?.sustainabilityStats || null;
 
   const loading = useMemo(() => {
     if (activeTab === "discover") return discoverQuery.isLoading;
@@ -688,6 +690,38 @@ function HomeContent() {
                 </section>
               )}
 
+              {/* Sustainability Summary Section */}
+              {sustainabilityStats && (
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Leaf size={14} weight="bold" className="text-gray-900" />
+                      Sürdürülebilirlik
+                    </h2>
+                    <Link href="/apps/surdurulebilirlik" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                      Adım Paylaş
+                    </Link>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Leaf size={14} className="text-emerald-600" weight="bold" />
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Toplam Etki</span>
+                      </div>
+                      <div className="text-lg font-black text-gray-900">{sustainabilityStats.userTotalPoints.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock size={14} className="text-blue-600" weight="bold" />
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Bu Ay</span>
+                      </div>
+                      <div className="text-lg font-black text-gray-900">{sustainabilityStats.userMonthPoints.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -720,6 +754,25 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
+              {sustainabilityStats && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Leaf size={14} className="text-emerald-600" weight="bold" />
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Toplam Etki</span>
+                    </div>
+                    <div className="text-lg font-black text-gray-900">{sustainabilityStats.userTotalPoints.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock size={14} className="text-blue-600" weight="bold" />
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Bu Ay</span>
+                    </div>
+                    <div className="text-lg font-black text-gray-900">{sustainabilityStats.userMonthPoints.toLocaleString()}</div>
+                  </div>
+                </div>
+              )}
+
               {/* Suggest Inbox Widget */}
               {suggestions.length > 0 && (
                 <section className="space-y-4">

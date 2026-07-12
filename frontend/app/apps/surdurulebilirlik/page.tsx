@@ -1,49 +1,47 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import {
-  PiggyBank,
-  ArrowLeft,
+  Leaf,
   Plus,
   CheckCircle,
-  TrendDown,
-  Coins,
   Sparkle,
-  Globe,
-  User,
-  Clock,
+  ChatCircleDots,
   X,
   Spinner,
-  CreditCard,
   PencilSimple,
   Trash,
   CaretLeft,
-  ChatCircleDots
+  Clock,
+  User,
+  Globe,
+  ArrowRight,
+  ListChecks
 } from "@phosphor-icons/react";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
 import { createBrowserClient } from "@/lib/api";
-import { SAVING_CHALLENGES, Category, ChallengeItem, Metric } from "./data";
+import { SUSTAINABILITY_CHALLENGES, ChallengeItem } from "./data";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 
 const client = createBrowserClient();
 
-export default function TasarrufChallengesPage() {
+export default function SustainabilityPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
-  const t = useTranslations("tasarruf");
+  const t = useTranslations("surdurulebilirlik");
   const { locale } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"challenges" | "feed">("challenges");
+  const [activeTab, setActiveTab] = useState<"katalog" | "feed">("katalog");
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeItem | null>(null);
 
   const [feedPosts, setFeedPosts] = useState<any[]>([]);
   const [stats, setStats] = useState({
-    userTotalSavings: 0,
-    userMonthSavings: 0
+    userTotalPoints: 0,
+    userMonthPoints: 0
   });
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -66,11 +64,11 @@ export default function TasarrufChallengesPage() {
       setLoading(true);
       
       const promises: Promise<any>[] = [
-        client.feed.getEventsByApp("tasarruf-challenges")
+        client.feed.getEventsByApp("surdurulebilirlik")
       ];
 
       if (user) {
-        promises.push(client.tasarruf_challenges.getStats(user.id));
+        promises.push(client.surdurulebilirlik.getStats(user.id));
       }
 
       const [feedRes, statsRes] = await Promise.all(promises);
@@ -99,7 +97,7 @@ export default function TasarrufChallengesPage() {
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
         <main className="flex-1 flex items-center justify-center">
-          <Spinner size={32} className="text-green-500 animate-spin" />
+          <Spinner size={32} className="text-emerald-500 animate-spin" />
         </main>
       </div>
     );
@@ -119,11 +117,11 @@ export default function TasarrufChallengesPage() {
               }}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
             >
-              <CaretLeft size={14} weight="bold" className="text-green-600" />
+              <CaretLeft size={14} weight="bold" className="text-emerald-600" />
             </button>
 
             <h1 className="flex-1 min-w-0 text-base font-black leading-none text-gray-900 flex items-center gap-1.5">
-              <PiggyBank size={18} weight="fill" className="text-green-600 shrink-0" />
+              <Leaf size={18} weight="fill" className="text-emerald-600 shrink-0" />
               <span className="truncate">
                 {t("headerTitle")}
               </span>
@@ -131,7 +129,7 @@ export default function TasarrufChallengesPage() {
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="shrink-0 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wide"
+              className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wide"
               aria-label="Paylaş"
             >
               <Plus size={14} weight="bold" />
@@ -141,11 +139,11 @@ export default function TasarrufChallengesPage() {
 
           <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
             <button
-              onClick={() => setActiveTab("challenges")}
-              className={tabClass(activeTab === "challenges")}
+              onClick={() => setActiveTab("katalog")}
+              className={tabClass(activeTab === "katalog")}
             >
-              <Sparkle size={14} weight={activeTab === "challenges" ? "fill" : "duotone"} />
-              <span>{t("challengesTab")}</span>
+              <Sparkle size={14} weight={activeTab === "katalog" ? "fill" : "duotone"} />
+              <span>{t("katalogTab")}</span>
             </button>
             <button
               onClick={() => setActiveTab("feed")}
@@ -159,59 +157,47 @@ export default function TasarrufChallengesPage() {
       </header>
 
       <main className="flex-1 px-4 pt-6 pb-8 max-w-xl mx-auto w-full">
-        {/* Stats Section (Subtle) */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Coins size={14} className="text-green-600" weight="bold" />
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{t("yourSavings")}</span>
-            </div>
-            <div className="text-xl font-black text-gray-900">{stats.userTotalSavings.toLocaleString()}₺</div>
-          </div>
-          <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock size={14} className="text-blue-600" weight="bold" />
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{t("communitySavings")}</span>
-            </div>
-            <div className="text-xl font-black text-gray-900">{stats.userMonthSavings.toLocaleString()}₺</div>
-          </div>
-        </div>
-
         {loading ? (
           <div className="flex justify-center py-20">
-            <Spinner size={32} className="text-green-600 animate-spin" />
+            <Spinner size={32} className="text-emerald-600 animate-spin" />
           </div>
-        ) : activeTab === "challenges" ? (
-          <>
-            {/* Categories Grid (Like Ne Yapsak) */}
-            <div className="space-y-8">
-              {SAVING_CHALLENGES.map((cat) => (
-                <div key={cat.category} className="space-y-3">
-                  <h4 className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider px-1">
-                    {t(`categories.${cat.category}` as any)}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {cat.items.map(item => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setSelectedChallenge(item)}
-                        className="flex items-center gap-2.5 p-3.5 bg-white border border-gray-150 hover:bg-gray-50 rounded-2xl text-left transition-all text-xs font-bold cursor-pointer active:scale-95 shadow-sm"
-                      >
-                        <span className="text-lg shrink-0">{item.emoji}</span>
-                        <span className="flex-1 leading-tight">{t(`challenges.${item.id}.label` as any) || item.label}</span>
-                      </button>
-                    ))}
-                  </div>
+        ) : activeTab === "katalog" ? (
+          <div className="space-y-8">
+            {SUSTAINABILITY_CHALLENGES.map((cat) => (
+              <div key={cat.category} className="space-y-3">
+                <h4 className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider px-1">
+                  {t(`categories.${cat.category}` as any)}
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  {cat.items.map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setSelectedChallenge(item)}
+                      className="w-full flex flex-col items-start gap-2 p-4 bg-white border border-gray-150 hover:bg-gray-50 rounded-2xl text-left transition-all cursor-pointer active:scale-[0.98] shadow-sm group"
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-sm shrink-0 group-hover:scale-125 transition-transform">
+                          {item.emoji}
+                        </span>
+                        <h5 className="text-[11px] font-black text-gray-900 tracking-tight leading-tight line-clamp-2">
+                          {item.label}
+                        </h5>
+                      </div>
+                      <p className="text-[9px] font-bold text-gray-400 leading-tight line-clamp-3">
+                        {item.description}
+                      </p>
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="space-y-4">
             {feedPosts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                <div className="w-20 h-20 bg-green-50 text-green-600 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
+                <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
                   <ChatCircleDots size={36} weight="duotone" />
                 </div>
                 <h2 className="font-extrabold text-lg text-gray-800 mb-2">{t("noPostsTitle")}</h2>
@@ -222,7 +208,7 @@ export default function TasarrufChallengesPage() {
                   onClick={() => setShowAddModal(true)}
                   className="py-3.5 px-6 bg-white hover:bg-gray-50 border border-gray-150 shadow-sm text-gray-700 rounded-2xl font-bold text-sm transition-all active:scale-95 cursor-pointer"
                 >
-                  {t("shareFirstSaving")}
+                  {t("shareFirstStep")}
                 </button>
               </div>
             ) : (
@@ -232,7 +218,7 @@ export default function TasarrufChallengesPage() {
                     key={post.id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-3xl p-5 border border-gray-150 shadow-sm"
+                    className="bg-white rounded-2xl p-5 border border-gray-150 shadow-sm"
                   >
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-xl bg-gray-100 overflow-hidden border border-gray-150">
@@ -261,8 +247,8 @@ export default function TasarrufChallengesPage() {
                             <PencilSimple size={15} weight="bold" />
                           </button>
                         )}
-                        <div className="bg-green-50 px-3 py-1.5 rounded-xl border border-green-100">
-                          <div className="text-[11px] font-black text-green-600">+{post.amount}₺</div>
+                        <div className="bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
+                          <div className="text-[11px] font-black text-emerald-600">+{post.amount}</div>
                         </div>
                       </div>
                     </div>
@@ -271,7 +257,7 @@ export default function TasarrufChallengesPage() {
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg text-[9px] font-black text-gray-400 tracking-widest">
                         <span>
                           {(() => {
-                            for (const cat of SAVING_CHALLENGES) {
+                            for (const cat of SUSTAINABILITY_CHALLENGES) {
                               const item = cat.items.find(i => i.label === post.category);
                               if (item) return item.emoji;
                             }
@@ -344,7 +330,7 @@ export default function TasarrufChallengesPage() {
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-200 mb-4" />
 
                 <header className="flex justify-between items-center mb-6 shrink-0">
-                  <Drawer.Title className="font-black text-xl text-gray-900">{t("savingSuggestion")}</Drawer.Title>
+                  <Drawer.Title className="font-black text-xl text-gray-900">{t("stepTitle")}</Drawer.Title>
                   <button
                     onClick={() => setSelectedChallenge(null)}
                     className="p-1.5 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
@@ -356,69 +342,37 @@ export default function TasarrufChallengesPage() {
                 <div className="flex items-center gap-3.5 p-4 bg-gray-50 border border-gray-150 rounded-2xl mb-6 shrink-0">
                   <span className="text-2xl">{selectedChallenge.emoji}</span>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">{t("challengeTitle")}</span>
-                    <span className="text-sm font-bold text-gray-800">{t(`challenges.${selectedChallenge.id}.label` as any) || selectedChallenge.label}</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">{t("stepTitle")}</span>
+                    <span className="text-sm font-bold text-gray-800">{selectedChallenge.label}</span>
                   </div>
                 </div>
 
                 <div className="space-y-4 flex-1 overflow-y-auto pr-1">
                   <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("whatCanYouDo")}</label>
                   <p className="text-sm font-bold text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                    {t(`challenges.${selectedChallenge.id}.description` as any) || selectedChallenge.description}
+                    {selectedChallenge.description}
                   </p>
 
-                  {/* PROMOTIONAL CARD: BOTTLE RETURN / DOA */}
-                  {selectedChallenge.id === "bottle_return" && (
-                    <a
-                      href={locale === "en" ? "https://doa.gov.tr/en" : "https://doa.gov.tr/"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-4 bg-gradient-to-br from-emerald-50 to-teal-50/30 p-4 rounded-3xl border border-emerald-100 hover:border-emerald-250 transition-all active:scale-[0.98] group cursor-pointer shadow-sm"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm border border-emerald-100/50 overflow-hidden p-1.5">
-                        <img 
-                          src="https://play-lh.googleusercontent.com/Wi0xEctzBEAVgEIQdvVWwdWt83v57qA4bOR_B164pzyXxnXD8nmfDXqJPH6Y5P02A6Y=w240-h480-rw" 
-                          alt="DOA" 
-                          className="w-full h-full object-contain rounded-xl" 
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            const p = e.currentTarget.parentElement;
-                            if (p) p.innerHTML = "<span class='text-2xl'>♻️</span>";
-                          }} 
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-emerald-900 uppercase tracking-tight">{t("doaTitle")}</h4>
-                        <p className="text-[10px] font-bold text-emerald-700/70 leading-relaxed mt-0.5">
-                          {t("doaDescription")}
-                        </p>
-                      </div>
-                      <div className="p-2 rounded-xl bg-white/80 group-hover:bg-emerald-50 border border-emerald-100/20 group-hover:border-emerald-200/50 transition-all shrink-0">
-                        <ArrowLeft size={14} className="text-emerald-600 rotate-180" weight="bold" />
-                      </div>
-                    </a>
-                  )}
-
-                  {/* PROMOTIONAL CARD: SUBCENTER */}
-                  {selectedChallenge.id === "subscription_cancelled" && (
+                  {/* PROMOTIONAL CARD: EKSIK VAR */}
+                  {selectedChallenge.id === "shopping_list" && (
                     <button
                       onClick={() => {
                         setSelectedChallenge(null);
-                        router.push("/apps/subcenter");
+                        router.push("/apps/eksik-var");
                       }}
-                      className="flex items-center gap-4 bg-gradient-to-br from-blue-50 to-indigo-50/30 p-4 rounded-3xl border border-blue-100 hover:border-blue-250 transition-all active:scale-[0.98] group cursor-pointer shadow-sm text-left w-full"
+                      className="flex items-center gap-4 bg-gradient-to-br from-amber-50 to-orange-50/30 p-4 rounded-3xl border border-amber-100 hover:border-amber-250 transition-all active:scale-[0.98] group cursor-pointer shadow-sm text-left w-full mt-4"
                     >
-                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm border border-blue-100/50">
-                        <CreditCard size={24} className="text-blue-600" weight="duotone" />
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm border border-amber-100/50">
+                        <ListChecks size={24} className="text-amber-600" weight="duotone" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-blue-900 uppercase tracking-tight">{t("subcenterTitle")}</h4>
-                        <p className="text-[10px] font-bold text-blue-700/70 leading-relaxed mt-0.5">
-                          {t("subcenterDescription")}
+                        <h4 className="text-xs font-black text-amber-900 uppercase tracking-tight">Eksik Var!</h4>
+                        <p className="text-[10px] font-bold text-amber-700/70 leading-relaxed mt-0.5">
+                          Alışveriş listeni oluşturmak ve yönetmek için Eksik Var uygulamasını kullanabilirsin.
                         </p>
                       </div>
-                      <div className="p-2 rounded-xl bg-white/80 group-hover:bg-blue-50 border border-blue-100/20 group-hover:border-blue-200/50 transition-all shrink-0">
-                        <ArrowLeft size={14} className="text-blue-600 rotate-180" weight="bold" />
+                      <div className="p-2 rounded-xl bg-white/80 group-hover:bg-amber-50 border border-amber-100/20 group-hover:border-amber-200/50 transition-all shrink-0">
+                        <ArrowRight size={14} className="text-amber-600" weight="bold" />
                       </div>
                     </button>
                   )}
@@ -431,7 +385,7 @@ export default function TasarrufChallengesPage() {
                       setSelectedChallenge(null);
                       setShowAddModal(true);
                     }}
-                    className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-green-100"
+                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-emerald-100"
                   >
                     <Plus size={18} weight="bold" />
                     {t("iDidThis")}
@@ -456,11 +410,11 @@ function AddPostForm({
   editingPost?: any 
 }) {
   const { user } = useUser();
-  const t = useTranslations("tasarruf");
+  const t = useTranslations("surdurulebilirlik");
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeItem | null>(() => {
     if (initialChallenge) return initialChallenge;
     if (editingPost) {
-      for (const cat of SAVING_CHALLENGES) {
+      for (const cat of SUSTAINABILITY_CHALLENGES) {
         const found = cat.items.find(item => item.label === editingPost.category);
         if (found) return found;
       }
@@ -490,31 +444,43 @@ function AddPostForm({
   useEffect(() => {
     if (!selectedChallenge) return;
 
-    // Skip template auto-generation on edit mount to preserve user's edited description
     if (editingPost && Object.keys(metricValues).length === 0) {
       return;
     }
 
-    let newDesc = t(`challenges.${selectedChallenge.id}.postTemplate` as any) || selectedChallenge.postTemplate;
+    let newDesc = selectedChallenge.postTemplate;
 
     // Replace primary metric
     const primaryKey = selectedChallenge.primaryMetric.key;
     const primaryVal = metricValues[primaryKey] || "";
-    newDesc = newDesc.replace(`{${primaryKey}}`, primaryVal || `[${t(`challenges.${selectedChallenge.id}.primaryMetric.label` as any) || selectedChallenge.primaryMetric.label}]`);
+    newDesc = newDesc.replace(`{${primaryKey}}`, primaryVal || `[${selectedChallenge.primaryMetric.label}]`);
 
     // Replace secondary metrics
     let foundAmount = "";
-    if (selectedChallenge.primaryMetric.inputType === "money") {
+    if (selectedChallenge.primaryMetric.key === "impactPoints") {
       foundAmount = primaryVal;
     }
 
     selectedChallenge.secondaryMetrics?.forEach(m => {
       const val = metricValues[m.key] || "";
-      newDesc = newDesc.replace(`{${m.key}}`, val || `[${t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.label` as any) || m.label}]`);
-      if (m.inputType === "money" && val) {
+      newDesc = newDesc.replace(`{${m.key}}`, val || `[${m.label}]`);
+      if (m.key === "impactPoints" && val) {
         foundAmount = val;
       }
     });
+
+    // If no explicit impactPoints metric, use unitValue as default (multiply by count if applicable)
+    if (!foundAmount && selectedChallenge.unitValue) {
+      const countMetric = [selectedChallenge.primaryMetric, ...(selectedChallenge.secondaryMetrics || [])]
+        .find(m => m.inputType === "number" && m.key !== "impactPoints");
+      
+      if (countMetric) {
+        const count = parseFloat(metricValues[countMetric.key]) || 0;
+        foundAmount = (count * selectedChallenge.unitValue).toFixed(0);
+      } else {
+        foundAmount = selectedChallenge.unitValue.toString();
+      }
+    }
 
     setAmount(foundAmount);
     setDescription(newDesc);
@@ -547,8 +513,8 @@ function AddPostForm({
           userId: user.id,
           username: user.username || user.fullName || "Anonim",
           userAvatar: user.imageUrl,
-          appId: "tasarruf-challenges",
-          eventType: "saving_achievement",
+          appId: "surdurulebilirlik",
+          eventType: "sustainability_step",
           payload: {
             description: description,
             amount: parseFloat(amount) || 0,
@@ -594,17 +560,16 @@ function AddPostForm({
     setMetricValues(prev => {
       const newValues = { ...prev, [key]: value };
 
-      // Auto-calculate logic if unitValue exists
       if (selectedChallenge?.unitValue) {
         const countMetric = [selectedChallenge.primaryMetric, ...(selectedChallenge.secondaryMetrics || [])]
-          .find(m => m.inputType === "number");
-        const moneyMetric = [selectedChallenge.primaryMetric, ...(selectedChallenge.secondaryMetrics || [])]
-          .find(m => m.inputType === "money");
+          .find(m => m.inputType === "number" && m.key !== "impactPoints");
+        const pointsMetric = [selectedChallenge.primaryMetric, ...(selectedChallenge.secondaryMetrics || [])]
+          .find(m => m.key === "impactPoints");
 
-        if (countMetric && moneyMetric && key === countMetric.key) {
+        if (countMetric && pointsMetric && key === countMetric.key) {
           const count = parseFloat(value) || 0;
-          const calculatedAmount = (count * selectedChallenge.unitValue).toFixed(2).replace(/\.00$/, "");
-          newValues[moneyMetric.key] = calculatedAmount;
+          const calculatedPoints = (count * selectedChallenge.unitValue).toFixed(0);
+          newValues[pointsMetric.key] = calculatedPoints;
         }
       }
 
@@ -616,7 +581,7 @@ function AddPostForm({
     <>
       <form onSubmit={handleSubmit} className="space-y-6 pb-6">
         <div className="space-y-2">
-          <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("savingType")}</label>
+          <label className="font-extrabold text-xs text-gray-400 uppercase tracking-wider block">{t("stepType")}</label>
           <button
             type="button"
             onClick={() => setShowOptionModal(true)}
@@ -626,9 +591,9 @@ function AddPostForm({
               <span className="text-xl">
                 {selectedChallenge?.emoji || "✨"}
               </span>
-              <span className="flex-1 leading-tight">{selectedChallenge ? (t(`challenges.${selectedChallenge.id}.label` as any) || selectedChallenge.label) : t("selectSavingType")}</span>
+              <span className="flex-1 leading-tight">{selectedChallenge ? selectedChallenge.label : t("selectStepType")}</span>
             </div>
-            <span className="text-[10px] font-black text-green-600 uppercase tracking-wider">
+            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
               {selectedChallenge ? t("change") : t("select")}
             </span>
           </button>
@@ -643,32 +608,30 @@ function AddPostForm({
             }`}>
               <div className="space-y-2">
                 <label className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider block">
-                  {t(`challenges.${selectedChallenge.id}.primaryMetric.label` as any) || selectedChallenge.primaryMetric.label} {selectedChallenge.primaryMetric.unit ? `(${t(`challenges.${selectedChallenge.id}.primaryMetric.unit` as any) || selectedChallenge.primaryMetric.unit})` : ""}
+                  {selectedChallenge.primaryMetric.label} {selectedChallenge.primaryMetric.unit ? `(${selectedChallenge.primaryMetric.unit})` : ""}
                 </label>
                 <input
                   type={selectedChallenge.primaryMetric.inputType === "text" ? "text" : "number"}
-                  step="0.01"
                   required
-                  placeholder={t(`challenges.${selectedChallenge.id}.primaryMetric.placeholder` as any) || selectedChallenge.primaryMetric.placeholder}
+                  placeholder={selectedChallenge.primaryMetric.placeholder}
                   value={metricValues[selectedChallenge.primaryMetric.key] || ""}
                   onChange={e => handleMetricChange(selectedChallenge.primaryMetric.key, e.target.value)}
-                  className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-green-500 transition-all shadow-sm"
+                  className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-emerald-500 transition-all shadow-sm"
                 />
               </div>
 
               {selectedChallenge.secondaryMetrics?.map(m => (
                 <div key={m.key} className="space-y-2">
                   <label className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider block">
-                    {t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.label` as any) || m.label} {m.unit ? `(${t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.unit` as any) || m.unit})` : ""}
+                    {m.label} {m.unit ? `(${m.unit})` : ""}
                   </label>
                   <input
                     type={m.inputType === "text" ? "text" : "number"}
-                    step="0.01"
                     required
-                    placeholder={t(`challenges.${selectedChallenge.id}.secondaryMetrics.${m.key}.placeholder` as any) || m.placeholder}
+                    placeholder={m.placeholder}
                     value={metricValues[m.key] || ""}
                     onChange={e => handleMetricChange(m.key, e.target.value)}
-                    className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-green-500 transition-all shadow-sm"
+                    className="w-full bg-white border border-gray-150 rounded-2xl p-4 text-sm font-bold outline-none focus:border-emerald-500 transition-all shadow-sm"
                   />
                 </div>
               ))}
@@ -680,7 +643,7 @@ function AddPostForm({
                 required
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-150 rounded-2xl p-4 text-sm focus:outline-none focus:border-green-500 transition-all font-bold min-h-[100px] resize-none shadow-sm"
+                className="w-full bg-gray-50 border border-gray-150 rounded-2xl p-4 text-sm focus:outline-none focus:border-emerald-500 transition-all font-bold min-h-[100px] resize-none shadow-sm"
               />
               <p className="text-[10px] text-gray-400 font-medium px-1 italic">{t("shareTextHint")}</p>
             </div>
@@ -689,7 +652,7 @@ function AddPostForm({
 
         <button
           disabled={loading || !selectedChallenge}
-          className="w-full py-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-green-100 mt-4 cursor-pointer"
+          className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-emerald-100 mt-4 cursor-pointer"
         >
           {loading ? (
             <Spinner size={18} className="animate-spin" />
@@ -714,7 +677,7 @@ function AddPostForm({
         )}
       </form>
 
-      {/* SAVING OPTION SELECTOR MODAL */}
+      {/* OPTION SELECTOR MODAL */}
       <Drawer.Root open={showOptionModal} onOpenChange={setShowOptionModal}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80]" />
@@ -724,8 +687,7 @@ function AddPostForm({
 
               <header className="flex justify-between items-center mb-6 shrink-0">
                 <div>
-                  <Drawer.Title className="font-black text-xl text-gray-900">{t("selectSavingType")}</Drawer.Title>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">{t("selectSavingTypeSubtitle")}</p>
+                  <Drawer.Title className="font-black text-xl text-gray-900">{t("selectStepType")}</Drawer.Title>
                 </div>
                 <button
                   onClick={() => setShowOptionModal(false)}
@@ -736,12 +698,12 @@ function AddPostForm({
               </header>
 
               <div className="flex-1 overflow-y-auto space-y-6 pr-1 pb-4">
-                {SAVING_CHALLENGES.map(cat => (
+                {SUSTAINABILITY_CHALLENGES.map(cat => (
                   <div key={cat.category} className="space-y-2.5">
                     <h4 className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wider px-1">
                       {t(`categories.${cat.category}` as any)}
                     </h4>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                       {cat.items.map(item => (
                         <button
                           key={item.id}
@@ -752,12 +714,12 @@ function AddPostForm({
                             setShowOptionModal(false);
                           }}
                           className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left transition-all text-xs font-bold cursor-pointer active:scale-95 ${selectedChallenge?.id === item.id
-                              ? "bg-green-50 border-green-500 text-green-700"
+                              ? "bg-emerald-50 border-emerald-500 text-emerald-700"
                               : "bg-gray-50 border-gray-150 hover:bg-gray-100 text-gray-700"
                             }`}
                         >
                           <span className="text-lg shrink-0">{item.emoji}</span>
-                          <span className="flex-1 leading-tight">{t(`challenges.${item.id}.label` as any) || item.label}</span>
+                          <span className="flex-1 leading-tight">{item.label}</span>
                         </button>
                       ))}
                     </div>

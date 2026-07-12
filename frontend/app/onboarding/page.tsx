@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "@phosphor-icons/react";
 import { MINI_APPS, MiniApp } from "@/lib/apps";
 import { updateAppOrderAction, setOnboardingFinishedAction } from "../home/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ChatMessage {
   id: string;
@@ -29,6 +30,7 @@ const CATEGORY_ORDER = [
 export default function OnboardingPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -95,8 +97,21 @@ export default function OnboardingPage() {
     localStorage.setItem(`onboarding_completed_${userId || "guest"}`, "true");
 
     if (userId) {
+      // Set localStorage FIRST before any async actions
+      localStorage.setItem(`onboarding_completed_${userId}`, "true");
+      
       await updateAppOrderAction(userId, allIds);
       await setOnboardingFinishedAction(userId, true);
+      
+      // Instantly update the cache to prevent redirect loop
+      queryClient.setQueryData(["user", "preferences", userId], (prev: any) => ({
+        ...prev,
+        isOnboardingFinished: true,
+        appOrder: allIds
+      }));
+
+      // Also invalidate to be sure
+      await queryClient.invalidateQueries({ queryKey: ["user", "preferences", userId] });
     }
     
     setIsSaving(false);

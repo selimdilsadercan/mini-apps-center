@@ -1,7 +1,6 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { useState, useEffect } from "react";
@@ -38,7 +37,6 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
     return (
       <QueryClientProvider client={queryClient}>
         {children}
-        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     );
   }
@@ -53,7 +51,6 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
       }}
     >
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
     </PersistQueryClientProvider>
   );
 }

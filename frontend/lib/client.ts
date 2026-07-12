@@ -75,6 +75,7 @@ export default class Client {
     public readonly storage: storage.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
+    public readonly surdurulebilirlik: surdurulebilirlik.ServiceClient
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
@@ -139,6 +140,7 @@ export default class Client {
         this.storage = new storage.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
+        this.surdurulebilirlik = new surdurulebilirlik.ServiceClient(base)
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
@@ -4596,6 +4598,7 @@ export namespace hub {
         subscriptions: subcenter.Subscription[]
         budgetProjects: budget.Project[]
         savingsStats: tasarruf_challenges.StatsResponse | null
+        sustainabilityStats: surdurulebilirlik.SustainabilityStats | null
         suggestions: suggest.InboxSuggestion[]
         activities: kim_gelir.Activity[]
     }
@@ -4603,12 +4606,14 @@ export namespace hub {
     export interface LifeWidgetsResponse {
         suggestions: suggest.InboxSuggestion[]
         activities: kim_gelir.Activity[]
+        sustainabilityStats: surdurulebilirlik.SustainabilityStats | null
     }
 
     export interface WalletWidgetsResponse {
         subscriptions: subcenter.Subscription[]
         budgetProjects: budget.Project[]
         savingsStats: tasarruf_challenges.StatsResponse | null
+        sustainabilityStats: surdurulebilirlik.SustainabilityStats | null
     }
 
     export class ServiceClient {
@@ -6141,6 +6146,15 @@ export namespace rutinler {
 
     export type PeriodType = "daily" | "weekly" | "monthly" | "once"
 
+    export interface PostponeEntryRequest {
+        entryId: string
+        userId: string
+    }
+
+    export interface PostponeEntryResponse {
+        success: boolean
+    }
+
     export interface RoutineEntry {
         id: string
         "user_id": string
@@ -6153,6 +6167,7 @@ export namespace rutinler {
         "day_of_month": number | null
         "sort_order": number
         "created_at": string
+        "postponed_until": string | null
         "is_completed": boolean
         "is_next_completed": boolean
     }
@@ -6198,6 +6213,7 @@ export namespace rutinler {
             this.deleteEntry = this.deleteEntry.bind(this)
             this.getEntries = this.getEntries.bind(this)
             this.getTodayAgenda = this.getTodayAgenda.bind(this)
+            this.postponeEntry = this.postponeEntry.bind(this)
             this.toggleCompletion = this.toggleCompletion.bind(this)
             this.updateEntry = this.updateEntry.bind(this)
         }
@@ -6236,6 +6252,12 @@ export namespace rutinler {
             return await resp.json() as {
     entries: RoutineEntry[]
 }
+        }
+
+        public async postponeEntry(params: PostponeEntryRequest): Promise<PostponeEntryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/postpone`, JSON.stringify(params))
+            return await resp.json() as PostponeEntryResponse
         }
 
         public async toggleCompletion(params: ToggleCompletionRequest): Promise<ToggleCompletionResponse> {
@@ -7735,6 +7757,31 @@ export namespace suggest {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/suggest/status`, JSON.stringify(params))
             return await resp.json() as UpdateStatusResponse
+        }
+    }
+}
+
+export namespace surdurulebilirlik {
+    export interface SustainabilityStats {
+        userTotalPoints: number
+        userMonthPoints: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getStats = this.getStats.bind(this)
+        }
+
+        /**
+         * Get user and community stats for sustainability
+         */
+        public async getStats(userId: string): Promise<SustainabilityStats> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/surdurulebilirlik/stats/${encodeURIComponent(userId)}`)
+            return await resp.json() as SustainabilityStats
         }
     }
 }

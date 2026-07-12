@@ -18,10 +18,11 @@ import {
   SunHorizon,
   Moon,
   CalendarCheck,
+  ClockAfternoon,
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { rutinler } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -86,6 +87,136 @@ function CalendarMiniBadge({
         </div>
       </div>
     </div>
+  );
+}
+
+function EntryRow({
+  entry,
+  showComplete,
+  isGrouped = false,
+  onToggleComplete,
+  onPostpone,
+  onEdit,
+  renderScheduleBadges,
+}: {
+  entry: rutinler.RoutineEntry;
+  showComplete: boolean;
+  isGrouped?: boolean;
+  onToggleComplete: (entry: rutinler.RoutineEntry) => void;
+  onPostpone: (entry: rutinler.RoutineEntry) => void;
+  onEdit: (entry: rutinler.RoutineEntry) => void;
+  renderScheduleBadges: (entry: rutinler.RoutineEntry) => React.ReactNode;
+}) {
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [0, 40], [0, 1]);
+
+  return (
+    <motion.div
+      key={entry.id}
+      initial={false}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, marginBottom: 0, overflow: "hidden" }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative group"
+    >
+      {/* Postpone Action Background */}
+      <motion.div
+        style={{ opacity }}
+        className={`absolute inset-0 flex items-center justify-start px-6 bg-amber-500 ${
+          !isGrouped ? "rounded-2xl" : ""
+        }`}
+      >
+        <div className="flex flex-col items-center gap-0.5 text-white">
+          <ClockAfternoon size={20} weight="fill" />
+          <span className="text-[8px] font-black uppercase tracking-wider">Ertele</span>
+        </div>
+      </motion.div>
+
+      {/* Draggable Row */}
+      <motion.div
+        drag="x"
+        style={{ x }}
+        dragConstraints={{ left: 0, right: 100 }}
+        dragElastic={0.05}
+        onDragEnd={(_, info) => {
+          if (info.offset.x > 80) {
+            void onPostpone(entry);
+          } else {
+            x.set(0);
+          }
+        }}
+        className={`relative z-10 flex items-center gap-3 px-4 py-3 transition-all ${
+          !isGrouped ? "rounded-2xl border" : ""
+        } ${
+          showComplete && entry.is_completed
+            ? isGrouped
+              ? "bg-[#F0FDF4]"
+              : "bg-[#F0FDF4] border-emerald-100"
+            : !isGrouped
+            ? "bg-white border-gray-100"
+            : "bg-white hover:bg-gray-50"
+        } ${isGrouped ? "border-b border-gray-50 last:border-0" : ""}`}
+      >
+        {showComplete && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Mevcut Periyot */}
+            <button
+              type="button"
+              onClick={() => void onToggleComplete(entry)}
+              className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
+                entry.is_completed
+                  ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                  : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
+              }`}
+            >
+              <AnimatePresence mode="wait">
+                {entry.is_completed && (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                  >
+                    <Check size={14} weight="bold" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
+        )}
+
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(entry);
+          }}
+          className="flex-1 flex items-center justify-between gap-3 min-w-0 cursor-pointer"
+        >
+          <div className="flex items-center gap-2 min-w-0 relative">
+            <span className="text-xl leading-none shrink-0">{entry.item_emoji}</span>
+            <div className="relative min-w-0">
+              <span
+                className={`text-sm font-bold block truncate transition-colors duration-300 ${
+                  showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
+                }`}
+              >
+                {entry.item_name}
+              </span>
+              {showComplete && (
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: entry.is_completed ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-gray-400 origin-left w-full"
+                />
+              )}
+            </div>
+          </div>
+          {renderScheduleBadges(entry)}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -492,6 +623,48 @@ export default function RutinlerPage() {
     }
   }
 
+  async function handlePostpone(entry: rutinler.RoutineEntry) {
+    if (!user) return;
+
+    const ok = await confirm({
+      title: "Yarına ertele?",
+      description: `"${entry.item_name}" bugün listenden kaldırılacak ve yarın tekrar görünecek.`,
+      confirmText: "Ertele",
+    });
+
+    if (!ok) return;
+
+    // Optimistic update
+    setRecentlyCompletedIds((prev) => {
+      const nextSet = new Set(prev);
+      nextSet.add(entry.id);
+      return nextSet;
+    });
+    
+    setTimeout(() => {
+      setRecentlyCompletedIds((prev) => {
+        const nextSet = new Set(prev);
+        nextSet.delete(entry.id);
+        return nextSet;
+      });
+      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+    }, 800);
+
+    try {
+      await (client.rutinler as any).postponeEntry({
+        entryId: entry.id,
+        userId: user.id,
+      });
+      toast.success("Yarına ertelendi");
+      closeEdit();
+    } catch (error) {
+      console.error("handlePostpone error:", error);
+      toast.error("Erteleme başarısız oldu");
+      // Refetch entries on error to restore the item
+      void fetchEntries();
+    }
+  }
+
   async function handleAdd(item: CatalogItem) {
     await handleAddEntry(item.name, item.emoji, item.slug);
   }
@@ -552,86 +725,6 @@ export default function RutinlerPage() {
           <CalendarMiniBadge value={entry.day_of_month} headerClassName="bg-emerald-500" />
         )}
       </div>
-    );
-  }
-
-  function renderEntryRow(entry: rutinler.RoutineEntry, showComplete: boolean, isGrouped = false) {
-    const isRecurring = entry.period_type !== "once";
-
-    return (
-      <motion.div
-        key={entry.id}
-        initial={false}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, marginBottom: 0, overflow: "hidden" }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className={`group flex items-center gap-3 px-4 py-3 transition-all ${
-          !isGrouped ? "rounded-2xl border" : ""
-        } ${
-          showComplete && entry.is_completed
-            ? isGrouped ? "bg-emerald-50/20" : "bg-emerald-50/40 border-emerald-100"
-            : !isGrouped ? "bg-gray-50 border-gray-100" : "hover:bg-gray-50/50"
-        } ${isGrouped ? "border-b border-gray-50 last:border-0" : ""}`}
-      >
-        {showComplete && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Mevcut Periyot */}
-            <button
-              type="button"
-              onClick={() => void handleToggleComplete(entry)}
-              className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
-                entry.is_completed
-                  ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
-                  : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
-              }`}
-            >
-              <AnimatePresence mode="wait">
-                {entry.is_completed && (
-                  <motion.div
-                    key="check"
-                    initial={{ scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0 }}
-                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
-                  >
-                    <Check size={14} weight="bold" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
-          </div>
-        )}
-
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            openEdit(entry);
-          }}
-          className="flex-1 flex items-center justify-between gap-3 min-w-0 cursor-pointer"
-        >
-          <div className="flex items-center gap-2 min-w-0 relative">
-            <span className="text-xl leading-none shrink-0">{entry.item_emoji}</span>
-            <div className="relative min-w-0">
-              <span
-                className={`text-sm font-bold block truncate transition-colors duration-300 ${
-                  showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
-                }`}
-              >
-                {entry.item_name}
-              </span>
-              {showComplete && (
-                <motion.div
-                  initial={false}
-                  animate={{ scaleX: entry.is_completed ? 1 : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-gray-400 origin-left w-full"
-                />
-              )}
-            </div>
-          </div>
-          {renderScheduleBadges(entry)}
-        </div>
-      </motion.div>
     );
   }
 
@@ -769,7 +862,18 @@ export default function RutinlerPage() {
                   </p>
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <AnimatePresence initial={false}>
-                      {oneOffTasks.map((entry) => renderEntryRow(entry, true, true))}
+                      {oneOffTasks.map((entry) => (
+                        <EntryRow
+                          key={entry.id}
+                          entry={entry}
+                          showComplete={true}
+                          isGrouped={true}
+                          onToggleComplete={handleToggleComplete}
+                          onPostpone={handlePostpone}
+                          onEdit={openEdit}
+                          renderScheduleBadges={renderScheduleBadges}
+                        />
+                      ))}
                     </AnimatePresence>
                   </div>
                 </div>
@@ -782,7 +886,18 @@ export default function RutinlerPage() {
                   </p>
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <AnimatePresence initial={false}>
-                      {routineTasks.map((entry) => renderEntryRow(entry, true, true))}
+                      {routineTasks.map((entry) => (
+                        <EntryRow
+                          key={entry.id}
+                          entry={entry}
+                          showComplete={true}
+                          isGrouped={true}
+                          onToggleComplete={handleToggleComplete}
+                          onPostpone={handlePostpone}
+                          onEdit={openEdit}
+                          renderScheduleBadges={renderScheduleBadges}
+                        />
+                      ))}
                     </AnimatePresence>
                   </div>
                 </div>
@@ -849,7 +964,17 @@ export default function RutinlerPage() {
                       ) : (
                         <div className="space-y-2">
                           <AnimatePresence initial={false}>
-                            {items.map((entry) => renderEntryRow(entry, true))}
+                            {items.map((entry) => (
+                              <EntryRow
+                                key={entry.id}
+                                entry={entry}
+                                showComplete={true}
+                                onToggleComplete={handleToggleComplete}
+                                onPostpone={handlePostpone}
+                                onEdit={openEdit}
+                                renderScheduleBadges={renderScheduleBadges}
+                              />
+                            ))}
                           </AnimatePresence>
                         </div>
                       )}
@@ -1146,27 +1271,40 @@ export default function RutinlerPage() {
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-col gap-2 pt-2">
                   <button
                     type="button"
                     onClick={() => {
-                      if (editingEntry)
-                        void handleDelete(editingEntry).then(() => closeEdit());
+                      if (editingEntry) void handlePostpone(editingEntry);
                     }}
-                    className="flex-1 py-3.5 rounded-xl border border-red-100 bg-red-50 text-red-500 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-red-100"
+                    className="w-full py-3.5 rounded-xl border border-amber-100 bg-amber-50 text-amber-600 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-amber-100"
                   >
-                    <Trash size={16} weight="bold" />
-                    Sil
+                    <ClockAfternoon size={16} weight="bold" />
+                    Yarına Ertele
                   </button>
-                  <button
-                    type="button"
-                    disabled={updating || !editName.trim()}
-                    onClick={() => void handleUpdateEntry()}
-                    className="flex-[2] py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-violet-200"
-                  >
-                    <Check size={16} weight="bold" />
-                    Güncelle
-                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (editingEntry)
+                          void handleDelete(editingEntry).then(() => closeEdit());
+                      }}
+                      className="flex-1 py-3.5 rounded-xl border border-red-100 bg-red-50 text-red-500 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-red-100"
+                    >
+                      <Trash size={16} weight="bold" />
+                      Sil
+                    </button>
+                    <button
+                      type="button"
+                      disabled={updating || !editName.trim()}
+                      onClick={() => void handleUpdateEntry()}
+                      className="flex-[2] py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-violet-200"
+                    >
+                      <Check size={16} weight="bold" />
+                      Güncelle
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

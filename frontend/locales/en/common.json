@@ -332,8 +332,12 @@
       "description": "Save your recipes and plan your weekly meals."
     },
     "rutinler": {
-      "name": "My Routines",
+      "name": "Agenda",
       "description": "Create and track your daily, weekly, and yearly routine tables."
+    },
+    "surdurulebilirlik": {
+      "name": "We're Sustainable",
+      "description": "Track your eco-friendly steps and contribute to our world."
     }
   },
   "birikim": {

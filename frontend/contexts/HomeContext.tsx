@@ -47,7 +47,7 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
       }
     },
     enabled: isLoaded,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute
   });
 
   const businessQuery = useQuery({

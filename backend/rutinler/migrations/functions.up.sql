@@ -19,6 +19,7 @@ RETURNS TABLE (
     day_of_month SMALLINT,
     sort_order INTEGER,
     created_at TIMESTAMPTZ,
+    postponed_until TIMESTAMPTZ,
     is_completed BOOLEAN,
     is_next_completed BOOLEAN
 ) AS $$
@@ -57,6 +58,7 @@ BEGIN
         e.day_of_month,
         e.sort_order,
         e.created_at,
+        e.postponed_until,
         EXISTS (
             SELECT 1 FROM rutinler.completions c
             WHERE c.entry_id = e.id
@@ -261,5 +263,29 @@ BEGIN
         day_of_month = day_of_month_param
     WHERE id = entry_id_param AND user_id = v_user_id
     RETURNING *;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. Postpone Entry
+DROP FUNCTION IF EXISTS rutinler.postpone_entry(UUID, TEXT);
+CREATE OR REPLACE FUNCTION rutinler.postpone_entry(
+    entry_id_param UUID,
+    clerk_id_param TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    v_user_id := public.get_internal_user_id(clerk_id_param);
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    -- Set postponed_until to tomorrow 00:00:00
+    UPDATE rutinler.entries
+    SET postponed_until = (current_date + INTERVAL '1 day')
+    WHERE id = entry_id_param AND user_id = v_user_id;
+
+    RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

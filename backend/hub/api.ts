@@ -6,7 +6,8 @@ import { getEvents } from "../campus-events/api";
 import { getUserSeries, getTodayEpisodes, TodaySeriesItem } from "../series-track/api";
 import { getUserSubscriptions } from "../subcenter/api";
 import { getUserProjects } from "../budget/api";
-import { getStats } from "../tasarruf-challenges/api";
+import { getStats as getTasarrufStats } from "../tasarruf-challenges/api";
+import { getStats as getSustainabilityStats, SustainabilityStats } from "../surdurulebilirlik/api";
 import { getInbox } from "../suggest/api";
 import { getActivities } from "../kim-gelir/api";
 import { getTodayPlan, TodayPlan } from "../gym/api";
@@ -46,11 +47,13 @@ export interface WalletWidgetsResponse {
   subscriptions: Subscription[];
   budgetProjects: Project[];
   savingsStats: StatsResponse | null;
+  sustainabilityStats: SustainabilityStats | null;
 }
 
 export interface LifeWidgetsResponse {
   suggestions: InboxSuggestion[];
   activities: Activity[];
+  sustainabilityStats: SustainabilityStats | null;
 }
 
 export interface HomeWidgetsResponse {
@@ -60,6 +63,7 @@ export interface HomeWidgetsResponse {
   subscriptions: Subscription[];
   budgetProjects: Project[];
   savingsStats: StatsResponse | null;
+  sustainabilityStats: SustainabilityStats | null;
   suggestions: InboxSuggestion[];
   activities: Activity[];
 }
@@ -146,18 +150,20 @@ export const getHobbyWidgets = api(
 export const getWalletWidgets = api(
   { expose: true, method: "GET", path: "/hub/widgets/wallet" },
   async ({ userId }: GetHomeWidgetsRequest): Promise<WalletWidgetsResponse> => {
-    if (!userId) return { subscriptions: [], budgetProjects: [], savingsStats: null };
+    if (!userId) return { subscriptions: [], budgetProjects: [], savingsStats: null, sustainabilityStats: null };
     
-    const [subRes, budgetRes, savingsStats] = await Promise.all([
+    const [subRes, budgetRes, savingsStats, sustainabilityStats] = await Promise.all([
       fetchWithFallback(getUserSubscriptions({ userId }), { subscriptions: [] }),
       fetchWithFallback(getUserProjects({ userId }), { projects: [] }),
-      fetchWithFallback(getStats({ userId }), null),
+      fetchWithFallback(getTasarrufStats({ userId }), null),
+      fetchWithFallback(getSustainabilityStats({ userId }), null),
     ]);
 
     return {
       subscriptions: subRes.subscriptions || [],
       budgetProjects: budgetRes.projects || [],
       savingsStats,
+      sustainabilityStats,
     };
   }
 );
@@ -168,16 +174,18 @@ export const getWalletWidgets = api(
 export const getLifeWidgets = api(
   { expose: true, method: "GET", path: "/hub/widgets/life" },
   async ({ userId }: GetHomeWidgetsRequest): Promise<LifeWidgetsResponse> => {
-    if (!userId) return { suggestions: [], activities: [] };
+    if (!userId) return { suggestions: [], activities: [], sustainabilityStats: null };
     
-    const [suggestRes, activityRes] = await Promise.all([
+    const [suggestRes, activityRes, sustainabilityStats] = await Promise.all([
       fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
       fetchWithFallback(getActivities({ userId }), { activities: [] }),
+      fetchWithFallback(getSustainabilityStats({ userId }), null),
     ]);
 
     return {
       suggestions: suggestRes.suggestions || [],
       activities: activityRes.activities || [],
+      sustainabilityStats,
     };
   }
 );
@@ -198,13 +206,14 @@ export const getHomeWidgets = api(
       }
     };
 
-    const [placesRes, eventsRes, seriesRes, subRes, budgetRes, savingsStats, suggestRes, activityRes] = await Promise.all([
+    const [placesRes, eventsRes, seriesRes, subRes, budgetRes, savingsStats, sustainabilityStats, suggestRes, activityRes] = await Promise.all([
       fetchWithFallback(listPlaces({ userId }), { places: [] }),
       fetchWithFallback(getEvents({ userId }), { events: [] }),
       fetchWithFallback(userId ? getUserSeries({ userId }) : Promise.resolve({ series: [] }), { series: [] }),
       fetchWithFallback(userId ? getUserSubscriptions({ userId }) : Promise.resolve({ subscriptions: [] }), { subscriptions: [] }),
       fetchWithFallback(userId ? getUserProjects({ userId }) : Promise.resolve({ projects: [] }), { projects: [] }),
-      fetchWithFallback(userId ? getStats({ userId }) : Promise.resolve(null), null),
+      fetchWithFallback(userId ? getTasarrufStats({ userId }) : Promise.resolve(null), null),
+      fetchWithFallback(userId ? getSustainabilityStats({ userId }) : Promise.resolve(null), null),
       fetchWithFallback(userId ? getInbox({ userId }) : Promise.resolve({ suggestions: [] }), { suggestions: [] }),
       fetchWithFallback(userId ? getActivities({ userId }) : Promise.resolve({ activities: [] }), { activities: [] })
     ]);
@@ -216,6 +225,7 @@ export const getHomeWidgets = api(
       subscriptions: subRes.subscriptions || [],
       budgetProjects: budgetRes.projects || [],
       savingsStats: savingsStats,
+      sustainabilityStats: sustainabilityStats,
       suggestions: suggestRes.suggestions || [],
       activities: activityRes.activities || []
     };

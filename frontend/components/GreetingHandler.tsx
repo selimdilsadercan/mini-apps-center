@@ -39,14 +39,23 @@ export function GreetingHandler() {
       return res.data;
     },
     enabled: isLoaded && !!user?.id,
-    staleTime: 30 * 60 * 1000,
+    staleTime: 1 * 60 * 1000, // 1 minute
   });
 
   useEffect(() => {
     if (isLoaded && user && prefsQuery.data) {
       const pref = prefsQuery.data;
       const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
-      if (!pref.isOnboardingFinished && !ignoredPaths.includes(pathname)) {
+      
+      // Additional safeguard: Check localStorage if the query still says false
+      const locallyFinished = localStorage.getItem(`onboarding_completed_${user.id}`) === "true";
+      const actuallyFinished = pref.isOnboardingFinished || locallyFinished;
+
+      if (!actuallyFinished && !ignoredPaths.includes(pathname)) {
+        console.log("Onboarding not finished, redirecting...", { 
+          isOnboardingFinished: pref.isOnboardingFinished, 
+          locallyFinished 
+        });
         router.replace("/onboarding");
       }
     }

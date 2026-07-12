@@ -22,6 +22,7 @@ export interface RoutineEntry {
   day_of_month: number | null;
   sort_order: number;
   created_at: string;
+  postponed_until: string | null;
   is_completed: boolean;
   is_next_completed: boolean;
 }
@@ -87,6 +88,15 @@ interface UpdateEntryResponse {
   entry: RoutineEntry | null;
 }
 
+interface PostponeEntryRequest {
+  entryId: string;
+  userId: string;
+}
+
+interface PostponeEntryResponse {
+  success: boolean;
+}
+
 function parseScheduleInt(value: string): number | null {
   const n = parseInt(value, 10);
   return Number.isFinite(n) && n > 0 ? n : null;
@@ -114,6 +124,7 @@ function mapEntry(row: Record<string, unknown>): RoutineEntry {
     day_of_month: dayOfMonth != null && Number.isFinite(dayOfMonth) ? dayOfMonth : null,
     sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
     created_at: String(row.created_at),
+    postponed_until: row.postponed_until ? String(row.postponed_until) : null,
     is_completed: Boolean(row.is_completed),
     is_next_completed: Boolean(row.is_next_completed),
   };
@@ -160,6 +171,12 @@ export const getTodayAgenda = api(
     };
 
     const filtered = entries.filter((e) => {
+      // Filter out postponed items
+      if (e.postponed_until) {
+        const postponedDate = new Date(e.postponed_until);
+        if (postponedDate > now) return false;
+      }
+
       // One-off tasks only show if they are NOT completed
       if (e.period_type === "once") return !e.is_completed;
       
@@ -262,5 +279,21 @@ export const updateEntry = api(
     return {
       entry: row ? mapEntry(row) : null,
     };
+  }
+);
+
+export const postponeEntry = api(
+  { expose: true, method: "POST", path: "/rutinler/postpone" },
+  async (req: PostponeEntryRequest): Promise<PostponeEntryResponse> => {
+    const { error } = await supabase.schema("rutinler").rpc("postpone_entry", {
+      entry_id_param: req.entryId,
+      clerk_id_param: req.userId,
+    });
+
+    if (error) {
+      throw APIError.internal(`Supabase error: ${error.message}`);
+    }
+
+    return { success: true };
   }
 );

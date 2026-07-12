@@ -328,8 +328,12 @@
       "description": "Tariflerini kaydet, haftalık yemek planını oluştur."
     },
     "rutinler": {
-      "name": "Rutinlerim",
+      "name": "Ajanda",
       "description": "Günlük, haftalık ve yıllık rutin tablolarını oluştur ve takip et."
+    },
+    "surdurulebilirlik": {
+      "name": "Sürdürülebiliriz",
+      "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."
     }
   },
   "birikim": {

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS rutinler.entries (
     day_of_week SMALLINT CHECK (day_of_week IS NULL OR (day_of_week >= 1 AND day_of_week <= 7)),
     day_of_month SMALLINT CHECK (day_of_month IS NULL OR (day_of_month >= 1 AND day_of_month <= 31)),
     sort_order INTEGER NOT NULL DEFAULT 0,
+    postponed_until TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 

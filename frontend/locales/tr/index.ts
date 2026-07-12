@@ -5,6 +5,7 @@ import workplaces from "./workplaces.json";
 import pomodoro from "./pomodoro.json";
 import landing from "./landing.json";
 import tasarruf from "./tasarruf.json";
+import surdurulebilirlik from "./surdurulebilirlik.json";
 import penaltyJar from "./penalty-jar.json";
 import oneDayCityGuide from "./one-day-city-guide.json";
 
@@ -16,6 +17,7 @@ const messages = {
   workplaces,
   pomodoro,
   ...tasarruf,
+  ...surdurulebilirlik,
   penaltyJar,
   oneDayCityGuide,
 };

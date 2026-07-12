@@ -1,0 +1,2 @@
+-- Bu uygulama merkezi feed_events tablosunu kullandığı için özel bir tabloya ihtiyaç duymaz.
+-- Schema kaldırıldı, fonksiyonlar public şemasına taşındı.
