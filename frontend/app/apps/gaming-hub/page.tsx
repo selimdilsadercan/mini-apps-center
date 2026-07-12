@@ -1,45 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { GameController, Plus, Check, Trash } from "@phosphor-icons/react";
+import { GameController, Plus, Check, Trash, Books } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
-import GamingHubShell, { type GameModeTab } from "./components/GamingHubShell";
+import GamingHubShell, { type MainTab } from "./components/GamingHubShell";
 import GameSearchInput from "./components/GameSearchInput";
 import GameCover from "./components/GameCover";
-import { PillFilterTabs } from "./components/PillTabs";
 import {
   deleteLibraryItemAction,
+  discoverGamesAction,
   getLibraryAction,
   upsertLibraryItemAction,
 } from "./actions";
 import type { gaming_hub } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 
-type ListFilter = "playing" | "completed";
+function isPlayed(status: gaming_hub.GameStatus): boolean {
+  return status === "completed" || status === "playing";
+}
 
-const LIST_TABS: { id: ListFilter; label: string }[] = [
-  { id: "playing", label: "Oynadıklarım" },
-  { id: "completed", label: "Bitirdiklerim" },
-];
+function normalizeGameName(gameName: string): string {
+  return gameName.trim().toLowerCase();
+}
 
 export default function GamingHubPage() {
   const { user, isLoaded } = useUser();
   const { confirm } = useConfirmDialog();
 
   const [library, setLibrary] = useState<gaming_hub.LibraryItem[]>([]);
+  const [discoverGames, setDiscoverGames] = useState<gaming_hub.CatalogGame[]>([]);
   const [loading, setLoading] = useState(true);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
 
-  const [gameMode, setGameMode] = useState<GameModeTab>("single");
-  const [listFilter, setListFilter] = useState<ListFilter>("playing");
+  const [mainTab, setMainTab] = useState<MainTab>("discover");
 
   const [showAddGame, setShowAddGame] = useState(false);
   const [newGameName, setNewGameName] = useState("");
   const [selectedGame, setSelectedGame] = useState<gaming_hub.CatalogGame | null>(null);
   const [addingGame, setAddingGame] = useState(false);
+  const [addingDiscoverId, setAddingDiscoverId] = useState<string | null>(null);
 
-  async function loadData() {
+  const libraryByName = useMemo(() => {
+    const set = new Set<string>();
+    for (const item of library) {
+      set.add(normalizeGameName(item.gameName));
+    }
+    return set;
+  }, [library]);
+
+  async function loadLibrary() {
     if (!user) {
       setLibrary([]);
       return;
@@ -50,17 +61,33 @@ export default function GamingHubPage() {
     else setLibrary(libRes.data ?? []);
   }
 
+  async function loadDiscover() {
+    setDiscoverLoading(true);
+    try {
+      const res = await discoverGamesAction("popular", 24);
+      if (res.error) toast.error(res.error);
+      else setDiscoverGames(res.data ?? []);
+    } finally {
+      setDiscoverLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!isLoaded) return;
     void (async () => {
       try {
         setLoading(true);
-        await loadData();
+        await loadLibrary();
       } finally {
         setLoading(false);
       }
     })();
   }, [isLoaded, user?.id]);
+
+  useEffect(() => {
+    if (!isLoaded || !user || mainTab !== "discover") return;
+    void loadDiscover();
+  }, [isLoaded, user?.id, mainTab]);
 
   function resetAddForm() {
     setNewGameName("");
@@ -72,33 +99,70 @@ export default function GamingHubPage() {
     setSelectedGame(game);
   }
 
+  async function addToLibrary(params: {
+    gameName: string;
+    igdbId?: string;
+    coverUrl?: string;
+  }) {
+    if (!user) return false;
+
+    const result = await upsertLibraryItemAction({
+      userId: user.id,
+      gameName: params.gameName.trim(),
+      platform: "PC",
+      status: "backlog",
+      gameMode: "single",
+      igdbId: params.igdbId,
+      coverUrl: params.coverUrl,
+    });
+
+    if (result.error) {
+      toast.error(result.error);
+      return false;
+    }
+
+    toast.success("Kütüphaneye eklendi");
+    await loadLibrary();
+    return true;
+  }
+
   async function handleAddGame(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !newGameName.trim()) return;
 
     setAddingGame(true);
     try {
-      const result = await upsertLibraryItemAction({
-        userId: user.id,
+      const ok = await addToLibrary({
         gameName: newGameName.trim(),
-        platform: "PC",
-        status: listFilter,
-        gameMode,
         igdbId: selectedGame?.gameId,
         coverUrl: selectedGame?.coverUrl ?? undefined,
       });
+      if (!ok) return;
 
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-
-      toast.success("Oyun eklendi");
       setShowAddGame(false);
       resetAddForm();
-      await loadData();
     } finally {
       setAddingGame(false);
+    }
+  }
+
+  async function handleAddFromDiscover(game: gaming_hub.CatalogGame) {
+    if (!user) return;
+
+    if (libraryByName.has(normalizeGameName(game.title))) {
+      toast.success("Zaten kütüphanende");
+      return;
+    }
+
+    setAddingDiscoverId(game.gameId);
+    try {
+      await addToLibrary({
+        gameName: game.title,
+        igdbId: game.gameId,
+        coverUrl: game.coverUrl ?? undefined,
+      });
+    } finally {
+      setAddingDiscoverId(null);
     }
   }
 
@@ -107,7 +171,7 @@ export default function GamingHubPage() {
 
     const ok = await confirm({
       title: "Oyun silinsin mi?",
-      description: `"${item.gameName}" listeden kaldırılacak.`,
+      description: `"${item.gameName}" kütüphaneden kaldırılacak.`,
       confirmText: "Sil",
       variant: "danger",
     });
@@ -123,14 +187,15 @@ export default function GamingHubPage() {
     toast.success("Oyun silindi");
   }
 
-  async function markCompleted(item: gaming_hub.LibraryItem) {
+  async function togglePlayed(item: gaming_hub.LibraryItem) {
     if (!user) return;
 
+    const nextStatus = isPlayed(item.status) ? "backlog" : "completed";
     const result = await upsertLibraryItemAction({
       userId: user.id,
       gameName: item.gameName,
       platform: item.platform,
-      status: "completed",
+      status: nextStatus,
       gameMode: item.gameMode,
       igdbId: item.igdbId ?? undefined,
       coverUrl: item.coverUrl ?? undefined,
@@ -142,17 +207,20 @@ export default function GamingHubPage() {
       return;
     }
 
-    toast.success("Bitirdiklerime eklendi");
-    await loadData();
+    setLibrary((prev) =>
+      prev.map((g) => (g.id === item.id ? { ...g, status: nextStatus } : g))
+    );
   }
+
+  const shellProps = {
+    activeMainTab: mainTab,
+    onMainTabChange: setMainTab,
+    subtitle: mainTab === "discover" ? "Popüler oyunlar" : "Oyun koleksiyonun",
+  };
 
   if (!isLoaded || loading) {
     return (
-      <GamingHubShell
-        activeMode={gameMode}
-        onModeChange={setGameMode}
-        subtitle="Oyun kütüphanen"
-      >
+      <GamingHubShell {...shellProps}>
         <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
@@ -162,11 +230,7 @@ export default function GamingHubPage() {
 
   if (!user) {
     return (
-      <GamingHubShell
-        activeMode={gameMode}
-        onModeChange={setGameMode}
-        subtitle="Oyun kütüphanen"
-      >
+      <GamingHubShell {...shellProps}>
         <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
           <GameController size={40} className="text-gray-200 mb-4" weight="duotone" />
           <p className="text-sm font-bold text-gray-500 mb-1">Giriş yapmalısın</p>
@@ -176,39 +240,77 @@ export default function GamingHubPage() {
     );
   }
 
-  const filteredLibrary = library.filter(
-    (item) => item.gameMode === gameMode && item.status === listFilter
-  );
-
   return (
     <GamingHubShell
-      activeMode={gameMode}
-      onModeChange={setGameMode}
-      subtitle={gameMode === "single" ? "Singleplayer" : "Multiplayer"}
+      {...shellProps}
       headerRight={
-        <button
-          onClick={() => setShowAddGame(true)}
-          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-wide active:scale-95"
-        >
-          <Plus size={14} weight="bold" />
-          Ekle
-        </button>
+        mainTab === "library" ? (
+          <button
+            onClick={() => setShowAddGame(true)}
+            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-wide active:scale-95"
+          >
+            <Plus size={14} weight="bold" />
+            Ekle
+          </button>
+        ) : undefined
       }
     >
       <Toaster position="top-center" />
 
-      <div className="mb-3">
-        <PillFilterTabs tabs={LIST_TABS} active={listFilter} onChange={setListFilter} />
-      </div>
+      {mainTab === "discover" ? (
+        discoverLoading ? (
+          <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+            Oyunlar yükleniyor...
+          </div>
+        ) : discoverGames.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+            <GameController size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
+            <p className="text-sm font-bold text-gray-500">Öneri bulunamadı</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {discoverGames.map((game) => {
+              const inLibrary = libraryByName.has(normalizeGameName(game.title));
+              const isAdding = addingDiscoverId === game.gameId;
 
-      {filteredLibrary.length === 0 ? (
+              return (
+                <div
+                  key={game.gameId}
+                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col"
+                >
+                  <GameCover
+                    coverUrl={game.coverUrl}
+                    title={game.title}
+                    className="w-full aspect-[3/4] rounded-none"
+                  />
+                  <div className="p-2.5 flex flex-col flex-1 gap-2">
+                    <p className="text-xs font-black text-gray-900 line-clamp-2 leading-snug">
+                      {game.title}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={inLibrary || isAdding}
+                      onClick={() => void handleAddFromDiscover(game)}
+                      className={`mt-auto w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-wide active:scale-95 disabled:opacity-60 ${
+                        inLibrary
+                          ? "bg-gray-100 text-gray-400"
+                          : "bg-violet-600 text-white"
+                      }`}
+                    >
+                      {inLibrary ? "Kütüphanede" : isAdding ? "Ekleniyor..." : "Ekle"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : library.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-          <GameController size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-500 mb-1">
-            {listFilter === "playing" ? "Henüz oynadığın oyun yok" : "Henüz bitirdiğin oyun yok"}
-          </p>
+          <Books size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-gray-500 mb-1">Kütüphanen boş</p>
           <p className="text-xs text-gray-400 mb-4">
-            Oyun adını yaz ve {listFilter === "playing" ? "oynadıklarına" : "bitirdiklerine"} ekle.
+            Oyunlarını ekle ve oynadıkça işaretle.
           </p>
           <button
             onClick={() => setShowAddGame(true)}
@@ -219,43 +321,48 @@ export default function GamingHubPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredLibrary.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
-            >
-              <div className="flex items-center gap-3 px-3 py-3">
-                <GameCover
-                  coverUrl={item.coverUrl}
-                  title={item.gameName}
-                  igdbId={item.igdbId}
-                  className="w-14 h-[4.5rem] rounded-xl"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-gray-900 line-clamp-2">{item.gameName}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {listFilter === "playing" && (
+          {library.map((item) => {
+            const played = isPlayed(item.status);
+
+            return (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
+              >
+                <div className="flex items-center gap-3 px-3 py-3">
+                  <GameCover
+                    coverUrl={item.coverUrl}
+                    title={item.gameName}
+                    igdbId={item.igdbId}
+                    className="w-14 h-[4.5rem] rounded-xl"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-gray-900 line-clamp-2">{item.gameName}</p>
                     <button
                       type="button"
-                      onClick={() => void markCompleted(item)}
-                      className="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase bg-violet-600 text-white active:scale-95"
+                      onClick={() => void togglePlayed(item)}
+                      className={`mt-1.5 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide active:scale-95 transition-colors ${
+                        played
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-gray-50 text-gray-400 border border-gray-200"
+                      }`}
                     >
-                      Bitir
+                      <Check size={12} weight={played ? "bold" : "regular"} />
+                      {played ? "Oynandı" : "Oynanmadı"}
                     </button>
-                  )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => void handleDeleteItem(item)}
-                    className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                     aria-label="Sil"
                   >
                     <Trash size={16} />
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -273,8 +380,7 @@ export default function GamingHubPage() {
             <div className="px-5 pb-6 pt-2">
               <Drawer.Title className="text-sm font-black text-gray-900 mb-1">Oyun ekle</Drawer.Title>
               <p className="text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-wider">
-                {gameMode === "single" ? "Singleplayer" : "Multiplayer"} ·{" "}
-                {listFilter === "playing" ? "Oynadıklarım" : "Bitirdiklerim"}
+                Kütüphanem
               </p>
 
               <form onSubmit={(e) => void handleAddGame(e)} className="space-y-4">
@@ -311,7 +417,7 @@ export default function GamingHubPage() {
                   ) : (
                     <>
                       <Check size={14} weight="bold" />
-                      Ekle
+                      Kütüphaneye ekle
                     </>
                   )}
                 </button>

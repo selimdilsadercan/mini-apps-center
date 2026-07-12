@@ -45,8 +45,7 @@
     "category": "Kişisel Bakım",
     "items": [
       { "slug": "haircare", "name": "Saç Bakımı", "emoji": "💇", "keywords": ["kuaför", "şampuan", "duş"] },
-      { "slug": "hand-nails", "name": "El Tırnak Bakımı", "emoji": "💅", "keywords": ["manikür", "kesme"] },
-      { "slug": "foot-nails", "name": "Ayak Tırnak Bakımı", "emoji": "✂️", "keywords": ["pedikür", "kesme"] },
+      { "slug": "nailcare", "name": "Tırnak Bakımı", "emoji": "💅", "keywords": ["manikür", "pedikür", "kesme", "el", "ayak"] },
       { "slug": "body-shave", "name": "Vücut Tıraşı", "emoji": "🪒", "keywords": ["epilasyon", "tüy"] },
       { "slug": "beard-shave", "name": "Sakal Tıraşı", "emoji": "🧔", "keywords": ["jilet", "makine"] },
       { "slug": "barber", "name": "Berbere Git", "emoji": "💈", "keywords": ["kuaför", "saç", "sakal", "tıraş"] },

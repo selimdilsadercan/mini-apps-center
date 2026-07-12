@@ -1,24 +1,24 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { CaretLeft, GameController, User, Users } from "@phosphor-icons/react";
+import { Books, CaretLeft, Compass, GameController } from "@phosphor-icons/react";
 import { pillTabClass } from "./PillTabs";
 
-export type GameModeTab = "single" | "multi";
+export type MainTab = "discover" | "library";
 
 export default function GamingHubShell({
   title,
   subtitle,
-  activeMode,
-  onModeChange,
+  activeMainTab,
+  onMainTabChange,
   onBack,
   headerRight,
   children,
 }: {
   title?: string;
   subtitle?: string;
-  activeMode: GameModeTab;
-  onModeChange: (mode: GameModeTab) => void;
+  activeMainTab: MainTab;
+  onMainTabChange: (tab: MainTab) => void;
   onBack?: () => void;
   headerRight?: React.ReactNode;
   children: React.ReactNode;
@@ -53,23 +53,25 @@ export default function GamingHubShell({
             {headerRight}
           </div>
 
-          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 mt-2 w-full">
-            <button
-              type="button"
-              onClick={() => onModeChange("single")}
-              className={`${pillTabClass(activeMode === "single")} flex-1 justify-center`}
-            >
-              <User size={14} weight={activeMode === "single" ? "fill" : "duotone"} />
-              <span>Singleplayer</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onModeChange("multi")}
-              className={`${pillTabClass(activeMode === "multi")} flex-1 justify-center`}
-            >
-              <Users size={14} weight={activeMode === "multi" ? "fill" : "duotone"} />
-              <span>Multiplayer</span>
-            </button>
+          <div className="flex mt-2">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+              <button
+                type="button"
+                onClick={() => onMainTabChange("discover")}
+                className={pillTabClass(activeMainTab === "discover")}
+              >
+                <Compass size={14} weight={activeMainTab === "discover" ? "fill" : "duotone"} />
+                <span>Keşfet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onMainTabChange("library")}
+                className={pillTabClass(activeMainTab === "library")}
+              >
+                <Books size={14} weight={activeMainTab === "library" ? "fill" : "duotone"} />
+                <span>Kütüphanem</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

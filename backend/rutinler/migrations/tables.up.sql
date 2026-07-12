@@ -18,7 +18,7 @@ END $$;
 
 ALTER TABLE rutinler.entries
   ADD CONSTRAINT rutinler_entries_period_type_check
-  CHECK (period_type IN ('daily', 'weekly', 'monthly'));
+  CHECK (period_type IN ('daily', 'weekly', 'monthly', 'once'));
 
 UPDATE rutinler.entries SET period_type = 'monthly' WHERE period_type = 'yearly';
 
@@ -33,7 +33,7 @@ GRANT USAGE ON SCHEMA rutinler TO anon, authenticated, service_role;
 CREATE TABLE IF NOT EXISTS rutinler.entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    period_type TEXT NOT NULL CHECK (period_type IN ('daily', 'weekly', 'monthly')),
+    period_type TEXT NOT NULL CHECK (period_type IN ('daily', 'weekly', 'monthly', 'once')),
     item_slug TEXT,
     item_name TEXT NOT NULL,
     item_emoji TEXT NOT NULL DEFAULT '✨',

@@ -47,6 +47,19 @@ export async function deleteLibraryItemAction(
   }
 }
 
+export async function discoverGamesAction(
+  mode: "coop" | "popular",
+  limit = 20
+): Promise<ActionResponse<gaming_hub.CatalogGame[]>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.gaming_hub.discoverGames({ mode, limit });
+    return { data: response.games ?? [], error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
 export async function searchGamesAction(
   title: string,
   limit = 8

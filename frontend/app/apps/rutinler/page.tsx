@@ -17,16 +17,20 @@ import {
   Sun,
   SunHorizon,
   Moon,
+  CalendarCheck,
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
+import { Toaster, toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { rutinler } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import ROUTINE_CATALOG from "./routine_catalog.json";
 import { EmojiPickerOverlay } from "./EmojiPickerOverlay";
 
-type PeriodType = "daily" | "weekly" | "monthly";
+type PeriodType = "daily" | "weekly" | "monthly" | "once";
 type DrawerTab = "catalog" | "custom";
+type MainTab = "today" | "manage";
 type CatalogItem = {
   slug: string;
   name: string;
@@ -38,19 +42,62 @@ type CatalogItem = {
 const client = createBrowserClient();
 
 const BOARDS: { key: PeriodType; label: string }[] = [
+  { key: "once", label: "Tek Seferlik" },
   { key: "daily", label: "Günlük" },
   { key: "weekly", label: "Haftalık" },
   { key: "monthly", label: "Aylık" },
 ];
 
+const DAILY_SLOT_ORDER: Record<rutinler.DailySlot, number> = {
+  morning: 0,
+  afternoon: 1,
+  evening: 2,
+};
+
 const EV_ISLERI_APP = MINI_APPS.find((app) => app.id === "ev-isleri");
+
+function pillTabClass(active: boolean) {
+  return `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] ${
+    active
+      ? "bg-white text-gray-900 shadow-sm"
+      : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/50"
+  }`;
+}
+
+function CalendarMiniBadge({
+  value,
+  headerClassName,
+}: {
+  value: string | number;
+  headerClassName: string;
+}) {
+  return (
+    <div className="relative h-8 w-7 shrink-0">
+      <div className="absolute top-0 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+        <span className="h-1 w-1 rounded-full border border-gray-300 bg-gray-50" />
+        <span className="h-1 w-1 rounded-full border border-gray-300 bg-gray-50" />
+      </div>
+      <div className="absolute inset-x-0 top-0.5 bottom-0 flex flex-col overflow-hidden rounded-[3px] border border-gray-200 bg-white shadow-sm">
+        <div className={`h-2 shrink-0 ${headerClassName}`} />
+        <div className="flex flex-1 items-center justify-center">
+          <span className="text-[8px] font-black leading-none text-gray-800 tabular-nums">
+            {value}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function RutinlerPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { confirm } = useConfirmDialog();
   const [entries, setEntries] = useState<rutinler.RoutineEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mainTab, setMainTab] = useState<MainTab>("today");
+  const [quickTask, setQuickTask] = useState("");
   const [activePeriod, setActivePeriod] = useState<PeriodType | null>(null);
+  const [recentlyCompletedIds, setRecentlyCompletedIds] = useState<Set<string>>(new Set());
   const [showCatalog, setShowCatalog] = useState(false);
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("catalog");
   const [catalogQuery, setCatalogQuery] = useState("");
@@ -64,8 +111,9 @@ export default function RutinlerPage() {
   const [updating, setUpdating] = useState(false);
   const [selectedDailySlot, setSelectedDailySlot] = useState<rutinler.DailySlot>("morning");
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number>(new Date().getDay() || 7);
-  const [selectedMonthDay, setSelectedMonthDay] = useState<number>(new Date().getDate());
+  const [selectedMonthDay, setSelectedMonthDay] = useState<number>(1);
   const [expandedBoards, setExpandedBoards] = useState<Record<PeriodType, boolean>>({
+    once: false,
     daily: false,
     weekly: false,
     monthly: false,
@@ -125,7 +173,7 @@ export default function RutinlerPage() {
   function openCatalog(period: PeriodType) {
     setActivePeriod(period);
     setCatalogQuery("");
-    setDrawerTab("catalog");
+    setDrawerTab(period === "once" ? "custom" : "catalog");
     setShowCatalog(true);
   }
 
@@ -140,7 +188,7 @@ export default function RutinlerPage() {
     // Reset selections to defaults
     setSelectedDailySlot("morning");
     setSelectedDayOfWeek(new Date().getDay() || 7);
-    setSelectedMonthDay(new Date().getDate());
+    setSelectedMonthDay(1);
   }
 
   function openEdit(entry: rutinler.RoutineEntry) {
@@ -268,20 +316,40 @@ export default function RutinlerPage() {
     return null;
   };
 
-  function boardEntries(period: PeriodType) {
+  function entriesForPeriod(period: PeriodType) {
+    return entries.filter((e) => e.period_type === period);
+  }
+
+  function entriesForToday(period: PeriodType) {
     const now = new Date();
-    const todayDayOfWeek = now.getDay() || 7; // 1-7
+    const todayDayOfWeek = now.getDay() || 7;
     const todayMonthDay = now.getDate();
     const currentSlot = getCurrentDailySlot();
 
     return entries.filter((e) => {
       if (e.period_type !== period) return false;
-      
-      // If we want to show only "active" ones for today/now:
-      if (period === "daily") return !e.daily_slot || e.daily_slot === currentSlot;
-      if (period === "weekly") return !e.day_of_week || e.day_of_week === todayDayOfWeek;
-      if (period === "monthly") return !e.day_of_month || e.day_of_month === todayMonthDay;
-      
+      // Tamamlanan rutinler bu dönem için Bugün'de görünmez
+      // Ancak yeni tamamlandıysa animasyon için kısa süre tutuyoruz
+      if (e.is_completed && !recentlyCompletedIds.has(e.id)) return false;
+
+      if (period === "daily") {
+        if (!e.daily_slot) return true;
+        // Slot geçtiyse ve hâlâ yapılmadıysa göster
+        return DAILY_SLOT_ORDER[e.daily_slot] <= DAILY_SLOT_ORDER[currentSlot];
+      }
+
+      if (period === "weekly") {
+        if (!e.day_of_week) return true;
+        // Haftanın planlanan günü geçtiyse ve bu hafta tamamlanmadıysa göster
+        return todayDayOfWeek >= e.day_of_week;
+      }
+
+      if (period === "monthly") {
+        if (!e.day_of_month) return true;
+        // Ayın planlanan günü geçtiyse ve bu ay tamamlanmadıysa göster
+        return todayMonthDay >= e.day_of_month;
+      }
+
       return true;
     });
   }
@@ -294,17 +362,11 @@ export default function RutinlerPage() {
   }
 
   function isNameTaken(name: string, period: PeriodType) {
-    const normalized = name.toLocaleLowerCase("tr-TR");
-    return boardEntries(period).some(
-      (e) => e.item_name.toLocaleLowerCase("tr-TR") === normalized
-    );
+    return false; // Hiçbir kısıtlama olmasın
   }
 
   function isAlreadyAdded(item: CatalogItem, period: PeriodType) {
-    return (
-      boardEntries(period).some((e) => e.item_slug === item.slug) ||
-      isNameTaken(item.name, period)
-    );
+    return false; // Aynı şey birden fazla kez eklenebilsin
   }
 
   async function handleAddEntry(name: string, emoji: string, slug?: string) {
@@ -373,6 +435,22 @@ export default function RutinlerPage() {
     if (!user) return;
     const newStatus = !entry.is_completed;
 
+    if (newStatus) {
+      setRecentlyCompletedIds((prev) => {
+        const next = new Set(prev);
+        next.add(entry.id);
+        return next;
+      });
+      // 800ms sonra listeden tamamen çıkart
+      setTimeout(() => {
+        setRecentlyCompletedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(entry.id);
+          return next;
+        });
+      }, 800);
+    }
+
     // Optimistic update
     setEntries((prev) =>
       prev.map((e) => (e.id === entry.id ? { ...e, is_completed: newStatus } : e))
@@ -422,6 +500,150 @@ export default function RutinlerPage() {
     }
   }
 
+  function renderScheduleBadges(entry: rutinler.RoutineEntry) {
+    return (
+      <div className="shrink-0 flex items-center gap-1.5">
+        {entry.daily_slot && (
+          <div className="flex h-8 w-7 shrink-0 flex-col items-center justify-center rounded-[3px] border border-gray-200 bg-white shadow-sm">
+            {entry.daily_slot === "morning" ? (
+              <SunHorizon size={12} weight="bold" className="text-amber-500" />
+            ) : entry.daily_slot === "afternoon" ? (
+              <Sun size={12} weight="bold" className="text-orange-500" />
+            ) : (
+              <Moon size={12} weight="bold" className="text-indigo-500" />
+            )}
+            <span className="mt-0.5 text-[6px] font-black uppercase tracking-tighter text-gray-500 leading-none">
+              {entry.daily_slot === "morning"
+                ? "Sbh"
+                : entry.daily_slot === "afternoon"
+                ? "Öğl"
+                : "Akş"}
+            </span>
+          </div>
+        )}
+        {entry.day_of_week && (
+          <CalendarMiniBadge
+            value={["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"][entry.day_of_week - 1]}
+            headerClassName="bg-violet-500"
+          />
+        )}
+        {entry.day_of_month && (
+          <CalendarMiniBadge value={entry.day_of_month} headerClassName="bg-emerald-500" />
+        )}
+      </div>
+    );
+  }
+
+  function renderEntryRow(entry: rutinler.RoutineEntry, showComplete: boolean, isGrouped = false) {
+    return (
+      <motion.div
+        key={entry.id}
+        initial={false}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, marginBottom: 0, overflow: "hidden" }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className={`group flex items-center gap-3 px-4 py-3 transition-all ${
+          !isGrouped ? "rounded-2xl border" : ""
+        } ${
+          showComplete && entry.is_completed
+            ? isGrouped ? "bg-emerald-50/20" : "bg-emerald-50/40 border-emerald-100"
+            : !isGrouped ? "bg-gray-50 border-gray-100" : "hover:bg-gray-50/50"
+        } ${isGrouped ? "border-b border-gray-50 last:border-0" : ""}`}
+      >
+        {showComplete && (
+          <button
+            type="button"
+            onClick={() => void handleToggleComplete(entry)}
+            className={`shrink-0 w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
+              entry.is_completed
+                ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                : "bg-white border-gray-200 text-transparent"
+            }`}
+          >
+            <AnimatePresence mode="wait">
+              {entry.is_completed && (
+                <motion.div
+                  key="check"
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                >
+                  <Check size={14} weight="bold" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+        )}
+
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            openEdit(entry);
+          }}
+          className="flex-1 flex items-center justify-between gap-3 min-w-0 cursor-pointer"
+        >
+          <div className="flex items-center gap-2 min-w-0 relative">
+            <span className="text-xl leading-none shrink-0">{entry.item_emoji}</span>
+            <div className="relative min-w-0">
+              <span
+                className={`text-sm font-bold block truncate transition-colors duration-300 ${
+                  showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
+                }`}
+              >
+                {entry.item_name}
+              </span>
+              {showComplete && (
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: entry.is_completed ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-gray-400 origin-left w-full"
+                />
+              )}
+            </div>
+          </div>
+          {renderScheduleBadges(entry)}
+        </div>
+      </motion.div>
+    );
+  }
+
+  async function handleAddQuickTask(e: React.FormEvent) {
+    e.preventDefault();
+    const name = quickTask.trim();
+    if (!name || !user || adding) return;
+
+    setAdding(true);
+    try {
+      const res = await client.rutinler.addEntry({
+        userId: user.id,
+        periodType: "once",
+        itemName: name,
+        itemEmoji: "📌",
+        dayOfWeek: "0",
+        dayOfMonth: "0",
+      });
+      if (res.entry) {
+        setEntries((prev) => [...prev, { ...res.entry!, is_completed: false }]);
+        setQuickTask("");
+        toast.success("Görev eklendi");
+      }
+    } catch (error) {
+      console.error("handleAddQuickTask error:", error);
+      toast.error("Görev eklenemedi");
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  const { todayEntries, oneOffTasks, routineTasks } = useMemo(() => {
+    const allToday = BOARDS.flatMap((board) => entriesForToday(board.key));
+    const oneOff = allToday.filter((e) => e.period_type === "once");
+    const routines = allToday.filter((e) => e.period_type !== "once");
+    return { todayEntries: allToday, oneOffTasks: oneOff, routineTasks: routines };
+  }, [entries, recentlyCompletedIds]);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900">
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
@@ -439,10 +661,29 @@ export default function RutinlerPage() {
 
             <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
               <CalendarBlank size={18} weight="fill" className="text-violet-500 shrink-0" />
-              <span className="truncate">
-                <span className="text-violet-500">Rutinlerim</span>
-              </span>
+              <span className="truncate text-violet-500">Ajanda</span>
             </h1>
+          </div>
+
+          <div className="flex mt-2">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+              <button
+                type="button"
+                onClick={() => setMainTab("today")}
+                className={pillTabClass(mainTab === "today")}
+              >
+                <CalendarCheck size={14} weight={mainTab === "today" ? "fill" : "duotone"} />
+                <span>Bugün</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainTab("manage")}
+                className={pillTabClass(mainTab === "manage")}
+              >
+                <ListBullets size={14} weight={mainTab === "manage" ? "fill" : "duotone"} />
+                <span>Rutinlerim</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -459,10 +700,74 @@ export default function RutinlerPage() {
               Rutin tablolarını oluşturmak için giriş yap.
             </p>
           </div>
+        ) : mainTab === "today" ? (
+          <div className="space-y-4">
+            <Toaster position="top-center" />
+            
+            <form onSubmit={handleAddQuickTask} className="relative">
+              <Plus
+                size={16}
+                weight="bold"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-violet-400"
+              />
+              <input
+                type="text"
+                value={quickTask}
+                onChange={(e) => setQuickTask(e.target.value)}
+                placeholder="Hızlı görev ekle..."
+                className="w-full bg-white border border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-sm font-bold shadow-sm outline-none focus:border-violet-300 placeholder:text-gray-400 placeholder:font-medium transition-all"
+              />
+            </form>
+
+            {todayEntries.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                <CalendarCheck size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
+                <p className="text-sm font-bold text-gray-500 mb-1">Bugün için görev veya rutin yok</p>
+                <p className="text-xs text-gray-400 mb-4">
+                  Yeni bir görev ekle veya rutinlerini ayarla.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMainTab("manage")}
+                  className="px-4 py-2.5 rounded-xl bg-violet-500 text-white text-xs font-black active:scale-95"
+                >
+                  Rutinlerimi ayarla
+                </button>
+              </div>
+            ) : (
+            <div className="space-y-6">
+              {oneOffTasks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Görevler
+                  </p>
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <AnimatePresence initial={false}>
+                      {oneOffTasks.map((entry) => renderEntryRow(entry, true, true))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
+              {routineTasks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Rutinler
+                  </p>
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <AnimatePresence initial={false}>
+                      {routineTasks.map((entry) => renderEntryRow(entry, true, true))}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+            </div>
+            )}
+          </div>
         ) : (
           <div className="space-y-4">
             {BOARDS.map((board) => {
-              const items = boardEntries(board.key);
+              const items = entriesForPeriod(board.key);
               const isExpanded = expandedBoards[board.key];
 
               return (
@@ -488,6 +793,11 @@ export default function RutinlerPage() {
                         }`}
                       />
                       {board.label}
+                      {items.length > 0 && (
+                        <span className="text-[10px] font-bold text-gray-300 normal-case tracking-normal">
+                          {items.length}
+                        </span>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -507,101 +817,14 @@ export default function RutinlerPage() {
                       {items.length === 0 ? (
                         <div className="h-full min-h-[72px] flex items-center justify-center">
                           <p className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">
-                            Şu an aktif rutin yok
+                            Henüz kayıt yok
                           </p>
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          {items.map((entry) => (
-                            <div
-                              key={entry.id}
-                              className={`group flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all ${
-                                entry.is_completed
-                                  ? "bg-emerald-50/40 border-emerald-100"
-                                  : "bg-gray-50 border-gray-100"
-                              }`}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => void handleToggleComplete(entry)}
-                                className={`shrink-0 w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${
-                                  entry.is_completed
-                                    ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
-                                    : "bg-white border-gray-200 text-transparent"
-                                }`}
-                              >
-                                <Check size={14} weight="bold" />
-                              </button>
-                              
-                              <div 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEdit(entry);
-                                }}
-                                className="flex-1 flex items-center justify-between gap-3 min-w-0 cursor-pointer"
-                              >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span className="text-xl leading-none shrink-0">
-                                    {entry.item_emoji}
-                                  </span>
-                                  <span
-                                    className={`text-sm font-bold truncate ${
-                                      entry.is_completed ? "text-gray-400 line-through" : "text-gray-800"
-                                    }`}
-                                  >
-                                    {entry.item_name}
-                                  </span>
-                                </div>
-
-                                <div className="shrink-0 flex items-center gap-2">
-                                  {entry.daily_slot && (
-                                    <div className="flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-violet-50 border border-violet-100/50 shadow-sm text-violet-600">
-                                      {entry.daily_slot === "morning" ? (
-                                        <SunHorizon size={14} weight="bold" />
-                                      ) : entry.daily_slot === "afternoon" ? (
-                                        <Sun size={14} weight="bold" />
-                                      ) : (
-                                        <Moon size={14} weight="bold" />
-                                      )}
-                                      <span className="text-[7px] font-black uppercase tracking-tighter mt-0.5">
-                                        {entry.daily_slot === "morning"
-                                          ? "Sbh"
-                                          : entry.daily_slot === "afternoon"
-                                          ? "Öğl"
-                                          : "Akş"}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {entry.day_of_week && (
-                                    <div className="flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-                                      <div className="w-full h-2 bg-violet-500" />
-                                      <span className="flex-1 flex items-center justify-center text-[9px] font-black text-gray-600 leading-none">
-                                        {
-                                          [
-                                            "Pzt",
-                                            "Sal",
-                                            "Çar",
-                                            "Per",
-                                            "Cum",
-                                            "Cmt",
-                                            "Paz",
-                                          ][entry.day_of_week - 1]
-                                        }
-                                      </span>
-                                    </div>
-                                  )}
-                                  {entry.day_of_month && (
-                                    <div className="flex flex-col items-center justify-center w-8 h-8 rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-                                      <div className="w-full h-2 bg-emerald-500" />
-                                      <span className="flex-1 flex items-center justify-center text-[10px] font-black text-gray-700 leading-none">
-                                        {entry.day_of_month}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                          <AnimatePresence initial={false}>
+                            {items.map((entry) => renderEntryRow(entry, true))}
+                          </AnimatePresence>
                         </div>
                       )}
                     </div>
@@ -626,7 +849,7 @@ export default function RutinlerPage() {
             <div className="px-4 pb-2 flex items-center justify-between shrink-0">
               <div>
                 <Drawer.Title className="text-lg font-black text-gray-900 uppercase tracking-tight">
-                  Rutin Seç
+                  Ekle
                 </Drawer.Title>
                 <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider mt-1">
                   {BOARDS.find((b) => b.key === activePeriod)?.label}
@@ -642,32 +865,34 @@ export default function RutinlerPage() {
             </div>
 
             <div className="px-4 mb-3 shrink-0">
-              <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 w-full">
-                {(
-                  [
-                    { key: "catalog" as const, label: "Katalog", icon: ListBullets },
-                    { key: "custom" as const, label: "Özel", icon: PencilSimple },
-                  ] as const
-                ).map((tab) => {
-                  const TabIcon = tab.icon;
-                  const active = drawerTab === tab.key;
-                  return (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => handleTabChange(tab.key)}
-                      className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
-                        active
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      <TabIcon size={13} weight={active ? "fill" : "duotone"} />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {activePeriod !== "once" && (
+                <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 w-full">
+                  {(
+                    [
+                      { key: "catalog" as const, label: "Katalog", icon: ListBullets },
+                      { key: "custom" as const, label: "Özel", icon: PencilSimple },
+                    ] as const
+                  ).map((tab) => {
+                    const TabIcon = tab.icon;
+                    const active = drawerTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => handleTabChange(tab.key)}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
+                          active
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        <TabIcon size={13} weight={active ? "fill" : "duotone"} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {drawerTab === "catalog" ? (
@@ -759,10 +984,6 @@ export default function RutinlerPage() {
                 {renderScheduleSelection()}
 
                 <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 space-y-4">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    Kendi rutinini oluştur
-                  </p>
-
                   <div className="flex justify-center">
                     <button
                       type="button"
@@ -833,10 +1054,10 @@ export default function RutinlerPage() {
             <div className="px-4 pb-2 flex items-center justify-between shrink-0">
               <div>
                 <Drawer.Title className="text-lg font-black text-gray-900 uppercase tracking-tight">
-                  Rutini Düzenle
+                  Düzenle
                 </Drawer.Title>
                 <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider mt-1">
-                  {BOARDS.find((b) => b.key === editingEntry?.period_type)?.label} RUTİNİ
+                  {BOARDS.find((b) => b.key === editingEntry?.period_type)?.label}
                 </p>
               </div>
               <button

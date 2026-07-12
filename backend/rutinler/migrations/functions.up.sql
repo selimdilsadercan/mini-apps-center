@@ -55,7 +55,8 @@ BEGIN
             AND (
                 (e.period_type = 'daily' AND c.completed_date = v_today) OR
                 (e.period_type = 'weekly' AND c.completed_date >= v_week_start) OR
-                (e.period_type = 'monthly' AND c.completed_date >= v_month_start)
+                (e.period_type = 'monthly' AND c.completed_date >= v_month_start) OR
+                (e.period_type = 'once')
             )
         ) as is_completed
     FROM rutinler.entries e
@@ -172,6 +173,7 @@ BEGIN
     ELSE
         -- For daily, delete today's completion
         -- For weekly/monthly, delete all completions in the current period to "uncheck" it
+        -- For once, delete all completions
         IF v_period_type = 'daily' THEN
             DELETE FROM rutinler.completions
             WHERE entry_id = entry_id_param 
@@ -187,6 +189,10 @@ BEGIN
             WHERE entry_id = entry_id_param 
             AND user_id = v_user_id
             AND completed_date >= v_month_start;
+        ELSIF v_period_type = 'once' THEN
+            DELETE FROM rutinler.completions
+            WHERE entry_id = entry_id_param 
+            AND user_id = v_user_id;
         END IF;
     END IF;
 

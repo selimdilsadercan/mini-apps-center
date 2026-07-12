@@ -7,7 +7,7 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
-export type PeriodType = "daily" | "weekly" | "monthly";
+export type PeriodType = "daily" | "weekly" | "monthly" | "once";
 export type DailySlot = "morning" | "afternoon" | "evening";
 
 export interface RoutineEntry {

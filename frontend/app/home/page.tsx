@@ -27,6 +27,7 @@ import {
   VideoCamera,
   PaperPlaneTilt,
   CheckCircle,
+  CalendarCheck,
   Play,
   BookmarkSimple,
   Check,
@@ -47,6 +48,7 @@ import { useHome } from "@/contexts/HomeContext";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 import { 
+  rutinler,
   workplaces, 
   series_track, 
   hub,
@@ -135,11 +137,13 @@ function HomeContent() {
   const [todaySeries, setTodaySeries] = useState<TodaySeriesItem[]>([]);
   const [todayGymPlan, setTodayGymPlan] = useState<gym.TodayPlan | null>(null);
   const [todayMeals, setTodayMeals] = useState<recipe.MealPlanMeal[]>([]);
+  const [todayAgenda, setTodayAgenda] = useState<rutinler.RoutineEntry[]>([]);
   const [weeklyChores, setWeeklyChores] = useState<HomeWeeklyChores | null>(null);
   const [loadingContent, setLoadingContent] = useState(true);
   const [loadingTodaySeries, setLoadingTodaySeries] = useState(false);
   const [loadingTodayGym, setLoadingTodayGym] = useState(false);
   const [loadingTodayMeals, setLoadingTodayMeals] = useState(false);
+  const [loadingTodayAgenda, setLoadingTodayAgenda] = useState(false);
   const [loadingWeeklyChores, setLoadingWeeklyChores] = useState(false);
 
   useEffect(() => {
@@ -204,6 +208,60 @@ function HomeContent() {
     }
   }, []);
 
+  const loadTodayAgenda = useCallback(async (userId?: string) => {
+    if (!userId) {
+      setTodayAgenda([]);
+      return;
+    }
+
+    try {
+      setLoadingTodayAgenda(true);
+      const res = await client.rutinler.getEntries(userId);
+      const entries = res.entries ?? [];
+      
+      const now = new Date();
+      const todayDayOfWeek = now.getDay() || 7;
+      const todayMonthDay = now.getDate();
+      const hour = now.getHours();
+      
+      let currentSlot: rutinler.DailySlot = "evening";
+      if (hour >= 5 && hour < 12) currentSlot = "morning";
+      else if (hour >= 12 && hour < 18) currentSlot = "afternoon";
+
+      const SLOT_ORDER: Record<rutinler.DailySlot, number> = {
+        morning: 0,
+        afternoon: 1,
+        evening: 2,
+      };
+
+      const filtered = entries.filter((e) => {
+        // One-off tasks only show if they are NOT completed
+        if (e.period_type === "once") return !e.is_completed;
+        
+        if (e.period_type === "daily") {
+          if (!e.daily_slot) return true;
+          return SLOT_ORDER[e.daily_slot] <= SLOT_ORDER[currentSlot];
+        }
+        if (e.period_type === "weekly") {
+          if (!e.day_of_week) return true;
+          return todayDayOfWeek >= e.day_of_week;
+        }
+        if (e.period_type === "monthly") {
+          if (!e.day_of_month) return true;
+          return todayMonthDay >= e.day_of_month;
+        }
+        return true;
+      });
+
+      setTodayAgenda(filtered);
+    } catch (err) {
+      console.error("Failed to fetch today's agenda:", err);
+      setTodayAgenda([]);
+    } finally {
+      setLoadingTodayAgenda(false);
+    }
+  }, []);
+
   const loadWeeklyChores = useCallback(async (userId?: string) => {
     if (!userId) {
       setWeeklyChores(null);
@@ -258,6 +316,7 @@ function HomeContent() {
         loadTodaySeries(sortedSeries, user?.id),
         loadTodayGymPlan(user?.id),
         loadTodayMeals(user?.id),
+        loadTodayAgenda(user?.id),
         loadWeeklyChores(user?.id),
       ]);
       
@@ -271,7 +330,7 @@ function HomeContent() {
     } finally {
       setLoadingContent(false);
     }
-  }, [user?.id, loadTodaySeries, loadTodayGymPlan, loadTodayMeals, loadWeeklyChores]);
+  }, [user?.id, loadTodaySeries, loadTodayGymPlan, loadTodayMeals, loadTodayAgenda, loadWeeklyChores]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -328,6 +387,7 @@ function HomeContent() {
     loadingTodaySeries ||
     loadingTodayGym ||
     loadingTodayMeals ||
+    loadingTodayAgenda ||
     loadingWeeklyChores;
 
   if (isHomeLoading) {
@@ -428,6 +488,8 @@ function HomeContent() {
                   setTodaySeries={setTodaySeries}
                   todayGymPlan={todayGymPlan}
                   todayMeals={todayMeals}
+                  todayAgenda={todayAgenda}
+                  setTodayAgenda={setTodayAgenda}
                   weeklyChores={weeklyChores}
                   setWeeklyChores={setWeeklyChores}
                   userId={user?.id}
@@ -436,6 +498,7 @@ function HomeContent() {
                   loadingTodaySeries={loadingTodaySeries}
                   loadingTodayGym={loadingTodayGym}
                   loadingTodayMeals={loadingTodayMeals}
+                  loadingTodayAgenda={loadingTodayAgenda}
                   loadingWeeklyChores={loadingWeeklyChores}
                 />
               </section>
@@ -1149,6 +1212,8 @@ function HomeSummaryCards({
   setTodaySeries,
   todayGymPlan,
   todayMeals,
+  todayAgenda,
+  setTodayAgenda,
   weeklyChores,
   setWeeklyChores,
   userId,
@@ -1157,6 +1222,7 @@ function HomeSummaryCards({
   loadingTodaySeries,
   loadingTodayGym,
   loadingTodayMeals,
+  loadingTodayAgenda,
   loadingWeeklyChores,
 }: {
   suggestions: suggest.InboxSuggestion[];
@@ -1167,6 +1233,8 @@ function HomeSummaryCards({
   setTodaySeries: React.Dispatch<React.SetStateAction<TodaySeriesItem[]>>;
   todayGymPlan: gym.TodayPlan | null;
   todayMeals: recipe.MealPlanMeal[];
+  todayAgenda: rutinler.RoutineEntry[];
+  setTodayAgenda: React.Dispatch<React.SetStateAction<rutinler.RoutineEntry[]>>;
   weeklyChores: HomeWeeklyChores | null;
   setWeeklyChores: React.Dispatch<React.SetStateAction<HomeWeeklyChores | null>>;
   userId?: string;
@@ -1175,12 +1243,16 @@ function HomeSummaryCards({
   loadingTodaySeries: boolean;
   loadingTodayGym: boolean;
   loadingTodayMeals: boolean;
+  loadingTodayAgenda: boolean;
   loadingWeeklyChores: boolean;
 }) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
+  const pendingTodayAgenda = todayAgenda.filter((item) => !item.is_completed);
+  const completedTodayAgenda = todayAgenda.filter((item) => item.is_completed);
+  const previewTodayAgenda = pendingTodayAgenda.slice(0, 4);
   const pendingTodaySeries = todaySeries
     .filter((item) => !item.isWatched)
     .sort((a, b) => {
@@ -1340,7 +1412,105 @@ function HomeSummaryCards({
     }
   };
 
+  const handleToggleAgendaComplete = async (entryId: string, currentStatus: boolean) => {
+    if (!userId) return;
+    const actionKey = `agenda-${entryId}`;
+    try {
+      setActionLoading(actionKey);
+      const newStatus = !currentStatus;
+      await client.rutinler.toggleCompletion({
+        entryId,
+        userId,
+        completed: newStatus,
+      });
+      setTodayAgenda((prev) =>
+        prev.map((item) => (item.id === entryId ? { ...item, is_completed: newStatus } : item))
+      );
+      toast.success(newStatus ? "Tamamlandı" : "İşaret kaldırıldı");
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const widgets = [
+    {
+      key: "agenda",
+      loading: loadingTodayAgenda,
+      hasContent: pendingTodayAgenda.length > 0,
+      card: (
+        <HomeSummaryCard
+          href="/apps/rutinler"
+          icon={CalendarCheck}
+          color="#7C3AED"
+          title="Bugünün Planı"
+          subtitle="Ajanda"
+          loading={loadingTodayAgenda}
+          emptyText="Bugün plan yok"
+          hasContent={pendingTodayAgenda.length > 0}
+          emptyFooter={
+            completedTodayAgenda.length > 0 ? (
+              <>
+                {completedTodayAgenda.map((item) => (
+                  <div
+                    key={item.id}
+                    className="px-4 py-3 border-t border-gray-50 flex items-center gap-3 opacity-60"
+                  >
+                    <button
+                      type="button"
+                      disabled={actionLoading === `agenda-${item.id}`}
+                      onClick={() => void handleToggleAgendaComplete(item.id, true)}
+                      className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-emerald-500 border-emerald-500 text-white"
+                    >
+                      <CheckCircle size={18} weight="fill" />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black truncate text-gray-400 line-through">
+                        {item.item_emoji ? `${item.item_emoji} ` : ""}
+                        {item.item_name}
+                      </p>
+                      <p className="text-[9px] text-gray-400 font-bold truncate">
+                        {item.period_type === "once" ? "Tek Seferlik" : 
+                         item.period_type === "daily" ? (item.daily_slot === "morning" ? "Sabah" : item.daily_slot === "afternoon" ? "Öğle" : "Akşam") :
+                         item.period_type === "weekly" ? "Haftalık" : "Aylık"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : undefined
+          }
+        >
+          {previewTodayAgenda.map((item) => (
+            <div
+              key={item.id}
+              className="px-4 py-3 border-t border-gray-50 flex items-center gap-3"
+            >
+              <button
+                type="button"
+                disabled={actionLoading === `agenda-${item.id}`}
+                onClick={() => void handleToggleAgendaComplete(item.id, false)}
+                className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-gray-50 border-gray-100 text-gray-300 hover:border-emerald-200 hover:text-emerald-500"
+              >
+                <CheckCircle size={18} weight="regular" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black truncate text-gray-900">
+                  {item.item_emoji ? `${item.item_emoji} ` : ""}
+                  {item.item_name}
+                </p>
+                <p className="text-[9px] text-gray-400 font-bold truncate">
+                  {item.period_type === "once" ? "Tek Seferlik" : 
+                   item.period_type === "daily" ? (item.daily_slot === "morning" ? "Sabah" : item.daily_slot === "afternoon" ? "Öğle" : "Akşam") :
+                   item.period_type === "weekly" ? "Haftalık" : "Aylık"}
+                </p>
+              </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      ),
+    },
     {
       key: "suggest",
       loading: loadingSuggestions,

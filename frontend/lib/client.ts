@@ -5904,7 +5904,7 @@ export namespace rutinler {
         entries: RoutineEntry[]
     }
 
-    export type PeriodType = "daily" | "weekly" | "monthly"
+    export type PeriodType = "daily" | "weekly" | "monthly" | "once"
 
     export interface RoutineEntry {
         id: string

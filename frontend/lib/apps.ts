@@ -607,9 +607,9 @@ const RAW_MINI_APPS: MiniApp[] = [
   },
   {
     id: "rutinler",
-    name: "Rutinlerim",
-    description: "Günlük, haftalık ve yıllık rutin tablolarını oluştur ve takip et.",
-    cta: "Rutinlerini Planla",
+    name: "Ajanda",
+    description: "Günlük rutinlerini takip et ve yapılacak işlerini yönet.",
+    cta: "Ajandanı Yönet",
     icon: CalendarBlank,
     category: "Kampüslülere Özel",
     color: "#7C3AED",
