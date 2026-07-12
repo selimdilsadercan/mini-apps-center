@@ -47,6 +47,28 @@ export async function deleteLibraryItemAction(
   }
 }
 
+export async function getWebGamesAction(): Promise<ActionResponse<gaming_hub.WebGamesResponse>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.gaming_hub.getWebGames();
+    return { data: response, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
+export async function getDiscoverCategoryAction(
+  category: gaming_hub.DiscoverCategory
+): Promise<ActionResponse<gaming_hub.DiscoverCategoryResponse>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.gaming_hub.getDiscoverCategory({ category });
+    return { data: response, error: null };
+  } catch (error) {
+    return { data: null, error: getErrorMessage(error) };
+  }
+}
+
 export async function discoverGamesAction(
   mode: "coop" | "popular",
   limit = 20

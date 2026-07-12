@@ -1,5 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import * as fs from "fs/promises";
+import * as path from "path";
 import { createSupabaseClient } from "../lib/supabase";
 import {
   discoverCoopGames,
@@ -13,6 +15,96 @@ const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+
+const WEB_GAMES_PATH = path.join(process.cwd(), "gaming-hub", "data", "web-games.json");
+const MOBILE_GAMES_PATH = path.join(
+  process.cwd(),
+  "gaming-hub",
+  "data",
+  "play-store-friend-games-with-images.json"
+);
+
+interface WebGamesFile {
+  updatedAt: string;
+  bilgisayarWeb: WebGame[];
+  mobil?: MobileGame[];
+}
+
+interface PlayStoreFriendGamesFile {
+  updatedAt: string;
+  platform?: string;
+  source?: string;
+  games: PlayStoreFriendGame[];
+}
+
+interface PlayStoreFriendGame {
+  id: string;
+  title: string;
+  packageName: string;
+  playStoreUrl: string;
+  coverUrl: string | null;
+  playerCountLabel?: string;
+  description?: string;
+}
+
+async function loadWebGamesFile(): Promise<{ updatedAt: string; bilgisayarWeb: WebGame[] }> {
+  const raw = await fs.readFile(WEB_GAMES_PATH, "utf-8");
+  const data = JSON.parse(raw) as WebGamesFile & { games?: WebGame[] };
+  if (data.bilgisayarWeb) {
+    return {
+      updatedAt: data.updatedAt ?? "",
+      bilgisayarWeb: data.bilgisayarWeb,
+    };
+  }
+  return {
+    updatedAt: data.updatedAt ?? "",
+    bilgisayarWeb: data.games ?? [],
+  };
+}
+
+async function loadMobileGamesFile(): Promise<{ updatedAt: string; mobil: MobileGame[] }> {
+  const raw = await fs.readFile(MOBILE_GAMES_PATH, "utf-8");
+  const data = JSON.parse(raw) as PlayStoreFriendGamesFile;
+  return {
+    updatedAt: data.updatedAt ?? "",
+    mobil: (data.games ?? []).map(mapPlayStoreGameToMobileGame),
+  };
+}
+
+function mapPlayStoreGameToMobileGame(game: PlayStoreFriendGame): MobileGame {
+  return {
+    id: game.id,
+    title: game.title,
+    url: game.playStoreUrl,
+    coverUrl:
+      game.coverUrl ??
+      `https://www.google.com/s2/favicons?domain=play.google.com&sz=256`,
+    store: "google-play",
+    playerCount: game.playerCountLabel,
+    description: game.description,
+    packageName: game.packageName,
+  };
+}
+
+function mapWebGameToDiscoverItem(game: WebGame | MobileGame): DiscoverItem {
+  return {
+    id: game.id,
+    title: game.title,
+    coverUrl: game.coverUrl,
+    url: game.url,
+    description: game.description ?? null,
+  };
+}
+
+function mapCatalogToDiscoverItem(game: CatalogGame): DiscoverItem {
+  return {
+    id: game.gameId,
+    title: game.title,
+    coverUrl: game.coverUrl,
+    url: null,
+    description: game.summary,
+  };
+}
 
 // ==================== TYPES ====================
 
@@ -113,6 +205,49 @@ export interface SearchGamesResponse {
 export interface DiscoverGamesResponse {
   games: CatalogGame[];
 }
+
+export type DiscoverCategory = "bilgisayar-web" | "mobil" | "populer";
+
+export interface WebGame {
+  id: string;
+  title: string;
+  url: string;
+  coverUrl: string | null;
+  playerCount?: string;
+  tags?: string[];
+  description?: string;
+}
+
+export interface MobileGame extends WebGame {
+  store?: "google-play" | "app-store";
+  packageName?: string;
+}
+
+export interface WebGamesResponse {
+  updatedAt: string;
+  bilgisayarWeb: WebGame[];
+  mobil: MobileGame[];
+}
+
+export interface DiscoverItem {
+  id: string;
+  title: string;
+  coverUrl: string | null;
+  url: string | null;
+  description: string | null;
+}
+
+export interface DiscoverCategoryResponse {
+  category: DiscoverCategory;
+  title: string;
+  items: DiscoverItem[];
+}
+
+const DISCOVER_CATEGORY_TITLES: Record<DiscoverCategory, string> = {
+  "bilgisayar-web": "Web",
+  mobil: "Mobil",
+  populer: "Popüler Oyunlar",
+};
 
 // ==================== API ENDPOINTS ====================
 
@@ -463,6 +598,74 @@ export const getCatalogGame = api(
     } catch (err) {
       console.error("getCatalogGame error:", err);
       throw APIError.internal("Oyun bilgisi alınamadı");
+    }
+  }
+);
+
+/**
+ * Get curated two-player browser games from static JSON.
+ * GET /gaming-hub/discover/web-games
+ */
+export const getWebGames = api(
+  { expose: true, method: "GET", path: "/gaming-hub/discover/web-games" },
+  async (): Promise<WebGamesResponse> => {
+    try {
+      const [webData, mobileData] = await Promise.all([
+        loadWebGamesFile(),
+        loadMobileGamesFile(),
+      ]);
+      return {
+        updatedAt: webData.updatedAt,
+        bilgisayarWeb: webData.bilgisayarWeb,
+        mobil: mobileData.mobil,
+      };
+    } catch (err) {
+      console.error("getWebGames error:", err);
+      throw APIError.internal("Web oyunları yüklenemedi");
+    }
+  }
+);
+
+/**
+ * Get all discover items for a category (full list page).
+ * GET /gaming-hub/discover/category
+ */
+export const getDiscoverCategory = api(
+  { expose: true, method: "GET", path: "/gaming-hub/discover/category" },
+  async (req: { category: DiscoverCategory }): Promise<DiscoverCategoryResponse> => {
+    const category = req.category;
+    if (!DISCOVER_CATEGORY_TITLES[category]) {
+      throw APIError.invalidArgument("Geçersiz kategori");
+    }
+
+    try {
+      if (category === "bilgisayar-web") {
+        const data = await loadWebGamesFile();
+        return {
+          category,
+          title: DISCOVER_CATEGORY_TITLES[category],
+          items: data.bilgisayarWeb.map(mapWebGameToDiscoverItem),
+        };
+      }
+
+      if (category === "mobil") {
+        const data = await loadMobileGamesFile();
+        return {
+          category,
+          title: DISCOVER_CATEGORY_TITLES[category],
+          items: data.mobil.map(mapWebGameToDiscoverItem),
+        };
+      }
+
+      const games = await discoverPopularGames(60);
+      return {
+        category,
+        title: DISCOVER_CATEGORY_TITLES[category],
+        items: games.map(mapCatalogToDiscoverItem),
+      };
+    } catch (err) {
+      console.error("getDiscoverCategory error:", err);
+      throw APIError.internal("Kategori yüklenemedi");
     }
   }
 );

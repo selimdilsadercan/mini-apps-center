@@ -9,11 +9,13 @@ export default function GameCover({
   title,
   igdbId,
   className,
+  fit = "cover",
 }: {
   coverUrl: string | null | undefined;
   title: string;
   igdbId?: string | null;
   className?: string;
+  fit?: "cover" | "contain";
 }) {
   const [resolvedUrl, setResolvedUrl] = useState(coverUrl ?? null);
 
@@ -48,7 +50,7 @@ export default function GameCover({
       <img
         src={resolvedUrl}
         alt={title}
-        className={`object-cover bg-gray-100 shrink-0 ${className ?? ""}`}
+        className={`${fit === "contain" ? "object-contain" : "object-cover"} bg-gray-100 shrink-0 ${className ?? ""}`}
       />
     );
   }

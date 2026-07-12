@@ -3841,8 +3841,24 @@ export namespace gaming_hub {
         taskDate: string
     }
 
+    export type DiscoverCategory = "bilgisayar-web" | "mobil" | "populer"
+
+    export interface DiscoverCategoryResponse {
+        category: DiscoverCategory
+        title: string
+        items: DiscoverItem[]
+    }
+
     export interface DiscoverGamesResponse {
         games: CatalogGame[]
+    }
+
+    export interface DiscoverItem {
+        id: string
+        title: string
+        coverUrl: string | null
+        url: string | null
+        description: string | null
     }
 
     export type GameMode = "single" | "multi"
@@ -3877,6 +3893,18 @@ export namespace gaming_hub {
         userId: string
         gameName: string
         duration: number
+    }
+
+    export interface MobileGame {
+        store?: "google-play" | "app-store"
+        packageName?: string
+        id: string
+        title: string
+        url: string
+        coverUrl: string | null
+        playerCount?: string
+        tags?: string[]
+        description?: string
     }
 
     export interface PlayStats {
@@ -3917,6 +3945,22 @@ export namespace gaming_hub {
         notes?: string
     }
 
+    export interface WebGame {
+        id: string
+        title: string
+        url: string
+        coverUrl: string | null
+        playerCount?: string
+        tags?: string[]
+        description?: string
+    }
+
+    export interface WebGamesResponse {
+        updatedAt: string
+        bilgisayarWeb: WebGame[]
+        mobil: MobileGame[]
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -3928,9 +3972,11 @@ export namespace gaming_hub {
             this.discoverGames = this.discoverGames.bind(this)
             this.getCatalogGame = this.getCatalogGame.bind(this)
             this.getDailyTask = this.getDailyTask.bind(this)
+            this.getDiscoverCategory = this.getDiscoverCategory.bind(this)
             this.getPlayStats = this.getPlayStats.bind(this)
             this.getPriceAlerts = this.getPriceAlerts.bind(this)
             this.getUserLibrary = this.getUserLibrary.bind(this)
+            this.getWebGames = this.getWebGames.bind(this)
             this.logPlaySession = this.logPlaySession.bind(this)
             this.searchCatalogGames = this.searchCatalogGames.bind(this)
             this.setDailyTask = this.setDailyTask.bind(this)
@@ -4037,6 +4083,23 @@ export namespace gaming_hub {
         }
 
         /**
+         * Get all discover items for a category (full list page).
+         * GET /gaming-hub/discover/category
+         */
+        public async getDiscoverCategory(params: {
+    category: DiscoverCategory
+}): Promise<DiscoverCategoryResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                category: String(params.category),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/discover/category`, undefined, {query})
+            return await resp.json() as DiscoverCategoryResponse
+        }
+
+        /**
          * Retrieves playtime statistics and limit compliance.
          * GET /gaming-hub/stats
          */
@@ -4085,6 +4148,16 @@ export namespace gaming_hub {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/library`, undefined, {query})
             return await resp.json() as LibraryResponse
+        }
+
+        /**
+         * Get curated two-player browser games from static JSON.
+         * GET /gaming-hub/discover/web-games
+         */
+        public async getWebGames(): Promise<WebGamesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/gaming-hub/discover/web-games`)
+            return await resp.json() as WebGamesResponse
         }
 
         /**

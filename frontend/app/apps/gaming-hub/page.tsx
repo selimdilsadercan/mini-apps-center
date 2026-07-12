@@ -1,17 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { GameController, Plus, Check, Trash, Books } from "@phosphor-icons/react";
+import { GameController, Plus, Check, Trash, Books, Desktop, DeviceMobile } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
 import GamingHubShell, { type MainTab } from "./components/GamingHubShell";
 import GameSearchInput from "./components/GameSearchInput";
 import GameCover from "./components/GameCover";
+import DiscoverScrollSection from "./components/DiscoverScrollSection";
+import LibraryGameDetailModal from "./components/LibraryGameDetailModal";
+import {
+  catalogGameToDiscoverItem,
+  webGameToDiscoverItem,
+} from "./lib/discover";
 import {
   deleteLibraryItemAction,
   discoverGamesAction,
   getLibraryAction,
+  getWebGamesAction,
   upsertLibraryItemAction,
 } from "./actions";
 import type { gaming_hub } from "@/lib/client";
@@ -21,16 +28,14 @@ function isPlayed(status: gaming_hub.GameStatus): boolean {
   return status === "completed" || status === "playing";
 }
 
-function normalizeGameName(gameName: string): string {
-  return gameName.trim().toLowerCase();
-}
-
 export default function GamingHubPage() {
   const { user, isLoaded } = useUser();
   const { confirm } = useConfirmDialog();
 
   const [library, setLibrary] = useState<gaming_hub.LibraryItem[]>([]);
-  const [discoverGames, setDiscoverGames] = useState<gaming_hub.CatalogGame[]>([]);
+  const [bilgisayarWeb, setBilgisayarWeb] = useState<gaming_hub.WebGame[]>([]);
+  const [mobilGames, setMobilGames] = useState<gaming_hub.MobileGame[]>([]);
+  const [popularGames, setPopularGames] = useState<gaming_hub.DiscoverItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [discoverLoading, setDiscoverLoading] = useState(false);
 
@@ -40,15 +45,7 @@ export default function GamingHubPage() {
   const [newGameName, setNewGameName] = useState("");
   const [selectedGame, setSelectedGame] = useState<gaming_hub.CatalogGame | null>(null);
   const [addingGame, setAddingGame] = useState(false);
-  const [addingDiscoverId, setAddingDiscoverId] = useState<string | null>(null);
-
-  const libraryByName = useMemo(() => {
-    const set = new Set<string>();
-    for (const item of library) {
-      set.add(normalizeGameName(item.gameName));
-    }
-    return set;
-  }, [library]);
+  const [selectedLibraryItem, setSelectedLibraryItem] = useState<gaming_hub.LibraryItem | null>(null);
 
   async function loadLibrary() {
     if (!user) {
@@ -64,9 +61,17 @@ export default function GamingHubPage() {
   async function loadDiscover() {
     setDiscoverLoading(true);
     try {
-      const res = await discoverGamesAction("popular", 24);
-      if (res.error) toast.error(res.error);
-      else setDiscoverGames(res.data ?? []);
+      const [webRes, popularRes] = await Promise.all([
+        getWebGamesAction(),
+        discoverGamesAction("popular", 24),
+      ]);
+      if (webRes.error) toast.error(webRes.error);
+      else {
+        setBilgisayarWeb(webRes.data?.bilgisayarWeb ?? []);
+        setMobilGames(webRes.data?.mobil ?? []);
+      }
+      if (popularRes.error) toast.error(popularRes.error);
+      else setPopularGames((popularRes.data ?? []).map(catalogGameToDiscoverItem));
     } finally {
       setDiscoverLoading(false);
     }
@@ -99,70 +104,33 @@ export default function GamingHubPage() {
     setSelectedGame(game);
   }
 
-  async function addToLibrary(params: {
-    gameName: string;
-    igdbId?: string;
-    coverUrl?: string;
-  }) {
-    if (!user) return false;
-
-    const result = await upsertLibraryItemAction({
-      userId: user.id,
-      gameName: params.gameName.trim(),
-      platform: "PC",
-      status: "backlog",
-      gameMode: "single",
-      igdbId: params.igdbId,
-      coverUrl: params.coverUrl,
-    });
-
-    if (result.error) {
-      toast.error(result.error);
-      return false;
-    }
-
-    toast.success("Kütüphaneye eklendi");
-    await loadLibrary();
-    return true;
-  }
-
   async function handleAddGame(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !newGameName.trim()) return;
 
     setAddingGame(true);
     try {
-      const ok = await addToLibrary({
+      const result = await upsertLibraryItemAction({
+        userId: user.id,
         gameName: newGameName.trim(),
+        platform: "PC",
+        status: "backlog",
+        gameMode: "single",
         igdbId: selectedGame?.gameId,
         coverUrl: selectedGame?.coverUrl ?? undefined,
       });
-      if (!ok) return;
 
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Kütüphaneye eklendi");
       setShowAddGame(false);
       resetAddForm();
+      await loadLibrary();
     } finally {
       setAddingGame(false);
-    }
-  }
-
-  async function handleAddFromDiscover(game: gaming_hub.CatalogGame) {
-    if (!user) return;
-
-    if (libraryByName.has(normalizeGameName(game.title))) {
-      toast.success("Zaten kütüphanende");
-      return;
-    }
-
-    setAddingDiscoverId(game.gameId);
-    try {
-      await addToLibrary({
-        gameName: game.title,
-        igdbId: game.gameId,
-        coverUrl: game.coverUrl ?? undefined,
-      });
-    } finally {
-      setAddingDiscoverId(null);
     }
   }
 
@@ -215,7 +183,6 @@ export default function GamingHubPage() {
   const shellProps = {
     activeMainTab: mainTab,
     onMainTabChange: setMainTab,
-    subtitle: mainTab === "discover" ? "Popüler oyunlar" : "Oyun koleksiyonun",
   };
 
   if (!isLoaded || loading) {
@@ -262,47 +229,29 @@ export default function GamingHubPage() {
           <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
             Oyunlar yükleniyor...
           </div>
-        ) : discoverGames.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <GameController size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
-            <p className="text-sm font-bold text-gray-500">Öneri bulunamadı</p>
-          </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {discoverGames.map((game) => {
-              const inLibrary = libraryByName.has(normalizeGameName(game.title));
-              const isAdding = addingDiscoverId === game.gameId;
-
-              return (
-                <div
-                  key={game.gameId}
-                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col"
-                >
-                  <GameCover
-                    coverUrl={game.coverUrl}
-                    title={game.title}
-                    className="w-full aspect-[3/4] rounded-none"
-                  />
-                  <div className="p-2.5 flex flex-col flex-1 gap-2">
-                    <p className="text-xs font-black text-gray-900 line-clamp-2 leading-snug">
-                      {game.title}
-                    </p>
-                    <button
-                      type="button"
-                      disabled={inLibrary || isAdding}
-                      onClick={() => void handleAddFromDiscover(game)}
-                      className={`mt-auto w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-wide active:scale-95 disabled:opacity-60 ${
-                        inLibrary
-                          ? "bg-gray-100 text-gray-400"
-                          : "bg-violet-600 text-white"
-                      }`}
-                    >
-                      {inLibrary ? "Kütüphanede" : isAdding ? "Ekleniyor..." : "Ekle"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="space-y-5">
+            <DiscoverScrollSection
+              title="Web"
+              icon={Desktop}
+              category="bilgisayar-web"
+              items={bilgisayarWeb.map(webGameToDiscoverItem)}
+            />
+            <DiscoverScrollSection
+              title="Mobil"
+              icon={DeviceMobile}
+              category="mobil"
+              items={mobilGames.map(webGameToDiscoverItem)}
+              emptyMessage="Yakında Play Store ve App Store oyunları"
+            />
+            <DiscoverScrollSection
+              title="Popüler Oyunlar"
+              icon={GameController}
+              category="populer"
+              items={popularGames}
+              aspect="poster"
+              emptyMessage="Öneri bulunamadı"
+            />
           </div>
         )
       ) : library.length === 0 ? (
@@ -330,30 +279,42 @@ export default function GamingHubPage() {
                 className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
               >
                 <div className="flex items-center gap-3 px-3 py-3">
-                  <GameCover
-                    coverUrl={item.coverUrl}
-                    title={item.gameName}
-                    igdbId={item.igdbId}
-                    className="w-14 h-[4.5rem] rounded-xl"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-gray-900 line-clamp-2">{item.gameName}</p>
-                    <button
-                      type="button"
-                      onClick={() => void togglePlayed(item)}
-                      className={`mt-1.5 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide active:scale-95 transition-colors ${
-                        played
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-gray-50 text-gray-400 border border-gray-200"
-                      }`}
-                    >
-                      <Check size={12} weight={played ? "bold" : "regular"} />
-                      {played ? "Oynandı" : "Oynanmadı"}
-                    </button>
-                  </div>
                   <button
                     type="button"
-                    onClick={() => void handleDeleteItem(item)}
+                    onClick={() => setSelectedLibraryItem(item)}
+                    className="flex flex-1 items-center gap-3 min-w-0 text-left active:opacity-80"
+                  >
+                    <GameCover
+                      coverUrl={item.coverUrl}
+                      title={item.gameName}
+                      igdbId={item.igdbId}
+                      className="w-14 h-[4.5rem] rounded-xl"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-gray-900 line-clamp-2">{item.gameName}</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void togglePlayed(item);
+                    }}
+                    className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide active:scale-95 transition-colors ${
+                      played
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-gray-50 text-gray-400 border border-gray-200"
+                    }`}
+                  >
+                    <Check size={12} weight={played ? "bold" : "regular"} />
+                    {played ? "Oynandı" : "Oynanmadı"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleDeleteItem(item);
+                    }}
                     className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                     aria-label="Sil"
                   >
@@ -365,6 +326,12 @@ export default function GamingHubPage() {
           })}
         </div>
       )}
+
+      <LibraryGameDetailModal
+        open={selectedLibraryItem != null}
+        item={selectedLibraryItem}
+        onClose={() => setSelectedLibraryItem(null)}
+      />
 
       <Drawer.Root
         open={showAddGame}

@@ -8,19 +8,19 @@ export type MainTab = "discover" | "library";
 
 export default function GamingHubShell({
   title,
-  subtitle,
   activeMainTab,
   onMainTabChange,
   onBack,
   headerRight,
+  showMainTabs = true,
   children,
 }: {
   title?: string;
-  subtitle?: string;
   activeMainTab: MainTab;
   onMainTabChange: (tab: MainTab) => void;
   onBack?: () => void;
   headerRight?: React.ReactNode;
+  showMainTabs?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -43,16 +43,12 @@ export default function GamingHubShell({
                 <GameController size={18} weight="fill" className="text-violet-600 shrink-0" />
                 <span className="truncate">{title ?? "Gaming Hub"}</span>
               </h1>
-              {subtitle && (
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em] mt-1 truncate">
-                  {subtitle}
-                </p>
-              )}
             </div>
 
             {headerRight}
           </div>
 
+          {showMainTabs && (
           <div className="flex mt-2">
             <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
               <button
@@ -73,6 +69,7 @@ export default function GamingHubShell({
               </button>
             </div>
           </div>
+          )}
         </div>
       </header>
 
