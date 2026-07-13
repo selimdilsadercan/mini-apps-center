@@ -20,7 +20,7 @@ import { createBrowserClient } from "@/lib/api";
 import { SquaresFour } from "@phosphor-icons/react";
 
 // Reusable Interfaces
-export interface Menu {
+interface Menu {
   date: string;
   mealType: string;
   dishes: TrayDish[];
@@ -31,7 +31,7 @@ export interface Menu {
   };
 }
 
-export interface TrayDish {
+interface TrayDish {
   id: string;
   name: string;
   category: string;
@@ -40,7 +40,7 @@ export interface TrayDish {
   isSelectable?: boolean;
 }
 
-export interface MenuTrays {
+interface MenuTrays {
   soup: TrayDish[];
   main: TrayDish[];
   side: TrayDish[];
@@ -77,7 +77,7 @@ function resolveTrays(menu: Menu): MenuTrays {
   return trays;
 }
 
-export const categoryIcons: Record<string, React.ReactNode> = {
+const categoryIcons: Record<string, React.ReactNode> = {
   soup: <Soup className="w-8 h-8" />,
   main: <Beef className="w-10 h-10" />,
   side: <UtensilsCrossed className="w-8 h-8" />,
@@ -137,7 +137,7 @@ function MenuTypeToggle({
   );
 }
 
-export function ScalableITUYemekhaneTray({
+function ScalableITUYemekhaneTray({
   menu,
   isMock,
 }: {
@@ -395,7 +395,7 @@ function MasterTrayCompartment({
 }
 
 // --- APP CONTENT ---
-export function ITUYemekhaneAppContent({ isMock = false }: { isMock?: boolean }) {
+function ITUYemekhaneAppContent({ isMock = false }: { isMock?: boolean }) {
   const [menu, setMenu] = useState<Menu | null>(null);
   const [loading, setLoading] = useState(true);
 

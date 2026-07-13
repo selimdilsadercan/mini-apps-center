@@ -24,46 +24,7 @@ import { createBrowserClient } from "@/lib/api";
 import type { daily_weather } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import { calculateSmartRecommendations } from "./suggestion";
-
-export interface DailyWeatherSnapshot {
-  city: string;
-  dateLabel: string;
-  condition: string;
-  tempC: number;
-  tempMinC: number;
-  tempMaxC: number;
-  humidity: number;
-  windKmh: number;
-  icon: "sun" | "cloud" | "rain" | "partly" | "snow";
-  maxPrecipitationProbability?: number;
-  eveningTempC?: number;
-  eveningPrecipitationProbability?: number;
-  hourlyData?: {
-    time: string;
-    tempC: number;
-    precipProb: number;
-    weatherCode: number;
-  }[];
-  dailyForecast?: {
-    dayLabel: string;
-    dateLabel: string;
-    condition: string;
-    tempC: number;
-    tempMinC: number;
-    tempMaxC: number;
-    humidity: number;
-    windKmh: number;
-    maxPrecipitationProbability: number;
-    icon: "sun" | "cloud" | "rain" | "partly" | "snow";
-    weatherCode: number;
-    hourlyData: {
-      time: string;
-      tempC: number;
-      precipProb: number;
-      weatherCode: number;
-    }[];
-  }[];
-}
+import type { DailyWeatherSnapshot } from "./types";
 
 function WeatherIcon({ icon, size = 72 }: { icon: DailyWeatherSnapshot["icon"]; size?: number }) {
   const className = "text-sky-400 filter drop-shadow-sm";

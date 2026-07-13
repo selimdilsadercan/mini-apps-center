@@ -1,4 +1,4 @@
-import { type DailyWeatherSnapshot } from "./page";
+import { type DailyWeatherSnapshot } from "./types";
 
 export interface SmartRecommendationItem {
   id: string;

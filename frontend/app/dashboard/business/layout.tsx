@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, createContext, useContext } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
@@ -24,24 +24,9 @@ import * as Popover from "@radix-ui/react-popover";
 import { createBrowserClient } from "@/lib/api";
 import { stamp_card, business } from "@/lib/client";
 import { BUSINESS_APPS } from "@/lib/apps";
+import { BusinessContext } from "./context";
 
 const client = createBrowserClient();
-
-interface BusinessContextType {
-  id: string;
-  business: business.Business | null;
-  loading: boolean;
-  refreshBusiness: () => Promise<void>;
-  stampCampaign: stamp_card.UserOwnedBusiness | null;
-}
-
-const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
-
-export const useBusiness = () => {
-  const context = useContext(BusinessContext);
-  if (!context) throw new Error("useBusiness must be used within a BusinessProvider");
-  return context;
-};
 
 function BusinessLayoutContent({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();

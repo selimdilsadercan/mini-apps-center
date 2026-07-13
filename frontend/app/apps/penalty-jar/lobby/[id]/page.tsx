@@ -23,7 +23,7 @@ import { createBrowserClient } from "@/lib/api";
 import { penalty_jar } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { PRESET_HABITS } from "../../page";
+import { PRESET_HABITS } from "../../presets";
 
 const client = createBrowserClient();
 

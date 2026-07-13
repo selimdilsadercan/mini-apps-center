@@ -1,5 +1,5 @@
 import type { daily_weather } from "@/lib/client";
-import type { DailyWeatherSnapshot } from "./page";
+import type { DailyWeatherSnapshot } from "./types";
 
 type Locale = "tr" | "en";
 

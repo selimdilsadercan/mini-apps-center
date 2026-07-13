@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useBusiness } from "../layout";
+import { useBusiness } from "../context";
 import { toast } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { 

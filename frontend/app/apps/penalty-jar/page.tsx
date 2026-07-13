@@ -24,19 +24,9 @@ import { penalty_jar } from "@/lib/client";
 import { getAppRootUrl } from "@/lib/apps";
 import { Drawer } from "vaul";
 import { useTranslations } from "@/contexts/LanguageContext";
+import { PRESET_HABITS } from "./presets";
 
 const client = createBrowserClient();
-
-export const PRESET_HABITS = [
-  { id: "swear", name: "Argo Kullanmak", icon: "🤬", defaultPenalty: 10 },
-  { id: "late_sleep", name: "Geç Uyumak", icon: "😴", defaultPenalty: 10 },
-  { id: "junk_food", name: "Abur Cubur", icon: "🍟", defaultPenalty: 10 },
-  { id: "social_media", name: "Sosyal Medya", icon: "📱", defaultPenalty: 10 },
-  { id: "swearing", name: "Sızlanmak", icon: "😢", defaultPenalty: 5 },
-  { id: "no_water", name: "Az Su İçmek", icon: "💧", defaultPenalty: 5 },
-  { id: "fast_food", name: "Hazır Gıda", icon: "🍕", defaultPenalty: 10 },
-  { id: "no_workout", name: "Hareketsizlik", icon: "🏋️‍♂️", defaultPenalty: 10 }
-];
 
 export default function PenaltyJarHome() {
   const { user, isLoaded } = useUser();
