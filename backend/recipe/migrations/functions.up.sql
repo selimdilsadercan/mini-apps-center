@@ -226,7 +226,14 @@ BEGIN
                 END,
                 NULLIF(v_meal->>'recipeId', '')::UUID,
                 v_sort_order
-            );
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                created_user_id = EXCLUDED.created_user_id,
+                day_date = EXCLUDED.day_date,
+                title = EXCLUDED.title,
+                meal_type = EXCLUDED.meal_type,
+                recipe_id = EXCLUDED.recipe_id,
+                sort_order = EXCLUDED.sort_order;
         END LOOP;
     END LOOP;
 

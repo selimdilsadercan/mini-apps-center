@@ -37,7 +37,6 @@ import {
   ChefHat,
   Broom,
   Clock,
-  Leaf,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -220,7 +219,6 @@ function HomeContent() {
   const subscriptions = walletQuery.data?.subscriptions || [];
   const budgetProjects = walletQuery.data?.budgetProjects || [];
   const savingsStats = walletQuery.data?.savingsStats || null;
-  const sustainabilityStats = lifeQuery.data?.sustainabilityStats || walletQuery.data?.sustainabilityStats || null;
 
   const loading = useMemo(() => {
     if (activeTab === "discover") return discoverQuery.isLoading;
@@ -237,7 +235,7 @@ function HomeContent() {
   }, []);
 
   const hobbyApps = useMemo(() => {
-    return apps.filter(app => app.category === "Eğlence & Hobi");
+    return apps.filter(app => app.category === "Eğlence & Hobi" && app.id !== "memedex");
   }, [apps]);
 
   const exploreApps = useMemo(() => {
@@ -422,39 +420,6 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              {/* Featured Places for Explore */}
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Star size={14} weight="bold" className="text-gray-900" />
-                    Öne Çıkan Mekanlar
-                  </h2>
-                </div>
-                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                  {places.map(place => (
-                    <Link 
-                      key={place.id} 
-                      href={`/apps/workplaces/place?placeId=${place.id}`}
-                      className="w-48 bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all"
-                    >
-                      <div className="h-28 bg-gray-50 relative">
-                        {place.image_url ? (
-                          <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-200">
-                            <MapPin size={32} weight="fill" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <h3 className="text-[11px] font-black text-gray-900 truncate uppercase tracking-tight">{place.name}</h3>
-                        <p className="text-[9px] text-gray-400 font-bold mt-0.5 truncate">{place.district}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -658,70 +623,6 @@ function HomeContent() {
                 </section>
               )}
 
-              {/* Savings Summary Section */}
-              {savingsStats && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <PiggyBank size={14} weight="bold" className="text-gray-900" />
-                      Tasarruf Özeti
-                    </h2>
-                    <Link href="/apps/tasarruf-challenges" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                      Meydan Oku
-                    </Link>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <TrendUp size={14} className="text-gray-900" weight="bold" />
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Toplam Tasarruf</span>
-                      </div>
-                      <div className="text-lg font-black text-gray-900">{savingsStats.userTotalSavings.toLocaleString()}₺</div>
-                    </div>
-                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkle size={14} className="text-gray-900" weight="bold" />
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Bu Ay</span>
-                      </div>
-                      <div className="text-lg font-black text-gray-900">{savingsStats.userMonthSavings.toLocaleString()}₺</div>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Sustainability Summary Section */}
-              {sustainabilityStats && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Leaf size={14} weight="bold" className="text-gray-900" />
-                      Sürdürülebilirlik
-                    </h2>
-                    <Link href="/apps/surdurulebilirlik" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                      Adım Paylaş
-                    </Link>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Leaf size={14} className="text-emerald-600" weight="bold" />
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Toplam Etki</span>
-                      </div>
-                      <div className="text-lg font-black text-gray-900">{sustainabilityStats.userTotalPoints.toLocaleString()}</div>
-                    </div>
-                    <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Clock size={14} className="text-blue-600" weight="bold" />
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Bu Ay</span>
-                      </div>
-                      <div className="text-lg font-black text-gray-900">{sustainabilityStats.userMonthPoints.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </section>
-              )}
-
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -754,24 +655,6 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              {sustainabilityStats && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Leaf size={14} className="text-emerald-600" weight="bold" />
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Toplam Etki</span>
-                    </div>
-                    <div className="text-lg font-black text-gray-900">{sustainabilityStats.userTotalPoints.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock size={14} className="text-blue-600" weight="bold" />
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Bu Ay</span>
-                    </div>
-                    <div className="text-lg font-black text-gray-900">{sustainabilityStats.userMonthPoints.toLocaleString()}</div>
-                  </div>
-                </div>
-              )}
 
               {/* Suggest Inbox Widget */}
               {suggestions.length > 0 && (

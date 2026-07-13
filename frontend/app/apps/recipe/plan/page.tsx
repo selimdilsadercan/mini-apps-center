@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CaretLeft, CaretRight, Plus } from "@phosphor-icons/react";
 import { useUser } from "@clerk/clerk-react";
@@ -99,6 +99,16 @@ export default function PlanPage() {
   const [editMealType, setEditMealType] = useState<MealType>("dinner");
   const [pageLoading, setPageLoading] = useState(true);
 
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveInFlightRef = useRef(false);
+  const pendingSaveRef = useRef<PlanData | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isLoaded || !user) return;
     const clerkId = user.id;
@@ -181,18 +191,43 @@ export default function PlanPage() {
     });
   }, [currentWeekStart, todayKey]);
 
-  async function persistPlan(next: PlanData) {
+  async function flushPersist(next: PlanData) {
     if (!dbUserId) return;
-    const result = await setMealPlanAction(dbUserId, next);
-    if (result.error) {
-      console.error("Meal plan save failed:", result.error);
+
+    if (saveInFlightRef.current) {
+      pendingSaveRef.current = next;
+      return;
     }
+
+    saveInFlightRef.current = true;
+    let payload: PlanData | null = next;
+
+    try {
+      while (payload) {
+        const result = await setMealPlanAction(dbUserId, payload);
+        if (result.error) {
+          console.error("Meal plan save failed:", result.error);
+        }
+        const pending = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        payload = pending;
+      }
+    } finally {
+      saveInFlightRef.current = false;
+    }
+  }
+
+  function schedulePersist(next: PlanData) {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      void flushPersist(next);
+    }, 400);
   }
 
   function updatePlan(dayKey: string, updater: (meals: PlanMeal[]) => PlanMeal[]) {
     setPlanData((prev) => {
       const next = { ...prev, [dayKey]: updater(prev[dayKey] ?? []) };
-      void persistPlan(next);
+      schedulePersist(next);
       return next;
     });
   }
@@ -270,27 +305,27 @@ export default function PlanPage() {
     <RecipeShell activeTab="plan">
       <div className="flex items-center justify-between gap-3 mb-4">
         {/* Date Selector (Left side) */}
-        <div className="flex items-center gap-1 bg-white border border-gray-200/60 rounded-xl p-1 shadow-sm shrink-0">
+        <div className="flex items-center gap-0.5 bg-white border border-gray-200/60 rounded-lg px-0.5 py-0.5 shadow-sm shrink-0">
           <button
             type="button"
             onClick={() => shiftWeek(-1)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-50 active:scale-95 transition-all shrink-0"
             aria-label="Önceki hafta"
           >
-            <CaretLeft size={14} weight="bold" className="text-gray-500" />
+            <CaretLeft size={12} weight="bold" className="text-gray-500" />
           </button>
 
-          <span className="text-[10px] font-black uppercase tracking-wide text-gray-700 px-1 min-w-[120px] text-center select-none leading-none">
+          <span className="text-[9px] font-black uppercase tracking-wide text-gray-700 px-1 min-w-[88px] text-center select-none leading-none">
             {formatDate(currentWeekStart)} – {formatDate(weekEndDate)}
           </span>
 
           <button
             type="button"
             onClick={() => shiftWeek(1)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-50 active:scale-95 transition-all shrink-0"
             aria-label="Sonraki hafta"
           >
-            <CaretRight size={14} weight="bold" className="text-gray-500" />
+            <CaretRight size={12} weight="bold" className="text-gray-500" />
           </button>
         </div>
 
@@ -479,7 +514,7 @@ function DayStrip({
   onSelect: (key: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-7 gap-1 mb-4 w-full">
+    <div className="grid grid-cols-7 gap-1 mb-3 w-full">
       {weekDays.map((day) => {
         const isSelected = day.key === selectedDayKey;
         const isToday = day.key === todayKey;
@@ -488,19 +523,19 @@ function DayStrip({
             key={day.key}
             type="button"
             onClick={() => onSelect(day.key)}
-            className={`min-w-0 py-2 rounded-xl border transition-all active:scale-95 ${isSelected
+            className={`min-w-0 py-1.5 rounded-lg border transition-all active:scale-95 ${isSelected
                 ? "bg-gray-900 border-gray-900 text-white"
                 : "bg-white border-gray-200/70 text-gray-600"
               }`}
           >
             <span
-              className={`block text-[8px] font-bold uppercase tracking-wide truncate px-0.5 ${isSelected ? "text-white/60" : "text-gray-400"
+              className={`block text-[7px] font-bold uppercase tracking-wide truncate px-0.5 ${isSelected ? "text-white/60" : "text-gray-400"
                 }`}
             >
               {day.shortName}
             </span>
             <span
-              className={`block text-sm font-black leading-none mt-0.5 tabular-nums ${isToday && !isSelected ? "text-gray-900" : ""
+              className={`block text-xs font-black leading-none mt-0.5 tabular-nums ${isToday && !isSelected ? "text-gray-900" : ""
                 }`}
             >
               {day.date}

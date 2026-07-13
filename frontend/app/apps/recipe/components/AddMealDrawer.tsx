@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, ChefHat } from "@phosphor-icons/react";
 import type { lib } from "@/lib/client";
 import {
@@ -9,16 +9,35 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { getRecipeEmoji } from "../recipe-emoji";
 import CATEGORIES from "../categories.json";
 
 type MealType = "breakfast" | "lunch" | "dinner";
-
 type AddMealTab = "custom" | "recipes";
-const mealTypeLabels: Array<{ value: MealType; label: string }> = [
-  { value: "breakfast", label: "Kahvaltı" },
-  { value: "lunch", label: "Öğle" },
-  { value: "dinner", label: "Akşam" },
-];
+
+const RECIPE_CATEGORY_ORDER = ["Kahvaltı", "Tatlı", "Ana Yemek", "Yan Yemek", "Atıştırmalık", "Diğer"];
+
+function suggestedCategory(mealType: MealType): string | null {
+  if (mealType === "breakfast") return "Kahvaltı";
+  return null;
+}
+
+function RecipeInitial({ title }: { title: string }) {
+  const emoji = getRecipeEmoji(title);
+  if (emoji) {
+    return (
+      <div className="w-11 h-11 mb-1.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-center text-xl select-none">
+        {emoji}
+      </div>
+    );
+  }
+  const initial = title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?";
+  return (
+    <div className="w-11 h-11 mb-1.5 rounded-xl bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 text-base">
+      {initial}
+    </div>
+  );
+}
 
 export default function AddMealDrawer({
   open,
@@ -41,12 +60,14 @@ export default function AddMealDrawer({
 }) {
   const [activeTab, setActiveTab] = useState<AddMealTab>("recipes");
   const [customTitle, setCustomTitle] = useState("");
-  const [category, setCategory] = useState<string>("Ana Yemek");
+  const [category, setCategory] = useState<string | null>(null);
   const [mealType, setMealType] = useState<MealType>(defaultMealType ?? "dinner");
 
   useEffect(() => {
-    if (open && defaultMealType) {
-      setMealType(defaultMealType);
+    if (open) {
+      const type = defaultMealType ?? "dinner";
+      setMealType(type);
+      setCategory(suggestedCategory(type));
     }
   }, [open, defaultMealType]);
 
@@ -54,7 +75,7 @@ export default function AddMealDrawer({
     if (!nextOpen) {
       setCustomTitle("");
       setActiveTab("recipes");
-      setCategory("Ana Yemek");
+      setCategory(null);
       setMealType(defaultMealType ?? "dinner");
     }
     onOpenChange(nextOpen);
@@ -62,9 +83,10 @@ export default function AddMealDrawer({
 
   function handleAddCustom() {
     const title = customTitle.trim();
-    if (!title) return;
+    if (!title || !category) return;
     onAddCustom(title, category, mealType);
     setCustomTitle("");
+    setCategory(null);
     handleOpenChange(false);
   }
 
@@ -77,6 +99,26 @@ export default function AddMealDrawer({
     `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
       active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
     }`;
+
+  const groupedRecipes = useMemo(() => {
+    const grouped = recipes.reduce<Record<string, lib.RecipeSummary[]>>((acc, recipe) => {
+      const cat = recipe.category || "Diğer";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(recipe);
+      return acc;
+    }, {});
+
+    return Object.keys(grouped)
+      .sort((a, b) => {
+        const idxA = RECIPE_CATEGORY_ORDER.indexOf(a);
+        const idxB = RECIPE_CATEGORY_ORDER.indexOf(b);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.localeCompare(b);
+      })
+      .map((catName) => ({ catName, items: grouped[catName] }));
+  }, [recipes]);
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -94,36 +136,16 @@ export default function AddMealDrawer({
               <X size={16} weight="bold" />
             </button>
           </div>
-          <p className="text-xs font-bold text-gray-400 mt-1">Bu güne yemek ekle</p>
         </DrawerHeader>
 
         <div className="px-4 pt-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex gap-1 p-1 rounded-xl bg-orange-50">
-              {mealTypeLabels.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setMealType(item.value)}
-                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
-                    mealType === item.value
-                      ? "bg-white text-orange-700 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
-              <button type="button" onClick={() => setActiveTab("custom")} className={tabClass(activeTab === "custom")}>
-                Yemek yaz
-              </button>
-              <button type="button" onClick={() => setActiveTab("recipes")} className={tabClass(activeTab === "recipes")}>
-                Tariflerim
-              </button>
-            </div>
+          <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
+            <button type="button" onClick={() => setActiveTab("custom")} className={tabClass(activeTab === "custom")}>
+              Yemek yaz
+            </button>
+            <button type="button" onClick={() => setActiveTab("recipes")} className={tabClass(activeTab === "recipes")}>
+              Tariflerim
+            </button>
           </div>
         </div>
 
@@ -139,17 +161,17 @@ export default function AddMealDrawer({
                   value={customTitle}
                   onChange={(e) => setCustomTitle(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddCustom();
+                    if (e.key === "Enter" && customTitle.trim() && category) handleAddCustom();
                   }}
                   placeholder="Örn: Mercimek çorbası"
                   autoFocus
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 bg-white"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 bg-white font-bold"
                 />
               </div>
 
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
-                  Kategori
+                  Kategori <span className="text-orange-500">*</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {CATEGORIES.map((cat) => (
@@ -157,10 +179,11 @@ export default function AddMealDrawer({
                       key={cat}
                       type="button"
                       onClick={() => setCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${category === cat
-                          ? "bg-orange-500 text-white border-orange-500"
-                          : "bg-gray-50 text-gray-600 border-gray-200 hover:border-orange-200"
-                        }`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 ${
+                        category === cat
+                          ? "bg-orange-500 text-white border-orange-500 shadow-sm"
+                          : "bg-gray-50 text-gray-600 border-gray-200/60 hover:border-orange-200"
+                      }`}
                     >
                       {cat}
                     </button>
@@ -171,8 +194,8 @@ export default function AddMealDrawer({
               <button
                 type="button"
                 onClick={handleAddCustom}
-                disabled={!customTitle.trim()}
-                className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wide active:scale-95 transition-all"
+                disabled={!customTitle.trim() || !category}
+                className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wide active:scale-95 transition-all shadow-md shadow-orange-100"
               >
                 Ekle
               </button>
@@ -187,30 +210,38 @@ export default function AddMealDrawer({
               <p className="text-xs font-bold text-gray-400">Henüz kayıtlı tarif yok</p>
             </div>
           ) : (
-            <ul className="space-y-1.5">
-              {recipes.map((recipe) => (
-                <li key={recipe.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectRecipe(recipe)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 bg-white hover:border-orange-200 hover:bg-orange-50/50 transition-all text-left active:scale-[0.99]"
-                  >
-                    {recipe.image_url ? (
-                      <img
-                        src={recipe.image_url}
-                        alt=""
-                        className="w-9 h-9 rounded-lg object-cover shrink-0"
-                      />
-                    ) : (
-                      <span className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 text-sm shrink-0">
-                        {recipe.title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?"}
-                      </span>
-                    )}
-                    <span className="text-sm font-bold text-gray-900 line-clamp-2">{recipe.title}</span>
-                  </button>
-                </li>
+            <div className="space-y-4">
+              {groupedRecipes.map(({ catName, items }) => (
+                <div key={catName} className="space-y-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-1">
+                    {catName} ({items.length})
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {items.map((recipe) => (
+                      <button
+                        key={recipe.id}
+                        type="button"
+                        onClick={() => handleSelectRecipe(recipe)}
+                        className="bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 text-left w-full select-none"
+                      >
+                        {recipe.image_url ? (
+                          <img
+                            src={recipe.image_url}
+                            alt=""
+                            className="w-11 h-11 mb-1.5 rounded-xl object-cover"
+                          />
+                        ) : (
+                          <RecipeInitial title={recipe.title} />
+                        )}
+                        <h4 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
+                          {recipe.title}
+                        </h4>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </DrawerContent>

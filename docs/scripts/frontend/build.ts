@@ -6,4 +6,5 @@ import { frontendDir } from "../lib/frontend";
 const dir = frontendDir();
 
 await run(["node", "scripts/sync-games.js"], dir);
-await run(["bunx", "next", "build"], dir);
+// Webpack avoids Turbopack panics during static export (Capacitor/OTA builds).
+await run(["bunx", "next", "build", "--webpack"], dir);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GamingHubShell from "../../components/GamingHubShell";
 import DiscoverAllToolbar from "../../components/DiscoverAllToolbar";
@@ -9,7 +9,7 @@ import { getDiscoverCategoryAction } from "../../actions";
 import { isDiscoverCategory } from "../../lib/discover";
 import type { gaming_hub } from "@/lib/client";
 
-export default function DiscoverAllPage() {
+function DiscoverAllContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -81,5 +81,19 @@ export default function DiscoverAllPage() {
         </div>
       )}
     </GamingHubShell>
+  );
+}
+
+export default function DiscoverAllPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+          Yükleniyor...
+        </div>
+      }
+    >
+      <DiscoverAllContent />
+    </Suspense>
   );
 }

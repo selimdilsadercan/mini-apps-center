@@ -962,7 +962,6 @@ const RAW_BUSINESS_APPS: MiniApp[] = [
     href: "/apps/tutor-crm",
     isImplemented: true,
     subdomain: "tutorplace",
-    isCancelled: true,
   },
   {
     id: "standups",

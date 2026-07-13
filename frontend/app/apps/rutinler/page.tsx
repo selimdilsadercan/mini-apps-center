@@ -109,6 +109,7 @@ function EntryRow({
 }) {
   const x = useMotionValue(0);
   const opacity = useTransform(x, [0, 40], [0, 1]);
+  const isPostponed = !!(entry.postponed_until && new Date(entry.postponed_until) > new Date());
 
   return (
     <motion.div
@@ -152,6 +153,10 @@ function EntryRow({
             ? isGrouped
               ? "bg-[#F0FDF4]"
               : "bg-[#F0FDF4] border-emerald-100"
+            : isPostponed
+            ? isGrouped
+              ? "bg-amber-50/50"
+              : "bg-amber-50/50 border-amber-100"
             : !isGrouped
             ? "bg-white border-gray-100"
             : "bg-white hover:bg-gray-50"
@@ -162,15 +167,18 @@ function EntryRow({
             {/* Mevcut Periyot */}
             <button
               type="button"
+              disabled={isPostponed}
               onClick={() => void onToggleComplete(entry)}
               className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
                 entry.is_completed
                   ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                  : isPostponed
+                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
               }`}
             >
               <AnimatePresence mode="wait">
-                {entry.is_completed && (
+                {entry.is_completed ? (
                   <motion.div
                     key="check"
                     initial={{ scale: 0, rotate: -45 }}
@@ -180,7 +188,16 @@ function EntryRow({
                   >
                     <Check size={14} weight="bold" />
                   </motion.div>
-                )}
+                ) : isPostponed ? (
+                  <motion.div
+                    key="clock"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <ClockAfternoon size={12} weight="fill" className="text-amber-500" />
+                  </motion.div>
+                ) : null}
               </AnimatePresence>
             </button>
           </div>
@@ -196,13 +213,20 @@ function EntryRow({
           <div className="flex items-center gap-2 min-w-0 relative">
             <span className="text-xl leading-none shrink-0">{entry.item_emoji}</span>
             <div className="relative min-w-0">
-              <span
-                className={`text-sm font-bold block truncate transition-colors duration-300 ${
-                  showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
-                }`}
-              >
-                {entry.item_name}
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className={`text-sm font-bold block truncate transition-colors duration-300 ${
+                    showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
+                  }`}
+                >
+                  {entry.item_name}
+                </span>
+                {isPostponed && !entry.is_completed && (
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-600 text-[8px] font-black uppercase tracking-wider">
+                    Ertelendi
+                  </span>
+                )}
+              </div>
               {showComplete && (
                 <motion.div
                   initial={false}
@@ -459,6 +483,13 @@ export default function RutinlerPage() {
 
     return entries.filter((e) => {
       if (e.period_type !== period) return false;
+
+      // Filter out postponed items
+      if (e.postponed_until) {
+        const postponedDate = new Date(e.postponed_until);
+        if (postponedDate > now) return false;
+      }
+
       // Tamamlanan rutinler bu dönem için Bugün'de görünmez
       // Ancak yeni tamamlandıysa animasyon için kısa süre tutuyoruz
       if (e.is_completed && !recentlyCompletedIds.has(e.id)) return false;
