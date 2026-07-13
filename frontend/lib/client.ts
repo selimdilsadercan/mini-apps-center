@@ -6130,6 +6130,15 @@ export namespace rutinler {
         entry: RoutineEntry | null
     }
 
+    export interface ClearPostponeRequest {
+        entryId: string
+        userId: string
+    }
+
+    export interface ClearPostponeResponse {
+        success: boolean
+    }
+
     export type DailySlot = "morning" | "afternoon" | "evening"
 
     export interface DeleteEntryRequest {
@@ -6210,6 +6219,7 @@ export namespace rutinler {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addEntry = this.addEntry.bind(this)
+            this.clearPostpone = this.clearPostpone.bind(this)
             this.deleteEntry = this.deleteEntry.bind(this)
             this.getEntries = this.getEntries.bind(this)
             this.getTodayAgenda = this.getTodayAgenda.bind(this)
@@ -6222,6 +6232,12 @@ export namespace rutinler {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/entries`, JSON.stringify(params))
             return await resp.json() as AddEntryResponse
+        }
+
+        public async clearPostpone(params: ClearPostponeRequest): Promise<ClearPostponeResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/rutinler/clear-postpone`, JSON.stringify(params))
+            return await resp.json() as ClearPostponeResponse
         }
 
         public async deleteEntry(id: string, params: DeleteEntryRequest): Promise<DeleteEntryResponse> {

@@ -48,6 +48,10 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useHome } from "@/contexts/HomeContext";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
+import {
+  invalidateDiscoverWidgets,
+  syncAgendaCompletionInCache,
+} from "@/lib/hubAgendaCache";
 import { 
   rutinler,
   workplaces, 
@@ -904,8 +908,11 @@ function HomeSummaryCards({
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
   const pendingTodayAgenda = todayAgenda.filter((item) => !item.is_completed);
-  const completedTodayAgenda = todayAgenda.filter((item) => item.is_completed);
   const previewTodayAgenda = pendingTodayAgenda.slice(0, 4);
+  const agendaEmptyText =
+    todayAgenda.length > 0 && pendingTodayAgenda.length === 0
+      ? "Görev kalmadı"
+      : "Bugün plan yok";
   const pendingTodaySeries = todaySeries
     .filter((item) => !item.isWatched)
     .sort((a, b) => {
@@ -1106,27 +1113,24 @@ function HomeSummaryCards({
   const handleToggleAgendaComplete = async (entryId: string, currentStatus: boolean) => {
     if (!userId) return;
     const actionKey = `agenda-${entryId}`;
+    const entry = todayAgenda.find((item) => item.id === entryId);
+    if (!entry) return;
+
+    const newStatus = !currentStatus;
     try {
       setActionLoading(actionKey);
-      const newStatus = !currentStatus;
+      syncAgendaCompletionInCache(queryClient, userId, entry, newStatus);
+
       await client.rutinler.toggleCompletion({
         entryId,
         userId,
         completed: newStatus,
       });
 
-      queryClient.setQueryData(["hub", "discover", userId], (prev: any) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          todayAgenda: prev.todayAgenda.map((item: any) => 
-            item.id === entryId ? { ...item, is_completed: newStatus } : item
-          )
-        };
-      });
-
+      invalidateDiscoverWidgets(queryClient, userId);
       toast.success(newStatus ? "Tamamlandı" : "İşaret kaldırıldı");
     } catch {
+      syncAgendaCompletionInCache(queryClient, userId, entry, currentStatus);
       toast.error("İşlem başarısız");
     } finally {
       setActionLoading(null);
@@ -1146,40 +1150,8 @@ function HomeSummaryCards({
           title="Bugünün Planı"
           subtitle="Ajanda"
           loading={loading}
-          emptyText="Bugün plan yok"
+          emptyText={agendaEmptyText}
           hasContent={pendingTodayAgenda.length > 0}
-          emptyFooter={
-            completedTodayAgenda.length > 0 ? (
-              <>
-                {completedTodayAgenda.map((item) => (
-                  <div
-                    key={item.id}
-                    className="px-4 py-3 border-t border-gray-50 flex items-center gap-3 opacity-60"
-                  >
-                    <button
-                      type="button"
-                      disabled={actionLoading === `agenda-${item.id}`}
-                      onClick={() => void handleToggleAgendaComplete(item.id, true)}
-                      className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-emerald-500 border-emerald-500 text-white"
-                    >
-                      <CheckCircle size={18} weight="fill" />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-black truncate text-gray-400 line-through">
-                        {item.item_emoji ? `${item.item_emoji} ` : ""}
-                        {item.item_name}
-                      </p>
-                      <p className="text-[9px] text-gray-400 font-bold truncate">
-                        {item.period_type === "once" ? "Tek Seferlik" : 
-                         item.period_type === "daily" ? (item.daily_slot === "morning" ? "Sabah" : item.daily_slot === "afternoon" ? "Öğle" : "Akşam") :
-                         item.period_type === "weekly" ? "Haftalık" : "Aylık"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : undefined
-          }
         >
           {previewTodayAgenda.map((item) => (
             <div

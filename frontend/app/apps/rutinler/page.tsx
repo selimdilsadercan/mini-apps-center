@@ -1,8 +1,9 @@
 "use client";
 
 import { getAppRootUrl, getAppHref, MINI_APPS } from "@/lib/apps";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CaretLeft,
   Plus,
@@ -28,6 +29,11 @@ import { rutinler } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import ROUTINE_CATALOG from "./routine_catalog.json";
 import { EmojiPickerOverlay } from "./EmojiPickerOverlay";
+import {
+  invalidateDiscoverWidgets,
+  removeAgendaEntryFromCache,
+  syncAgendaCompletionInCache,
+} from "@/lib/hubAgendaCache";
 
 type PeriodType = "daily" | "weekly" | "monthly" | "once";
 type DrawerTab = "catalog" | "custom";
@@ -56,6 +62,19 @@ const DAILY_SLOT_ORDER: Record<rutinler.DailySlot, number> = {
 };
 
 const EV_ISLERI_APP = MINI_APPS.find((app) => app.id === "ev-isleri");
+
+const rutinlerEntriesKey = (userId: string) => ["rutinler", "entries", userId] as const;
+
+function isEntryPostponed(entry: rutinler.RoutineEntry) {
+  return !!(entry.postponed_until && new Date(entry.postponed_until) > new Date());
+}
+
+function tomorrowPostponeIso() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
 
 function pillTabClass(active: boolean) {
   return `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] ${
@@ -109,7 +128,7 @@ function EntryRow({
 }) {
   const x = useMotionValue(0);
   const opacity = useTransform(x, [0, 40], [0, 1]);
-  const isPostponed = !!(entry.postponed_until && new Date(entry.postponed_until) > new Date());
+  const isPostponed = isEntryPostponed(entry);
 
   return (
     <motion.div
@@ -173,7 +192,7 @@ function EntryRow({
                 entry.is_completed
                   ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
                   : isPostponed
-                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                  ? "bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200 cursor-not-allowed"
                   : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
               }`}
             >
@@ -195,7 +214,7 @@ function EntryRow({
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
-                    <ClockAfternoon size={12} weight="fill" className="text-amber-500" />
+                    <ClockAfternoon size={14} weight="fill" />
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -246,9 +265,8 @@ function EntryRow({
 
 export default function RutinlerPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
+  const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
-  const [entries, setEntries] = useState<rutinler.RoutineEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [mainTab, setMainTab] = useState<MainTab>("today");
   const [quickTask, setQuickTask] = useState("");
   const [activePeriod, setActivePeriod] = useState<PeriodType | null>(null);
@@ -267,48 +285,54 @@ export default function RutinlerPage() {
   const [selectedDailySlot, setSelectedDailySlot] = useState<rutinler.DailySlot>("morning");
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number>(new Date().getDay() || 7);
   const [selectedMonthDay, setSelectedMonthDay] = useState<number>(1);
-  const [expandedBoards, setExpandedBoards] = useState<Record<PeriodType, boolean>>({
-    once: false,
-    daily: false,
-    weekly: false,
-    monthly: false,
+  const [boardOverrides, setBoardOverrides] = useState<Partial<Record<PeriodType, boolean>>>({});
+
+  const isBoardExpanded = useCallback(
+    (boardKey: PeriodType, itemCount: number) => {
+      if (boardOverrides[boardKey] !== undefined) {
+        return boardOverrides[boardKey]!;
+      }
+      return itemCount > 0;
+    },
+    [boardOverrides]
+  );
+
+  const toggleBoardExpanded = useCallback(
+    (boardKey: PeriodType, itemCount: number) => {
+      setBoardOverrides((prev) => ({
+        ...prev,
+        [boardKey]: !isBoardExpanded(boardKey, itemCount),
+      }));
+    },
+    [isBoardExpanded]
+  );
+
+  const {
+    data: entries = [],
+    isLoading: entriesLoading,
+    refetch: refetchEntries,
+  } = useQuery({
+    queryKey: rutinlerEntriesKey(user?.id ?? ""),
+    queryFn: async () => {
+      const res = await client.rutinler.getEntries(user!.id);
+      return res.entries ?? [];
+    },
+    enabled: isUserLoaded && !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
-  const [hasSetInitialExpanded, setHasSetInitialExpanded] = useState(false);
+  const loading = isUserLoaded && !!user?.id && entriesLoading;
 
-  useEffect(() => {
-    if (isUserLoaded) {
-      void fetchEntries();
-    }
-  }, [isUserLoaded, user]);
-
-  useEffect(() => {
-    if (!loading && !hasSetInitialExpanded && entries.length >= 0) {
-      const newExpanded = { ...expandedBoards };
-      BOARDS.forEach((board) => {
-        const hasItems = entries.some((e) => e.period_type === board.key);
-        newExpanded[board.key] = hasItems;
-      });
-      setExpandedBoards(newExpanded);
-      setHasSetInitialExpanded(true);
-    }
-  }, [loading, entries, hasSetInitialExpanded]);
-
-  async function fetchEntries() {
-    try {
-      setLoading(true);
-      if (!user) {
-        setEntries([]);
-        return;
-      }
-      const res = await client.rutinler.getEntries(user.id);
-      setEntries(res.entries ?? []);
-    } catch (error) {
-      console.error("fetchEntries error:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const patchEntries = useCallback(
+    (updater: (prev: rutinler.RoutineEntry[]) => rutinler.RoutineEntry[]) => {
+      if (!user?.id) return;
+      queryClient.setQueryData<rutinler.RoutineEntry[]>(rutinlerEntriesKey(user.id), (prev) =>
+        updater(prev ?? [])
+      );
+    },
+    [queryClient, user?.id]
+  );
 
   const filteredCatalog = useMemo(() => {
     const q = catalogQuery.trim().toLocaleLowerCase("tr-TR");
@@ -475,6 +499,39 @@ export default function RutinlerPage() {
     return entries.filter((e) => e.period_type === period);
   }
 
+  function entriesScheduledForToday(period: PeriodType) {
+    const now = new Date();
+    const todayDayOfWeek = now.getDay() || 7;
+    const todayMonthDay = now.getDate();
+    const currentSlot = getCurrentDailySlot();
+
+    return entries.filter((e) => {
+      if (e.period_type !== period) return false;
+
+      if (e.postponed_until) {
+        const postponedDate = new Date(e.postponed_until);
+        if (postponedDate > now) return false;
+      }
+
+      if (period === "daily") {
+        if (!e.daily_slot) return true;
+        return DAILY_SLOT_ORDER[e.daily_slot] <= DAILY_SLOT_ORDER[currentSlot];
+      }
+
+      if (period === "weekly") {
+        if (!e.day_of_week) return true;
+        return todayDayOfWeek >= e.day_of_week;
+      }
+
+      if (period === "monthly") {
+        if (!e.day_of_month) return true;
+        return todayMonthDay >= e.day_of_month;
+      }
+
+      return true;
+    });
+  }
+
   function entriesForToday(period: PeriodType) {
     const now = new Date();
     const todayDayOfWeek = now.getDay() || 7;
@@ -546,9 +603,10 @@ export default function RutinlerPage() {
         dayOfMonth: activePeriod === "monthly" ? String(selectedMonthDay) : "0",
       });
       if (res.entry) {
-        setEntries((prev) => [...prev, { ...res.entry!, is_completed: false }]);
+        patchEntries((prev) => [...prev, { ...res.entry!, is_completed: false }]);
+        invalidateDiscoverWidgets(queryClient, user.id);
         // Expand the board when a new entry is added
-        setExpandedBoards((prev) => ({
+        setBoardOverrides((prev) => ({
           ...prev,
           [activePeriod]: true,
         }));
@@ -579,7 +637,7 @@ export default function RutinlerPage() {
       });
 
       if (res.entry) {
-        setEntries((prev) =>
+        patchEntries((prev) =>
           prev.map((e) =>
             e.id === editingEntry.id ? { ...res.entry!, is_completed: e.is_completed } : e
           )
@@ -615,7 +673,7 @@ export default function RutinlerPage() {
     }
 
     // Optimistic update
-    setEntries((prev) =>
+    patchEntries((prev) =>
       prev.map((e) =>
         e.id === entry.id
           ? { ...e, [isNext ? "is_next_completed" : "is_completed"]: newStatus }
@@ -629,6 +687,10 @@ export default function RutinlerPage() {
       );
     }
 
+    if (!isNext && user) {
+      syncAgendaCompletionInCache(queryClient, user.id, entry, newStatus);
+    }
+
     try {
       await client.rutinler.toggleCompletion({
         entryId: entry.id,
@@ -636,10 +698,16 @@ export default function RutinlerPage() {
         completed: newStatus,
         isNextPeriod: isNext,
       });
+      if (!isNext && user) {
+        invalidateDiscoverWidgets(queryClient, user.id);
+      }
     } catch (error) {
       console.error("handleToggleComplete error:", error);
+      if (!isNext && user) {
+        syncAgendaCompletionInCache(queryClient, user.id, entry, currentStatus);
+      }
       // Rollback
-      setEntries((prev) =>
+      patchEntries((prev) =>
         prev.map((e) =>
           e.id === entry.id
             ? { ...e, [isNext ? "is_next_completed" : "is_completed"]: !newStatus }
@@ -665,34 +733,61 @@ export default function RutinlerPage() {
 
     if (!ok) return;
 
-    // Optimistic update
-    setRecentlyCompletedIds((prev) => {
-      const nextSet = new Set(prev);
-      nextSet.add(entry.id);
-      return nextSet;
-    });
-    
-    setTimeout(() => {
-      setRecentlyCompletedIds((prev) => {
-        const nextSet = new Set(prev);
-        nextSet.delete(entry.id);
-        return nextSet;
-      });
-      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
-    }, 800);
+    const postponedUntil = tomorrowPostponeIso();
+    const previousPostponedUntil = entry.postponed_until;
+
+    patchEntries((prev) =>
+      prev.map((e) => (e.id === entry.id ? { ...e, postponed_until: postponedUntil } : e))
+    );
+    setEditingEntry((prev) =>
+      prev?.id === entry.id ? { ...prev, postponed_until: postponedUntil } : prev
+    );
 
     try {
-      await (client.rutinler as any).postponeEntry({
+      await client.rutinler.postponeEntry({
         entryId: entry.id,
         userId: user.id,
       });
+      removeAgendaEntryFromCache(queryClient, user.id, entry.id);
+      invalidateDiscoverWidgets(queryClient, user.id);
       toast.success("Yarına ertelendi");
       closeEdit();
     } catch (error) {
       console.error("handlePostpone error:", error);
       toast.error("Erteleme başarısız oldu");
-      // Refetch entries on error to restore the item
-      void fetchEntries();
+      patchEntries((prev) =>
+        prev.map((e) =>
+          e.id === entry.id ? { ...e, postponed_until: previousPostponedUntil } : e
+        )
+      );
+      setEditingEntry((prev) =>
+        prev?.id === entry.id ? { ...prev, postponed_until: previousPostponedUntil } : prev
+      );
+      void refetchEntries();
+    }
+  }
+
+  async function handleClearPostpone(entry: rutinler.RoutineEntry) {
+    if (!user) return;
+
+    patchEntries((prev) =>
+      prev.map((e) => (e.id === entry.id ? { ...e, postponed_until: null } : e))
+    );
+    setEditingEntry((prev) =>
+      prev?.id === entry.id ? { ...prev, postponed_until: null } : prev
+    );
+
+    try {
+      await client.rutinler.clearPostpone({
+        entryId: entry.id,
+        userId: user.id,
+      });
+      invalidateDiscoverWidgets(queryClient, user.id);
+      toast.success("Erteleme kaldırıldı");
+    } catch (error) {
+      console.error("handleClearPostpone error:", error);
+      toast.error("Erteleme kaldırılamadı");
+      void refetchEntries();
     }
   }
 
@@ -719,7 +814,9 @@ export default function RutinlerPage() {
     if (!ok) return;
     try {
       await client.rutinler.deleteEntry(entry.id, { userId: user.id });
-      setEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      patchEntries((prev) => prev.filter((e) => e.id !== entry.id));
+      removeAgendaEntryFromCache(queryClient, user.id, entry.id);
+      invalidateDiscoverWidgets(queryClient, user.id);
     } catch (error) {
       console.error("handleDelete error:", error);
     }
@@ -775,7 +872,8 @@ export default function RutinlerPage() {
         dayOfMonth: "0",
       });
       if (res.entry) {
-        setEntries((prev) => [...prev, { ...res.entry!, is_completed: false }]);
+        patchEntries((prev) => [...prev, { ...res.entry!, is_completed: false }]);
+        invalidateDiscoverWidgets(queryClient, user.id);
         setQuickTask("");
         toast.success("Görev eklendi");
       }
@@ -787,11 +885,17 @@ export default function RutinlerPage() {
     }
   }
 
-  const { todayEntries, oneOffTasks, routineTasks } = useMemo(() => {
+  const { todayEntries, oneOffTasks, routineTasks, hasScheduledToday } = useMemo(() => {
     const allToday = BOARDS.flatMap((board) => entriesForToday(board.key));
+    const scheduledToday = BOARDS.flatMap((board) => entriesScheduledForToday(board.key));
     const oneOff = allToday.filter((e) => e.period_type === "once");
     const routines = allToday.filter((e) => e.period_type !== "once");
-    return { todayEntries: allToday, oneOffTasks: oneOff, routineTasks: routines };
+    return {
+      todayEntries: allToday,
+      oneOffTasks: oneOff,
+      routineTasks: routines,
+      hasScheduledToday: scheduledToday.length > 0,
+    };
   }, [entries, recentlyCompletedIds]);
 
   return (
@@ -872,17 +976,9 @@ export default function RutinlerPage() {
             {todayEntries.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
                 <CalendarCheck size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
-                <p className="text-sm font-bold text-gray-500 mb-1">Bugün için görev veya rutin yok</p>
-                <p className="text-xs text-gray-400 mb-4">
-                  Yeni bir görev ekle veya rutinlerini ayarla.
+                <p className="text-sm font-bold text-gray-500">
+                  {hasScheduledToday ? "Görev kalmadı" : "Bugün için görev veya rutin yok"}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setMainTab("manage")}
-                  className="px-4 py-2.5 rounded-xl bg-violet-500 text-white text-xs font-black active:scale-95"
-                >
-                  Rutinlerimi ayarla
-                </button>
               </div>
             ) : (
             <div className="space-y-6">
@@ -940,7 +1036,7 @@ export default function RutinlerPage() {
           <div className="space-y-4">
             {BOARDS.map((board) => {
               const items = entriesForPeriod(board.key);
-              const isExpanded = expandedBoards[board.key];
+              const isExpanded = isBoardExpanded(board.key, items.length);
 
               return (
                 <section
@@ -948,12 +1044,7 @@ export default function RutinlerPage() {
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden"
                 >
                   <div
-                    onClick={() =>
-                      setExpandedBoards((prev) => ({
-                        ...prev,
-                        [board.key]: !prev[board.key],
-                      }))
-                    }
+                    onClick={() => toggleBoardExpanded(board.key, items.length)}
                     className="flex items-center justify-between px-4 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50/50 transition-colors group"
                   >
                     <div className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-tight">
@@ -1303,16 +1394,27 @@ export default function RutinlerPage() {
                 )}
 
                 <div className="flex flex-col gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (editingEntry) void handlePostpone(editingEntry);
-                    }}
-                    className="w-full py-3.5 rounded-xl border border-amber-100 bg-amber-50 text-amber-600 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-amber-100"
-                  >
-                    <ClockAfternoon size={16} weight="bold" />
-                    Yarına Ertele
-                  </button>
+                  {editingEntry && isEntryPostponed(editingEntry) ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleClearPostpone(editingEntry)}
+                      className="w-full py-3.5 rounded-xl border-2 border-amber-500 bg-amber-500 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm shadow-amber-200 hover:bg-amber-600 hover:border-amber-600"
+                    >
+                      <ClockAfternoon size={16} weight="fill" />
+                      Ertelemeyi Kaldır
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (editingEntry) void handlePostpone(editingEntry);
+                      }}
+                      className="w-full py-3.5 rounded-xl border border-amber-100 bg-amber-50 text-amber-600 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-amber-100"
+                    >
+                      <ClockAfternoon size={16} weight="bold" />
+                      Yarına Ertele
+                    </button>
+                  )}
 
                   <div className="flex gap-2">
                     <button
