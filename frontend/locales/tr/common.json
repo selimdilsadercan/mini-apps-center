@@ -331,6 +331,10 @@
       "name": "Ajanda",
       "description": "Günlük, haftalık ve yıllık rutin tablolarını oluştur ve takip et."
     },
+    "study": {
+      "name": "Study",
+      "description": "Haftalık ders çalışma planını oluştur ve kendi başına takip et."
+    },
     "surdurulebilirlik": {
       "name": "Sürdürülebiliriz",
       "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."

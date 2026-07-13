@@ -335,6 +335,10 @@
       "name": "Agenda",
       "description": "Create and track your daily, weekly, and yearly routine tables."
     },
+    "study": {
+      "name": "Study",
+      "description": "Create and track your weekly study plan on your own."
+    },
     "surdurulebilirlik": {
       "name": "We're Sustainable",
       "description": "Track your eco-friendly steps and contribute to our world."

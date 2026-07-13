@@ -1,0 +1,86 @@
+{
+  "levels": [
+    {
+      "id": "ilkokul",
+      "label": "İlkokul",
+      "emoji": "🎒",
+      "subjects": [
+        { "slug": "turkce", "name": "Türkçe", "emoji": "📖" },
+        { "slug": "matematik", "name": "Matematik", "emoji": "🔢" },
+        { "slug": "hayat-bilgisi", "name": "Hayat Bilgisi", "emoji": "🌱" },
+        { "slug": "fen-bilimleri", "name": "Fen Bilimleri", "emoji": "🔬" },
+        { "slug": "sosyal-bilgiler", "name": "Sosyal Bilgiler", "emoji": "🌍" },
+        { "slug": "ingilizce", "name": "İngilizce", "emoji": "🇬🇧" },
+        { "slug": "din-kulturu", "name": "Din Kültürü", "emoji": "🕌" },
+        { "slug": "gorsel-sanatlar", "name": "Görsel Sanatlar", "emoji": "🎨" },
+        { "slug": "muzik", "name": "Müzik", "emoji": "🎵" },
+        { "slug": "beden-egitimi", "name": "Beden Eğitimi", "emoji": "⚽" }
+      ]
+    },
+    {
+      "id": "ortaokul",
+      "label": "Ortaokul",
+      "emoji": "📚",
+      "subjects": [
+        { "slug": "turkce", "name": "Türkçe", "emoji": "📖" },
+        { "slug": "matematik", "name": "Matematik", "emoji": "🔢" },
+        { "slug": "fen-bilimleri", "name": "Fen Bilimleri", "emoji": "🔬" },
+        { "slug": "sosyal-bilgiler", "name": "Sosyal Bilgiler", "emoji": "🌍" },
+        { "slug": "inkilap-tarihi", "name": "T.C. İnkılap Tarihi", "emoji": "🇹🇷" },
+        { "slug": "ingilizce", "name": "İngilizce", "emoji": "🇬🇧" },
+        { "slug": "din-kulturu", "name": "Din Kültürü", "emoji": "🕌" },
+        { "slug": "teknoloji-tasarim", "name": "Teknoloji ve Tasarım", "emoji": "🔧" },
+        { "slug": "bilisim", "name": "Bilişim Teknolojileri", "emoji": "💻" },
+        { "slug": "gorsel-sanatlar", "name": "Görsel Sanatlar", "emoji": "🎨" },
+        { "slug": "muzik", "name": "Müzik", "emoji": "🎵" },
+        { "slug": "beden-egitimi", "name": "Beden Eğitimi", "emoji": "⚽" }
+      ]
+    },
+    {
+      "id": "lise",
+      "label": "Lise",
+      "emoji": "🎓",
+      "subjects": [
+        { "slug": "turkce", "name": "Türkçe", "emoji": "📖" },
+        { "slug": "edebiyat", "name": "Edebiyat", "emoji": "📚" },
+        { "slug": "matematik", "name": "Matematik", "emoji": "🔢" },
+        { "slug": "geometri", "name": "Geometri", "emoji": "📐" },
+        { "slug": "fizik", "name": "Fizik", "emoji": "⚛️" },
+        { "slug": "kimya", "name": "Kimya", "emoji": "🧪" },
+        { "slug": "biyoloji", "name": "Biyoloji", "emoji": "🧬" },
+        { "slug": "tarih", "name": "Tarih", "emoji": "🏛️" },
+        { "slug": "cografya", "name": "Coğrafya", "emoji": "🗺️" },
+        { "slug": "felsefe", "name": "Felsefe", "emoji": "💭" },
+        { "slug": "din-kulturu", "name": "Din Kültürü", "emoji": "🕌" },
+        { "slug": "ingilizce", "name": "İngilizce", "emoji": "🇬🇧" },
+        { "slug": "almanca", "name": "Almanca", "emoji": "🇩🇪" },
+        { "slug": "fransizca", "name": "Fransızca", "emoji": "🇫🇷" },
+        { "slug": "beden-egitimi", "name": "Beden Eğitimi", "emoji": "⚽" }
+      ]
+    },
+    {
+      "id": "universite",
+      "label": "Üniversite",
+      "emoji": "🏫",
+      "subjects": [
+        { "slug": "matematik", "name": "Matematik", "emoji": "🔢" },
+        { "slug": "fizik", "name": "Fizik", "emoji": "⚛️" },
+        { "slug": "kimya", "name": "Kimya", "emoji": "🧪" },
+        { "slug": "biyoloji", "name": "Biyoloji", "emoji": "🧬" },
+        { "slug": "programlama", "name": "Programlama", "emoji": "👨‍💻" },
+        { "slug": "veri-yapilari", "name": "Veri Yapıları", "emoji": "🗂️" },
+        { "slug": "algoritma", "name": "Algoritma", "emoji": "🧩" },
+        { "slug": "istatistik", "name": "İstatistik", "emoji": "📊" },
+        { "slug": "ekonomi", "name": "Ekonomi", "emoji": "💹" },
+        { "slug": "hukuk", "name": "Hukuk", "emoji": "⚖️" },
+        { "slug": "anatomi", "name": "Anatomi", "emoji": "🫀" },
+        { "slug": "fizyoloji", "name": "Fizyoloji", "emoji": "🩺" },
+        { "slug": "muhendislik", "name": "Mühendislik", "emoji": "⚙️" },
+        { "slug": "isletme", "name": "İşletme", "emoji": "💼" },
+        { "slug": "psikoloji", "name": "Psikoloji", "emoji": "🧠" },
+        { "slug": "ingilizce", "name": "İngilizce", "emoji": "🇬🇧" },
+        { "slug": "akademik-ingilizce", "name": "Akademik İngilizce", "emoji": "🎓" }
+      ]
+    }
+  ]
+}

@@ -73,6 +73,7 @@ export default class Client {
     public readonly stamp_card: stamp_card.ServiceClient
     public readonly standups: standups.ServiceClient
     public readonly storage: storage.ServiceClient
+    public readonly study: study.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
     public readonly surdurulebilirlik: surdurulebilirlik.ServiceClient
@@ -138,6 +139,7 @@ export default class Client {
         this.stamp_card = new stamp_card.ServiceClient(base)
         this.standups = new standups.ServiceClient(base)
         this.storage = new storage.ServiceClient(base)
+        this.study = new study.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
         this.surdurulebilirlik = new surdurulebilirlik.ServiceClient(base)
@@ -7267,6 +7269,211 @@ export namespace storage {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/storage/upload-url`, JSON.stringify(params))
             return await resp.json() as GetUploadURLResponse
+        }
+    }
+}
+
+export namespace study {
+    export interface DayNote {
+        dayOfWeek: number
+        note: string
+    }
+
+    export interface PlanItem {
+        id: string
+        planId: string
+        dayOfWeek: number
+        subject: string
+        itemType: PlanItemType
+        title: string
+        targetValue: number | null
+        targetUnit: string | null
+        completedValue: number
+        isDone: boolean
+        sortOrder: number
+    }
+
+    export type PlanItemType = "worksheet" | "reading" | "test" | "free"
+
+    export interface Student {
+        id: string
+        name: string
+        grade: string | null
+        createdAt: string
+    }
+
+    export interface WeeklyPlan {
+        planId: string
+        weekStart: string
+        weeklyNotes: string | null
+        studentId: string | null
+        studentName: string | null
+        items: PlanItem[]
+        dayNotes: DayNote[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addPlanItem = this.addPlanItem.bind(this)
+            this.addStudent = this.addStudent.bind(this)
+            this.deletePlanItem = this.deletePlanItem.bind(this)
+            this.deleteStudent = this.deleteStudent.bind(this)
+            this.getStudents = this.getStudents.bind(this)
+            this.getWeeklyPlan = this.getWeeklyPlan.bind(this)
+            this.setDayNote = this.setDayNote.bind(this)
+            this.setWeeklyNotes = this.setWeeklyNotes.bind(this)
+            this.updatePlanItem = this.updatePlanItem.bind(this)
+        }
+
+        public async addPlanItem(params: {
+    userId: string
+    weekStart: string
+    studentId?: string
+    dayOfWeek: number
+    subject: string
+    itemType: PlanItemType
+    title: string
+    targetValue?: number
+    targetUnit?: string
+}): Promise<{
+    item: PlanItem | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/study/plan/items`, JSON.stringify(params))
+            return await resp.json() as {
+    item: PlanItem | null
+}
+        }
+
+        public async addStudent(params: {
+    userId: string
+    name: string
+    grade?: string
+}): Promise<{
+    student: Student | null
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/study/students`, JSON.stringify(params))
+            return await resp.json() as {
+    student: Student | null
+}
+        }
+
+        public async deletePlanItem(id: string, params: {
+    userId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/study/plan/items/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async deleteStudent(id: string, params: {
+    userId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/study/students/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getStudents(userId: string): Promise<{
+    students: Student[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/study/students/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    students: Student[]
+}
+        }
+
+        public async getWeeklyPlan(userId: string, params: {
+    weekStart: string
+    studentId?: string
+}): Promise<{
+    plan: WeeklyPlan | null
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                studentId: params.studentId,
+                weekStart: params.weekStart,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/study/plan/${encodeURIComponent(userId)}`, undefined, {query})
+            return await resp.json() as {
+    plan: WeeklyPlan | null
+}
+        }
+
+        public async setDayNote(params: {
+    userId: string
+    weekStart: string
+    studentId?: string
+    dayOfWeek: number
+    note: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/study/plan/day-note`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async setWeeklyNotes(params: {
+    userId: string
+    weekStart: string
+    studentId?: string
+    notes: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/study/plan/weekly-notes`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async updatePlanItem(params: {
+    userId: string
+    itemId: string
+    subject?: string
+    itemType?: PlanItemType
+    title?: string
+    targetValue?: number
+    targetUnit?: string
+    completedValue?: number
+    isDone?: boolean
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/study/plan/items/update`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
     }
 }
