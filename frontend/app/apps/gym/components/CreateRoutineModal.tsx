@@ -5,7 +5,8 @@ import { X, Plus, Trash } from "@phosphor-icons/react";
 import type { ExerciseRef, RoutineSet } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "./ExercisePicker";
-import { getExerciseBySlug, resolveExerciseName, exerciseUsesWeight, showExerciseDetail } from "../exercises";
+import { getExerciseBySlug, resolveExerciseName, exerciseUsesWeight, exerciseUsesDuration, showExerciseDetail } from "../exercises";
+import { selectInputOnClick, selectInputOnFocus, handleVerticalSetInputTab } from "../input-utils";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 
 export default function CreateRoutineModal({
@@ -129,6 +130,7 @@ export default function CreateRoutineModal({
             {exercises.map((ex, exIdx) => {
               const catalogItem = getExerciseBySlug(catalog, ex.slug);
               const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
+              const usesDuration = exerciseUsesDuration(catalogItem);
               const sets = ex.sets || [];
               return (
                 <div key={exIdx} className="bg-white rounded-2xl border border-gray-200/60 p-4 space-y-3">
@@ -147,6 +149,8 @@ export default function CreateRoutineModal({
                       </h4>
                     </div>
                     <button
+                      type="button"
+                      tabIndex={-1}
                       onClick={() => handleRemoveExercise(exIdx)}
                       className="text-red-500 hover:text-red-700 transition-colors p-1"
                     >
@@ -155,7 +159,7 @@ export default function CreateRoutineModal({
                   </div>
 
                   {/* Set table */}
-                  <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30">
+                  <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30" data-set-table>
                     <div
                       className={`grid ${
                         usesWeight
@@ -166,7 +170,7 @@ export default function CreateRoutineModal({
                       <div className="px-2 py-2 text-center">Set</div>
                       <div />
                       {usesWeight && <div className="px-1 py-2 text-center">Kg</div>}
-                      <div className="px-1 py-2 text-center">Tekrar</div>
+                      <div className="px-1 py-2 text-center">{usesDuration ? "Süre (sn)" : "Tekrar"}</div>
                       <div />
                     </div>
 
@@ -190,6 +194,19 @@ export default function CreateRoutineModal({
                               inputMode="decimal"
                               placeholder="—"
                               value={set.weightKg ?? ""}
+                              data-ex-idx={exIdx}
+                              data-set-idx={setIdx}
+                              data-set-field="weightKg"
+                              onKeyDown={(e) =>
+                                handleVerticalSetInputTab(e, {
+                                  exIdx,
+                                  setIdx,
+                                  field: "weightKg",
+                                  totalSets: sets.length,
+                                })
+                              }
+                              onFocus={selectInputOnFocus}
+                              onClick={selectInputOnClick}
                               onChange={(e) => {
                                 const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
                                 handleUpdateSetField(exIdx, setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
@@ -204,6 +221,19 @@ export default function CreateRoutineModal({
                             inputMode="numeric"
                             placeholder="—"
                             value={set.reps ?? ""}
+                            data-ex-idx={exIdx}
+                            data-set-idx={setIdx}
+                            data-set-field="reps"
+                            onKeyDown={(e) =>
+                              handleVerticalSetInputTab(e, {
+                                exIdx,
+                                setIdx,
+                                field: "reps",
+                                totalSets: sets.length,
+                              })
+                            }
+                            onFocus={selectInputOnFocus}
+                            onClick={selectInputOnClick}
                             onChange={(e) => {
                               const cleanVal = e.target.value.replace(/[^0-9]/g, "");
                               handleUpdateSetField(exIdx, setIdx, "reps", cleanVal ? Number(cleanVal) : null);
@@ -213,6 +243,8 @@ export default function CreateRoutineModal({
                         </div>
                         <div className="flex justify-center py-1">
                           <button
+                            type="button"
+                            tabIndex={-1}
                             disabled={sets.length <= 1}
                             onClick={() => handleRemoveSet(exIdx, setIdx)}
                             className="w-7 h-7 text-gray-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors disabled:opacity-30"

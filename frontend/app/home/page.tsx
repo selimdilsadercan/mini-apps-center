@@ -913,16 +913,18 @@ function HomeSummaryCards({
     todayAgenda.length > 0 && pendingTodayAgenda.length === 0
       ? "Görev kalmadı"
       : "Bugün plan yok";
-  const pendingTodaySeries = todaySeries
-    .filter((item) => !item.isWatched)
-    .sort((a, b) => {
-      const aAired = isSeriesEpisodeAvailableNow(a.airDate);
-      const bAired = isSeriesEpisodeAvailableNow(b.airDate);
-      if (aAired !== bAired) return aAired ? -1 : 1;
-      return 0;
-    });
+  const unwatchedTodaySeries = todaySeries.filter((item) => !item.isWatched);
+  const availableTodaySeries = unwatchedTodaySeries.filter((item) =>
+    isSeriesEpisodeAvailableNow(item.airDate)
+  );
+  const upcomingTodaySeries = unwatchedTodaySeries.filter(
+    (item) => !isSeriesEpisodeAvailableNow(item.airDate)
+  );
   const completedTodaySeries = todaySeries.filter((item) => item.isWatched);
-  const seriesEmptyText = "Bugün bölüm yok";
+  const seriesEmptyText =
+    upcomingTodaySeries.length > 0 && availableTodaySeries.length === 0
+      ? "Henüz yayınlanmadı"
+      : "Bugün bölüm yok";
   const previewTodayMeals = [...todayMeals]
     .filter((meal) => isMealTypeVisibleAtTime(meal.mealType))
     .sort(
@@ -1325,7 +1327,7 @@ function HomeSummaryCards({
     {
       key: "series",
       loading: loading,
-      hasContent: pendingTodaySeries.length > 0,
+      hasContent: availableTodaySeries.length > 0,
       card: (
         <HomeSummaryCard
           href="/apps/series-track"
@@ -1335,7 +1337,7 @@ function HomeSummaryCards({
           subtitle="SeriesTrack"
           loading={loading}
           emptyText={seriesEmptyText}
-          hasContent={pendingTodaySeries.length > 0}
+          hasContent={availableTodaySeries.length > 0}
           emptyFooter={
             completedTodaySeries.length > 0 ? (
               <>
@@ -1382,11 +1384,8 @@ function HomeSummaryCards({
             ) : undefined
           }
         >
-          {pendingTodaySeries.map((item) => {
-            const isAired = isSeriesEpisodeAvailableNow(item.airDate);
-            const { timeLabel } = formatSeriesAirLabels(item.airDate);
-            return (
-            <div key={item.id} className={`px-4 py-3 border-t border-gray-50 space-y-2.5 ${!isAired ? "opacity-80" : ""}`}>
+          {availableTodaySeries.map((item) => (
+            <div key={item.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                   {item.posterPath ? (
@@ -1413,28 +1412,19 @@ function HomeSummaryCards({
                 <SeriesAirTimeBadge airDate={item.airDate} />
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {isAired ? (
-                  <>
-                    <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
-                      İzle
-                    </WidgetActionButton>
-                    <WidgetActionButton
-                      onClick={() => handleToggleWatched(item)}
-                      loading={actionLoading === `series-${item.id}`}
-                      icon={CheckCircle}
-                    >
-                      İzlendi işaretle
-                    </WidgetActionButton>
-                  </>
-                ) : (
-                  <span className="px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[9px] font-black uppercase tracking-wide text-gray-400">
-                    {timeLabel}&apos;da yayında
-                  </span>
-                )}
+                <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
+                  İzle
+                </WidgetActionButton>
+                <WidgetActionButton
+                  onClick={() => handleToggleWatched(item)}
+                  loading={actionLoading === `series-${item.id}`}
+                  icon={CheckCircle}
+                >
+                  İzlendi işaretle
+                </WidgetActionButton>
               </div>
             </div>
-            );
-          })}
+          ))}
         </HomeSummaryCard>
       ),
     },

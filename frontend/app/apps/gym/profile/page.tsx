@@ -1,54 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import {
-  User as UserIcon,
-} from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
+import { User as UserIcon } from "@phosphor-icons/react";
 import GymShell from "../components/GymShell";
-import { getStatsAction, getWorkoutsAction, getRoutinesAction } from "../actions";
-import type { GymStats, Workout, Routine } from "../types";
-import { formatDuration, getExerciseBySlug, resolveExerciseName } from "../exercises";
+import type { Workout } from "../types";
+import { formatDuration, getExerciseBySlug, resolveExerciseName, showExerciseDetail } from "../exercises";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExerciseThumbnail from "../components/ExerciseThumbnail";
 import WeeklyPlanPicker from "../components/WeeklyPlanPicker";
+import WorkoutHistoryCalendar from "../components/WorkoutHistoryCalendar";
 import EditWorkoutModal from "../components/EditWorkoutModal";
+import {
+  GYM_STALE_TIME,
+  fetchGymRoutines,
+  fetchGymStats,
+  fetchGymWorkouts,
+  gymRoutinesKey,
+  gymStatsKey,
+  gymWorkoutsKey,
+} from "@/lib/gymCache";
 
 export default function GymProfilePage() {
   const { user, isLoaded } = useUser();
   const { catalog } = useExerciseCatalog();
-  const [stats, setStats] = useState<GymStats | null>(null);
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [routines, setRoutines] = useState<Routine[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    loadData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user]);
+  const routinesQuery = useQuery({
+    queryKey: gymRoutinesKey(user?.id ?? ""),
+    queryFn: () => fetchGymRoutines(user!.id),
+    enabled: isLoaded && !!user?.id,
+    staleTime: GYM_STALE_TIME,
+    refetchOnWindowFocus: true,
+  });
 
-  async function loadData() {
-    if (!user) return;
-    try {
-      setLoading(true);
-      const [statsResult, workoutsResult, routinesResult] = await Promise.all([
-        getStatsAction(user.id),
-        getWorkoutsAction(user.id),
-        getRoutinesAction(user.id),
-      ]);
-      if (statsResult.data) setStats(statsResult.data);
-      if (workoutsResult.data) setWorkouts(workoutsResult.data);
-      if (routinesResult.data) setRoutines(routinesResult.data);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const workoutsQuery = useQuery({
+    queryKey: gymWorkoutsKey(user?.id ?? ""),
+    queryFn: () => fetchGymWorkouts(user!.id),
+    enabled: isLoaded && !!user?.id,
+    staleTime: GYM_STALE_TIME,
+    refetchOnWindowFocus: true,
+  });
+
+  useQuery({
+    queryKey: gymStatsKey(user?.id ?? ""),
+    queryFn: () => fetchGymStats(user!.id),
+    enabled: isLoaded && !!user?.id,
+    staleTime: GYM_STALE_TIME,
+    refetchOnWindowFocus: true,
+  });
+
+  const routines = routinesQuery.data ?? [];
+  const workouts = workoutsQuery.data ?? [];
+  const loading =
+    isLoaded &&
+    !!user?.id &&
+    routinesQuery.isLoading &&
+    workoutsQuery.isLoading &&
+    routines.length === 0 &&
+    workouts.length === 0;
 
   if (!isLoaded || loading) {
     return (
@@ -74,10 +85,10 @@ export default function GymProfilePage() {
   return (
     <GymShell activeTab="profile">
       <div className="space-y-6">
-        {/* Haftalık Plan */}
         <WeeklyPlanPicker userId={user.id} routines={routines} />
 
-        {/* Recent workouts */}
+        <WorkoutHistoryCalendar workouts={workouts} />
+
         <div className="space-y-2.5">
           <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider">Geçmiş Aktiviteler</h3>
           {workouts.length === 0 ? (
@@ -87,8 +98,6 @@ export default function GymProfilePage() {
           ) : (
             <div className="space-y-3">
               {workouts.slice(0, 5).map((workout) => {
-                const firstEx = workout.exercises[0];
-                const catalogItem = firstEx ? getExerciseBySlug(catalog, firstEx.slug) : undefined;
                 const date = workout.finishedAt
                   ? new Date(workout.finishedAt).toLocaleDateString("tr-TR", {
                       weekday: "long",
@@ -108,7 +117,7 @@ export default function GymProfilePage() {
                       <h4 className="text-sm font-black text-gray-900">{workout.name}</h4>
                       <p className="text-[10px] font-bold text-gray-400">{date}</p>
                     </div>
-                    
+
                     <div className="flex gap-4 mb-3">
                       <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Süre</p>
@@ -126,17 +135,32 @@ export default function GymProfilePage() {
                       )}
                     </div>
 
-                    {firstEx && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50/50 rounded-lg p-2 border border-gray-100/30">
-                        {catalogItem ? (
-                          <ExerciseThumbnail exercise={catalogItem} size="sm" />
-                        ) : (
-                          <span className="text-base">🏋️</span>
-                        )}
-                        <span className="font-medium">
-                          {firstEx.sets.filter((s) => s.completed).length} set{" "}
-                          {resolveExerciseName(catalog, firstEx.slug, firstEx.name)}
-                        </span>
+                    {workout.exercises.length > 0 && (
+                      <div className="flex flex-wrap gap-2 bg-gray-50/50 rounded-lg p-2 border border-gray-100/30">
+                        {workout.exercises.map((ex, idx) => {
+                          const item = getExerciseBySlug(catalog, ex.slug);
+                          return (
+                            <div
+                              key={idx}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (item) showExerciseDetail(item);
+                              }}
+                              className={`shrink-0 transition-transform active:scale-95 ${
+                                item ? "cursor-pointer" : ""
+                              }`}
+                              title={resolveExerciseName(catalog, ex.slug, ex.name)}
+                            >
+                              {item ? (
+                                <ExerciseThumbnail exercise={item} size="sm" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-[10px] shrink-0">
+                                  🏋️
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -152,7 +176,9 @@ export default function GymProfilePage() {
           workout={selectedWorkout}
           open={!!selectedWorkout}
           onClose={() => setSelectedWorkout(null)}
-          onUpdated={loadData}
+          onUpdated={(updated) => {
+            setSelectedWorkout(updated);
+          }}
           userId={user.id}
         />
       )}

@@ -82,6 +82,22 @@ export function searchExercises(
     .slice(0, limit);
 }
 
+export function createCustomExerciseSlug(name: string): string {
+  const base = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `custom-${base || "egzersiz"}`;
+}
+
 export function resolveExerciseName(
   catalog: ExerciseCatalogItem[],
   slug: string,
@@ -163,15 +179,39 @@ export function getExerciseBySlug(
 
 const NO_WEIGHT_EQUIPMENT = new Set(["Body Only"]);
 
+const DURATION_EXERCISE_PATTERN =
+  /\b(plank|side plank|wall sit|dead hang|hollow hold|l-sit|superman hold|glute bridge hold|isometric hold|isometric neck|isometric chest|static hold)\b/i;
+
+export function exerciseUsesDuration(
+  exercise: Pick<ExerciseCatalogItem, "name" | "nameEn"> | undefined
+): boolean {
+  if (!exercise) return false;
+  return DURATION_EXERCISE_PATTERN.test(`${exercise.nameEn} ${exercise.name}`);
+}
+
 export function exerciseUsesWeight(equipment: string[] | undefined): boolean {
   if (!equipment?.length) return false;
   return !equipment.every((item) => NO_WEIGHT_EQUIPMENT.has(item));
 }
 
-export function formatPreviousSet(set: { reps: number | null; weightKg: number | null }): string {
+export function formatPreviousSet(
+  set: { reps: number | null; weightKg: number | null },
+  options?: { duration?: boolean }
+): string {
+  if (options?.duration) {
+    if (set.reps != null && set.reps > 0) return formatSetDuration(set.reps);
+    return "—";
+  }
   if (set.weightKg && set.reps) return `${set.weightKg}kg × ${set.reps}`;
   if (set.reps) return `× ${set.reps}`;
   return "—";
+}
+
+export function formatSetDuration(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  if (m > 0) return `${m}:${s.toString().padStart(2, "0")}`;
+  return `${s}s`;
 }
 
 export function calcVolume(

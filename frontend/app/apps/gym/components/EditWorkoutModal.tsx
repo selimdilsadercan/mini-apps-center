@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { X, Plus, Check, Trash, Barbell } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { X, Plus, Trash } from "@phosphor-icons/react";
 import type { Workout, WorkoutExercise, WorkoutSet, ExerciseRef } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import {
@@ -11,11 +12,31 @@ import {
   resolveExerciseName,
   showExerciseDetail,
 } from "../exercises";
+import { selectInputOnClick, selectInputOnFocus, handleVerticalSetInputTab } from "../input-utils";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import ExercisePicker from "./ExercisePicker";
 import { updateWorkoutAction, deleteWorkoutAction } from "../actions";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "react-hot-toast";
+import {
+  invalidateGymStats,
+  removeWorkoutFromCache,
+  upsertWorkoutInCache,
+} from "@/lib/gymCache";
+
+function toDateInputValue(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function applyWorkoutDate(isoBase: string, newDateStr: string): string {
+  const base = new Date(isoBase);
+  const [y, mo, d] = newDateStr.split("-").map(Number);
+  return new Date(y, mo - 1, d, base.getHours(), base.getMinutes(), base.getSeconds(), 0).toISOString();
+}
 
 export default function EditWorkoutModal({
   workout,
@@ -27,16 +48,29 @@ export default function EditWorkoutModal({
   workout: Workout;
   open: boolean;
   onClose: () => void;
-  onUpdated: () => void;
+  onUpdated: (workout: Workout) => void;
   userId: string;
 }) {
   const { confirm } = useConfirmDialog();
+  const queryClient = useQueryClient();
   const { catalog, loading: catalogLoading } = useExerciseCatalog();
   const [name, setName] = useState(workout.name);
+  const [date, setDate] = useState(
+    toDateInputValue(workout.finishedAt || workout.startedAt)
+  );
   const [minutes, setMinutes] = useState(Math.round(workout.durationSeconds / 60).toString());
   const [exercises, setExercises] = useState<WorkoutExercise[]>(workout.exercises);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setName(workout.name);
+    setDate(toDateInputValue(workout.finishedAt || workout.startedAt));
+    setMinutes(Math.round(workout.durationSeconds / 60).toString());
+    setExercises(workout.exercises);
+    setSaving(false);
+  }, [open, workout]);
 
   if (!open) return null;
 
@@ -101,10 +135,13 @@ export default function EditWorkoutModal({
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || !date) return;
     setSaving(true);
     const durationSeconds = Number(minutes.replace(/[^0-9]/g, "")) * 60;
     const volume = calcVolume(exercises);
+    const baseFinished = workout.finishedAt || workout.startedAt;
+    const finishedAt = applyWorkoutDate(baseFinished, date);
+    const startedAt = new Date(new Date(finishedAt).getTime() - durationSeconds * 1000).toISOString();
 
     const result = await updateWorkoutAction(userId, {
       workoutId: workout.id,
@@ -112,11 +149,15 @@ export default function EditWorkoutModal({
       exercises,
       durationSeconds,
       totalVolumeKg: volume,
+      startedAt,
+      finishedAt,
     });
 
     if (result.data) {
+      upsertWorkoutInCache(queryClient, userId, result.data);
+      invalidateGymStats(queryClient, userId);
       toast.success("Antrenman başarıyla güncellendi!");
-      onUpdated();
+      onUpdated(result.data);
       onClose();
     } else {
       toast.error(`Güncelleme hatası: ${result.error}`);
@@ -136,8 +177,9 @@ export default function EditWorkoutModal({
     setSaving(true);
     const result = await deleteWorkoutAction(userId, workout.id);
     if (result.data) {
+      removeWorkoutFromCache(queryClient, userId, workout.id);
+      invalidateGymStats(queryClient, userId);
       toast.success("Antrenman geçmişten silindi!");
-      onUpdated();
       onClose();
     } else {
       toast.error(`Silme hatası: ${result.error}`);
@@ -175,7 +217,7 @@ export default function EditWorkoutModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {/* General Fields */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <div>
               <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
                 Antrenman Adı
@@ -187,17 +229,30 @@ export default function EditWorkoutModal({
                 className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
               />
             </div>
-            <div>
-              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
-                Süre (Dakika)
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={minutes}
-                onChange={(e) => setMinutes(e.target.value.replace(/[^0-9]/g, ""))}
-                className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
+                  Tarih
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
+                  Süre (Dakika)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={minutes}
+                  onChange={(e) => setMinutes(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+                />
+              </div>
             </div>
           </div>
 
@@ -219,6 +274,8 @@ export default function EditWorkoutModal({
                       {resolveExerciseName(catalog, ex.slug, ex.name)}
                     </h4>
                     <button
+                      type="button"
+                      tabIndex={-1}
                       onClick={() => handleRemoveExercise(exIdx)}
                       className="text-red-500 hover:text-red-700 transition-colors p-1"
                     >
@@ -227,7 +284,7 @@ export default function EditWorkoutModal({
                   </div>
 
                   {/* Set table */}
-                  <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30">
+                  <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30" data-set-table>
                     <div
                       className={`grid ${
                         usesWeight
@@ -262,6 +319,19 @@ export default function EditWorkoutModal({
                               inputMode="decimal"
                               placeholder="—"
                               value={set.weightKg ?? ""}
+                              data-ex-idx={exIdx}
+                              data-set-idx={setIdx}
+                              data-set-field="weightKg"
+                              onKeyDown={(e) =>
+                                handleVerticalSetInputTab(e, {
+                                  exIdx,
+                                  setIdx,
+                                  field: "weightKg",
+                                  totalSets: ex.sets.length,
+                                })
+                              }
+                              onFocus={selectInputOnFocus}
+                              onClick={selectInputOnClick}
                               onChange={(e) => {
                                 const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
                                 handleUpdateSet(exIdx, setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
@@ -276,6 +346,19 @@ export default function EditWorkoutModal({
                             inputMode="numeric"
                             placeholder="—"
                             value={set.reps ?? ""}
+                            data-ex-idx={exIdx}
+                            data-set-idx={setIdx}
+                            data-set-field="reps"
+                            onKeyDown={(e) =>
+                              handleVerticalSetInputTab(e, {
+                                exIdx,
+                                setIdx,
+                                field: "reps",
+                                totalSets: ex.sets.length,
+                              })
+                            }
+                            onFocus={selectInputOnFocus}
+                            onClick={selectInputOnClick}
                             onChange={(e) => {
                               const cleanVal = e.target.value.replace(/[^0-9]/g, "");
                               handleUpdateSet(exIdx, setIdx, "reps", cleanVal ? Number(cleanVal) : null);
@@ -285,6 +368,8 @@ export default function EditWorkoutModal({
                         </div>
                         <div className="flex justify-center py-1">
                           <button
+                            type="button"
+                            tabIndex={-1}
                             onClick={() => handleRemoveSet(exIdx, setIdx)}
                             className="w-7 h-7 text-gray-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors"
                           >

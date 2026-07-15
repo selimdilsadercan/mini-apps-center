@@ -3,37 +3,40 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CaretDown,
   Plus,
-  Check,
-  DotsThreeVertical,
-  Timer,
   X,
 } from "@phosphor-icons/react";
 import {
   ACTIVE_SESSION_KEY,
-  createEmptySet,
   createExerciseFromRef,
+  getActiveSessionElapsed,
+  buildActiveSessionFinishedAt,
   type ActiveSession,
   type WorkoutExercise,
   type WorkoutSet,
 } from "../types";
-import { calcVolume, exerciseUsesWeight, formatPreviousSet, getExerciseBySlug, resolveExerciseName, type ExerciseCatalogItem } from "../exercises";
-import ExerciseThumbnail from "../components/ExerciseThumbnail";
+import { calcVolume } from "../exercises";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
+import { invalidateGymStats, prependWorkoutToCache } from "@/lib/gymCache";
 import type { ExerciseRef } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "../components/ExercisePicker";
+import SessionStatsEditSheet, { SessionStatsBar } from "../components/SessionStatsEditSheet";
+import ExerciseBlock from "../components/ExerciseBlock";
 
 function SessionContent() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const queryClient = useQueryClient();
   const { catalog, loading: catalogLoading } = useExerciseCatalog();
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [previousMap, setPreviousMap] = useState<Record<string, WorkoutSet[]>>({});
   const [showAddExercise, setShowAddExercise] = useState(false);
+  const [showStatsEditor, setShowStatsEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -46,8 +49,7 @@ function SessionContent() {
     try {
       const parsed = JSON.parse(raw) as ActiveSession;
       setSession(parsed);
-      const start = new Date(parsed.startedAt).getTime();
-      setElapsed(Math.floor((Date.now() - start) / 1000));
+      setElapsed(getActiveSessionElapsed(parsed));
     } catch {
       router.replace("/apps/gym");
     }
@@ -55,14 +57,23 @@ function SessionContent() {
 
   useEffect(() => {
     if (!session) return;
-    timerRef.current = setInterval(() => {
-      const start = new Date(session.startedAt).getTime();
-      setElapsed(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    if (session.manualDurationSeconds != null) {
+      setElapsed(session.manualDurationSeconds);
+      timerRef.current = setInterval(() => {
+        setElapsed((prev) => prev + 1);
+      }, 1000);
+    } else {
+      timerRef.current = setInterval(() => {
+        setElapsed(getActiveSessionElapsed(session));
+      }, 1000);
+    }
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [session]);
+  }, [session?.startedAt, session?.manualDurationSeconds]);
 
   const loadPrevious = useCallback(async (slug: string) => {
     if (!user || previousMap[slug]) return;
@@ -103,7 +114,8 @@ function SessionContent() {
   const handleFinish = async () => {
     if (!session || !user || saving) return;
     setSaving(true);
-    const finishedAt = new Date().toISOString();
+    const durationSeconds = session.manualDurationSeconds ?? elapsed;
+    const finishedAt = buildActiveSessionFinishedAt(session.startedAt, durationSeconds);
     const volume = calcVolume(session.exercises);
     const result = await saveWorkoutAction(user.id, {
       name: session.name,
@@ -111,11 +123,13 @@ function SessionContent() {
       exercises: session.exercises,
       startedAt: session.startedAt,
       finishedAt,
-      durationSeconds: elapsed,
+      durationSeconds,
       totalVolumeKg: volume,
     });
     sessionStorage.removeItem(ACTIVE_SESSION_KEY);
     if (result.data) {
+      prependWorkoutToCache(queryClient, user.id, result.data);
+      invalidateGymStats(queryClient, user.id);
       router.replace("/apps/gym/profile");
     } else {
       setSaving(false);
@@ -129,13 +143,15 @@ function SessionContent() {
 
   const volume = session ? calcVolume(session.exercises) : 0;
 
-  const formatElapsed = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    if (h > 0) return `${h}s ${m}dk`;
-    if (m > 0) return `${m}dk ${sec}s`;
-    return `${sec}s`;
+  const handleStatsSave = (startedAt: string, durationSeconds: number) => {
+    if (!session) return;
+    const updated: ActiveSession = {
+      ...session,
+      startedAt,
+      manualDurationSeconds: durationSeconds,
+    };
+    updateSession(updated);
+    setElapsed(durationSeconds);
   };
 
   if (!isLoaded || !session) {
@@ -169,21 +185,13 @@ function SessionContent() {
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="flex items-center justify-around px-4 pb-3 max-w-xl mx-auto w-full">
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Süre</p>
-            <p className="text-sm font-black text-violet-500 tabular-nums">{formatElapsed(elapsed)}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Hacim</p>
-            <p className="text-sm font-black text-gray-900 tabular-nums">{volume} kg</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Set</p>
-            <p className="text-sm font-black text-gray-900 tabular-nums">{completedSets}</p>
-          </div>
-        </div>
+        <SessionStatsBar
+          elapsed={elapsed}
+          volume={volume}
+          completedSets={completedSets}
+          onEditDuration={() => setShowStatsEditor(true)}
+          durationAccent="violet-500"
+        />
       </header>
 
       <main className="flex-1 px-4 py-4 pb-8 max-w-xl mx-auto w-full space-y-4">
@@ -194,6 +202,7 @@ function SessionContent() {
             catalog={catalog}
             previousSets={previousMap[exercise.slug] ?? []}
             onChange={(ex) => updateExercise(exIdx, ex)}
+            variant="page"
           />
         ))}
 
@@ -205,6 +214,16 @@ function SessionContent() {
           Egzersiz Ekle
         </button>
       </main>
+
+      {showStatsEditor && (
+        <SessionStatsEditSheet
+          open={showStatsEditor}
+          onClose={() => setShowStatsEditor(false)}
+          startedAt={session.startedAt}
+          elapsed={elapsed}
+          onSave={handleStatsSave}
+        />
+      )}
 
       {showAddExercise && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -231,143 +250,6 @@ function SessionContent() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function ExerciseBlock({
-  exercise,
-  catalog,
-  previousSets,
-  onChange,
-}: {
-  exercise: WorkoutExercise;
-  catalog: ExerciseCatalogItem[];
-  previousSets: WorkoutSet[];
-  onChange: (ex: WorkoutExercise) => void;
-}) {
-  const catalogItem = getExerciseBySlug(catalog, exercise.slug);
-  const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
-
-  const updateSet = (setIdx: number, field: keyof WorkoutSet, value: number | boolean | null) => {
-    const sets = exercise.sets.map((s, i) =>
-      i === setIdx ? { ...s, [field]: value } : s
-    );
-    onChange({ ...exercise, sets });
-  };
-
-  const toggleComplete = (setIdx: number) => {
-    const set = exercise.sets[setIdx];
-    updateSet(setIdx, "completed", !set.completed);
-  };
-
-  const addSet = () => {
-    onChange({ ...exercise, sets: [...exercise.sets, createEmptySet()] });
-  };
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        {catalogItem ? (
-          <ExerciseThumbnail exercise={catalogItem} />
-        ) : (
-          <div className="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center text-lg">🏋️</div>
-        )}
-        <h3 className="flex-1 text-sm font-black text-violet-500">
-          {resolveExerciseName(catalog, exercise.slug, exercise.name)}
-        </h3>
-        <button className="text-gray-400">
-          <DotsThreeVertical size={18} weight="bold" />
-        </button>
-      </div>
-
-
-      {/* Set table */}
-      <div className="mx-4 mb-3 rounded-xl overflow-hidden border border-gray-100">
-        <div
-          className={`grid ${
-            usesWeight
-              ? "grid-cols-[2rem_1fr_3.5rem_3.5rem_2rem]"
-              : "grid-cols-[2rem_1fr_3.5rem_2rem]"
-          } bg-gray-50 text-[9px] font-black text-gray-400 uppercase tracking-wide`}
-        >
-          <div className="px-2 py-2 text-center">Set</div>
-          <div className="px-1 py-2">Önceki</div>
-          {usesWeight && <div className="px-1 py-2 text-center">Kg</div>}
-          <div className="px-1 py-2 text-center">Tekrar</div>
-          <div />
-        </div>
-        {exercise.sets.map((set, setIdx) => {
-          const prev = previousSets[setIdx];
-          return (
-            <div
-              key={setIdx}
-              className={`grid ${
-                usesWeight
-                  ? "grid-cols-[2rem_1fr_3.5rem_3.5rem_2rem]"
-                  : "grid-cols-[2rem_1fr_3.5rem_2rem]"
-              } items-center ${setIdx % 2 === 0 ? "bg-white" : "bg-gray-50/80"}`}
-            >
-              <div className="px-2 py-2.5 text-center text-xs font-bold text-gray-500 tabular-nums">
-                {setIdx + 1}
-              </div>
-              <div className="px-1 py-2.5 text-[10px] text-gray-400 font-medium">
-                {prev ? formatPreviousSet(prev) : "—"}
-              </div>
-              {usesWeight && (
-                <div className="px-1 py-1.5">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="—"
-                    value={set.weightKg ?? ""}
-                    onChange={(e) => {
-                      const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
-                      updateSet(setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
-                    }}
-                    className="w-full text-center text-xs font-bold bg-transparent border border-gray-200/60 rounded-lg py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-400 tabular-nums"
-                  />
-                </div>
-              )}
-              <div className="px-1 py-1.5">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="—"
-                  value={set.reps ?? ""}
-                  onChange={(e) => {
-                    const cleanVal = e.target.value.replace(/[^0-9]/g, "");
-                    updateSet(setIdx, "reps", cleanVal ? Number(cleanVal) : null);
-                  }}
-                  className="w-full text-center text-xs font-bold bg-transparent border border-gray-200/60 rounded-lg py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-400 tabular-nums"
-                />
-              </div>
-              <div className="flex justify-center py-1.5">
-                <button
-                  onClick={() => toggleComplete(setIdx)}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                    set.completed
-                      ? "bg-gray-700 text-white"
-                      : "bg-gray-100 text-gray-300 hover:bg-gray-200"
-                  }`}
-                >
-                  <Check size={14} weight="bold" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="px-4 pb-4">
-        <button
-          onClick={addSet}
-          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1"
-        >
-          <Plus size={14} weight="bold" />
-          Set Ekle
-        </button>
-      </div>
     </div>
   );
 }

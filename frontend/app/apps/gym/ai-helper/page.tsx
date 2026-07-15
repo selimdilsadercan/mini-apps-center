@@ -2,13 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CaretLeft, Copy, Download, Upload, Sparkle, FileCode, CaretDown, CaretUp, Check, Warning, PencilSimple, X } from "@phosphor-icons/react";
 import GymShell from "../components/GymShell";
-import { getWorkoutsAction, saveWorkoutAction, createRoutineAction } from "../actions";
-import type { Workout } from "../types";
+import { saveWorkoutAction, createRoutineAction } from "../actions";
 import { toast } from "react-hot-toast";
 import ExerciseThumbnail from "../components/ExerciseThumbnail";
 import ExercisePicker from "../components/ExercisePicker";
+import {
+  GYM_STALE_TIME,
+  fetchGymWorkouts,
+  gymWorkoutsKey,
+  invalidateGymStats,
+  prependWorkoutToCache,
+  syncGymDiscoverWidgets,
+  upsertRoutineInCache,
+} from "@/lib/gymCache";
 
 interface PreviewExercise {
   name: string;
@@ -31,8 +40,15 @@ interface PreviewItem {
 
 export default function AiHelperPage() {
   const { user, isLoaded } = useUser();
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: workouts = [], isLoading: workoutsLoading } = useQuery({
+    queryKey: gymWorkoutsKey(user?.id ?? ""),
+    queryFn: () => fetchGymWorkouts(user!.id),
+    enabled: isLoaded && !!user?.id,
+    staleTime: GYM_STALE_TIME,
+    refetchOnWindowFocus: true,
+  });
+  const [catalogLoading, setCatalogLoading] = useState(true);
   
   // Imports state
   const [routineImportText, setRoutineImportText] = useState("");
@@ -69,28 +85,21 @@ export default function AiHelperPage() {
 
   useEffect(() => {
     if (!isLoaded || !user) {
-      if (isLoaded) setLoading(false);
+      if (isLoaded) setCatalogLoading(false);
       return;
     }
-    loadWorkouts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    void (async () => {
+      try {
+        const { loadExerciseCatalog } = await import("../exercises");
+        const cat = await loadExerciseCatalog();
+        setActiveCatalog(cat);
+      } finally {
+        setCatalogLoading(false);
+      }
+    })();
   }, [isLoaded, user]);
 
-  async function loadWorkouts() {
-    try {
-      setLoading(true);
-      const result = await getWorkoutsAction(user!.id);
-      if (result.data) {
-        setWorkouts(result.data);
-      }
-      
-      const { loadExerciseCatalog } = await import("../exercises");
-      const cat = await loadExerciseCatalog();
-      setActiveCatalog(cat);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const loading = !isLoaded || workoutsLoading || catalogLoading;
 
   const getCleanWorkoutsJson = () => {
     const clean = workouts.map((w) => ({
@@ -418,10 +427,15 @@ KRİTİK UYARI (Eşleşme Sorunu): Egzersizlerin "slug" alanı, sistemdeki görs
                 weightKg: s.weightKg,
               })),
             }))
-          );
+          ).then((result) => {
+            if (result.data) {
+              upsertRoutineInCache(queryClient, user.id, result.data);
+            }
+          });
           count++;
         }
         toast.success(`${count} yeni antrenman rutini başarıyla eklendi!`);
+        syncGymDiscoverWidgets(queryClient, user.id);
         setRoutineImportText("");
         setPreviewData(null);
         window.location.href = "/apps/gym";
@@ -446,13 +460,17 @@ KRİTİK UYARI (Eşleşme Sorunu): Egzersizlerin "slug" alanı, sistemdeki görs
             finishedAt: item.finishedAt || new Date().toISOString(),
             durationSeconds: item.durationSeconds || 0,
             totalVolumeKg: item.totalVolumeKg || 0,
+          }).then((result) => {
+            if (result.data) {
+              prependWorkoutToCache(queryClient, user.id, result.data);
+            }
           });
           count++;
         }
         toast.success(`${count} geçmiş antrenman başarıyla aktarıldı!`);
+        invalidateGymStats(queryClient, user.id);
         setWorkoutImportText("");
         setPreviewData(null);
-        loadWorkouts();
       }
     } catch (e: any) {
       toast.error(`Aktarma hatası: ${e.message}`);
@@ -877,12 +895,13 @@ KRİTİK UYARI (Eşleşme Sorunu): Egzersizlerin "slug" alanı, sistemdeki görs
             <div className="flex-1 overflow-y-auto min-h-0">
               <ExercisePicker 
                 catalog={activeCatalog} 
+                allowCustom={false}
                 onSelect={(selectedEx) => {
                   if (!previewData) return;
                   const updated = [...previewData.items];
                   const ex = updated[pickerActiveFor.itemIdx].exercises[pickerActiveFor.exIdx];
-                  ex.matchedItem = selectedEx;
-                  ex.matchScore = 1.0; // Mark as perfect/confirmed match
+                  ex.matchedItem = activeCatalog.find((item) => item.slug === selectedEx.slug);
+                  ex.matchScore = 1.0;
                   setPreviewData({ ...previewData, items: updated });
                   setPickerActiveFor(null);
                   toast.success("Egzersiz başarıyla güncellendi!");

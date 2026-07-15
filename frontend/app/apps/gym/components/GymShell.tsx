@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getAppRootUrl } from "@/lib/apps";
 import { CaretLeft, Barbell, User, Timer, ArrowRight, Sparkle } from "@phosphor-icons/react";
-import { ACTIVE_SESSION_KEY, type ActiveSession } from "../types";
+import { ACTIVE_SESSION_KEY, type ActiveSession, getActiveSessionElapsed } from "../types";
 import ActiveSessionSheet from "./ActiveSessionSheet";
 
 export type GymTab = "workout" | "profile" | "none";
@@ -26,8 +26,7 @@ export default function GymShell({
       try {
         const parsed = JSON.parse(raw) as ActiveSession;
         setActiveSession(parsed);
-        const start = new Date(parsed.startedAt).getTime();
-        setElapsed(Math.floor((Date.now() - start) / 1000));
+        setElapsed(getActiveSessionElapsed(parsed));
       } catch (e) {
         // ignore
       }
@@ -59,14 +58,21 @@ export default function GymShell({
 
   useEffect(() => {
     if (!activeSession) return;
-    const start = new Date(activeSession.startedAt).getTime();
-    
+
+    if (activeSession.manualDurationSeconds != null) {
+      setElapsed(activeSession.manualDurationSeconds);
+      const interval = setInterval(() => {
+        setElapsed((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+
     const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - start) / 1000));
+      setElapsed(getActiveSessionElapsed(activeSession));
     }, 1000);
-    
+
     return () => clearInterval(interval);
-  }, [activeSession]);
+  }, [activeSession?.startedAt, activeSession?.manualDurationSeconds]);
 
   const formatElapsed = (s: number) => {
     const h = Math.floor(s / 3600);

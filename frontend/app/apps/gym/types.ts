@@ -13,6 +13,9 @@ export interface WorkoutSet {
   reps: number | null;
   weightKg: number | null;
   completed: boolean;
+  /** Rutinden gelen hedef — input placeholder; tiklenince gerçek değere yazılır */
+  targetReps?: number | null;
+  targetWeightKg?: number | null;
 }
 
 export interface WorkoutExercise {
@@ -62,6 +65,18 @@ export interface ActiveSession {
   routineId: string | null;
   exercises: WorkoutExercise[];
   startedAt: string;
+  manualDurationSeconds?: number | null;
+}
+
+export function getActiveSessionElapsed(session: ActiveSession, now = Date.now()): number {
+  if (session.manualDurationSeconds != null) {
+    return session.manualDurationSeconds;
+  }
+  return Math.max(0, Math.floor((now - new Date(session.startedAt).getTime()) / 1000));
+}
+
+export function buildActiveSessionFinishedAt(startedAt: string, durationSeconds: number): string {
+  return new Date(new Date(startedAt).getTime() + durationSeconds * 1000).toISOString();
 }
 
 export const ACTIVE_SESSION_KEY = "gym_active_session";
@@ -93,12 +108,58 @@ export function createEmptySet(): WorkoutSet {
 }
 
 export function createExerciseFromRef(ref: ExerciseRef): WorkoutExercise {
-  const sets = ref.sets && ref.sets.length > 0
-    ? ref.sets.map((s) => ({ reps: s.reps, weightKg: s.weightKg, completed: false }))
-    : Array.from({ length: 3 }, () => createEmptySet());
+  const sets =
+    ref.sets && ref.sets.length > 0
+      ? ref.sets.map((s) => ({
+          reps: null,
+          weightKg: null,
+          targetReps: s.reps,
+          targetWeightKg: s.weightKg,
+          completed: false,
+        }))
+      : Array.from({ length: 3 }, () => createEmptySet());
   return {
     slug: ref.slug,
     name: ref.name,
     sets,
   };
+}
+
+export function getSetTargetReps(
+  set: WorkoutSet,
+  setIdx: number,
+  allSets: WorkoutSet[]
+): number | null | undefined {
+  if (setIdx > 0 && set.reps == null && allSets[0]?.reps != null) {
+    return allSets[0].reps;
+  }
+  return set.targetReps;
+}
+
+export function getSetTargetWeightKg(
+  set: WorkoutSet,
+  setIdx: number,
+  allSets: WorkoutSet[]
+): number | null | undefined {
+  if (setIdx > 0 && set.weightKg == null && allSets[0]?.weightKg != null) {
+    return allSets[0].weightKg;
+  }
+  return set.targetWeightKg;
+}
+
+export function completeWorkoutSet(
+  set: WorkoutSet,
+  setIdx: number,
+  allSets: WorkoutSet[]
+): WorkoutSet {
+  return {
+    ...set,
+    completed: true,
+    reps: set.reps ?? getSetTargetReps(set, setIdx, allSets) ?? null,
+    weightKg: set.weightKg ?? getSetTargetWeightKg(set, setIdx, allSets) ?? null,
+  };
+}
+
+export function setPlaceholder(value: number | null | undefined): string {
+  return value != null ? String(value) : "—";
 }

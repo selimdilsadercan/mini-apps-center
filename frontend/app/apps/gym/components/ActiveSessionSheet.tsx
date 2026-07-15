@@ -2,38 +2,31 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Drawer } from "vaul";
 import { toast } from "react-hot-toast";
 import {
   CaretDown,
   Plus,
-  Check,
-  DotsThreeVertical,
-  Timer,
   X,
 } from "@phosphor-icons/react";
 import {
   ACTIVE_SESSION_KEY,
-  createEmptySet,
   createExerciseFromRef,
+  getActiveSessionElapsed,
+  buildActiveSessionFinishedAt,
   type ActiveSession,
   type WorkoutExercise,
   type WorkoutSet,
   type ExerciseRef,
 } from "../types";
-import {
-  calcVolume,
-  exerciseUsesWeight,
-  formatPreviousSet,
-  getExerciseBySlug,
-  resolveExerciseName,
-  showExerciseDetail,
-  type ExerciseCatalogItem,
-} from "../exercises";
+import { calcVolume } from "../exercises";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
-import ExerciseThumbnail from "./ExerciseThumbnail";
 import ExercisePicker from "./ExercisePicker";
+import SessionStatsEditSheet, { SessionStatsBar } from "./SessionStatsEditSheet";
+import ExerciseBlock from "./ExerciseBlock";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
+import { invalidateGymStats, prependWorkoutToCache } from "@/lib/gymCache";
 
 export default function ActiveSessionSheet({
   open,
@@ -45,11 +38,13 @@ export default function ActiveSessionSheet({
   onFinished: () => void;
 }) {
   const { user } = useUser();
+  const queryClient = useQueryClient();
   const { catalog, loading: catalogLoading } = useExerciseCatalog();
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [previousMap, setPreviousMap] = useState<Record<string, WorkoutSet[]>>({});
   const [showAddExercise, setShowAddExercise] = useState(false);
+  const [showStatsEditor, setShowStatsEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -60,8 +55,7 @@ export default function ActiveSessionSheet({
       try {
         const parsed = JSON.parse(raw) as ActiveSession;
         setSession(parsed);
-        const start = new Date(parsed.startedAt).getTime();
-        setElapsed(Math.floor((Date.now() - start) / 1000));
+        setElapsed(getActiveSessionElapsed(parsed));
       } catch (e) {
         // ignore
       }
@@ -88,16 +82,22 @@ export default function ActiveSessionSheet({
   useEffect(() => {
     if (!session || !open) return;
     if (timerRef.current) clearInterval(timerRef.current);
-    
-    timerRef.current = setInterval(() => {
-      const start = new Date(session.startedAt).getTime();
-      setElapsed(Math.floor((Date.now() - start) / 1000));
-    }, 1000);
-    
+
+    if (session.manualDurationSeconds != null) {
+      setElapsed(session.manualDurationSeconds);
+      timerRef.current = setInterval(() => {
+        setElapsed((prev) => prev + 1);
+      }, 1000);
+    } else {
+      timerRef.current = setInterval(() => {
+        setElapsed(getActiveSessionElapsed(session));
+      }, 1000);
+    }
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [session, open]);
+  }, [session?.startedAt, session?.manualDurationSeconds, open]);
 
   const loadPrevious = useCallback(async (slug: string) => {
     if (!user || previousMap[slug]) return;
@@ -140,7 +140,8 @@ export default function ActiveSessionSheet({
   const handleFinish = async () => {
     if (!session || !user || saving) return;
     setSaving(true);
-    const finishedAt = new Date().toISOString();
+    const durationSeconds = session.manualDurationSeconds ?? elapsed;
+    const finishedAt = buildActiveSessionFinishedAt(session.startedAt, durationSeconds);
     const volume = calcVolume(session.exercises);
     const result = await saveWorkoutAction(user.id, {
       name: session.name,
@@ -148,7 +149,7 @@ export default function ActiveSessionSheet({
       exercises: session.exercises,
       startedAt: session.startedAt,
       finishedAt,
-      durationSeconds: elapsed,
+      durationSeconds,
       totalVolumeKg: volume,
     });
     
@@ -159,13 +160,13 @@ export default function ActiveSessionSheet({
     }
     
     if (result.data) {
+      prependWorkoutToCache(queryClient, user.id, result.data);
+      invalidateGymStats(queryClient, user.id);
       sessionStorage.removeItem(ACTIVE_SESSION_KEY);
       setSession(null);
       onFinished();
       onClose();
       toast.success("Antrenman başarıyla kaydedildi!");
-      // Reload page state or redirect
-      window.location.reload();
     } else {
       setSaving(false);
     }
@@ -178,13 +179,15 @@ export default function ActiveSessionSheet({
 
   const volume = session ? calcVolume(session.exercises) : 0;
 
-  const formatElapsed = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    if (h > 0) return `${h}s ${m}dk`;
-    if (m > 0) return `${m}dk ${sec}s`;
-    return `${sec}s`;
+  const handleStatsSave = (startedAt: string, durationSeconds: number) => {
+    if (!session) return;
+    const updated: ActiveSession = {
+      ...session,
+      startedAt,
+      manualDurationSeconds: durationSeconds,
+    };
+    updateSession(updated);
+    setElapsed(durationSeconds);
   };
 
   if (!session) return null;
@@ -223,21 +226,12 @@ export default function ActiveSessionSheet({
               </button>
             </div>
 
-            {/* Stats bar */}
-            <div className="flex items-center justify-around px-5 pb-4 bg-white border-t border-gray-50 pt-3">
-              <div className="text-center">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Süre</p>
-                <p className="text-sm font-black text-violet-600 tabular-nums">{formatElapsed(elapsed)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Hacim</p>
-                <p className="text-sm font-black text-gray-900 tabular-nums">{volume} kg</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Setler</p>
-                <p className="text-sm font-black text-gray-900 tabular-nums">{completedSets}</p>
-              </div>
-            </div>
+            <SessionStatsBar
+              elapsed={elapsed}
+              volume={volume}
+              completedSets={completedSets}
+              onEditDuration={() => setShowStatsEditor(true)}
+            />
           </header>
 
           {/* Exercises Scroll View */}
@@ -249,6 +243,7 @@ export default function ActiveSessionSheet({
                 catalog={catalog}
                 previousSets={previousMap[exercise.slug] ?? []}
                 onChange={(ex) => updateExercise(exIdx, ex)}
+                variant="sheet"
               />
             ))}
 
@@ -262,6 +257,16 @@ export default function ActiveSessionSheet({
           </main>
         </Drawer.Content>
       </Drawer.Portal>
+
+      {showStatsEditor && session && (
+        <SessionStatsEditSheet
+          open={showStatsEditor}
+          onClose={() => setShowStatsEditor(false)}
+          startedAt={session.startedAt}
+          elapsed={elapsed}
+          onSave={handleStatsSave}
+        />
+      )}
 
       {showAddExercise && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center">
@@ -292,149 +297,5 @@ export default function ActiveSessionSheet({
         </div>
       )}
     </Drawer.Root>
-  );
-}
-
-function ExerciseBlock({
-  exercise,
-  catalog,
-  previousSets,
-  onChange,
-}: {
-  exercise: WorkoutExercise;
-  catalog: ExerciseCatalogItem[];
-  previousSets: WorkoutSet[];
-  onChange: (ex: WorkoutExercise) => void;
-}) {
-  const catalogItem = getExerciseBySlug(catalog, exercise.slug);
-  const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
-
-  const updateSet = (setIdx: number, field: keyof WorkoutSet, value: number | boolean | null) => {
-    const sets = exercise.sets.map((s, i) =>
-      i === setIdx ? { ...s, [field]: value } : s
-    );
-    onChange({ ...exercise, sets });
-  };
-
-  const toggleComplete = (setIdx: number) => {
-    const set = exercise.sets[setIdx];
-    updateSet(setIdx, "completed", !set.completed);
-  };
-
-  const addSet = () => {
-    onChange({ ...exercise, sets: [...exercise.sets, createEmptySet()] });
-  };
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden hover:border-gray-300 transition-colors">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div 
-          onClick={() => catalogItem && showExerciseDetail(catalogItem)}
-          className="flex-1 flex items-center gap-3 cursor-pointer group min-w-0"
-        >
-          {catalogItem ? (
-            <ExerciseThumbnail exercise={catalogItem} />
-          ) : (
-            <div className="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center text-lg">🏋️</div>
-          )}
-          <h3 className="flex-1 text-sm font-black text-violet-600 truncate group-hover:text-violet-700 transition-colors">
-            {resolveExerciseName(catalog, exercise.slug, exercise.name)}
-          </h3>
-        </div>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors shrink-0">
-          <DotsThreeVertical size={18} weight="bold" />
-        </button>
-      </div>
-
-
-      {/* Set table */}
-      <div className="mx-4 mb-3 rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30">
-        <div
-          className={`grid ${
-            usesWeight
-              ? "grid-cols-[2.5rem_1fr_4rem_4rem_2.5rem]"
-              : "grid-cols-[2.5rem_1fr_4rem_2.5rem]"
-          } bg-gray-50/80 border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-wide`}
-        >
-          <div className="px-2 py-2 text-center">Set</div>
-          <div className="px-1 py-2">Önceki</div>
-          {usesWeight && <div className="px-1 py-2 text-center">Kg</div>}
-          <div className="px-1 py-2 text-center">Tekrar</div>
-          <div />
-        </div>
-        {exercise.sets.map((set, setIdx) => {
-          const prev = previousSets[setIdx];
-          return (
-            <div
-              key={setIdx}
-              className={`grid ${
-                usesWeight
-                  ? "grid-cols-[2.5rem_1fr_4rem_4rem_2.5rem]"
-                  : "grid-cols-[2.5rem_1fr_4rem_2.5rem]"
-              } items-center border-b border-gray-100 last:border-0 ${
-                set.completed ? "bg-emerald-50/10" : setIdx % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-              }`}
-            >
-              <div className="px-2 py-2.5 text-center text-xs font-bold text-gray-500 tabular-nums">
-                {setIdx + 1}
-              </div>
-              <div className="px-1 py-2.5 text-[10px] text-gray-400 font-bold">
-                {prev ? formatPreviousSet(prev) : "—"}
-              </div>
-              {usesWeight && (
-                <div className="px-1 py-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="—"
-                    value={set.weightKg ?? ""}
-                    onChange={(e) => {
-                      const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
-                      updateSet(setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
-                    }}
-                    className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
-                  />
-                </div>
-              )}
-              <div className="px-1 py-1">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="—"
-                  value={set.reps ?? ""}
-                  onChange={(e) => {
-                    const cleanVal = e.target.value.replace(/[^0-9]/g, "");
-                    updateSet(setIdx, "reps", cleanVal ? Number(cleanVal) : null);
-                  }}
-                  className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
-                />
-              </div>
-              <div className="flex justify-center py-1">
-                <button
-                  onClick={() => toggleComplete(setIdx)}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-sm ${
-                    set.completed
-                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                      : "bg-gray-100 text-gray-300 hover:bg-gray-200"
-                  }`}
-                >
-                  <Check size={14} weight="bold" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="px-4 pb-4">
-        <button
-          onClick={addSet}
-          className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-xs py-2.5 rounded-xl transition-all border border-gray-200/50 flex items-center justify-center gap-1 active:scale-[0.98]"
-        >
-          <Plus size={14} weight="bold" />
-          Set Ekle
-        </button>
-      </div>
-    </div>
   );
 }

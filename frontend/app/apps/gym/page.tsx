@@ -1,53 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Barbell, Plus } from "@phosphor-icons/react";
 import GymShell from "./components/GymShell";
 import RoutineCard from "./components/RoutineCard";
 import CreateRoutineModal from "./components/CreateRoutineModal";
 import {
-  getRoutinesAction,
   createRoutineAction,
   deleteRoutineAction,
 } from "./actions";
 import type { Routine, ExerciseRef } from "./types";
 import { startGymSession } from "./types";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  GYM_STALE_TIME,
+  fetchGymRoutines,
+  gymRoutinesKey,
+  removeRoutineFromCache,
+  clearRoutineFromWeeklyPlanCache,
+  syncGymDiscoverWidgets,
+  syncRoutineInWeeklyPlanCache,
+  upsertRoutineInCache,
+} from "@/lib/gymCache";
 
 export default function GymWorkoutPage() {
   const { user, isLoaded } = useUser();
   const { confirm } = useConfirmDialog();
-  const [routines, setRoutines] = useState<Routine[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    loadRoutines();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user]);
-
-  async function loadRoutines() {
-    if (!user) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await getRoutinesAction(user.id);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      setRoutines(result.data ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    data: routines = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: gymRoutinesKey(user?.id ?? ""),
+    queryFn: () => fetchGymRoutines(user!.id),
+    enabled: isLoaded && !!user?.id,
+    staleTime: GYM_STALE_TIME,
+    refetchOnWindowFocus: true,
+  });
 
   function handleStartRoutine(routine: Routine) {
     startGymSession(routine.name, routine.id, routine.exercises);
@@ -58,7 +52,8 @@ export default function GymWorkoutPage() {
     if (!user) return;
     const result = await createRoutineAction(user.id, name, exercises);
     if (result.data) {
-      setRoutines((prev) => [result.data!, ...prev]);
+      upsertRoutineInCache(queryClient, user.id, result.data);
+      syncGymDiscoverWidgets(queryClient, user.id);
     }
   }
 
@@ -73,11 +68,20 @@ export default function GymWorkoutPage() {
     if (!ok) return;
     const result = await deleteRoutineAction(user.id, routine.id);
     if (result.data) {
-      setRoutines((prev) => prev.filter((r) => r.id !== routine.id));
+      removeRoutineFromCache(queryClient, user.id, routine.id);
+      clearRoutineFromWeeklyPlanCache(queryClient, user.id, routine.id);
+      syncGymDiscoverWidgets(queryClient, user.id);
     }
   }
 
-  if (!isLoaded || loading) {
+  function handleRoutineUpdated(updated: Routine) {
+    if (!user) return;
+    upsertRoutineInCache(queryClient, user.id, updated);
+    syncRoutineInWeeklyPlanCache(queryClient, user.id, updated);
+    syncGymDiscoverWidgets(queryClient, user.id);
+  }
+
+  if (!isLoaded || (isLoading && routines.length === 0)) {
     return (
       <GymShell activeTab="workout">
         <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
@@ -110,7 +114,7 @@ export default function GymWorkoutPage() {
         </button>
 
         {error && (
-          <p className="text-red-500 text-sm font-bold text-center">{error}</p>
+          <p className="text-red-500 text-sm font-bold text-center">{error.message}</p>
         )}
 
         {routines.length === 0 ? (
@@ -124,9 +128,7 @@ export default function GymWorkoutPage() {
               routine={routine}
               onStart={() => handleStartRoutine(routine)}
               onDelete={() => handleDelete(routine)}
-              onUpdated={(updated) =>
-                setRoutines((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))
-              }
+              onUpdated={handleRoutineUpdated}
               userId={user.id}
             />
           ))

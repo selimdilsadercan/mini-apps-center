@@ -265,13 +265,16 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 10. Update Workout
 DROP FUNCTION IF EXISTS gym.update_workout(TEXT, UUID, TEXT, JSONB, INTEGER, NUMERIC);
+DROP FUNCTION IF EXISTS gym.update_workout(TEXT, UUID, TEXT, JSONB, INTEGER, NUMERIC, TIMESTAMPTZ, TIMESTAMPTZ);
 CREATE OR REPLACE FUNCTION gym.update_workout(
     p_clerk_id TEXT,
     p_workout_id UUID,
     p_name TEXT,
     p_exercises JSONB,
     p_duration_seconds INTEGER,
-    p_total_volume_kg NUMERIC
+    p_total_volume_kg NUMERIC,
+    p_started_at TIMESTAMPTZ DEFAULT NULL,
+    p_finished_at TIMESTAMPTZ DEFAULT NULL
 )
 RETURNS gym.workouts AS $$
 DECLARE
@@ -282,7 +285,9 @@ BEGIN
     SET name = p_name,
         exercises = p_exercises,
         duration_seconds = p_duration_seconds,
-        total_volume_kg = p_total_volume_kg
+        total_volume_kg = p_total_volume_kg,
+        started_at = COALESCE(p_started_at, started_at),
+        finished_at = COALESCE(p_finished_at, finished_at)
     WHERE id = p_workout_id AND user_id = v_user_id
     RETURNING * INTO v_result;
     RETURN v_result;

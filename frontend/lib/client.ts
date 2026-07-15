@@ -4474,6 +4474,8 @@ export namespace gym {
     exercises: WorkoutExercise[]
     durationSeconds: number
     totalVolumeKg: number
+    startedAt?: string
+    finishedAt?: string
 }): Promise<{
     workout: Workout
 }> {

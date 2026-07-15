@@ -347,6 +347,8 @@ export const updateWorkout = api(
     exercises: WorkoutExercise[];
     durationSeconds: number;
     totalVolumeKg: number;
+    startedAt?: string;
+    finishedAt?: string;
   }): Promise<{ workout: Workout }> => {
     const { data, error } = await supabase.schema("gym").rpc("update_workout", {
       p_clerk_id: req.userId,
@@ -355,6 +357,8 @@ export const updateWorkout = api(
       p_exercises: req.exercises,
       p_duration_seconds: req.durationSeconds,
       p_total_volume_kg: req.totalVolumeKg,
+      p_started_at: req.startedAt ?? null,
+      p_finished_at: req.finishedAt ?? null,
     });
 
     if (error) {

@@ -207,6 +207,8 @@ export async function updateWorkoutAction(
     exercises: WorkoutExercise[];
     durationSeconds: number;
     totalVolumeKg: number;
+    startedAt?: string;
+    finishedAt?: string;
   }
 ): Promise<ActionResponse<Workout>> {
   try {
