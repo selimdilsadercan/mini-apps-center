@@ -27,7 +27,17 @@ export function toggleEpisodeWatched(id: string, episodeId: string) {
     data.watchedEpisodes = data.watchedEpisodes.filter((eid: string) => eid !== episodeId);
   } else {
     data.watchedEpisodes.push(episodeId);
+    data.inWatchlist = true;
   }
+  saveSeriesData(id, data);
+}
+
+export function markEpisodeWatched(id: string, episodeId: string) {
+  const data = getSeriesData(id);
+  if (!data.watchedEpisodes.includes(episodeId)) {
+    data.watchedEpisodes.push(episodeId);
+  }
+  data.inWatchlist = true;
   saveSeriesData(id, data);
 }
 

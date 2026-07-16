@@ -1,48 +1,55 @@
 "use client";
 
 import { useState, useMemo, Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { 
-  MagnifyingGlass, 
-  FadersHorizontal, 
-  CircleNotch,
-  CaretDown,
-  Funnel,
-  TrendUp
+import { useRouter } from "next/navigation";
+import {
+  MagnifyingGlass,
+  Compass,
+  ForkKnife,
+  Sparkle,
 } from "@phosphor-icons/react";
-import SeriesCard from "../components/SeriesCard";
+import YTDBShell from "../components/YTDBShell";
+import SeriesListItem from "../components/SeriesListItem";
+import DiscoverRow from "../components/DiscoverRow";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { fetchSeries } from "../lib/api";
-import { CATEGORY_LABELS, type Category, type Series } from "../lib/types";
-import { motion, AnimatePresence } from "framer-motion";
-
-type SortOption = "popular" | "rating" | "newest" | "name";
+import { getUserStore, toggleWatchlist } from "../lib/store";
+import { CONTEXT_DESCRIPTIONS } from "../lib/types";
+import type { Series } from "../lib/types";
 
 export default function KesfetPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-950 font-black text-red-500 uppercase tracking-[0.3em] animate-pulse">YÜKLENIYOR...</div>}>
+    <Suspense
+      fallback={
+        <YTDBShell activeTab="kesfet">
+          <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
+            Yükleniyor...
+          </div>
+        </YTDBShell>
+      }
+    >
       <KesfetContent />
     </Suspense>
   );
 }
 
 function KesfetContent() {
-  const searchParams = useSearchParams();
-  const initialCategory = searchParams.get("category") || "";
-  const initialStatus = searchParams.get("status") || "";
+  const router = useRouter();
+  const { isAdmin } = useIsAdmin();
 
   const [allSeriesData, setAllSeriesData] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
-  const [sortBy, setSortBy] = useState<SortOption>("popular");
-  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [store, setStore] = useState<
+    Record<string, { watchedEpisodes: string[]; inWatchlist: boolean }>
+  >({});
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await fetchSeries();
         setAllSeriesData(data || []);
+        setStore(getUserStore());
       } catch (err) {
         console.error("Yükleme hatası:", err);
       } finally {
@@ -52,228 +59,142 @@ function KesfetContent() {
     load();
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = [...allSeriesData];
+  const refreshStore = () => setStore(getUserStore());
 
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      result = result.filter(
+  const handleToggleWatchlist = (seriesId: string) => {
+    toggleWatchlist(seriesId);
+    refreshStore();
+  };
+
+  const isSearching = query.trim().length > 0;
+
+  const filtered = useMemo(() => {
+    if (!isSearching) return [];
+
+    const q = query.toLowerCase();
+    return allSeriesData
+      .filter(
         (s) =>
           s.title.toLowerCase().includes(q) ||
           s.creator.toLowerCase().includes(q) ||
-          (s.tags?.some((t) => t.toLowerCase().includes(q)))
-      );
-    }
+          s.tags?.some((t) => t.toLowerCase().includes(q))
+      )
+      .sort((a, b) => (b.episodeCount || 0) - (a.episodeCount || 0));
+  }, [allSeriesData, query, isSearching]);
 
-    if (selectedCategory) {
-      result = result.filter((s) => s.category === selectedCategory);
-    }
+  const yemekSeries = useMemo(() => {
+    return allSeriesData.filter((s) => s.contexts?.includes("yemek"));
+  }, [allSeriesData]);
 
-    if (statusFilter) {
-      result = result.filter((s) => s.status === statusFilter);
-    }
-
-    if (selectedTags.length > 0) {
-      result = result.filter((s) => 
-        selectedTags.every((t: string) => (s.tags || []).includes(t))
-      );
-    }
-
-    switch (sortBy) {
-      case "popular":
-        result.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-        break;
-      case "rating":
-        result.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
-        break;
-      case "newest":
-        result.sort((a, b) => (b.year || 0) - (a.year || 0));
-        break;
-      case "name":
-        result.sort((a, b) => a.title.localeCompare(b.title, "tr"));
-        break;
-    }
-
-    return result;
-  }, [allSeriesData, query, selectedCategory, sortBy, statusFilter]);
+  const restSeries = useMemo(() => {
+    const yemekIds = new Set(yemekSeries.map((s) => s.id));
+    return allSeriesData.filter((s) => !yemekIds.has(s.id));
+  }, [allSeriesData, yemekSeries]);
 
   if (loading) {
     return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center bg-slate-950 gap-6">
-        <CircleNotch size={48} className="animate-spin text-red-600" />
-        <span className="text-xs font-black tracking-[0.4em] uppercase text-slate-500">Katalog Yükleniyor</span>
-      </div>
+      <YTDBShell
+        activeTab="kesfet"
+        onAdmin={isAdmin ? () => router.push("/apps/youtube-discover/admin") : undefined}
+      >
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
+          Yükleniyor...
+        </div>
+      </YTDBShell>
     );
   }
 
-  const categories = Object.entries(CATEGORY_LABELS) as [Category, string][];
-
   return (
-    <div className="min-h-screen bg-slate-950 pb-32">
-       {/* Background Glow */}
-       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/10 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-900/10 blur-[120px] rounded-full" />
-       </div>
+    <YTDBShell
+      activeTab="kesfet"
+      onAdmin={isAdmin ? () => router.push("/apps/youtube-discover/admin") : undefined}
+    >
+      <div className="space-y-6">
+        <div className="relative">
+          <MagnifyingGlass
+            size={16}
+            weight="bold"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
+          />
+          <input
+            type="text"
+            placeholder="Seri veya kanal ara..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full h-11 bg-app-surface border border-app-border rounded-xl pl-9 pr-4 text-sm font-bold text-app-text placeholder:text-app-muted outline-none focus:border-red-500/30 transition-colors"
+          />
+        </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 py-12 lg:py-20">
-        
-        <header className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-               <TrendUp size={24} weight="fill" className="text-red-500" />
-               <span className="text-xs font-black tracking-[0.3em] uppercase text-slate-500">KÜTİPHANE</span>
-            </div>
-            <h1 className="text-4xl lg:text-6xl font-black text-white italic tracking-tighter uppercase mb-4">Keşfet</h1>
-            <p className="text-slate-500 text-lg font-medium max-w-2xl leading-relaxed">
-               Zengin YouTube kataloğumuzda yolculuğa çıkın. En iyi serileri ve içerik üreticileri sizin için derledik.
+        {isSearching ? (
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1 mb-3">
+              {filtered.length} sonuç
             </p>
-        </header>
 
-        {/* Filter Section */}
-        <section className="mb-12 space-y-8">
-           <div className="flex flex-col lg:flex-row gap-6">
-              {/* Search Bar */}
-              <div className="relative flex-1 group">
-                <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-                  <MagnifyingGlass size={20} weight="bold" className="text-slate-500 group-focus-within:text-red-500 transition-colors" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Seri, üretici veya etiket ara..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl pl-16 pr-6 text-white placeholder-slate-600 outline-none focus:bg-white/[0.05] focus:border-red-500/30 transition-all font-bold text-lg"
-                />
-              </div>
-
-              {/* Sort Dropdown */}
-              <div className="relative group lg:w-64">
-                <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-                   <FadersHorizontal size={20} weight="bold" className="text-slate-500" />
-                </div>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl pl-16 pr-10 text-white outline-none appearance-none focus:border-red-500/30 transition-all font-black text-xs uppercase tracking-widest cursor-pointer"
-                >
-                  <option value="popular">POPÜLERLİK</option>
-                  <option value="rating">PUAN SIRALAMASI</option>
-                  <option value="newest">EN YENİLER</option>
-                  <option value="name">İSİM (A-Z)</option>
-                </select>
-                <div className="absolute inset-y-0 right-6 flex items-center pointer-events-none">
-                    <CaretDown weight="bold" size={16} className="text-slate-500" />
-                </div>
-              </div>
-           </div>
-
-           {/* Category & Status Chips */}
-           <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-3 pr-4 border-r border-white/10 mr-1">
-                 <Funnel weight="fill" size={18} className="text-slate-500" />
-                 <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">FİLTRELE:</span>
-              </div>
-
-              <button
-                onClick={() => { setSelectedCategory(""); setStatusFilter(""); }}
-                className={`px-6 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
-                  !selectedCategory && !statusFilter
-                    ? "bg-red-600 text-white shadow-lg shadow-red-900/40 translate-y-[-2px]"
-                    : "bg-white/[0.03] border border-white/5 text-slate-500 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                HEPSİ
-              </button>
-
-              {categories.map(([key, label]) => (
+            {filtered.length === 0 ? (
+              <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border shadow-sm">
+                <Compass size={40} className="text-app-muted mx-auto mb-3" weight="duotone" />
+                <p className="text-sm font-black text-app-text mb-1">Eşleşme bulunamadı</p>
+                <p className="text-xs font-medium text-app-muted mb-4">Farklı bir arama dene.</p>
                 <button
-                  key={key}
-                  onClick={() => { setSelectedCategory(selectedCategory === key ? "" : key); setStatusFilter(""); }}
-                  className={`px-6 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
-                    selectedCategory === key
-                      ? "bg-red-600 text-white shadow-lg shadow-red-900/40 translate-y-[-2px]"
-                      : "bg-white/[0.03] border border-white/5 text-slate-500 hover:text-white hover:bg-white/10"
-                  }`}
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="text-[10px] font-black uppercase tracking-wider text-red-500 hover:underline"
                 >
-                  {label.toUpperCase()}
+                  Aramayı temizle
                 </button>
-              ))}
-
-              <div className="h-8 w-px bg-white/10 mx-2" />
-
-              <button
-                onClick={() => { setStatusFilter(statusFilter === "devam-ediyor" ? "" : "devam-ediyor"); }}
-                className={`px-6 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
-                  statusFilter === "devam-ediyor"
-                    ? "bg-green-600 text-white shadow-lg shadow-green-900/40 translate-y-[-2px]"
-                    : "bg-white/[0.03] border border-white/5 text-slate-500 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                YAYINDA
-              </button>
-
-              <button
-                onClick={() => { setStatusFilter(statusFilter === "tamamlandi" ? "" : "tamamlandi"); }}
-                className={`px-6 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
-                  statusFilter === "tamamlandi"
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/40 translate-y-[-2px]"
-                    : "bg-white/[0.03] border border-white/5 text-slate-500 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                TAMAMLANDI
-              </button>
-           </div>
-        </section>
-
-        {/* Results Grid */}
-        <section>
-          {filtered.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center py-32 text-center"
-            >
-              <div className="w-24 h-24 bg-white/[0.02] border border-white/5 rounded-full flex items-center justify-center mb-8">
-                 <MagnifyingGlass size={48} className="text-slate-700 font-bold" />
               </div>
-              <p className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Eşleşme Bulunamadı</p>
-              <p className="text-slate-500 font-medium">Farklı bir arama terimi veya filtre kullanmayı dene.</p>
-              <button 
-                 onClick={() => { setQuery(""); setSelectedCategory(""); setStatusFilter(""); }}
-                 className="mt-8 text-red-500 font-black text-xs uppercase tracking-widest hover:underline"
-              >
-                 FİLTRELERİ SIFIRLA
-              </button>
-            </motion.div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-8 opacity-50">
-                <span className="text-[10px] font-black tracking-[0.3em] uppercase">{filtered.length} SONUÇ GÖSTERİLİYOR</span>
+            ) : (
+              <div className="space-y-2">
+                {filtered.map((s) => (
+                  <SeriesListItem
+                    key={s.id}
+                    series={s}
+                    inWatchlist={!!store[s.id]?.inWatchlist}
+                    onToggleWatchlist={() => handleToggleWatchlist(s.id)}
+                  />
+                ))}
               </div>
-              
-              <motion.div 
-                layout
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
-              >
-                <AnimatePresence mode="popLayout">
-                  {filtered.map((s) => (
-                    <motion.div
-                      layout
+            )}
+          </div>
+        ) : allSeriesData.length === 0 ? (
+          <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border shadow-sm">
+            <Compass size={40} className="text-app-muted mx-auto mb-3" weight="duotone" />
+            <p className="text-sm font-black text-app-text mb-1">Henüz seri yok</p>
+            <p className="text-xs font-medium text-app-muted">Yakında burada içerikler olacak.</p>
+          </div>
+        ) : (
+          <>
+            <DiscoverRow
+              title="Yemek yerken"
+              subtitle={CONTEXT_DESCRIPTIONS.yemek}
+              icon={<ForkKnife size={14} weight="fill" className="text-orange-500" />}
+              items={yemekSeries}
+            />
+
+            {(restSeries.length > 0 || yemekSeries.length === 0) && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <Sparkle size={14} weight="fill" className="text-red-500" />
+                  <h3 className="text-[11px] font-black uppercase tracking-wider text-app-text">
+                    Tüm seriler
+                  </h3>
+                </div>
+                <div className="space-y-2">
+                  {(yemekSeries.length === 0 ? allSeriesData : restSeries).map((s) => (
+                    <SeriesListItem
                       key={s.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <SeriesCard series={s} />
-                    </motion.div>
+                      series={s}
+                      inWatchlist={!!store[s.id]?.inWatchlist}
+                      onToggleWatchlist={() => handleToggleWatchlist(s.id)}
+                    />
                   ))}
-                </AnimatePresence>
-              </motion.div>
-            </>
-          )}
-        </section>
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
-    </div>
+    </YTDBShell>
   );
 }

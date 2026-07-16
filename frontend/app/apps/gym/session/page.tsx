@@ -20,7 +20,7 @@ import {
 } from "../types";
 import { calcVolume } from "../exercises";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
-import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/gymCache";
+import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/cache/gymCache";
 import type { ExerciseRef } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "../components/ExercisePicker";

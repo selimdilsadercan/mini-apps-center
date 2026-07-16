@@ -23,7 +23,7 @@ import {
   removeWorkoutFromCache,
   syncGymDiscoverWidgets,
   upsertWorkoutInCache,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 function toDateInputValue(iso: string): string {
   const d = new Date(iso);

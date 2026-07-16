@@ -15,7 +15,7 @@ import {
   syncGymDiscoverWidgets,
   syncRoutineInWeeklyPlanCache,
   upsertRoutineInCache,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 export default function EditRoutineModal({
   routine,

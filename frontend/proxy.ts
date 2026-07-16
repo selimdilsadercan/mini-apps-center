@@ -17,7 +17,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   tournaments: "/apps/tournament-editor",
   tournoments: "/apps/tournament-editor",
   catan: "/apps/catan-bot",
-  ytdb: "/apps/youtube-discover",
+  ytdb: "/apps/youtube-discover/kesfet",
   filmgraph: "/apps/film-graph",
   itumeals: "/apps/itu-yemekhane",
   hobby: "/apps/hobby-center",

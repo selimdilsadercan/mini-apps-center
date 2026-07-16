@@ -20,7 +20,7 @@ import {
   gymRoutinesKey,
   gymStatsKey,
   gymWorkoutsKey,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 export default function GymProfilePage() {
   const { user, isLoaded } = useUser();

@@ -10,6 +10,10 @@ export type Category =
   | "komedi" 
   | "teknoloji";
 
+export type Context = "yemek" | "calisma" | "yuruyus";
+
+export type AttentionLevel = "background" | "light" | "focus";
+
 export type SeriesStatus = "devam-ediyor" | "tamamlandi";
 
 export interface Episode {
@@ -19,7 +23,10 @@ export interface Episode {
   duration: string;
   youtubeId: string;
   thumbnail?: string;
+  publishedAt?: string;
 }
+
+export type SourceType = "video" | "playlist" | "channel" | "manual";
 
 export interface Series {
   id: string;
@@ -36,7 +43,12 @@ export interface Series {
   gradient?: string;
   emoji?: string;
   tags?: string[];
+  contexts?: Context[];
+  attentionLevel?: AttentionLevel;
   episodes?: Episode[];
+  isRaw?: boolean;
+  sourceType?: SourceType;
+  sourceUrl?: string;
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -50,4 +62,16 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   muzik: "Müzik",
   komedi: "Komedi",
   teknoloji: "Teknoloji",
+};
+
+export const CONTEXT_LABELS: Record<Context, string> = {
+  yemek: "Yemek Yerken",
+  calisma: "Çalışırken",
+  yuruyus: "Yürürken",
+};
+
+export const CONTEXT_DESCRIPTIONS: Record<Context, string> = {
+  yemek: "Eğlenceli sohbetler, komedi ve hafif içerikler",
+  calisma: "Dikkat dağıtmayan, arka planda izlenebilir",
+  yuruyus: "Hikâye anlatımı ve uzun format podcastler",
 };

@@ -47,7 +47,7 @@ import { createBrowserClient } from "@/lib/api";
 import {
   invalidateDiscoverWidgets,
   syncAgendaCompletionInCache,
-} from "@/lib/hubAgendaCache";
+} from "@/lib/cache/hubAgendaCache";
 import { 
   rutinler,
   workplaces, 

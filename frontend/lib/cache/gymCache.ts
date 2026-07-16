@@ -6,7 +6,7 @@ import {
   getStatsAction,
   getWeeklyPlanAction,
 } from "@/app/apps/gym/actions";
-import { invalidateDiscoverWidgets, discoverQueryKey } from "@/lib/hubAgendaCache";
+import { invalidateDiscoverWidgets, discoverQueryKey } from "@/lib/cache/hubAgendaCache";
 
 export const GYM_STALE_TIME = 2 * 60 * 1000;
 

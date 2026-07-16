@@ -26,7 +26,7 @@ import ExercisePicker from "./ExercisePicker";
 import SessionStatsEditSheet, { SessionStatsBar } from "./SessionStatsEditSheet";
 import ExerciseBlock from "./ExerciseBlock";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
-import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/gymCache";
+import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/cache/gymCache";
 
 export default function ActiveSessionSheet({
   open,

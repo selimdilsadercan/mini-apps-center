@@ -23,7 +23,7 @@ import {
   syncGymDiscoverWidgets,
   syncRoutineInWeeklyPlanCache,
   upsertRoutineInCache,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 export default function GymWorkoutPage() {
   const { user, isLoaded } = useUser();

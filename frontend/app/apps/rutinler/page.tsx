@@ -34,7 +34,7 @@ import {
   invalidateDiscoverWidgets,
   removeAgendaEntryFromCache,
   syncAgendaCompletionInCache,
-} from "@/lib/hubAgendaCache";
+} from "@/lib/cache/hubAgendaCache";
 
 type PeriodType = "daily" | "weekly" | "monthly" | "once";
 type DrawerTab = "catalog" | "custom";

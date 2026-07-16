@@ -1,641 +1,900 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  Plus, 
-  MagnifyingGlass, 
-  Trash, 
-  PencilSimple, 
-  Video, 
-  SquaresFour, 
-  Users, 
-  Star, 
-  X, 
-  PlusCircle, 
-  YoutubeLogo, 
-  FloppyDisk, 
-  CaretRight, 
-  Clock, 
-  CircleNotch, 
-  Play 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/clerk-react";
+import {
+  Plus,
+  Trash,
+  YoutubeLogo,
+  CircleNotch,
+  CaretDown,
+  CaretUp,
+  PencilSimple,
+  ArrowUpRight,
 } from "@phosphor-icons/react";
-import { CATEGORY_LABELS, type Series, type Category, type Episode } from "../lib/types";
-import { fetchSeries, createSeries, deleteSeries as apiDeleteSeries, fetchVideos, createVideo, deleteVideo, linkVideoToSeries } from "../lib/api";
+import toast from "react-hot-toast";
+import YTDBShell from "../components/YTDBShell";
+import PromoteVideoSheet from "../components/PromoteVideoSheet";
+import SeriesPlaylistImport from "../components/SeriesPlaylistImport";
+import PlaylistImportProgress from "../components/PlaylistImportProgress";
+import { sortEpisodesByDate } from "../lib/format";
+import {
+  createAndImportPlaylist,
+  importPlaylistToSeries,
+  type PlaylistImportJob,
+} from "../lib/playlistImport";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import {
+  CATEGORY_LABELS,
+  CONTEXT_LABELS,
+  type Category,
+  type Context,
+  type Series,
+  type SeriesStatus,
+  type AttentionLevel,
+} from "../lib/types";
+import {
+  fetchSeries,
+  fetchRawSources,
+  fetchSeriesById,
+  resolveYouTubeUrl,
+  promoteSource,
+  upsertSeries,
+  deleteSeries,
+  deleteEpisode,
+  type YouTubeSourcePreview,
+} from "../lib/api";
 
-export default function AdminPage() {
-  const [seriesList, setSeriesList] = useState<Series[]>([]);
-  const [unlinkedVideos, setUnlinkedVideos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Seri modalı
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false); // Video modalı
-  const [isEditing, setIsEditing] = useState(false);
+const ACCENT = "#EF4444";
 
-  // Video Form State
-  const [videoUrl, setVideoUrl] = useState("");
-  const [addingVideo, setAddingVideo] = useState(false);
-  const [playingVideo, setPlayingVideo] = useState<any>(null);
+const SOURCE_LABELS = {
+  video: "Video",
+  playlist: "Oynatma listesi",
+  channel: "Kanal",
+} as const;
 
-  // Form State
-  const [formData, setFormData] = useState<Partial<Series>>({
-    title: "",
-    creator: "",
-    youtubeId: "",
-    description: "",
-    category: "eglence",
-    status: "devam-ediyor",
-    emoji: "📺",
-    year: new Date().getFullYear(),
-    tags: [],
-    episodes: []
+function episodeThumbnailUrl(ep: { youtubeId: string; thumbnail?: string }) {
+  return ep.thumbnail || `https://img.youtube.com/vi/${ep.youtubeId}/hqdefault.jpg`;
+}
+
+function formatEpisodeDate(publishedAt?: string) {
+  if (!publishedAt) return null;
+  return new Date(publishedAt).toLocaleDateString("tr-TR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
+}
 
-  // Verileri Çek
-  const loadSeries = async () => {
-    try {
-      setLoading(true);
-      const [sData, vData] = await Promise.all([fetchSeries(), fetchVideos()]);
-      setSeriesList(sData);
-      setUnlinkedVideos(vData.filter((v: any) => !v.series_id));
-    } catch (err) {
-      console.error("Yükleme hatası:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadSeries();
-  }, []);
-
-  const filteredSeries = seriesList.filter(
-    (s: Series) => s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.creator.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleDelete = async (id: string) => {
-    if (confirm("Bu seriyi silmek istediğinize emin misiniz?")) {
-      try {
-        await apiDeleteSeries(id);
-        setSeriesList(seriesList.filter((s) => s.id !== id));
-      } catch (err) {
-        alert("Silme işlemi başarısız oldu.");
-      }
-    }
-  };
-
-  const handleEdit = (series: Series) => {
-    setFormData(series);
-    setIsEditing(true);
-    setIsAddModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (isEditing) {
-        await createSeries(formData);
-      } else {
-        await createSeries(formData);
-      }
-
-      await loadSeries();
-      setIsAddModalOpen(false);
-      setIsEditing(false);
-
-      setFormData({
-        title: "",
-        creator: "",
-        youtubeId: "",
-        description: "",
-        category: "eglence",
-        status: "devam-ediyor",
-        emoji: "📺",
-        year: new Date().getFullYear(),
-        tags: [],
-        episodes: []
-      });
-      alert(isEditing ? "Seri güncellendi!" : "Seri başarıyla eklendi!");
-    } catch (err) {
-      alert("İşlem sırasında bir hata oluştu.");
-    }
-  };
-
-  const handleAddVideo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!videoUrl) return;
-
-    setAddingVideo(true);
-    try {
-      const video = await createVideo({ url: videoUrl });
-      alert(`Video eklendi: ${video.title}\n\nŞimdi bu videoyu bir seriye bağlayabilirsiniz.`);
-      setVideoUrl("");
-      setIsVideoModalOpen(false);
-      await loadSeries();
-    } catch (err) {
-      alert("Hata: " + err);
-    } finally {
-      setAddingVideo(false);
-    }
-  };
-
-  const handleLinkVideo = async (videoId: number, seriesId: string) => {
-    try {
-      await linkVideoToSeries(videoId, seriesId, 1);
-      await loadSeries();
-      alert("Video seriye başarıyla bağlandı!");
-    } catch (err) {
-      alert("Hata: " + err);
-    }
-  };
-
-  const handleDeleteVideo = async (id: number) => {
-    if (!confirm("Bu videoyu silmek istiyor musunuz?")) return;
-    try {
-      await deleteVideo(id);
-      await loadSeries();
-    } catch (err) {
-      alert("Hata: " + err);
-    }
-  };
-
+function EpisodeThumbnail({ ep }: { ep: { youtubeId: string; thumbnail?: string } }) {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mb-12 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
-        <div>
-          <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">Yönetim Paneli</h1>
-          <p className="mt-3 text-lg text-zinc-400">Video ekle ve serilerle bağla.</p>
-        </div>
-        <div className="flex gap-4">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex h-fit items-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-6 py-4 text-sm font-bold text-white transition-all hover:bg-white/10"
-          >
-            Seri Oluştur
-          </button>
-          <button
-            onClick={() => setIsVideoModalOpen(true)}
-            className="flex h-fit items-center gap-3 rounded-2xl bg-red-500 px-10 py-5 text-base font-bold text-white shadow-xl shadow-red-500/25 transition-all hover:bg-red-600 hover:scale-105 active:scale-95"
-          >
-            <YoutubeLogo className="h-6 w-6" />
-            Video Ekle (URL)
-          </button>
-        </div>
-      </div>
+    <div className="w-[120px] aspect-video rounded-xl overflow-hidden shrink-0 border border-app-border bg-app-surface-muted">
+      <img
+        src={episodeThumbnailUrl(ep)}
+        alt=""
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
 
-      {/* Stats */}
-      <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[
-          { label: "Toplam Seri", value: seriesList.length, icon: Video, color: "text-blue-500", bg: "bg-blue-500/10" },
-          {
-            label: "Toplam Bölüm",
-            value: seriesList.reduce((acc: number, s: Series) => acc + s.episodeCount, 0),
-            icon: SquaresFour,
-            color: "text-purple-500",
-            bg: "bg-purple-500/10"
-          },
-          {
-            label: "Aktif Yapımcılar",
-            value: new Set(seriesList.map((s: Series) => s.creator)).size,
-            icon: Users,
-            color: "text-green-500",
-            bg: "bg-green-500/10"
-          },
-          {
-            label: "Ort. Puan",
-            value: seriesList.length > 0 ? (seriesList.reduce((acc: number, s: Series) => acc + s.avgRating, 0) / seriesList.length).toFixed(1) : "0.0",
-            icon: Star,
-            color: "text-yellow-500",
-            bg: "bg-yellow-500/10"
-          }
-        ].map((stat, i) => (
-          <div
-            key={i}
-            className="group rounded-2xl border border-white/5 bg-white/[0.04] p-5 backdrop-blur-md transition-all hover:bg-white/[0.07] hover:border-white/10"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{stat.label}</p>
-                <p className="mt-1 text-2xl font-black text-white lg:text-3xl">{stat.value}</p>
-              </div>
-              <div
-                className={`${stat.bg} ${stat.color} flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 lg:h-12 lg:w-12 lg:rounded-2xl`}
-              >
-                <stat.icon className="h-5 w-5 lg:h-6 lg:w-6" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Search & List */}
-      <div className="overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl">
-        <div className="border-b border-white/5 bg-white/[0.02] p-10">
-          <div className="relative max-w-xl">
-            <MagnifyingGlass className="absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Seri veya üretici ara..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-[1.5rem] border border-white/10 bg-black/40 py-5 pl-14 pr-8 text-base text-white placeholder-zinc-500 outline-none transition-all focus:border-red-500/50 focus:ring-8 focus:ring-red-500/5"
-            />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5 bg-white/[0.01] text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                <th className="px-10 py-6">Seri</th>
-                <th className="px-10 py-6 text-center">Kategori</th>
-                <th className="px-10 py-6 text-center">Durum</th>
-                <th className="px-10 py-6 text-right">İşlemler</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filteredSeries.map((series: Series) => (
-                <React.Fragment key={series.id}>
-                  <tr className="group hover:bg-white/[0.04] transition-colors">
-                    <td className="px-10 py-7">
-                      <div className="flex items-center gap-6">
-                        <div
-                          className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${series.gradient} text-3xl shadow-xl transition-transform group-hover:scale-110 group-hover:rotate-2`}
-                        >
-                          {series.emoji}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-black text-white text-lg tracking-tight">{series.title}</p>
-                          <p className="truncate text-sm font-bold text-zinc-500">{series.creator}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-10 py-7 text-center">
-                      <span className="inline-flex items-center rounded-xl bg-white/5 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-zinc-300">
-                        {CATEGORY_LABELS[series.category]}
-                      </span>
-                    </td>
-                    <td className="px-10 py-7 text-center">
-                      <span
-                        className={`inline-flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider ${
-                          series.status === "devam-ediyor" ? "bg-green-500/10 text-green-400" : "bg-blue-500/10 text-blue-400"
-                        }`}
-                      >
-                        <span
-                          className={`h-2 w-2 rounded-full ${series.status === "devam-ediyor" ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" : "bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]"}`}
-                        />
-                        {series.status === "devam-ediyor" ? "Yayında" : "Bitti"}
-                      </span>
-                    </td>
-                    <td className="px-10 py-7 text-right">
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={() => setSelectedSeriesId(selectedSeriesId === series.id ? null : series.id)}
-                          className={`rounded-2xl p-4 transition-all shadow-lg ${selectedSeriesId === series.id ? "bg-red-500 text-white shadow-red-500/20" : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"}`}
-                          title="Bölümleri Gör"
-                        >
-                          <Video className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(series)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-                        >
-                          <PencilSimple className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(series.id)}
-                          className="rounded-2xl bg-white/5 p-4 text-zinc-400 transition-all hover:bg-white/10 hover:text-red-500 shadow-lg"
-                        >
-                          <Trash className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {selectedSeriesId === series.id && (
-                    <tr className="bg-white/[0.01]">
-                      <td colSpan={4} className="px-10 py-12 border-t border-white/5">
-                        <div className="rounded-[2rem] border border-white/10 bg-black/40 p-10 shadow-2xl">
-                          <h4 className="mb-8 text-xl font-black text-white flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10">
-                              <YoutubeLogo className="h-7 w-7 text-red-500" />
-                            </div>
-                            Bölüm Listesi ({(series.episodes || []).length})
-                          </h4>
-                          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {series.episodes && series.episodes.length > 0 ? (
-                              series.episodes.map((ep: Episode) => (
-                                <div
-                                  key={ep.id}
-                                  className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-white/5 p-6 transition-all hover:border-white/20 hover:bg-white/10"
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <span className="rounded-lg bg-red-500/10 px-3 py-1.5 text-[10px] font-black tracking-widest text-red-400 uppercase">
-                                      BÖLÜM {ep.episodeNumber}
-                                    </span>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-500">
-                                      <Clock className="h-3.5 w-3.5" />
-                                      {ep.duration}
-                                    </div>
-                                  </div>
-                                  <h5 className="font-bold text-base text-white line-clamp-2 leading-snug">{ep.title}</h5>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="col-span-full py-16 text-center">
-                                <p className="text-zinc-500 font-bold italic opacity-50">Henüz bölüm eklenmemiş.</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Unlinked Videos Section */}
-      {unlinkedVideos.length > 0 && (
-        <div className="mt-20 space-y-10">
-          <div className="flex items-center gap-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-yellow-500/10 text-yellow-500 shadow-lg shadow-yellow-500/5">
-              <Clock className="h-7 w-7" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-white tracking-tight">Bağlanmamış Videolar</h2>
-              <p className="mt-1 text-zinc-500 font-medium">Kütüphaneye eklenen ancak bir seriye atanmayı bekleyen videolar.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {unlinkedVideos.map((video) => (
-              <div
-                key={video.id}
-                className="group relative flex flex-col overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.03] backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/[0.05] hover:shadow-2xl"
-              >
-                <div className="relative aspect-video overflow-hidden cursor-pointer" onClick={() => setPlayingVideo(video)}>
-                  <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60" />
-                  {/* Play Butonu */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/90 text-white shadow-2xl shadow-red-500/40 transition-all group-hover:scale-110 group-hover:bg-red-500">
-                      <Play className="h-7 w-7 fill-white ml-1" />
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteVideo(video.id);
-                    }}
-                    className="absolute right-4 top-4 rounded-2xl bg-black/60 p-3 text-zinc-400 opacity-0 transition-all hover:text-red-500 backdrop-blur-md group-hover:opacity-100"
-                  >
-                    <Trash className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="flex flex-1 flex-col p-8">
-                  <h3 className="line-clamp-2 min-h-[3rem] text-lg font-black text-white leading-tight tracking-tight">{video.title}</h3>
-
-                  <div className="mt-8 space-y-4">
-                    <div className="flex items-center justify-between px-1">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Seriye Atama</label>
-                      <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Beklemede</span>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <div className="relative flex-1">
-                        <select
-                          onChange={(e) => handleLinkVideo(video.id, e.target.value)}
-                          className="w-full appearance-none rounded-2xl border border-white/10 bg-black/40 py-4 pl-5 pr-10 text-xs font-bold text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5"
-                          defaultValue=""
-                        >
-                          <option value="" disabled>
-                            Seri seçin...
-                          </option>
-                          {seriesList.map((s) => (
-                            <option key={s.id} value={s.id} className="bg-zinc-900">
-                              {s.title}
-                            </option>
-                          ))}
-                        </select>
-                        <CaretRight className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Add Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-2xl">
-          <div className="absolute inset-0 bg-black/80" onClick={() => setIsAddModalOpen(false)} />
-          <div className="relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] border border-white/10 bg-zinc-950 p-10 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-              <h3 className="text-lg font-bold text-white">{isEditing ? "Seriyi Düzenle" : "Yeni Seri Ekle"}</h3>
-              <button
-                onClick={() => {
-                  setIsAddModalOpen(false);
-                  setIsEditing(false);
-                }}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-8">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Seri Adı</label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5"
-                    placeholder="Ör: Buneamk"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">İçerik Üretici</label>
-                  <input
-                    required
-                    type="text"
-                    value={formData.creator}
-                    onChange={(e) => setFormData({ ...formData, creator: e.target.value })}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5"
-                    placeholder="Ör: Berkcan Güven"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">YouTube Video ID</label>
-                  <div className="relative">
-                    <YoutubeLogo className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-red-500" />
-                    <input
-                      type="text"
-                      value={formData.youtubeId}
-                      onChange={(e) => setFormData({ ...formData, youtubeId: e.target.value })}
-                      className="w-full rounded-2xl border border-white/10 bg-black/40 py-4 pl-12 pr-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5"
-                      placeholder="vB-Wk5V80Xw"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Emoji</label>
-                  <input
-                    type="text"
-                    value={formData.emoji}
-                    onChange={(e) => setFormData({ ...formData, emoji: e.target.value })}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5 text-center text-xl"
-                    placeholder="🎤"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Açıklama</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5 resize-none"
-                  placeholder="Seri hakkında kısa bilgi..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Kategori</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5 appearance-none"
-                  >
-                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                      <option key={value} value={value} className="bg-zinc-900">
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Yayın Yılı</label>
-                  <input
-                    type="number"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 p-4 text-white outline-none transition-all focus:border-red-500/50 focus:ring-4 focus:ring-red-500/5"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setIsEditing(false);
-                  }}
-                  className="rounded-xl bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 rounded-xl bg-red-500 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-red-600 active:scale-95"
-                >
-                  <FloppyDisk className="h-4 w-4" />
-                  {isEditing ? "Değişiklikleri Kaydet" : "Seriyi Ekle"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Video Modal */}
-      {isVideoModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-2xl">
-          <div className="absolute inset-0 bg-black/80" onClick={() => setIsVideoModalOpen(false)} />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-white/10 bg-zinc-950 p-10 shadow-2xl">
-            <div className="mb-8 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-white px-2">Video Ekle</h2>
-              <button onClick={() => setIsVideoModalOpen(false)} className="rounded-xl bg-white/5 p-2 text-zinc-500 hover:text-white">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddVideo} className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-xs font-black uppercase tracking-widest text-zinc-500">YouTube Video URL</label>
-                <div className="relative">
-                  <YoutubeLogo className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-red-500" />
-                  <input
-                    required
-                    type="url"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-black/40 py-4 pl-12 pr-4 text-white outline-none focus:border-red-500/50"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                  />
-                </div>
-                <p className="text-[10px] text-zinc-500 italic px-1">URL'yi yapıştırın, video bilgileri otomatik olarak veritabanına kaydedilecektir.</p>
-              </div>
-
-              <button
-                type="submit"
-                disabled={addingVideo}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-red-500 py-5 text-base font-black text-white shadow-xl shadow-red-500/20 hover:bg-red-600 disabled:opacity-50"
-              >
-                {addingVideo ? <CircleNotch className="h-5 w-5 animate-spin" /> : <FloppyDisk className="h-5 w-5" />}
-                VİDEOYU KAYDET
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Video Player Modal */}
-      {playingVideo && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 backdrop-blur-2xl" onClick={() => setPlayingVideo(null)}>
-          <div className="absolute inset-0 bg-black/90" />
-          <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setPlayingVideo(null)}
-              className="absolute -top-12 right-0 flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-white/20"
-            >
-              <X className="h-4 w-4" />
-              Kapat
-            </button>
-            <div className="overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
-              <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                <iframe
-                  className="absolute inset-0 h-full w-full"
-                  src={`https://www.youtube.com/embed/${playingVideo.youtube_id}?autoplay=1&rel=0`}
-                  title={playingVideo.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-            <div className="mt-6 px-2">
-              <h3 className="text-xl font-black text-white tracking-tight">{playingVideo.title}</h3>
-              <p className="mt-2 text-sm text-zinc-500">{playingVideo.duration && `Süre: ${playingVideo.duration}`}</p>
-            </div>
-          </div>
+function SeriesCover({ youtubeId }: { youtubeId?: string }) {
+  return (
+    <div className="w-[96px] aspect-video rounded-xl overflow-hidden shrink-0 border border-app-border bg-app-surface-muted">
+      {youtubeId ? (
+        <img
+          src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-app-muted">
+          <YoutubeLogo size={22} weight="fill" style={{ color: ACCENT }} />
         </div>
       )}
     </div>
+  );
+}
+
+function EpisodeInfo({
+  episodeNumber,
+  publishedAt,
+  title,
+}: {
+  episodeNumber: number;
+  publishedAt?: string;
+  title: string;
+}) {
+  const dateLabel = formatEpisodeDate(publishedAt);
+  return (
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-1.5 mb-0.5">
+        <span className="text-[10px] font-black text-red-500">#{episodeNumber}</span>
+        {dateLabel && <span className="text-[8px] font-medium text-app-muted">{dateLabel}</span>}
+      </div>
+      <p className="text-[12px] font-bold text-app-text line-clamp-2 leading-snug">{title}</p>
+    </div>
+  );
+}
+
+const EMPTY_FORM = {
+  title: "",
+  creator: "",
+  description: "",
+  youtubeId: "",
+  category: "talk-show" as Category,
+  status: "devam-ediyor" as SeriesStatus,
+  year: new Date().getFullYear(),
+  contexts: ["yemek"] as Context[],
+  attentionLevel: "light" as AttentionLevel,
+};
+
+export default function AdminPage() {
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
+
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
+  const [rawSources, setRawSources] = useState<Series[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedSeries, setExpandedSeries] = useState<Series | null>(null);
+  const [expandedLoading, setExpandedLoading] = useState(false);
+
+  const [quickUrl, setQuickUrl] = useState("");
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [quickPreview, setQuickPreview] = useState<YouTubeSourcePreview | null>(null);
+
+  const [addEpisodeUrl, setAddEpisodeUrl] = useState("");
+  const [addEpisodeLoading, setAddEpisodeLoading] = useState(false);
+  const [importJob, setImportJob] = useState<PlaylistImportJob | null>(null);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  const [promoteTarget, setPromoteTarget] = useState<Series | null>(null);
+  const [promoteLoading, setPromoteLoading] = useState(false);
+
+  const userId = user?.id || "";
+
+  useEffect(() => {
+    if (!isLoaded || adminLoading) return;
+    if (!isAdmin) {
+      router.replace("/apps/youtube-discover/kesfet");
+    }
+  }, [isLoaded, adminLoading, isAdmin, router]);
+
+  async function loadAll() {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const [series, raw] = await Promise.all([fetchSeries(), fetchRawSources(userId)]);
+      setSeriesList(series);
+      setRawSources(raw);
+    } catch (err) {
+      console.error(err);
+      toast.error("Veriler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (isAdmin && userId) loadAll();
+  }, [isAdmin, userId]);
+
+  async function handleExpand(id: string) {
+    if (expandedId === id) {
+      setExpandedId(null);
+      setExpandedSeries(null);
+      return;
+    }
+
+    setExpandedId(id);
+    setExpandedLoading(true);
+    try {
+      const data = await fetchSeriesById(id);
+      setExpandedSeries(data);
+    } catch {
+      toast.error("Bölümler yüklenemedi");
+    } finally {
+      setExpandedLoading(false);
+    }
+  }
+
+  async function handleQuickPreview() {
+    if (!quickUrl.trim() || !userId) return;
+    setQuickLoading(true);
+    try {
+      const preview = await resolveYouTubeUrl(userId, quickUrl.trim());
+      setQuickPreview(preview);
+    } catch (err: any) {
+      toast.error(err?.message || "URL çözümlenemedi");
+      setQuickPreview(null);
+    } finally {
+      setQuickLoading(false);
+    }
+  }
+
+  async function refreshListsQuietly() {
+    if (!userId) return;
+    const [series, raw] = await Promise.all([fetchSeries(), fetchRawSources(userId)]);
+    setSeriesList(series);
+    setRawSources(raw);
+  }
+
+  async function refreshExpandedSeries(id: string) {
+    const data = await fetchSeriesById(id);
+    if (data) setExpandedSeries(data);
+    await refreshListsQuietly();
+  }
+
+  function patchImportJob(patch: Partial<PlaylistImportJob>) {
+    setImportJob((prev) => ({
+      seriesId: prev?.seriesId || "",
+      seriesTitle: prev?.seriesTitle || "",
+      total: prev?.total || 0,
+      done: prev?.done || 0,
+      skipped: prev?.skipped || 0,
+      phase: prev?.phase || "resolving",
+      ...prev,
+      ...patch,
+    }));
+  }
+
+  async function handleQuickCreate() {
+    if (!userId || !quickUrl.trim()) return;
+    setQuickLoading(true);
+    patchImportJob({
+      seriesId: "",
+      seriesTitle: "",
+      total: 0,
+      done: 0,
+      skipped: 0,
+      phase: "resolving",
+      error: undefined,
+    });
+
+    try {
+      const result = await createAndImportPlaylist({
+        userId,
+        url: quickUrl.trim(),
+        onUpdate: patchImportJob,
+        onSeriesCreated: async (seriesId) => {
+          await loadAll();
+          setExpandedId(seriesId);
+          const data = await fetchSeriesById(seriesId);
+          setExpandedSeries(data);
+        },
+        onEpisodeAdded: (id) => refreshExpandedSeries(id),
+        category: "talk-show",
+        contexts: ["yemek"],
+      });
+
+      if (result.series.id) {
+        setExpandedId(result.series.id);
+        await refreshExpandedSeries(result.series.id);
+      }
+
+      toast.success(
+        result.imported > 1
+          ? result.skipped > 0
+            ? `${result.imported} video kaydedildi, ${result.skipped} atlandı`
+            : `${result.imported} video ham kaynak olarak kaydedildi`
+          : "Ham kaynak kaydedildi"
+      );
+      setQuickUrl("");
+      setQuickPreview(null);
+      patchImportJob({ phase: "done" });
+      setTimeout(() => setImportJob(null), 2500);
+    } catch (err: any) {
+      patchImportJob({ phase: "error", error: err?.message || "İçe aktarılamadı" });
+      toast.error(err?.message || "İçe aktarılamadı");
+    } finally {
+      setQuickLoading(false);
+    }
+  }
+
+  function isSingleVideoSource(source: Series) {
+    return source.sourceType === "video" || (source.episodeCount === 1 && source.sourceType !== "playlist" && source.sourceType !== "channel");
+  }
+
+  function handlePromoteClick(source: Series) {
+    if (isSingleVideoSource(source)) {
+      setPromoteTarget(source);
+      return;
+    }
+    void handlePromote(source.id);
+  }
+
+  async function handlePromote(id: string, title?: string) {
+    if (!userId) return;
+    setPromoteLoading(true);
+    try {
+      await promoteSource(userId, id, {
+        category: "talk-show",
+        contexts: ["yemek"],
+        title,
+      });
+      toast.success("Keşfet'e seri olarak eklendi");
+      setPromoteTarget(null);
+      if (expandedId === id) {
+        setExpandedId(null);
+        setExpandedSeries(null);
+      }
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err?.message || "Seriye dönüştürülemedi");
+    } finally {
+      setPromoteLoading(false);
+    }
+  }
+
+  async function handleAddEpisode(seriesId: string, seriesTitle: string) {
+    if (!userId || !addEpisodeUrl.trim()) return;
+    setAddEpisodeLoading(true);
+
+    const startEpisodeNumber = (expandedSeries?.episodes?.length || 0) + 1;
+    patchImportJob({
+      seriesId,
+      seriesTitle,
+      total: 0,
+      done: 0,
+      skipped: 0,
+      phase: "resolving",
+      error: undefined,
+    });
+
+    try {
+      const result = await importPlaylistToSeries({
+        userId,
+        seriesId,
+        url: addEpisodeUrl.trim(),
+        seriesTitle,
+        startEpisodeNumber,
+        onUpdate: patchImportJob,
+        onEpisodeAdded: (id) => refreshExpandedSeries(id),
+      });
+
+      toast.success(
+        result.imported > 1
+          ? result.skipped > 0
+            ? `${result.imported} bölüm eklendi, ${result.skipped} zaten vardı`
+            : `${result.imported} bölüm eklendi`
+          : result.skipped > 0
+            ? "Video zaten seride vardı"
+            : "Bölüm eklendi"
+      );
+      setAddEpisodeUrl("");
+      await refreshExpandedSeries(seriesId);
+      patchImportJob({ phase: "done" });
+      setTimeout(() => setImportJob(null), 2500);
+    } catch (err: any) {
+      patchImportJob({ phase: "error", error: err?.message || "Bölüm eklenemedi" });
+      toast.error(err?.message || "Bölüm eklenemedi");
+    } finally {
+      setAddEpisodeLoading(false);
+    }
+  }
+
+  async function handleDeleteSeries(id: string) {
+    if (!userId || !confirm("Silmek istediğine emin misin?")) return;
+    try {
+      await deleteSeries(userId, id);
+      toast.success("Silindi");
+      if (expandedId === id) {
+        setExpandedId(null);
+        setExpandedSeries(null);
+      }
+      await loadAll();
+    } catch {
+      toast.error("Seri silinemedi");
+    }
+  }
+
+  async function handleDeleteEpisode(episodeId: string, seriesId: string) {
+    if (!userId || !confirm("Bu bölümü silmek istediğine emin misin?")) return;
+    try {
+      await deleteEpisode(userId, episodeId);
+      toast.success("Bölüm silindi");
+      const data = await fetchSeriesById(seriesId);
+      setExpandedSeries(data);
+      await loadAll();
+    } catch {
+      toast.error("Bölüm silinemedi");
+    }
+  }
+
+  function openEdit(series: Series) {
+    setEditingId(series.id);
+    setForm({
+      title: series.title,
+      creator: series.creator,
+      description: series.description,
+      youtubeId: series.youtubeId,
+      category: series.category,
+      status: series.status,
+      year: series.year,
+      contexts: series.contexts || ["yemek"],
+      attentionLevel: series.attentionLevel || "light",
+    });
+    setShowForm(true);
+  }
+
+  async function handleSaveForm(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId) return;
+    setSaving(true);
+    try {
+      await upsertSeries(userId, {
+        id: editingId || undefined,
+        ...form,
+      });
+      toast.success(editingId ? "Seri güncellendi" : "Seri eklendi");
+      setShowForm(false);
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      await loadAll();
+    } catch {
+      toast.error("Kaydedilemedi");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleContext(ctx: Context) {
+    setForm((prev) => ({
+      ...prev,
+      contexts: prev.contexts.includes(ctx)
+        ? prev.contexts.filter((c) => c !== ctx)
+        : [...prev.contexts, ctx],
+    }));
+  }
+
+  if (!isLoaded || adminLoading || !isAdmin) {
+    return (
+      <YTDBShell detailTitle="Yönetim">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
+          Yükleniyor...
+        </div>
+      </YTDBShell>
+    );
+  }
+
+  return (
+    <YTDBShell detailTitle="Yönetim">
+      <div className="space-y-5">
+        {importJob && importJob.phase !== "done" && (
+          <PlaylistImportProgress job={importJob} />
+        )}
+
+        {/* Quick add from URL */}
+        <section className="rounded-2xl border border-app-border bg-app-surface shadow-sm p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <YoutubeLogo size={18} weight="fill" style={{ color: ACCENT }} />
+            <h2 className="text-[13px] font-black text-app-text">Video, kanal veya oynatma listesi</h2>
+          </div>
+          <p className="text-[11px] font-medium text-app-muted">
+            URL ile eklenen her şey önce ham kaynak olarak saklanır. Keşfet&apos;e &quot;Seri&quot; ile alırsın.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={quickUrl}
+              onChange={(e) => {
+                setQuickUrl(e.target.value);
+                setQuickPreview(null);
+              }}
+              placeholder="Video, playlist veya @kanal URL..."
+              className="flex-1 h-10 px-3 bg-app-surface border border-app-border rounded-xl text-sm font-medium text-app-text placeholder:text-app-muted outline-none focus:border-red-500/30"
+            />
+            <button
+              type="button"
+              onClick={handleQuickPreview}
+              disabled={quickLoading || !quickUrl.trim()}
+              className="h-10 px-3 rounded-xl border border-app-border bg-app-surface-muted text-[10px] font-black uppercase tracking-wide text-app-text disabled:opacity-50 active:scale-95"
+            >
+              {quickLoading ? <CircleNotch size={16} className="animate-spin" /> : "Önizle"}
+            </button>
+          </div>
+
+          {quickPreview && (
+            <div className="rounded-xl border border-app-border bg-app-surface-muted p-3 space-y-2">
+              <div className="flex gap-3">
+                <img
+                  src={quickPreview.thumbnailUrl}
+                  alt=""
+                  className="w-20 h-14 rounded-lg object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white mb-1" style={{ backgroundColor: ACCENT }}>
+                    {SOURCE_LABELS[quickPreview.type]}
+                  </span>
+                  <p className="text-[12px] font-black text-app-text line-clamp-2">
+                    {quickPreview.title}
+                  </p>
+                  <p className="text-[10px] font-bold text-app-muted mt-0.5">
+                    {quickPreview.author} · {quickPreview.videoCount} video
+                  </p>
+                </div>
+              </div>
+              {quickPreview.videos.length > 1 && (
+                <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                  {quickPreview.videos.slice(0, 5).map((v) => (
+                    <div key={v.youtubeId} className="flex items-center gap-2">
+                      <img
+                        src={v.thumbnailUrl || `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
+                        alt=""
+                        className="w-12 h-9 rounded-md object-cover shrink-0 border border-app-border"
+                      />
+                      <p className="text-[10px] font-medium text-app-muted truncate">{v.title}</p>
+                    </div>
+                  ))}
+                  {quickPreview.videos.length > 5 && (
+                    <p className="text-[10px] font-bold text-app-muted">
+                      +{quickPreview.videos.length - 5} video daha
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleQuickCreate}
+            disabled={quickLoading || !quickUrl.trim()}
+            className="w-full h-10 rounded-xl text-white text-[11px] font-black uppercase tracking-wider disabled:opacity-50 active:scale-[0.98]"
+            style={{ backgroundColor: ACCENT }}
+          >
+            {quickLoading
+              ? "İçe aktarılıyor..."
+              : quickPreview
+                ? quickPreview.videoCount > 1
+                  ? `${quickPreview.videoCount} Videoyu Ham Kaydet`
+                  : "Ham Kaydet"
+                : "Ham Kaydet"}
+          </button>
+        </section>
+
+        {/* Manual series form toggle */}
+        <button
+          type="button"
+          onClick={() => {
+            setEditingId(null);
+            setForm(EMPTY_FORM);
+            setShowForm((v) => !v);
+          }}
+          className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-app-border bg-app-surface text-[11px] font-black uppercase tracking-wider text-app-text active:scale-[0.98]"
+        >
+          <Plus size={14} weight="bold" />
+          {showForm ? "Formu Gizle" : "Manuel Seri Ekle / Düzenle"}
+        </button>
+
+        {showForm && (
+          <form
+            onSubmit={handleSaveForm}
+            className="rounded-2xl border border-app-border bg-app-surface shadow-sm p-4 space-y-3"
+          >
+            <input
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Seri adı"
+              className="w-full h-10 px-3 border border-app-border rounded-xl text-sm font-bold"
+            />
+            <input
+              required
+              value={form.creator}
+              onChange={(e) => setForm({ ...form, creator: e.target.value })}
+              placeholder="Kanal / üretici"
+              className="w-full h-10 px-3 border border-app-border rounded-xl text-sm font-bold"
+            />
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Açıklama"
+              rows={2}
+              className="w-full px-3 py-2 border border-app-border rounded-xl text-sm font-medium resize-none"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                className="h-10 px-3 border border-app-border rounded-xl text-[11px] font-black uppercase"
+              >
+                {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as SeriesStatus })}
+                className="h-10 px-3 border border-app-border rounded-xl text-[11px] font-black uppercase"
+              >
+                <option value="devam-ediyor">Yayında</option>
+                <option value="tamamlandi">Tamamlandı</option>
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(CONTEXT_LABELS) as Context[]).map((ctx) => (
+                <button
+                  key={ctx}
+                  type="button"
+                  onClick={() => toggleContext(ctx)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border ${
+                    form.contexts.includes(ctx)
+                      ? "text-white border-transparent"
+                      : "bg-app-surface text-app-muted border-app-border"
+                  }`}
+                  style={form.contexts.includes(ctx) ? { backgroundColor: ACCENT } : undefined}
+                >
+                  {CONTEXT_LABELS[ctx]}
+                </button>
+              ))}
+            </div>
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full h-10 rounded-xl text-white text-[11px] font-black uppercase disabled:opacity-50"
+              style={{ backgroundColor: ACCENT }}
+            >
+              {saving ? "Kaydediliyor..." : editingId ? "Güncelle" : "Kaydet"}
+            </button>
+          </form>
+        )}
+
+        {/* Raw sources */}
+        <section className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
+            {loading ? "..." : `${rawSources.length} ham kaynak`}
+          </p>
+          {!loading && rawSources.length === 0 ? (
+            <div className="text-center py-8 bg-app-surface rounded-2xl border border-dashed border-app-border">
+              <p className="text-sm font-bold text-app-muted">Henüz ham kaynak yok</p>
+              <p className="text-[11px] text-app-muted mt-1">Kanal veya oynatma listesi URL&apos;si ekle</p>
+            </div>
+          ) : (
+            rawSources.map((source) => (
+              <article
+                key={source.id}
+                className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden"
+              >
+                <div className="p-3 flex items-start gap-3">
+                  <SeriesCover youtubeId={source.youtubeId} />
+                  <div className="flex-1 min-w-0">
+                    <span className="inline-block px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white mb-1" style={{ backgroundColor: ACCENT }}>
+                      {source.sourceType && source.sourceType !== "manual"
+                        ? SOURCE_LABELS[source.sourceType as keyof typeof SOURCE_LABELS]
+                        : "Ham"}
+                    </span>
+                    <h3 className="text-[14px] font-black text-app-text truncate">{source.title}</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider mt-0.5" style={{ color: ACCENT }}>
+                      {source.creator}
+                    </p>
+                    <p className="text-[10px] font-bold text-app-muted mt-1">
+                      {source.episodeCount} video
+                      {source.sourceUrl ? " · YouTube kaynağı" : ""}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handlePromoteClick(source)}
+                      className="flex items-center justify-center gap-1 h-8 px-2.5 rounded-lg border border-app-border bg-app-surface text-[9px] font-black uppercase tracking-wide text-app-text hover:text-red-500 active:scale-95"
+                      title="Keşfet'e seri olarak ekle"
+                    >
+                      <ArrowUpRight size={12} weight="bold" />
+                      Seri
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSeries(source.id)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-red-500 active:scale-95"
+                      aria-label="Sil"
+                    >
+                      <Trash size={14} weight="bold" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleExpand(source.id)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-app-text active:scale-95"
+                      aria-label="Videoları göster"
+                    >
+                      {expandedId === source.id ? (
+                        <CaretUp size={14} weight="bold" />
+                      ) : (
+                        <CaretDown size={14} weight="bold" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {expandedId === source.id && (
+                  <div className="border-t border-app-border bg-app-surface-muted/50 p-3 space-y-3">
+                    {expandedLoading ? (
+                      <p className="text-xs text-app-muted text-center py-4">Yükleniyor...</p>
+                    ) : (
+                      <>
+                        <SeriesPlaylistImport
+                          url={addEpisodeUrl}
+                          onChange={setAddEpisodeUrl}
+                          onImport={() => handleAddEpisode(source.id, source.title)}
+                          loading={addEpisodeLoading}
+                        />
+
+                        {importJob?.seriesId === source.id && importJob.phase !== "done" && (
+                          <PlaylistImportProgress job={importJob} />
+                        )}
+
+                        <div className="space-y-1.5">
+                          {sortEpisodesByDate(expandedSeries?.episodes || []).map((ep, index) => (
+                            <div
+                              key={ep.id}
+                              className="flex items-start gap-3 p-2.5 rounded-xl bg-app-surface border border-app-border"
+                            >
+                              <EpisodeThumbnail ep={ep} />
+                              <EpisodeInfo
+                                episodeNumber={index + 1}
+                                publishedAt={ep.publishedAt}
+                                title={ep.title}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteEpisode(ep.id, source.id)}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg text-app-muted hover:text-red-500 active:scale-95 mt-0.5"
+                                aria-label="Videoyu sil"
+                              >
+                                <Trash size={12} weight="bold" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </article>
+            ))
+          )}
+        </section>
+
+        {/* Published series */}
+        <section className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
+            {loading ? "..." : `${seriesList.length} seri · keşfet`}
+          </p>
+
+          {loading ? (
+            <div className="text-center py-12 text-app-muted text-xs font-bold uppercase animate-pulse">
+              Yükleniyor...
+            </div>
+          ) : seriesList.length === 0 ? (
+            <div className="text-center py-12 bg-app-surface rounded-2xl border border-app-border">
+              <p className="text-sm font-bold text-app-muted">Henüz seri yok</p>
+            </div>
+          ) : (
+            seriesList.map((series) => (
+              <article
+                key={series.id}
+                className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden"
+              >
+                <div className="p-3 flex items-start gap-3">
+                  <SeriesCover youtubeId={series.youtubeId} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[14px] font-black text-app-text truncate">
+                      {series.title}
+                    </h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider mt-0.5" style={{ color: ACCENT }}>
+                      {series.creator}
+                    </p>
+                    <p className="text-[10px] font-bold text-app-muted mt-1">
+                      {series.episodeCount} bölüm · {CATEGORY_LABELS[series.category]}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(series)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-app-text active:scale-95"
+                      aria-label="Düzenle"
+                    >
+                      <PencilSimple size={14} weight="bold" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSeries(series.id)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-red-500 active:scale-95"
+                      aria-label="Sil"
+                    >
+                      <Trash size={14} weight="bold" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleExpand(series.id)}
+                      className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-app-text active:scale-95"
+                      aria-label="Bölümleri göster"
+                    >
+                      {expandedId === series.id ? (
+                        <CaretUp size={14} weight="bold" />
+                      ) : (
+                        <CaretDown size={14} weight="bold" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {expandedId === series.id && (
+                  <div className="border-t border-app-border bg-app-surface-muted/50 p-3 space-y-3">
+                    {expandedLoading ? (
+                      <p className="text-xs text-app-muted text-center py-4">Yükleniyor...</p>
+                    ) : (
+                      <>
+                        <SeriesPlaylistImport
+                          url={addEpisodeUrl}
+                          onChange={setAddEpisodeUrl}
+                          onImport={() => handleAddEpisode(series.id, series.title)}
+                          loading={addEpisodeLoading}
+                        />
+
+                        {importJob?.seriesId === series.id && importJob.phase !== "done" && (
+                          <PlaylistImportProgress job={importJob} />
+                        )}
+
+                        <div className="space-y-1.5">
+                          {sortEpisodesByDate(expandedSeries?.episodes || []).map((ep, index) => (
+                            <div
+                              key={ep.id}
+                              className="flex items-start gap-3 p-2.5 rounded-xl bg-app-surface border border-app-border"
+                            >
+                              <EpisodeThumbnail ep={ep} />
+                              <EpisodeInfo
+                                episodeNumber={index + 1}
+                                publishedAt={ep.publishedAt}
+                                title={ep.title}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteEpisode(ep.id, series.id)}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg text-app-muted hover:text-red-500 active:scale-95 mt-0.5"
+                                aria-label="Bölümü sil"
+                              >
+                                <Trash size={12} weight="bold" />
+                              </button>
+                            </div>
+                          ))}
+                          {(expandedSeries?.episodes || []).length === 0 && (
+                            <p className="text-xs text-app-muted text-center py-2">
+                              Henüz bölüm yok
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </article>
+            ))
+          )}
+        </section>
+      </div>
+
+      <PromoteVideoSheet
+        open={!!promoteTarget}
+        onOpenChange={(open) => {
+          if (!open && !promoteLoading) setPromoteTarget(null);
+        }}
+        source={promoteTarget}
+        loading={promoteLoading}
+        onConfirm={(title) => {
+          if (promoteTarget) void handlePromote(promoteTarget.id, title);
+        }}
+      />
+    </YTDBShell>
   );
 }

@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, UserCircle } from "@phosphor-icons/react";
 import { useNotifications } from "@/hooks/use-notifications";
 import { createBrowserClient } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUserPreferencesAction } from "@/app/home/actions";
+import { upsertProfileUserInCache } from "@/lib/cache/profileCache";
 
 import { useRouter, usePathname } from "next/navigation";
 
@@ -16,6 +17,7 @@ const client = createBrowserClient();
 export function GreetingHandler() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  const queryClient = useQueryClient();
   const { permission, handleRequestPermission } = useNotifications();
   const router = useRouter();
   const pathname = usePathname();
@@ -125,6 +127,11 @@ export function GreetingHandler() {
         fullName: fullName || undefined,
         avatarUrl: user.imageUrl,
       });
+
+      const refreshed = await client.users.getUserByClerkId(user.id);
+      if (refreshed.user) {
+        upsertProfileUserInCache(queryClient, user.id, refreshed.user);
+      }
 
       // Update local state so modal closes or transitions
       setHasUsername(true);

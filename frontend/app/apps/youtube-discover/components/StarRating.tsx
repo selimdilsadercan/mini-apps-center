@@ -50,7 +50,7 @@ export default function StarRating({
               className={`${sizeMap[size]} transition-colors ${
                 filled
                   ? "fill-yellow-400 text-yellow-400"
-                  : "fill-transparent text-zinc-600"
+                  : "fill-transparent text-app-muted"
               }`}
             />
           </button>

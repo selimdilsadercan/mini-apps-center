@@ -1,34 +1,71 @@
 "use client";
 
 import { useUser, SignOutButton } from "@clerk/clerk-react";
-import AppBar, { ActivePage } from "@/components/AppBar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Sparkle, Translate, SignOut, User, Users, CaretRight, CaretLeft, Shield, Globe, UserGear } from "@phosphor-icons/react";
+import {
+  SignOut,
+  Users,
+  CaretLeft,
+  Globe,
+  UserGear,
+} from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react";
 import { useLanguage, useTranslations } from "@/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/api";
 import ThemeSelector from "@/components/ThemeSelector";
 import { APP_CONFIG } from "@/lib/config";
+import { useProfileUser } from "@/lib/cache/profileCache";
 
-const client = createBrowserClient();
+const actionBtn =
+  "w-8 h-8 rounded-lg flex items-center justify-center border border-app-border bg-app-surface text-app-muted hover:text-app-text hover:bg-app-surface-muted transition-all active:scale-95 cursor-pointer";
+
+function ProfileRow({
+  href,
+  icon: RowIcon,
+  color,
+  title,
+  subtitle,
+  trailing,
+}: {
+  href: string;
+  icon: Icon;
+  color: string;
+  title: string;
+  subtitle: string;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] border-b border-app-border last:border-0"
+    >
+      <div
+        className="w-11 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"
+        style={{ backgroundColor: color }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+        <RowIcon size={22} weight="fill" className="text-white relative z-10" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-bold text-app-text text-[15px] tracking-tight truncate">{title}</h3>
+        <p className="text-[11px] font-medium text-app-muted line-clamp-1 leading-tight">
+          {subtitle}
+        </p>
+      </div>
+      {trailing}
+    </Link>
+  );
+}
 
 export default function Profile() {
-  const { isLoaded, user } = useUser();
+  const { user } = useUser();
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
   const t = useTranslations("profile");
+  const { dbUser, isInitialLoading } = useProfileUser();
 
-  const [dbUser, setDbUser] = useState<any>(null);
-  const [friendsCount, setFriendsCount] = useState(0);
-  const [activeAppsCount, setActiveAppsCount] = useState(0);
-  const [loadingDb, setLoadingDb] = useState(true);
   const [hasFriendsBadge, setHasFriendsBadge] = useState(false);
-
-  // Tek elemanlı sabit deps: isLoaded + oturum durumu (HMR'da dizi boyutu değişmesin)
-  const profileLoadKey = !isLoaded
-    ? "clerk-loading"
-    : user?.id ?? "signed-out";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -45,194 +82,123 @@ export default function Profile() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!user) {
-      setDbUser(null);
-      setFriendsCount(0);
-      setActiveAppsCount(0);
-      setLoadingDb(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingDb(true);
-
-    client.users
-      .getUserByClerkId(user.id)
-      .then((res) => {
-        if (!cancelled) {
-          setDbUser(res.user ?? null);
-        }
-      })
-      .catch((err) => console.error("Error loading user profile handle:", err))
-      .finally(() => {
-        if (!cancelled) setLoadingDb(false);
-      });
-
-    client.friendship
-      .getFriends(user.id)
-      .then((res) => {
-        if (!cancelled && res.friends) {
-          setFriendsCount(res.friends.length);
-        }
-      })
-      .catch((err) => console.error("Error loading friends count:", err));
-
-    client.users
-      .getUserPreferences(user.id)
-      .then((res) => {
-        if (!cancelled && res.appOrder) {
-          setActiveAppsCount(res.appOrder.length);
-        }
-      })
-      .catch((err) => console.error("Error loading active apps count:", err));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profileLoadKey]);
-
-  if (!isLoaded || loadingDb) {
+  if (isInitialLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-app-bg">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkle size={16} className="text-indigo-400 animate-pulse" />
-            </div>
+      <div className="flex min-h-screen flex-col bg-app-bg pb-8">
+        <header className="sticky top-0 z-30 app-chrome-top">
+          <div className="max-w-lg mx-auto w-full px-4 py-3">
+            <div className="h-4 w-32 bg-app-surface-muted rounded animate-pulse" />
+          </div>
+        </header>
+        <main className="px-4 pt-4 pb-safe-area-inset-bottom max-w-lg mx-auto w-full">
+          <div className="h-16 bg-app-surface-muted rounded-2xl animate-pulse mb-6" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-14 bg-app-surface-muted rounded-2xl animate-pulse" />
+            ))}
           </div>
         </main>
       </div>
     );
   }
 
-  // Display name helpers
   const handleName = dbUser?.username || user?.username || "kullanici_adi";
   const displayName = dbUser?.full_name || user?.fullName || t("guest");
+  const avatarUrl = dbUser?.avatar_url || user?.imageUrl;
 
   return (
-    <div className="flex min-h-screen flex-col bg-app-bg text-app-text selection:bg-indigo-100 dark:selection:bg-indigo-950/40 selection:text-indigo-900 dark:selection:text-indigo-200">
-      {/* Background Decorative Gradient */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/20 dark:bg-indigo-950/20 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[-5%] right-[-10%] w-[50%] h-[50%] bg-purple-100/10 dark:bg-purple-950/15 blur-[120px] rounded-full"></div>
-      </div>
-
-      {/* Main Profile View */}
-      <main className="flex-1 px-4 pb-12 max-w-md mx-auto w-full pt-8">
-        
-        {/* Header with Back Button */}
-        <div className="mb-6">
-          <button 
-            onClick={() => router.push("/")}
-            className="w-10 h-10 rounded-2xl bg-app-surface border border-app-border flex items-center justify-center text-app-text shadow-sm active:scale-95 transition-all hover:bg-app-surface-muted"
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text pb-8">
+      <header className="sticky top-0 z-30 app-chrome-top">
+        <div className="max-w-lg mx-auto w-full px-4 py-3 flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={() => router.push("/home")}
+            className={actionBtn}
+            aria-label="Geri"
           >
-            <CaretLeft size={20} weight="bold" />
+            <CaretLeft size={16} weight="bold" />
           </button>
+          <div className="min-w-0">
+            <h1 className="text-base font-black text-app-text tracking-tight truncate leading-none">
+              {t("title")}
+            </h1>
+            <p className="text-[10px] font-medium text-app-muted truncate mt-1 lowercase">
+              @{handleName}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col items-center text-center mt-4 mb-8">
-          
-          {/* Avatar container */}
-          <div className="relative mb-4">
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 rounded-full -m-1 animate-spin-slow opacity-90" style={{ padding: '2px' }} />
-            <div className="relative bg-app-surface rounded-full p-1">
-              {user?.imageUrl || dbUser?.avatar_url ? (
-                <img 
-                  src={dbUser?.avatar_url || user?.imageUrl} 
-                  alt={displayName} 
-                  className="w-24 h-24 rounded-full border border-app-border shadow-sm object-cover"
-                />
+      </header>
+
+      <main className="px-4 pt-4 pb-safe-area-inset-bottom max-w-lg mx-auto w-full space-y-8">
+        <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm border border-app-border">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-sm">
+                <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white font-black">
                   {displayName.charAt(0)}
                 </div>
               )}
             </div>
-          </div>
-
-          {/* User Username Handle */}
-          <h1 className="text-xl font-black text-app-text tracking-tight lowercase">
-            {handleName}
-          </h1>
-
-          {/* User Full Name */}
-          <p className="text-sm font-semibold text-app-muted mt-1">
-            {displayName}
-          </p>
-
-          {/* Social Stats line */}
-          <div className="grid grid-cols-2 divide-x divide-app-border mt-6 py-3.5 bg-app-surface/60 border border-app-border rounded-2xl shadow-sm text-center w-full max-w-[240px]">
-            <Link href="/friends" className="flex flex-col items-center no-underline text-app-text justify-center">
-              <span className="text-lg font-black">{friendsCount}</span>
-              <span className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t("friendsStat")}</span>
-            </Link>
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-lg font-black">{activeAppsCount}</span>
-              <span className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t("appsStat")}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12px] font-black text-app-text tracking-tight truncate lowercase">
+                {handleName}
+              </p>
+              <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider truncate">
+                {displayName}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Profile Navigation Menus */}
-        <div className="space-y-4">
-          
-          {/* Action Links */}
-          <div className="bg-app-surface rounded-3xl border border-app-border shadow-sm overflow-hidden">
-            <Link
+        <section className="space-y-4">
+          <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] px-1">
+            {t("accountSettings")}
+          </h2>
+          <div className="space-y-0">
+            <ProfileRow
               href="/friends"
-              className="flex items-center justify-between p-4 hover:bg-app-surface-muted transition-colors no-underline cursor-pointer border-b border-app-border"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-2xl">
-                  <Users size={18} weight="fill" />
-                </div>
-                <div className="text-left">
-                  <span className="text-xs font-black text-app-text block">{t("manageFriends")}</span>
-                  <span className="text-[9px] font-bold text-app-muted uppercase tracking-wide">{t("manageFriendsSubtitle")}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {hasFriendsBadge && (
-                  <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-                )}
-                <CaretRight size={16} className="text-app-muted" />
-              </div>
-            </Link>
-
-            <Link
+              icon={Users}
+              color="#3B82F6"
+              title={t("manageFriends")}
+              subtitle={t("manageFriendsSubtitle")}
+              trailing={
+                hasFriendsBadge ? (
+                  <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shrink-0" />
+                ) : null
+              }
+            />
+            <ProfileRow
               href="/settings/account"
-              className="flex items-center justify-between p-4 hover:bg-app-surface-muted transition-colors no-underline cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-orange-50 dark:bg-orange-950/40 text-[#FF6B35] rounded-2xl">
-                  <UserGear size={18} weight="fill" />
-                </div>
-                <div className="text-left">
-                  <span className="text-xs font-black text-app-text block">{t("accountSettings")}</span>
-                  <span className="text-[9px] font-bold text-app-muted uppercase tracking-wide">{t("accountSettingsSubtitle")}</span>
-                </div>
-              </div>
-              <CaretRight size={16} className="text-app-muted" />
-            </Link>
+              icon={UserGear}
+              color="#FF6B35"
+              title={t("accountSettings")}
+              subtitle={t("accountSettingsSubtitle")}
+            />
           </div>
+        </section>
 
-          {/* Language Preference selection inside settings container */}
-          <div className="bg-app-surface rounded-3xl border border-app-border shadow-sm p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-2xl">
-                <Globe size={18} weight="bold" />
+        <section className="space-y-3">
+          <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] px-1">
+            {t("language")} & {t("theme")}
+          </h2>
+
+          <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                style={{ backgroundColor: "#8B5CF6" }}
+              >
+                <Globe size={20} weight="fill" className="text-white" />
               </div>
-              <span className="text-xs font-black text-app-text">{t("language")}</span>
+              <span className="text-[12px] font-black text-app-text">{t("language")}</span>
             </div>
-
-            {/* Segmented language switcher on the right */}
-            <div className="flex items-center bg-app-surface-muted border border-app-border rounded-2xl p-1 shrink-0">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-app-surface-muted border border-app-border shrink-0">
               <button
+                type="button"
                 onClick={() => setLocale("tr")}
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
                   locale === "tr"
                     ? "bg-app-tab-active text-app-text shadow-sm"
                     : "text-app-muted hover:text-app-text"
@@ -241,8 +207,9 @@ export default function Profile() {
                 TR
               </button>
               <button
+                type="button"
                 onClick={() => setLocale("en")}
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
                   locale === "en"
                     ? "bg-app-tab-active text-app-text shadow-sm"
                     : "text-app-muted hover:text-app-text"
@@ -254,23 +221,25 @@ export default function Profile() {
           </div>
 
           <ThemeSelector />
+        </section>
 
-          {/* Sign Out Card */}
-          {user && (
-            <div className="bg-app-surface rounded-3xl border border-app-border shadow-sm p-3">
-              <SignOutButton>
-                <button className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 dark:bg-red-950/30 hover:bg-red-100/70 dark:hover:bg-red-950/50 active:scale-[0.98] transition-all rounded-2xl text-red-600 dark:text-red-400 font-black text-xs border border-red-100 dark:border-red-900/50 cursor-pointer uppercase tracking-wider">
-                  <SignOut size={16} weight="bold" />
-                  {t("signOut")}
-                </button>
-              </SignOutButton>
-            </div>
-          )}
+        {user && (
+          <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm p-3">
+            <SignOutButton>
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 hover:bg-red-100/70 dark:hover:bg-red-950/50 active:scale-[0.98] transition-all text-red-600 dark:text-red-400 font-black text-xs uppercase tracking-wider"
+              >
+                <SignOut size={16} weight="bold" />
+                {t("signOut")}
+              </button>
+            </SignOutButton>
+          </div>
+        )}
 
-          <p className="text-center text-[10px] font-bold text-app-muted pt-2 tracking-widest">
-            v{APP_CONFIG.version}
-          </p>
-        </div>
+        <p className="text-center text-[10px] font-bold text-app-muted tracking-widest">
+          v{APP_CONFIG.version}
+        </p>
       </main>
     </div>
   );

@@ -17,7 +17,7 @@ import {
   prependWorkoutToCache,
   syncGymDiscoverWidgets,
   upsertRoutineInCache,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 interface PreviewExercise {
   name: string;

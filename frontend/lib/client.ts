@@ -85,6 +85,7 @@ export default class Client {
     public readonly users: users.ServiceClient
     public readonly workplaces: workplaces.ServiceClient
     public readonly yazboz: yazboz.ServiceClient
+    public readonly ytdb: ytdb.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
 
@@ -152,6 +153,7 @@ export default class Client {
         this.users = new users.ServiceClient(base)
         this.workplaces = new workplaces.ServiceClient(base)
         this.yazboz = new yazboz.ServiceClient(base)
+        this.ytdb = new ytdb.ServiceClient(base)
     }
 
     /**
@@ -9750,6 +9752,296 @@ export namespace yazboz {
             const resp = await this.baseClient.callTypedAPI("POST", `/yazboz/players/update`, JSON.stringify(params))
             return await resp.json() as {
     player: Player | null
+}
+        }
+    }
+}
+
+export namespace ytdb {
+    export interface Episode {
+        id: string
+        "series_id": string
+        title: string
+        "episode_number": number
+        duration: string
+        "youtube_id": string
+        "thumbnail_url": string | null
+        "published_at": string | null
+        "created_at": string
+    }
+
+    export interface Series {
+        id: string
+        title: string
+        description: string
+        creator: string
+        "youtube_id": string | null
+        category: string
+        status: string
+        year: number
+        contexts: string[]
+        "attention_level": string
+        emoji: string | null
+        gradient: string | null
+        "source_type"?: string | null
+        "source_id"?: string | null
+        "source_url"?: string | null
+        "is_raw"?: boolean
+        "created_at": string
+        "episode_count"?: number
+        episodes?: Episode[]
+    }
+
+    export interface YouTubeResolveResult {
+        type: "video" | "playlist" | "channel"
+        "youtube_id": string
+        title: string
+        author: string
+        "thumbnail_url": string
+        "source_id": string | null
+        "video_count": number
+        videos: {
+            "youtube_id": string
+            title: string
+            author: string
+            "thumbnail_url": string
+            "published_at"?: string | null
+        }[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addEpisodeFromMeta = this.addEpisodeFromMeta.bind(this)
+            this.addEpisodeFromUrl = this.addEpisodeFromUrl.bind(this)
+            this.createSeriesFromUrl = this.createSeriesFromUrl.bind(this)
+            this.deleteEpisode = this.deleteEpisode.bind(this)
+            this.deleteSeries = this.deleteSeries.bind(this)
+            this.getSeriesById = this.getSeriesById.bind(this)
+            this.importEpisodesToSeries = this.importEpisodesToSeries.bind(this)
+            this.importFromUrl = this.importFromUrl.bind(this)
+            this.listRawSources = this.listRawSources.bind(this)
+            this.listSeries = this.listSeries.bind(this)
+            this.promoteSource = this.promoteSource.bind(this)
+            this.resolveYouTubeUrl = this.resolveYouTubeUrl.bind(this)
+            this.upsertSeries = this.upsertSeries.bind(this)
+        }
+
+        public async addEpisodeFromMeta(params: {
+    userId: string
+    "series_id": string
+    "youtube_id": string
+    title: string
+    "thumbnail_url"?: string
+    "episode_number"?: number
+    "published_at"?: string | null
+}): Promise<{
+    episode: Episode | null
+    skipped: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/episode/from-meta`, JSON.stringify(params))
+            return await resp.json() as {
+    episode: Episode | null
+    skipped: boolean
+}
+        }
+
+        public async addEpisodeFromUrl(params: {
+    userId: string
+    "series_id": string
+    url: string
+    "episode_number"?: number
+    title?: string
+}): Promise<{
+    episode: Episode
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/episode/from-url`, JSON.stringify(params))
+            return await resp.json() as {
+    episode: Episode
+}
+        }
+
+        public async createSeriesFromUrl(params: {
+    userId: string
+    url: string
+    category?: string
+    contexts?: string[]
+    "attention_level"?: string
+    status?: string
+}): Promise<{
+    series: Series
+    episode: Episode
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/series/from-url`, JSON.stringify(params))
+            return await resp.json() as {
+    series: Series
+    episode: Episode
+}
+        }
+
+        public async deleteEpisode(params: {
+    userId: string
+    id: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/episode/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async deleteSeries(params: {
+    userId: string
+    id: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/series/delete`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getSeriesById(id: string): Promise<{
+    series: Series
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ytdb/series/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    series: Series
+}
+        }
+
+        public async importEpisodesToSeries(params: {
+    userId: string
+    "series_id": string
+    url: string
+}): Promise<{
+    "imported_count": number
+    "skipped_count": number
+    episodes: Episode[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/episodes/import-url`, JSON.stringify(params))
+            return await resp.json() as {
+    "imported_count": number
+    "skipped_count": number
+    episodes: Episode[]
+}
+        }
+
+        public async importFromUrl(params: {
+    userId: string
+    url: string
+    category?: string
+    contexts?: string[]
+    "attention_level"?: string
+    status?: string
+    title?: string
+    creator?: string
+    "series_only"?: boolean
+}): Promise<{
+    series: Series
+    "imported_count": number
+    "skipped_count": number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/series/import-url`, JSON.stringify(params))
+            return await resp.json() as {
+    series: Series
+    "imported_count": number
+    "skipped_count": number
+}
+        }
+
+        public async listRawSources(userId: string): Promise<{
+    sources: Series[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ytdb/sources/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    sources: Series[]
+}
+        }
+
+        public async listSeries(): Promise<{
+    series: Series[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/ytdb/series`)
+            return await resp.json() as {
+    series: Series[]
+}
+        }
+
+        public async promoteSource(params: {
+    userId: string
+    id: string
+    category?: string
+    contexts?: string[]
+    "attention_level"?: string
+    title?: string
+    creator?: string
+}): Promise<{
+    series: Series
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/sources/promote`, JSON.stringify(params))
+            return await resp.json() as {
+    series: Series
+}
+        }
+
+        public async resolveYouTubeUrl(params: {
+    userId: string
+    url: string
+    "enrich_dates"?: boolean
+}): Promise<{
+    source: YouTubeResolveResult
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/youtube/resolve`, JSON.stringify(params))
+            return await resp.json() as {
+    source: YouTubeResolveResult
+}
+        }
+
+        public async upsertSeries(params: {
+    userId: string
+    id?: string
+    title: string
+    description?: string
+    creator: string
+    "youtube_id"?: string | null
+    category: string
+    status?: string
+    year?: number
+    contexts?: string[]
+    "attention_level"?: string
+    emoji?: string | null
+    gradient?: string | null
+    "source_type"?: string | null
+    "source_id"?: string | null
+    "source_url"?: string | null
+    "is_raw"?: boolean
+    "created_at"?: string
+    "episode_count"?: number
+    episodes?: Episode[]
+}): Promise<{
+    series: Series
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/ytdb/series`, JSON.stringify(params))
+            return await resp.json() as {
+    series: Series
 }
         }
     }

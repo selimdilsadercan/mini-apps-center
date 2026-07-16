@@ -13,7 +13,7 @@ import {
   gymWeeklyPlanKey,
   patchWeeklyPlanDayInCache,
   syncGymDiscoverWidgets,
-} from "@/lib/gymCache";
+} from "@/lib/cache/gymCache";
 
 interface WeeklyPlanPickerProps {
   userId: string;
