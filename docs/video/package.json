@@ -1,0 +1,11 @@
+{
+  "name": "video-slideshow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "video": "bun run generate-video.ts"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
+  }
+}
