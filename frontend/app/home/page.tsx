@@ -4,21 +4,16 @@ import { useUser } from "@clerk/clerk-react";
 import { MINI_APPS, MiniApp, navigateToMiniApp, AppCategory } from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { 
-  Sparkle, 
   Heart,
   ChatTeardropDots,
   MagnifyingGlass,
   Prohibit,
   MapPin,
   ArrowRight,
-  Compass,
-  Wallet,
   Users,
   Star,
   TrendUp,
-  CreditCard,
   PiggyBank,
-  Wrench,
   VideoCamera,
   PaperPlaneTilt,
   CheckCircle,
@@ -311,13 +306,7 @@ function HomeContent() {
 
               {/* Pratik Araçlar Section (Tools) */}
               {toolsApps.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Wrench size={14} weight="bold" className="text-app-text" />
-                      Pratik Araçlar
-                    </h2>
-                  </div>
+                <section>
                   <div className="space-y-0">
                     {toolsApps.map((app, index) => (
                       <AppRow 
@@ -344,13 +333,7 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Compass size={14} weight="bold" className="text-app-text" />
-                    Şehrinde Yapabileceklerin
-                  </h2>
-                </div>
+              <section>
                 <div className="space-y-0">
                   {exploreApps.map((app, index) => (
                     <AppRow 
@@ -376,13 +359,7 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Heart size={14} weight="bold" className="text-app-text" />
-                    Hobi Dünyan
-                  </h2>
-                </div>
+              <section>
                 <div className="space-y-0">
                   {hobbyApps.map((app, index) => (
                     <AppRow 
@@ -410,17 +387,7 @@ function HomeContent() {
             >
               {/* Subscriptions Section */}
               {subscriptions.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-app-text uppercase tracking-[0.2em] flex items-center gap-2">
-                      <CreditCard size={14} weight="bold" className="text-app-text" />
-                      Aktif Aboneliklerin
-                    </h2>
-                    <Link href="/apps/subcenter" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
-                      Tümünü Gör
-                    </Link>
-                  </div>
-                  
+                <section>
                   <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
                     {subscriptions.map(sub => (
                       <Link 
@@ -446,13 +413,7 @@ function HomeContent() {
                 </section>
               )}
 
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Wallet size={14} weight="bold" className="text-app-text" />
-                    Paranı Yönet
-                  </h2>
-                </div>
+              <section>
                 <div className="space-y-0">
                   {walletApps.map((app, index) => (
                     <AppRow 
@@ -481,17 +442,7 @@ function HomeContent() {
 
               {/* Suggest Inbox Widget */}
               {suggestions.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                      <PaperPlaneTilt size={14} weight="bold" className="text-app-text" />
-                      Gelen Öneriler
-                    </h2>
-                    <Link href="/apps/suggest" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
-                      Tümünü Gör
-                    </Link>
-                  </div>
-                  
+                <section>
                   <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
                     {suggestions.map(suggestion => (
                       <Link 
@@ -533,17 +484,7 @@ function HomeContent() {
 
               {/* Ne Yapsak Activities Widget */}
               {activities.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Users size={14} weight="bold" className="text-app-text" />
-                      Aktif Davetlerin
-                    </h2>
-                    <Link href="/apps/kim-gelir" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
-                      Tümünü Gör
-                    </Link>
-                  </div>
-                  
+                <section>
                   <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
                     {activities.map(activity => (
                       <Link 
@@ -589,13 +530,7 @@ function HomeContent() {
                 </section>
               )}
 
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Sparkle size={14} weight="bold" className="text-app-text" />
-                    Yaşam
-                  </h2>
-                </div>
+              <section>
                 <div className="space-y-0">
                   {lifeApps.map((app, index) => (
                     <AppRow 

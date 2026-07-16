@@ -186,14 +186,14 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
   return (
     <>
       {(state.isDownloading || state.isReady) && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#FAF9F7]/95 backdrop-blur-sm px-6">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-app-bg/95 backdrop-blur-sm px-6">
+          <div className="max-w-md w-full bg-app-surface border border-app-border rounded-2xl shadow-lg p-8 text-center">
             {state.isDownloading ? (
               <>
                 <div className="relative w-20 h-20 mx-auto mb-6 text-[#FF6B35]">
                   <Download className="w-10 h-10 absolute inset-0 m-auto animate-bounce text-[#FF6B35]" />
                   <svg className="w-20 h-20 rotate-[-90deg]">
-                    <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-gray-200" />
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-app-surface-muted" />
                     <circle
                       cx="40"
                       cy="40"
@@ -207,18 +207,18 @@ export default function OTAProvider({ children }: { children: React.ReactNode })
                     />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Güncelleme</h2>
-                <p className="text-gray-600 text-sm mb-4">Yeni sürüm indiriliyor...</p>
-                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                <h2 className="text-2xl font-bold text-app-text mb-2">Güncelleme</h2>
+                <p className="text-app-muted text-sm mb-4">Yeni sürüm indiriliyor...</p>
+                <div className="w-full bg-app-surface-muted h-2 rounded-full overflow-hidden">
                   <div className="bg-[#FF6B35] h-full transition-all duration-300" style={{ width: `${state.progress}%` }} />
                 </div>
-                <p className="text-gray-500 text-sm font-medium mt-3">%{Math.round(state.progress)}</p>
+                <p className="text-app-muted text-sm font-medium mt-3">%{Math.round(state.progress)}</p>
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-14 h-14 text-[#FF6B35] mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Tamamlandı</h2>
-                <p className="text-gray-600 text-sm">Uygulama yeni sürümle açılıyor...</p>
+                <h2 className="text-2xl font-bold text-app-text mb-2">Tamamlandı</h2>
+                <p className="text-app-muted text-sm">Uygulama yeni sürümle açılıyor...</p>
                 <Loader2 className="w-6 h-6 text-[#FF6B35] animate-spin mx-auto mt-4" />
               </>
             )}

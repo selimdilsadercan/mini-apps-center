@@ -215,87 +215,6 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-async function ytApiGet<T>(apiKey: string, path: string, params: Record<string, string | number>) {
-  const response = await axios.get<T>(`https://www.googleapis.com/youtube/v3/${path}`, {
-    params: { ...params, key: apiKey },
-    timeout: 15000,
-  });
-  return response.data as T;
-}
-
-type YtPlaylistItem = {
-  items?: Array<{
-    snippet?: {
-      title?: string;
-      channelTitle?: string;
-      thumbnails?: { medium?: { url?: string }; default?: { url?: string } };
-      resourceId?: { videoId?: string };
-    };
-    contentDetails?: { videoId?: string };
-  }>;
-  nextPageToken?: string;
-};
-
-type YtPlaylist = {
-  items?: Array<{
-    snippet?: {
-      title?: string;
-      channelTitle?: string;
-      thumbnails?: { medium?: { url?: string }; default?: { url?: string } };
-    };
-  }>;
-};
-
-type YtChannel = {
-  items?: Array<{
-    id?: string;
-    snippet?: {
-      title?: string;
-      thumbnails?: { medium?: { url?: string }; default?: { url?: string } };
-    };
-    contentDetails?: {
-      relatedPlaylists?: { uploads?: string };
-    };
-  }>;
-};
-
-async function fetchPlaylistVideos(
-  apiKey: string,
-  playlistId: string,
-  maxResults = 100
-): Promise<YouTubeVideoMeta[]> {
-  const videos: YouTubeVideoMeta[] = [];
-  let pageToken: string | undefined;
-
-  while (videos.length < maxResults) {
-    const data = await ytApiGet<YtPlaylistItem>(apiKey, "playlistItems", {
-      part: "snippet,contentDetails",
-      playlistId,
-      maxResults: Math.min(50, maxResults - videos.length),
-      ...(pageToken ? { pageToken } : {}),
-    });
-
-    for (const item of data.items || []) {
-      const youtubeId = item.contentDetails?.videoId || item.snippet?.resourceId?.videoId;
-      if (!youtubeId) continue;
-      videos.push({
-        youtubeId,
-        title: item.snippet?.title || "YouTube Videosu",
-        author: item.snippet?.channelTitle || "",
-        thumbnailUrl:
-          item.snippet?.thumbnails?.medium?.url ||
-          item.snippet?.thumbnails?.default?.url ||
-          `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
-      });
-    }
-
-    if (!data.nextPageToken || videos.length >= maxResults) break;
-    pageToken = data.nextPageToken;
-  }
-
-  return videos;
-}
-
 const YT_PAGE_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -559,98 +478,101 @@ async function fetchPlaylistViaInnertube(playlistId: string) {
   };
 }
 
-type YtVideosList = {
-  items?: Array<{ id?: string; snippet?: { publishedAt?: string } }>;
-};
+function extractChannelIdFromHtml(html: string): string | null {
+  const patterns = [
+    /"channelId"\s*:\s*"(UC[a-zA-Z0-9_-]{22})"/,
+    /"externalId"\s*:\s*"(UC[a-zA-Z0-9_-]{22})"/,
+    /"browseId"\s*:\s*"(UC[a-zA-Z0-9_-]{22})"/,
+    /\/channel\/(UC[a-zA-Z0-9_-]{22})/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return null;
+}
+
+function channelUploadsPlaylistId(channelId: string): string {
+  return channelId.startsWith("UC") ? `UU${channelId.slice(2)}` : channelId;
+}
+
+function normalizeChannelVideosUrl(input: string): string {
+  const url = parseUrl(input);
+  if (!url) return input.trim();
+
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (parts[parts.length - 1] === "videos") {
+    return url.toString();
+  }
+
+  if (parts[0] === "channel" && parts[1]) {
+    return `https://www.youtube.com/channel/${parts[1]}/videos`;
+  }
+
+  const handleIndex = parts.findIndex((part) => part.startsWith("@"));
+  if (handleIndex >= 0) {
+    return `https://www.youtube.com/${parts[handleIndex]}/videos`;
+  }
+
+  if (parts[0] === "c" || parts[0] === "user") {
+    return `https://www.youtube.com/${parts.join("/")}/videos`;
+  }
+
+  return url.toString();
+}
+
+function parseChannelTitleFromHtml(html: string): string {
+  const titleMatch =
+    html.match(/"channelMetadataRenderer":\{[^}]*"title":"([^"]+)"/) ||
+    html.match(/"title":"([^"]+)","description"/) ||
+    html.match(/<title>([^<]+)<\/title>/);
+
+  const rawTitle = titleMatch?.[1] || "YouTube Kanalı";
+  return rawTitle.replace(/\s*-\s*YouTube\s*$/i, "").trim();
+}
+
+async function fetchChannelViaInnertube(input: string) {
+  const pageUrl = normalizeChannelVideosUrl(input);
+  const page = await axios.get(pageUrl, {
+    timeout: 20000,
+    headers: YT_PAGE_HEADERS,
+  });
+  const html = String(page.data);
+
+  const channelId = extractChannelIdFromHtml(html);
+  if (!channelId) {
+    throw new Error("Kanal URL'si çözümlenemedi. @handle veya /channel/UC... kullanın.");
+  }
+
+  const uploadsPlaylistId = channelUploadsPlaylistId(channelId);
+  const scraped = await fetchPlaylistViaInnertube(uploadsPlaylistId);
+
+  return {
+    channelId,
+    title: parseChannelTitleFromHtml(html) || scraped.title,
+    author: scraped.author,
+    thumbnailUrl: scraped.thumbnailUrl,
+    videos: scraped.videos,
+  };
+}
+
 
 export async function enrichVideosWithPublishDates(
-  apiKey: string | undefined,
   videos: YouTubeVideoMeta[]
 ): Promise<YouTubeVideoMeta[]> {
   if (videos.length === 0) return videos;
 
-  let enriched = [...videos];
-
-  if (apiKey?.trim()) {
-    const dateMap = new Map<string, string>();
-
-    for (let i = 0; i < enriched.length; i += 50) {
-      const chunk = enriched.slice(i, i + 50);
-      const data = await ytApiGet<YtVideosList>(apiKey, "videos", {
-        part: "snippet",
-        id: chunk.map((v) => v.youtubeId).join(","),
-      });
-
-      for (const item of data.items || []) {
-        if (item.id && item.snippet?.publishedAt) {
-          dateMap.set(item.id, item.snippet.publishedAt);
-        }
-      }
-    }
-
-    enriched = enriched.map((video) => ({
-      ...video,
-      publishedAt: dateMap.get(video.youtubeId) || video.publishedAt || null,
-    }));
-  }
-
-  return mapWithConcurrency(enriched, 3, async (video) => {
+  return mapWithConcurrency(videos, 3, async (video) => {
     if (video.publishedAt) return video;
     const publishedAt = await fetchVideoPublishDateFromPage(video.youtubeId).catch(() => null);
     return { ...video, publishedAt };
   });
 }
 
-async function resolveChannelUploadsPlaylist(
-  apiKey: string,
-  input: string
-): Promise<{ channelId: string; uploadsPlaylistId: string; title: string; author: string; thumbnailUrl: string }> {
-  const url = parseUrl(input);
-  const handle = extractChannelHandle(input);
-  const parts = url?.pathname.split("/").filter(Boolean) || [];
-
-  let data: YtChannel;
-
-  if (handle && !handle.startsWith("UC") && parts.find((p) => p.startsWith("@"))) {
-    data = await ytApiGet<YtChannel>(apiKey, "channels", {
-      part: "snippet,contentDetails",
-      forHandle: handle,
-    });
-  } else if (parts[0] === "channel" && parts[1]) {
-    data = await ytApiGet<YtChannel>(apiKey, "channels", {
-      part: "snippet,contentDetails",
-      id: parts[1],
-    });
-  } else if (handle?.startsWith("UC")) {
-    data = await ytApiGet<YtChannel>(apiKey, "channels", {
-      part: "snippet,contentDetails",
-      id: handle,
-    });
-  } else {
-    throw new Error("Kanal URL'si çözümlenemedi. @handle veya /channel/UC... kullanın.");
-  }
-
-  const channel = data.items?.[0];
-  const uploadsPlaylistId = channel?.contentDetails?.relatedPlaylists?.uploads;
-  if (!channel?.id || !uploadsPlaylistId) {
-    throw new Error("Kanal bulunamadı veya videolar alınamadı");
-  }
-
-  return {
-    channelId: channel.id,
-    uploadsPlaylistId,
-    title: channel.snippet?.title || "YouTube Kanalı",
-    author: channel.snippet?.title || "",
-    thumbnailUrl:
-      channel.snippet?.thumbnails?.medium?.url ||
-      channel.snippet?.thumbnails?.default?.url ||
-      "",
-  };
-}
-
 export async function resolveYouTubeSource(
   input: string,
-  apiKey?: string,
   options?: { enrichDates?: boolean }
 ): Promise<YouTubeSourcePreview> {
   const type = detectYouTubeSourceType(input);
@@ -673,59 +595,20 @@ export async function resolveYouTubeSource(
       throw new Error("Geçersiz oynatma listesi URL'si");
     }
 
-    let playlistPreview: YouTubeSourcePreview | null = null;
-
-    if (apiKey?.trim()) {
-      try {
-        const playlistData = await ytApiGet<YtPlaylist>(apiKey, "playlists", {
-          part: "snippet",
-          id: playlistId,
-        });
-        const playlist = playlistData.items?.[0];
-        const videos = await fetchPlaylistVideos(apiKey, playlistId);
-
-        if (videos.length > 0) {
-          playlistPreview = {
-            type: "playlist",
-            title: playlist?.snippet?.title || "YouTube Oynatma Listesi",
-            author: playlist?.snippet?.channelTitle || videos[0]?.author || "",
-            thumbnailUrl:
-              playlist?.snippet?.thumbnails?.medium?.url ||
-              videos[0]?.thumbnailUrl ||
-              "",
-            sourceId: playlistId,
-            videoCount: videos.length,
-            videos,
-          };
-        }
-      } catch {
-        // API failed — fall back to page scrape below.
-      }
-    }
-
-    if (!playlistPreview) {
-      const scraped = await fetchPlaylistViaInnertube(playlistId);
-      playlistPreview = {
-        type: "playlist",
-        title: scraped.title,
-        author: scraped.author,
-        thumbnailUrl: scraped.thumbnailUrl,
-        sourceId: playlistId,
-        videoCount: scraped.videos.length,
-        videos: scraped.videos,
-      };
-    }
-
-    preview = playlistPreview;
-  } else if (!apiKey?.trim()) {
-    throw new Error(
-      "Kanal içe aktarmak için YouTube Data API anahtarı gerekli (YouTubeDataAPIKey)"
-    );
+    const scraped = await fetchPlaylistViaInnertube(playlistId);
+    preview = {
+      type: "playlist",
+      title: scraped.title,
+      author: scraped.author,
+      thumbnailUrl: scraped.thumbnailUrl,
+      sourceId: playlistId,
+      videoCount: scraped.videos.length,
+      videos: scraped.videos,
+    };
   } else {
-    const channel = await resolveChannelUploadsPlaylist(apiKey, input);
-    const videos = await fetchPlaylistVideos(apiKey, channel.uploadsPlaylistId, 50);
+    const channel = await fetchChannelViaInnertube(input);
 
-    if (videos.length === 0) {
+    if (channel.videos.length === 0) {
       throw new Error("Kanalda içe aktarılacak video bulunamadı");
     }
 
@@ -733,15 +616,15 @@ export async function resolveYouTubeSource(
       type: "channel",
       title: channel.title,
       author: channel.author,
-      thumbnailUrl: channel.thumbnailUrl || videos[0]?.thumbnailUrl || "",
+      thumbnailUrl: channel.thumbnailUrl || channel.videos[0]?.thumbnailUrl || "",
       sourceId: channel.channelId,
-      videoCount: videos.length,
-      videos,
+      videoCount: channel.videos.length,
+      videos: channel.videos,
     };
   }
 
   if (preview.videos.length > 0 && options?.enrichDates !== false) {
-    preview.videos = await enrichVideosWithPublishDates(apiKey, preview.videos);
+    preview.videos = await enrichVideosWithPublishDates(preview.videos);
   }
 
   if (preview.type === "playlist" || preview.type === "channel") {

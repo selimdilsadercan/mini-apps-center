@@ -6,7 +6,6 @@ import { fetchYouTubeMetadata, resolveYouTubeSource, enrichVideosWithPublishDate
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
-const youtubeDataApiKey = secret("YouTubeDataAPIKey");
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
@@ -351,14 +350,7 @@ export const resolveYouTubeUrl = api(
     await requireAdmin(req.userId);
 
     try {
-      let apiKey = "";
-      try {
-        apiKey = youtubeDataApiKey();
-      } catch {
-        apiKey = "";
-      }
-
-      const preview = await resolveYouTubeSource(req.url, apiKey, {
+      const preview = await resolveYouTubeSource(req.url, {
         enrichDates: req.enrich_dates !== false,
       });
       const first = preview.videos[0];
@@ -403,16 +395,9 @@ export const importFromUrl = api(
   ): Promise<{ series: Series; imported_count: number; skipped_count: number }> => {
     await requireAdmin(req.userId);
 
-    let apiKey = "";
-    try {
-      apiKey = youtubeDataApiKey();
-    } catch {
-      apiKey = "";
-    }
-
     let preview;
     try {
-      preview = await resolveYouTubeSource(req.url, apiKey);
+      preview = await resolveYouTubeSource(req.url);
     } catch (err: any) {
       throw APIError.invalidArgument(err?.message || "YouTube kaynağı çözümlenemedi");
     }
@@ -467,7 +452,7 @@ export const importFromUrl = api(
     let skipped = 0;
 
     for (let i = 0; i < preview.videos.length; i++) {
-      const [video] = await enrichVideosWithPublishDates(apiKey, [preview.videos[i]]);
+      const [video] = await enrichVideosWithPublishDates([preview.videos[i]]);
       const { error } = await insertEpisodeRow(
         episodePayloadFromVideo(series.id, video, i + 1)
       );
@@ -701,14 +686,7 @@ export const addEpisodeFromMeta = api(
 
     let publishedAt = req.published_at ?? null;
     if (publishedAt == null) {
-      let apiKey = "";
-      try {
-        apiKey = youtubeDataApiKey();
-      } catch {
-        apiKey = "";
-      }
-
-      const [enriched] = await enrichVideosWithPublishDates(apiKey, [
+      const [enriched] = await enrichVideosWithPublishDates([
         {
           youtubeId,
           title: req.title.trim() || "YouTube Videosu",
@@ -781,15 +759,8 @@ export const addEpisodeFromUrl = api(
       throw APIError.invalidArgument(err?.message || "YouTube videosu çözümlenemedi");
     }
 
-    let apiKey = "";
-    try {
-      apiKey = youtubeDataApiKey();
-    } catch {
-      apiKey = "";
-    }
-
-    if (apiKey) {
-      const [enriched] = await enrichVideosWithPublishDates(apiKey, [meta]);
+    {
+      const [enriched] = await enrichVideosWithPublishDates([meta]);
       meta = enriched;
     }
 
@@ -856,16 +827,9 @@ export const importEpisodesToSeries = api(
       throw APIError.notFound("Series not found");
     }
 
-    let apiKey = "";
-    try {
-      apiKey = youtubeDataApiKey();
-    } catch {
-      apiKey = "";
-    }
-
     let preview;
     try {
-      preview = await resolveYouTubeSource(req.url, apiKey);
+      preview = await resolveYouTubeSource(req.url);
     } catch (err: any) {
       throw APIError.invalidArgument(err?.message || "YouTube kaynağı çözümlenemedi");
     }
@@ -883,7 +847,7 @@ export const importEpisodesToSeries = api(
     let skipped = 0;
 
     for (const video of preview.videos) {
-      const [enriched] = await enrichVideosWithPublishDates(apiKey, [video]);
+      const [enriched] = await enrichVideosWithPublishDates([video]);
       const { error } = await insertEpisodeRow(
         episodePayloadFromVideo(req.series_id, enriched, nextNumber)
       );
@@ -945,15 +909,8 @@ export const createSeriesFromUrl = api(
       throw APIError.invalidArgument(err?.message || "YouTube videosu çözümlenemedi");
     }
 
-    let apiKey = "";
-    try {
-      apiKey = youtubeDataApiKey();
-    } catch {
-      apiKey = "";
-    }
-
-    if (apiKey) {
-      const [enriched] = await enrichVideosWithPublishDates(apiKey, [meta]);
+    {
+      const [enriched] = await enrichVideosWithPublishDates([meta]);
       meta = enriched;
     }
 
