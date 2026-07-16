@@ -136,7 +136,7 @@ export async function resolveYouTubeUrl(
   const res = await client.ytdb.resolveYouTubeUrl({
     userId,
     url,
-    enrich_dates: options?.enrichDates !== false,
+    enrich_dates: options?.enrichDates === true,
   });
   return mapSourcePreview(res.source);
 }

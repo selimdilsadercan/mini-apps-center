@@ -351,7 +351,7 @@ export const resolveYouTubeUrl = api(
 
     try {
       const preview = await resolveYouTubeSource(req.url, {
-        enrichDates: req.enrich_dates !== false,
+        enrichDates: req.enrich_dates === true,
       });
       const first = preview.videos[0];
 
@@ -397,7 +397,7 @@ export const importFromUrl = api(
 
     let preview;
     try {
-      preview = await resolveYouTubeSource(req.url);
+      preview = await resolveYouTubeSource(req.url, { enrichDates: false });
     } catch (err: any) {
       throw APIError.invalidArgument(err?.message || "YouTube kaynağı çözümlenemedi");
     }
@@ -829,7 +829,7 @@ export const importEpisodesToSeries = api(
 
     let preview;
     try {
-      preview = await resolveYouTubeSource(req.url);
+      preview = await resolveYouTubeSource(req.url, { enrichDates: false });
     } catch (err: any) {
       throw APIError.invalidArgument(err?.message || "YouTube kaynağı çözümlenemedi");
     }

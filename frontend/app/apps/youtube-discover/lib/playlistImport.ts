@@ -115,7 +115,7 @@ export async function createAndImportPlaylist({
     phase: "resolving",
   });
 
-  const preview = await resolveYouTubeUrl(userId, url, { enrichDates: true });
+  const preview = await resolveYouTubeUrl(userId, url, { enrichDates: false });
 
   if (preview.videos.length <= 1) {
     onUpdate({ phase: "creating", seriesTitle: preview.title, total: 1 });
@@ -193,7 +193,7 @@ export async function importPlaylistToSeries({
     phase: "resolving",
   });
 
-  const preview = await resolveYouTubeUrl(userId, url, { enrichDates: true });
+  const preview = await resolveYouTubeUrl(userId, url, { enrichDates: false });
 
   if (preview.videos.length <= 1) {
     const video = preview.videos[0];

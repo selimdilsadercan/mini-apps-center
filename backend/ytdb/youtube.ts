@@ -623,7 +623,7 @@ export async function resolveYouTubeSource(
     };
   }
 
-  if (preview.videos.length > 0 && options?.enrichDates !== false) {
+  if (preview.videos.length > 0 && options?.enrichDates === true) {
     preview.videos = await enrichVideosWithPublishDates(preview.videos);
   }
 
