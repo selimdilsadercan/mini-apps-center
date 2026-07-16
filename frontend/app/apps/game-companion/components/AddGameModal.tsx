@@ -38,18 +38,18 @@ export default function AddGameModal({
       onClick={handleClose}
     >
       <div
-        className="bg-white dark:bg-[var(--card-background)] rounded-lg w-full max-w-md shadow-xl"
+        className="bg-app-surface rounded-lg w-full max-w-md shadow-xl"
         style={{ boxShadow: "0 0 8px 5px #297dff0a" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-black dark:text-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-app-border">
+          <h2 className="text-xl font-bold text-app-text text-app-text">
             Yeni Oyun Ekle
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+            className="text-app-muted  hover:text-app-muted  transition-colors"
           >
             <X size={24} />
           </button>
@@ -58,7 +58,7 @@ export default function AddGameModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6">
-            <label className="block text-sm font-medium text-black mb-2">
+            <label className="block text-sm font-medium text-app-text mb-2">
               Oyun Adı
             </label>
             <input
@@ -66,7 +66,7 @@ export default function AddGameModal({
               value={gameName}
               onChange={(e) => setGameName(e.target.value)}
               placeholder="Oyun adını girin..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+              className="w-full px-3 py-2 border border-app-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-app-text"
               required
               autoFocus
             />
@@ -77,7 +77,7 @@ export default function AddGameModal({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+              className="flex-1 bg-app-surface-muted text-app-text py-2 px-4 rounded-lg hover:bg-app-border/30 transition-colors font-medium"
             >
               İptal
             </button>

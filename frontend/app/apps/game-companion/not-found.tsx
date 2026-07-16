@@ -22,14 +22,14 @@ export default function NotFound() {
       style={{ backgroundColor: "var(--background)" }}
     >
       <div className="text-center">
-        <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-          <House size={32} className="text-gray-400" />
+        <div className="w-24 h-24 bg-app-border rounded-full flex items-center justify-center mx-auto mb-6">
+          <House size={32} className="text-app-muted" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-        <h2 className="text-xl font-semibold text-gray-600 mb-2">
+        <h1 className="text-4xl font-bold text-app-text mb-4">404</h1>
+        <h2 className="text-xl font-semibold text-app-muted mb-2">
           Sayfa Bulunamadı
         </h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-app-muted mb-6">
           Aradığınız sayfa mevcut değil. Ana sayfaya yönlendiriliyorsunuz...
         </p>
         <div className="flex items-center justify-center space-x-2 text-blue-500">

@@ -27,7 +27,7 @@ export default function GymShell({
         const parsed = JSON.parse(raw) as ActiveSession;
         setActiveSession(parsed);
         setElapsed(getActiveSessionElapsed(parsed));
-      } catch (e) {
+      } catch {
         // ignore
       }
     } else {
@@ -49,7 +49,7 @@ export default function GymShell({
 
     window.addEventListener("gym_session_started", handleStart);
     window.addEventListener("gym_session_updated", handleUpdate);
-    
+
     return () => {
       window.removeEventListener("gym_session_started", handleStart);
       window.removeEventListener("gym_session_updated", handleUpdate);
@@ -83,48 +83,48 @@ export default function GymShell({
   };
 
   const tabClass = (active: boolean) =>
-    `inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] ${
+    `inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
       active
-        ? "bg-white text-gray-900 shadow-sm"
-        : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/50"
+        ? "bg-app-tab-active text-app-text shadow-sm"
+        : "text-app-muted hover:text-app-text"
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-violet-100 relative pb-20">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text selection:bg-violet-100 dark:selection:bg-violet-950/40 relative pb-20">
       {activeTab !== "none" && (
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <header className="sticky top-0 z-30 app-chrome-top">
           <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <button
+                  type="button"
                   onClick={() => {
                     window.location.href = getAppRootUrl();
                   }}
-                  className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-95 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+                  className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
                 >
                   <CaretLeft size={14} weight="bold" className="text-violet-500" />
                 </button>
 
-                <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+                <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
                   <Barbell size={18} weight="fill" className="text-violet-500 shrink-0" />
-                  <span className="truncate">
-                    <span className="text-violet-500">Gym</span>
-                  </span>
+                  <span className="truncate text-violet-500">Gym</span>
                 </h1>
               </div>
 
               <button
+                type="button"
                 onClick={() => {
                   window.location.href = "/apps/gym/ai-helper";
                 }}
-                className="shrink-0 flex items-center justify-center w-8 h-8 text-violet-500 hover:text-violet-75 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95 shadow-sm"
+                className="shrink-0 flex items-center justify-center w-8 h-8 text-violet-500 hover:text-violet-400 transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
                 title="AI Analiz & Veri Laboratuvarı"
               >
                 <Sparkle size={15} weight="fill" className="animate-pulse" />
               </button>
             </div>
 
-            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 mt-1">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track mt-1">
               <Link href="/apps/gym" className={tabClass(activeTab === "workout")}>
                 <Barbell size={14} weight={activeTab === "workout" ? "fill" : "duotone"} />
                 <span>Rutinler</span>
@@ -141,7 +141,7 @@ export default function GymShell({
       <main className="flex-1 px-4 pt-4 pb-8 max-w-xl mx-auto w-full">{children}</main>
 
       {activeSession && (
-        <div 
+        <div
           onClick={() => setIsSheetOpen(true)}
           className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-gray-900/95 text-white rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between gap-3 backdrop-blur-md border border-gray-800 z-40 animate-in fade-in slide-in-from-bottom-4 duration-300 cursor-pointer hover:bg-gray-900 transition-colors"
         >
@@ -157,11 +157,12 @@ export default function GymShell({
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-xs font-black tabular-nums text-violet-400">{formatElapsed(elapsed)}</span>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsSheetOpen(true);
               }}
-              className="bg-violet-600 hover:bg-violet-700 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+              className="bg-violet-600 hover:bg-violet-700 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
             >
               Devam Et
               <ArrowRight size={12} weight="bold" />

@@ -84,7 +84,7 @@ export default function GymWorkoutPage() {
   if (!isLoaded || (isLoading && routines.length === 0)) {
     return (
       <GymShell activeTab="workout">
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       </GymShell>
@@ -94,9 +94,9 @@ export default function GymWorkoutPage() {
   if (!user) {
     return (
       <GymShell activeTab="workout">
-        <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-          <Barbell size={40} className="text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-400">Antrenmanlarını kaydetmek için giriş yap.</p>
+        <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+          <Barbell size={40} className="text-app-muted mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-app-muted">Antrenmanlarını kaydetmek için giriş yap.</p>
         </div>
       </GymShell>
     );
@@ -107,7 +107,7 @@ export default function GymWorkoutPage() {
       <div className="space-y-5">
         <button
           onClick={() => setShowCreate(true)}
-          className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 hover:border-violet-300 hover:text-violet-600 py-3.5 text-sm font-bold text-gray-500 transition-all active:scale-[0.99] shadow-sm"
+          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border hover:border-violet-300 hover:text-violet-600 py-3.5 text-sm font-bold text-app-muted transition-all active:scale-[0.99] shadow-sm cursor-pointer"
         >
           <Plus size={16} weight="bold" className="text-violet-500" />
           Rutin Oluştur
@@ -118,8 +118,8 @@ export default function GymWorkoutPage() {
         )}
 
         {routines.length === 0 ? (
-          <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-            <p className="text-xs font-bold text-gray-400">Henüz rutin yok</p>
+          <div className="text-center py-8 bg-app-surface rounded-2xl border border-app-border shadow-sm">
+            <p className="text-xs font-bold text-app-muted">Henüz rutin yok</p>
           </div>
         ) : (
           routines.map((routine) => (

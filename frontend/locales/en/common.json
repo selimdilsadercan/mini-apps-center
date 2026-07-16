@@ -9,7 +9,20 @@
     "removedToast": "Removed from home screen",
     "dashboardWidgetTitle": "Business Hub",
     "dashboardWidgetSubtitle": "Menu, stamp & feedback",
-    "adminWidgetTitle": "Admin Panel"
+    "adminWidgetTitle": "Admin Panel",
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "guestName": "Guest",
+    "tabDiscover": "Today's overview",
+    "tabExplore": "City & places",
+    "tabHobby": "Your hobbies",
+    "tabWallet": "Finance summary",
+    "tabLife": "Your life space",
+    "adminPanel": "Admin",
+    "businessPanel": "Business hub",
+    "appList": "App list",
+    "moreActions": "More actions"
   },
   "discover": {
     "title": "Everything Hub",
@@ -35,6 +48,10 @@
   "profile": {
     "title": "Profile",
     "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
     "selectLanguage": "Select Language",
     "turkish": "Türkçe",
     "english": "English",
@@ -326,6 +343,10 @@
     "gym": {
       "name": "Gym",
       "description": "Log workouts, create routines, and track your progress."
+    },
+    "buyuk-maclar": {
+      "name": "Big Matches",
+      "description": "Live and upcoming matches from the World Cup and other majors."
     },
     "meal-planner": {
       "name": "Meal Planner",

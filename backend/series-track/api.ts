@@ -1,5 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import { getDateKeyInTimezone } from "../lib/istanbul-date";
 import { createSupabaseClient } from "../lib/supabase";
 
 const supabaseUrl = secret("SupabaseUrl");
@@ -928,32 +929,39 @@ export interface TodaySeriesItem {
   airDate: string;
   source: "tmdb" | "episode-club";
   isWatched: boolean;
+  programId?: string | null;
+}
+
+function episodeDateKey(dateStr: string): string {
+  return dateStr.split("T")[0];
+}
+
+function isEpisodeWatched(
+  progress: UserProgress[],
+  season: number,
+  episode: number,
+): boolean {
+  return progress.some(
+    (p) => p.season_number === season && p.episode_number === episode,
+  );
 }
 
 /**
- * Bugün yayınlanan veya izlenmesi gereken bölümleri getirir
+ * Episode Club takvimindeki izlenmemiş bölümleri getirir
  */
 export const getTodayEpisodes = api(
   { expose: true, method: "GET", path: "/series-track/today/:userId" },
   async ({ userId }: { userId: string }): Promise<{ items: TodaySeriesItem[] }> => {
-    // 1. Get user series
     const { series } = await getUserSeries({ userId });
     if (!series.length) return { items: [] };
 
-    // 2. Get calendar events
     const { events } = await getTvCalendarEvents();
-    
+
     const items: TodaySeriesItem[] = [];
     const seen = new Set<string>();
     const followedTmdbIds = new Set(series.map((s) => s.tmdb_id));
     const seriesByTmdb = new Map(series.map((s) => [s.tmdb_id, s]));
-
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-
-    const isDateToday = (dateStr: string) => {
-      return dateStr.split("T")[0] === todayStr;
-    };
+    const todayStr = getDateKeyInTimezone(new Date());
 
     const addItem = (item: TodaySeriesItem) => {
       const key = `${item.tmdbId}-${item.season}-${item.episode}`;
@@ -962,91 +970,87 @@ export const getTodayEpisodes = api(
       items.push(item);
     };
 
-    // Process calendar events (Episode Club)
+    const progressMap = new Map<string, UserProgress[]>();
+    await Promise.all(
+      series.map(async (s) => {
+        try {
+          const res = await getUserProgress({ userId, seriesId: s.id });
+          progressMap.set(s.id, res.progress || []);
+        } catch {
+          progressMap.set(s.id, []);
+        }
+      }),
+    );
+
+    const eventsByTmdb = new Map<number, TvCalendarEvent[]>();
     for (const event of events) {
       if (!event.tmdb_id || !followedTmdbIds.has(event.tmdb_id)) continue;
-      if (!isDateToday(event.release_date)) continue;
-
-      const userSeries = seriesByTmdb.get(event.tmdb_id);
-      if (!userSeries) continue;
-
-      addItem({
-        id: event.id,
-        seriesId: userSeries.id,
-        tmdbId: event.tmdb_id,
-        title: userSeries.title,
-        posterPath: userSeries.poster_path,
-        watchUrlSlug: userSeries.watch_url_slug,
-        streamInfo: event.stream_info || null,
-        season: event.season_number,
-        episode: event.episode_number,
-        episodeTitle: event.title,
-        airDate: event.release_date.split("T")[0],
-        source: "episode-club",
-        isWatched: false,
-      });
+      const list = eventsByTmdb.get(event.tmdb_id) || [];
+      list.push(event);
+      eventsByTmdb.set(event.tmdb_id, list);
     }
 
-    // Process TMDB details for active series
-    const activeSeries = series.filter(
-      (s) => s.status === "watching" || s.status === "plan_to_watch"
-    );
+    for (const [tmdbId, seriesEvents] of eventsByTmdb) {
+      const userSeries = seriesByTmdb.get(tmdbId);
+      if (!userSeries) continue;
 
-    const detailsResults = await Promise.allSettled(
-      activeSeries.map((s) => getSeriesDetails({ tmdbId: s.tmdb_id }))
-    );
+      const progress = progressMap.get(userSeries.id) || [];
+      const sortedEvents = [...seriesEvents].sort((a, b) =>
+        episodeDateKey(a.release_date).localeCompare(episodeDateKey(b.release_date)),
+      );
 
-    detailsResults.forEach((result, index) => {
-      if (result.status !== "fulfilled") return;
+      const pendingEvent = sortedEvents.find(
+        (event) =>
+          episodeDateKey(event.release_date) <= todayStr &&
+          !isEpisodeWatched(progress, event.season_number, event.episode_number),
+      );
 
-      const userSeries = activeSeries[index];
-      const details = result.value;
-      const episodeCandidates = [details.next_episode_to_air, details.last_episode_to_air].filter(Boolean);
-
-      for (const episode of episodeCandidates) {
-        if (!episode?.air_date || !isDateToday(episode.air_date)) continue;
-
+      if (pendingEvent) {
         addItem({
-          id: `${userSeries.id}-${episode.season_number}-${episode.episode_number}`,
+          id: pendingEvent.id,
           seriesId: userSeries.id,
-          tmdbId: userSeries.tmdb_id,
+          tmdbId,
           title: userSeries.title,
           posterPath: userSeries.poster_path,
           watchUrlSlug: userSeries.watch_url_slug,
-          streamInfo: null,
-          season: episode.season_number,
-          episode: episode.episode_number,
-          episodeTitle: episode.name,
-          airDate: episode.air_date.split("T")[0],
-          source: "tmdb",
+          streamInfo: pendingEvent.stream_info || null,
+          season: pendingEvent.season_number,
+          episode: pendingEvent.episode_number,
+          episodeTitle: pendingEvent.title,
+          airDate: episodeDateKey(pendingEvent.release_date),
+          source: "episode-club",
           isWatched: false,
+          programId: pendingEvent.program_id,
         });
       }
-    });
 
-    // Attach watched state
-    if (items.length > 0) {
-      const seriesIds = [...new Set(items.map((item) => item.seriesId))];
-      const progressMap = new Map<string, UserProgress[]>();
+      for (const event of sortedEvents) {
+        if (episodeDateKey(event.release_date) !== todayStr) continue;
+        if (!isEpisodeWatched(progress, event.season_number, event.episode_number)) continue;
 
-      await Promise.all(
-        seriesIds.map(async (seriesId) => {
-          try {
-            const res = await getUserProgress({ userId, seriesId });
-            progressMap.set(seriesId, res.progress || []);
-          } catch {
-            progressMap.set(seriesId, []);
-          }
-        })
-      );
-
-      items.forEach((item) => {
-        item.isWatched = progressMap.get(item.seriesId)?.some(
-          (progress) =>
-            progress.season_number === item.season && progress.episode_number === item.episode
-        ) ?? false;
-      });
+        addItem({
+          id: `${event.id}-watched`,
+          seriesId: userSeries.id,
+          tmdbId,
+          title: userSeries.title,
+          posterPath: userSeries.poster_path,
+          watchUrlSlug: userSeries.watch_url_slug,
+          streamInfo: event.stream_info || null,
+          season: event.season_number,
+          episode: event.episode_number,
+          episodeTitle: event.title,
+          airDate: episodeDateKey(event.release_date),
+          source: "episode-club",
+          isWatched: true,
+          programId: event.program_id,
+        });
+      }
     }
+
+    items.sort((a, b) => {
+      if (a.isWatched !== b.isWatched) return a.isWatched ? 1 : -1;
+      return a.airDate.localeCompare(b.airDate);
+    });
 
     return { items };
   }

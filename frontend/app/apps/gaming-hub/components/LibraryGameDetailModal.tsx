@@ -27,8 +27,8 @@ function formatPlayTime(minutes: number): string {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 text-xs">
-      <span className="text-gray-400 font-semibold shrink-0">{label}</span>
-      <span className="text-gray-800 font-bold text-right">{value}</span>
+      <span className="text-app-muted font-semibold shrink-0">{label}</span>
+      <span className="text-app-text font-bold text-right">{value}</span>
     </div>
   );
 }
@@ -53,15 +53,15 @@ export default function LibraryGameDetailModal({
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl border-t border-gray-200/80 shadow-2xl max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-200">
-        <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-gray-200 shrink-0" />
+      <div className="relative w-full max-w-xl bg-app-bg rounded-t-3xl border-t border-app-border shadow-2xl max-h-[92vh] flex flex-col animate-in slide-in-from-bottom duration-200">
+        <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-app-border shrink-0" />
 
         <div className="flex items-center justify-between px-4 pt-1 pb-3 shrink-0">
-          <h2 className="text-sm font-black text-gray-900 uppercase tracking-wide">Oyun Detayı</h2>
+          <h2 className="text-sm font-black text-app-text uppercase tracking-wide">Oyun Detayı</h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200/80 bg-white text-gray-500 active:scale-95"
+            className="flex items-center justify-center w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted active:scale-95"
             aria-label="Kapat"
           >
             <X size={14} weight="bold" />
@@ -69,7 +69,7 @@ export default function LibraryGameDetailModal({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-6">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm p-4">
             <div className="flex gap-4">
               <GameCover
                 coverUrl={item.coverUrl}
@@ -80,10 +80,10 @@ export default function LibraryGameDetailModal({
 
               <div className="flex-1 min-w-0 space-y-2.5">
                 <div>
-                  <p className="text-base font-black text-gray-900 leading-snug line-clamp-3">
+                  <p className="text-base font-black text-app-text leading-snug line-clamp-3">
                     {item.gameName}
                   </p>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                  <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-1">
                     {item.platform}
                   </p>
                 </div>
@@ -100,11 +100,11 @@ export default function LibraryGameDetailModal({
             </div>
 
             {item.notes?.trim() && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+              <div className="mt-4 pt-4 border-t border-app-border">
+                <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-1.5">
                   Notlar
                 </p>
-                <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">
+                <p className="text-xs text-app-muted leading-relaxed whitespace-pre-wrap">
                   {item.notes}
                 </p>
               </div>
@@ -113,15 +113,15 @@ export default function LibraryGameDetailModal({
 
           <section className="mt-4">
             <div className="flex items-center gap-1.5 mb-2.5 px-0.5">
-              <ListChecks size={14} className="text-gray-400" weight="duotone" />
-              <h3 className="text-xs font-bold text-gray-400">Günlük Görevler</h3>
+              <ListChecks size={14} className="text-app-muted" weight="duotone" />
+              <h3 className="text-xs font-bold text-app-muted">Günlük Görevler</h3>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm p-4">
               <div className="text-center py-6">
-                <GameController size={28} className="mx-auto text-gray-200 mb-2" weight="duotone" />
-                <p className="text-xs font-bold text-gray-500">Henüz günlük görev yok</p>
-                <p className="text-[10px] text-gray-400 mt-1">
+                <GameController size={28} className="mx-auto text-app-muted mb-2" weight="duotone" />
+                <p className="text-xs font-bold text-app-muted">Henüz günlük görev yok</p>
+                <p className="text-[10px] text-app-muted mt-1">
                   Bu oyun için görevler yakında burada görünecek.
                 </p>
               </div>

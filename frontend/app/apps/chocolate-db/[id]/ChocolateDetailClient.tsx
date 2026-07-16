@@ -57,12 +57,13 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
       setShowAuthModal(true);
       return;
     }
-    const newState = choco.user_state === state ? "" : state;
+    const newState: "tried" | "wishlist" | "dislike" | "" =
+      choco.user_state === state ? "" : state;
     try {
       await client.chocolate_db.setUserState({
         userId: user.id,
         chocolateId: choco.id,
-        state: newState as any
+        state: newState,
       });
       refreshData();
       toast.success(lang === "tr" ? "Durum güncellendi" : "State updated");
@@ -130,35 +131,35 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
   const chocoDesc = (lang === "tr" ? choco.description_tr : (choco.description_en || choco.description_tr)) || (lang === "tr" ? "Bu efsane lezzet henüz keşfedilmeyi bekliyor..." : "This legendary taste is waiting to be discovered...");
 
   return (
-    <div className="min-h-screen bg-[#FAF9F7] text-gray-900 font-sans pb-20">
+    <div className="min-h-screen bg-app-bg text-app-text font-sans pb-20">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-lg mx-auto px-5 h-16 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-40 app-chrome-top">
+        <div className="max-w-xl mx-auto px-5 h-16 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50 cursor-pointer"
+            className="w-10 h-10 rounded-2xl bg-app-surface border border-app-border flex items-center justify-center text-app-text shadow-sm active:scale-95 transition-all hover:bg-app-surface-muted cursor-pointer"
           >
             <ArrowLeft size={20} weight="bold" />
           </button>
-          <h1 className="text-[10px] font-black uppercase tracking-widest truncate max-w-[150px] text-gray-400">
+          <h1 className="text-[10px] font-black uppercase tracking-widest truncate max-w-[150px] text-app-muted">
             {choco.name}
           </h1>
           <button
             onClick={handleShare}
-            className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50 cursor-pointer"
+            className="w-10 h-10 rounded-2xl bg-app-surface border border-app-border flex items-center justify-center text-app-text shadow-sm active:scale-95 transition-all hover:bg-app-surface-muted cursor-pointer"
           >
             <ShareNetwork size={20} weight="bold" />
           </button>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-5 pt-24">
+      <main className="max-w-xl mx-auto px-5 pt-24">
         <div className="flex flex-col gap-8">
           {/* Image Section */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="aspect-square relative rounded-[2.5rem] overflow-hidden shadow-sm bg-white border border-gray-100"
+            className="aspect-square relative rounded-[2.5rem] overflow-hidden shadow-sm bg-app-surface border border-app-border"
           >
             <img 
               src={choco.image_url || "https://images.unsplash.com/photo-1511381939415-e44015466834?q=80&w=2000&auto=format&fit=crop"} 
@@ -170,15 +171,15 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
           {/* Info Section */}
           <div className="flex flex-col gap-6">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-gray-400 font-black text-[10px] uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-app-muted font-black text-[10px] uppercase tracking-widest">
                 <Buildings size={14} weight="bold" />
                 {choco.brand}
               </div>
-              <h2 className="text-3xl font-[1000] tracking-tighter uppercase leading-none text-gray-900">
+              <h2 className="text-3xl font-[1000] tracking-tighter uppercase leading-none text-app-text">
                 {choco.name}
               </h2>
               {choco.category && (
-                <div className="flex items-center gap-2 text-gray-400 font-black text-[10px] uppercase tracking-widest mt-2">
+                <div className="flex items-center gap-2 text-app-muted font-black text-[10px] uppercase tracking-widest mt-2">
                   <Tag size={14} weight="bold" />
                   {choco.category}
                 </div>
@@ -186,14 +187,14 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
             </div>
 
             {/* Rating Summary */}
-            <div className="flex items-center gap-4 bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-4 bg-app-surface p-5 rounded-[2rem] border border-app-border shadow-sm">
               <div className="flex flex-col items-center justify-center bg-yellow-50 size-16 rounded-2xl text-yellow-600">
                 <Star size={24} weight="fill" />
                 <span className="text-lg font-black leading-none mt-1">{choco.avg_rating.toFixed(1)}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-black uppercase tracking-tight text-gray-900">{choco.review_count} {lang === "tr" ? "Değerlendirme" : "Reviews"}</span>
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                <span className="text-sm font-black uppercase tracking-tight text-app-text">{choco.review_count} {lang === "tr" ? "Değerlendirme" : "Reviews"}</span>
+                <span className="text-[10px] text-app-muted font-bold uppercase tracking-wider mt-0.5">
                   {lang === "tr" ? "Kullanıcı ortalaması" : "User average"}
                 </span>
               </div>
@@ -206,7 +207,7 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
                 className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border transition-all cursor-pointer active:scale-95 ${
                   choco.user_state === "wishlist"
                     ? "bg-amber-50 text-amber-600 border-amber-100"
-                    : "bg-white border-gray-100 text-gray-400 hover:bg-gray-50"
+                    : "bg-app-surface border-app-border text-app-muted hover:bg-app-surface-muted"
                 }`}
               >
                 <BookmarkSimple size={24} weight={choco.user_state === "wishlist" ? "fill" : "bold"} />
@@ -218,7 +219,7 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
                 className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border transition-all cursor-pointer active:scale-95 ${
                   choco.user_state === "tried"
                     ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                    : "bg-white border-gray-100 text-gray-400 hover:bg-gray-50"
+                    : "bg-app-surface border-app-border text-app-muted hover:bg-app-surface-muted"
                 }`}
               >
                 <Check size={24} weight="bold" />
@@ -230,7 +231,7 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
                 className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border transition-all cursor-pointer active:scale-95 ${
                   choco.user_state === "dislike"
                     ? "bg-rose-50 text-rose-600 border-rose-100"
-                    : "bg-white border-gray-100 text-gray-400 hover:bg-gray-50"
+                    : "bg-app-surface border-app-border text-app-muted hover:bg-app-surface-muted"
                 }`}
               >
                 <Prohibit size={24} weight="bold" />
@@ -248,7 +249,7 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
                 className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border transition-all cursor-pointer active:scale-95 ${
                   choco.user_rating && choco.user_rating > 0
                     ? "bg-yellow-50 text-yellow-600 border-yellow-100"
-                    : "bg-white border-gray-100 text-gray-400 hover:bg-gray-50"
+                    : "bg-app-surface border-app-border text-app-muted hover:bg-app-surface-muted"
                 }`}
               >
                 <Star size={24} weight={choco.user_rating && choco.user_rating > 0 ? "fill" : "bold"} />
@@ -259,8 +260,8 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
             </div>
 
             {/* Description */}
-            <div className="space-y-3 bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+            <div className="space-y-3 bg-app-surface p-6 rounded-[2rem] border border-app-border shadow-sm">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-app-muted">
                 {lang === "tr" ? "Hakkında" : "About"}
               </h3>
               <p className="text-sm leading-relaxed font-bold text-gray-600">
@@ -273,8 +274,8 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
         {/* Reviews Section */}
         <div className="mt-12 space-y-6">
           <div className="flex items-center gap-3 px-1">
-            <ChatCircleText size={20} weight="bold" className="text-gray-900" />
-            <h3 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em]">
+            <ChatCircleText size={20} weight="bold" className="text-app-text" />
+            <h3 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em]">
               {lang === "tr" ? "Değerlendirmeler" : "Reviews"}
             </h3>
           </div>
@@ -284,16 +285,16 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
               choco.reviews.map((review) => (
                 <div 
                   key={review.id} 
-                  className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm space-y-4"
+                  className="bg-app-surface p-5 rounded-[2rem] border border-app-border shadow-sm space-y-4"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900 font-black text-sm border border-gray-100">
+                      <div className="size-10 rounded-2xl bg-app-surface-muted flex items-center justify-center text-app-text font-black text-sm border border-app-border">
                         {review.reviewer_name?.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-black uppercase tracking-tight text-gray-900">{review.reviewer_name}</span>
-                        <span className="text-[9px] text-gray-400 font-black uppercase tracking-wider">
+                        <span className="text-xs font-black uppercase tracking-tight text-app-text">{review.reviewer_name}</span>
+                        <span className="text-[9px] text-app-muted font-black uppercase tracking-wider">
                           {new Date(review.created_at).toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US")}
                         </span>
                       </div>
@@ -311,8 +312,8 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 bg-white rounded-[2rem] border border-dashed border-gray-200">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              <div className="text-center py-12 bg-app-surface rounded-[2rem] border border-dashed border-gray-200">
+                <p className="text-[10px] font-black text-app-muted uppercase tracking-widest">
                   {lang === "tr" ? "Henüz yorum yapılmamış" : "No reviews yet"}
                 </p>
               </div>
@@ -336,25 +337,25 @@ export default function ChocolateDetailClient({ initialChoco }: { initialChoco: 
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              className="relative bg-[#FAF9F7] w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-2xl overflow-hidden"
+              className="relative bg-app-bg w-full max-w-xl rounded-t-[3rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-2xl overflow-hidden"
             >
               <button 
                 onClick={() => setShowRatingModal(false)}
-                className="absolute top-6 right-6 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 text-gray-900 cursor-pointer active:scale-95"
+                className="absolute top-6 right-6 w-10 h-10 bg-app-surface rounded-2xl flex items-center justify-center shadow-sm border border-app-border text-app-text cursor-pointer active:scale-95"
               >
                 <X weight="bold" className="size-5" />
               </button>
    
-              <h2 className="text-2xl font-[1000] text-gray-900 tracking-tighter uppercase leading-none mb-2 text-center">
+              <h2 className="text-2xl font-[1000] text-app-text tracking-tighter uppercase leading-none mb-2 text-center">
                 {lang === "tr" ? "Değerlendir" : "Rate"}
               </h2>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center mb-10">
+              <p className="text-[10px] font-black text-app-muted uppercase tracking-[0.2em] text-center mb-10">
                 {choco.name}
               </p>
 
               <div className="space-y-10">
                 <div className="flex flex-col items-center gap-6">
-                  <div className="text-5xl font-[1000] text-gray-900 tracking-tighter">
+                  <div className="text-5xl font-[1000] text-app-text tracking-tighter">
                     {hoverRating || rating || 0}<span className="text-xl text-gray-300 ml-1">/10</span>
                   </div>
                   

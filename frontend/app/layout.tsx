@@ -11,6 +11,7 @@ import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import OTAProvider from "@/components/OTAProvider";
 import OtaBootstrap from "@/components/OtaBootstrap";
 import { MobileThemeProvider } from "@/components/MobileThemeManager";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { HomeProvider } from "@/contexts/HomeContext";
 import QueryProvider from "@/contexts/QueryProvider";
 
@@ -40,10 +41,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ThemeProvider>
         <OtaBootstrap />
         <OTAProvider>
           <LanguageProvider messages={trMessages}>
@@ -63,6 +65,7 @@ export default function RootLayout({
             </AuthProvider>
           </LanguageProvider>
         </OTAProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

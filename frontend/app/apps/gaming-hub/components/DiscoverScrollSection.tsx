@@ -30,15 +30,15 @@ export default function DiscoverScrollSection({
     <section>
       <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Icon size={14} className="text-gray-400 shrink-0" weight="duotone" />
-          <h3 className="text-xs font-bold text-gray-400 truncate">
+          <Icon size={14} className="text-app-muted shrink-0" weight="duotone" />
+          <h3 className="text-xs font-bold text-app-muted truncate">
             {title}
           </h3>
         </div>
         {items.length > 0 && (
           <Link
             href={seeAllHref}
-            className="shrink-0 text-xs font-semibold text-gray-400 active:opacity-70"
+            className="shrink-0 text-xs font-semibold text-app-muted active:opacity-70"
           >
             Tümünü Gör
           </Link>
@@ -46,8 +46,8 @@ export default function DiscoverScrollSection({
       </div>
 
       {items.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-2xl border border-gray-100">
-          <p className="text-xs font-bold text-gray-400">{emptyMessage}</p>
+        <div className="text-center py-8 bg-app-surface rounded-2xl border border-app-border">
+          <p className="text-xs font-bold text-app-muted">{emptyMessage}</p>
         </div>
       ) : (
         <HorizontalScrollRow>

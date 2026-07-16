@@ -111,7 +111,7 @@ export default function AddRecipeSheet({
 
   const tabClass = (active: boolean) =>
     `flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
   return (
@@ -123,20 +123,20 @@ export default function AddRecipeSheet({
       />
 
       {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+      <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-6 shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-app-border shrink-0">
+          <h2 className="text-lg font-black text-app-text uppercase tracking-tight">
             Yeni Tarif Ekle
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+            className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
           >
             <X size={16} weight="bold" />
           </button>
         </div>
 
-        <div className="flex gap-1 p-1 rounded-xl bg-gray-100 mb-4 shrink-0">
+        <div className="flex gap-1 p-1 rounded-xl bg-app-tab-track mb-4 shrink-0">
           <button type="button" onClick={() => setCreateMode("simple")} className={tabClass(createMode === "simple")}>
             Hızlı
           </button>
@@ -158,7 +158,7 @@ export default function AddRecipeSheet({
           {createMode === "simple" ? (
             <div className="space-y-4 pt-1">
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
                   Tarif Adı
                 </label>
                 <input
@@ -174,7 +174,7 @@ export default function AddRecipeSheet({
                     }
                   }}
                   placeholder="Tarif adı (örn: Kaşık Dökmesi)..."
-                  className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 text-gray-900 placeholder:text-gray-400 text-sm font-bold shadow-sm"
+                  className="w-full p-4 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-orange-500/40 text-app-text placeholder:text-app-muted text-sm font-bold shadow-sm"
                   autoFocus
                 />
               </div>
@@ -243,7 +243,7 @@ Yapılış:
 ...`
                 }
                 spellCheck={createMode === "text"}
-                className={`w-full h-64 p-4 bg-white border border-gray-200 rounded-xl resize-none focus:outline-none focus:border-orange-500/40 text-gray-900 placeholder:text-gray-400 text-sm leading-relaxed ${
+                className={`w-full h-64 p-4 bg-app-surface border border-app-border rounded-xl resize-none focus:outline-none focus:border-orange-500/40 text-app-text placeholder:text-app-muted text-sm leading-relaxed ${
                   createMode === "json" ? "font-mono text-xs" : ""
                 }`}
               />
@@ -252,7 +252,7 @@ Yapılış:
 
           {/* Category Selector (Always visible at the bottom) */}
           <div className="pt-2">
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+            <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
               Kategori
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -264,7 +264,7 @@ Yapılış:
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all active:scale-95 ${
                     category === cat
                       ? "bg-orange-500 text-white border-orange-500 shadow-sm"
-                      : "bg-gray-50 text-gray-600 border-gray-200/60 hover:border-orange-200"
+                      : "bg-app-surface-muted text-app-muted border-app-border hover:border-orange-200 dark:hover:border-orange-800"
                   }`}
                 >
                   {cat}

@@ -26,7 +26,7 @@ import ExercisePicker from "./ExercisePicker";
 import SessionStatsEditSheet, { SessionStatsBar } from "./SessionStatsEditSheet";
 import ExerciseBlock from "./ExerciseBlock";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
-import { invalidateGymStats, prependWorkoutToCache } from "@/lib/gymCache";
+import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/gymCache";
 
 export default function ActiveSessionSheet({
   open,
@@ -162,6 +162,8 @@ export default function ActiveSessionSheet({
     if (result.data) {
       prependWorkoutToCache(queryClient, user.id, result.data);
       invalidateGymStats(queryClient, user.id);
+      syncTodayGymCompletionInDiscoverCache(queryClient, user.id, result.data);
+      syncGymDiscoverWidgets(queryClient, user.id);
       sessionStorage.removeItem(ACTIVE_SESSION_KEY);
       setSession(null);
       onFinished();
@@ -199,23 +201,23 @@ export default function ActiveSessionSheet({
         <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fade-in" />
 
         {/* Drawer Container */}
-        <Drawer.Content className="bg-[#FAF9F7] text-gray-900 flex flex-col fixed inset-0 outline-none z-50 max-w-xl mx-auto shadow-2xl overflow-hidden">
+        <Drawer.Content className="bg-app-bg text-app-text flex flex-col fixed inset-0 outline-none z-50 max-w-xl mx-auto shadow-2xl overflow-hidden">
           
           {/* Drag handle decorator */}
-          <div className="w-full bg-[#FAF9F7] pt-2 pb-1 shrink-0 flex justify-center cursor-pointer">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+          <div className="w-full bg-app-bg pt-2 pb-1 shrink-0 flex justify-center cursor-pointer">
+            <div className="w-12 h-1.5 bg-app-border rounded-full" />
           </div>
 
           {/* Header */}
-          <header className="bg-white border-b border-gray-200/40 shrink-0">
+          <header className="bg-app-surface border-b border-app-border shrink-0">
             <div className="flex items-center justify-between px-5 py-3.5">
               <button
                 onClick={onClose}
-                className="shrink-0 w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200/60 text-gray-500 hover:text-gray-700 transition-colors"
+                className="shrink-0 w-8 h-8 flex items-center justify-center bg-app-surface-muted hover:bg-app-border/30 rounded-xl border border-app-border text-app-muted hover:text-app-text transition-colors"
               >
                 <CaretDown size={16} weight="bold" />
               </button>
-              <Drawer.Title className="text-sm font-black text-gray-900 truncate max-w-[12rem]">{session.name}</Drawer.Title>
+              <Drawer.Title className="text-sm font-black text-app-text truncate max-w-[12rem]">{session.name}</Drawer.Title>
               <Drawer.Description className="sr-only">Aktif antrenman oturumu detayları.</Drawer.Description>
               <button
                 onClick={handleFinish}
@@ -249,7 +251,7 @@ export default function ActiveSessionSheet({
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 py-3.5 text-sm font-bold text-gray-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50/20 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-sm font-bold text-app-muted hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50/20 dark:hover:bg-violet-950/20 transition-all active:scale-[0.99]"
             >
               <Plus size={16} weight="bold" />
               Egzersiz Ekle
@@ -271,19 +273,19 @@ export default function ActiveSessionSheet({
       {showAddExercise && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddExercise(false)} />
-          <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
+          <div className="relative w-full max-w-xl bg-app-bg rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-app-border bg-app-surface">
               <h2 className="text-sm font-black uppercase tracking-wide">Egzersiz Ekle</h2>
               <button
                 onClick={() => setShowAddExercise(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500 hover:text-gray-700"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-muted hover:text-app-text"
               >
                 <X size={16} weight="bold" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-3">
               {catalogLoading ? (
-                <p className="text-center py-8 text-xs font-bold text-gray-400 animate-pulse">
+                <p className="text-center py-8 text-xs font-bold text-app-muted animate-pulse">
                   Egzersizler yükleniyor...
                 </p>
               ) : (

@@ -107,8 +107,8 @@ function MonthGrid({
                   hasWorkout && cell.inMonth
                     ? "bg-violet-500 text-white"
                     : isToday && cell.inMonth
-                      ? "bg-violet-100 text-violet-600 ring-1 ring-violet-200"
-                      : "text-gray-500"
+                      ? "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-300 ring-1 ring-violet-200 dark:ring-violet-800"
+                      : "text-app-muted"
                 }`}
               >
                 {cell.inMonth ? cell.date.getDate() : ""}
@@ -141,13 +141,13 @@ function MonthGrid({
               className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold tabular-nums transition-colors ${
                 hasWorkout && cell.inMonth
                   ? "bg-violet-500 text-white shadow-md shadow-violet-500/20"
-                  : "text-gray-700"
+                  : "text-app-text"
               }`}
             >
               {cell.date.getDate()}
             </div>
             {hasWorkout && cell.inMonth && (
-              <span className="mt-1 text-[8px] font-semibold text-gray-400 text-center leading-tight max-w-[44px] truncate px-0.5">
+              <span className="mt-1 text-[8px] font-semibold text-app-muted text-center leading-tight max-w-[44px] truncate px-0.5">
                 {label}
               </span>
             )}
@@ -211,12 +211,12 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm text-left active:scale-[0.99] transition-all"
+        className="w-full rounded-2xl overflow-hidden bg-app-surface border border-app-border shadow-sm text-left active:scale-[0.99] transition-all"
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-black text-gray-900 tracking-tight">Antrenman Takvimi</p>
-            <p className="text-[10px] font-bold text-gray-500 truncate mt-0.5 capitalize">
+            <p className="text-[12px] font-black text-app-text tracking-tight">Antrenman Takvimi</p>
+            <p className="text-[10px] font-bold text-app-muted truncate mt-0.5 capitalize">
               {totalWorkouts > 0
                 ? lastWorkout
                   ? `Son: ${lastWorkout.name}`
@@ -224,11 +224,11 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
                 : "Henüz kayıt yok"}
             </p>
           </div>
-          <CaretRight size={16} weight="bold" className="text-gray-300 shrink-0" />
+          <CaretRight size={16} weight="bold" className="text-app-muted shrink-0" />
         </div>
 
-        <div className="px-4 pb-3.5 border-t border-gray-50">
-          <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider mb-2 mt-3 capitalize">
+        <div className="px-4 pb-3.5 border-t border-app-border">
+          <p className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-2 mt-3 capitalize">
             {monthLabel}
           </p>
           <MonthGrid
@@ -237,7 +237,7 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
             workoutsByDate={workoutsByDate}
             compact
           />
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center mt-2.5">
+          <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center mt-2.5">
             {thisMonthCount > 0
               ? `Bu ay ${thisMonthCount} antrenman`
               : "Bu ay antrenman yok"}
@@ -248,11 +248,11 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
       <Drawer.Root open={open} onOpenChange={setOpen}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />
-          <Drawer.Content className="bg-[#FAF9F7] flex flex-col fixed bottom-0 left-0 right-0 z-50 rounded-t-[1.75rem] max-h-[90vh] max-w-xl mx-auto outline-none">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-300/80 mt-3 mb-1 shrink-0" />
-            <div className="px-5 pt-2 pb-3 border-b border-gray-100 shrink-0">
-              <Drawer.Title className="text-sm font-black text-gray-900">Antrenman Takvimi</Drawer.Title>
-              <Drawer.Description className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+          <Drawer.Content className="bg-app-bg flex flex-col fixed bottom-0 left-0 right-0 z-50 rounded-t-[1.75rem] max-h-[90vh] max-w-xl mx-auto outline-none">
+            <div className="mx-auto w-10 h-1 rounded-full bg-app-border mt-3 mb-1 shrink-0" />
+            <div className="px-5 pt-2 pb-3 border-b border-app-border shrink-0">
+              <Drawer.Title className="text-sm font-black text-app-text">Antrenman Takvimi</Drawer.Title>
+              <Drawer.Description className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-0.5">
                 {totalWorkouts > 0 ? `${totalWorkouts} kayıtlı gün` : "Henüz kayıt yok"}
               </Drawer.Description>
             </div>
@@ -271,7 +271,7 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
 
                 return (
                   <div key={`${year}-${month}`}>
-                    <h3 className="text-lg font-black text-gray-900 capitalize mb-4 tracking-tight">
+                    <h3 className="text-lg font-black text-app-text capitalize mb-4 tracking-tight">
                       {label}
                     </h3>
                     <MonthGrid

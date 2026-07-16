@@ -15,7 +15,7 @@ export default function OptionalIngredientToggles({
 
   return (
     <div className="mb-3 px-1">
-      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+      <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider block mb-2">
         Varyasyonlar
       </span>
       <div className="flex flex-wrap gap-1.5">
@@ -28,13 +28,13 @@ export default function OptionalIngredientToggles({
               onClick={() => onToggle(toggle.key, !isOn)}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95 border ${
                 isOn
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                  ? "bg-gray-900 dark:bg-app-tab-active text-white dark:text-app-text border-gray-900 dark:border-app-border"
+                  : "bg-app-surface text-app-muted border-app-border hover:border-app-muted"
               }`}
             >
               <span
                 className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${
-                  isOn ? "border-white/40 bg-white/20" : "border-gray-300"
+                  isOn ? "border-white/40 bg-white/20 dark:border-app-border dark:bg-app-surface-muted" : "border-app-border"
                 }`}
               >
                 {isOn ? "✓" : ""}

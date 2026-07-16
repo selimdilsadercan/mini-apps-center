@@ -74,7 +74,7 @@ const getCardTheme = (name: string, themeId?: string) => {
     { 
       id: "silver",
       bg: "bg-gradient-to-br from-slate-200 via-slate-100 to-slate-300", 
-      text: "text-slate-900", 
+      text: "text-app-text", 
       accent: "bg-slate-900/10",
       border: "border-slate-300/50",
       glow: "shadow-slate-200/50"
@@ -90,7 +90,7 @@ const getCardTheme = (name: string, themeId?: string) => {
     { 
       id: "white",
       bg: "bg-gradient-to-br from-white via-slate-50 to-slate-100", 
-      text: "text-slate-900", 
+      text: "text-app-text", 
       accent: "bg-slate-900/5",
       border: "border-slate-200",
       glow: "shadow-slate-100/50"
@@ -361,7 +361,7 @@ export default function StampCardPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-slate-800 relative overflow-hidden selection:bg-amber-100 selection:text-amber-900">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text relative overflow-hidden selection:bg-amber-100 dark:selection:bg-amber-950/40 selection:text-amber-900 dark:selection:text-amber-200">
       <Toaster position="top-center" />
 
       {/* Confetti Animation Elements */}
@@ -392,17 +392,17 @@ export default function StampCardPage() {
       )}
 
       {/* Sticky Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 py-3 max-w-xl mx-auto w-full flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => (window.location.href = getAppRootUrl())}
-              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
             >
               <CaretLeft size={14} weight="bold" className="text-amber-500" />
             </button>
 
-            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
               <Cards size={18} weight="fill" className="text-amber-500 shrink-0" />
               <span className="truncate">Müdavim Kartı</span>
             </h1>
@@ -418,9 +418,6 @@ export default function StampCardPage() {
         </div>
       </header>
 
-      {/* Decorative top header glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-64 bg-gradient-to-b from-amber-100/40 via-orange-50/20 to-transparent blur-3xl pointer-events-none" />
-
       <main className="flex-1 px-4 py-6 pb-32 max-w-xl mx-auto w-full relative z-10">
 
         <div className="space-y-10">
@@ -428,22 +425,22 @@ export default function StampCardPage() {
           {/* Active Stamp Cards */}
           <div>
             <div className="flex justify-between items-center mb-5 px-1">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <h2 className="text-[10px] font-black text-app-muted uppercase tracking-widest flex items-center gap-2">
                 AKTİF KARTLARIM
               </h2>
             </div>
 
             {loading ? (
-              <div className="py-20 text-center text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+              <div className="py-20 text-center text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
                 Kartlar okunuyor...
               </div>
             ) : userCards.length === 0 ? (
-              <div className="py-20 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center justify-center p-8">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 mb-4 border border-slate-100">
+              <div className="py-20 bg-app-surface rounded-[2.5rem] border border-app-border shadow-sm flex flex-col items-center justify-center p-8">
+                <div className="w-12 h-12 rounded-2xl bg-app-surface-muted flex items-center justify-center text-app-muted mb-4 border border-app-border">
                   <Cards size={24} />
                 </div>
-                <p className="text-slate-900 text-sm font-extrabold uppercase tracking-tight mb-1.5">Cüzdan Boş</p>
-                <p className="text-slate-400 text-xs font-medium max-w-[220px] leading-relaxed mb-6 text-center">
+                <p className="text-app-text text-sm font-extrabold uppercase tracking-tight mb-1.5">Cüzdan Boş</p>
+                <p className="text-app-muted text-xs font-medium max-w-[220px] leading-relaxed mb-6 text-center">
                   Müşteri kartı eklemek ve hediye kazanmak için ilk dükkanını seç.
                 </p>
                 <button
@@ -547,18 +544,18 @@ export default function StampCardPage() {
       <Drawer.Root open={isAddCardDrawerOpen} onOpenChange={setIsAddCardDrawerOpen}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[60]" />
-          <Drawer.Content className="bg-white text-slate-800 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
+          <Drawer.Content className="bg-app-surface text-slate-800 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-lg mx-auto border-t border-slate-200 shadow-2xl">
             <div className="p-6 overflow-y-auto flex-1 scrollbar-none">
               <div className="mx-auto w-12 h-1.5 rounded-full bg-slate-200 mb-6" />
-              <Drawer.Title className="text-xl font-black mb-1 tracking-tight text-slate-900">
+              <Drawer.Title className="text-xl font-black mb-1 tracking-tight text-app-text">
                 KAMPANYA <span className="text-amber-600">EKLE</span>
               </Drawer.Title>
-              <Drawer.Description className="text-xs text-slate-400 mb-6 font-medium">
+              <Drawer.Description className="text-xs text-app-muted mb-6 font-medium">
                 Kaşe toplamak istediğin işletmenin kartını cüzdanına yerleştir
               </Drawer.Description>
 
               {businesses.length === 0 ? (
-                <div className="text-center py-12 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                <div className="text-center py-12 text-app-muted text-xs font-bold uppercase tracking-wider">
                   Kayıtlı kampanya bulunamadı.
                 </div>
               ) : (
@@ -568,10 +565,10 @@ export default function StampCardPage() {
                     return (
                       <div
                         key={biz.id}
-                        className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 flex items-center justify-between shadow-sm"
+                        className="bg-app-surface-muted p-4 rounded-2xl border border-app-border/60 flex items-center justify-between shadow-sm"
                       >
                         <div className="flex items-center gap-3.5">
-                          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-600 font-black text-xs overflow-hidden shrink-0">
+                          <div className="w-12 h-12 rounded-xl bg-white border border-app-border flex items-center justify-center text-amber-600 font-black text-xs overflow-hidden shrink-0">
                             {biz.header_url || biz.logo_url ? (
                               <img src={(biz.header_url || biz.logo_url) as string} alt={biz.name} className="w-full h-full object-cover" />
                             ) : (
@@ -579,7 +576,7 @@ export default function StampCardPage() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <h3 className="font-extrabold text-sm text-slate-900 tracking-tight truncate">{biz.name}</h3>
+                            <h3 className="font-extrabold text-sm text-app-text tracking-tight truncate">{biz.name}</h3>
                           </div>
                         </div>
 
@@ -588,7 +585,7 @@ export default function StampCardPage() {
                           onClick={() => handleAddCard(biz.id)}
                           className={`text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all ${
                             alreadyHas
-                              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              ? "bg-slate-100 text-app-muted cursor-not-allowed"
                               : "bg-amber-600 text-white shadow-sm shadow-amber-100 active:scale-95"
                           }`}
                         >
@@ -617,11 +614,11 @@ export default function StampCardPage() {
             <div className="p-4 flex items-center justify-between border-b border-slate-200 bg-white shrink-0">
               <button 
                 onClick={() => setIsStampDrawerOpen(false)} 
-                className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-2 text-app-muted hover:text-slate-600 transition-colors"
               >
                 <Plus size={24} className="rotate-45" />
               </button>
-              <span className="font-bold text-sm text-slate-900">{selectedCard?.business_name}</span>
+              <span className="font-bold text-sm text-app-text">{selectedCard?.business_name}</span>
               <div className="w-10" /> {/* Spacer */}
             </div>
             
@@ -660,7 +657,7 @@ export default function StampCardPage() {
                                 {selectedCard.business_logo ? (
                                   <img src={selectedCard.business_logo} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                  <span className="text-slate-900 font-black">{selectedCard.business_name[0]}</span>
+                                  <span className="text-app-text font-black">{selectedCard.business_name[0]}</span>
                                 )}
                               </div>
                             </div>
@@ -712,7 +709,7 @@ export default function StampCardPage() {
                                         }`} />
                                         <div className="relative z-10">
                                           {isLast ? (
-                                            <Ticket size={18} className={isStamped ? "text-slate-900" : "opacity-20"} />
+                                            <Ticket size={18} className={isStamped ? "text-app-text" : "opacity-20"} />
                                           ) : (
                                             isStamped ? (
                                               <span className="text-base filter brightness-0 opacity-70">{getBusinessEmoji(selectedCard.business_name)}</span>
@@ -788,18 +785,18 @@ export default function StampCardPage() {
                               playStampSound();
                             }
                           }}
-                          className="w-full text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-amber-600 transition-colors py-2"
+                          className="w-full text-app-muted text-[10px] font-bold uppercase tracking-widest hover:text-amber-600 transition-colors py-2"
                         >
                           Demo: Jeton Ekle
                         </button>
 
-                        <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 mt-4">
+                        <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-app-border mt-4">
                           <div className="flex items-center justify-between mb-4">
                             <h3 className="font-black text-sm tracking-tight flex items-center gap-2">
-                              <Storefront size={18} weight="bold" className="text-slate-400" />
+                              <Storefront size={18} weight="bold" className="text-app-muted" />
                               Jeton Market
                             </h3>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span className="text-[10px] font-bold text-app-muted uppercase tracking-widest">
                               ÖDÜLÜNÜ SEÇ
                             </span>
                           </div>
@@ -807,15 +804,15 @@ export default function StampCardPage() {
                             {(selectedCard.market_items || []).map((item: any) => (
                               <button
                                 key={item.id}
-                                className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-all group"
+                                className="w-full flex items-center justify-between p-3 rounded-2xl bg-app-surface-muted border border-app-border active:scale-[0.98] transition-all group"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-lg shadow-sm">
+                                  <div className="w-10 h-10 rounded-xl bg-white border border-app-border flex items-center justify-center text-lg shadow-sm">
                                     {item.icon}
                                   </div>
                                   <div className="text-left">
                                     <div className="font-bold text-sm text-slate-800">{item.name}</div>
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hemen Al</div>
+                                    <div className="text-[10px] font-bold text-app-muted uppercase tracking-wider">Hemen Al</div>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-100">
@@ -831,7 +828,7 @@ export default function StampCardPage() {
                       <button
                         disabled={stamping}
                         onClick={() => handleApplyStamp(true)}
-                        className="w-full text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-amber-600 transition-colors py-2"
+                        className="w-full text-app-muted text-[10px] font-bold uppercase tracking-widest hover:text-amber-600 transition-colors py-2"
                       >
                         Demo: Kaşe Ekle
                       </button>

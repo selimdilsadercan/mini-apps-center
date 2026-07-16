@@ -6,11 +6,8 @@ import { useRouter } from "next/navigation";
 import { 
   Sparkle, 
   Heart,
-  Storefront,
-  ShieldCheck,
   ChatTeardropDots,
   MagnifyingGlass,
-  UserCircle,
   Prohibit,
   MapPin,
   ArrowRight,
@@ -19,9 +16,7 @@ import {
   Users,
   Star,
   TrendUp,
-  List,
   CreditCard,
-  ChartBar,
   PiggyBank,
   Wrench,
   VideoCamera,
@@ -35,8 +30,9 @@ import {
   Question,
   Barbell,
   ChefHat,
+  Notepad,
   Broom,
-  Clock,
+  Plus,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,7 +54,6 @@ import {
   series_track, 
   hub,
   subcenter,
-  budget,
   tasarruf_challenges,
   suggest,
   kim_gelir,
@@ -67,29 +62,19 @@ import {
   ev_isleri,
 } from "@/lib/client";
 import Link from "next/link";
+import HomeHeader from "@/components/home/HomeHeader";
 import { startGymSession } from "@/app/apps/gym/types";
-import {
-  getIsoWeekday,
-} from "@/app/apps/ev-isleri/types";
+import { isRoutineDueToday } from "@/app/apps/ev-isleri/types";
 
 const client = createBrowserClient();
 
 export default function Home() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7] pb-32">
+      <div className="flex min-h-screen flex-col bg-app-bg pb-32">
+        <HomeHeader activeTab="discover" isLoaded={false} user={null} isAdmin={false} hasBusinesses={false} />
         <AppBar activePage={ActivePage.HOME} />
-        <main className="px-5 py-2 max-w-lg mx-auto w-full">
-          <section className="mt-8 mb-8 flex items-center justify-between">
-            <div className="flex flex-col">
-              <Skeleton className="h-8 w-32 mb-2" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="w-10 h-10 rounded-2xl" />
-              <Skeleton className="w-10 h-10 rounded-full" />
-            </div>
-          </section>
+        <main className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
           <HomeSkeleton />
         </main>
       </div>
@@ -100,7 +85,7 @@ export default function Home() {
 }
 
 const Skeleton = ({ className }: { className?: string }) => (
-  <div className={`animate-pulse bg-gray-200 rounded-2xl ${className}`} />
+  <div className={`animate-pulse bg-app-surface-muted rounded-2xl ${className}`} />
 );
 
 const HomeSkeleton = () => (
@@ -189,13 +174,6 @@ function HomeContent() {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const hobbyQuery = useQuery({
-    queryKey: ["hub", "hobby", user?.id],
-    queryFn: () => client.hub.getHobbyWidgets({ userId: user?.id }),
-    enabled: !!user?.id && activeTab === "hobby",
-    staleTime: 5 * 60 * 1000,
-  });
-
   const walletQuery = useQuery({
     queryKey: ["hub", "wallet", user?.id],
     queryFn: () => client.hub.getWalletWidgets({ userId: user?.id }),
@@ -219,19 +197,16 @@ function HomeContent() {
   const todayAgenda = discoverQuery.data?.todayAgenda || [];
   const weeklyChores = discoverQuery.data?.weeklyChores || null;
   const places = exploreQuery.data?.places || [];
-  const userSeries = hobbyQuery.data?.series || [];
   const subscriptions = walletQuery.data?.subscriptions || [];
-  const budgetProjects = walletQuery.data?.budgetProjects || [];
   const savingsStats = walletQuery.data?.savingsStats || null;
 
   const loading = useMemo(() => {
     if (activeTab === "discover") return discoverQuery.isLoading;
     if (activeTab === "explore") return exploreQuery.isLoading;
-    if (activeTab === "hobby") return hobbyQuery.isLoading;
     if (activeTab === "wallet") return walletQuery.isLoading;
     if (activeTab === "life") return lifeQuery.isLoading;
     return false;
-  }, [activeTab, discoverQuery.isLoading, exploreQuery.isLoading, hobbyQuery.isLoading, walletQuery.isLoading, lifeQuery.isLoading]);
+  }, [activeTab, discoverQuery.isLoading, exploreQuery.isLoading, walletQuery.isLoading, lifeQuery.isLoading]);
 
   useEffect(() => {
     const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
@@ -297,72 +272,17 @@ function HomeContent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] pb-32">
+    <div className="flex min-h-screen flex-col bg-app-bg pb-32">
+      <HomeHeader
+        activeTab={activeTab}
+        isLoaded={isLoaded}
+        user={user}
+        isAdmin={isAdmin}
+        hasBusinesses={hasBusinesses}
+      />
       <AppBar activePage={getActivePage()} />
-      
-      <main className="px-5 py-2 max-w-lg mx-auto w-full">
-          {/* Header Section */}
-          <section className="mt-8 mb-8 flex items-center justify-between">
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter uppercase leading-none">
-                Everything
-              </h1>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">
-                {activeTab === "discover" ? "Bugün" : 
-                 activeTab === "explore" ? "Şehrini Keşfet" : 
-                 activeTab === "hobby" ? "Hobi" : 
-                 activeTab === "wallet" ? "Cüzdan" : "Yaşam"}
-              </p>
-            </div>
-          <div className="flex items-center gap-2">
-            {!isLoaded ? (
-              <>
-                <Skeleton className="w-10 h-10 rounded-2xl" />
-                <Skeleton className="w-10 h-10 rounded-full" />
-              </>
-            ) : (
-              <>
-                {isAdmin && (
-                  <button
-                    onClick={() => router.push("/admin")}
-                    title="Yönetim Paneli"
-                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-                  >
-                    <ShieldCheck size={20} weight="bold" />
-                  </button>
-                )}
-                {(isAdmin || hasBusinesses) && (
-                  <button
-                    onClick={() => router.push("/dashboard")}
-                    title="İşletme Paneli"
-                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-                  >
-                    <Storefront size={20} weight="bold" />
-                  </button>
-                )}
-                {isAdmin && (
-                  <button 
-                    onClick={() => router.push("/home/list")}
-                    className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-900 shadow-sm active:scale-95 transition-all hover:bg-gray-50"
-                  >
-                    <List size={20} weight="bold" />
-                  </button>
-                )}
-                <button 
-                  onClick={() => router.push("/profile")}
-                  className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
-                >
-                  {user?.imageUrl ? (
-                    <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <UserCircle size={40} weight="fill" className="text-gray-300" />
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        </section>
 
+      <main className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
         {isHomeLoading ? (
           <HomeSkeleton />
         ) : (
@@ -393,8 +313,8 @@ function HomeContent() {
               {toolsApps.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Wrench size={14} weight="bold" className="text-gray-900" />
+                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Wrench size={14} weight="bold" className="text-app-text" />
                       Pratik Araçlar
                     </h2>
                   </div>
@@ -426,8 +346,8 @@ function HomeContent() {
             >
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Compass size={14} weight="bold" className="text-gray-900" />
+                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Compass size={14} weight="bold" className="text-app-text" />
                     Şehrinde Yapabileceklerin
                   </h2>
                 </div>
@@ -456,64 +376,10 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              {/* User's Series Section */}
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <VideoCamera size={14} weight="bold" className="text-gray-900" />
-                    Dizilerin
-                  </h2>
-                  <Link href="/apps/series-track" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                    Tümünü Gör
-                  </Link>
-                </div>
-                
-                {userSeries.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3">
-                    {userSeries.slice(0, 2).map(series => (
-                      <Link 
-                        key={series.id} 
-                        href={`/apps/series-track`}
-                        className="flex items-center gap-4 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all group"
-                      >
-                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-50">
-                          {series.poster_path ? (
-                            <img src={`https://image.tmdb.org/t/p/w200${series.poster_path}`} alt={series.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-200">
-                              <VideoCamera size={24} weight="fill" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-black text-gray-900 truncate uppercase tracking-tight">{series.title}</h3>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
-                              {series.status === "watching" ? "İzliyorum" : 
-                               series.status === "completed" ? "Bitti" : 
-                               series.status === "dropped" ? "Bıraktım" : "İzleyeceğim"}
-                            </span>
-                          </div>
-                        </div>
-                        <ArrowRight size={16} weight="bold" className="text-gray-300 group-hover:text-gray-900 transition-colors" />
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <Link 
-                    href="/apps/series-track"
-                    className="w-full py-8 flex flex-col items-center justify-center bg-white rounded-[2rem] border border-dashed border-gray-200 group active:scale-[0.98] transition-all"
-                  >
-                    <VideoCamera size={32} weight="thin" className="text-gray-300 mb-2 group-hover:text-[#00aeef] transition-colors" />
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Henüz dizi eklemedin</p>
-                  </Link>
-                )}
-              </section>
-
-              <section className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Heart size={14} weight="bold" className="text-gray-900" />
+                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Heart size={14} weight="bold" className="text-app-text" />
                     Hobi Dünyan
                   </h2>
                 </div>
@@ -546,11 +412,11 @@ function HomeContent() {
               {subscriptions.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <CreditCard size={14} weight="bold" className="text-gray-900" />
+                    <h2 className="text-[11px] font-[1000] text-app-text uppercase tracking-[0.2em] flex items-center gap-2">
+                      <CreditCard size={14} weight="bold" className="text-app-text" />
                       Aktif Aboneliklerin
                     </h2>
-                    <Link href="/apps/subcenter" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                    <Link href="/apps/subcenter" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
                       Tümünü Gör
                     </Link>
                   </div>
@@ -560,7 +426,7 @@ function HomeContent() {
                       <Link 
                         key={sub.id} 
                         href="/apps/subcenter"
-                        className="w-40 p-4 bg-white rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                        className="w-40 p-4 bg-app-surface rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
                       >
                         <div 
                           className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
@@ -569,8 +435,8 @@ function HomeContent() {
                           <span className="text-xl">{sub.icon}</span>
                         </div>
                         <div>
-                          <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{sub.name}</h3>
-                          <p className="text-[9px] text-gray-400 font-bold mt-1">
+                          <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{sub.name}</h3>
+                          <p className="text-[9px] text-app-muted font-bold mt-1">
                             {sub.price} {sub.currency === "TRY" ? "₺" : sub.currency} / {sub.cycle === "monthly" ? "Ay" : "Yıl"}
                           </p>
                         </div>
@@ -580,57 +446,10 @@ function HomeContent() {
                 </section>
               )}
 
-              {/* Budget Projects Section */}
-              {budgetProjects.length > 0 && (
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <ChartBar size={14} weight="bold" className="text-gray-900" />
-                      Bütçe Projelerin
-                    </h2>
-                    <Link href="/apps/budget" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
-                      Tümünü Gör
-                    </Link>
-                  </div>
-                  
-                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                    {budgetProjects.map(project => (
-                      <Link 
-                        key={project.id} 
-                        href={`/apps/budget/project?id=${project.id}`}
-                        className="w-48 bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left"
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-2xl bg-gray-50 flex items-center justify-center text-xl shadow-inner">
-                            {project.emoji || "💰"}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{project.name}</h3>
-                            <p className="text-[9px] text-gray-400 font-bold">{project.currency}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gray-900 rounded-full" 
-                              style={{ width: `${Math.min(((project.totalSpent || 0) / (project.targetBudget || 1)) * 100, 100)}%` }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-[8px] font-black uppercase tracking-tighter">
-                            <span className="text-gray-900">{project.totalSpent || 0} {project.currency}</span>
-                            <span className="text-gray-400">{project.targetBudget} {project.currency}</span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
-
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Wallet size={14} weight="bold" className="text-gray-900" />
+                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Wallet size={14} weight="bold" className="text-app-text" />
                     Paranı Yönet
                   </h2>
                 </div>
@@ -664,11 +483,11 @@ function HomeContent() {
               {suggestions.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <PaperPlaneTilt size={14} weight="bold" className="text-gray-900" />
+                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                      <PaperPlaneTilt size={14} weight="bold" className="text-app-text" />
                       Gelen Öneriler
                     </h2>
-                    <Link href="/apps/suggest" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                    <Link href="/apps/suggest" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
                       Tümünü Gör
                     </Link>
                   </div>
@@ -678,10 +497,10 @@ function HomeContent() {
                       <Link 
                         key={suggestion.id} 
                         href={`/apps/suggest/detail?id=${suggestion.shareId}`}
-                        className="w-48 bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                        className="w-48 bg-app-surface p-4 rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100 shadow-inner">
+                          <div className="w-10 h-10 rounded-2xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border shadow-inner">
                             {suggestion.imageUrl ? (
                               <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
                             ) : (
@@ -691,12 +510,12 @@ function HomeContent() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{suggestion.title}</h3>
-                            <p className="text-[9px] text-gray-400 font-bold truncate">@{suggestion.senderUsername || "birisi"}</p>
+                            <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{suggestion.title}</h3>
+                            <p className="text-[9px] text-app-muted font-bold truncate">@{suggestion.senderUsername || "birisi"}</p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                          <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
                             {suggestion.category === "movie" ? "Film" : 
                              suggestion.category === "tv" ? "Dizi" :
                              suggestion.category === "song" ? "Şarkı" :
@@ -716,11 +535,11 @@ function HomeContent() {
               {activities.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center justify-between px-1">
-                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Users size={14} weight="bold" className="text-gray-900" />
+                    <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Users size={14} weight="bold" className="text-app-text" />
                       Aktif Davetlerin
                     </h2>
-                    <Link href="/apps/kim-gelir" className="text-[10px] font-black text-gray-900 uppercase tracking-wider hover:underline">
+                    <Link href="/apps/kim-gelir" className="text-[10px] font-black text-app-text uppercase tracking-wider hover:underline">
                       Tümünü Gör
                     </Link>
                   </div>
@@ -730,15 +549,15 @@ function HomeContent() {
                       <Link 
                         key={activity.id} 
                         href={`/apps/kim-gelir/activity?id=${activity.id}`}
-                        className="w-56 bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                        className="w-56 bg-app-surface p-4 rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
                             <Users size={20} weight="fill" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">{activity.title}</h3>
-                            <p className="text-[9px] text-gray-400 font-bold truncate">{activity.location}</p>
+                            <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{activity.title}</h3>
+                            <p className="text-[9px] text-app-muted font-bold truncate">{activity.location}</p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -748,7 +567,7 @@ function HomeContent() {
                                 {resp.avatar ? (
                                   <img src={resp.avatar} alt={resp.username || ""} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-400">
+                                  <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-app-muted">
                                     {(resp.username || "?")[0]}
                                   </div>
                                 )}
@@ -760,7 +579,7 @@ function HomeContent() {
                               </div>
                             )}
                           </div>
-                          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                          <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
                             {activity.timeOption === "custom" ? activity.customTime : activity.timeOption}
                           </span>
                         </div>
@@ -772,8 +591,8 @@ function HomeContent() {
 
               <section className="space-y-4">
                 <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Sparkle size={14} weight="bold" className="text-gray-900" />
+                  <h2 className="text-[11px] font-[1000] text-app-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Sparkle size={14} weight="bold" className="text-app-text" />
                     Yaşam
                   </h2>
                 </div>
@@ -812,29 +631,28 @@ function isSeriesEpisodeAvailableNow(airDateStr: string): boolean {
   return Date.now() >= getSeriesEpisodeAirDateTime(airDateStr).getTime();
 }
 
-function formatSeriesAirLabels(airDateStr: string) {
-  const dt = getSeriesEpisodeAirDateTime(airDateStr);
-  return {
-    timeLabel: dt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }),
-    dateLabel: dt.toLocaleDateString("tr-TR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    }),
-  };
+function formatSeriesAirLabel(airDateStr: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const air = new Date(`${airDateStr.split("T")[0]}T12:00:00`);
+  air.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((today.getTime() - air.getTime()) / 86400000);
+  if (diffDays === 0) return "Bugün";
+  if (diffDays === 1) return "Dün";
+  if (diffDays > 1) {
+    return air.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  }
+  return air.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
-function SeriesAirTimeBadge({ airDate }: { airDate: string }) {
-  const { timeLabel, dateLabel } = formatSeriesAirLabels(airDate);
-  return (
-    <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-red-50 border border-red-100">
-      <Clock size={14} weight="fill" className="text-red-500 shrink-0" />
-      <div className="flex flex-col leading-none min-w-0">
-        <span className="text-[10px] font-black text-red-700 tabular-nums">{timeLabel}</span>
-        <span className="text-[8px] font-bold text-red-400 capitalize truncate">{dateLabel}</span>
-      </div>
-    </div>
-  );
+function buildSeriesTrackHref(item: series_track.TodaySeriesItem) {
+  if (!item.programId) return "/apps/series-track";
+  const params = new URLSearchParams({
+    program: item.programId,
+    episode: String(item.episode),
+    episodeId: item.id.replace(/-watched$/, ""),
+  });
+  return `/apps/series-track?${params.toString()}`;
 }
 
 function getSuggestionCategoryLabel(category: suggest.InboxSuggestion["category"]) {
@@ -879,6 +697,15 @@ function isMealTypeVisibleAtTime(
   }
 }
 
+function getMealPlanningPrompt(missingTypes: recipe.MealPlanMeal["mealType"][]) {
+  if (missingTypes.length === 0) return "";
+  if (missingTypes.length === 1) return `${getMealTypeLabel(missingTypes[0])} planlanmadı`;
+  if (missingTypes.length === 2) {
+    return `${getMealTypeLabel(missingTypes[0])} ve ${getMealTypeLabel(missingTypes[1])} planlanmadı`;
+  }
+  return "Bugünün yemekleri planlanmadı";
+}
+
 const MEAL_TYPE_ORDER: recipe.MealPlanMeal["mealType"][] = ["breakfast", "lunch", "dinner"];
 
 function HomeSummaryCards({
@@ -917,28 +744,47 @@ function HomeSummaryCards({
   const availableTodaySeries = unwatchedTodaySeries.filter((item) =>
     isSeriesEpisodeAvailableNow(item.airDate)
   );
-  const upcomingTodaySeries = unwatchedTodaySeries.filter(
-    (item) => !isSeriesEpisodeAvailableNow(item.airDate)
-  );
   const completedTodaySeries = todaySeries.filter((item) => item.isWatched);
-  const seriesEmptyText =
-    upcomingTodaySeries.length > 0 && availableTodaySeries.length === 0
-      ? "Henüz yayınlanmadı"
-      : "Bugün bölüm yok";
+  const seriesWidgetActive =
+    availableTodaySeries.length > 0 || completedTodaySeries.length > 0;
+  const primarySeriesItem = availableTodaySeries[0];
+  const seriesTrackHref = primarySeriesItem
+    ? buildSeriesTrackHref(primarySeriesItem)
+    : "/apps/series-track";
   const previewTodayMeals = [...todayMeals]
     .filter((meal) => isMealTypeVisibleAtTime(meal.mealType))
     .sort(
       (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
     );
+  const visibleMealTypes = MEAL_TYPE_ORDER.filter((type) => isMealTypeVisibleAtTime(type));
+  const plannedMealTypes = new Set(todayMeals.map((meal) => meal.mealType));
+  const missingMealTypes = visibleMealTypes.filter((type) => !plannedMealTypes.has(type));
+  const needsMealPlanning = missingMealTypes.length > 0;
+  const hasMealPlanContent = previewTodayMeals.length > 0;
+  const mealsWidgetActive = hasMealPlanContent || needsMealPlanning;
+  const mealPlanningPrompt = getMealPlanningPrompt(missingMealTypes);
 
   const todayChoresAll = weeklyChores?.assignments || [];
   const pendingTodayChores = todayChoresAll
-    .filter((item) => !item.completedAt && item.dayOfWeek === getIsoWeekday())
+    .filter(
+      (item) =>
+        !item.completedAt &&
+        isRoutineDueToday(item.recurrenceType ?? "weekly", item.dayOfWeek)
+    )
     .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
   const completedTodayChores = todayChoresAll
-    .filter((item) => !!item.completedAt && item.dayOfWeek === getIsoWeekday())
+    .filter(
+      (item) =>
+        !!item.completedAt &&
+        isRoutineDueToday(item.recurrenceType ?? "weekly", item.dayOfWeek)
+    )
     .sort((a, b) => a.choreName.localeCompare(b.choreName, "tr"));
   const choresEmptyText = !weeklyChores ? "Henüz board yok" : "Bugün görev yok";
+  const pendingTodayGym =
+    !!todayGymPlan?.routine && !todayGymPlan.completedToday;
+  const completedTodayGym =
+    !!todayGymPlan?.routine && todayGymPlan.completedToday;
+  const gymEmptyText = completedTodayGym ? "Bugün tamamlandı" : "Bugün antrenman yok";
 
   const handleSuggestionStatus = async (shareId: string, status: suggest.RecipientStatus) => {
     if (!userId) return;
@@ -1158,22 +1004,18 @@ function HomeSummaryCards({
           {previewTodayAgenda.map((item) => (
             <div
               key={item.id}
-              className="px-4 py-3 border-t border-gray-50 flex items-center gap-3"
+              className="px-4 py-3 border-t border-app-border flex items-center gap-3"
             >
-              <button
-                type="button"
+              <HomeTaskCheckButton
                 disabled={actionLoading === `agenda-${item.id}`}
                 onClick={() => void handleToggleAgendaComplete(item.id, false)}
-                className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-gray-50 border-gray-100 text-gray-300 hover:border-emerald-200 hover:text-emerald-500"
-              >
-                <CheckCircle size={18} weight="regular" />
-              </button>
+              />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black truncate text-gray-900">
+                <p className="text-[11px] font-black truncate text-app-text">
                   {item.item_emoji ? `${item.item_emoji} ` : ""}
                   {item.item_name}
                 </p>
-                <p className="text-[9px] text-gray-400 font-bold truncate">
+                <p className="text-[9px] text-app-muted font-bold truncate">
                   {item.period_type === "once" ? "Tek Seferlik" : 
                    item.period_type === "daily" ? (item.daily_slot === "morning" ? "Sabah" : item.daily_slot === "afternoon" ? "Öğle" : "Akşam") :
                    item.period_type === "weekly" ? "Haftalık" : "Aylık"}
@@ -1200,9 +1042,9 @@ function HomeSummaryCards({
           hasContent={previewSuggestions.length > 0}
         >
           {previewSuggestions.map((suggestion) => (
-            <div key={suggestion.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+            <div key={suggestion.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
                   {suggestion.imageUrl ? (
                     <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
                   ) : (
@@ -1212,8 +1054,8 @@ function HomeSummaryCards({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-gray-900 truncate">{suggestion.title}</p>
-                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                  <p className="text-[11px] font-black text-app-text truncate">{suggestion.title}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
                     @{suggestion.senderUsername || "birisi"} · {getSuggestionCategoryLabel(suggestion.category)}
                   </p>
                 </div>
@@ -1241,7 +1083,6 @@ function HomeSummaryCards({
                     onClick={() => handleSuggestionStatus(suggestion.shareId, "completed")}
                     loading={actionLoading === `suggest-${suggestion.shareId}-completed`}
                     icon={Check}
-                    variant="success"
                   >
                     Tamamla
                   </WidgetActionButton>
@@ -1251,7 +1092,6 @@ function HomeSummaryCards({
                     onClick={() => handleSuggestionStatus(suggestion.shareId, "ignored")}
                     loading={actionLoading === `suggest-${suggestion.shareId}-ignored`}
                     icon={X}
-                    variant="muted"
                   >
                     Yok say
                   </WidgetActionButton>
@@ -1280,14 +1120,14 @@ function HomeSummaryCards({
           {previewActivities.map((activity) => {
             const myResponse = activity.responses.find((response) => response.userId === userId)?.status;
             return (
-              <div key={activity.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+              <div key={activity.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
                     <Users size={16} weight="fill" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-gray-900 truncate">{activity.title}</p>
-                    <p className="text-[9px] text-gray-400 font-bold truncate">
+                    <p className="text-[11px] font-black text-app-text truncate">{activity.title}</p>
+                    <p className="text-[9px] text-app-muted font-bold truncate">
                       {activity.location || "Konum belirtilmedi"} · {activity.responses.length} yanıt
                     </p>
                   </div>
@@ -1297,7 +1137,7 @@ function HomeSummaryCards({
                     onClick={() => handleActivityRespond(activity.id, "gelirim")}
                     loading={actionLoading === `activity-${activity.id}-gelirim`}
                     icon={Check}
-                    variant={myResponse === "gelirim" ? "success" : "default"}
+                    selected={myResponse === "gelirim"}
                   >
                     Gelirim
                   </WidgetActionButton>
@@ -1305,7 +1145,7 @@ function HomeSummaryCards({
                     onClick={() => handleActivityRespond(activity.id, "belki")}
                     loading={actionLoading === `activity-${activity.id}-belki`}
                     icon={Question}
-                    variant={myResponse === "belki" ? "warning" : "default"}
+                    selected={myResponse === "belki"}
                   >
                     Belki
                   </WidgetActionButton>
@@ -1313,7 +1153,7 @@ function HomeSummaryCards({
                     onClick={() => handleActivityRespond(activity.id, "gelemem")}
                     loading={actionLoading === `activity-${activity.id}-gelemem`}
                     icon={X}
-                    variant={myResponse === "gelemem" ? "danger" : "default"}
+                    selected={myResponse === "gelemem"}
                   >
                     Gelemiyorum
                   </WidgetActionButton>
@@ -1327,24 +1167,24 @@ function HomeSummaryCards({
     {
       key: "series",
       loading: loading,
-      hasContent: availableTodaySeries.length > 0,
+      hasContent: seriesWidgetActive,
       card: (
         <HomeSummaryCard
-          href="/apps/series-track"
+          href={seriesTrackHref}
           icon={VideoCamera}
           color="#E50914"
           title="Bugünün Dizileri"
           subtitle="SeriesTrack"
           loading={loading}
-          emptyText={seriesEmptyText}
-          hasContent={availableTodaySeries.length > 0}
+          emptyText="Bugün bölüm yok"
+          hasContent={seriesWidgetActive}
           emptyFooter={
-            completedTodaySeries.length > 0 ? (
+            completedTodaySeries.length > 0 && availableTodaySeries.length === 0 ? (
               <>
                 {completedTodaySeries.map((item) => (
-                  <div key={item.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5 opacity-60">
+                  <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5 opacity-60">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                      <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
                         {item.posterPath ? (
                           <img
                             src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
@@ -1358,22 +1198,20 @@ function HomeSummaryCards({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black text-gray-900 truncate line-through">
+                        <p className="text-[11px] font-black text-app-text truncate line-through">
                           {item.title}
                         </p>
-                        <p className="text-[9px] text-gray-400 font-bold truncate">
+                        <p className="text-[9px] text-app-muted font-bold truncate">
                           S{item.season} B{item.episode}
                           {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
                         </p>
                       </div>
-                      <SeriesAirTimeBadge airDate={item.airDate} />
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <WidgetActionButton
                         onClick={() => handleToggleWatched(item)}
                         loading={actionLoading === `series-${item.id}`}
                         icon={CheckCircle}
-                        variant="success"
                       >
                         İzlendi
                       </WidgetActionButton>
@@ -1385,9 +1223,12 @@ function HomeSummaryCards({
           }
         >
           {availableTodaySeries.map((item) => (
-            <div key={item.id} className="px-4 py-3 border-t border-gray-50 space-y-2.5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+            <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
+              <Link
+                href={buildSeriesTrackHref(item)}
+                className="flex items-center gap-3 rounded-xl -mx-1 px-1 py-0.5 hover:bg-app-surface-muted transition-colors"
+              >
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
                   {item.posterPath ? (
                     <img
                       src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
@@ -1401,16 +1242,16 @@ function HomeSummaryCards({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-gray-900 truncate">{item.title}</p>
-                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                  <p className="text-[11px] font-black text-app-text truncate">{item.title}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
                     S{item.season} B{item.episode}
                     {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
                     {" · "}
-                    {item.source === "episode-club" ? "Episode Club" : "Yeni Bölüm"}
+                    {formatSeriesAirLabel(item.airDate)}
+                    {item.source === "episode-club" ? " · Episode Club" : ""}
                   </p>
                 </div>
-                <SeriesAirTimeBadge airDate={item.airDate} />
-              </div>
+              </Link>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
                   İzle
@@ -1431,7 +1272,7 @@ function HomeSummaryCards({
     {
       key: "gym",
       loading: loading,
-      hasContent: !!todayGymPlan?.routine,
+      hasContent: pendingTodayGym,
       card: (
         <HomeSummaryCard
           href="/apps/gym"
@@ -1440,20 +1281,35 @@ function HomeSummaryCards({
           title="Bugünün Antrenmanı"
           subtitle="Gym"
           loading={loading}
-          emptyText="Bugün antrenman yok"
-          hasContent={!!todayGymPlan?.routine}
+          emptyText={gymEmptyText}
+          hasContent={pendingTodayGym}
+          emptyFooter={
+            completedTodayGym ? (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
+                <HomeTaskCheckButton completed disabled />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate line-through">
+                    {todayGymPlan!.routine!.name}
+                  </p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
+                    {todayGymPlan!.routine!.exercises.length} egzersiz
+                  </p>
+                </div>
+              </div>
+            ) : undefined
+          }
         >
           {todayGymPlan?.routine && (
-            <div className="px-4 py-3 border-t border-gray-50 space-y-2.5">
+            <div className="px-4 py-3 border-t border-app-border space-y-2.5">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 border border-violet-100 text-violet-600">
                   <Barbell size={16} weight="fill" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-gray-900 truncate">
+                  <p className="text-[11px] font-black text-app-text truncate">
                     {todayGymPlan.routine.name}
                   </p>
-                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                  <p className="text-[9px] text-app-muted font-bold truncate">
                     {todayGymPlan.routine.exercises.length} egzersiz
                   </p>
                 </div>
@@ -1469,7 +1325,6 @@ function HomeSummaryCards({
                     router.push("/apps/gym/session");
                   }}
                   icon={Play}
-                  variant="success"
                 >
                   Başlat
                 </WidgetActionButton>
@@ -1485,11 +1340,7 @@ function HomeSummaryCards({
       hasContent: pendingTodayChores.length > 0,
       card: (
         <HomeSummaryCard
-          href={
-            weeklyChores?.boardId
-              ? `/apps/ev-isleri/board/${weeklyChores.boardId}`
-              : "/apps/ev-isleri"
-          }
+          href="/apps/ev-isleri"
           icon={Broom}
           color="#14B8A6"
           title="Bugünün İşleri"
@@ -1505,22 +1356,19 @@ function HomeSummaryCards({
                   return (
                     <div
                       key={item.id}
-                      className="px-4 py-3 border-t border-gray-50 flex items-center gap-3 opacity-60"
+                      className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60"
                     >
-                      <button
-                        type="button"
+                      <HomeTaskCheckButton
+                        completed
                         disabled={actionLoading === `chore-${item.id}`}
                         onClick={() => void handleToggleChoreComplete(item.id)}
-                        className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-emerald-500 border-emerald-500 text-white"
-                      >
-                        <CheckCircle size={18} weight="fill" />
-                      </button>
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black truncate text-gray-400 line-through">
+                        <p className="text-[11px] font-black truncate text-app-muted line-through">
                           {item.choreIcon ? `${item.choreIcon} ` : ""}
                           {item.choreName}
                         </p>
-                        <p className="text-[9px] text-gray-400 font-bold truncate">
+                        <p className="text-[9px] text-app-muted font-bold truncate">
                           {item.assigneeUsername ?? "Üye"}
                           {isMine ? " · Sen" : ""}
                         </p>
@@ -1537,22 +1385,18 @@ function HomeSummaryCards({
             return (
               <div
                 key={item.id}
-                className="px-4 py-3 border-t border-gray-50 flex items-center gap-3"
+                className="px-4 py-3 border-t border-app-border flex items-center gap-3"
               >
-                <button
-                  type="button"
+                <HomeTaskCheckButton
                   disabled={actionLoading === `chore-${item.id}`}
                   onClick={() => void handleToggleChoreComplete(item.id)}
-                  className="shrink-0 w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 bg-gray-50 border-gray-100 text-gray-300 hover:border-emerald-200 hover:text-emerald-500"
-                >
-                  <CheckCircle size={18} weight="regular" />
-                </button>
+                />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black truncate text-gray-900">
+                  <p className="text-[11px] font-black truncate text-app-text">
                     {item.choreIcon ? `${item.choreIcon} ` : ""}
                     {item.choreName}
                   </p>
-                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                  <p className="text-[9px] text-app-muted font-bold truncate">
                     {item.assigneeUsername ?? "Üye"}
                     {isMine ? " · Sen" : ""}
                   </p>
@@ -1566,7 +1410,7 @@ function HomeSummaryCards({
     {
       key: "meals",
       loading: loading,
-      hasContent: previewTodayMeals.length > 0,
+      hasContent: mealsWidgetActive,
       card: (
         <HomeSummaryCard
           href="/apps/recipe/plan"
@@ -1576,23 +1420,46 @@ function HomeSummaryCards({
           subtitle="Meal Planner"
           loading={loading}
           emptyText="Bugün plan yok"
-          hasContent={previewTodayMeals.length > 0}
+          hasContent={mealsWidgetActive}
         >
           {previewTodayMeals.map((meal) => (
-            <div key={meal.id} className="px-4 py-3 border-t border-gray-50">
+            <div key={meal.id} className="px-4 py-3 border-t border-app-border">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 text-orange-500 font-black text-sm">
                   {meal.title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-gray-900 truncate">{meal.title}</p>
-                  <p className="text-[9px] text-gray-400 font-bold truncate">
+                  <p className="text-[11px] font-black text-app-text truncate">{meal.title}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
                     {getMealTypeLabel(meal.mealType)}
                   </p>
                 </div>
               </div>
             </div>
           ))}
+          {needsMealPlanning && todayMeals.length === 0 && (
+            <div className="px-4 py-3 border-t border-app-border space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                  <Notepad size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text">{mealPlanningPrompt}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
+                    Bugünün menüsünü şimdi oluştur
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <WidgetActionButton
+                  onClick={() => router.push("/apps/recipe/plan")}
+                  icon={Plus}
+                >
+                  Planla
+                </WidgetActionButton>
+              </div>
+            </div>
+          )}
         </HomeSummaryCard>
       ),
     },
@@ -1624,10 +1491,37 @@ function HomeSummaryCards({
 function HomeWidgetsDivider() {
   return (
     <div className="flex items-center gap-3 py-1">
-      <div className="flex-1 border-t border-dashed border-gray-200" />
+      <div className="flex-1 border-t border-dashed border-app-border" />
       <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">—</span>
-      <div className="flex-1 border-t border-dashed border-gray-200" />
+      <div className="flex-1 border-t border-dashed border-app-border" />
     </div>
+  );
+}
+
+function HomeTaskCheckButton({
+  onClick,
+  disabled,
+  completed = false,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+  completed?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface-muted hover:bg-app-border/30 ${
+        completed ? "text-app-text" : "text-app-muted hover:text-app-text"
+      }`}
+    >
+      {completed ? (
+        <CheckCircle size={18} weight="fill" />
+      ) : (
+        <CheckCircle size={18} weight="regular" />
+      )}
+    </button>
   );
 }
 
@@ -1636,31 +1530,22 @@ function WidgetActionButton({
   icon: Icon,
   children,
   loading,
-  variant = "default",
+  selected = false,
 }: {
   onClick: () => void;
   icon: ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
   children: ReactNode;
   loading?: boolean;
-  variant?: "default" | "success" | "warning" | "danger" | "muted";
+  selected?: boolean;
 }) {
-  const variantClass =
-    variant === "success"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-      : variant === "warning"
-        ? "bg-amber-50 text-amber-700 border-amber-100"
-        : variant === "danger"
-          ? "bg-rose-50 text-rose-700 border-rose-100"
-          : variant === "muted"
-            ? "bg-gray-50 text-gray-500 border-gray-100"
-            : "bg-white text-gray-900 border-gray-200";
-
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={loading}
-      className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide flex items-center gap-1 active:scale-95 transition-all disabled:opacity-50 ${variantClass}`}
+      className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:bg-app-surface-muted hover:border-app-muted active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface text-app-text border-app-border ${
+        selected ? "ring-1 ring-app-text" : ""
+      }`}
     >
       <Icon size={12} weight="bold" />
       {children}
@@ -1692,7 +1577,7 @@ function HomeSummaryCard({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
@@ -1701,12 +1586,12 @@ function HomeSummaryCard({
           <Icon size={20} weight="fill" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-black text-gray-900 tracking-tight">{title}</p>
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{subtitle}</p>
+          <p className="text-[12px] font-black text-app-text tracking-tight">{title}</p>
+          <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider">{subtitle}</p>
         </div>
         <Link
           href={href}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-900 hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+          className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-app-muted hover:text-app-text hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
           aria-label={`${title} uygulamasını aç`}
         >
           <ArrowRight size={16} weight="bold" />
@@ -1714,17 +1599,17 @@ function HomeSummaryCard({
       </div>
 
       {loading ? (
-        <div className="px-4 py-4 border-t border-gray-50 space-y-2">
-          <div className="h-9 bg-gray-50 rounded-xl animate-pulse" />
-          <div className="h-9 bg-gray-50 rounded-xl animate-pulse" />
+        <div className="px-4 py-4 border-t border-app-border space-y-2">
+          <div className="h-9 bg-app-surface-muted rounded-xl animate-pulse" />
+          <div className="h-9 bg-app-surface-muted rounded-xl animate-pulse" />
         </div>
       ) : hasContent ? (
         children
       ) : (
-        <div className="border-t border-gray-50">
+        <div className="border-t border-app-border">
           {!emptyFooter && (
             <div className="px-4 py-4 text-center">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{emptyText}</p>
+              <p className="text-[10px] font-bold text-app-muted uppercase tracking-widest">{emptyText}</p>
             </div>
           )}
           {emptyFooter}
@@ -1765,7 +1650,7 @@ function AppRow({
         onClick={onClick}
         role="button"
         tabIndex={0}
-        className="w-full flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] text-left border-b border-gray-50 last:border-0 cursor-pointer"
+        className="w-full flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] text-left border-b border-app-border last:border-0 cursor-pointer"
       >
         <div 
           className="w-11 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"
@@ -1776,10 +1661,10 @@ function AppRow({
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-gray-900 text-[15px] tracking-tight truncate group-hover:text-gray-600 transition-colors mb-0.5">
+          <h3 className="font-bold text-app-text text-[15px] tracking-tight truncate group-hover:text-app-muted transition-colors mb-0.5">
             {app.cta || app.description}
           </h3>
-          <p className="text-[11px] font-medium text-gray-400 line-clamp-1 leading-tight">
+          <p className="text-[11px] font-medium text-app-muted line-clamp-1 leading-tight">
             {appName}
           </p>
         </div>
@@ -1789,8 +1674,8 @@ function AppRow({
             onClick={onPin}
             className={`p-1 rounded-full transition-all ${
               isPinned 
-                ? "text-gray-400 hover:text-red-500" 
-                : "text-gray-200 hover:text-gray-400 md:opacity-0 md:group-hover:opacity-100"
+                ? "text-app-muted hover:text-red-500" 
+                : "text-gray-200 hover:text-app-muted md:opacity-0 md:group-hover:opacity-100"
             }`}
           >
             <Heart size={16} weight={isPinned ? "fill" : "bold"} />

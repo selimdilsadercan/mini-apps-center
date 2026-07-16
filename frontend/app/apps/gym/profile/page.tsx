@@ -64,7 +64,7 @@ export default function GymProfilePage() {
   if (!isLoaded || loading) {
     return (
       <GymShell activeTab="profile">
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       </GymShell>
@@ -74,9 +74,9 @@ export default function GymProfilePage() {
   if (!user) {
     return (
       <GymShell activeTab="profile">
-        <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-          <UserIcon size={40} className="text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-400">Profilini görmek için giriş yap.</p>
+        <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+          <UserIcon size={40} className="text-app-muted mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-app-muted">Profilini görmek için giriş yap.</p>
         </div>
       </GymShell>
     );
@@ -90,10 +90,10 @@ export default function GymProfilePage() {
         <WorkoutHistoryCalendar workouts={workouts} />
 
         <div className="space-y-2.5">
-          <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider">Geçmiş Aktiviteler</h3>
+          <h3 className="text-xs font-black text-app-muted uppercase tracking-wider">Geçmiş Aktiviteler</h3>
           {workouts.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-              <p className="text-xs font-bold text-gray-400">Henüz antrenman yok</p>
+            <div className="text-center py-8 bg-app-surface rounded-2xl border border-app-border shadow-sm">
+              <p className="text-xs font-bold text-app-muted">Henüz antrenman yok</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -111,24 +111,24 @@ export default function GymProfilePage() {
                   <div
                     key={workout.id}
                     onClick={() => setSelectedWorkout(workout)}
-                    className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4 hover:border-violet-300 cursor-pointer transition-all active:scale-[0.99]"
+                    className="bg-app-surface rounded-2xl border border-app-border shadow-sm p-4 hover:border-violet-300 cursor-pointer transition-all active:scale-[0.99]"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-black text-gray-900">{workout.name}</h4>
-                      <p className="text-[10px] font-bold text-gray-400">{date}</p>
+                      <h4 className="text-sm font-black text-app-text">{workout.name}</h4>
+                      <p className="text-[10px] font-bold text-app-muted">{date}</p>
                     </div>
 
                     <div className="flex gap-4 mb-3">
-                      <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Süre</p>
-                        <p className="text-xs font-black text-gray-900">
+                      <div className="flex-1 bg-app-surface-muted rounded-xl px-3 py-2">
+                        <p className="text-[9px] text-app-muted font-bold uppercase tracking-wider">Süre</p>
+                        <p className="text-xs font-black text-app-text">
                           {formatDuration(workout.durationSeconds)}
                         </p>
                       </div>
                       {workout.totalVolumeKg > 0 && (
-                        <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
-                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Hacim</p>
-                          <p className="text-xs font-black text-gray-900">
+                        <div className="flex-1 bg-app-surface-muted rounded-xl px-3 py-2">
+                          <p className="text-[9px] text-app-muted font-bold uppercase tracking-wider">Hacim</p>
+                          <p className="text-xs font-black text-app-text">
                             {workout.totalVolumeKg} kg
                           </p>
                         </div>
@@ -136,7 +136,7 @@ export default function GymProfilePage() {
                     </div>
 
                     {workout.exercises.length > 0 && (
-                      <div className="flex flex-wrap gap-2 bg-gray-50/50 rounded-lg p-2 border border-gray-100/30">
+                      <div className="flex flex-wrap gap-2 bg-app-surface-muted/50 rounded-lg p-2 border border-app-border">
                         {workout.exercises.map((ex, idx) => {
                           const item = getExerciseBySlug(catalog, ex.slug);
                           return (

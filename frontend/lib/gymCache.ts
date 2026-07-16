@@ -6,7 +6,7 @@ import {
   getStatsAction,
   getWeeklyPlanAction,
 } from "@/app/apps/gym/actions";
-import { invalidateDiscoverWidgets } from "@/lib/hubAgendaCache";
+import { invalidateDiscoverWidgets, discoverQueryKey } from "@/lib/hubAgendaCache";
 
 export const GYM_STALE_TIME = 2 * 60 * 1000;
 
@@ -176,6 +176,44 @@ export function invalidateGymStats(queryClient: QueryClient, userId: string) {
 
 export function syncGymDiscoverWidgets(queryClient: QueryClient, userId: string) {
   invalidateDiscoverWidgets(queryClient, userId);
+}
+
+function isWorkoutFinishedToday(finishedAt: string, now = new Date()): boolean {
+  const finished = new Date(finishedAt);
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+  return finished >= start && finished <= end;
+}
+
+export function syncTodayGymCompletionInDiscoverCache(
+  queryClient: QueryClient,
+  userId: string,
+  workout: { routineId: string | null; finishedAt: string | null }
+) {
+  if (!workout.routineId || !workout.finishedAt) return;
+  if (!isWorkoutFinishedToday(workout.finishedAt)) return;
+
+  queryClient.setQueryData(discoverQueryKey(userId), (prev: unknown) => {
+    if (!prev || typeof prev !== "object") return prev;
+    const data = prev as {
+      todayGymPlan?: {
+        routine?: { id: string } | null;
+        completedToday?: boolean;
+      } | null;
+    };
+    const plan = data.todayGymPlan;
+    if (!plan?.routine?.id || plan.routine.id !== workout.routineId) return prev;
+
+    return {
+      ...data,
+      todayGymPlan: {
+        ...plan,
+        completedToday: true,
+      },
+    };
+  });
 }
 
 export function invalidateGymQueries(queryClient: QueryClient, userId: string) {

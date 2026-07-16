@@ -60,12 +60,12 @@ function DiscoverAllContent() {
       />
 
       {loading ? (
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-          <p className="text-sm font-bold text-gray-500">
+        <div className="text-center py-16 bg-app-surface rounded-2xl border border-app-border">
+          <p className="text-sm font-bold text-app-muted">
             {query.trim() ? "Aramana uygun oyun bulunamadı" : "Bu kategoride oyun yok"}
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function DiscoverAllPage() {
   return (
     <Suspense
       fallback={
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       }

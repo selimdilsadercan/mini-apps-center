@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Broom, CheckCircle, XCircle, CaretLeft } from "@phosphor-icons/react";
 import { acceptBoardInviteAction, getBoardInviteDetailsAction } from "../actions";
 import { getAppRootUrl } from "@/lib/apps";
+import { setLastBoardId } from "../lastBoard";
 
 function InviteAcceptContent() {
   const { user, isLoaded } = useUser();
@@ -64,10 +65,9 @@ function InviteAcceptContent() {
       setSuccess(true);
       setTimeout(() => {
         if (inviteDetails?.boardId) {
-          router.push(`/apps/ev-isleri/board/${inviteDetails.boardId}`);
-        } else {
-          router.push("/apps/ev-isleri");
+          setLastBoardId(inviteDetails.boardId);
         }
+        router.push("/apps/ev-isleri");
       }, 1200);
     } catch {
       setErrorMsg("Davet kabul edilemedi.");
@@ -77,13 +77,13 @@ function InviteAcceptContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F7] flex flex-col">
+    <div className="min-h-screen bg-app-bg text-app-text flex flex-col">
       <header className="px-4 pt-4 max-w-md mx-auto w-full">
         <button
           onClick={() => {
             window.location.href = getAppRootUrl();
           }}
-          className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-500"
+          className="w-8 h-8 rounded-lg bg-app-surface border border-app-border flex items-center justify-center text-app-muted"
         >
           <CaretLeft size={14} weight="bold" />
         </button>
@@ -91,34 +91,34 @@ function InviteAcceptContent() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 max-w-md mx-auto w-full text-center">
         {loading ? (
-          <p className="text-xs font-bold text-gray-400 animate-pulse">Yükleniyor...</p>
+          <p className="text-xs font-bold text-app-muted animate-pulse">Yükleniyor...</p>
         ) : success ? (
           <>
             <CheckCircle size={56} className="text-emerald-500 mb-4" weight="fill" />
-            <p className="text-sm font-black text-gray-900">Board&apos;a katıldın!</p>
+            <p className="text-sm font-black text-app-text">Board&apos;a katıldın!</p>
           </>
         ) : errorMsg && !inviteDetails ? (
           <>
             <XCircle size={56} className="text-red-400 mb-4" weight="fill" />
-            <p className="text-sm font-bold text-gray-600">{errorMsg}</p>
+            <p className="text-sm font-bold text-app-muted">{errorMsg}</p>
           </>
         ) : inviteDetails ? (
           <>
-            <div className="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center mb-4">
-              <Broom size={32} weight="fill" className="text-teal-600" />
+            <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-4">
+              <Broom size={32} weight="fill" className="text-teal-500" />
             </div>
-            <h1 className="text-lg font-black text-gray-900 mb-1">{inviteDetails.boardName}</h1>
-            <p className="text-xs text-gray-500 font-medium mb-6">
+            <h1 className="text-lg font-black text-app-text mb-1">{inviteDetails.boardName}</h1>
+            <p className="text-xs text-app-muted font-medium mb-6">
               @{inviteDetails.creatorUsername ?? "birisi"} seni ev işleri board&apos;una davet etti
             </p>
 
             {errorMsg ? (
               <p className="text-xs font-bold text-red-500 mb-4">{errorMsg}</p>
             ) : !isLoaded ? (
-              <p className="text-xs text-gray-400">Yükleniyor...</p>
+              <p className="text-xs text-app-muted">Yükleniyor...</p>
             ) : !user ? (
               <SignInButton mode="modal">
-                <button className="px-6 py-3 rounded-2xl bg-teal-600 text-white text-xs font-black uppercase tracking-wider">
+                <button className="px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black uppercase tracking-wider">
                   Giriş yap ve katıl
                 </button>
               </SignInButton>
@@ -126,7 +126,7 @@ function InviteAcceptContent() {
               <button
                 onClick={() => void handleAccept()}
                 disabled={accepting || inviteDetails.isExpired}
-                className="px-6 py-3 rounded-2xl bg-teal-600 text-white text-xs font-black uppercase tracking-wider disabled:opacity-50 active:scale-95"
+                className="px-6 py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black uppercase tracking-wider disabled:opacity-50 active:scale-95"
               >
                 {accepting ? "Katılınıyor..." : "Daveti kabul et"}
               </button>
@@ -142,7 +142,7 @@ export default function EvIsleriInvitePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FAF9F7] flex items-center justify-center text-xs font-bold text-gray-400">
+        <div className="min-h-screen bg-app-bg flex items-center justify-center text-xs font-bold text-app-muted">
           Yükleniyor...
         </div>
       }

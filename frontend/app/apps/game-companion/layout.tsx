@@ -13,7 +13,7 @@ export default function GameCompanionLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="game-companion-root min-h-screen bg-background">
+    <div className="game-companion-root min-h-screen bg-app-bg text-app-text">
       {children}
       <Toaster
         position="top-center"

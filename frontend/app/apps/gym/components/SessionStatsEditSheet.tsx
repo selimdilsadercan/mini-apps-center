@@ -85,18 +85,18 @@ export default function SessionStatsEditSheet({
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl bg-white rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="relative w-full max-w-xl bg-app-surface rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full duration-200">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-app-border">
           <div>
-            <h2 className="text-sm font-black text-gray-900">Süre & Tarih</h2>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+            <h2 className="text-sm font-black text-app-text">Süre & Tarih</h2>
+            <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-0.5">
               Başlangıç ve süreyi düzenle
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100 text-gray-500"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-app-surface-muted border border-app-border text-app-muted"
           >
             <X size={16} weight="bold" />
           </button>
@@ -104,29 +104,29 @@ export default function SessionStatsEditSheet({
 
         <div className="px-5 py-5 space-y-5">
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Tarih</p>
+            <p className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-2">Tarih</p>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full text-sm font-black bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              className="w-full text-sm font-black bg-app-surface-muted border border-app-border rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
             />
           </div>
 
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">
+            <p className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-2">
               Başlangıç Saati
             </p>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full text-sm font-black bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums"
+              className="w-full text-sm font-black bg-app-surface-muted border border-app-border rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums"
             />
           </div>
 
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Süre</p>
+            <p className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-2">Süre</p>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: "Saat", value: hours, set: setHours },
@@ -134,7 +134,7 @@ export default function SessionStatsEditSheet({
                 { label: "Saniye", value: seconds, set: setSeconds },
               ].map((field) => (
                 <div key={field.label}>
-                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1 block">
+                  <label className="text-[9px] font-bold text-app-muted uppercase tracking-wide mb-1 block">
                     {field.label}
                   </label>
                   <input
@@ -142,7 +142,7 @@ export default function SessionStatsEditSheet({
                     inputMode="numeric"
                     value={field.value}
                     onChange={(e) => field.set(e.target.value.replace(/[^0-9]/g, ""))}
-                    className="w-full text-center text-sm font-black bg-gray-50 border border-gray-200 rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums"
+                    className="w-full text-center text-sm font-black bg-app-surface-muted border border-app-border rounded-xl py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums"
                   />
                 </div>
               ))}
@@ -154,7 +154,7 @@ export default function SessionStatsEditSheet({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-gray-200 text-xs font-black text-gray-600 active:scale-[0.98] transition-all"
+            className="flex-1 py-3 rounded-xl border border-app-border text-xs font-black text-app-muted active:scale-[0.98] transition-all"
           >
             İptal
           </button>
@@ -189,24 +189,24 @@ export function SessionStatsBar({
   const accentClass = durationAccent === "violet-500" ? "text-violet-500" : "text-violet-600";
 
   return (
-    <div className="flex items-center justify-around px-5 pb-4 border-t border-gray-50 pt-3 max-w-xl mx-auto w-full">
+    <div className="flex items-center justify-around px-5 pb-4 border-t border-app-border pt-3 max-w-xl mx-auto w-full">
       <button
         type="button"
         onClick={onEditDuration}
-        className="text-center active:scale-95 transition-transform rounded-xl px-3 py-1 -my-1 hover:bg-violet-50/60"
+        className="text-center active:scale-95 transition-transform rounded-xl px-3 py-1 -my-1 hover:bg-violet-50/60 dark:hover:bg-violet-950/30"
       >
-        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Süre</p>
+        <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider">Süre</p>
         <p className={`text-sm font-black tabular-nums ${accentClass}`}>
           {formatSessionElapsed(elapsed)}
         </p>
       </button>
       <div className="text-center px-3 py-1">
-        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Hacim</p>
-        <p className="text-sm font-black text-gray-900 tabular-nums">{volume} kg</p>
+        <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider">Hacim</p>
+        <p className="text-sm font-black text-app-text tabular-nums">{volume} kg</p>
       </div>
       <div className="text-center px-3 py-1">
-        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Setler</p>
-        <p className="text-sm font-black text-gray-900 tabular-nums">{completedSets}</p>
+        <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider">Setler</p>
+        <p className="text-sm font-black text-app-text tabular-nums">{completedSets}</p>
       </div>
     </div>
   );

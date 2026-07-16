@@ -21,7 +21,7 @@ function RecipeInitial({ title }: { title: string }) {
   }
   const initial = title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?";
   return (
-    <div className="w-11 h-11 mb-1.5 rounded-xl bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500 text-base">
+    <div className="w-11 h-11 mb-1.5 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center font-black text-app-muted text-base">
       {initial}
     </div>
   );
@@ -72,7 +72,7 @@ export default function RecipeHub() {
   if (!isLoaded || loading) {
     return (
       <RecipeShell activeTab="recipes">
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       </RecipeShell>
@@ -82,9 +82,9 @@ export default function RecipeHub() {
   if (!user) {
     return (
       <RecipeShell activeTab="recipes">
-        <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-          <ChefHat size={40} className="text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-400">Tariflerini görmek için giriş yapmalısın.</p>
+        <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+          <ChefHat size={40} className="text-app-muted mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-app-muted">Tariflerini görmek için giriş yapmalısın.</p>
         </div>
       </RecipeShell>
     );
@@ -100,9 +100,9 @@ export default function RecipeHub() {
         ) : (
           <div className="space-y-4">
             {recipes.length === 0 ? (
-              <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
-                <ChefHat size={32} className="text-gray-200 mx-auto mb-2" weight="duotone" />
-                <p className="text-xs font-bold text-gray-400 mb-4">Henüz tarif yok</p>
+              <div className="text-center py-10 bg-app-surface rounded-2xl border border-app-border shadow-sm">
+                <ChefHat size={32} className="text-app-muted mx-auto mb-2" weight="duotone" />
+                <p className="text-xs font-bold text-app-muted mb-4">Henüz tarif yok</p>
                 <button
                   onClick={() => setShowAddSheet(true)}
                   className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all active:scale-95"
@@ -132,7 +132,7 @@ export default function RecipeHub() {
                 <div className="space-y-5">
                   {sortedCats.map((catName) => (
                     <div key={catName} className="space-y-2">
-                      <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-1">
+                      <h3 className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
                         {catName} ({grouped[catName].length})
                       </h3>
                       <div className="grid grid-cols-3 gap-2">
@@ -140,7 +140,7 @@ export default function RecipeHub() {
                           <button
                             key={recipe.id}
                             onClick={() => router.push(`/apps/recipe?id=${recipe.id}`)}
-                            className="bg-white rounded-xl border border-gray-200/50 relative flex flex-col items-center justify-center px-2 py-4 group hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
+                            className="bg-app-surface rounded-xl border border-app-border relative flex flex-col items-center justify-center px-2 py-4 group hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 cursor-pointer text-left w-full select-none"
                           >
                             {recipe.image_url ? (
                               <img
@@ -151,7 +151,7 @@ export default function RecipeHub() {
                             ) : (
                               <RecipeInitial title={recipe.title} />
                             )}
-                            <h4 className="text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1">
+                            <h4 className="text-[12px] font-bold text-app-text text-center leading-tight line-clamp-2 px-1">
                               {recipe.title}
                             </h4>
                           </button>

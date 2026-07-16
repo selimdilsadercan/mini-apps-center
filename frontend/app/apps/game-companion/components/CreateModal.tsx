@@ -72,16 +72,16 @@ export default function CreateModal({ isOpen, onClose, onPlayerCreated }: Create
           <div className="px-6 pb-6">
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-2">
-              <div className="w-8 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+              <div className="w-8 h-1 bg-app-border rounded-full"></div>
             </div>
 
             <div className="flex items-center justify-between mb-6">
-              <Drawer.Title className="text-xl font-bold text-gray-800 dark:text-gray-200">
+              <Drawer.Title className="text-xl font-bold text-app-text text-app-text">
                 Kişi Oluştur
               </Drawer.Title>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                className="p-2 text-app-muted  hover:text-app-text "
               >
                 <X size={20} />
               </button>
@@ -89,7 +89,7 @@ export default function CreateModal({ isOpen, onClose, onPlayerCreated }: Create
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-app-text  mb-2">
                   Kişi Adı
                 </label>
                 <input
@@ -97,7 +97,7 @@ export default function CreateModal({ isOpen, onClose, onPlayerCreated }: Create
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Kişi adını girin"
-                  className="w-full px-4 py-3 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
+                  className="w-full px-4 py-3 border border-blue-300 border-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-app-text text-app-text placeholder:text-app-muted placeholder:text-app-muted bg-app-surface"
                   required
                   autoFocus
                 />
@@ -108,7 +108,7 @@ export default function CreateModal({ isOpen, onClose, onPlayerCreated }: Create
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 px-4 border border-gray-350 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="flex-1 py-3 px-4 border border-app-border text-app-text  rounded-lg font-medium hover:bg-app-surface-muted transition-colors"
                 >
                   İptal
                 </button>
@@ -117,7 +117,7 @@ export default function CreateModal({ isOpen, onClose, onPlayerCreated }: Create
                   disabled={!isFormValid || isCreating}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                     !isFormValid || isCreating
-                      ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-450 cursor-not-allowed"
+                      ? "bg-app-border text-app-muted text-app-muted cursor-not-allowed"
                       : "bg-blue-500 hover:bg-blue-600 text-white"
                   }`}
                 >

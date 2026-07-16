@@ -40,6 +40,7 @@ export default class Client {
     public readonly budget: budget.ServiceClient
     public readonly business: business.ServiceClient
     public readonly business_page: business_page.ServiceClient
+    public readonly buyuk_maclar: buyuk_maclar.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly campus_events: campus_events.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
@@ -106,6 +107,7 @@ export default class Client {
         this.budget = new budget.ServiceClient(base)
         this.business = new business.ServiceClient(base)
         this.business_page = new business_page.ServiceClient(base)
+        this.buyuk_maclar = new buyuk_maclar.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.campus_events = new campus_events.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
@@ -1589,6 +1591,76 @@ export namespace business_page {
             return await resp.json() as {
     link: Link
 }
+        }
+    }
+}
+
+export namespace buyuk_maclar {
+    export interface BigMatch {
+        id: string
+        sport: MatchSport
+        competition: string
+        competitionTr: string
+        competitionSlug: string
+        home: string
+        away: string
+        homeLogo: string | null
+        awayLogo: string | null
+        homeScore: string | null
+        awayScore: string | null
+        state: MatchState
+        statusText: string
+        clock: string | null
+        startAt: string
+        venue: string | null
+    }
+
+    export interface ListMatchesRequest {
+        sport?: MatchSport | "all"
+        liveOnly?: boolean
+    }
+
+    export interface ListMatchesResponse {
+        matches: BigMatch[]
+        fetchedAt: string
+        source: string
+    }
+
+    export type MatchSport = "football" | "basketball" | "volleyball" | "f1"
+
+    export type MatchState = "live" | "upcoming" | "finished"
+
+    export interface WatchSuggestionResponse {
+        match: BigMatch | null
+        reason: string
+        fetchedAt: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.listMatches = this.listMatches.bind(this)
+            this.watchSuggestion = this.watchSuggestion.bind(this)
+        }
+
+        public async listMatches(params: ListMatchesRequest): Promise<ListMatchesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                liveOnly: params.liveOnly === undefined ? undefined : String(params.liveOnly),
+                sport:    params.sport === undefined ? undefined : String(params.sport),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/buyuk-maclar/matches`, undefined, {query})
+            return await resp.json() as ListMatchesResponse
+        }
+
+        public async watchSuggestion(): Promise<WatchSuggestionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/buyuk-maclar/suggestion`)
+            return await resp.json() as WatchSuggestionResponse
         }
     }
 }
@@ -3243,6 +3315,7 @@ export namespace ev_isleri {
     export interface WeekAssignment {
         id: string
         dayOfWeek: number
+        recurrenceType: "daily" | "weekly" | "monthly"
         choreSlug: string
         choreName: string
         choreIcon: string | null
@@ -3439,6 +3512,7 @@ export namespace ev_isleri {
         public async setAssignment(boardId: string, params: {
     userId: string
     weekStart: string
+    recurrenceType: "daily" | "weekly" | "monthly"
     dayOfWeek: number
     choreSlug: string
     choreName: string
@@ -4274,6 +4348,7 @@ export namespace gym {
     export interface TodayPlan {
         dayOfWeek: number
         routine: Routine | null
+        completedToday: boolean
     }
 
     export interface WeeklyPlanDay {
@@ -6479,6 +6554,7 @@ export namespace series_track {
         airDate: string
         source: "tmdb" | "episode-club"
         isWatched: boolean
+        programId?: string | null
     }
 
     export interface ToggleEpisodeWatchedRequest {
@@ -6691,7 +6767,7 @@ export namespace series_track {
         }
 
         /**
-         * Bugün yayınlanan veya izlenmesi gereken bölümleri getirir
+         * Episode Club takvimindeki izlenmemiş bölümleri getirir
          */
         public async getTodayEpisodes(userId: string): Promise<{
     items: TodaySeriesItem[]

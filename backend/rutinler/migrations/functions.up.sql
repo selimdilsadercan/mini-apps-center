@@ -281,9 +281,12 @@ BEGIN
         RAISE EXCEPTION 'User not found';
     END IF;
 
-    -- Set postponed_until to tomorrow 00:00:00
+    -- Set postponed_until to tomorrow 00:00:00 Europe/Istanbul
     UPDATE rutinler.entries
-    SET postponed_until = (current_date + INTERVAL '1 day')
+    SET postponed_until = (
+        ((NOW() AT TIME ZONE 'Europe/Istanbul')::date + INTERVAL '1 day')::date::timestamp
+        AT TIME ZONE 'Europe/Istanbul'
+    )
     WHERE id = entry_id_param AND user_id = v_user_id;
 
     RETURN TRUE;

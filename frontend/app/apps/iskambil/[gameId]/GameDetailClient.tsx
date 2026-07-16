@@ -149,25 +149,25 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
   const customSections = initialGame.customSections as GameSection[] | null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-gray-200">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text font-sans selection:bg-gray-200">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-40 app-chrome-top">
+        <div className="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 rounded-xl border border-gray-200/60 h-9 shadow-sm transition-all active:scale-95"
+              className="flex items-center gap-2 px-3.5 py-2 bg-app-surface hover:bg-app-surface-muted text-gray-500 hover:text-app-text rounded-xl border border-app-border/60 h-9 shadow-sm transition-all active:scale-95"
               title={t.back}
             >
               <SquaresFour size={16} weight="fill" className="text-zinc-900 shrink-0" />
               <span className="text-xs font-bold">{t.back}</span>
             </button>
             <div className="flex flex-col">
-              <h1 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-gray-900">
+              <h1 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-app-text">
                 {gameName}
               </h1>
               {initialGame.originalName && initialGame.originalName.toLowerCase() !== gameName.toLowerCase() && (
-                <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+                <p className="text-[10px] text-app-muted font-bold mt-1 uppercase tracking-wider">
                   ({initialGame.originalName})
                 </p>
               )}
@@ -179,7 +179,7 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
               onClick={handleToggleKnown}
               className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_known
                   ? "bg-zinc-900 border-zinc-900 text-white"
-                  : "bg-white border-gray-200 text-gray-400 hover:text-zinc-900 hover:bg-gray-50"
+                  : "bg-app-surface border-app-border text-app-muted hover:text-zinc-900 hover:bg-app-surface-muted"
                 }`}
               title={t.known}
             >
@@ -190,7 +190,7 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
               onClick={handleToggleFavorite}
               className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_favorite
                   ? "bg-rose-50 border-rose-200 text-rose-500"
-                  : "bg-white border-gray-200 text-gray-400 hover:text-rose-500 hover:bg-rose-50"
+                  : "bg-app-surface border-app-border text-app-muted hover:text-rose-500 hover:bg-rose-50"
                 }`}
               title={t.favorite}
             >
@@ -201,16 +201,16 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
       </header>
 
       {/* Main Layout */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-8">
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 pt-20 pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+          className="flex flex-col gap-6"
         >
           {/* Rules Column */}
           <div className="lg:col-span-2 space-y-4">
 
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 space-y-8 shadow-sm">
+            <div className="bg-app-surface border border-app-border rounded-3xl p-6 md:p-8 space-y-8 shadow-sm">
               {quickRules ? (
                 <div className="space-y-8">
 
@@ -250,7 +250,7 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                       <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
                         {lang === "tr" ? "Amaç" : "Objective"}
                       </h4>
-                      <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-700 text-sm leading-relaxed font-medium">
+                      <div className="p-4 bg-app-surface-muted border border-app-border rounded-2xl text-gray-700 text-sm leading-relaxed font-medium">
                         {objective}
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
 
                 </div>
               ) : (
-                <div className="text-center text-gray-400 py-12 flex flex-col items-center gap-2">
+                <div className="text-center text-app-muted py-12 flex flex-col items-center gap-2">
                   <Cards size={48} className="opacity-20" />
                   <span className="font-bold">{t.noRules}</span>
                 </div>
@@ -355,9 +355,9 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
           <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 h-fit">
             {/* Quick Info Tags */}
             <div className="flex flex-col gap-3">
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t.playerCapacity}</span>
-                <span className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
+                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.playerCapacity}</span>
+                <span className="text-sm font-bold text-app-text flex items-center gap-2">
                   <Users size={18} className="text-zinc-900" />
                   {initialGame.minPlayers === initialGame.maxPlayers
                     ? `${initialGame.minPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`
@@ -365,17 +365,17 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                 </span>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t.deckRequirement}</span>
-                <span className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
+                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.deckRequirement}</span>
+                <span className="text-sm font-bold text-app-text flex items-center gap-2">
                   <Cards size={18} className="text-zinc-900" />
                   {deckCount}
                 </span>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t.gameType}</span>
-                <span className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
+                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.gameType}</span>
+                <span className="text-sm font-bold text-app-text flex items-center gap-2 uppercase tracking-tight">
                   <SquaresFour size={18} weight="fill" className="text-zinc-900" />
                   {gameCategory}
                 </span>

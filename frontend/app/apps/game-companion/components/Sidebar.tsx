@@ -102,11 +102,11 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <>
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-50 lg:bg-white lg:border-r lg:border-gray-200">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-50 lg:bg-app-surface lg:border-r lg:border-app-border">
         {/* Sidebar Header */}
-        <div className="flex items-center px-6 py-6 border-b border-gray-100 h-20">
+        <div className="flex items-center px-6 py-6 border-b border-app-border h-20">
           <Link href="/apps/game-companion/games" className="flex items-center gap-3">
-            <h1 className="text-xl font-black tracking-tight text-gray-900 uppercase">
+            <h1 className="text-xl font-black tracking-tight text-app-text uppercase">
               Yazboz
             </h1>
           </Link>
@@ -121,7 +121,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${
                 isActive(item.page)
                   ? "text-blue-600 bg-blue-50 shadow-sm shadow-blue-900/5"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  : "text-app-muted hover:text-app-text hover:bg-app-surface-muted"
               }`}
             >
               {item.icon}
@@ -131,11 +131,11 @@ export default function Sidebar({ currentPage }: SidebarProps) {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="px-4 py-4 border-t border-gray-200">
+        <div className="px-4 py-4 border-t border-app-border">
           <div className="flex items-center gap-3 px-3 py-2 mb-3">
-            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-app-tab-track rounded-full flex items-center justify-center">
               <svg
-                className="w-4 h-4 text-gray-400"
+                className="w-4 h-4 text-app-muted"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -149,10 +149,10 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
+              <p className="text-sm font-bold text-app-text truncate">
                 {player?.name || "Kullanıcı"}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-app-muted truncate">
                 {user?.primaryEmailAddress?.emailAddress || ""}
               </p>
             </div>
@@ -184,19 +184,19 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl">
+          <div className="bg-app-surface rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Çıkış Yap</h3>
-              <p className="text-sm text-gray-500 mb-6">Hesabınızdan çıkmak istediğinizden emin misiniz?</p>
+              <h3 className="text-lg font-bold text-app-text mb-2">Çıkış Yap</h3>
+              <p className="text-sm text-app-muted mb-6">Hesabınızdan çıkmak istediğinizden emin misiniz?</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 font-bold transition-colors hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-app-border rounded-xl text-app-text font-bold transition-colors hover:bg-app-surface-muted"
                 >
                   İptal
                 </button>

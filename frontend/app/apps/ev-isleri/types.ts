@@ -20,6 +20,7 @@ export interface BoardMember {
 export interface WeekAssignment {
   id: string;
   dayOfWeek: number;
+  recurrenceType: RecurrenceType;
   choreSlug: string;
   choreName: string;
   choreIcon: string | null;
@@ -31,6 +32,47 @@ export interface WeekAssignment {
   completedBy: string | null;
 }
 
+export type RecurrenceType = "daily" | "weekly" | "monthly";
+
+export const RECURRENCE_OPTIONS: { type: RecurrenceType; label: string }[] = [
+  { type: "daily", label: "Her gün" },
+  { type: "weekly", label: "Haftalık" },
+  { type: "monthly", label: "Aylık" },
+];
+
+export function formatRecurrenceLabel(
+  recurrenceType: RecurrenceType,
+  scheduleDay: number
+): string {
+  switch (recurrenceType) {
+    case "daily":
+      return "Her gün";
+    case "weekly":
+      return `Her ${FULL_DAY_LABELS[scheduleDay - 1] ?? "gün"}`;
+    case "monthly":
+      return `Her ayın ${scheduleDay}. günü`;
+    default:
+      return "Tekrarlayan";
+  }
+}
+
+export function isRoutineDueToday(
+  recurrenceType: RecurrenceType,
+  scheduleDay: number,
+  date = new Date()
+): boolean {
+  switch (recurrenceType) {
+    case "daily":
+      return true;
+    case "weekly":
+      return getIsoWeekday(date) === scheduleDay;
+    case "monthly":
+      return date.getDate() === scheduleDay;
+    default:
+      return false;
+  }
+}
+
 export interface ChoreTemplate {
   slug: string;
   name: string;
@@ -39,6 +81,16 @@ export interface ChoreTemplate {
 }
 
 export const DAY_LABELS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
+
+export const FULL_DAY_LABELS = [
+  "Pazartesi",
+  "Salı",
+  "Çarşamba",
+  "Perşembe",
+  "Cuma",
+  "Cumartesi",
+  "Pazar",
+] as const;
 
 export function getIsoWeekday(date = new Date()): number {
   const day = date.getDay();

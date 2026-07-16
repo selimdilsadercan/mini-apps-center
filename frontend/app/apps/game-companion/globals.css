@@ -1,46 +1,23 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f4f6f9;
-  --foreground: #171717;
-  --card-background: #ffffff;
+/* Game Companion inherits theme from root app (next-themes + app tokens).
+   Legacy CSS vars kept for any remaining var(--card-background) usage. */
+
+:root,
+html.light {
+  --background: var(--app-bg, #f4f6f9);
+  --foreground: var(--app-text, #171717);
+  --card-background: var(--app-surface, #ffffff);
+  --card-border: var(--app-border, rgba(0, 0, 0, 0.1));
   --card-shadow: 0 0 8px 5px #0b297d0a;
   --secondary-color: #365376;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-}
-
-/* Light mode (default) */
-:root,
-:root.light,
-html.light {
-  --background: #f4f6f9;
-  --foreground: #171717;
-  --card-background: #ffffff;
-  --card-border: rgba(0, 0, 0, 0.1);
-}
-
-/* Dark mode */
-.dark,
 html.dark {
-  --background: #100d16;
-  --foreground: #ededed;
-  --card-background: #1C1922;
-  --card-border: rgba(247, 247, 248, 0.1);
-}
-
-/* System preference fallback (only if no class is set) */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light):not(.dark) {
-    --background: #100d16;
-    --foreground: #ededed;
-    --card-background: #1C1922;
-    --card-border: rgba(247, 247, 248, 0.1);
-  }
+  --background: var(--app-bg, #100d16);
+  --foreground: var(--app-text, #ededed);
+  --card-background: var(--app-surface, #1c1922);
+  --card-border: var(--app-border, rgba(247, 247, 248, 0.1));
 }
 
 body {
@@ -52,23 +29,18 @@ body {
   overflow-x: hidden;
 }
 
-/* Mobile-specific styles */
 @media (max-width: 768px) {
   body {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
   }
 }
 
-/* Hide scrollbar utility */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
 }

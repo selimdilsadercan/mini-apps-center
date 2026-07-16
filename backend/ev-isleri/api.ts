@@ -29,6 +29,7 @@ export interface BoardMember {
 export interface WeekAssignment {
   id: string;
   dayOfWeek: number;
+  recurrenceType: "daily" | "weekly" | "monthly";
   choreSlug: string;
   choreName: string;
   choreIcon: string | null;
@@ -74,6 +75,7 @@ function mapAssignment(row: Record<string, unknown>): WeekAssignment {
   return {
     id: row.id as string,
     dayOfWeek: Number(row.day_of_week),
+    recurrenceType: (row.recurrence_type as WeekAssignment["recurrenceType"]) || "weekly",
     choreSlug: row.chore_slug as string,
     choreName: row.chore_name as string,
     choreIcon: (row.chore_icon as string) || null,
@@ -390,10 +392,14 @@ export const getTodayIntegratedChores = api(
 function getMondayWeekStart(): string {
   const now = new Date();
   const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diff);
   monday.setHours(0, 0, 0, 0);
-  return monday.toISOString();
+  const y = monday.getFullYear();
+  const m = String(monday.getMonth() + 1).padStart(2, "0");
+  const d = String(monday.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export const setAssignment = api(
@@ -402,6 +408,7 @@ export const setAssignment = api(
     userId: string;
     boardId: string;
     weekStart: string;
+    recurrenceType: "daily" | "weekly" | "monthly";
     dayOfWeek: number;
     choreSlug: string;
     choreName: string;
@@ -412,6 +419,7 @@ export const setAssignment = api(
       p_clerk_id: req.userId,
       p_board_id: req.boardId,
       p_week_start: req.weekStart,
+      p_recurrence_type: req.recurrenceType,
       p_day_of_week: req.dayOfWeek,
       p_chore_slug: req.choreSlug,
       p_chore_name: req.choreName,
@@ -429,6 +437,7 @@ export const setAssignment = api(
       assignment: {
         id: row.id as string,
         dayOfWeek: Number(row.day_of_week),
+        recurrenceType: (row.recurrence_type as WeekAssignment["recurrenceType"]) || "weekly",
         choreSlug: row.chore_slug as string,
         choreName: row.chore_name as string,
         choreIcon: (row.chore_icon as string) || null,
@@ -485,7 +494,7 @@ export const toggleAssignmentComplete = api(
       throw APIError.internal("Görev durumu güncellenemedi");
     }
 
-    const row = data as Record<string, unknown>;
-    return { completed: row.completed_at != null };
+    const completed = data as boolean;
+    return { completed: !!completed };
   }
 );

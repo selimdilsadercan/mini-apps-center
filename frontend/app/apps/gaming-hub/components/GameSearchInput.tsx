@@ -58,9 +58,9 @@ export default function GameSearchInput({
   return (
     <div ref={containerRef} className="relative">
       {showDropdown && (
-        <div className="absolute z-50 bottom-full left-0 right-0 mb-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+        <div className="absolute z-50 bottom-full left-0 right-0 mb-1 bg-app-surface border border-app-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
           {searching && (
-            <p className="px-4 py-3 text-xs font-bold text-gray-400">Aranıyor...</p>
+            <p className="px-4 py-3 text-xs font-bold text-app-muted">Aranıyor...</p>
           )}
           {!searching &&
             results.map((game) => (
@@ -71,20 +71,20 @@ export default function GameSearchInput({
                   onSelect(game);
                   setOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 active:bg-gray-100 text-left"
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-app-surface-muted active:bg-app-surface-muted text-left"
               >
                 {game.coverUrl ? (
                   <img
                     src={game.coverUrl}
                     alt=""
-                    className="w-10 h-14 rounded-lg object-cover shrink-0 bg-gray-100"
+                    className="w-10 h-14 rounded-lg object-cover shrink-0 bg-app-surface-muted"
                   />
                 ) : (
                   <div className="w-10 h-14 rounded-lg bg-violet-50 shrink-0" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black text-gray-900 truncate">{game.title}</p>
-                  <p className="text-[10px] font-bold text-gray-400 truncate">
+                  <p className="text-xs font-black text-app-text truncate">{game.title}</p>
+                  <p className="text-[10px] font-bold text-app-muted truncate">
                     {game.genres.slice(0, 2).join(", ") || "Oyun"}
                     {game.rating != null && ` · ${game.rating}/10`}
                   </p>
@@ -97,7 +97,7 @@ export default function GameSearchInput({
       <div className="relative">
         <MagnifyingGlass
           size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
         />
         <input
           type="text"
@@ -105,7 +105,7 @@ export default function GameSearchInput({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => value.trim().length >= 2 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full pl-9 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-100 text-sm font-bold outline-none focus:border-violet-200"
+          className="w-full pl-9 pr-4 py-3 rounded-xl bg-app-surface-muted border border-app-border text-sm font-bold outline-none focus:border-violet-200"
         />
       </div>
     </div>

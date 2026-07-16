@@ -1,0 +1,35 @@
+---
+description: Home widget action buttons must stay white, never colored
+globs: frontend/app/home/**/*.tsx
+alwaysApply: false
+---
+
+# Home Widget Action Buttons
+
+Home summary card action buttons (`WidgetActionButton` and similar inline CTAs) must always use a **white** style.
+
+## Style
+
+- Background: `bg-white`
+- Text: `text-gray-900`
+- Border: `border-gray-200`
+- Interaction: `cursor-pointer`, `hover:bg-gray-50`, `hover:border-gray-300`, `disabled:cursor-not-allowed`
+- No colored backgrounds (`bg-amber-50`, `bg-emerald-50`, `bg-rose-50`, etc.)
+- No colored text/borders for semantic states
+
+## Selected state
+
+Use a subtle neutral emphasis instead of color:
+
+```tsx
+// ✅ GOOD
+className="bg-white text-gray-900 border-gray-200 ring-1 ring-gray-900"
+
+// ❌ BAD
+className="bg-amber-50 text-amber-700 border-amber-100"
+className="bg-emerald-50 text-emerald-700 border-emerald-100"
+```
+
+## Scope
+
+This applies to action buttons inside home widgets (Bugün kartları, meal planner, suggest, activities, series, gym, etc.). Icon badges and card headers may keep their accent colors; only the small action/CTA buttons stay white.

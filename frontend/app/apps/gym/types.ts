@@ -58,6 +58,7 @@ export interface WeeklyPlanDay {
 export interface TodayPlan {
   dayOfWeek: number;
   routine: Routine | null;
+  completedToday: boolean;
 }
 
 export interface ActiveSession {

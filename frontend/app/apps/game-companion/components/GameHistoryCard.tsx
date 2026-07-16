@@ -61,10 +61,10 @@ export default function GameHistoryCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 flex items-start justify-between border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
+    <div className="bg-app-surface rounded-2xl p-4 flex items-start justify-between border border-app-border shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex-1 min-w-0 cursor-pointer" onClick={onClick}>
-        <h3 className="font-black text-gray-900 text-lg tracking-tight uppercase">{gameSave?.name || "Oyun"}</h3>
-        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">{formattedDate}</p>
+        <h3 className="font-black text-app-text text-lg tracking-tight uppercase">{gameSave?.name || "Oyun"}</h3>
+        <p className="text-app-muted text-[10px] font-bold uppercase tracking-widest mt-1">{formattedDate}</p>
 
         <div className="flex items-center gap-2 mt-4">
           {players && players.length > 0 ? (
@@ -74,7 +74,7 @@ export default function GameHistoryCard({
                 return players.slice(0, 6).map((p: any, idx: number) => (
                   <div
                     key={p?._id || idx}
-                    className="w-9 h-9 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-[11px] font-black text-gray-800 relative shadow-sm"
+                    className="w-9 h-9 rounded-full ring-2 ring-white bg-app-tab-track flex items-center justify-center text-[11px] font-black text-app-text relative shadow-sm"
                     title={p?.name}
                   >
                     {p?.avatar ? (
@@ -91,7 +91,7 @@ export default function GameHistoryCard({
                 ));
               })()}
               {players.length > 6 && (
-                <div className="w-9 h-9 rounded-full ring-2 ring-white bg-gray-50 flex items-center justify-center text-[10px] font-black text-gray-400 shadow-sm">
+                <div className="w-9 h-9 rounded-full ring-2 ring-white bg-app-surface-muted flex items-center justify-center text-[10px] font-black text-app-muted shadow-sm">
                   +{players.length - 6}
                 </div>
               )}
@@ -110,7 +110,7 @@ export default function GameHistoryCard({
         {showDelete && (
           <button
             onClick={handleDelete}
-            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 rounded-xl transition-all active:scale-95 border border-gray-100"
+            className="w-9 h-9 flex items-center justify-center text-app-muted hover:text-red-500 bg-app-surface-muted hover:bg-red-50 rounded-xl transition-all active:scale-95 border border-app-border"
             title="Sil"
           >
             <Trash size={18} />

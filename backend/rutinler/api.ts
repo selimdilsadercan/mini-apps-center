@@ -1,5 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import { isPostponedUntilFutureDay } from "../lib/istanbul-date";
 import { createSupabaseClient } from "../lib/supabase";
 
 const supabaseUrl = secret("SupabaseUrl");
@@ -180,11 +181,7 @@ export const getTodayAgenda = api(
     };
 
     const filtered = entries.filter((e) => {
-      // Filter out postponed items
-      if (e.postponed_until) {
-        const postponedDate = new Date(e.postponed_until);
-        if (postponedDate > now) return false;
-      }
+      if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
       // One-off tasks only show if they are NOT completed
       if (e.period_type === "once") return !e.is_completed;

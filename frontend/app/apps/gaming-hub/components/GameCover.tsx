@@ -50,7 +50,7 @@ export default function GameCover({
       <img
         src={resolvedUrl}
         alt={title}
-        className={`${fit === "contain" ? "object-contain" : "object-cover"} bg-gray-100 shrink-0 ${className ?? ""}`}
+        className={`${fit === "contain" ? "object-contain" : "object-cover"} bg-app-surface-muted shrink-0 ${className ?? ""}`}
       />
     );
   }

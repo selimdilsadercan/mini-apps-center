@@ -66,6 +66,7 @@ export interface WeeklyPlanDay {
 export interface TodayPlan {
   dayOfWeek: number;
   routine: Routine | null;
+  completedToday: boolean;
 }
 
 // ==================== HELPERS ====================
@@ -267,6 +268,26 @@ function getIsoWeekday(date = new Date()): number {
   return day === 0 ? 7 : day;
 }
 
+function isRoutineCompletedToday(
+  workouts: Record<string, unknown>[],
+  routineId: string,
+  now = new Date()
+): boolean {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+
+  return workouts.some((workout) => {
+    if (workout.routine_id !== routineId) return false;
+    const finishedAt = workout.finished_at
+      ? new Date(workout.finished_at as string)
+      : null;
+    if (!finishedAt) return false;
+    return finishedAt >= start && finishedAt <= end;
+  });
+}
+
 export const getWeeklyPlan = api(
   { expose: true, method: "GET", path: "/gym/weekly-plan/:userId" },
   async ({ userId }: { userId: string }): Promise<{ days: WeeklyPlanDay[] }> => {
@@ -308,32 +329,45 @@ export const setWeeklyPlanDay = api(
 export const getTodayPlan = api(
   { expose: true, method: "GET", path: "/gym/today-plan/:userId" },
   async ({ userId }: { userId: string }): Promise<TodayPlan> => {
-    const { data, error } = await supabase.schema("gym").rpc("get_weekly_plan", {
-      p_clerk_id: userId,
-    });
+    const [planResult, workoutsResult] = await Promise.all([
+      supabase.schema("gym").rpc("get_weekly_plan", {
+        p_clerk_id: userId,
+      }),
+      supabase.schema("gym").rpc("get_workouts", {
+        p_clerk_id: userId,
+        p_limit: 10,
+      }),
+    ]);
 
-    if (error) {
-      console.error("getTodayPlan error:", error);
+    if (planResult.error) {
+      console.error("getTodayPlan error:", planResult.error);
       throw APIError.internal("Bugünün planı yüklenemedi");
     }
 
     const today = getIsoWeekday();
-    const row = (data as Record<string, unknown>[] || []).find(
+    const row = (planResult.data as Record<string, unknown>[] || []).find(
       (entry) => Number(entry.day_of_week) === today
     );
 
     if (!row?.routine_id) {
-      return { dayOfWeek: today, routine: null };
+      return { dayOfWeek: today, routine: null, completedToday: false };
     }
+
+    const routineId = row.routine_id as string;
+    const completedToday = isRoutineCompletedToday(
+      (workoutsResult.data as Record<string, unknown>[] | null) ?? [],
+      routineId
+    );
 
     return {
       dayOfWeek: today,
       routine: {
-        id: row.routine_id as string,
+        id: routineId,
         name: row.routine_name as string,
         exercises: (row.exercises as ExerciseRef[]) || [],
         createdAt: "",
       },
+      completedToday,
     };
   }
 );

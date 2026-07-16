@@ -20,7 +20,7 @@ import {
 } from "../types";
 import { calcVolume } from "../exercises";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
-import { invalidateGymStats, prependWorkoutToCache } from "@/lib/gymCache";
+import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/gymCache";
 import type { ExerciseRef } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "../components/ExercisePicker";
@@ -130,6 +130,8 @@ function SessionContent() {
     if (result.data) {
       prependWorkoutToCache(queryClient, user.id, result.data);
       invalidateGymStats(queryClient, user.id);
+      syncTodayGymCompletionInDiscoverCache(queryClient, user.id, result.data);
+      syncGymDiscoverWidgets(queryClient, user.id);
       router.replace("/apps/gym/profile");
     } else {
       setSaving(false);
@@ -156,24 +158,24 @@ function SessionContent() {
 
   if (!isLoaded || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
+      <div className="flex min-h-screen items-center justify-center bg-app-bg">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-[#FAF9F7]/95 backdrop-blur-md border-b border-gray-200/40">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="flex items-center gap-2 px-4 py-3 max-w-xl mx-auto w-full">
           <button
             onClick={() => router.back()}
-            className="shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded-lg border border-gray-200/60"
+            className="shrink-0 w-8 h-8 flex items-center justify-center bg-app-surface rounded-lg border border-app-border"
           >
             <CaretDown size={14} weight="bold" className="text-violet-500" />
           </button>
-          <h1 className="flex-1 text-center text-sm font-black text-gray-900">Antrenman Kaydet</h1>
+          <h1 className="flex-1 text-center text-sm font-black text-app-text">Antrenman Kaydet</h1>
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleFinish}
@@ -208,7 +210,7 @@ function SessionContent() {
 
         <button
           onClick={() => setShowAddExercise(true)}
-          className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 py-3 text-sm font-bold text-gray-500 hover:border-violet-300 hover:text-violet-500 transition-all"
+          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3 text-sm font-bold text-app-muted hover:border-violet-300 hover:text-violet-500 transition-all"
         >
           <Plus size={16} weight="bold" />
           Egzersiz Ekle
@@ -228,16 +230,16 @@ function SessionContent() {
       {showAddExercise && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddExercise(false)} />
-          <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl max-h-[70vh] flex flex-col shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200/60">
+          <div className="relative w-full max-w-xl bg-app-bg rounded-t-3xl max-h-[70vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-app-border">
               <h2 className="text-sm font-black uppercase">Egzersiz Ekle</h2>
-              <button onClick={() => setShowAddExercise(false)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60">
+              <button onClick={() => setShowAddExercise(false)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-app-surface border border-app-border">
                 <X size={16} weight="bold" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3">
               {catalogLoading ? (
-                <p className="text-center py-8 text-xs font-bold text-gray-400 animate-pulse">
+                <p className="text-center py-8 text-xs font-bold text-app-muted animate-pulse">
                   Yükleniyor...
                 </p>
               ) : (
@@ -258,7 +260,7 @@ export default function GymSessionPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
+        <div className="flex min-h-screen items-center justify-center bg-app-bg">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
         </div>
       }

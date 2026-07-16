@@ -57,10 +57,10 @@ function GameSessionContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
+      <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">
           <div className="w-8 h-8 bg-blue-500 rounded-full animate-pulse mx-auto mb-4"></div>
-          <p className="text-gray-500 font-medium">Yükleniyor...</p>
+          <p className="text-app-muted font-medium">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ function GameSessionContent() {
 
   if (!gameSave) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
+      <div className="min-h-screen flex items-center justify-center bg-app-bg">
         <div className="text-center">
           <p className="text-red-500 mb-4 font-bold">Oturum bulunamadı.</p>
           <button onClick={() => router.push("/apps/game-companion/history")} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20">
@@ -103,18 +103,18 @@ function GameSessionContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F7]">
+    <div className="min-h-screen bg-app-bg">
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 app-chrome-top">
         <div className="px-4 py-3 max-w-xl mx-auto flex items-center gap-2">
           <button
             onClick={handleBack}
-            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
           >
             <ArrowLeft size={14} weight="bold" className="text-blue-500" />
           </button>
-          <h1 className="flex-1 min-w-0 text-base font-black text-gray-900 tracking-tight uppercase leading-none truncate">{gameName}</h1>
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0">{getTimeAgo()}</span>
+          <h1 className="flex-1 min-w-0 text-base font-black text-app-text tracking-tight uppercase leading-none truncate">{gameName}</h1>
+          <span className="text-[10px] font-black uppercase tracking-widest text-app-muted shrink-0">{getTimeAgo()}</span>
         </div>
       </div>
 

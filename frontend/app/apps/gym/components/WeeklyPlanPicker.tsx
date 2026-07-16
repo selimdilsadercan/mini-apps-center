@@ -84,23 +84,23 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
       <button
         type="button"
         onClick={() => setPlanOpen(true)}
-        className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden text-left active:scale-[0.99] transition-all"
+        className="w-full bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden text-left active:scale-[0.99] transition-all"
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-black text-gray-900 tracking-tight">Haftalık Plan</p>
+            <p className="text-[12px] font-black text-app-text tracking-tight">Haftalık Plan</p>
             {loading ? (
-              <div className="h-3 w-24 bg-gray-100 rounded animate-pulse mt-1.5" />
+              <div className="h-3 w-24 bg-app-tab-track rounded animate-pulse mt-1.5" />
             ) : (
-              <p className="text-[10px] font-bold text-gray-500 truncate mt-0.5">
+              <p className="text-[10px] font-bold text-app-muted truncate mt-0.5">
                 Bugün:{" "}
-                <span className="text-gray-900">
+                <span className="text-app-text">
                   {todayPlan?.routineName ?? "Dinlenme"}
                 </span>
               </p>
             )}
           </div>
-          <CaretRight size={16} weight="bold" className="text-gray-300 shrink-0" />
+          <CaretRight size={16} weight="bold" className="text-app-muted shrink-0" />
         </div>
 
         {!loading && (
@@ -114,7 +114,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                   <div key={day.dayOfWeek} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                     <span
                       className={`text-[8px] font-black uppercase tracking-wide ${
-                        isToday ? "text-violet-600" : "text-gray-400"
+                        isToday ? "text-violet-600" : "text-app-muted"
                       }`}
                     >
                       {label}
@@ -126,7 +126,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                             ? "bg-violet-50 border-violet-200 text-violet-300"
                             : "bg-violet-500 border-violet-500 text-white shadow-sm"
                           : isRest
-                            ? "bg-gray-50 border-gray-100 text-gray-300"
+                            ? "bg-app-surface-muted border-app-border text-app-muted"
                             : "bg-violet-100/80 border-violet-100 text-violet-500"
                       }`}
                     >
@@ -140,7 +140,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                 );
               })}
             </div>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center mt-2.5">
+            <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center mt-2.5">
               {workoutDays} antrenman · {7 - workoutDays} dinlenme
             </p>
           </div>
@@ -150,11 +150,11 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
       <Drawer.Root open={planOpen} onOpenChange={setPlanOpen}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
-          <Drawer.Content className="bg-[#FAF9F7] flex flex-col fixed bottom-0 left-0 right-0 z-50 rounded-t-[1.75rem] max-h-[85vh] max-w-xl mx-auto outline-none">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-300/80 mt-3 mb-1 shrink-0" />
-            <div className="px-5 pt-2 pb-3 border-b border-gray-100 shrink-0">
-              <Drawer.Title className="text-sm font-black text-gray-900">Haftalık Plan</Drawer.Title>
-              <Drawer.Description className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+          <Drawer.Content className="bg-app-bg flex flex-col fixed bottom-0 left-0 right-0 z-50 rounded-t-[1.75rem] max-h-[85vh] max-w-xl mx-auto outline-none">
+            <div className="mx-auto w-10 h-1 rounded-full bg-app-border mt-3 mb-1 shrink-0" />
+            <div className="px-5 pt-2 pb-3 border-b border-app-border shrink-0">
+              <Drawer.Title className="text-sm font-black text-app-text">Haftalık Plan</Drawer.Title>
+              <Drawer.Description className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-0.5">
                 Günlerine rutin ata
               </Drawer.Description>
             </div>
@@ -162,11 +162,11 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
             {loading ? (
               <div className="p-4 space-y-2">
                 {WEEKDAY_LABELS.map((label) => (
-                  <div key={label} className="h-12 bg-white rounded-xl animate-pulse" />
+                  <div key={label} className="h-12 bg-app-surface rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : (
-              <div className="overflow-y-auto divide-y divide-gray-100/80 pb-8">
+              <div className="overflow-y-auto divide-y divide-app-border pb-8">
                 {planDays.map((day) => {
                   const label = WEEKDAY_LABELS[day.dayOfWeek - 1];
                   const isToday = day.dayOfWeek === today;
@@ -180,14 +180,14 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       onClick={() => setPickerDay(day.dayOfWeek)}
                       disabled={isSaving}
                       className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all active:scale-[0.99] disabled:opacity-50 ${
-                        isToday ? "bg-violet-50/50" : "hover:bg-white/80"
+                        isToday ? "bg-violet-50/50" : "hover:bg-app-surface/80"
                       }`}
                     >
                       <div
                         className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 border ${
                           isToday
                             ? "bg-violet-500 border-violet-500 text-white shadow-sm shadow-violet-500/20"
-                            : "bg-white border-gray-100 text-gray-400"
+                            : "bg-app-surface border-app-border text-app-muted"
                         }`}
                       >
                         <span className="text-[8px] font-black uppercase tracking-wider leading-none">
@@ -203,12 +203,12 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       <div className="flex-1 min-w-0">
                         <p
                           className={`text-[11px] font-black truncate ${
-                            isToday ? "text-violet-900" : "text-gray-900"
+                            isToday ? "text-violet-900" : "text-app-text"
                           }`}
                         >
                           {isRest ? "Dinlenme" : day.routineName}
                         </p>
-                        <p className="text-[9px] font-bold text-gray-400 truncate mt-0.5">
+                        <p className="text-[9px] font-bold text-app-muted truncate mt-0.5">
                           {isRest
                             ? "Rutin atanmadı"
                             : `${day.exercises.length} egzersiz`}
@@ -218,7 +218,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       <div
                         className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${
                           isRest
-                            ? "bg-white border-gray-100 text-gray-400"
+                            ? "bg-app-surface border-app-border text-app-muted"
                             : "bg-violet-50 border-violet-100 text-violet-600"
                         }`}
                       >
@@ -241,13 +241,13 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
       <Drawer.Root open={pickerDay !== null} onOpenChange={(open) => !open && setPickerDay(null)}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
-          <Drawer.Content className="bg-[#FAF9F7] flex flex-col fixed bottom-0 left-0 right-0 z-[60] rounded-t-[1.75rem] max-h-[70vh] max-w-xl mx-auto outline-none">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-300/80 mt-3 mb-1 shrink-0" />
-            <div className="px-5 pt-2 pb-3 border-b border-gray-100">
-              <Drawer.Title className="text-sm font-black text-gray-900">
+          <Drawer.Content className="bg-app-bg flex flex-col fixed bottom-0 left-0 right-0 z-[60] rounded-t-[1.75rem] max-h-[70vh] max-w-xl mx-auto outline-none">
+            <div className="mx-auto w-10 h-1 rounded-full bg-app-border mt-3 mb-1 shrink-0" />
+            <div className="px-5 pt-2 pb-3 border-b border-app-border">
+              <Drawer.Title className="text-sm font-black text-app-text">
                 {pickerDay ? WEEKDAY_FULL[pickerDay - 1] : "Gün seç"}
               </Drawer.Title>
-              <Drawer.Description className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+              <Drawer.Description className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-0.5">
                 Rutin ata veya dinlenme günü bırak
               </Drawer.Description>
             </div>
@@ -259,16 +259,16 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                 disabled={savingDay !== null}
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
                   pickerDayData && !pickerDayData.routineId
-                    ? "bg-white border-violet-200 shadow-sm"
-                    : "bg-white border-gray-100 hover:border-gray-200"
+                    ? "bg-app-surface border-violet-200 shadow-sm"
+                    : "bg-app-surface border-app-border hover:border-app-muted"
                 }`}
               >
-                <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-app-muted shrink-0">
                   <Moon size={16} weight="fill" />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[11px] font-black text-gray-900">Dinlenme</p>
-                  <p className="text-[9px] font-bold text-gray-400">Antrenman yok</p>
+                  <p className="text-[11px] font-black text-app-text">Dinlenme</p>
+                  <p className="text-[9px] font-bold text-app-muted">Antrenman yok</p>
                 </div>
                 {pickerDayData && !pickerDayData.routineId && (
                   <Check size={18} weight="bold" className="text-violet-500 shrink-0" />
@@ -286,15 +286,15 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
                       isSelected
                         ? "bg-violet-50 border-violet-200 shadow-sm"
-                        : "bg-white border-gray-100 hover:border-gray-200"
+                        : "bg-app-surface border-app-border hover:border-app-muted"
                     }`}
                   >
                     <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 shrink-0">
                       <Barbell size={16} weight="fill" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[11px] font-black text-gray-900 truncate">{routine.name}</p>
-                      <p className="text-[9px] font-bold text-gray-400">
+                      <p className="text-[11px] font-black text-app-text truncate">{routine.name}</p>
+                      <p className="text-[9px] font-bold text-app-muted">
                         {routine.exercises.length} egzersiz
                       </p>
                     </div>
@@ -306,7 +306,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
               })}
 
               {routines.length === 0 && (
-                <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider py-4">
+                <p className="text-center text-[10px] font-bold text-app-muted uppercase tracking-wider py-4">
                   Önce rutin oluştur
                 </p>
               )}

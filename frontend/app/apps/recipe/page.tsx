@@ -177,7 +177,7 @@ function RecipeContent() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
+      <div className="flex min-h-screen items-center justify-center bg-app-bg">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     );
@@ -186,11 +186,11 @@ function RecipeContent() {
   // Error state
   if (error || !recipe) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#FAF9F7]">
+      <div className="flex min-h-screen flex-col bg-app-bg">
         <header className="px-4 py-3 max-w-xl mx-auto w-full">
           <button
             onClick={() => router.push("/apps/recipe")}
-            className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            className="shrink-0 flex items-center justify-center w-8 h-8 bg-app-surface rounded-lg border border-app-border active:scale-95"
           >
             <CaretLeft size={14} weight="bold" className="text-orange-500" />
           </button>
@@ -204,40 +204,40 @@ function RecipeContent() {
 
   const tabBtnClass = (active: boolean) =>
     `flex-1 inline-flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-black uppercase tracking-wide transition-all ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
   const portionBtnClass = (active: boolean) =>
     `min-w-[2rem] px-2.5 py-1.5 rounded-lg text-xs font-black tabular-nums transition-all active:scale-95 ${
-      active ? "bg-white text-orange-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      active ? "bg-app-tab-active text-orange-600 shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="flex items-center gap-2 px-4 py-3 max-w-xl mx-auto w-full">
           <button
             onClick={() => router.push("/apps/recipe")}
-            className="shrink-0 flex items-center justify-center w-8 h-8 bg-white rounded-lg border border-gray-200/60 active:scale-95"
+            className="shrink-0 flex items-center justify-center w-8 h-8 bg-app-surface rounded-lg border border-app-border active:scale-95"
           >
             <CaretLeft size={14} weight="bold" className="text-orange-500" />
           </button>
 
-          <h1 className="flex-1 min-w-0 text-sm font-black text-gray-900 truncate leading-tight">
+          <h1 className="flex-1 min-w-0 text-sm font-black text-app-text truncate leading-tight">
             {getRecipeEmoji(recipe.title) && <span className="mr-1.5 select-none">{getRecipeEmoji(recipe.title)}</span>}
             {recipe.title}
           </h1>
 
           <button
             onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
-            className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-orange-600 hover:bg-orange-50 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all"
+            className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all"
           >
             <PencilSimple size={16} weight="bold" />
           </button>
 
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
-              <button className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 bg-white rounded-lg border border-gray-200/60 active:scale-95 transition-all">
+              <button className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all">
                 <DotsThreeVertical size={16} weight="bold" />
               </button>
             </PopoverTrigger>
@@ -247,7 +247,7 @@ function RecipeContent() {
                   setIsPopoverOpen(false);
                   setIsDeleteDialogOpen(true);
                 }}
-                className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
               >
                 <Trash size={20} />
                 <span className="font-medium">Tarifi Sil</span>
@@ -280,7 +280,7 @@ function RecipeContent() {
 
       <main className="flex-1 px-4 py-4 pb-8 max-w-xl mx-auto w-full">
         {recipe.image_url && (
-          <div className="w-full aspect-[16/10] rounded-2xl overflow-hidden border border-gray-200/60 shadow-sm mb-4">
+          <div className="w-full aspect-[16/10] rounded-2xl overflow-hidden border border-app-border shadow-sm mb-4">
             <img
               src={recipe.image_url}
               alt={recipe.title || "Tarif"}
@@ -290,12 +290,12 @@ function RecipeContent() {
         )}
 
         {allIngredients.length === 0 && allInstructions.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden p-6 py-12 text-center flex flex-col items-center justify-center">
-            <span className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 mb-4 text-2xl select-none">
+          <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden p-6 py-12 text-center flex flex-col items-center justify-center">
+            <span className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center text-orange-500 mb-4 text-2xl select-none">
               {getRecipeEmoji(recipe.title) || <Plus size={24} weight="bold" />}
             </span>
-            <h2 className="text-sm font-black text-gray-900 mb-1">Henüz tarif bilgisi eklenmedi</h2>
-            <p className="text-xs text-gray-400 font-bold mb-6 max-w-[280px] mx-auto">
+            <h2 className="text-sm font-black text-app-text mb-1">Henüz tarif bilgisi eklenmedi</h2>
+            <p className="text-xs text-app-muted font-bold mb-6 max-w-[280px] mx-auto">
               Bu tarife malzeme ve yapılış adımları ekleyerek detaylandırabilirsiniz.
             </p>
             <button
@@ -306,18 +306,18 @@ function RecipeContent() {
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+          <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden">
             <div className="px-3 pt-3">
               <div className="flex items-center justify-between gap-3 mb-3 px-1">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0">
+                <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider shrink-0">
                   Porsiyon
                 </span>
-                <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-gray-100 border border-gray-200/80">
+                <div className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-app-tab-track border border-app-border">
                   <button
                     type="button"
                     onClick={() => setServings((s) => Math.max(1, s - 1))}
                     disabled={servings <= 1}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-app-muted hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
                     aria-label="Porsiyon azalt"
                   >
                     <Minus size={14} weight="bold" />
@@ -339,7 +339,7 @@ function RecipeContent() {
                     type="button"
                     onClick={() => setServings((s) => Math.min(12, s + 1))}
                     disabled={servings >= 12}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-app-muted hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-95"
                     aria-label="Porsiyon artır"
                   >
                     <Plus size={14} weight="bold" />
@@ -355,7 +355,7 @@ function RecipeContent() {
             </div>
 
             <div className="p-3 pt-0">
-              <div className="flex gap-1 p-1 rounded-xl bg-gray-100">
+              <div className="flex gap-1 p-1 rounded-xl bg-app-tab-track">
                 <button
                   type="button"
                   onClick={() => setActiveTab("ingredients")}
@@ -387,7 +387,7 @@ function RecipeContent() {
               {activeTab === "ingredients" ? (
                 activeIngredients.length === 0 ? (
                   <div className="text-center py-10 flex flex-col items-center justify-center">
-                    <p className="text-xs font-bold text-gray-400 mb-3">
+                    <p className="text-xs font-bold text-app-muted mb-3">
                       Malzeme bilgisi bulunmuyor
                     </p>
                     <button
@@ -398,16 +398,16 @@ function RecipeContent() {
                     </button>
                   </div>
                 ) : (
-                  <ul className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
+                  <ul className="divide-y divide-app-border rounded-xl border border-app-border overflow-hidden">
                     {activeIngredients.map((ingredient, idx) => (
                       <li
                         key={idx}
                         className="flex items-center gap-3 px-3 py-3 text-sm leading-snug"
                       >
                         <IngredientThumbnail name={ingredient.name} />
-                        <span className="text-gray-800">
+                        <span className="text-app-text">
                           {ingredient.amount && (
-                            <span className="font-bold text-gray-900">
+                            <span className="font-bold text-app-text">
                               {scaleIngredientAmount(ingredient.amount, servings)}{" "}
                             </span>
                           )}
@@ -419,7 +419,7 @@ function RecipeContent() {
                 )
               ) : activeInstructions.length === 0 ? (
                 <div className="text-center py-10 flex flex-col items-center justify-center">
-                  <p className="text-xs font-bold text-gray-400 mb-3">
+                  <p className="text-xs font-bold text-app-muted mb-3">
                     Yapılış bilgisi bulunmuyor
                   </p>
                   <button
@@ -434,12 +434,12 @@ function RecipeContent() {
                   {activeInstructions.map((instruction, idx) => (
                     <li
                       key={`${instruction.index}-${idx}`}
-                      className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3"
+                      className="flex items-start gap-3 rounded-xl border border-app-border bg-app-surface-muted px-3 py-3"
                     >
                       <span className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xs shrink-0">
                         {idx + 1}
                       </span>
-                      <div className="text-sm text-gray-700 leading-relaxed pt-0.5">
+                      <div className="text-sm text-app-text leading-relaxed pt-0.5">
                         <InstructionText
                           text={instruction.text}
                           ingredients={activeIngredients}
@@ -455,16 +455,16 @@ function RecipeContent() {
         )}
 
         {/* Yemek Geçmişi Kartı */}
-        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden p-4 mt-4">
-          <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-3 px-1">
+        <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden p-4 mt-4">
+          <h3 className="text-xs font-black uppercase tracking-wider text-app-muted mb-3 px-1">
             Yemek Geçmişi
           </h3>
           {history.length === 0 ? (
-            <p className="text-xs font-bold text-gray-400 py-3 text-center">
+            <p className="text-xs font-bold text-app-muted py-3 text-center">
               Henüz bu yemek planlanmadı.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-app-border">
               {history.map((item, idx) => {
                 const dateObj = new Date(item.date);
                 const formatter = new Intl.DateTimeFormat("tr-TR", {
@@ -483,8 +483,8 @@ function RecipeContent() {
 
                 return (
                   <li key={idx} className="py-2.5 flex justify-between items-center text-xs">
-                    <span className="font-bold text-gray-800">{formattedDate}</span>
-                    <span className="px-2.5 py-1 bg-orange-50 text-orange-600 rounded-lg font-black uppercase text-[9px] tracking-wide shrink-0">
+                    <span className="font-bold text-app-text">{formattedDate}</span>
+                    <span className="px-2.5 py-1 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg font-black uppercase text-[9px] tracking-wide shrink-0">
                       {mealTypeLabel}
                     </span>
                   </li>
@@ -501,7 +501,7 @@ function RecipeContent() {
 export default function RecipePage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
+      <div className="flex min-h-screen items-center justify-center bg-app-bg">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     }>

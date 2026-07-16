@@ -18,12 +18,12 @@ export default function SeriesTrackShell({
 }) {
   const tabClass = (active: boolean) =>
     `inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] outline-none ${
-      active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+      active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-red-100">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text selection:bg-red-100 dark:selection:bg-red-950/40">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <button
@@ -31,12 +31,12 @@ export default function SeriesTrackShell({
               onClick={() => {
                 window.location.href = getAppRootUrl();
               }}
-              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
             >
               <CaretLeft size={14} weight="bold" className="text-red-500" />
             </button>
 
-            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
               <VideoCamera size={18} weight="fill" className="text-red-500 shrink-0" />
               <span className="truncate">
                 Series<span className="text-red-500">Track</span>
@@ -54,13 +54,13 @@ export default function SeriesTrackShell({
           </div>
 
           <div className="flex">
-            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track">
               <button
                 type="button"
                 onClick={() => onTabChange("tv-flow")}
                 className={tabClass(activeTab === "tv-flow")}
               >
-                <Television size={13} weight={activeTab === "tv-flow" ? "fill" : "bold"} className={activeTab === "tv-flow" ? "text-red-500" : "text-gray-400"} />
+                <Television size={13} weight={activeTab === "tv-flow" ? "fill" : "bold"} className={activeTab === "tv-flow" ? "text-red-500" : "text-app-muted"} />
                 <span className="normal-case">Episode Club</span>
               </button>
               <button
@@ -68,7 +68,7 @@ export default function SeriesTrackShell({
                 onClick={() => onTabChange("my-series")}
                 className={tabClass(activeTab === "my-series")}
               >
-                <FilmStrip size={13} weight={activeTab === "my-series" ? "fill" : "bold"} className={activeTab === "my-series" ? "text-red-500" : "text-gray-400"} />
+                <FilmStrip size={13} weight={activeTab === "my-series" ? "fill" : "bold"} className={activeTab === "my-series" ? "text-red-500" : "text-app-muted"} />
                 <span className="normal-case">Dizi Kütüphanem</span>
               </button>
             </div>

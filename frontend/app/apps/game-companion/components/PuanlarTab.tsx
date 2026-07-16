@@ -616,7 +616,7 @@ export default function PuanlarTab({
       <div className="min-h-[50vh] flex items-center justify-center p-8">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-150 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Yükleniyor...</p>
+          <p className="text-app-muted  text-sm">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -632,7 +632,7 @@ export default function PuanlarTab({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#FAF9F7]">
+    <div className="flex flex-col h-screen bg-app-bg">
       {/* Banner Ad above score table */}
       
       {/* Score Table - Full height, horizontally scrollable */}
@@ -648,7 +648,7 @@ export default function PuanlarTab({
               {gameSave?.settings.gameplay === "takimli" ? (
                 <>
                   {/* Red Team */}
-                  <div className="h-[52px] pl-4 pr-2 flex items-center border-b border-gray-100">
+                  <div className="h-[52px] pl-4 pr-2 flex items-center border-b border-app-border">
                     <div className="flex items-center min-w-[120px] flex-1">
                       <div className="relative mr-3">
                         {redTeamPlayers && redTeamPlayers.length > 0 ? (
@@ -665,10 +665,10 @@ export default function PuanlarTab({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                    className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                                    className="w-8 h-8 rounded-full object-cover border-2 border-app-surface"
                                   />
                                 ) : (
-                                  <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center border-2 border-white">
+                                  <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center border-2 border-app-surface">
                                     <span className="text-blue-600 font-bold text-xs">
                                       {player.initial}
                                     </span>
@@ -677,8 +677,8 @@ export default function PuanlarTab({
                               </div>
                             ))}
                             {redTeamPlayers.length > 3 && (
-                              <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center border-2 border-white">
-                                <span className="text-gray-400 font-bold text-xs">
+                              <div className="w-8 h-8 bg-app-surface-muted rounded-full flex items-center justify-center border-2 border-app-surface">
+                                <span className="text-app-muted font-bold text-xs">
                                   +{redTeamPlayers.length - 3}
                                 </span>
                               </div>
@@ -692,7 +692,7 @@ export default function PuanlarTab({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold truncate max-w-[100px] text-gray-900">
+                      <span className="font-bold truncate max-w-[100px] text-app-text">
                         {redTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Kırmızı Takım"}
                       </span>
@@ -719,10 +719,10 @@ export default function PuanlarTab({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                      className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                                      className="w-8 h-8 rounded-full object-cover border-2 border-app-surface"
                                   />
                                 ) : (
-                                    <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center border-2 border-white">
+                                    <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center border-2 border-app-surface">
                                       <span className="text-blue-600 font-bold text-xs">
                                         {player.initial}
                                       </span>
@@ -731,8 +731,8 @@ export default function PuanlarTab({
                               </div>
                             ))}
                             {blueTeamPlayers.length > 3 && (
-                              <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center border-2 border-white">
-                                <span className="text-gray-400 font-bold text-xs">
+                              <div className="w-8 h-8 bg-app-surface-muted rounded-full flex items-center justify-center border-2 border-app-surface">
+                                <span className="text-app-muted font-bold text-xs">
                                   +{blueTeamPlayers.length - 3}
                                 </span>
                               </div>
@@ -746,7 +746,7 @@ export default function PuanlarTab({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold truncate max-w-[100px] text-gray-900">
+                      <span className="font-bold truncate max-w-[100px] text-app-text">
                         {blueTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Mavi Takım"}
                       </span>
@@ -757,7 +757,7 @@ export default function PuanlarTab({
                 (gamePlayers as any[]).map((player: any, index: number) => (
                   <div
                     key={player._id}
-                    className={`h-[52px] pl-4 pr-2 flex items-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100" : ""}`}
+                    className={`h-[52px] pl-4 pr-2 flex items-center ${index < gamePlayers.length - 1 ? "border-b border-app-border" : ""}`}
                   >
                     <div className="flex items-center min-w-[120px]">
                       {player.avatar ? (
@@ -773,7 +773,7 @@ export default function PuanlarTab({
                           </span>
                         </div>
                       )}
-                      <span className="font-bold truncate text-gray-900">
+                      <span className="font-bold truncate text-app-text">
                         {player.name}
                       </span>
                     </div>
@@ -784,11 +784,11 @@ export default function PuanlarTab({
 
             {/* Total Column */}
             <div className="flex flex-col">
-              <div className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 text-gray-400">
+              <div className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 text-app-muted">
                 <span>Toplam</span>
                 <button
                   onClick={toggleHideTotalColumn}
-                  className="p-0.5 hover:bg-gray-50 rounded transition-colors text-gray-300 hover:text-blue-500 flex items-center justify-center"
+                  className="p-0.5 hover:bg-app-surface-muted rounded transition-colors text-app-muted hover:text-blue-500 flex items-center justify-center"
                   title={gameSave?.settings.hideTotalColumn ? "Toplamı Göster" : "Toplamı Gizle"}
                 >
                   {gameSave?.settings.hideTotalColumn ? <EyeSlash size={14} /> : <Eye size={14} />}
@@ -796,7 +796,7 @@ export default function PuanlarTab({
               </div>
               {gameSave?.settings.gameplay === "takimli" ? (
                 <>
-                  <div className="h-[52px] px-4 flex items-center justify-center border-b border-gray-100">
+                  <div className="h-[52px] px-4 flex items-center justify-center border-b border-app-border">
                     <div className="font-black text-blue-600">
                       {gameSave?.settings.hideTotalColumn ? (
                         "••"
@@ -819,7 +819,7 @@ export default function PuanlarTab({
                 (gamePlayers as any[]).map((player: any, index: number) => (
                   <div
                     key={player._id}
-                    className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100" : ""}`}
+                    className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-app-border" : ""}`}
                   >
                     <div className="font-black text-blue-600">
                       {gameSave?.settings.hideTotalColumn ? (
@@ -836,13 +836,13 @@ export default function PuanlarTab({
             {/* Round Columns */}
             {roundColumns.map((roundNumber) => (
               <div key={roundNumber} className="flex flex-col">
-                <div className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center text-gray-400">
+                <div className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center text-app-muted">
                   {roundNumber}. Tur
                 </div>
                 {gameSave?.settings.gameplay === "takimli" ? (
                   <>
-                    <div className="h-[52px] px-4 flex items-center justify-center border-b border-gray-100">
-                      <div className="text-gray-500 font-bold">
+                    <div className="h-[52px] px-4 flex items-center justify-center border-b border-app-border">
+                      <div className="text-app-muted font-bold">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
                           getTeamRoundScore(
                             redTeamPlayers || [],
@@ -865,7 +865,7 @@ export default function PuanlarTab({
                       </div>
                     </div>
                     <div className="h-[52px] px-4 flex items-center justify-center">
-                      <div className="text-gray-500 font-bold">
+                      <div className="text-app-muted font-bold">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
                           getTeamRoundScore(
                             blueTeamPlayers || [],
@@ -892,9 +892,9 @@ export default function PuanlarTab({
                 (gamePlayers as any[]).map((player: any, index: number) => (
                     <div
                       key={player._id}
-                      className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-gray-100" : ""}`}
+                      className={`h-[52px] px-4 flex items-center justify-center ${index < gamePlayers.length - 1 ? "border-b border-app-border" : ""}`}
                     >
-                      <div className="text-gray-500 font-bold">
+                      <div className="text-app-muted font-bold">
                         {gameSave?.settings.calculationMode === "NoPoints" ? (
                           getRoundScores(player._id, roundNumber) === 1 ? (
                             <CrownSimple

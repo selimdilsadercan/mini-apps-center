@@ -31,6 +31,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   sticker: "/apps/sticker-editor",
   recipe: "/apps/recipe",
   gym: "/apps/gym",
+  buyukmaclar: "/apps/buyuk-maclar",
   evisleri: "/apps/ev-isleri",
   rutinler: "/apps/rutinler",
   study: "/apps/study",

@@ -163,7 +163,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F7]">
+    <div className="min-h-screen bg-app-bg">
       <Header activeTab="history" />
 
       <main className="px-4 py-6 pt-28 pb-8 max-w-xl mx-auto w-full">
@@ -174,14 +174,14 @@ export default function HistoryPage() {
             Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-4 flex items-center justify-between border border-gray-200/50 shadow-sm"
+                className="bg-app-surface rounded-xl p-4 flex items-center justify-between border border-app-border shadow-sm"
               >
                 <div className="flex-1">
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-48 mb-1"></div>
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-40"></div>
+                  <div className="h-6 bg-app-border rounded animate-pulse w-32 mb-2"></div>
+                  <div className="h-4 bg-app-border rounded animate-pulse w-48 mb-1"></div>
+                  <div className="h-3 bg-app-border rounded animate-pulse w-40"></div>
                 </div>
-                <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-8 h-8 bg-app-border rounded animate-pulse"></div>
               </div>
             ))
           ) : gameSaves.length > 0 ? (
@@ -190,7 +190,7 @@ export default function HistoryPage() {
               return Object.entries(groupedGameSaves).map(
                 ([groupName, groupGameSaves]) => (
                   <div key={groupName} className="space-y-3">
-                    <h2 className="text-sm font-black text-gray-400 px-2 uppercase tracking-widest">
+                    <h2 className="text-sm font-black text-app-muted px-2 uppercase tracking-widest">
                       {groupName}
                     </h2>
                     <div className="space-y-2">
@@ -251,13 +251,13 @@ export default function HistoryPage() {
             })()
           ) : (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-gray-400 text-2xl">📊</span>
+              <div className="w-16 h-16 bg-app-tab-track rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-app-muted text-2xl">📊</span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-lg font-bold text-app-text mb-2">
                 Henüz oyun geçmişi yok
               </h3>
-              <p className="text-gray-500 font-medium">
+              <p className="text-app-muted font-medium">
                 İlk oyununuzu oluşturarak başlayın
               </p>
             </div>

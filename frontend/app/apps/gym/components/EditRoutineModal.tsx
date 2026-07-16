@@ -132,13 +132,13 @@ export default function EditRoutineModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl sm:rounded-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
+      <div className="relative w-full max-w-xl bg-app-bg rounded-t-3xl sm:rounded-3xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
-          <h2 className="text-sm font-black uppercase tracking-wide text-gray-900">Rutini Düzenle</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-app-border bg-app-surface">
+          <h2 className="text-sm font-black uppercase tracking-wide text-app-text">Rutini Düzenle</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500 hover:text-gray-700 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-muted hover:text-app-text transition-colors"
           >
             <X size={16} weight="bold" />
           </button>
@@ -147,7 +147,7 @@ export default function EditRoutineModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           <div>
-            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">
+            <label className="text-[9px] font-bold text-app-muted uppercase tracking-wider mb-1 block">
               Rutin Adı
             </label>
             <input
@@ -155,20 +155,20 @@ export default function EditRoutineModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="ör. Push Day"
-              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              className="w-full bg-app-surface border border-app-border rounded-xl px-3 py-2 text-xs font-bold text-app-text focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
             />
           </div>
 
           {/* Exercises */}
           <div className="space-y-3">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Egzersizler</h3>
+            <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-wider">Egzersizler</h3>
             {exercises.map((ex, exIdx) => {
               const catalogItem = getExerciseBySlug(catalog, ex.slug);
               const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
               const usesDuration = exerciseUsesDuration(catalogItem);
               const sets = ex.sets || [];
               return (
-                <div key={exIdx} className="bg-white rounded-2xl border border-gray-200/60 p-4 space-y-3">
+                <div key={exIdx} className="bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
                   <div className="flex items-center gap-3">
                     <div
                       onClick={() => catalogItem && showExerciseDetail(catalogItem)}
@@ -194,13 +194,13 @@ export default function EditRoutineModal({
                   </div>
 
                   {/* Set table */}
-                  <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30" data-set-table>
+                  <div className="rounded-xl overflow-hidden border border-app-border bg-app-surface-muted/30" data-set-table>
                     <div
                       className={`grid ${
                         usesWeight
                           ? "grid-cols-[2.5rem_1fr_4rem_4rem_2.5rem]"
                           : "grid-cols-[2.5rem_1fr_4rem_2.5rem]"
-                      } bg-gray-50/80 border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-wide`}
+                      } bg-app-surface-muted/80 border-b border-app-border text-[9px] font-black text-app-muted uppercase tracking-wide`}
                     >
                       <div className="px-2 py-2 text-center">Set</div>
                       <div />
@@ -216,9 +216,9 @@ export default function EditRoutineModal({
                           usesWeight
                             ? "grid-cols-[2.5rem_1fr_4rem_4rem_2.5rem]"
                             : "grid-cols-[2.5rem_1fr_4rem_2.5rem]"
-                        } items-center border-b border-gray-100 last:border-0 bg-white`}
+                        } items-center border-b border-app-border last:border-0 bg-app-surface`}
                       >
-                        <div className="px-2 py-2.5 text-center text-xs font-bold text-gray-500 tabular-nums">
+                        <div className="px-2 py-2.5 text-center text-xs font-bold text-app-muted tabular-nums">
                           {setIdx + 1}
                         </div>
                         <div />
@@ -246,7 +246,7 @@ export default function EditRoutineModal({
                                 const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
                                 handleUpdateSetField(exIdx, setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
                               }}
-                              className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
+                              className="w-full text-center text-xs font-bold bg-app-surface border border-app-border rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
                             />
                           </div>
                         )}
@@ -273,7 +273,7 @@ export default function EditRoutineModal({
                               const cleanVal = e.target.value.replace(/[^0-9]/g, "");
                               handleUpdateSetField(exIdx, setIdx, "reps", cleanVal ? Number(cleanVal) : null);
                             }}
-                            className="w-full text-center text-xs font-bold bg-white border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
+                            className="w-full text-center text-xs font-bold bg-app-surface border border-app-border rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums shadow-sm"
                           />
                         </div>
                         <div className="flex justify-center py-1">
@@ -282,7 +282,7 @@ export default function EditRoutineModal({
                             tabIndex={-1}
                             disabled={sets.length <= 1}
                             onClick={() => handleRemoveSet(exIdx, setIdx)}
-                            className="w-7 h-7 text-gray-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors disabled:opacity-30"
+                            className="w-7 h-7 text-app-muted hover:text-red-500 rounded-full flex items-center justify-center transition-colors disabled:opacity-30"
                           >
                             <Trash size={14} weight="bold" />
                           </button>
@@ -293,7 +293,7 @@ export default function EditRoutineModal({
 
                   <button
                     onClick={() => handleAddSet(exIdx)}
-                    className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold text-xs py-2 rounded-xl transition-all border border-gray-200/50 flex items-center justify-center gap-1 active:scale-[0.98]"
+                    className="w-full bg-app-surface-muted hover:bg-app-border/30 text-app-muted font-bold text-xs py-2 rounded-xl transition-all border border-app-border/50 flex items-center justify-center gap-1 active:scale-[0.98]"
                   >
                     <Plus size={12} weight="bold" />
                     Set Ekle
@@ -304,7 +304,7 @@ export default function EditRoutineModal({
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-white rounded-2xl border border-dashed border-gray-300 py-3.5 text-xs font-bold text-gray-500 hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-xs font-bold text-app-muted hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
             >
               <Plus size={14} weight="bold" />
               Egzersiz Ekle
@@ -313,7 +313,7 @@ export default function EditRoutineModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-gray-200/60 bg-white flex gap-3">
+        <div className="px-5 py-4 border-t border-app-border bg-app-surface flex gap-3">
           <button
             onClick={handleSave}
             disabled={saving || !name.trim() || exercises.length === 0}
@@ -327,19 +327,19 @@ export default function EditRoutineModal({
       {showAddExercise && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddExercise(false)} />
-          <div className="relative w-full max-w-xl bg-[#FAF9F7] rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200/60 bg-white">
+          <div className="relative w-full max-w-xl bg-app-bg rounded-t-3xl h-[70vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-full">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-app-border bg-app-surface">
               <h2 className="text-sm font-black uppercase tracking-wide">Egzersiz Ekle</h2>
               <button
                 onClick={() => setShowAddExercise(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200/60 text-gray-500"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-app-surface border border-app-border text-app-muted"
               >
                 <X size={16} weight="bold" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-3">
               {catalogLoading ? (
-                <p className="text-center py-8 text-xs font-bold text-gray-400 animate-pulse">
+                <p className="text-center py-8 text-xs font-bold text-app-muted animate-pulse">
                   Yükleniyor...
                 </p>
               ) : (

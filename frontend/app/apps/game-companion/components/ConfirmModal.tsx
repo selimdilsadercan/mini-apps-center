@@ -36,21 +36,21 @@ export default function ConfirmModal({
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[70]" />
         <Drawer.Content
-          className="h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[70] bg-[#FAF9F7]"
+          className="h-fit fixed bottom-0 left-0 right-0 outline-none rounded-t-3xl z-[70] bg-app-bg"
         >
           {/* Gesture bar */}
           <div className="flex justify-center pt-3 pb-1">
-            <div className="w-10 h-1 bg-gray-200 rounded-full"></div>
+            <div className="w-10 h-1 bg-app-border rounded-full"></div>
           </div>
 
           <div className="px-6 pb-6">
             <div className="flex items-center justify-between mb-6 pt-4">
-              <Drawer.Title className="text-xl font-black text-gray-900 tracking-tight uppercase">
+              <Drawer.Title className="text-xl font-black text-app-text tracking-tight uppercase">
                 {title}
               </Drawer.Title>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
+                className="p-2 text-app-muted hover:text-app-text transition-colors"
               >
                 <X size={20} />
               </button>
@@ -69,7 +69,7 @@ export default function ConfirmModal({
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-gray-500 font-medium leading-relaxed">
+                  <p className="text-app-muted font-medium leading-relaxed">
                     {message}
                   </p>
                 </div>
@@ -80,7 +80,7 @@ export default function ConfirmModal({
                 <button
                   onClick={onClose}
                   disabled={isLoading}
-                  className="flex-1 py-3 px-4 border border-gray-200 bg-white text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-all disabled:opacity-50"
+                  className="flex-1 py-3 px-4 border border-app-border bg-app-surface text-app-muted rounded-2xl font-bold hover:bg-app-surface-muted transition-all disabled:opacity-50"
                 >
                   {cancelText}
                 </button>

@@ -26,13 +26,13 @@ export default function DiscoverItemCard({
         />
       )}
       <div className="p-1.5">
-        <p className="text-[10px] font-bold text-gray-700 line-clamp-2 leading-snug">{item.title}</p>
+        <p className="text-[10px] font-bold text-app-text line-clamp-2 leading-snug">{item.title}</p>
       </div>
     </>
   );
 
   const className =
-    "shrink-0 w-[7.25rem] bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm flex flex-col active:scale-[0.98] transition-transform";
+    "shrink-0 w-[7.25rem] bg-app-surface rounded-xl border border-app-border overflow-hidden shadow-sm flex flex-col active:scale-[0.98] transition-transform";
 
   if (item.url) {
     return (
@@ -57,7 +57,7 @@ export function DiscoverItemGridCard({
   const inner = (
     <>
       <div
-        className={`aspect-square w-full bg-gray-50 flex items-center justify-center overflow-hidden ${imagePaddingClass}`}
+        className={`aspect-square w-full bg-app-surface-muted flex items-center justify-center overflow-hidden ${imagePaddingClass}`}
       >
         <GameCover
           coverUrl={item.coverUrl}
@@ -67,7 +67,7 @@ export function DiscoverItemGridCard({
         />
       </div>
       <div className="px-1 pb-1.5 pt-0.5 sm:px-1.5">
-        <p className="text-[8px] sm:text-[9px] font-semibold text-gray-600 line-clamp-2 leading-tight text-center">
+        <p className="text-[8px] sm:text-[9px] font-semibold text-app-muted line-clamp-2 leading-tight text-center">
           {item.title}
         </p>
       </div>
@@ -75,7 +75,7 @@ export function DiscoverItemGridCard({
   );
 
   const className =
-    "min-w-0 bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm flex flex-col";
+    "min-w-0 bg-app-surface rounded-lg border border-app-border overflow-hidden shadow-sm flex flex-col";
 
   if (item.url) {
     return (

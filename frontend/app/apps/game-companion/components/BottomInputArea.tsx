@@ -128,12 +128,12 @@ export default function BottomInputArea({
 
   return (
     <div
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-white shadow-2xl border-t border-gray-100"
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-app-surface shadow-2xl border-t border-app-border"
       style={{ zIndex: 60 }}
     >
       {showSettings ? (
         /* Settings Modal */
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-app-border">
           <div className="space-y-3">
             <button 
               onClick={() =>
@@ -168,7 +168,7 @@ export default function BottomInputArea({
         </div>
       ) : (
         /* Current Round Score Input */
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-app-border">
           <div
             className={`grid ${
               gameSave?.settings?.gameplay === "herkes-tek" &&
@@ -203,10 +203,10 @@ export default function BottomInputArea({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                    className="w-6 h-6 rounded-full object-cover border border-white"
+                                    className="w-6 h-6 rounded-full object-cover border border-app-surface"
                                   />
                                 ) : (
-                                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-white">
+                                  <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-app-surface">
                                     <span className="text-blue-600 font-bold text-[10px]">
                                       {player.initial}
                                     </span>
@@ -215,8 +215,8 @@ export default function BottomInputArea({
                               </div>
                             ))}
                             {redTeamPlayers.length > 2 && (
-                              <div className="w-6 h-6 bg-gray-50 rounded-full flex items-center justify-center border border-white">
-                                <span className="text-gray-400 font-bold text-[10px]">
+                              <div className="w-6 h-6 bg-app-surface-muted rounded-full flex items-center justify-center border border-app-surface">
+                                <span className="text-app-muted font-bold text-[10px]">
                                   +{redTeamPlayers.length - 2}
                                 </span>
                               </div>
@@ -230,7 +230,7 @@ export default function BottomInputArea({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold text-gray-900 text-xs truncate max-w-[100px] uppercase tracking-tight">
+                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] uppercase tracking-tight">
                         {redTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Kırmızı Takım"}
                       </span>
@@ -248,7 +248,7 @@ export default function BottomInputArea({
                         className={`p-2 rounded-xl transition-all ${
                           crownWinners["redTeam"]
                             ? "bg-yellow-50 text-yellow-500 shadow-sm"
-                            : "bg-gray-50 text-gray-300"
+                            : "bg-app-surface-muted text-app-muted"
                         }`}
                       >
                         <CrownSimple size={24} weight="fill" />
@@ -282,7 +282,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -296,7 +296,7 @@ export default function BottomInputArea({
                                 redTeam: [...(prev["redTeam"] || []), 0],
                               }))
                             }
-                            className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-blue-600 transition-colors"
                           >
                             <Plus
                               size={18}
@@ -313,7 +313,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores["redTeam"] || [0]).length <= 1
                             }
-                            className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
+                            className={`w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-rose-600 transition-colors ${
                               (multipleScores["redTeam"] || [0]).length <= 1
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -339,7 +339,7 @@ export default function BottomInputArea({
                               redTeam: Math.max(0, value),
                             }));
                           }}
-                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                          className="w-20 h-10 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                           placeholder="0"
                         />
                       </div>
@@ -371,10 +371,10 @@ export default function BottomInputArea({
                                   <img
                                     src={player.avatar}
                                     alt={player.name}
-                                      className="w-6 h-6 rounded-full object-cover border border-white"
+                                      className="w-6 h-6 rounded-full object-cover border border-app-surface"
                                   />
                                 ) : (
-                                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-white">
+                                    <div className="w-6 h-6 bg-blue-50 rounded-full flex items-center justify-center border border-app-surface">
                                       <span className="text-blue-600 font-bold text-[10px]">
                                         {player.initial}
                                       </span>
@@ -383,8 +383,8 @@ export default function BottomInputArea({
                               </div>
                             ))}
                             {blueTeamPlayers.length > 2 && (
-                              <div className="w-6 h-6 bg-gray-50 rounded-full flex items-center justify-center border border-white">
-                                <span className="text-gray-400 font-bold text-[10px]">
+                              <div className="w-6 h-6 bg-app-surface-muted rounded-full flex items-center justify-center border border-app-surface">
+                                <span className="text-app-muted font-bold text-[10px]">
                                   +{blueTeamPlayers.length - 2}
                                 </span>
                               </div>
@@ -398,7 +398,7 @@ export default function BottomInputArea({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold text-gray-900 text-xs truncate max-w-[100px] uppercase tracking-tight">
+                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] uppercase tracking-tight">
                         {blueTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Mavi Takım"}
                       </span>
@@ -416,7 +416,7 @@ export default function BottomInputArea({
                         className={`p-2 rounded-xl transition-all ${
                           crownWinners["blueTeam"]
                             ? "bg-yellow-50 text-yellow-500 shadow-sm"
-                            : "bg-gray-50 text-gray-300"
+                            : "bg-app-surface-muted text-app-muted"
                         }`}
                       >
                         <CrownSimple size={24} weight="fill" />
@@ -450,7 +450,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -464,7 +464,7 @@ export default function BottomInputArea({
                                 blueTeam: [...(prev["blueTeam"] || []), 0],
                               }))
                             }
-                            className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-blue-600 transition-colors"
                           >
                             <Plus
                               size={18}
@@ -481,7 +481,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores["blueTeam"] || [0]).length <= 1
                             }
-                            className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
+                            className={`w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-rose-600 transition-colors ${
                               (multipleScores["blueTeam"] || [0]).length <= 1
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -507,7 +507,7 @@ export default function BottomInputArea({
                               blueTeam: Math.max(0, value),
                             }));
                           }}
-                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                          className="w-20 h-10 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                           placeholder="0"
                         />
                       </div>
@@ -547,7 +547,7 @@ export default function BottomInputArea({
                           </span>
                       </div>
                     )}
-                      <span className="font-bold text-gray-900 text-xs truncate max-w-[200px] uppercase tracking-tight">
+                      <span className="font-bold text-app-text text-xs truncate max-w-[200px] uppercase tracking-tight">
                         {player.name}
                       </span>
                   </div>
@@ -559,7 +559,7 @@ export default function BottomInputArea({
                       className={`p-2 rounded-xl transition-all ${
                         crownWinners[player._id] 
                             ? "bg-yellow-50 text-yellow-500 shadow-sm"
-                            : "bg-gray-50 text-gray-300"
+                            : "bg-app-surface-muted text-app-muted"
                       }`}
                     >
                       <CrownSimple size={24} weight="fill" />
@@ -584,7 +584,7 @@ export default function BottomInputArea({
                                     value
                                   );
                             }}
-                                className="w-24 h-12 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                             placeholder="0"
                           />
                         </div>
@@ -593,7 +593,7 @@ export default function BottomInputArea({
                       <div className="flex items-center space-x-2">
                              <button
                                onClick={() => addScoreInput(player._id)}
-                               className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-blue-600 transition-colors"
+                               className="w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-blue-600 transition-colors"
                              >
                             <Plus
                               size={18}
@@ -605,7 +605,7 @@ export default function BottomInputArea({
                             disabled={
                               (multipleScores[player._id] || [0]).length <= 1
                             }
-                               className={`w-8 h-8 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors ${
+                               className={`w-8 h-8 flex items-center justify-center bg-app-surface-muted rounded-lg text-app-muted hover:text-rose-600 transition-colors ${
                                  (multipleScores[player._id] || [0]).length <= 1 
                                 ? "opacity-30 cursor-not-allowed"
                                 : ""
@@ -631,7 +631,7 @@ export default function BottomInputArea({
                               [player._id]: Math.max(0, value),
                           }));
                         }}
-                          className="w-20 h-10 bg-white border-2 border-blue-100 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                          className="w-20 h-10 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                         placeholder="0"
                       />
                     </div>
@@ -658,7 +658,7 @@ export default function BottomInputArea({
             className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg ${
               showSettings 
                 ? "bg-zinc-900 text-white shadow-zinc-900/20"
-                : "bg-white border-2 border-gray-100 text-gray-400 hover:text-gray-900 shadow-sm"
+                : "bg-app-surface border-2 border-app-border text-app-muted hover:text-app-text shadow-sm"
             }`}
           >
             {showSettings ? (

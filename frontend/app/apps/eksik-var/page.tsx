@@ -224,7 +224,7 @@ function ItemThumbnail({
 
   return (
     <div
-      className={`${boxClass} ${roundClass} bg-gray-100 border border-gray-200/80 flex items-center justify-center font-black text-gray-500`}
+      className={`${boxClass} ${roundClass} bg-app-tab-track border border-app-border flex items-center justify-center font-black text-app-muted`}
     >
       {initial}
     </div>
@@ -247,21 +247,21 @@ function ListToolbar({
   onViewModeChange: (mode: "grid" | "list") => void;
 }) {
   const segmentClass = (active: boolean) =>
-    `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
   const viewSegmentClass = (active: boolean) =>
-    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-muted"
     }`;
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track">
         <button type="button" onClick={() => onTabChange("missing")} className={segmentClass(activeTab === "missing")}>
           <Basket size={14} weight={activeTab === "missing" ? "fill" : "duotone"} />
           <span className="uppercase tracking-wide whitespace-nowrap">Eksiklerim</span>
           <span
-            className={`tabular-nums ${activeTab === "missing" ? "text-emerald-600" : "text-gray-400"}`}
+            className={`tabular-nums ${activeTab === "missing" ? "text-emerald-600" : "text-app-muted"}`}
           >
             {missingCount}
           </span>
@@ -269,13 +269,13 @@ function ListToolbar({
         <button type="button" onClick={() => onTabChange("home")} className={segmentClass(activeTab === "home")}>
           <House size={14} weight={activeTab === "home" ? "fill" : "duotone"} />
           <span className="uppercase tracking-wide whitespace-nowrap">Evde Var</span>
-          <span className={`tabular-nums ${activeTab === "home" ? "text-emerald-600" : "text-gray-400"}`}>
+          <span className={`tabular-nums ${activeTab === "home" ? "text-emerald-600" : "text-app-muted"}`}>
             {homeCount}
           </span>
         </button>
       </div>
 
-      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 shrink-0">
+      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track shrink-0">
         <button
           type="button"
           onClick={() => onViewModeChange("grid")}
@@ -300,7 +300,7 @@ function ListToolbar({
 function ChecklistToggle({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center transition-colors ${checked ? "bg-emerald-500 text-white" : "border-2 border-gray-300 bg-white"
+      className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center transition-colors ${checked ? "bg-emerald-500 text-white" : "border-2 border-app-border bg-app-surface"
         }`}
       aria-hidden
     >
@@ -325,7 +325,7 @@ function ItemsByCategory({
   registerItemRef?: (id: string, el: HTMLDivElement | null) => void;
 }) {
   const cardClass =
-    "bg-white rounded-xl border border-gray-200/50 group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-[0.98] cursor-pointer select-none";
+    "bg-app-surface rounded-xl border border-app-border group hover:border-emerald-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-[0.98] cursor-pointer select-none";
 
   const groups = groupItemsByCategory(items);
 
@@ -334,13 +334,13 @@ function ItemsByCategory({
       {groups.map(({ category, items: categoryItems }) => (
         <div key={category} className="category-group">
           <div className="flex items-center justify-between mb-2 px-1">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
               {category}
             </span>
-            <span className="text-[10px] font-bold text-gray-300">{categoryItems.length}</span>
+            <span className="text-[10px] font-bold text-app-muted">{categoryItems.length}</span>
           </div>
 
-          <div className={viewMode === "grid" ? "grid grid-cols-3 gap-2" : "bg-white rounded-xl border border-gray-200/60 overflow-hidden divide-y divide-gray-100 shadow-sm"}>
+          <div className={viewMode === "grid" ? "grid grid-cols-3 gap-2" : "bg-app-surface rounded-xl border border-app-border overflow-hidden divide-y divide-app-border shadow-sm"}>
             <AnimatePresence initial={false}>
               {categoryItems.map((item) => {
                 const isOptimistic = item.id.startsWith("temp-");
@@ -370,7 +370,7 @@ function ItemsByCategory({
                     }}
                     className={viewMode === "grid" 
                       ? `scroll-mt-28 ${cardClass} relative flex flex-col items-center justify-center px-2 py-4 text-left w-full ${isOptimistic ? "opacity-60" : ""}`
-                      : `scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-gray-50/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full ${isOptimistic ? "opacity-60" : ""}`
+                      : `scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-app-surface-muted/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full ${isOptimistic ? "opacity-60" : ""}`
                     }
                   >
                     {viewMode === "list" && <ChecklistToggle checked={isHomeList} />}
@@ -379,8 +379,8 @@ function ItemsByCategory({
                     <div className={viewMode === "grid" ? "w-full" : "flex-1 min-w-0"}>
                       <div className={viewMode === "grid" ? "flex flex-col items-center" : "flex items-center gap-1.5"}>
                         <h3 className={viewMode === "grid" 
-                          ? "text-[12px] font-bold text-gray-900 text-center leading-tight line-clamp-2 px-1"
-                          : "text-sm font-bold text-gray-900 leading-snug line-clamp-2"
+                          ? "text-[12px] font-bold text-app-text text-center leading-tight line-clamp-2 px-1"
+                          : "text-sm font-bold text-app-text leading-snug line-clamp-2"
                         }>
                           {item.name}
                         </h3>
@@ -390,8 +390,8 @@ function ItemsByCategory({
                       </div>
                       {item.notes && (
                         <p className={viewMode === "grid"
-                          ? "text-[9px] text-gray-400 text-center line-clamp-1 mt-1 px-1"
-                          : "text-[10px] text-gray-400 line-clamp-1"
+                          ? "text-[9px] text-app-muted text-center line-clamp-1 mt-1 px-1"
+                          : "text-[10px] text-app-muted line-clamp-1"
                         }>
                           {item.notes}
                         </p>
@@ -425,7 +425,7 @@ function CategoryPicker({
     <div className="max-h-[360px] overflow-y-auto pr-1 space-y-4">
       {CATEGORY_SUPER_GROUPS.map((group) => (
         <div key={group.title}>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
+          <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-1.5 px-0.5">
             {group.title}
           </p>
           <div className="grid grid-cols-3 gap-1.5">
@@ -440,7 +440,7 @@ function CategoryPicker({
                   onClick={() => onChange(category)}
                   className={`flex flex-col items-center justify-center gap-1 min-h-[68px] text-[9px] font-bold leading-tight px-1 py-2 rounded-xl border transition-all active:scale-[0.98] ${isSelected
                       ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-900/10"
-                      : "bg-gray-50 text-gray-700 border-gray-200 hover:border-emerald-500/30"
+                      : "bg-app-surface-muted text-app-text border-app-border hover:border-emerald-500/30"
                     }`}
                 >
                   <IconComponent
@@ -485,7 +485,7 @@ function showItemMovedToast(
       >
         <span className="flex-1 min-w-0 leading-snug">
           <span className="text-white">{name}</span>
-          <span className="text-gray-300 font-semibold">
+          <span className="text-app-muted font-semibold">
             {isNowAtHome ? " evde vara taşındı" : " eksiklere geri alındı"}
           </span>
         </span>
@@ -1080,18 +1080,18 @@ export default function EksikVarPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 selection:bg-emerald-100">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text selection:bg-emerald-100">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.location.href = getAppRootUrl()}
-              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
             >
               <CaretLeft size={14} weight="bold" className="text-emerald-500" />
             </button>
 
-            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
               <ListChecks size={18} weight="fill" className="text-emerald-500 shrink-0" />
               <span className="truncate">
                 Eksik <span className="text-emerald-500">Var</span>
@@ -1108,14 +1108,14 @@ export default function EksikVarPage() {
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => setShowCatalogSheet(true)}
-                  className="flex items-center justify-center w-8 h-8 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+                  className="flex items-center justify-center w-8 h-8 text-app-muted hover:text-emerald-600 hover:bg-emerald-50 transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
                   title="Ürün Listesi"
                 >
                   <ListBullets size={16} weight="bold" />
                 </button>
                 <button
                   onClick={() => setShowShareSheet(true)}
-                  className="flex items-center justify-center w-8 h-8 text-emerald-500 hover:bg-emerald-50 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+                  className="flex items-center justify-center w-8 h-8 text-emerald-500 hover:bg-emerald-50 transition-all bg-app-surface rounded-lg border border-app-border active:scale-95"
                   title="Listeyi Paylaş"
                 >
                   <ShareNetwork size={16} weight="bold" />
@@ -1177,7 +1177,7 @@ export default function EksikVarPage() {
                       ? "Evde olan bir ürün yazın..."
                       : "Eksik ürün yazın..."
                   }
-                  className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
+                  className="w-full bg-app-surface border border-app-border rounded-xl px-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-app-muted text-app-text"
                 />
                 <button
                   onClick={() => handleAddItem(getActiveSuggestionName())}
@@ -1189,8 +1189,8 @@ export default function EksikVarPage() {
 
               {/* Autocomplete suggestions */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[2.75rem] bg-white border border-gray-200/50 rounded-xl shadow-lg overflow-hidden z-30">
-                  <div className="px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                <div className="absolute left-0 right-0 top-[2.75rem] bg-app-surface border border-app-border rounded-xl shadow-lg overflow-hidden z-30">
+                  <div className="px-4 py-2 text-[10px] font-bold text-app-muted uppercase tracking-wider border-b border-app-border">
                     Öneriler
                   </div>
                   {suggestions.map((item, index) => {
@@ -1221,9 +1221,9 @@ export default function EksikVarPage() {
                             }
                           }
                         }}
-                        className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-gray-50 last:border-b-0 cursor-pointer ${isSelected
+                        className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-app-border last:border-b-0 cursor-pointer ${isSelected
                             ? "bg-emerald-50 text-emerald-700"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-emerald-600"
+                            : "text-app-text hover:bg-app-surface-muted hover:text-emerald-600"
                           }`}
                       >
                         <ItemThumbnail name={item.name} size="suggestion" />
@@ -1241,7 +1241,7 @@ export default function EksikVarPage() {
                           </button>
                         ) : item.category ? (
                           <span
-                            className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${isSelected ? "text-emerald-400" : "text-gray-300"
+                            className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${isSelected ? "text-emerald-400" : "text-app-muted"
                               }`}
                           >
                             {item.category}
@@ -1259,13 +1259,13 @@ export default function EksikVarPage() {
 
       <main className="flex-1 px-4 pt-4 pb-32 max-w-xl mx-auto w-full">
         {isLoading ? (
-          <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+          <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
             Yükleniyor...
           </div>
         ) : !user ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-            <Basket size={40} className="text-gray-200 mb-4" />
-            <p className="text-sm font-bold text-gray-400">Eksik listeni görebilmek için giriş yapmalısın.</p>
+          <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+            <Basket size={40} className="text-app-muted mb-4" />
+            <p className="text-sm font-bold text-app-muted">Eksik listeni görebilmek için giriş yapmalısın.</p>
           </div>
         ) : user ? (() => {
           const filteredItems = items.filter(i => activeListTab === "missing" ? !i.is_used : i.is_used);
@@ -1274,16 +1274,16 @@ export default function EksikVarPage() {
           return (
             <div className="relative">
               {isEmpty ? (
-                <div className="text-center py-10 bg-white rounded-2xl border border-gray-200/50 shadow-sm">
+                <div className="text-center py-10 bg-app-surface rounded-2xl border border-app-border shadow-sm">
                   {activeListTab === "missing" ? (
                     <>
-                      <Basket size={32} className="text-gray-200 mx-auto mb-2" />
-                      <p className="text-xs font-bold text-gray-400">Alışveriş listene eklenecek ürün yok.</p>
+                      <Basket size={32} className="text-app-muted mx-auto mb-2" />
+                      <p className="text-xs font-bold text-app-muted">Alışveriş listene eklenecek ürün yok.</p>
                     </>
                   ) : (
                     <>
-                      <House size={32} className="text-gray-200 mx-auto mb-2" />
-                      <p className="text-xs font-bold text-gray-400">Evde olan ürünler burada görünür.</p>
+                      <House size={32} className="text-app-muted mx-auto mb-2" />
+                      <p className="text-xs font-bold text-app-muted">Evde olan ürünler burada görünür.</p>
                     </>
                   )}
                 </div>
@@ -1314,32 +1314,32 @@ export default function EksikVarPage() {
             onClick={closeCategoryModal}
           />
 
-          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5 pb-2 border-b border-gray-100">
-              <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 pb-2 border-b border-app-border">
+              <h2 className="text-lg font-black text-app-text uppercase tracking-tight">
                 Kategori Seç
               </h2>
               <button
                 onClick={closeCategoryModal}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+              <div className="flex items-center gap-3 bg-app-surface-muted rounded-xl px-4 py-3 border border-app-border">
                 <ItemThumbnail name={pendingCustomName} size="suggestion" />
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                  <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-0.5">
                     Yeni ürün
                   </p>
-                  <p className="text-sm font-black text-gray-900 truncate">{pendingCustomName}</p>
+                  <p className="text-sm font-black text-app-text truncate">{pendingCustomName}</p>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
                   Hangi kategoride?
                 </label>
                 <CategoryPicker
@@ -1349,14 +1349,14 @@ export default function EksikVarPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
                   Notlar (Opsiyonel)
                 </label>
                 <textarea
                   value={selectedAddNotes}
                   onChange={(e) => setSelectedAddNotes(e.target.value)}
                   placeholder="Ürün hakkında not ekleyin..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
+                  className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3 text-sm font-medium text-app-text focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
                 />
               </div>
 
@@ -1381,15 +1381,15 @@ export default function EksikVarPage() {
             onClick={closeEditSheet}
           />
 
-          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
-              <h2 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-app-border">
+              <h2 className="text-lg font-black text-app-text flex items-center gap-2 uppercase tracking-tight">
                 <PencilSimple size={20} className="text-emerald-500" />
                 Ürünü Düzenle
               </h2>
               <button
                 onClick={closeEditSheet}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1403,7 +1403,7 @@ export default function EksikVarPage() {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-1.5 block">
                   Ürün Adı
                 </label>
                 <input
@@ -1413,26 +1413,26 @@ export default function EksikVarPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSaveEdit();
                   }}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:border-emerald-500/40 outline-none transition-all"
+                  className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3 text-sm font-bold text-app-text focus:border-emerald-500/40 outline-none transition-all"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-1.5 block">
                   Notlar
                 </label>
                 <textarea
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Ürün hakkında not ekleyin..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
+                  className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3 text-sm font-medium text-app-text focus:border-emerald-500/40 outline-none transition-all min-h-[80px] resize-none"
                 />
               </div>
 
               {(isCustomItemName(editName.trim() || editingItem.name) || editingItem.category) ? (
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
                     Kategori
                   </label>
                   <CategoryPicker
@@ -1441,11 +1441,11 @@ export default function EksikVarPage() {
                   />
                 </div>
               ) : (
-                <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <div className="flex items-center justify-between bg-app-surface-muted rounded-xl px-4 py-3 border border-app-border">
+                  <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                     Kategori
                   </span>
-                  <span className="text-xs font-bold text-gray-500">
+                  <span className="text-xs font-bold text-app-muted">
                     {getItemCategory(editName.trim() || editingItem.name)}
                   </span>
                 </div>
@@ -1462,7 +1462,7 @@ export default function EksikVarPage() {
 
               <button
                 onClick={handleEditToggle}
-                className="w-full bg-white border border-gray-200 hover:border-emerald-500/30 text-gray-700 font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                className="w-full bg-app-surface border border-app-border hover:border-emerald-500/30 text-app-text font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
               >
                 <ArrowsClockwise size={16} weight="bold" className="text-emerald-500" />
                 {editingItem.is_used ? "Eksiklere Geri Al" : "Evde Var Olarak İşaretle"}
@@ -1488,20 +1488,20 @@ export default function EksikVarPage() {
             onClick={closeCatalogSheet}
           />
 
-          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 shrink-0">
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-6 shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-app-border shrink-0">
               <div>
-                <h2 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+                <h2 className="text-lg font-black text-app-text flex items-center gap-2 uppercase tracking-tight">
                   <ListBullets size={20} className="text-emerald-500" />
                   Ürün Listesi
                 </h2>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mt-1">
                   {totalCatalogItems} ürün · {COMMON_ITEMS.length} kategori
                 </p>
               </div>
               <button
                 onClick={closeCatalogSheet}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1511,20 +1511,20 @@ export default function EksikVarPage() {
               <MagnifyingGlass
                 size={16}
                 weight="bold"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
               />
               <input
                 type="text"
                 value={catalogQuery}
                 onChange={(e) => setCatalogQuery(e.target.value)}
                 placeholder="Ürün veya kategori ara..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-gray-400 text-gray-900"
+                className="w-full bg-app-surface-muted border border-app-border rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-emerald-500/40 outline-none transition-all placeholder:text-app-muted text-app-text"
               />
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-5">
               {filteredCatalog.length === 0 ? (
-                <p className="text-center text-xs font-bold text-gray-400 py-8">
+                <p className="text-center text-xs font-bold text-app-muted py-8">
                   Aramanla eşleşen ürün bulunamadı.
                 </p>
               ) : (
@@ -1535,10 +1535,10 @@ export default function EksikVarPage() {
                     <div key={group.category}>
                       <div className="flex items-center gap-2 mb-2 px-1">
                         <CategoryIcon size={14} weight="duotone" className="text-emerald-600 shrink-0" />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                           {group.category}
                         </span>
-                        <span className="text-[10px] font-bold text-gray-300 ml-auto">
+                        <span className="text-[10px] font-bold text-app-muted ml-auto">
                           {group.items.length}
                         </span>
                       </div>
@@ -1554,7 +1554,7 @@ export default function EksikVarPage() {
                               disabled={alreadyAdded}
                               className={`rounded-xl border relative flex flex-col items-center justify-center px-2 py-3 transition-all text-left w-full ${alreadyAdded
                                   ? "bg-emerald-50/60 border-emerald-200/60 opacity-70 cursor-default"
-                                  : "bg-gray-50 border-gray-200/80 hover:border-emerald-500/30 active:scale-95"
+                                  : "bg-app-surface-muted border-app-border hover:border-emerald-500/30 active:scale-95"
                                 }`}
                             >
                               {alreadyAdded && (
@@ -1565,7 +1565,7 @@ export default function EksikVarPage() {
                                 />
                               )}
                               <ItemThumbnail name={item.name} size="suggestion" />
-                              <span className="text-[10px] font-bold text-gray-800 text-center leading-tight line-clamp-2 mt-1.5">
+                              <span className="text-[10px] font-bold text-app-text text-center leading-tight line-clamp-2 mt-1.5">
                                 {item.name}
                               </span>
                             </button>
@@ -1591,15 +1591,15 @@ export default function EksikVarPage() {
           />
 
           {/* Sheet */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white rounded-t-3xl border-t border-gray-200/60 z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
-              <h2 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-app-border">
+              <h2 className="text-lg font-black text-app-text flex items-center gap-2 uppercase tracking-tight">
                 <ShareNetwork size={20} className="text-emerald-500" />
                 Listeyi Paylaş
               </h2>
               <button
                 onClick={() => setShowShareSheet(false)}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1631,16 +1631,16 @@ export default function EksikVarPage() {
 
             {/* Loading state for sharing data */}
             {loadingShareData ? (
-              <div className="text-center py-8 text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">
+              <div className="text-center py-8 text-xs font-bold text-app-muted uppercase tracking-widest animate-pulse">
                 Yükleniyor...
               </div>
             ) : (
               <div className="space-y-6">
                 {/* Shared Members List */}
                 <div>
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Ortak Üyeler</h3>
+                  <h3 className="text-xs font-black text-app-muted uppercase tracking-wider mb-3">Ortak Üyeler</h3>
                   {sharedMembers.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl text-center border border-dashed border-gray-200">
+                    <p className="text-xs text-app-muted italic bg-app-surface-muted p-3 rounded-xl text-center border border-dashed border-app-border">
                       Bu listeyi henüz kimseyle paylaşmadın.
                     </p>
                   ) : (
@@ -1648,25 +1648,25 @@ export default function EksikVarPage() {
                       {sharedMembers.map((member) => (
                         <div
                           key={member.member_id}
-                          className="flex items-center justify-between p-3 bg-gray-50/60 rounded-xl border border-gray-100"
+                          className="flex items-center justify-between p-3 bg-app-surface-muted/60 rounded-xl border border-app-border"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {member.avatar_url ? (
                               <img
                                 src={member.avatar_url}
                                 alt={member.username || ""}
-                                className="w-7 h-7 rounded-full object-cover border border-gray-200"
+                                className="w-7 h-7 rounded-full object-cover border border-app-border"
                               />
                             ) : (
                               <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-black uppercase">
                                 {member.username?.slice(0, 2) || "Ü"}
                               </div>
                             )}
-                            <span className="text-xs font-bold text-gray-800 truncate">
+                            <span className="text-xs font-bold text-app-text truncate">
                               @{member.username || "Kullanıcı"}
                             </span>
                             {member.is_owner && (
-                              <span className="bg-gray-200 text-gray-600 text-[8px] font-black px-1.5 py-0.5 rounded leading-none">
+                              <span className="bg-gray-200 text-app-muted text-[8px] font-black px-1.5 py-0.5 rounded leading-none">
                                 Sahibi
                               </span>
                             )}
@@ -1675,7 +1675,7 @@ export default function EksikVarPage() {
                           {!member.is_owner && (
                             <button
                               onClick={() => handleRemoveMember(member.member_id)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-app-muted hover:text-red-500 hover:bg-red-50 transition-all active:scale-95"
                               title="Paylaşımı Sonlandır"
                             >
                               <UserMinus size={14} weight="bold" />
@@ -1689,9 +1689,9 @@ export default function EksikVarPage() {
 
                 {/* Direct Share with Friends */}
                 <div>
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Arkadaşlarından Ekle</h3>
+                  <h3 className="text-xs font-black text-app-muted uppercase tracking-wider mb-3">Arkadaşlarından Ekle</h3>
                   {friends.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl text-center border border-dashed border-gray-200">
+                    <p className="text-xs text-app-muted italic bg-app-surface-muted p-3 rounded-xl text-center border border-dashed border-app-border">
                       Arkadaş listen boş.
                     </p>
                   ) : (
@@ -1703,7 +1703,7 @@ export default function EksikVarPage() {
 
                       if (unsharedFriends.length === 0) {
                         return (
-                          <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-xl text-center border border-dashed border-gray-200">
+                          <p className="text-xs text-app-muted italic bg-app-surface-muted p-3 rounded-xl text-center border border-dashed border-app-border">
                             Tüm arkadaşların listene zaten ortak.
                           </p>
                         );
@@ -1714,21 +1714,21 @@ export default function EksikVarPage() {
                           {unsharedFriends.map((friend) => (
                             <div
                               key={friend.id}
-                              className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-gray-150"
+                              className="flex items-center justify-between p-2.5 bg-app-surface rounded-xl border border-gray-150"
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {friend.avatar ? (
                                   <img
                                     src={friend.avatar}
                                     alt={friend.username || ""}
-                                    className="w-7 h-7 rounded-full object-cover border border-gray-200"
+                                    className="w-7 h-7 rounded-full object-cover border border-app-border"
                                   />
                                 ) : (
-                                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-[10px] font-black uppercase">
+                                  <div className="w-7 h-7 rounded-full bg-app-tab-track flex items-center justify-center text-app-muted text-[10px] font-black uppercase">
                                     {friend.username?.slice(0, 2) || "A"}
                                   </div>
                                 )}
-                                <span className="text-xs font-bold text-gray-800 truncate">
+                                <span className="text-xs font-bold text-app-text truncate">
                                   @{friend.username || "Arkadaş"}
                                 </span>
                               </div>

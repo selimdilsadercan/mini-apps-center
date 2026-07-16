@@ -78,6 +78,7 @@ export async function setAssignmentAction(params: {
   clerkId: string;
   boardId: string;
   weekStart: string;
+  recurrenceType: "daily" | "weekly" | "monthly";
   dayOfWeek: number;
   choreSlug: string;
   choreName: string;
@@ -89,6 +90,7 @@ export async function setAssignmentAction(params: {
     const response = await client.ev_isleri.setAssignment(params.boardId, {
       userId: params.clerkId,
       weekStart: params.weekStart,
+      recurrenceType: params.recurrenceType,
       dayOfWeek: params.dayOfWeek,
       choreSlug: params.choreSlug,
       choreName: params.choreName,

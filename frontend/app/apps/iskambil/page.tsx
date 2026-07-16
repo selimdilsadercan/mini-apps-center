@@ -1,21 +1,17 @@
 "use client";
 
-import { getAppRootUrl } from "@/lib/apps";
 import { useState, useEffect, useMemo } from "react";
 import {
   MagnifyingGlass,
-  Heart,
-  Users,
-  Cards,
-  Note,
-  CheckCircle
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import IskambilAppBar from "./components/IskambilAppBar";
+import IskambilShell from "./components/IskambilShell";
+import GameListItem from "./components/GameListItem";
+import { DiscoverPageSkeleton } from "./components/GameListSkeleton";
 import { GAMES_DATA } from "./games-registry";
 
 const client = createBrowserClient();
@@ -289,168 +285,105 @@ export default function IskambilRehberi() {
 
   if (!isUserLoaded || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7] text-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-gray-100 border-t-zinc-900 rounded-full animate-spin" />
-          <p className="text-sm font-black uppercase tracking-widest text-gray-400">{t.loading}</p>
-        </div>
-      </div>
+      <IskambilShell activeTab="discover">
+        <DiscoverPageSkeleton />
+      </IskambilShell>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-gray-200 overflow-x-hidden">
-
-      {/* Header */}
-      <IskambilAppBar activeTab="discover" />
-
-      {/* Main Layout */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-28 pb-32 flex flex-col gap-6 relative z-10">
-
-        {/* Unified Search */}
+    <IskambilShell activeTab="discover">
+      <div className="flex flex-col gap-4">
         <div className="relative w-full">
-          <input 
-            type="text" 
-            placeholder={t.searchPlaceholder} 
+          <input
+            type="text"
+            placeholder={t.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-zinc-500 transition-all text-gray-900 placeholder-gray-400 shadow-sm"
+            className="w-full bg-app-surface border border-app-border rounded-2xl py-3 pl-11 pr-4 text-xs font-bold focus:outline-none focus:border-app-muted transition-all text-app-text placeholder-app-muted shadow-sm"
           />
-          <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-app-muted" size={18} />
         </div>
 
-        {/* Filters Panel */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-4 shadow-sm">
-          {/* Player Count Filter */}
-          <div className="flex flex-col gap-2">
-            <span className="text-[9px] font-black text-gray-400 tracking-widest px-1 uppercase">{t.playerCount}</span>
-            <div className="flex flex-wrap gap-2">
-              {playerOptions.map((playOpt) => (
-                <button
-                  key={playOpt.id}
-                  onClick={() => setSelectedPlayers(playOpt.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                    selectedPlayers === playOpt.id
-                      ? "bg-zinc-900 text-white border-zinc-900 shadow-lg shadow-zinc-900/20"
-                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 shadow-sm"
-                  }`}
-                >
-                  {playOpt.label}
-                </button>
-              ))}
-            </div>
+        <section className="flex flex-col gap-2">
+          <span className="text-[9px] font-black text-app-muted tracking-widest px-1 uppercase">
+            {t.playerCount}
+          </span>
+          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track overflow-x-auto max-w-full">
+            {playerOptions.map((playOpt) => (
+              <button
+                key={playOpt.id}
+                type="button"
+                onClick={() => setSelectedPlayers(playOpt.id)}
+                className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
+                  selectedPlayers === playOpt.id
+                    ? "bg-app-tab-active text-app-text shadow-sm"
+                    : "text-app-muted hover:text-app-text"
+                }`}
+              >
+                {playOpt.label}
+              </button>
+            ))}
           </div>
         </section>
 
-        {/* Results Info */}
         <div className="flex justify-between items-center px-1">
-          <span className="text-xs font-black uppercase tracking-wider text-gray-400">
+          <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">
             {filteredGames.length} {t.gamesListed}
           </span>
         </div>
 
-        {/* Games List (Unified Grid) */}
-        <div>
-          {filteredGames.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
-              <p className="text-sm font-bold text-gray-400">{t.searchNoResult}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence mode="popLayout">
-                {filteredGames.map((game) => {
-                  const gameName = lang === "tr" ? game.name_tr : game.name_en;
-                  const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
-                  const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
-                  const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
+        {filteredGames.length === 0 ? (
+          <div className="text-center py-12 bg-app-surface border border-app-border rounded-2xl shadow-sm">
+            <p className="text-sm font-bold text-app-muted">{t.searchNoResult}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <AnimatePresence mode="popLayout">
+              {filteredGames.map((game) => {
+                const gameName = lang === "tr" ? game.name_tr : game.name_en;
+                const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
+                const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
+                const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
 
-                  return (
-                    <motion.div
-                      key={game.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      onClick={() => router.push(`/apps/iskambil/${game.id}`)}
-                      className="bg-white border border-gray-200 rounded-2xl p-6 relative flex flex-col min-h-[220px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer overflow-hidden text-gray-900"
-                    >
-                      {/* Decorative suit symbol inside background of card */}
-                      <div className="absolute -bottom-10 -right-10 text-[10rem] font-serif opacity-[0.03] group-hover:opacity-[0.05] transition-all duration-500 pointer-events-none select-none text-zinc-900">
-                        {game.category_tr === "Tek Kişilik" && "♠"}
-                        {game.category_tr === "Kozlu / Löf" && "♣"}
-                        {game.category_tr === "Casino / Bahis" && "♦"}
-                        {game.category_tr === "Rumi / Okey" && "♥"}
-                        {!["Tek Kişilik", "Kozlu / Löf", "Casino / Bahis", "Rumi / Okey"].includes(game.category_tr) && "♠"}
-                      </div>
-
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-[10px] font-black text-white bg-zinc-900 px-3 py-1 rounded-full tracking-widest uppercase">
-                          {gameCategory}
-                        </span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={(e) => handleToggleKnown(game.id, e)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-zinc-50 border border-gray-200 text-gray-400 hover:text-zinc-900 transition-all active:scale-90 cursor-pointer"
-                            title={t.known}
-                          >
-                            <CheckCircle size={16} weight={game.is_known ? "fill" : "bold"} className={game.is_known ? "text-zinc-900" : ""} />
-                          </button>
-
-                          <button
-                            onClick={(e) => handleToggleFavorite(game.id, e)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-rose-50 border border-gray-200 text-gray-400 hover:text-rose-500 transition-all active:scale-90 cursor-pointer"
-                            title={t.favorite}
-                          >
-                            <Heart size={16} weight={game.is_favorite ? "fill" : "bold"} className={game.is_favorite ? "text-rose-500" : ""} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <h3 className="text-lg font-black text-gray-900 tracking-tight uppercase">
-                        {gameName}
-                      </h3>
-
-                      <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed font-medium">
-                        {gameRules.length > 0 ? gameRules[0] : t.noRules}
-                      </p>
-
-                      {/* Footer statistics */}
-                      <div className="flex gap-4 border-t border-gray-50 pt-4 mt-auto">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
-                          <Users size={14} className="text-gray-300" />
-                          <span>
-                            {game.min_players === game.max_players
-                              ? `${game.min_players} ${t.players}`
-                              : `${game.min_players}-${game.max_players} ${t.players}`}
-                          </span>
-                        </div>
-                        {deckCount !== "1 Deste" && deckCount !== "1" && deckCount !== "1 Deck" && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-400">
-                            <Cards size={14} className="text-gray-300" />
-                            <span>{deckCount}</span>
-                          </div>
-                        )}
-                        {game.is_known && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-900 ml-auto">
-                            <CheckCircle size={14} weight="fill" />
-                            <span>{t.known}</span>
-                          </div>
-                        )}
-                        {game.user_note && (
-                          <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 ${!game.is_known ? "ml-auto" : ""}`}>
-                            <Note size={14} weight="fill" />
-                            <span>{t.noted}</span>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-
-      </main>
-    </div>
+                return (
+                  <motion.div
+                    key={game.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <GameListItem
+                      game={{
+                        id: game.id,
+                        name: gameName,
+                        category: gameCategory,
+                        description: gameRules[0] || "",
+                        minPlayers: game.min_players,
+                        maxPlayers: game.max_players,
+                        deckCount,
+                        isFavorite: game.is_favorite,
+                        isKnown: game.is_known,
+                        hasNote: !!game.user_note,
+                      }}
+                      labels={{
+                        noRules: t.noRules,
+                        players: t.players,
+                        known: t.known,
+                        noted: t.noted,
+                        favorite: t.favorite,
+                      }}
+                      onOpen={() => router.push(`/apps/iskambil/${game.id}`)}
+                      onToggleFavorite={(e) => handleToggleFavorite(game.id, e)}
+                      onToggleKnown={(e) => handleToggleKnown(game.id, e)}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    </IskambilShell>
   );
 }

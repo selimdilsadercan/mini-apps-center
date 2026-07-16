@@ -288,7 +288,7 @@ export default function PlanPage() {
   }
 
   const viewTabClass = (active: boolean) =>
-    `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${active ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+    `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted"
     }`;
 
   if (!isLoaded || pageLoading) {
@@ -305,37 +305,37 @@ export default function PlanPage() {
     <RecipeShell activeTab="plan">
       <div className="flex items-center justify-between gap-3 mb-4">
         {/* Date Selector (Left side) */}
-        <div className="flex items-center gap-0.5 bg-white border border-gray-200/60 rounded-lg px-0.5 py-0.5 shadow-sm shrink-0">
+        <div className="flex items-center gap-0.5 bg-app-surface border border-app-border rounded-lg px-0.5 py-0.5 shadow-sm shrink-0">
           <button
             type="button"
             onClick={() => shiftWeek(-1)}
-            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
             aria-label="Önceki hafta"
           >
-            <CaretLeft size={12} weight="bold" className="text-gray-500" />
+            <CaretLeft size={12} weight="bold" className="text-app-muted" />
           </button>
 
-          <span className="text-[9px] font-black uppercase tracking-wide text-gray-700 px-1 min-w-[88px] text-center select-none leading-none">
+          <span className="text-[9px] font-black uppercase tracking-wide text-app-text px-1 min-w-[88px] text-center select-none leading-none">
             {formatDate(currentWeekStart)} – {formatDate(weekEndDate)}
           </span>
 
           <button
             type="button"
             onClick={() => shiftWeek(1)}
-            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-50 active:scale-95 transition-all shrink-0"
+            className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
             aria-label="Sonraki hafta"
           >
-            <CaretRight size={12} weight="bold" className="text-gray-500" />
+            <CaretRight size={12} weight="bold" className="text-app-muted" />
           </button>
         </div>
 
         {/* View Mode Switcher (Right side) */}
-        <div className="flex gap-0.5 p-1 rounded-xl bg-gray-100 border border-gray-200/40 w-36 shrink-0">
+        <div className="flex gap-0.5 p-1 rounded-xl bg-app-tab-track border border-app-border w-36 shrink-0">
           <button
             type="button"
             onClick={() => setViewMode("daily")}
             className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide text-center transition-all ${
-              viewMode === "daily" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              viewMode === "daily" ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
             }`}
           >
             Günlük
@@ -344,7 +344,7 @@ export default function PlanPage() {
             type="button"
             onClick={() => setViewMode("weekly")}
             className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide text-center transition-all ${
-              viewMode === "weekly" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              viewMode === "weekly" ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
             }`}
           >
             Haftalık
@@ -419,9 +419,9 @@ export default function PlanPage() {
           }
         }}
       >
-        <DrawerContent className="max-w-xl mx-auto rounded-t-3xl border-t border-gray-200/60">
+        <DrawerContent className="max-w-xl mx-auto rounded-t-3xl border-t border-app-border bg-app-surface">
           <DrawerHeader className="px-4 pt-2 pb-0 text-left">
-            <DrawerTitle className="text-base font-black text-gray-900 uppercase tracking-tight">
+            <DrawerTitle className="text-base font-black text-app-text uppercase tracking-tight">
               {isEditingMeal ? "Öğünü Düzenle" : selectedMeal?.meal.title ?? "Öğün"}
             </DrawerTitle>
           </DrawerHeader>
@@ -432,7 +432,7 @@ export default function PlanPage() {
                 <input
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500/40 bg-white"
+                  className="w-full px-3 py-2.5 text-sm border border-app-border rounded-xl focus:outline-none focus:border-orange-500/40 bg-app-surface text-app-text"
                   placeholder="Yemek adı"
                 />
                 <div className="flex gap-1">
@@ -444,7 +444,7 @@ export default function PlanPage() {
                       className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide ${
                         editMealType === item.type
                           ? "bg-orange-500 text-white"
-                          : "bg-gray-100 text-gray-500"
+                          : "bg-app-tab-track text-app-muted"
                       }`}
                     >
                       {item.label}
@@ -455,7 +455,7 @@ export default function PlanPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditingMeal(false)}
-                    className="px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wide text-gray-600 bg-gray-100"
+                    className="px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wide text-app-muted bg-app-surface-muted"
                   >
                     Vazgeç
                   </button>
@@ -474,7 +474,7 @@ export default function PlanPage() {
                   <Link
                     href={`/apps/recipe?id=${selectedMeal.meal.recipeId}`}
                     onClick={() => setMealSheetOpen(false)}
-                    className="block w-full text-center py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-black uppercase tracking-wide text-gray-700"
+                    className="block w-full text-center py-2.5 rounded-xl border border-app-border bg-app-surface text-xs font-black uppercase tracking-wide text-app-text"
                   >
                     Tarife Git
                   </Link>
@@ -482,7 +482,7 @@ export default function PlanPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditingMeal(true)}
-                  className="w-full py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-black uppercase tracking-wide text-gray-700"
+                  className="w-full py-2.5 rounded-xl border border-app-border bg-app-surface text-xs font-black uppercase tracking-wide text-app-text"
                 >
                   Düzenle
                 </button>
@@ -524,18 +524,18 @@ function DayStrip({
             type="button"
             onClick={() => onSelect(day.key)}
             className={`min-w-0 py-1.5 rounded-lg border transition-all active:scale-95 ${isSelected
-                ? "bg-gray-900 border-gray-900 text-white"
-                : "bg-white border-gray-200/70 text-gray-600"
+                ? "bg-gray-900 dark:bg-app-tab-active border-gray-900 dark:border-app-border text-white dark:text-app-text"
+                : "bg-app-surface border-app-border text-app-muted"
               }`}
           >
             <span
-              className={`block text-[7px] font-bold uppercase tracking-wide truncate px-0.5 ${isSelected ? "text-white/60" : "text-gray-400"
+              className={`block text-[7px] font-bold uppercase tracking-wide truncate px-0.5 ${isSelected ? "text-white/60 dark:text-app-muted" : "text-app-muted"
                 }`}
             >
               {day.shortName}
             </span>
             <span
-              className={`block text-xs font-black leading-none mt-0.5 tabular-nums ${isToday && !isSelected ? "text-gray-900" : ""
+              className={`block text-xs font-black leading-none mt-0.5 tabular-nums ${isToday && !isSelected ? "text-app-text" : ""
                 }`}
             >
               {day.date}
@@ -570,10 +570,10 @@ function MealRow({
       <button
         type="button"
         onClick={() => onOpenMeal(dayKey, meal)}
-        className="w-full text-left px-1 py-1 rounded-md active:bg-gray-50 transition-colors"
+        className="w-full text-left px-1 py-1 rounded-md active:bg-app-surface-muted transition-colors"
         title={meal.title}
       >
-        <p className="text-[9px] font-bold text-gray-700 leading-tight line-clamp-2 break-words">
+        <p className="text-[9px] font-bold text-app-text leading-tight line-clamp-2 break-words">
           {meal.title}
         </p>
       </button>
@@ -585,7 +585,7 @@ function MealRow({
       <button
         type="button"
         onClick={() => onOpenMeal(dayKey, meal)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 text-left active:bg-gray-50 transition-colors"
+        className="w-full flex items-center gap-3 px-3 py-2.5 text-left active:bg-app-surface-muted transition-colors"
       >
         {imageUrl ? (
           <img src={imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
@@ -599,12 +599,12 @@ function MealRow({
             );
           }
           return (
-            <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200/60 flex items-center justify-center shrink-0">
-              <span className="text-sm font-black text-gray-500">{mealInitial(meal.title)}</span>
+            <div className="w-10 h-10 rounded-lg bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+              <span className="text-sm font-black text-app-muted">{mealInitial(meal.title)}</span>
             </div>
           );
         })()}
-        <p className="flex-1 text-[13px] font-bold text-gray-800 leading-snug">{meal.title}</p>
+        <p className="flex-1 text-[13px] font-bold text-app-text leading-snug">{meal.title}</p>
       </button>
     </li>
   );
@@ -629,10 +629,10 @@ function DailyMealSections({
         return (
           <section
             key={section.type}
-            className="rounded-xl border border-gray-200/60 bg-white overflow-hidden"
+            className="rounded-xl border border-app-border bg-app-surface overflow-hidden"
           >
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-app-border">
+              <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">
                 {section.label}
               </span>
               <button
@@ -640,7 +640,7 @@ function DailyMealSections({
                 onClick={() =>
                   onAddMeal(day.key, `${day.name} ${day.date} · ${section.label}`, section.type)
                 }
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 active:scale-95 transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-app-muted hover:text-app-text active:scale-95 transition-all"
                 aria-label={`${section.label} ekle`}
               >
                 <Plus size={16} weight="bold" />
@@ -653,12 +653,12 @@ function DailyMealSections({
                 onClick={() =>
                   onAddMeal(day.key, `${day.name} ${day.date} · ${section.label}`, section.type)
                 }
-                className="w-full px-3 py-4 text-left text-xs font-bold text-gray-300 active:bg-gray-50 transition-colors"
+                className="w-full px-3 py-4 text-left text-xs font-bold text-app-muted active:bg-app-surface-muted transition-colors"
               >
                 Henüz eklenmedi
               </button>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-app-border">
                 {meals.map((meal) => (
                   <MealRow
                     key={meal.id}
@@ -693,28 +693,28 @@ function WeeklyGrid({
   onSelectDay: (dayKey: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200/60 bg-white overflow-hidden">
-      <div className="grid grid-cols-7 divide-x divide-gray-100">
+    <div className="rounded-xl border border-app-border bg-app-surface overflow-hidden">
+      <div className="grid grid-cols-7 divide-x divide-app-border">
         {weekDays.map((day) => {
           const isToday = day.key === todayKey;
           return (
             <div
               key={day.key}
               className={`min-w-0 flex flex-col transition-colors ${
-                isToday ? "bg-orange-50/30" : ""
+                isToday ? "bg-orange-50/30 dark:bg-orange-950/20" : ""
               }`}
             >
               <button
                 type="button"
                 onClick={() => onSelectDay(day.key)}
-                className={`px-0.5 py-2 text-center border-b border-gray-100 active:bg-gray-100/50 transition-colors ${
-                  isToday ? "bg-orange-100/20" : ""
+                className={`px-0.5 py-2 text-center border-b border-app-border active:bg-app-surface-muted transition-colors ${
+                  isToday ? "bg-orange-100/20 dark:bg-orange-950/30" : ""
                 }`}
               >
-                <p className="text-[8px] font-bold uppercase text-gray-400 truncate">
+                <p className="text-[8px] font-bold uppercase text-app-muted truncate">
                   {day.shortName}
                 </p>
-                <p className="text-xs font-black text-gray-800 tabular-nums">{day.date}</p>
+                <p className="text-xs font-black text-app-text tabular-nums">{day.date}</p>
               </button>
 
               <div className="flex-1 flex flex-col">
@@ -725,12 +725,12 @@ function WeeklyGrid({
                       key={section.type}
                       className={`flex-1 min-h-[7.5rem] px-0.5 py-1.5 flex flex-col ${
                         sectionIndex < mealTypeSections.length - 1
-                          ? "border-b border-gray-50"
+                          ? "border-b border-app-border"
                           : ""
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[7px] font-black uppercase text-gray-400 truncate">
+                        <span className="text-[7px] font-black uppercase text-app-muted truncate">
                           {section.shortLabel}
                         </span>
                         <button
@@ -742,7 +742,7 @@ function WeeklyGrid({
                               section.type
                             )
                           }
-                          className="w-4 h-4 flex items-center justify-center text-gray-300 active:text-gray-600 hover:text-gray-900"
+                          className="w-4 h-4 flex items-center justify-center text-app-muted active:text-app-text hover:text-app-text"
                           aria-label={`${day.name} ${section.label} ekle`}
                         >
                           <Plus size={10} weight="bold" />
@@ -759,7 +759,7 @@ function WeeklyGrid({
                               section.type
                             )
                           }
-                          className="w-full flex-1 min-h-[1.5rem] flex items-center justify-center active:bg-gray-50/50 transition-colors"
+                          className="w-full flex-1 min-h-[1.5rem] flex items-center justify-center active:bg-app-surface-muted transition-colors"
                           aria-label={`${section.label} ekle`}
                         />
                       ) : (

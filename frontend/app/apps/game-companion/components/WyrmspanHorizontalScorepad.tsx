@@ -76,14 +76,14 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
 
   const ScoreIcon = ({ value = 1 }: { value?: number }) => (
     <div className="relative inline-flex items-center justify-center w-5 h-5">
-      <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-600">
+      <svg viewBox="0 0 24 24" className="w-5 h-5 text-app-muted">
         <path
           d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z"
           fill="currentColor"
         />
       </svg>
       {value !== 1 && (
-        <span className="absolute -top-1 -right-1 text-xs font-bold text-gray-800 bg-white rounded-full w-3 h-3 flex items-center justify-center text-[10px]">
+        <span className="absolute -top-1 -right-1 text-xs font-bold text-app-text bg-app-surface rounded-full w-3 h-3 flex items-center justify-center text-[10px]">
           {value}
         </span>
       )}
@@ -92,7 +92,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
 
   const FlagIcon = () => (
     <div className="relative inline-flex items-center justify-center w-5 h-5">
-      <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-600">
+      <svg viewBox="0 0 24 24" className="w-5 h-5 text-app-muted">
         <path
           d="M14.4 6L14 4H5V21H7V14H12.6L13 16H20V6H14.4Z"
           fill="currentColor"
@@ -142,7 +142,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
     const score = playerScores[playerId]?.[category] || 0;
 
     return (
-      <div className="py-2 px-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm min-w-[120px]">
+      <div className="py-2 px-3 border-b border-app-border bg-app-surface/80 backdrop-blur-sm min-w-[120px]">
         <div className="flex items-center justify-center">
           <input
             type="text"
@@ -151,7 +151,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
               const value = parseInt(e.target.value) || 0;
               updatePlayerScore(playerId, category, Math.max(0, value));
             }}
-            className="w-20 h-10 bg-white border-2 border-blue-50 rounded-xl text-center font-black text-gray-900 text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+            className="w-20 h-10 bg-app-surface border-2 border-blue-50 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
             placeholder="0"
           />
         </div>
@@ -212,7 +212,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
 
   return (
     <div
-      className="flex-1 overflow-x-auto overflow-y-auto bg-[#FAF9F7]"
+      className="flex-1 overflow-x-auto overflow-y-auto bg-app-bg"
     >
       <div className="min-w-full">
         {/* Table - Row by Row Rendering */}
@@ -226,7 +226,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
             {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={player._id}
-                className="min-w-[120px] py-4 px-3 flex flex-col items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm"
+                className="min-w-[120px] py-4 px-3 flex flex-col items-center border-b border-app-border bg-app-header/90 backdrop-blur-sm"
               >
                 <div className="flex items-center space-x-2 mb-2">
                   {player.avatar ? (
@@ -243,7 +243,7 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
                     </div>
                   )}
                 </div>
-                <span className="font-bold text-gray-900 text-xs text-center uppercase tracking-tight">
+                <span className="font-bold text-app-text text-xs text-center uppercase tracking-tight">
                   {player.name}
                 </span>
                 <div className="mt-2 text-lg font-black text-blue-600">
@@ -257,15 +257,15 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
           {(scoringCategories as any[]).map((category: any) => (
             <div key={category.key} className="flex min-w-max">
               {/* Category Name Column */}
-              <div className="w-48 py-3 px-4 flex items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm">
+              <div className="w-48 py-3 px-4 flex items-center border-b border-app-border bg-app-header/90 backdrop-blur-sm">
                 <div className="flex items-center space-x-3">
                   {category.icon}
-                  <span className="text-gray-900 font-bold text-xs uppercase tracking-tight">
+                  <span className="text-app-text font-bold text-xs uppercase tracking-tight">
                     {category.label}
                   </span>
                 </div>
                 {category.subtext && (
-                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-2">
+                  <div className="text-[9px] text-app-muted font-bold uppercase tracking-widest ml-2">
                     {category.subtext}
                   </div>
                 )}
@@ -295,13 +295,13 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
 
           {/* Total Row */}
           <div className="flex min-w-max">
-            <div className="w-48 py-3 px-4 flex items-center border-b border-gray-100 bg-white/90 backdrop-blur-sm">
-              <span className="text-gray-900 font-black text-xs uppercase tracking-widest">TOTAL</span>
+            <div className="w-48 py-3 px-4 flex items-center border-b border-app-border bg-app-header/90 backdrop-blur-sm">
+              <span className="text-app-text font-black text-xs uppercase tracking-widest">TOTAL</span>
             </div>
             {(gamePlayers as any[]).map((player: any) => (
               <div
                 key={`total-${player._id}`}
-                className="min-w-[120px] py-3 px-3 flex items-center justify-center border-b border-gray-100 bg-white/90 backdrop-blur-sm"
+                className="min-w-[120px] py-3 px-3 flex items-center justify-center border-b border-app-border bg-app-header/90 backdrop-blur-sm"
               >
                 <div className="text-lg font-black text-blue-600">
                   {getPlayerTotal(player._id)}
@@ -313,8 +313,8 @@ const WyrmspanHorizontalScorepad: React.FC<WyrmspanHorizontalScorepadProps> = ({
       </div>
 
       {/* Footnotes */}
-      <div className="px-6 py-6 bg-white/80 backdrop-blur-sm border-t border-gray-100">
-        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest space-y-2">
+      <div className="px-6 py-6 bg-app-surface/80 backdrop-blur-sm border-t border-app-border">
+        <div className="text-[10px] font-bold text-app-muted uppercase tracking-widest space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
             <span>*unless otherwise specified</span>

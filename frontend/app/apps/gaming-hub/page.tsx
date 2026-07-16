@@ -188,7 +188,7 @@ export default function GamingHubPage() {
   if (!isLoaded || loading) {
     return (
       <GamingHubShell {...shellProps}>
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       </GamingHubShell>
@@ -198,10 +198,10 @@ export default function GamingHubPage() {
   if (!user) {
     return (
       <GamingHubShell {...shellProps}>
-        <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-          <GameController size={40} className="text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-500 mb-1">Giriş yapmalısın</p>
-          <p className="text-xs text-gray-400">Oyunlarını takip etmek için oturum aç.</p>
+        <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+          <GameController size={40} className="text-app-muted mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-app-muted mb-1">Giriş yapmalısın</p>
+          <p className="text-xs text-app-muted">Oyunlarını takip etmek için oturum aç.</p>
         </div>
       </GamingHubShell>
     );
@@ -226,7 +226,7 @@ export default function GamingHubPage() {
 
       {mainTab === "discover" ? (
         discoverLoading ? (
-          <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+          <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
             Oyunlar yükleniyor...
           </div>
         ) : (
@@ -255,10 +255,10 @@ export default function GamingHubPage() {
           </div>
         )
       ) : library.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-          <Books size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
-          <p className="text-sm font-bold text-gray-500 mb-1">Kütüphanen boş</p>
-          <p className="text-xs text-gray-400 mb-4">
+        <div className="text-center py-16 bg-app-surface rounded-2xl border border-app-border">
+          <Books size={48} className="mx-auto text-app-muted mb-4" weight="duotone" />
+          <p className="text-sm font-bold text-app-muted mb-1">Kütüphanen boş</p>
+          <p className="text-xs text-app-muted mb-4">
             Oyunlarını ekle ve oynadıkça işaretle.
           </p>
           <button
@@ -276,7 +276,7 @@ export default function GamingHubPage() {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
+                className="bg-app-surface rounded-2xl border border-app-border overflow-hidden shadow-sm"
               >
                 <div className="flex items-center gap-3 px-3 py-3">
                   <button
@@ -291,7 +291,7 @@ export default function GamingHubPage() {
                       className="w-14 h-[4.5rem] rounded-xl"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-gray-900 line-clamp-2">{item.gameName}</p>
+                      <p className="text-sm font-black text-app-text line-clamp-2">{item.gameName}</p>
                     </div>
                   </button>
                   <button
@@ -303,7 +303,7 @@ export default function GamingHubPage() {
                     className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wide active:scale-95 transition-colors ${
                       played
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-gray-50 text-gray-400 border border-gray-200"
+                        : "bg-app-surface-muted text-app-muted border border-app-border"
                     }`}
                   >
                     <Check size={12} weight={played ? "bold" : "regular"} />
@@ -315,7 +315,7 @@ export default function GamingHubPage() {
                       e.stopPropagation();
                       void handleDeleteItem(item);
                     }}
-                    className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                    className="flex items-center justify-center w-8 h-8 rounded-lg text-app-muted hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                     aria-label="Sil"
                   >
                     <Trash size={16} />
@@ -342,23 +342,23 @@ export default function GamingHubPage() {
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/25 z-40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl outline-none max-w-xl mx-auto border-t border-gray-100 shadow-xl">
-            <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-gray-200" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 bg-app-surface rounded-t-3xl outline-none max-w-xl mx-auto border-t border-app-border shadow-xl">
+            <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full bg-app-border" />
             <div className="px-5 pb-6 pt-2">
-              <Drawer.Title className="text-sm font-black text-gray-900 mb-1">Oyun ekle</Drawer.Title>
-              <p className="text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-wider">
+              <Drawer.Title className="text-sm font-black text-app-text mb-1">Oyun ekle</Drawer.Title>
+              <p className="text-[10px] font-bold text-app-muted mb-4 uppercase tracking-wider">
                 Kütüphanem
               </p>
 
               <form onSubmit={(e) => void handleAddGame(e)} className="space-y-4">
                 {selectedGame && (
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-app-surface-muted border border-app-border">
                     <GameCover
                       coverUrl={selectedGame.coverUrl}
                       title={selectedGame.title}
                       className="w-12 h-16 rounded-lg"
                     />
-                    <p className="text-sm font-black text-gray-900 line-clamp-2">{selectedGame.title}</p>
+                    <p className="text-sm font-black text-app-text line-clamp-2">{selectedGame.title}</p>
                   </div>
                 )}
 

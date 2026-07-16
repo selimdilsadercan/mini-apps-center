@@ -90,8 +90,8 @@ export default function ExerciseBlock({
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden ${
-        isSheet ? "hover:border-gray-300 transition-colors" : ""
+      className={`bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden ${
+        isSheet ? "hover:border-app-muted transition-colors" : ""
       }`}
     >
       <div className={`flex items-center ${isSheet ? "justify-between" : "gap-3"} px-4 pt-4 pb-2`}>
@@ -102,7 +102,7 @@ export default function ExerciseBlock({
           {catalogItem ? (
             <ExerciseThumbnail exercise={catalogItem} />
           ) : (
-            <div className="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center text-lg">
+            <div className="w-11 h-11 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-lg">
               🏋️
             </div>
           )}
@@ -116,20 +116,20 @@ export default function ExerciseBlock({
             {resolveExerciseName(catalog, exercise.slug, exercise.name)}
           </h3>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors shrink-0">
+        <button className="text-app-muted hover:text-app-text transition-colors shrink-0">
           <DotsThreeVertical size={18} weight="bold" />
         </button>
       </div>
 
       <div
-        className={`mx-4 mb-3 rounded-xl overflow-hidden border border-gray-100 ${
-          isSheet ? "bg-gray-50/30" : ""
+        className={`mx-4 mb-3 rounded-xl overflow-hidden border border-app-border ${
+          isSheet ? "bg-app-surface-muted/30" : ""
         }`}
       >
         <div
           className={`grid ${gridClass} ${
-            isSheet ? "bg-gray-50/80 border-b border-gray-100" : "bg-gray-50"
-          } text-[9px] font-black text-gray-400 uppercase tracking-wide`}
+            isSheet ? "bg-app-surface-muted/80 border-b border-app-border" : "bg-app-surface-muted"
+          } text-[9px] font-black text-app-muted uppercase tracking-wide`}
         >
           <div className="px-2 py-2 text-center">Set</div>
           <div className="px-1 py-2">Önceki</div>
@@ -146,25 +146,25 @@ export default function ExerciseBlock({
             <SwipeToDeleteRow
               key={setIdx}
               onDelete={() => removeSet(setIdx)}
-              className="border-b border-gray-100 last:border-0"
+              className="border-b border-app-border last:border-0"
             >
             <div
               className={`grid ${gridClass} items-center ${
                 isSheet
                   ? set.completed
-                    ? "bg-emerald-50/10"
+                    ? "bg-emerald-50/10 dark:bg-emerald-950/20"
                     : setIdx % 2 === 0
-                      ? "bg-white"
-                      : "bg-gray-50/30"
+                      ? "bg-app-surface"
+                      : "bg-app-surface-muted/30"
                   : setIdx % 2 === 0
-                    ? "bg-white"
-                    : "bg-gray-50/80"
+                    ? "bg-app-surface"
+                    : "bg-app-surface-muted/80"
               }`}
             >
-              <div className="px-2 py-2.5 text-center text-xs font-bold text-gray-500 tabular-nums">
+              <div className="px-2 py-2.5 text-center text-xs font-bold text-app-muted tabular-nums">
                 {setIdx + 1}
               </div>
-              <div className={`px-1 py-2.5 text-[10px] text-gray-400 ${isSheet ? "font-bold" : "font-medium"}`}>
+              <div className={`px-1 py-2.5 text-[10px] text-app-muted ${isSheet ? "font-bold" : "font-medium"}`}>
                 {prev ? formatPreviousSet(prev, { duration: usesDuration }) : "—"}
               </div>
               {usesWeight && (
@@ -181,8 +181,8 @@ export default function ExerciseBlock({
                       const cleanVal = e.target.value.replace(/[^0-9.]/g, "");
                       updateSet(setIdx, "weightKg", cleanVal ? Number(cleanVal) : null);
                     }}
-                    className={`w-full text-center text-xs font-bold border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums placeholder:text-gray-300 ${
-                      isSheet ? "bg-white shadow-sm" : "bg-transparent border-gray-200/60 py-1.5 focus:ring-1"
+                    className={`w-full text-center text-xs font-bold border border-app-border rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums placeholder:text-app-muted text-app-text ${
+                      isSheet ? "bg-app-surface shadow-sm" : "bg-transparent border-app-border py-1.5 focus:ring-1"
                     }`}
                   />
                 </div>
@@ -207,8 +207,8 @@ export default function ExerciseBlock({
                       const cleanVal = e.target.value.replace(/[^0-9]/g, "");
                       updateSet(setIdx, "reps", cleanVal ? Number(cleanVal) : null);
                     }}
-                    className={`w-full text-center text-xs font-bold border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums placeholder:text-gray-300 ${
-                      isSheet ? "bg-white shadow-sm" : "bg-transparent border-gray-200/60 py-1.5 focus:ring-1"
+                    className={`w-full text-center text-xs font-bold border border-app-border rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 tabular-nums placeholder:text-app-muted text-app-text ${
+                      isSheet ? "bg-app-surface shadow-sm" : "bg-transparent border-app-border py-1.5 focus:ring-1"
                     }`}
                   />
                 )}
@@ -224,8 +224,8 @@ export default function ExerciseBlock({
                     set.completed
                       ? isSheet
                         ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                        : "bg-gray-700 text-white"
-                      : "bg-gray-100 text-gray-300 hover:bg-gray-200"
+                        : "bg-app-text dark:bg-violet-600 text-white"
+                      : "bg-app-tab-track text-app-muted hover:bg-app-border/50"
                   }`}
                 >
                   <Check size={14} weight="bold" />
@@ -244,8 +244,8 @@ export default function ExerciseBlock({
           onClick={addSet}
           className={`w-full font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 active:scale-[0.98] ${
             isSheet
-              ? "bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200/50"
-              : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+              ? "bg-app-surface-muted hover:bg-app-border/30 text-app-muted border border-app-border"
+              : "bg-app-tab-track hover:bg-app-border/50 text-app-muted"
           }`}
         >
           <Plus size={14} weight="bold" />

@@ -25,6 +25,7 @@ import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
+import { getTomorrowMidnightIso, isPostponedUntilFutureDay } from "@/lib/date-utils";
 import { rutinler } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import ROUTINE_CATALOG from "./routine_catalog.json";
@@ -66,21 +67,14 @@ const EV_ISLERI_APP = MINI_APPS.find((app) => app.id === "ev-isleri");
 const rutinlerEntriesKey = (userId: string) => ["rutinler", "entries", userId] as const;
 
 function isEntryPostponed(entry: rutinler.RoutineEntry) {
-  return !!(entry.postponed_until && new Date(entry.postponed_until) > new Date());
-}
-
-function tomorrowPostponeIso() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+  return isPostponedUntilFutureDay(entry.postponed_until);
 }
 
 function pillTabClass(active: boolean) {
-  return `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] ${
+  return `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
     active
-      ? "bg-white text-gray-900 shadow-sm"
-      : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/50"
+      ? "bg-app-tab-active text-app-text shadow-sm"
+      : "text-app-muted hover:text-app-text"
   }`;
 }
 
@@ -94,13 +88,13 @@ function CalendarMiniBadge({
   return (
     <div className="relative h-8 w-7 shrink-0">
       <div className="absolute top-0 left-1/2 z-10 flex -translate-x-1/2 gap-1">
-        <span className="h-1 w-1 rounded-full border border-gray-300 bg-gray-50" />
-        <span className="h-1 w-1 rounded-full border border-gray-300 bg-gray-50" />
+        <span className="h-1 w-1 rounded-full border border-app-border bg-app-surface-muted" />
+        <span className="h-1 w-1 rounded-full border border-app-border bg-app-surface-muted" />
       </div>
-      <div className="absolute inset-x-0 top-0.5 bottom-0 flex flex-col overflow-hidden rounded-[3px] border border-gray-200 bg-white shadow-sm">
+      <div className="absolute inset-x-0 top-0.5 bottom-0 flex flex-col overflow-hidden rounded-[3px] border border-app-border bg-app-surface shadow-sm">
         <div className={`h-2 shrink-0 ${headerClassName}`} />
         <div className="flex flex-1 items-center justify-center">
-          <span className="text-[8px] font-black leading-none text-gray-800 tabular-nums">
+          <span className="text-[8px] font-black leading-none text-app-text tabular-nums">
             {value}
           </span>
         </div>
@@ -170,16 +164,16 @@ function EntryRow({
         } ${
           showComplete && entry.is_completed
             ? isGrouped
-              ? "bg-[#F0FDF4]"
-              : "bg-[#F0FDF4] border-emerald-100"
+              ? "bg-emerald-50 dark:bg-emerald-950/30"
+              : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50"
             : isPostponed
             ? isGrouped
-              ? "bg-amber-50/50"
-              : "bg-amber-50/50 border-amber-100"
+              ? "bg-amber-50/50 dark:bg-amber-950/20"
+              : "bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/40"
             : !isGrouped
-            ? "bg-white border-gray-100"
-            : "bg-white hover:bg-gray-50"
-        } ${isGrouped ? "border-b border-gray-50 last:border-0" : ""}`}
+            ? "bg-app-surface border-app-border"
+            : "bg-app-surface hover:bg-app-surface-muted"
+        } ${isGrouped ? "border-b border-app-border last:border-0" : ""}`}
       >
         {showComplete && (
           <div className="flex items-center gap-1.5 shrink-0">
@@ -193,7 +187,7 @@ function EntryRow({
                   ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
                   : isPostponed
                   ? "bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200 cursor-not-allowed"
-                  : "bg-white border-gray-200 text-transparent hover:border-emerald-200"
+                  : "bg-app-surface border-app-border text-transparent hover:border-emerald-200 dark:hover:border-emerald-800"
               }`}
             >
               <AnimatePresence mode="wait">
@@ -235,7 +229,7 @@ function EntryRow({
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
                   className={`text-sm font-bold block truncate transition-colors duration-300 ${
-                    showComplete && entry.is_completed ? "text-gray-400" : "text-gray-800"
+                    showComplete && entry.is_completed ? "text-app-muted" : "text-app-text"
                   }`}
                 >
                   {entry.item_name}
@@ -251,7 +245,7 @@ function EntryRow({
                   initial={false}
                   animate={{ scaleX: entry.is_completed ? 1 : 0 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-gray-400 origin-left w-full"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-[1.5px] bg-app-muted origin-left w-full"
                 />
               )}
             </div>
@@ -419,7 +413,7 @@ export default function RutinlerPage() {
                 className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all ${
                   active
                     ? "bg-violet-50 border-violet-200 text-violet-600"
-                    : "bg-gray-50 border-gray-100 text-gray-400"
+                    : "bg-app-surface-muted border-app-border text-app-muted"
                 }`}
               >
                 <Icon size={20} weight={active ? "fill" : "bold"} />
@@ -453,7 +447,7 @@ export default function RutinlerPage() {
                 className={`shrink-0 w-11 h-11 flex items-center justify-center rounded-xl border text-[10px] font-black uppercase transition-all ${
                   active
                     ? "bg-violet-50 border-violet-200 text-violet-600"
-                    : "bg-gray-50 border-gray-100 text-gray-400"
+                    : "bg-app-surface-muted border-app-border text-app-muted"
                 }`}
               >
                 {day.label}
@@ -466,8 +460,8 @@ export default function RutinlerPage() {
 
     if (period === "monthly") {
       return (
-        <div className="flex items-center gap-3 mb-4 bg-gray-50 border border-gray-100 p-3 rounded-2xl">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+        <div className="flex items-center gap-3 mb-4 bg-app-surface-muted border border-app-border p-3 rounded-2xl">
+          <span className="text-[10px] font-black text-app-muted uppercase tracking-widest pl-1">
             Ayın Günü:
           </span>
           <div className="flex-1 flex overflow-x-auto gap-1.5 scrollbar-hide">
@@ -480,7 +474,7 @@ export default function RutinlerPage() {
                   className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border text-[11px] font-black transition-all ${
                     active
                       ? "bg-violet-500 border-violet-500 text-white"
-                      : "bg-white border-gray-200 text-gray-400 hover:border-violet-200"
+                      : "bg-app-surface border-app-border text-app-muted hover:border-violet-200"
                   }`}
                 >
                   {day}
@@ -508,10 +502,7 @@ export default function RutinlerPage() {
     return entries.filter((e) => {
       if (e.period_type !== period) return false;
 
-      if (e.postponed_until) {
-        const postponedDate = new Date(e.postponed_until);
-        if (postponedDate > now) return false;
-      }
+      if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
       if (period === "daily") {
         if (!e.daily_slot) return true;
@@ -541,11 +532,7 @@ export default function RutinlerPage() {
     return entries.filter((e) => {
       if (e.period_type !== period) return false;
 
-      // Filter out postponed items
-      if (e.postponed_until) {
-        const postponedDate = new Date(e.postponed_until);
-        if (postponedDate > now) return false;
-      }
+      if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
       // Tamamlanan rutinler bu dönem için Bugün'de görünmez
       // Ancak yeni tamamlandıysa animasyon için kısa süre tutuyoruz
@@ -733,7 +720,7 @@ export default function RutinlerPage() {
 
     if (!ok) return;
 
-    const postponedUntil = tomorrowPostponeIso();
+    const postponedUntil = getTomorrowMidnightIso();
     const previousPostponedUntil = entry.postponed_until;
 
     patchEntries((prev) =>
@@ -826,7 +813,7 @@ export default function RutinlerPage() {
     return (
       <div className="shrink-0 flex items-center gap-1.5">
         {entry.daily_slot && (
-          <div className="flex h-8 w-7 shrink-0 flex-col items-center justify-center rounded-[3px] border border-gray-200 bg-white shadow-sm">
+          <div className="flex h-8 w-7 shrink-0 flex-col items-center justify-center rounded-[3px] border border-app-border bg-app-surface shadow-sm">
             {entry.daily_slot === "morning" ? (
               <SunHorizon size={12} weight="bold" className="text-amber-500" />
             ) : entry.daily_slot === "afternoon" ? (
@@ -834,7 +821,7 @@ export default function RutinlerPage() {
             ) : (
               <Moon size={12} weight="bold" className="text-indigo-500" />
             )}
-            <span className="mt-0.5 text-[6px] font-black uppercase tracking-tighter text-gray-500 leading-none">
+            <span className="mt-0.5 text-[6px] font-black uppercase tracking-tighter text-app-muted leading-none">
               {entry.daily_slot === "morning"
                 ? "Sbh"
                 : entry.daily_slot === "afternoon"
@@ -899,8 +886,8 @@ export default function RutinlerPage() {
   }, [entries, recentlyCompletedIds]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
           <div className="flex items-center gap-2">
             <button
@@ -908,19 +895,19 @@ export default function RutinlerPage() {
               onClick={() => {
                 window.location.href = getAppRootUrl();
               }}
-              className="shrink-0 flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 transition-all bg-white rounded-lg border border-gray-200/60 active:scale-95"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
             >
               <CaretLeft size={14} weight="bold" className="text-violet-500" />
             </button>
 
-            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
               <CalendarBlank size={18} weight="fill" className="text-violet-500 shrink-0" />
               <span className="truncate text-violet-500">Ajanda</span>
             </h1>
           </div>
 
           <div className="flex mt-2">
-            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border/80 bg-app-tab-track">
               <button
                 type="button"
                 onClick={() => setMainTab("today")}
@@ -944,13 +931,13 @@ export default function RutinlerPage() {
 
       <main className="flex-1 px-4 pt-4 pb-8 max-w-xl mx-auto w-full">
         {loading ? (
-          <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+          <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
             Yükleniyor...
           </div>
         ) : !user ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200/50 flex flex-col items-center justify-center p-6 shadow-sm">
-            <CalendarBlank size={40} className="text-gray-200 mb-4" weight="duotone" />
-            <p className="text-sm font-bold text-gray-400">
+          <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border/50 flex flex-col items-center justify-center p-6 shadow-sm">
+            <CalendarBlank size={40} className="text-app-muted mb-4" weight="duotone" />
+            <p className="text-sm font-bold text-app-muted">
               Rutin tablolarını oluşturmak için giriş yap.
             </p>
           </div>
@@ -969,14 +956,14 @@ export default function RutinlerPage() {
                 value={quickTask}
                 onChange={(e) => setQuickTask(e.target.value)}
                 placeholder="Hızlı görev ekle..."
-                className="w-full bg-white border border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-sm font-bold shadow-sm outline-none focus:border-violet-300 placeholder:text-gray-400 placeholder:font-medium transition-all"
+                className="w-full bg-app-surface border border-app-border rounded-2xl pl-10 pr-4 py-3.5 text-sm font-bold shadow-sm outline-none focus:border-violet-300 placeholder:text-app-muted placeholder:font-medium transition-all"
               />
             </form>
 
             {todayEntries.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <CalendarCheck size={48} className="mx-auto text-gray-200 mb-4" weight="duotone" />
-                <p className="text-sm font-bold text-gray-500">
+              <div className="text-center py-16 bg-app-surface rounded-2xl border border-app-border">
+                <CalendarCheck size={48} className="mx-auto text-app-muted mb-4" weight="duotone" />
+                <p className="text-sm font-bold text-app-muted">
                   {hasScheduledToday ? "Görev kalmadı" : "Bugün için görev veya rutin yok"}
                 </p>
               </div>
@@ -984,10 +971,10 @@ export default function RutinlerPage() {
             <div className="space-y-6">
               {oneOffTasks.length > 0 && (
                 <div className="space-y-2">
-                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-app-muted">
                     Görevler
                   </p>
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden">
                     <AnimatePresence initial={false}>
                       {oneOffTasks.map((entry) => (
                         <EntryRow
@@ -1008,10 +995,10 @@ export default function RutinlerPage() {
 
               {routineTasks.length > 0 && (
                 <div className="space-y-2">
-                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <p className="px-1 text-[10px] font-black uppercase tracking-widest text-app-muted">
                     Rutinler
                   </p>
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden">
                     <AnimatePresence initial={false}>
                       {routineTasks.map((entry) => (
                         <EntryRow
@@ -1041,23 +1028,23 @@ export default function RutinlerPage() {
               return (
                 <section
                   key={board.key}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden"
+                  className="bg-app-surface rounded-2xl border border-app-border shadow-sm flex flex-col overflow-hidden"
                 >
                   <div
                     onClick={() => toggleBoardExpanded(board.key, items.length)}
-                    className="flex items-center justify-between px-4 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50/50 transition-colors group"
+                    className="flex items-center justify-between px-4 py-3 border-b border-app-border cursor-pointer hover:bg-app-surface-muted/50 transition-colors group"
                   >
-                    <div className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-tight">
+                    <div className="flex items-center gap-2 text-sm font-black text-app-text uppercase tracking-tight">
                       <CaretDown
                         size={14}
                         weight="bold"
-                        className={`text-gray-400 transition-transform duration-300 ${
+                        className={`text-app-muted transition-transform duration-300 ${
                           isExpanded ? "" : "-rotate-90"
                         }`}
                       />
                       {board.label}
                       {items.length > 0 && (
-                        <span className="text-[10px] font-bold text-gray-300 normal-case tracking-normal">
+                        <span className="text-[10px] font-bold text-app-muted normal-case tracking-normal">
                           {items.length}
                         </span>
                       )}
@@ -1079,7 +1066,7 @@ export default function RutinlerPage() {
                     <div className="flex-1 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
                       {items.length === 0 ? (
                         <div className="h-full min-h-[72px] flex items-center justify-center">
-                          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">
+                          <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                             Henüz kayıt yok
                           </p>
                         </div>
@@ -1117,11 +1104,11 @@ export default function RutinlerPage() {
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-gray-200/60 bg-white shadow-2xl outline-none overflow-hidden">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-200 mt-2 mb-1 shrink-0" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-app-border/60 bg-app-surface shadow-2xl outline-none overflow-hidden">
+            <div className="mx-auto w-10 h-1 rounded-full bg-app-border mt-2 mb-1 shrink-0" />
             <div className="px-4 pb-2 flex items-center justify-between shrink-0">
               <div>
-                <Drawer.Title className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                <Drawer.Title className="text-lg font-black text-app-text uppercase tracking-tight">
                   Ekle
                 </Drawer.Title>
                 <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider mt-1">
@@ -1131,7 +1118,7 @@ export default function RutinlerPage() {
               <button
                 type="button"
                 onClick={closeCatalog}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1139,7 +1126,7 @@ export default function RutinlerPage() {
 
             <div className="px-4 mb-3 shrink-0">
               {activePeriod !== "once" && (
-                <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-gray-200/80 bg-gray-100 w-full">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border/80 bg-app-tab-track w-full">
                   {(
                     [
                       { key: "catalog" as const, label: "Katalog", icon: ListBullets },
@@ -1155,8 +1142,8 @@ export default function RutinlerPage() {
                         onClick={() => handleTabChange(tab.key)}
                         className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
                           active
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-500 hover:text-gray-700"
+                            ? "bg-app-surface text-app-text shadow-sm"
+                            : "text-app-muted hover:text-app-text"
                         }`}
                       >
                         <TabIcon size={13} weight={active ? "fill" : "duotone"} />
@@ -1178,21 +1165,21 @@ export default function RutinlerPage() {
                   <MagnifyingGlass
                     size={16}
                     weight="bold"
-                    className="absolute left-7 top-1/2 -translate-y-1/2 text-gray-300"
+                    className="absolute left-7 top-1/2 -translate-y-1/2 text-app-muted"
                   />
                   <input
                     type="text"
                     value={catalogQuery}
                     onChange={(e) => setCatalogQuery(e.target.value)}
                     placeholder="Rutin ara..."
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-violet-400/40 outline-none placeholder:text-gray-400"
+                    className="w-full bg-app-surface-muted border border-app-border rounded-xl pl-9 pr-3 py-2.5 text-sm focus:border-violet-400/40 outline-none placeholder:text-app-muted"
                   />
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-5 min-h-0">
                   {filteredCatalog.map((group) => (
                     <div key={group.category}>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">
+                      <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 px-1">
                         {group.category}
                       </p>
                       <div className="grid grid-cols-3 gap-2">
@@ -1213,11 +1200,11 @@ export default function RutinlerPage() {
                               className={`rounded-xl border flex flex-col items-center justify-center px-2 py-3 transition-all ${
                                 added
                                   ? "bg-violet-50/60 border-violet-200/60 opacity-60 cursor-default"
-                                  : "bg-gray-50 border-gray-200/80 hover:border-violet-300 active:scale-95"
+                                  : "bg-app-surface-muted border-app-border/80 hover:border-violet-300 active:scale-95"
                               }`}
                             >
                               <span className="text-2xl mb-1">{item.emoji}</span>
-                              <span className="text-[10px] font-bold text-gray-800 text-center leading-tight line-clamp-2">
+                              <span className="text-[10px] font-bold text-app-text text-center leading-tight line-clamp-2">
                                 {item.name}
                               </span>
                             </button>
@@ -1256,12 +1243,12 @@ export default function RutinlerPage() {
               <div className="flex-1 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] min-h-0 overflow-y-auto">
                 {renderScheduleSelection()}
 
-                <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 space-y-4">
+                <div className="rounded-2xl border border-app-border bg-app-surface-muted/50 p-4 space-y-4">
                   <div className="flex justify-center">
                     <button
                       type="button"
                       onClick={() => setShowEmojiPicker(true)}
-                      className="w-20 h-20 bg-white border border-gray-200 rounded-2xl text-center text-4xl outline-none hover:border-violet-400/40 shadow-sm transition-all flex items-center justify-center active:scale-95"
+                      className="w-20 h-20 bg-app-surface border border-app-border rounded-2xl text-center text-4xl outline-none hover:border-violet-400/40 shadow-sm transition-all flex items-center justify-center active:scale-95"
                     >
                       {customEmoji}
                     </button>
@@ -1275,7 +1262,7 @@ export default function RutinlerPage() {
                       if (e.key === "Enter") void handleAddCustom();
                     }}
                     placeholder="Rutin adı yaz..."
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-violet-400/40 placeholder:text-gray-400 placeholder:font-medium"
+                    className="w-full bg-app-surface border border-app-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-violet-400/40 placeholder:text-app-muted placeholder:font-medium"
                     autoFocus
                   />
 
@@ -1321,12 +1308,12 @@ export default function RutinlerPage() {
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-gray-200/60 bg-white shadow-2xl outline-none overflow-hidden">
-            <div className="mx-auto w-10 h-1 rounded-full bg-gray-200 mt-2 mb-1 shrink-0" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-app-border/60 bg-app-surface shadow-2xl outline-none overflow-hidden">
+            <div className="mx-auto w-10 h-1 rounded-full bg-app-border mt-2 mb-1 shrink-0" />
             
             <div className="px-4 pb-2 flex items-center justify-between shrink-0">
               <div>
-                <Drawer.Title className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                <Drawer.Title className="text-lg font-black text-app-text uppercase tracking-tight">
                   Düzenle
                 </Drawer.Title>
                 <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider mt-1">
@@ -1336,7 +1323,7 @@ export default function RutinlerPage() {
               <button
                 type="button"
                 onClick={closeEdit}
-                className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 active:scale-95"
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text active:scale-95"
               >
                 <X size={16} weight="bold" />
               </button>
@@ -1345,19 +1332,19 @@ export default function RutinlerPage() {
             <div className="flex-1 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] min-h-0 overflow-y-auto pt-2">
               {renderScheduleSelection(true)}
 
-              <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 space-y-4">
+              <div className="rounded-2xl border border-app-border bg-app-surface-muted/50 p-4 space-y-4">
                 <div className="flex justify-center">
                   <button
                     type="button"
                     onClick={() => setShowEmojiPicker(true)}
-                    className="w-20 h-20 bg-white border border-gray-200 rounded-2xl text-center text-4xl outline-none hover:border-violet-400/40 shadow-sm transition-all flex items-center justify-center active:scale-95"
+                    className="w-20 h-20 bg-app-surface border border-app-border rounded-2xl text-center text-4xl outline-none hover:border-violet-400/40 shadow-sm transition-all flex items-center justify-center active:scale-95"
                   >
                     {editEmoji}
                   </button>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                  <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider px-1">
                     Rutin Adı
                   </p>
                   <input
@@ -1368,7 +1355,7 @@ export default function RutinlerPage() {
                       if (e.key === "Enter") void handleUpdateEntry();
                     }}
                     placeholder="Rutin adı..."
-                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-violet-400/40 placeholder:text-gray-400 placeholder:font-medium"
+                    className="w-full bg-app-surface border border-app-border rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-violet-400/40 placeholder:text-app-muted placeholder:font-medium"
                   />
                 </div>
 
@@ -1381,13 +1368,13 @@ export default function RutinlerPage() {
                       className={`w-full py-3.5 rounded-xl border-2 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
                         editingEntry.is_next_completed
                           ? "bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-200"
-                          : "bg-white border-blue-100 text-blue-500 hover:bg-blue-50"
+                          : "bg-app-surface border-blue-100 text-blue-500 hover:bg-blue-50"
                       }`}
                     >
                       <Check size={16} weight="bold" />
                       {editingEntry.is_next_completed ? "Gelecek Periyot Tamamlandı" : "Gelecek Periyot İçin Erkenden Tamamla"}
                     </button>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center mt-2 px-4">
+                    <p className="text-[9px] font-bold text-app-muted uppercase tracking-widest text-center mt-2 px-4">
                       Bu rutini şimdiden yaparak bir sonraki periyot için (yarın/gelecek hafta/gelecek ay) tamamlanmış sayılmasını sağlayabilirsiniz.
                     </p>
                   </div>

@@ -248,9 +248,9 @@ export default function CarcassonneScoreboard({
 
   if (!gameSave || !players) {
     return (
-      <div className="flex-1 overflow-y-auto px-4 py-6 bg-[#FAF9F7]">
+      <div className="flex-1 overflow-y-auto px-4 py-6 bg-app-bg">
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400 font-medium">Yükleniyor...</div>
+          <div className="text-app-muted font-medium">Yükleniyor...</div>
         </div>
       </div>
     );
@@ -262,22 +262,22 @@ export default function CarcassonneScoreboard({
 
   return (
     <div
-      className="flex-1 overflow-y-auto px-4 py-6 bg-[#FAF9F7]"
+      className="flex-1 overflow-y-auto px-4 py-6 bg-app-bg"
     >
       {/* Modal */}
       {modalOpen && activePlayer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-sm mx-4 p-6 border border-gray-100">
-            <h2 className="text-xl font-black text-gray-900 mb-1 uppercase tracking-tight">
+          <div className="bg-app-surface rounded-3xl shadow-xl w-full max-w-sm mx-4 p-6 border border-app-border">
+            <h2 className="text-xl font-black text-app-text mb-1 uppercase tracking-tight">
               Puan Ekle
             </h2>
-            <p className="text-sm text-gray-400 font-bold mb-6">
+            <p className="text-sm text-app-muted font-bold mb-6">
               {activePlayer.name} için yeni bir puan girişi oluştur.
             </p>
 
             {/* Tip seçimi */}
             <div className="mb-6">
-              <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+              <span className="block text-[10px] font-black text-app-muted uppercase tracking-widest mb-3">
                 Puan Tipi
               </span>
               <div className="flex flex-wrap gap-2">
@@ -292,7 +292,7 @@ export default function CarcassonneScoreboard({
                       className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
                         selected
                           ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-900/20"
-                          : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100"
+                          : "bg-app-surface-muted text-app-muted border-app-border hover:bg-app-tab-track"
                       }`}
                     >
                       {SCORE_TYPE_LABELS[type]} ({pointValue}pt)
@@ -304,7 +304,7 @@ export default function CarcassonneScoreboard({
 
             {/* Adet girdisi */}
             <div className="mb-8">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+              <label className="block text-[10px] font-black text-app-muted uppercase tracking-widest mb-3">
                 Adet
               </label>
               <input
@@ -316,7 +316,7 @@ export default function CarcassonneScoreboard({
                     parseInt(e.target.value, 10)
                   )
                 }
-                className="w-full h-12 text-center text-lg font-black text-gray-900 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-amber-500 transition-all"
+                className="w-full h-12 text-center text-lg font-black text-app-text bg-app-surface-muted border border-app-border rounded-2xl focus:outline-none focus:border-amber-500 transition-all"
               />
           
             </div>
@@ -325,7 +325,7 @@ export default function CarcassonneScoreboard({
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 py-3 rounded-2xl text-sm font-bold text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all"
+                className="flex-1 py-3 rounded-2xl text-sm font-bold text-app-muted hover:text-app-text hover:bg-app-surface-muted transition-all"
               >
                 İptal
               </button>
@@ -357,7 +357,7 @@ export default function CarcassonneScoreboard({
           return (
             <div
               key={player._id}
-              className="bg-white rounded-3xl p-5 border border-gray-200/60 shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-app-surface rounded-3xl p-5 border border-app-border shadow-sm hover:shadow-md transition-all duration-300"
             >
               {/* Header */}
               <div className="flex items-center space-x-4">
@@ -376,11 +376,11 @@ export default function CarcassonneScoreboard({
                 )}
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-black text-gray-900 truncate uppercase tracking-tight">
+                  <h3 className="text-lg font-black text-app-text truncate uppercase tracking-tight">
                     {player.name}
                   </h3>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-app-muted">
                       Toplam:
                     </span>
                     <span className="text-sm font-black text-amber-500">
@@ -400,7 +400,7 @@ export default function CarcassonneScoreboard({
                 {/* Expand button */}
                 <button
                   onClick={toggleExpand}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-app-muted hover:text-app-text hover:bg-app-surface-muted transition-all"
                 >
                   <CaretDown
                     size={18}
@@ -414,15 +414,15 @@ export default function CarcassonneScoreboard({
 
               {/* Preview row under card */}
               {preview && (
-                <div className="mt-4 px-3 py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 uppercase tracking-wide">
+                <div className="mt-4 px-3 py-2 bg-app-surface-muted rounded-xl text-[10px] font-bold text-app-muted uppercase tracking-wide">
                   <span>{preview}</span>
                 </div>
               )}
               {/* Expanded detailed list */}
               {isExpanded && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-app-border">
                   {scores.entries.length === 0 ? (
-                    <p className="text-xs font-bold text-gray-400 text-center py-2">
+                    <p className="text-xs font-bold text-app-muted text-center py-2">
                       Henüz hiç puan girişi yapılmamış.
                     </p>
                   ) : (
@@ -433,13 +433,13 @@ export default function CarcassonneScoreboard({
                         .map((entry: any) => (
                           <li
                             key={entry.id}
-                            className="flex items-center justify-between p-2 bg-gray-50/50 rounded-xl border border-gray-100/50"
+                            className="flex items-center justify-between p-2 bg-app-surface-muted/50 rounded-xl border border-app-border/50"
                           >
                             <div className="flex-1">
-                              <span className="text-xs font-bold text-gray-700 uppercase tracking-tight">
+                              <span className="text-xs font-bold text-app-text uppercase tracking-tight">
                                 {(SCORE_TYPE_LABELS as any)[entry.type]}
                               </span>
-                              <span className="ml-2 text-[10px] font-black text-gray-400">
+                              <span className="ml-2 text-[10px] font-black text-app-muted">
                                 × {entry.quantity}
                               </span>
                             </div>
@@ -449,7 +449,7 @@ export default function CarcassonneScoreboard({
                               </span>
                               <button
                                 onClick={() => deleteScoreEntry(player._id, entry.id)}
-                                className="w-7 h-7 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                className="w-7 h-7 flex items-center justify-center text-app-muted hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                 title="Sil"
                               >
                                 <Trash size={14} weight="bold" />

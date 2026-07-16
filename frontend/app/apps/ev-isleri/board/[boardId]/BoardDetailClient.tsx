@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import { Toaster, toast } from "react-hot-toast";
+import CreateBoardDrawer from "../../components/CreateBoardDrawer";
 import EvIsleriShell from "../../components/EvIsleriShell";
-import WeeklyBoard, { MembersBar } from "../../components/WeeklyBoard";
+import RoutineList, { MembersBar } from "../../components/WeeklyBoard";
+import BoardSwitcherDrawer from "../../components/BoardSwitcherDrawer";
 import {
+  createBoardAction,
   createBoardInviteAction,
   getBoardMembersAction,
   getWeekPlanAction,
@@ -15,24 +17,34 @@ import {
   setAssignmentAction,
   toggleAssignmentCompleteAction,
 } from "../../actions";
-import type { BoardMember, ChoreTemplate, WeekAssignment } from "../../types";
-import {
-  formatWeekRange,
-  getMondayWeekStart,
-  shiftWeekStart,
-} from "../../types";
+import type { Board, BoardMember, ChoreTemplate, WeekAssignment } from "../../types";
+import { getMondayWeekStart } from "../../types";
 import { createBrowserClient } from "@/lib/api";
+import { setLastBoardId } from "../../lastBoard";
 
-export default function BoardDetailClient({ boardId }: { boardId: string }) {
-  const router = useRouter();
+export default function BoardDetailClient({
+  boardId,
+  boards,
+  onBoardsChange,
+  onBoardChange,
+}: {
+  boardId: string;
+  boards: Board[];
+  onBoardsChange: (boards: Board[]) => void;
+  onBoardChange: (boardId: string) => void;
+}) {
   const { user, isLoaded } = useUser();
 
   const [boardName, setBoardName] = useState("");
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [assignments, setAssignments] = useState<WeekAssignment[]>([]);
-  const [weekStart, setWeekStart] = useState(getMondayWeekStart());
   const [loading, setLoading] = useState(true);
   const [myRole, setMyRole] = useState<"owner" | "member">("member");
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newBoardName, setNewBoardName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const weekStart = getMondayWeekStart();
 
   const loadBoard = useCallback(async () => {
     if (!user || !boardId) return;
@@ -76,13 +88,23 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
     void loadBoard();
   }, [isLoaded, user, loadBoard]);
 
-  async function handleAssign(dayOfWeek: number, chore: ChoreTemplate, assigneeClerkId: string) {
+  useEffect(() => {
+    if (boardId) setLastBoardId(boardId);
+  }, [boardId]);
+
+  async function handleAssign(
+    recurrenceType: "daily" | "weekly" | "monthly",
+    scheduleDay: number,
+    chore: ChoreTemplate,
+    assigneeClerkId: string
+  ) {
     if (!user) return;
     const result = await setAssignmentAction({
       clerkId: user.id,
       boardId,
       weekStart,
-      dayOfWeek,
+      recurrenceType,
+      dayOfWeek: scheduleDay,
       choreSlug: chore.slug,
       choreName: chore.name,
       choreIcon: chore.icon,
@@ -93,7 +115,56 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
       return;
     }
     await loadBoard();
-    toast.success("Görev atandı");
+    toast.success("Görev eklendi");
+  }
+
+  async function handleUpdate(
+    assignment: WeekAssignment,
+    params: {
+      recurrenceType: "daily" | "weekly" | "monthly";
+      scheduleDay: number;
+      assigneeClerkId: string;
+    }
+  ) {
+    if (!user) return;
+
+    const oldType = assignment.recurrenceType ?? "weekly";
+    const scheduleChanged =
+      oldType !== params.recurrenceType || assignment.dayOfWeek !== params.scheduleDay;
+    const assigneeChanged = assignment.assigneeClerkId !== params.assigneeClerkId;
+
+    if (!scheduleChanged && !assigneeChanged) {
+      return;
+    }
+
+    if (scheduleChanged) {
+      const removeResult = await removeAssignmentAction(user.id, assignment.id);
+      if (removeResult.error) {
+        toast.error(removeResult.error);
+        return;
+      }
+    }
+
+    const result = await setAssignmentAction({
+      clerkId: user.id,
+      boardId,
+      weekStart,
+      recurrenceType: params.recurrenceType,
+      dayOfWeek: params.scheduleDay,
+      choreSlug: assignment.choreSlug,
+      choreName: assignment.choreName,
+      choreIcon: assignment.choreIcon,
+      assigneeUserId: params.assigneeClerkId,
+    });
+
+    if (result.error) {
+      toast.error(result.error);
+      if (scheduleChanged) await loadBoard();
+      return;
+    }
+
+    await loadBoard();
+    toast.success("Görev güncellendi");
   }
 
   async function handleToggleComplete(assignmentId: string) {
@@ -123,6 +194,7 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
       return;
     }
     setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    toast.success("Görev kaldırıldı");
   }
 
   async function handleInvite() {
@@ -148,10 +220,42 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
     toast.success("Üye kaldırıldı");
   }
 
+  async function handleCreateBoard(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !newBoardName.trim()) return;
+    setCreating(true);
+    try {
+      const result = await createBoardAction(user.id, newBoardName.trim());
+      if (result.error || !result.data) {
+        toast.error(result.error ?? "Oluşturulamadı");
+        return;
+      }
+      const created = result.data;
+      onBoardsChange([created, ...boards]);
+      onBoardChange(created.id);
+      setShowCreate(false);
+      setNewBoardName("");
+      toast.success("Board oluşturuldu");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function handleBoardDeleted(nextBoards: Board[]) {
+    onBoardsChange(nextBoards);
+    if (nextBoards.length === 0) {
+      onBoardChange("");
+      return;
+    }
+    if (!nextBoards.some((board) => board.id === boardId)) {
+      onBoardChange(nextBoards[0].id);
+    }
+  }
+
   if (!isLoaded || loading) {
     return (
-      <EvIsleriShell onBack={() => router.push("/apps/ev-isleri")}>
-        <div className="text-center py-20 text-gray-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+      <EvIsleriShell>
+        <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
           Yükleniyor...
         </div>
       </EvIsleriShell>
@@ -160,8 +264,8 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
 
   if (!user) {
     return (
-      <EvIsleriShell onBack={() => router.push("/apps/ev-isleri")}>
-        <p className="text-center text-sm font-bold text-gray-400 py-16">Giriş yapmalısın.</p>
+      <EvIsleriShell>
+        <p className="text-center text-sm font-bold text-app-muted py-16">Giriş yapmalısın.</p>
       </EvIsleriShell>
     );
   }
@@ -169,7 +273,7 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
   return (
     <EvIsleriShell
       title={boardName || "Board"}
-      onBack={() => router.push("/apps/ev-isleri")}
+      onTitleClick={() => setSwitcherOpen(true)}
     >
       <Toaster position="top-center" />
 
@@ -180,17 +284,38 @@ export default function BoardDetailClient({ boardId }: { boardId: string }) {
         onRemoveMember={handleRemoveMember}
       />
 
-      <WeeklyBoard
+      <RoutineList
         weekStart={weekStart}
-        weekLabel={formatWeekRange(weekStart)}
+        weekLabel=""
         assignments={assignments}
         members={members}
         currentUserId={user.id}
-        onPrevWeek={() => setWeekStart((w) => shiftWeekStart(w, -1))}
-        onNextWeek={() => setWeekStart((w) => shiftWeekStart(w, 1))}
+        onPrevWeek={() => {}}
+        onNextWeek={() => {}}
         onAssign={handleAssign}
+        onUpdate={handleUpdate}
         onToggleComplete={handleToggleComplete}
         onRemove={handleRemove}
+      />
+
+      <BoardSwitcherDrawer
+        open={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+        boards={boards}
+        activeBoardId={boardId}
+        onSelect={onBoardChange}
+        onCreate={() => setShowCreate(true)}
+        onBoardsChange={handleBoardDeleted}
+        userId={user.id}
+      />
+
+      <CreateBoardDrawer
+        open={showCreate}
+        onOpenChange={setShowCreate}
+        boardName={newBoardName}
+        onBoardNameChange={setNewBoardName}
+        onSubmit={(e) => void handleCreateBoard(e)}
+        creating={creating}
       />
     </EvIsleriShell>
   );

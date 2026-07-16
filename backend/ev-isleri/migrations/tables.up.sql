@@ -40,6 +40,32 @@ CREATE TABLE IF NOT EXISTS ev_isleri.custom_chores (
     UNIQUE (board_id, slug)
 );
 
+CREATE TABLE IF NOT EXISTS ev_isleri.routine_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    board_id UUID NOT NULL REFERENCES ev_isleri.boards(id) ON DELETE CASCADE,
+    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+    chore_slug TEXT NOT NULL,
+    chore_name TEXT NOT NULL,
+    chore_icon TEXT,
+    assignee_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (board_id, day_of_week, chore_slug)
+);
+
+CREATE TABLE IF NOT EXISTS ev_isleri.routine_completions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    routine_id UUID NOT NULL REFERENCES ev_isleri.routine_assignments(id) ON DELETE CASCADE,
+    week_start DATE NOT NULL,
+    completed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    completed_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    UNIQUE (routine_id, week_start)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ev_isleri_routine_assignments_board
+    ON ev_isleri.routine_assignments(board_id, day_of_week);
+CREATE INDEX IF NOT EXISTS idx_ev_isleri_routine_completions_week
+    ON ev_isleri.routine_completions(week_start);
+
 CREATE TABLE IF NOT EXISTS ev_isleri.assignments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     board_id UUID NOT NULL REFERENCES ev_isleri.boards(id) ON DELETE CASCADE,

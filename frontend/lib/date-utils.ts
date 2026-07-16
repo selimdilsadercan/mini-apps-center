@@ -1,3 +1,38 @@
+export const APP_TIMEZONE = "Europe/Istanbul";
+
+export function getDateKeyInTimezone(date: Date, timeZone = APP_TIMEZONE): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(date);
+}
+
+function addDaysToDateKey(dateKey: string, days: number): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const dt = new Date(y, m - 1, d + days);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+export function isPostponedUntilFutureDay(
+  postponedUntil: string | null | undefined,
+  now = new Date(),
+  timeZone = APP_TIMEZONE,
+): boolean {
+  if (!postponedUntil) return false;
+  return (
+    getDateKeyInTimezone(new Date(postponedUntil), timeZone) >
+    getDateKeyInTimezone(now, timeZone)
+  );
+}
+
+export function getTomorrowMidnightIso(timeZone = APP_TIMEZONE): string {
+  const tomorrowKey = addDaysToDateKey(getDateKeyInTimezone(new Date(), timeZone), 1);
+  if (timeZone === "Europe/Istanbul") {
+    return `${tomorrowKey}T00:00:00+03:00`;
+  }
+  const fallback = new Date();
+  fallback.setDate(fallback.getDate() + 1);
+  fallback.setHours(0, 0, 0, 0);
+  return fallback.toISOString();
+}
+
 export interface DateKeyword {
   keywords: string[];
   getDate: () => Date;

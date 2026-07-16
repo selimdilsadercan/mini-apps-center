@@ -98,41 +98,41 @@ export default function CampusEventsPage() {
       <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} key={event.id}>
         <Link
           href={`/apps/campus-events/event?id=${event.id}`}
-          className="flex gap-3 bg-white border border-gray-200/60 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-all hover:border-sky-200"
+          className="flex gap-3 bg-app-surface border border-app-border rounded-xl p-3 shadow-sm active:scale-[0.99] transition-all hover:border-sky-200"
         >
           <div className="relative shrink-0 w-[72px]">
-            <div className="w-[72px] aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+            <div className="w-[72px] aspect-square rounded-xl overflow-hidden bg-app-surface-muted border border-app-border">
               {event.image_url ? (
                 <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Megaphone size={24} className="text-gray-200" />
+                  <Megaphone size={24} className="text-app-muted" />
                 </div>
               )}
             </div>
             <div
               className={`absolute -top-1 -left-1 w-10 rounded-lg flex flex-col items-center justify-center py-0.5 shadow-sm border ${
-                isPast ? "bg-gray-100 border-gray-200 text-gray-500" : "bg-white border-gray-200"
+                isPast ? "bg-app-tab-track border-app-border text-app-muted" : "bg-app-surface border-app-border"
               }`}
             >
               <span className="text-xs font-black leading-none">{day}</span>
-              <span className="text-[8px] font-bold uppercase leading-none text-gray-500">{month}</span>
+              <span className="text-[8px] font-bold uppercase leading-none text-app-muted">{month}</span>
             </div>
           </div>
 
           <div className="min-w-0 flex-1 py-0.5">
-            <h3 className="text-sm font-black text-gray-900 leading-snug line-clamp-2">{event.title}</h3>
+            <h3 className="text-sm font-black text-app-text leading-snug line-clamp-2">{event.title}</h3>
             {event.organizer_club && (
               <p className="text-[10px] font-bold mt-0.5 truncate" style={{ color: ACCENT }}>
                 {event.organizer_club}
               </p>
             )}
-            <div className="flex items-center gap-1.5 text-gray-400 mt-2 text-[10px] font-medium">
+            <div className="flex items-center gap-1.5 text-app-muted mt-2 text-[10px] font-medium">
               <Calendar size={12} weight="bold" className="shrink-0" />
               <span>{time}</span>
             </div>
             {event.location && (
-              <div className="flex items-center gap-1.5 text-gray-400 mt-0.5 text-[10px] font-medium">
+              <div className="flex items-center gap-1.5 text-app-muted mt-0.5 text-[10px] font-medium">
                 <MapPin size={12} weight="bold" className="shrink-0" />
                 <span className="truncate">{event.location}</span>
               </div>
@@ -151,13 +151,13 @@ export default function CampusEventsPage() {
       onAdd={handleAdd}
       searchBar={
         <div className="relative">
-          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Etkinlik, topluluk veya mekan ara…"
-            className="w-full bg-white border border-gray-200/60 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-sky-400 outline-none transition-all placeholder:text-gray-400 text-gray-900 shadow-sm"
+            className="w-full bg-app-surface border border-app-border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-sky-400 outline-none transition-all placeholder:text-app-muted text-app-text shadow-sm"
           />
         </div>
       }
@@ -167,12 +167,12 @@ export default function CampusEventsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="w-7 h-7 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-gray-400 text-xs font-medium">Yükleniyor…</span>
+          <span className="text-app-muted text-xs font-medium">Yükleniyor…</span>
         </div>
       ) : displayEvents.length === 0 ? (
-        <div className="text-center py-14 bg-white border border-gray-200/60 rounded-2xl flex flex-col items-center p-6 shadow-sm">
-          <Megaphone size={36} className="text-gray-200 mb-3" />
-          <p className="text-sm font-bold text-gray-500">
+        <div className="text-center py-14 bg-app-surface border border-app-border rounded-2xl flex flex-col items-center p-6 shadow-sm">
+          <Megaphone size={36} className="text-app-muted mb-3" />
+          <p className="text-sm font-bold text-app-muted">
             {activeTab === "upcoming" ? "Yaklaşan etkinlik yok." : "Geçmiş etkinlik yok."}
           </p>
           {activeTab === "upcoming" && (
@@ -198,11 +198,11 @@ export default function CampusEventsPage() {
       <Drawer.Root open={showAddDrawer} onOpenChange={setShowAddDrawer}>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
-          <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-50 max-w-xl mx-auto border-t border-gray-200">
+          <Drawer.Content className="bg-app-surface text-app-text flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-50 max-w-xl mx-auto border-t border-app-border">
             <div className="p-6 overflow-y-auto flex-1">
-              <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-100 mb-6" />
+              <div className="mx-auto w-12 h-1.5 rounded-full bg-app-tab-track mb-6" />
               <Drawer.Title className="text-xl font-black mb-1">Etkinlik Ekle</Drawer.Title>
-              <Drawer.Description className="text-xs text-gray-500 mb-6">
+              <Drawer.Description className="text-xs text-app-muted mb-6">
                 Topluluğun adına veya genel bir etkinliği buraya gir.
               </Drawer.Description>
               <SuggestEventForm
@@ -311,7 +311,7 @@ function SuggestEventForm({
             value={instagramUrl}
             onChange={(e) => setInstagramUrl(e.target.value)}
             placeholder="Post veya Reel linki yapıştır..."
-            className="flex-1 bg-white border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-gray-800 font-semibold"
+            className="flex-1 bg-app-surface border border-purple-200 rounded-xl px-3.5 py-2.5 text-xs focus:border-purple-400 focus:ring-4 focus:ring-purple-400/5 outline-none text-app-text font-semibold"
           />
           <button
             type="button"
@@ -333,74 +333,74 @@ function SuggestEventForm({
 
       {/* Title */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Etkinlik Başlığı</label>
         <input
           required
           type="text"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Örn: Python Giriş Workshop'ı"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold"
         />
       </div>
 
       {/* Organizer Club */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Düzenleyen Topluluk</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Düzenleyen Topluluk</label>
         <input
           type="text"
           value={formData.organizerClub}
           onChange={(e) => setFormData({ ...formData, organizerClub: e.target.value })}
           placeholder="Örn: Şehir Koşu Grubu"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold"
         />
       </div>
 
       {/* Date */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Tarih & Saat</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Tarih & Saat</label>
         <input
           required
           type="datetime-local"
           value={formData.eventDate}
           onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold"
         />
       </div>
 
       {/* Location */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Konum / Mekan</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Konum / Mekan</label>
         <input
           type="text"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           placeholder="Örn: Beşiktaş Sahil"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold"
         />
       </div>
 
       {/* Image URL */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Afiş / Görsel Linki (Opsiyonel)</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Afiş / Görsel Linki (Opsiyonel)</label>
         <input
           type="url"
           value={formData.imageUrl}
           onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
           placeholder="Örn: https://example.com/banner.png"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Açıklama / Detaylar</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Açıklama / Detaylar</label>
         <textarea
           rows={3}
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Etkinlik içeriği ve katılım şartları hakkında bilgi girin..."
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-gray-800 font-semibold resize-none"
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl px-4 py-3.5 text-sm focus:border-[#00aeef] focus:ring-4 focus:ring-[#00aeef]/5 outline-none text-app-text font-semibold resize-none"
         />
       </div>
 

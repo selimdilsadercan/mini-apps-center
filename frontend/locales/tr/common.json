@@ -9,7 +9,20 @@
     "removedToast": "Ana ekrandan kaldırıldı",
     "dashboardWidgetTitle": "İşletme Paneli",
     "dashboardWidgetSubtitle": "Menü, stamp & feedback",
-    "adminWidgetTitle": "Yönetim Paneli"
+    "adminWidgetTitle": "Yönetim Paneli",
+    "greetingMorning": "Günaydın",
+    "greetingAfternoon": "İyi günler",
+    "greetingEvening": "İyi akşamlar",
+    "guestName": "Misafir",
+    "tabDiscover": "Bugünün özeti",
+    "tabExplore": "Şehir ve mekanlar",
+    "tabHobby": "Hobilerin",
+    "tabWallet": "Finans özeti",
+    "tabLife": "Yaşam alanın",
+    "adminPanel": "Yönetim",
+    "businessPanel": "İşletme paneli",
+    "appList": "Uygulama listesi",
+    "moreActions": "Diğer işlemler"
   },
   "discover": {
     "title": "Everything Merkezi",
@@ -35,6 +48,10 @@
   "profile": {
     "title": "Profil",
     "language": "Dil",
+    "theme": "Tema",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "themeSystem": "Sistem",
     "selectLanguage": "Dil Seçin",
     "turkish": "Türkçe",
     "english": "English",
@@ -322,6 +339,10 @@
     "gym": {
       "name": "Gym",
       "description": "Antrenmanlarını kaydet, rutinler oluştur ve ilerlemeni takip et."
+    },
+    "buyuk-maclar": {
+      "name": "Büyük Maçlar",
+      "description": "Dünya Kupası ve diğer büyük turnuvaların canlı / yaklaşan maçları."
     },
     "meal-planner": {
       "name": "Meal Planner",

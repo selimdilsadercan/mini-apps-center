@@ -70,11 +70,12 @@ export const MobileThemeProvider: React.FC<MobileThemeProviderProps> = ({ childr
     }
 
     // Default system/hub values
+    const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
     return {
-      statusBarColor: "#FAF9F7",
-      statusBarStyle: "light", // light background (dark text)
-      navigationBarColor: "#FAF9F7",
-      navigationBarStyle: "light",
+      statusBarColor: isDark ? "#09090b" : "#FAF9F7",
+      statusBarStyle: isDark ? "dark" : "light",
+      navigationBarColor: isDark ? "#09090b" : "#FAF9F7",
+      navigationBarStyle: isDark ? "dark" : "light",
     };
   };
 
@@ -82,6 +83,16 @@ export const MobileThemeProvider: React.FC<MobileThemeProviderProps> = ({ childr
   useEffect(() => {
     const defaultTheme = getDefaultThemeForPath(pathname);
     setThemeConfig(defaultTheme);
+  }, [pathname]);
+
+  // Re-apply when dark class toggles (hub / renewed apps)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const observer = new MutationObserver(() => {
+      setThemeConfig(getDefaultThemeForPath(pathname));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
   }, [pathname]);
 
   // Apply the configurations to Capacitor native plugins and DOM body
@@ -93,8 +104,8 @@ export const MobileThemeProvider: React.FC<MobileThemeProviderProps> = ({ childr
         const isDark = document.documentElement.classList.contains("dark");
         
         // Determine final colors
-        const finalSbColor = themeConfig.statusBarColor || (isDark ? "#100d16" : "#FAF9F7");
-        const finalNbColor = themeConfig.navigationBarColor || (isDark ? "#100d16" : "#FFFFFF");
+        const finalSbColor = themeConfig.statusBarColor || (isDark ? "#09090b" : "#FAF9F7");
+        const finalNbColor = themeConfig.navigationBarColor || (isDark ? "#09090b" : "#FAF9F7");
 
         // 1. Color DOM html & body background for safe area coloring in WebViews/Browsers (iOS and mobile Web)
         document.documentElement.style.backgroundColor = finalNbColor;
