@@ -359,6 +359,14 @@
     "surdurulebilirlik": {
       "name": "Sürdürülebiliriz",
       "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."
+    },
+    "store-preview": {
+      "name": "Store Preview",
+      "description": "App Store ekran görüntüleri için site önizleme ve capture aracı."
+    },
+    "icon-export": {
+      "name": "Icon Export",
+      "description": "Tek PNG'den iOS, Android ve web için tüm ikon boyutlarını ZIP olarak indir."
     }
   },
   "birikim": {

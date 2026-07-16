@@ -56,6 +56,8 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   weather: "/apps/daily-weather",
   menu: "/apps/digital-menu",
   dashboard: "/dashboard",
+  storepreview: "/apps/store-preview",
+  iconexport: "/apps/icon-export",
 };
 
 /**

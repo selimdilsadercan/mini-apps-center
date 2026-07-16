@@ -78,6 +78,7 @@
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
     "fabric": "^7.3.1",
+    "fflate": "^0.8.3",
     "firebase": "^11.10.0",
     "framer-motion": "^12.38.0",
     "html-to-image": "^1.11.13",

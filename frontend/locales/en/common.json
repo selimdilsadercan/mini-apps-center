@@ -363,6 +363,14 @@
     "surdurulebilirlik": {
       "name": "We're Sustainable",
       "description": "Track your eco-friendly steps and contribute to our world."
+    },
+    "store-preview": {
+      "name": "Store Preview",
+      "description": "Browse your site and capture App Store-ready screenshots."
+    },
+    "icon-export": {
+      "name": "Icon Export",
+      "description": "Generate iOS, Android, and web icon sizes from one PNG as a ZIP."
     }
   },
   "birikim": {

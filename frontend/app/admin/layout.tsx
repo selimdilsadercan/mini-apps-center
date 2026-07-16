@@ -7,7 +7,9 @@ import {
   ShieldCheck,
   ChartBar,
   House,
-  SquaresFour
+  SquaresFour,
+  Camera,
+  ImageSquare,
 } from "@phosphor-icons/react";
 import { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -34,6 +36,18 @@ function Sidebar() {
       icon: ChartBar,
       path: "/admin/stats",
       active: pathname.startsWith("/admin/stats")
+    },
+    {
+      title: "Store Preview",
+      icon: Camera,
+      path: "/apps/store-preview",
+      active: pathname.startsWith("/apps/store-preview")
+    },
+    {
+      title: "Icon Export",
+      icon: ImageSquare,
+      path: "/apps/icon-export",
+      active: pathname.startsWith("/apps/icon-export")
     }
   ];
 

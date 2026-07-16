@@ -37,6 +37,8 @@ import {
   Broom,
   CalendarBlank,
   Leaf,
+  Camera,
+  ImageSquare,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -876,6 +878,32 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/apply-tracker",
     isImplemented: true,
     subdomain: "basvuru",
+    isCancelled: true,
+  },
+  {
+    id: "store-preview",
+    name: "Store Preview",
+    description: "App Store ekran görüntüleri için site önizleme ve capture aracı.",
+    cta: "App Store Görselleri Al",
+    icon: Camera,
+    category: "Pratik Araçlar",
+    color: "#7C3AED",
+    href: "/apps/store-preview",
+    isImplemented: true,
+    subdomain: "storepreview",
+    isCancelled: true,
+  },
+  {
+    id: "icon-export",
+    name: "Icon Export",
+    description: "Tek PNG'den iOS, Android ve web için tüm ikon boyutlarını ZIP olarak indir.",
+    cta: "İkon Paketi Oluştur",
+    icon: ImageSquare,
+    category: "Pratik Araçlar",
+    color: "#0EA5E9",
+    href: "/apps/icon-export",
+    isImplemented: true,
+    subdomain: "iconexport",
     isCancelled: true,
   },
 ];
