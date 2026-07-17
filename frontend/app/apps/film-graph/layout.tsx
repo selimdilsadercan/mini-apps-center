@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Film Graph | Visualization",
-  description:
-    "Explore connections between actors and directors in the movies you've watched",
+  title: "Film Keşfet",
+  description: "Popüler filmleri keşfet, listene ekle ve bağlantı graph'ını incele",
 };
 
 export default function RootLayout({
@@ -11,9 +10,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <div className="dark contents">
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }

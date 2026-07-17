@@ -25,6 +25,7 @@ import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "./ExercisePicker";
 import SessionStatsEditSheet, { SessionStatsBar } from "./SessionStatsEditSheet";
 import ExerciseBlock from "./ExerciseBlock";
+import ExerciseSortableList from "./ExerciseSortableList";
 import { saveWorkoutAction, getPreviousSetsAction } from "../actions";
 import { invalidateGymStats, prependWorkoutToCache, syncTodayGymCompletionInDiscoverCache, syncGymDiscoverWidgets } from "@/lib/cache/gymCache";
 
@@ -125,6 +126,11 @@ export default function ActiveSessionSheet({
     if (!session) return;
     const exercises = [...session.exercises];
     exercises[idx] = exercise;
+    updateSession({ ...session, exercises });
+  };
+
+  const reorderExercises = (exercises: WorkoutExercise[]) => {
+    if (!session) return;
     updateSession({ ...session, exercises });
   };
 
@@ -238,20 +244,25 @@ export default function ActiveSessionSheet({
 
           {/* Exercises Scroll View */}
           <main className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {session.exercises.map((exercise, exIdx) => (
-              <ExerciseBlock
-                key={`${exercise.slug}-${exIdx}`}
-                exercise={exercise}
-                catalog={catalog}
-                previousSets={previousMap[exercise.slug] ?? []}
-                onChange={(ex) => updateExercise(exIdx, ex)}
-                variant="sheet"
-              />
-            ))}
+            <ExerciseSortableList
+              items={session.exercises}
+              onReorder={reorderExercises}
+              renderItem={(exercise, exIdx, dragHandle) => (
+                <ExerciseBlock
+                  key={`${exercise.slug}-${exIdx}`}
+                  exercise={exercise}
+                  catalog={catalog}
+                  previousSets={previousMap[exercise.slug] ?? []}
+                  onChange={(ex) => updateExercise(exIdx, ex)}
+                  variant="sheet"
+                  dragHandle={dragHandle}
+                />
+              )}
+            />
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-sm font-bold text-app-muted hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50/20 dark:hover:bg-violet-950/20 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-sm font-bold text-app-muted hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
             >
               <Plus size={16} weight="bold" />
               Egzersiz Ekle
@@ -291,7 +302,7 @@ export default function ActiveSessionSheet({
               ) : (
                 <ExercisePicker
                   catalog={catalog}
-                  onSelect={(ex) => addExercise({ slug: ex.slug, name: ex.name })}
+                  onSelect={(ex) => addExercise(ex)}
                 />
               )}
             </div>

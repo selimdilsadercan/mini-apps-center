@@ -18,6 +18,7 @@ export interface ExerciseRef {
   slug: string;
   name: string;
   sets?: RoutineSet[];
+  trackingType?: "weighted" | "bodyweight" | "duration";
 }
 
 export interface WorkoutSet {

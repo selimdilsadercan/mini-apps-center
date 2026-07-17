@@ -59,6 +59,39 @@ export function getPublicSubdomainUrl(subdomain: string, path: string): string {
 /** Hub ana sayfası path'i (Capacitor + web aynı origin). */
 export const APP_HOME_PATH = "/home";
 
+export const HOME_TABS = ["discover", "explore", "hobby", "wallet", "life"] as const;
+export type HomeTab = (typeof HOME_TABS)[number];
+
+export const HOME_TAB_STORAGE_KEY = "last_active_tab";
+const DEFAULT_HOME_TAB: HomeTab = "discover";
+
+export function isValidHomeTab(tab: string | null | undefined): tab is HomeTab {
+  return tab != null && (HOME_TABS as readonly string[]).includes(tab);
+}
+
+/** Aktif hub sekmesini history + localStorage'a yazar (geri dönüş için). */
+export function persistHomeTab(tab: HomeTab): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(HOME_TAB_STORAGE_KEY, tab);
+  window.history.replaceState({ ...(window.history.state ?? {}), homeTab: tab }, "");
+}
+
+/**
+ * /home açılışında hangi sekmenin seçileceğini belirler.
+ * - ?tab= → AppBar veya uygulama geri tuşu
+ * - history.state.homeTab → tarayıcı / router geri
+ * - aksi halde → discover (sıfır açılış)
+ */
+export function resolveInitialHomeTab(queryTab: string | null): HomeTab {
+  if (typeof window === "undefined") return DEFAULT_HOME_TAB;
+  if (isValidHomeTab(queryTab)) return queryTab;
+
+  const stateTab = window.history.state?.homeTab;
+  if (isValidHomeTab(stateTab)) return stateTab;
+
+  return DEFAULT_HOME_TAB;
+}
+
 /**
  * Geri dön / hub linki.
  * Capacitor'da relative path; web'de my subdomain tam URL.

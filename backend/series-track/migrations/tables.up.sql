@@ -82,7 +82,69 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='series_track' AND table_name='programs' AND column_name='season_number') THEN
         ALTER TABLE series_track.programs ADD COLUMN season_number INTEGER;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='series_track' AND table_name='programs' AND column_name='slot_time') THEN
+        ALTER TABLE series_track.programs ADD COLUMN slot_time TEXT NOT NULL DEFAULT '19:00';
+    END IF;
 END $$;
+
+-- Assign distinct slot times per channel and dedupe before unique index
+DO $$
+BEGIN
+    WITH ranked AS (
+        SELECT
+            id,
+            ROW_NUMBER() OVER (
+                PARTITION BY channel_id
+                ORDER BY start_date DESC NULLS LAST, created_at DESC
+            ) AS rn
+        FROM series_track.programs
+        WHERE status = 'active'
+    )
+    UPDATE series_track.programs p
+    SET slot_time = CASE ranked.rn
+        WHEN 1 THEN '19:00'
+        WHEN 2 THEN '21:00'
+        WHEN 3 THEN '23:00'
+        ELSE '19:00'
+    END
+    FROM ranked
+    WHERE p.id = ranked.id AND ranked.rn <= 3;
+
+    WITH ranked AS (
+        SELECT
+            id,
+            ROW_NUMBER() OVER (
+                PARTITION BY channel_id
+                ORDER BY start_date DESC NULLS LAST, created_at DESC
+            ) AS rn
+        FROM series_track.programs
+        WHERE status = 'active'
+    )
+    UPDATE series_track.programs p
+    SET status = 'finished'
+    FROM ranked
+    WHERE p.id = ranked.id AND ranked.rn > 3;
+
+    WITH dups AS (
+        SELECT
+            id,
+            ROW_NUMBER() OVER (
+                PARTITION BY channel_id, slot_time
+                ORDER BY start_date DESC NULLS LAST, created_at DESC
+            ) AS rn
+        FROM series_track.programs
+        WHERE status = 'active'
+    )
+    UPDATE series_track.programs p
+    SET status = 'finished'
+    FROM dups
+    WHERE p.id = dups.id AND dups.rn > 1;
+END $$;
+
+DROP INDEX IF EXISTS series_track.idx_tv_programs_channel_slot_active;
+CREATE UNIQUE INDEX idx_tv_programs_channel_slot_active
+    ON series_track.programs (channel_id, slot_time)
+    WHERE status = 'active';
 
 
 -- TV Guide Episodes Table

@@ -52,6 +52,7 @@ export default class Client {
     public readonly ev_isleri: ev_isleri.ServiceClient
     public readonly feed: feed.ServiceClient
     public readonly feedback: feedback.ServiceClient
+    public readonly film_graph: film_graph.ServiceClient
     public readonly friendship: friendship.ServiceClient
     public readonly gaming_hub: gaming_hub.ServiceClient
     public readonly gym: gym.ServiceClient
@@ -120,6 +121,7 @@ export default class Client {
         this.ev_isleri = new ev_isleri.ServiceClient(base)
         this.feed = new feed.ServiceClient(base)
         this.feedback = new feedback.ServiceClient(base)
+        this.film_graph = new film_graph.ServiceClient(base)
         this.friendship = new friendship.ServiceClient(base)
         this.gaming_hub = new gaming_hub.ServiceClient(base)
         this.gym = new gym.ServiceClient(base)
@@ -3744,6 +3746,111 @@ export namespace feedback {
     }
 }
 
+export namespace film_graph {
+    export interface FilmCatalogItem {
+        id: string
+        title: string
+        originalTitle: string
+        year: number
+        overview: string
+        voteAverage: number
+        voteCount: number
+        popularity: number
+        posterUrl?: string
+        backdropUrl?: string
+        directorId: string
+        directorName: string
+        actorIds: string[]
+        castNames: string[]
+        imdbId?: string
+    }
+
+    export interface ListFilmsResponse {
+        movies: FilmCatalogItem[]
+        page: number
+        totalPages: number
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getFilmDetails = this.getFilmDetails.bind(this)
+            this.getPopularFilms = this.getPopularFilms.bind(this)
+            this.getTopRatedFilms = this.getTopRatedFilms.bind(this)
+            this.searchFilms = this.searchFilms.bind(this)
+        }
+
+        /**
+         * Film detayı — oyuncu/yönetmen bilgisiyle
+         * GET /film-graph/movie/:movieId
+         */
+        public async getFilmDetails(movieId: string): Promise<{
+    movie: FilmCatalogItem
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/movie/${encodeURIComponent(movieId)}`)
+            return await resp.json() as {
+    movie: FilmCatalogItem
+}
+        }
+
+        /**
+         * Güncel trend + popüler filmler (TMDB — IMDb chart ile örtüşen canlı veri)
+         * GET /film-graph/popular?page=1
+         */
+        public async getPopularFilms(params: {
+    page?: number
+}): Promise<ListFilmsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                page: params.page === undefined ? undefined : String(params.page),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/popular`, undefined, {query})
+            return await resp.json() as ListFilmsResponse
+        }
+
+        /**
+         * En yüksek puanlı filmler
+         * GET /film-graph/top-rated?page=1
+         */
+        public async getTopRatedFilms(params: {
+    page?: number
+}): Promise<ListFilmsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                page: params.page === undefined ? undefined : String(params.page),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/top-rated`, undefined, {query})
+            return await resp.json() as ListFilmsResponse
+        }
+
+        /**
+         * Film arama
+         * GET /film-graph/search?query=inception&page=1
+         */
+        public async searchFilms(params: {
+    query: string
+    page?: number
+}): Promise<ListFilmsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                page:  params.page === undefined ? undefined : String(params.page),
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/search`, undefined, {query})
+            return await resp.json() as ListFilmsResponse
+        }
+    }
+}
+
 /**
  * Friendship service handles friends list, pending request management, and friend requests.
  */
@@ -4328,6 +4435,7 @@ export namespace gym {
         slug: string
         name: string
         sets?: RoutineSet[]
+        trackingType?: "weighted" | "bodyweight" | "duration"
     }
 
     export interface GymStats {
@@ -6260,6 +6368,7 @@ export namespace rutinler {
         "postponed_until": string | null
         "is_completed": boolean
         "is_next_completed": boolean
+        "is_completed_today": boolean
     }
 
     export interface ToggleCompletionRequest {
@@ -6451,6 +6560,16 @@ export namespace series_track {
         scheduleType: string
     }
 
+    export interface CreateTvProgramForChannelRequest {
+        channelId: string
+        slotTime: string
+        tmdbId: number
+        seasonNumber: number
+        episodeNumber: number
+        startDate: string
+        scheduleType: string
+    }
+
     export interface GetUserProgressResponse {
         progress: UserProgress[]
     }
@@ -6557,6 +6676,10 @@ export namespace series_track {
         source: "tmdb" | "episode-club"
         isWatched: boolean
         programId?: string | null
+        /**
+         * Aynı dizide gösterilen bölümden sonra bekleyen ek izlenmemiş bölüm sayısı
+         */
+        extraUnwatchedCount?: number
     }
 
     export interface ToggleEpisodeWatchedRequest {
@@ -6594,6 +6717,7 @@ export namespace series_track {
         icon: string
         color: string
         "active_program": TvProgramSummary | null
+        "slot_programs": TvProgramSummary[]
     }
 
     export interface TvEpisode {
@@ -6647,6 +6771,7 @@ export namespace series_track {
         "total_episodes": number
         "tmdb_id"?: number | null
         "season_number"?: number | null
+        "slot_time"?: string | null
     }
 
     export interface TvToggleWatchRequest {
@@ -6657,6 +6782,12 @@ export namespace series_track {
     export interface TvToggleWatchResponse {
         watched: boolean
         "emoji_reaction": string | null
+    }
+
+    export interface UpdateTvChannelRequest {
+        name: string
+        description: string
+        color: string
     }
 
     export interface UpdateUserSeriesStatusRequest {
@@ -6690,6 +6821,7 @@ export namespace series_track {
             this.baseClient = baseClient
             this.addUserSeries = this.addUserSeries.bind(this)
             this.changeTvProgramSeasonEpisode = this.changeTvProgramSeasonEpisode.bind(this)
+            this.createTvProgramForChannel = this.createTvProgramForChannel.bind(this)
             this.deleteUserSeries = this.deleteUserSeries.bind(this)
             this.getSeasonDetails = this.getSeasonDetails.bind(this)
             this.getSeriesDetails = this.getSeriesDetails.bind(this)
@@ -6707,6 +6839,7 @@ export namespace series_track {
             this.testTmdbKey = this.testTmdbKey.bind(this)
             this.toggleEpisodeWatched = this.toggleEpisodeWatched.bind(this)
             this.toggleTvEpisodeWatched = this.toggleTvEpisodeWatched.bind(this)
+            this.updateTvChannel = this.updateTvChannel.bind(this)
             this.updateUserSeriesStatus = this.updateUserSeriesStatus.bind(this)
         }
 
@@ -6734,6 +6867,22 @@ export namespace series_track {
             const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/admin/change-season-episode`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        /**
+         * Kanala yeni aktif program oluşturur (admin).
+         * POST /series-track/tv/admin/create-program
+         */
+        public async createTvProgramForChannel(params: CreateTvProgramForChannelRequest): Promise<{
+    success: boolean
+    programId: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/admin/create-program`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+    programId: string
 }
         }
 
@@ -6932,6 +7081,20 @@ export namespace series_track {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/series-track/tv/episode/${encodeURIComponent(episodeId)}/watch`, JSON.stringify(params))
             return await resp.json() as TvToggleWatchResponse
+        }
+
+        /**
+         * Kanal bilgilerini günceller (admin).
+         * PUT /series-track/tv/admin/channel/:channelId
+         */
+        public async updateTvChannel(channelId: string, params: UpdateTvChannelRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/series-track/tv/admin/channel/${encodeURIComponent(channelId)}`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**

@@ -1,7 +1,15 @@
 "use client";
 
 import { useUser } from "@clerk/clerk-react";
-import { MINI_APPS, MiniApp, navigateToMiniApp, AppCategory } from "@/lib/apps";
+import {
+  MINI_APPS,
+  MiniApp,
+  navigateToMiniApp,
+  AppCategory,
+  persistHomeTab,
+  resolveInitialHomeTab,
+  isValidHomeTab,
+} from "@/lib/apps";
 import { useRouter } from "next/navigation";
 import { 
   Heart,
@@ -120,27 +128,36 @@ function HomeContent() {
   const t = useTranslations("home");
   const tApps = useTranslations("apps");
 
-  const [activeTab, setActiveTab] = useState<string>("discover");
+  const [activeTab, setActiveTab] = useState<string>(() =>
+    resolveInitialHomeTab(
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("tab")
+        : null,
+    ),
+  );
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const queryTab = searchParams.get("tab");
-      if (queryTab) {
-        setActiveTab(queryTab);
-        localStorage.setItem("last_active_tab", queryTab);
-        // Clear tab from query parameters to keep URL clean
-        const newUrl = window.location.pathname;
-        window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, "", newUrl);
-      } else {
-        const stored = localStorage.getItem("last_active_tab");
-        if (stored) {
-          setActiveTab(stored);
-        }
-      }
-      // Clear business back target when we are on the home hub
-      localStorage.removeItem("last_business_url");
+    if (typeof window === "undefined") return;
+
+    const queryTab = searchParams.get("tab");
+    if (queryTab && isValidHomeTab(queryTab)) {
+      setActiveTab(queryTab);
+      persistHomeTab(queryTab);
+      const newUrl = window.location.pathname;
+      window.history.replaceState(
+        { ...(window.history.state ?? {}), homeTab: queryTab },
+        "",
+        newUrl,
+      );
     }
+
+    localStorage.removeItem("last_business_url");
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!isValidHomeTab(activeTab)) return;
+    persistHomeTab(activeTab);
+  }, [activeTab]);
 
   const { 
     pinnedIds, 
@@ -209,7 +226,32 @@ function HomeContent() {
   }, []);
 
   const hobbyApps = useMemo(() => {
-    return apps.filter(app => app.category === "Eğlence & Hobi" && app.id !== "memedex");
+    const order = [
+      "series-track",
+      "youtube-series",
+      "film-graph",
+      "buyuk-maclar",
+      "game-companion",
+      "iskambil",
+      "chocolate-db",
+      "standups",
+      "concert-list",
+    ];
+    return apps
+      .filter(
+        (app) =>
+          app.category === "Eğlence & Hobi" &&
+          app.id !== "memedex" &&
+          app.id !== "gaming-hub",
+      )
+      .sort((a, b) => {
+        const ia = order.indexOf(a.id);
+        const ib = order.indexOf(b.id);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
   }, [apps]);
 
   const exploreApps = useMemo(() => {
@@ -643,6 +685,17 @@ function getMealPlanningPrompt(missingTypes: recipe.MealPlanMeal["mealType"][]) 
 
 const MEAL_TYPE_ORDER: recipe.MealPlanMeal["mealType"][] = ["breakfast", "lunch", "dinner"];
 
+function getAgendaPeriodLabel(item: rutinler.RoutineEntry) {
+  if (item.period_type === "once") return "Tek Seferlik";
+  if (item.period_type === "daily") {
+    if (item.daily_slot === "morning") return "Sabah";
+    if (item.daily_slot === "afternoon") return "Öğle";
+    return "Akşam";
+  }
+  if (item.period_type === "weekly") return "Haftalık";
+  return "Aylık";
+}
+
 function HomeSummaryCards({
   suggestions,
   activities,
@@ -670,33 +723,88 @@ function HomeSummaryCards({
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
   const pendingTodayAgenda = todayAgenda.filter((item) => !item.is_completed);
+  const completedTodayAgenda = todayAgenda.filter((item) => item.is_completed_today);
   const previewTodayAgenda = pendingTodayAgenda.slice(0, 4);
   const agendaEmptyText =
-    todayAgenda.length > 0 && pendingTodayAgenda.length === 0
-      ? "Görev kalmadı"
-      : "Bugün plan yok";
-  const unwatchedTodaySeries = todaySeries.filter((item) => !item.isWatched);
-  const availableTodaySeries = unwatchedTodaySeries.filter((item) =>
-    isSeriesEpisodeAvailableNow(item.airDate)
+    completedTodayAgenda.length > 0 ? "Bugün tamamlandı" : "Bugün plan yok";
+  const renderCompletedAgendaRow = (item: rutinler.RoutineEntry) => (
+    <div
+      key={item.id}
+      className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60"
+    >
+      <HomeTaskCheckButton
+        completed
+        disabled={actionLoading === `agenda-${item.id}`}
+        onClick={() => void handleToggleAgendaComplete(item.id, true)}
+      />
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-black truncate text-app-muted line-through">
+          {item.item_emoji ? `${item.item_emoji} ` : ""}
+          {item.item_name}
+        </p>
+        <p className="text-[9px] text-app-muted font-bold truncate">
+          {getAgendaPeriodLabel(item)}
+        </p>
+      </div>
+    </div>
+  );
+  const pendingAvailableSeries = todaySeries.filter(
+    (item) => !item.isWatched && isSeriesEpisodeAvailableNow(item.airDate),
   );
   const completedTodaySeries = todaySeries.filter((item) => item.isWatched);
-  const seriesWidgetActive =
-    availableTodaySeries.length > 0 || completedTodaySeries.length > 0;
-  const primarySeriesItem = availableTodaySeries[0];
+  const pendingSeriesWidget = pendingAvailableSeries.length > 0;
+  const seriesEmptyText =
+    completedTodaySeries.length > 0 ? "Bugün izlendi" : "Bugün bölüm yok";
+  const primarySeriesItem = pendingAvailableSeries[0];
   const seriesTrackHref = primarySeriesItem
     ? buildSeriesTrackHref(primarySeriesItem)
     : "/apps/series-track";
-  const previewTodayMeals = [...todayMeals]
-    .filter((meal) => isMealTypeVisibleAtTime(meal.mealType))
-    .sort(
-      (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
-    );
+  const renderCompletedSeriesRow = (item: series_track.TodaySeriesItem) => (
+    <div
+      key={item.id}
+      className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60"
+    >
+      <HomeTaskCheckButton completed disabled />
+      <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
+        {item.posterPath ? (
+          <img
+            src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
+            alt={item.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300">
+            <VideoCamera size={16} weight="fill" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-black text-app-text truncate line-through">
+          {item.title}
+        </p>
+        <p className="text-[9px] text-app-muted font-bold truncate">
+          S{item.season} B{item.episode}
+          {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
+        </p>
+      </div>
+    </div>
+  );
+  const sortedTodayMeals = [...todayMeals].sort(
+    (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
+  );
+  const upcomingTodayMeals = sortedTodayMeals.filter((meal) =>
+    isMealTypeVisibleAtTime(meal.mealType)
+  );
+  const allTodayMealsCompleted =
+    sortedTodayMeals.length > 0 && upcomingTodayMeals.length === 0;
+  const pendingTodayMeals = upcomingTodayMeals.length > 0;
   const visibleMealTypes = MEAL_TYPE_ORDER.filter((type) => isMealTypeVisibleAtTime(type));
   const plannedMealTypes = new Set(todayMeals.map((meal) => meal.mealType));
   const missingMealTypes = visibleMealTypes.filter((type) => !plannedMealTypes.has(type));
   const needsMealPlanning = missingMealTypes.length > 0;
-  const hasMealPlanContent = previewTodayMeals.length > 0;
-  const mealsWidgetActive = hasMealPlanContent || needsMealPlanning;
+  const pendingMealsWidget =
+    pendingTodayMeals || (needsMealPlanning && todayMeals.length === 0);
+  const mealsEmptyText = allTodayMealsCompleted ? "Bugün tamamlandı" : "Bugün plan yok";
   const mealPlanningPrompt = getMealPlanningPrompt(missingMealTypes);
 
   const todayChoresAll = weeklyChores?.assignments || [];
@@ -925,6 +1033,7 @@ function HomeSummaryCards({
       key: "agenda",
       loading: loading,
       hasContent: pendingTodayAgenda.length > 0,
+      hasCompletedOnly: completedTodayAgenda.length > 0,
       card: (
         <HomeSummaryCard
           href="/apps/rutinler"
@@ -935,6 +1044,11 @@ function HomeSummaryCards({
           loading={loading}
           emptyText={agendaEmptyText}
           hasContent={pendingTodayAgenda.length > 0}
+          emptyFooter={
+            !pendingTodayAgenda.length && completedTodayAgenda.length > 0 ? (
+              <>{completedTodayAgenda.map(renderCompletedAgendaRow)}</>
+            ) : undefined
+          }
         >
           {previewTodayAgenda.map((item) => (
             <div
@@ -951,13 +1065,13 @@ function HomeSummaryCards({
                   {item.item_name}
                 </p>
                 <p className="text-[9px] text-app-muted font-bold truncate">
-                  {item.period_type === "once" ? "Tek Seferlik" : 
-                   item.period_type === "daily" ? (item.daily_slot === "morning" ? "Sabah" : item.daily_slot === "afternoon" ? "Öğle" : "Akşam") :
-                   item.period_type === "weekly" ? "Haftalık" : "Aylık"}
+                  {getAgendaPeriodLabel(item)}
                 </p>
               </div>
             </div>
           ))}
+          {pendingTodayAgenda.length > 0 &&
+            completedTodayAgenda.map(renderCompletedAgendaRow)}
         </HomeSummaryCard>
       ),
     },
@@ -965,6 +1079,7 @@ function HomeSummaryCards({
       key: "suggest",
       loading: loading,
       hasContent: previewSuggestions.length > 0,
+      hasCompletedOnly: false,
       card: (
         <HomeSummaryCard
           href="/apps/suggest"
@@ -1041,6 +1156,7 @@ function HomeSummaryCards({
       key: "activities",
       loading: loading,
       hasContent: previewActivities.length > 0,
+      hasCompletedOnly: false,
       card: (
         <HomeSummaryCard
           href="/apps/kim-gelir"
@@ -1102,7 +1218,8 @@ function HomeSummaryCards({
     {
       key: "series",
       loading: loading,
-      hasContent: seriesWidgetActive,
+      hasContent: pendingSeriesWidget,
+      hasCompletedOnly: completedTodaySeries.length > 0,
       card: (
         <HomeSummaryCard
           href={seriesTrackHref}
@@ -1111,58 +1228,17 @@ function HomeSummaryCards({
           title="Bugünün Dizileri"
           subtitle="SeriesTrack"
           loading={loading}
-          emptyText="Bugün bölüm yok"
-          hasContent={seriesWidgetActive}
+          emptyText={seriesEmptyText}
+          hasContent={pendingSeriesWidget}
           emptyFooter={
-            completedTodaySeries.length > 0 && availableTodaySeries.length === 0 ? (
-              <>
-                {completedTodaySeries.map((item) => (
-                  <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5 opacity-60">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
-                        {item.posterPath ? (
-                          <img
-                            src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-300">
-                            <VideoCamera size={16} weight="fill" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black text-app-text truncate line-through">
-                          {item.title}
-                        </p>
-                        <p className="text-[9px] text-app-muted font-bold truncate">
-                          S{item.season} B{item.episode}
-                          {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <WidgetActionButton
-                        onClick={() => handleToggleWatched(item)}
-                        loading={actionLoading === `series-${item.id}`}
-                        icon={CheckCircle}
-                      >
-                        İzlendi
-                      </WidgetActionButton>
-                    </div>
-                  </div>
-                ))}
-              </>
+            !pendingSeriesWidget && completedTodaySeries.length > 0 ? (
+              <>{completedTodaySeries.map(renderCompletedSeriesRow)}</>
             ) : undefined
           }
         >
-          {availableTodaySeries.map((item) => (
+          {pendingAvailableSeries.map((item) => (
             <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
-              <Link
-                href={buildSeriesTrackHref(item)}
-                className="flex items-center gap-3 rounded-xl -mx-1 px-1 py-0.5 hover:bg-app-surface-muted transition-colors"
-              >
+              <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
                   {item.posterPath ? (
                     <img
@@ -1186,7 +1262,12 @@ function HomeSummaryCards({
                     {item.source === "episode-club" ? " · Episode Club" : ""}
                   </p>
                 </div>
-              </Link>
+                {(item.extraUnwatchedCount ?? 0) > 0 && (
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-app-surface-muted text-app-muted text-[9px] font-black tabular-nums border border-app-border">
+                    +{item.extraUnwatchedCount}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
                   İzle
@@ -1201,6 +1282,7 @@ function HomeSummaryCards({
               </div>
             </div>
           ))}
+          {pendingSeriesWidget && completedTodaySeries.map(renderCompletedSeriesRow)}
         </HomeSummaryCard>
       ),
     },
@@ -1208,6 +1290,7 @@ function HomeSummaryCards({
       key: "gym",
       loading: loading,
       hasContent: pendingTodayGym,
+      hasCompletedOnly: completedTodayGym,
       card: (
         <HomeSummaryCard
           href="/apps/gym"
@@ -1273,6 +1356,7 @@ function HomeSummaryCards({
       key: "chores",
       loading: loading,
       hasContent: pendingTodayChores.length > 0,
+      hasCompletedOnly: completedTodayChores.length > 0,
       card: (
         <HomeSummaryCard
           href="/apps/ev-isleri"
@@ -1345,7 +1429,8 @@ function HomeSummaryCards({
     {
       key: "meals",
       loading: loading,
-      hasContent: mealsWidgetActive,
+      hasContent: pendingMealsWidget,
+      hasCompletedOnly: allTodayMealsCompleted,
       card: (
         <HomeSummaryCard
           href="/apps/recipe/plan"
@@ -1354,24 +1439,39 @@ function HomeSummaryCards({
           title="Bugünün Yemek Planı"
           subtitle="Meal Planner"
           loading={loading}
-          emptyText="Bugün plan yok"
-          hasContent={mealsWidgetActive}
-        >
-          {previewTodayMeals.map((meal) => (
-            <div key={meal.id} className="px-4 py-3 border-t border-app-border">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 text-orange-500 font-black text-sm">
-                  {meal.title.trim().charAt(0).toLocaleUpperCase("tr-TR") || "?"}
-                </div>
+          emptyText={mealsEmptyText}
+          hasContent={pendingMealsWidget}
+          emptyFooter={
+            allTodayMealsCompleted ? (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
+                <HomeTaskCheckButton completed disabled />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">{meal.title}</p>
+                  <p className="text-[11px] font-black text-app-text truncate line-through">
+                    {sortedTodayMeals.map((meal) => meal.title).join(" · ")}
+                  </p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
-                    {getMealTypeLabel(meal.mealType)}
+                    {sortedTodayMeals.length} öğün
                   </p>
                 </div>
               </div>
+            ) : undefined
+          }
+        >
+          {pendingTodayMeals && (
+            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 text-orange-500">
+                <ChefHat size={16} weight="fill" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-app-text truncate">
+                  {upcomingTodayMeals.map((meal) => meal.title).join(" · ")}
+                </p>
+                <p className="text-[9px] text-app-muted font-bold truncate">
+                  {upcomingTodayMeals.map((meal) => getMealTypeLabel(meal.mealType)).join(" · ")}
+                </p>
+              </div>
             </div>
-          ))}
+          )}
           {needsMealPlanning && todayMeals.length === 0 && (
             <div className="px-4 py-3 border-t border-app-border space-y-2.5">
               <div className="flex items-center gap-3">
@@ -1401,12 +1501,17 @@ function HomeSummaryCards({
   ];
 
   const activeWidgets = widgets.filter((widget) => widget.loading || widget.hasContent);
-  const emptyWidgets = widgets.filter((widget) => {
-    if (widget.key === "suggest" || widget.key === "activities") {
-      return false;
-    }
-    return !widget.loading && !widget.hasContent;
-  });
+  const emptyWidgets = widgets
+    .filter((widget) => {
+      if (widget.key === "suggest" || widget.key === "activities") {
+        return false;
+      }
+      return !widget.loading && !widget.hasContent;
+    })
+    .sort((a, b) => {
+      if (a.hasCompletedOnly === b.hasCompletedOnly) return 0;
+      return a.hasCompletedOnly ? -1 : 1;
+    });
 
   return (
     <>
@@ -1448,7 +1553,7 @@ function HomeTaskCheckButton({
       disabled={disabled}
       onClick={onClick}
       className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface-muted hover:bg-app-border/30 ${
-        completed ? "text-app-text" : "text-app-muted hover:text-app-text"
+        completed ? "text-app-muted" : "text-app-muted hover:text-app-text"
       }`}
     >
       {completed ? (
@@ -1522,7 +1627,7 @@ function HomeSummaryCard({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-black text-app-text tracking-tight">{title}</p>
-          <p className="text-[9px] font-bold text-app-muted uppercase tracking-wider">{subtitle}</p>
+          <p className="text-[9px] font-bold text-app-muted tracking-wide">{subtitle}</p>
         </div>
         <Link
           href={href}

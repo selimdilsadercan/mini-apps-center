@@ -1,3 +1,5 @@
+export type ExerciseTrackingType = "weighted" | "bodyweight" | "duration";
+
 export interface RoutineSet {
   reps: number | null;
   weightKg: number | null;
@@ -7,6 +9,7 @@ export interface ExerciseRef {
   slug: string;
   name: string;
   sets?: RoutineSet[];
+  trackingType?: ExerciseTrackingType;
 }
 
 export interface WorkoutSet {
@@ -23,6 +26,7 @@ export interface WorkoutExercise {
   name: string;
   sets: WorkoutSet[];
   note?: string;
+  trackingType?: ExerciseTrackingType;
 }
 
 export interface Routine {
@@ -122,6 +126,7 @@ export function createExerciseFromRef(ref: ExerciseRef): WorkoutExercise {
   return {
     slug: ref.slug,
     name: ref.name,
+    trackingType: ref.trackingType,
     sets,
   };
 }

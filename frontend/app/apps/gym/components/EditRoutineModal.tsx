@@ -6,9 +6,10 @@ import { X, Plus, Trash } from "@phosphor-icons/react";
 import type { Routine, ExerciseRef, RoutineSet } from "../types";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "./ExercisePicker";
-import { getExerciseBySlug, resolveExerciseName, exerciseUsesWeight, exerciseUsesDuration, showExerciseDetail } from "../exercises";
+import { getExerciseBySlug, resolveExerciseName, getExerciseTrackingType, showExerciseDetail, trackingUsesDuration, trackingUsesWeight } from "../exercises";
 import { selectInputOnClick, selectInputOnFocus, handleVerticalSetInputTab } from "../input-utils";
 import ExerciseThumbnail from "./ExerciseThumbnail";
+import ExerciseSortableList from "./ExerciseSortableList";
 import { updateRoutineAction } from "../actions";
 import { toast } from "react-hot-toast";
 import {
@@ -48,17 +49,18 @@ export default function EditRoutineModal({
 
   if (!open) return null;
 
-  const handleAddExercise = (ref: { slug: string; name: string }) => {
+  const handleAddExercise = (ref: ExerciseRef) => {
     setExercises((prev) => [
       ...prev,
       {
         slug: ref.slug,
         name: ref.name,
+        trackingType: ref.trackingType,
         sets: [
           { reps: null, weightKg: null },
           { reps: null, weightKg: null },
           { reps: null, weightKg: null },
-        ], // default to 3 empty sets
+        ],
       },
     ]);
     setShowAddExercise(false);
@@ -162,14 +164,20 @@ export default function EditRoutineModal({
           {/* Exercises */}
           <div className="space-y-3">
             <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-wider">Egzersizler</h3>
-            {exercises.map((ex, exIdx) => {
+            <ExerciseSortableList
+              items={exercises}
+              onReorder={setExercises}
+              className="space-y-3"
+              renderItem={(ex, exIdx, dragHandle) => {
               const catalogItem = getExerciseBySlug(catalog, ex.slug);
-              const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
-              const usesDuration = exerciseUsesDuration(catalogItem);
+              const trackingType = getExerciseTrackingType(ex, catalogItem);
+              const usesWeight = trackingUsesWeight(trackingType);
+              const usesDuration = trackingUsesDuration(trackingType);
               const sets = ex.sets || [];
               return (
-                <div key={exIdx} className="bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
-                  <div className="flex items-center gap-3">
+                <div className="bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    {dragHandle}
                     <div
                       onClick={() => catalogItem && showExerciseDetail(catalogItem)}
                       className="flex-1 flex items-center gap-3 cursor-pointer group min-w-0"
@@ -179,7 +187,7 @@ export default function EditRoutineModal({
                       ) : (
                         <span className="text-lg">🏋️</span>
                       )}
-                      <h4 className="flex-1 text-xs font-black text-violet-600 truncate group-hover:text-violet-700 transition-colors">
+                      <h4 className="flex-1 text-xs font-black text-app-text truncate group-hover:text-app-muted transition-colors">
                         {resolveExerciseName(catalog, ex.slug, ex.name)}
                       </h4>
                     </div>
@@ -300,11 +308,12 @@ export default function EditRoutineModal({
                   </button>
                 </div>
               );
-            })}
+            }}
+            />
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-xs font-bold text-app-muted hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-xs font-bold text-app-muted hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
             >
               <Plus size={14} weight="bold" />
               Egzersiz Ekle

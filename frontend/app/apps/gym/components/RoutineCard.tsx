@@ -30,7 +30,7 @@ export default function RoutineCard({
   const { catalog } = useExerciseCatalog();
 
   return (
-    <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden hover:border-app-muted/50 transition-all duration-200">
+    <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden">
       <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-black text-app-text truncate">{routine.name}</h3>
@@ -73,7 +73,7 @@ export default function RoutineCard({
               {item ? (
                 <ExerciseThumbnail exercise={item} size="sm" />
               ) : (
-                <div className="w-10 h-10 rounded-lg bg-violet-50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-900/50 flex items-center justify-center text-[10px] text-app-muted font-bold shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-app-surface-muted border border-app-border flex items-center justify-center text-[10px] text-app-muted font-bold shrink-0">
                   🏋️
                 </div>
               )}
@@ -94,7 +94,7 @@ export default function RoutineCard({
         <button
           type="button"
           onClick={onStart}
-          className="flex-1 bg-violet-50 dark:bg-violet-950/40 hover:bg-violet-100 dark:hover:bg-violet-950/60 active:scale-[0.98] text-violet-700 dark:text-violet-300 font-bold text-xs py-2.5 rounded-xl transition-all border border-violet-100 dark:border-violet-900/50 flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 bg-app-text hover:opacity-90 active:scale-[0.98] text-app-bg font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Barbell size={16} weight="bold" />
           Başlat
@@ -123,7 +123,7 @@ export function RoutineActions({
       <button
         type="button"
         onClick={onNewRoutine}
-        className="w-8 h-8 flex items-center justify-center rounded-xl bg-app-surface border border-app-border text-app-text hover:border-violet-300 hover:text-violet-600 transition-all active:scale-95 cursor-pointer"
+        className="w-8 h-8 flex items-center justify-center rounded-xl bg-app-surface border border-app-border text-app-text hover:bg-app-surface-muted hover:text-app-text transition-all active:scale-95 cursor-pointer"
         aria-label="Yeni rutin"
       >
         <Plus size={16} weight="bold" />

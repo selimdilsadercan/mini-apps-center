@@ -26,6 +26,7 @@ import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
 import ExercisePicker from "../components/ExercisePicker";
 import SessionStatsEditSheet, { SessionStatsBar } from "../components/SessionStatsEditSheet";
 import ExerciseBlock from "../components/ExerciseBlock";
+import ExerciseSortableList from "../components/ExerciseSortableList";
 
 function SessionContent() {
   const router = useRouter();
@@ -99,6 +100,11 @@ function SessionContent() {
     if (!session) return;
     const exercises = [...session.exercises];
     exercises[idx] = exercise;
+    updateSession({ ...session, exercises });
+  };
+
+  const reorderExercises = (exercises: WorkoutExercise[]) => {
+    if (!session) return;
     updateSession({ ...session, exercises });
   };
 
@@ -197,20 +203,25 @@ function SessionContent() {
       </header>
 
       <main className="flex-1 px-4 py-4 pb-8 max-w-xl mx-auto w-full space-y-4">
-        {session.exercises.map((exercise, exIdx) => (
-          <ExerciseBlock
-            key={`${exercise.slug}-${exIdx}`}
-            exercise={exercise}
-            catalog={catalog}
-            previousSets={previousMap[exercise.slug] ?? []}
-            onChange={(ex) => updateExercise(exIdx, ex)}
-            variant="page"
-          />
-        ))}
+        <ExerciseSortableList
+          items={session.exercises}
+          onReorder={reorderExercises}
+          renderItem={(exercise, exIdx, dragHandle) => (
+            <ExerciseBlock
+              key={`${exercise.slug}-${exIdx}`}
+              exercise={exercise}
+              catalog={catalog}
+              previousSets={previousMap[exercise.slug] ?? []}
+              onChange={(ex) => updateExercise(exIdx, ex)}
+              variant="page"
+              dragHandle={dragHandle}
+            />
+          )}
+        />
 
         <button
           onClick={() => setShowAddExercise(true)}
-          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3 text-sm font-bold text-app-muted hover:border-violet-300 hover:text-violet-500 transition-all"
+          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3 text-sm font-bold text-app-muted hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
         >
           <Plus size={16} weight="bold" />
           Egzersiz Ekle
@@ -245,7 +256,7 @@ function SessionContent() {
               ) : (
                 <ExercisePicker
                   catalog={catalog}
-                  onSelect={(ex) => addExercise({ slug: ex.slug, name: ex.name })}
+                  onSelect={(ex) => addExercise(ex)}
                 />
               )}
             </div>

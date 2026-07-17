@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTheme } from "next-themes";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import { GraphData, GraphNode } from "../types";
+import { ACCENT } from "../film-data";
 
 interface FilmGraphProps {
   data: GraphData;
@@ -10,6 +12,8 @@ interface FilmGraphProps {
 }
 
 export default function FilmGraph({ data, onNodeClick }: FilmGraphProps) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const graphRef = useRef<ForceGraphMethods<GraphNode, object> | undefined>(
     undefined,
   );
@@ -50,7 +54,7 @@ export default function FilmGraph({ data, onNodeClick }: FilmGraphProps) {
   const getNodeColor = useCallback((node: GraphNode) => {
     switch (node.type) {
       case "film":
-        return "#ef4444";
+        return ACCENT;
       case "director":
         return "#22c55e";
       case "actor":
@@ -168,7 +172,7 @@ export default function FilmGraph({ data, onNodeClick }: FilmGraphProps) {
       const textWidth = ctx.measureText(label).width;
       const bckgDimensions = [textWidth + 4, fontSize + 2];
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillStyle = isDark ? "rgba(0, 0, 0, 0.65)" : "rgba(255, 255, 255, 0.9)";
       ctx.fillRect(
         node.x! - bckgDimensions[0] / 2,
         node.y! + yOffset,
@@ -176,20 +180,18 @@ export default function FilmGraph({ data, onNodeClick }: FilmGraphProps) {
         bckgDimensions[1],
       );
 
-      // Metin
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = isDark ? "#ffffff" : "#111827";
       ctx.fillText(label, node.x!, node.y! + yOffset + 1);
     },
-    [getNodeVal],
+    [getNodeVal, isDark],
   );
 
   if (data.nodes.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center text-zinc-500">
+        <div className="text-center text-app-muted">
           <div className="text-6xl mb-4">🎬</div>
-          <p className="text-lg text-white">Loading data...</p>
-          Populating movie connections
+          <p className="text-lg text-app-text">Veriler yükleniyor...</p>
         </div>
       </div>
     );
@@ -198,7 +200,7 @@ export default function FilmGraph({ data, onNodeClick }: FilmGraphProps) {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full bg-zinc-950 overflow-hidden"
+      className="w-full h-full bg-app-bg overflow-hidden"
     >
       <ForceGraph2D
         ref={graphRef}

@@ -1,3 +1,5 @@
+import type { ExerciseTrackingType } from "./types";
+
 export interface ExerciseCatalogItem {
   slug: string;
   /** Turkish display name */
@@ -178,6 +180,49 @@ export function getExerciseBySlug(
 }
 
 const NO_WEIGHT_EQUIPMENT = new Set(["Body Only"]);
+
+export interface ExerciseTrackingRef {
+  slug: string;
+  trackingType?: ExerciseTrackingType;
+}
+
+export function isCustomExerciseSlug(slug: string): boolean {
+  return slug.startsWith("custom-");
+}
+
+export function getExerciseTrackingType(
+  exercise: ExerciseTrackingRef,
+  catalogItem?: Pick<ExerciseCatalogItem, "name" | "nameEn" | "equipment">,
+): ExerciseTrackingType {
+  if (isCustomExerciseSlug(exercise.slug) && exercise.trackingType) {
+    return exercise.trackingType;
+  }
+  if (catalogItem) {
+    if (exerciseUsesDuration(catalogItem)) return "duration";
+    if (exerciseUsesWeight(catalogItem.equipment)) return "weighted";
+    return "bodyweight";
+  }
+  return "weighted";
+}
+
+export function trackingUsesWeight(type: ExerciseTrackingType): boolean {
+  return type === "weighted";
+}
+
+export function trackingUsesDuration(type: ExerciseTrackingType): boolean {
+  return type === "duration";
+}
+
+export function getTrackingTypeLabel(type: ExerciseTrackingType): string {
+  switch (type) {
+    case "weighted":
+      return "Kilolu";
+    case "bodyweight":
+      return "Vücut ağırlığı";
+    case "duration":
+      return "Süreli";
+  }
+}
 
 const DURATION_EXERCISE_PATTERN =
   /\b(plank|side plank|wall sit|dead hang|hollow hold|l-sit|superman hold|glute bridge hold|isometric hold|isometric neck|isometric chest|static hold)\b/i;

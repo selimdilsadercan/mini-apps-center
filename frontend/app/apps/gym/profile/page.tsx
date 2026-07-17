@@ -6,9 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { User as UserIcon } from "@phosphor-icons/react";
 import GymShell from "../components/GymShell";
 import type { Workout } from "../types";
-import { formatDuration, getExerciseBySlug, resolveExerciseName, showExerciseDetail } from "../exercises";
+import { formatDuration } from "../exercises";
 import { useExerciseCatalog } from "../hooks/useExerciseCatalog";
-import ExerciseThumbnail from "../components/ExerciseThumbnail";
+import WorkoutExercisePreview from "../components/WorkoutExercisePreview";
 import WeeklyPlanPicker from "../components/WeeklyPlanPicker";
 import WorkoutHistoryCalendar from "../components/WorkoutHistoryCalendar";
 import EditWorkoutModal from "../components/EditWorkoutModal";
@@ -111,7 +111,7 @@ export default function GymProfilePage() {
                   <div
                     key={workout.id}
                     onClick={() => setSelectedWorkout(workout)}
-                    className="bg-app-surface rounded-2xl border border-app-border shadow-sm p-4 hover:border-violet-300 cursor-pointer transition-all active:scale-[0.99]"
+                    className="bg-app-surface rounded-2xl border border-app-border shadow-sm p-4 cursor-pointer hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm font-black text-app-text">{workout.name}</h4>
@@ -135,34 +135,7 @@ export default function GymProfilePage() {
                       )}
                     </div>
 
-                    {workout.exercises.length > 0 && (
-                      <div className="flex flex-wrap gap-2 bg-app-surface-muted/50 rounded-lg p-2 border border-app-border">
-                        {workout.exercises.map((ex, idx) => {
-                          const item = getExerciseBySlug(catalog, ex.slug);
-                          return (
-                            <div
-                              key={idx}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (item) showExerciseDetail(item);
-                              }}
-                              className={`shrink-0 transition-transform active:scale-95 ${
-                                item ? "cursor-pointer" : ""
-                              }`}
-                              title={resolveExerciseName(catalog, ex.slug, ex.name)}
-                            >
-                              {item ? (
-                                <ExerciseThumbnail exercise={item} size="sm" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-[10px] shrink-0">
-                                  🏋️
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <WorkoutExercisePreview exercises={workout.exercises} catalog={catalog} />
                   </div>
                 );
               })}

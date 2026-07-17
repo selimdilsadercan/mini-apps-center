@@ -107,9 +107,9 @@ export default function GymWorkoutPage() {
       <div className="space-y-5">
         <button
           onClick={() => setShowCreate(true)}
-          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border hover:border-violet-300 hover:text-violet-600 py-3.5 text-sm font-bold text-app-muted transition-all active:scale-[0.99] shadow-sm cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3.5 text-sm font-bold text-app-muted hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99] shadow-sm cursor-pointer"
         >
-          <Plus size={16} weight="bold" className="text-violet-500" />
+          <Plus size={16} weight="bold" />
           Rutin Oluştur
         </button>
 

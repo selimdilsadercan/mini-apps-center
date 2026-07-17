@@ -242,7 +242,8 @@ RETURNS TABLE (
     slug TEXT,
     icon TEXT,
     color TEXT,
-    active_program JSONB
+    active_program JSONB,
+    slot_programs JSONB
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -264,13 +265,37 @@ BEGIN
                 'schedule_type', p.schedule_type,
                 'total_episodes', p.total_episodes,
                 'tmdb_id', p.tmdb_id,
-                'season_number', p.season_number
+                'season_number', p.season_number,
+                'slot_time', p.slot_time
             )
             FROM series_track.programs p
             WHERE p.channel_id = c.id AND p.status = 'active'
-            ORDER BY p.start_date DESC
+            ORDER BY p.slot_time ASC NULLS LAST, p.start_date DESC
             LIMIT 1
-        ) AS active_program
+        ) AS active_program,
+        COALESCE(
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'id', p.id,
+                        'title', p.title,
+                        'description', p.description,
+                        'cover_image', p.cover_image,
+                        'status', p.status,
+                        'start_date', p.start_date,
+                        'schedule_type', p.schedule_type,
+                        'total_episodes', p.total_episodes,
+                        'tmdb_id', p.tmdb_id,
+                        'season_number', p.season_number,
+                        'slot_time', p.slot_time
+                    )
+                    ORDER BY p.slot_time ASC
+                )
+                FROM series_track.programs p
+                WHERE p.channel_id = c.id AND p.status = 'active'
+            ),
+            '[]'::jsonb
+        ) AS slot_programs
     FROM series_track.channels c
     ORDER BY c.created_at ASC;
 END;
@@ -425,7 +450,7 @@ BEGIN
     -- Add Drama Program: Suits Daily (Seeded with TMDB mapping)
     DELETE FROM series_track.programs WHERE title = 'Suits Daily';
     IF v_drama_id IS NOT NULL THEN
-        INSERT INTO series_track.programs (channel_id, title, description, cover_image, status, start_date, schedule_type, total_episodes, tmdb_id, season_number)
+        INSERT INTO series_track.programs (channel_id, title, description, cover_image, status, start_date, schedule_type, total_episodes, tmdb_id, season_number, slot_time)
         VALUES (
             v_drama_id,
             'Suits Daily',
@@ -436,7 +461,8 @@ BEGIN
             'daily',
             8,
             37680, -- Suits TMDB ID
-            6 -- Season 6
+            6, -- Season 6
+            '19:00'
         ) RETURNING id INTO v_prog_suits_id;
 
         -- Create Episodes for Suits Season 6

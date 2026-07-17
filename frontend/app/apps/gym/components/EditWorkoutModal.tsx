@@ -15,6 +15,7 @@ import {
 import { selectInputOnClick, selectInputOnFocus, handleVerticalSetInputTab } from "../input-utils";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import ExercisePicker from "./ExercisePicker";
+import ExerciseSortableList from "./ExerciseSortableList";
 import { updateWorkoutAction, deleteWorkoutAction } from "../actions";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "react-hot-toast";
@@ -261,18 +262,23 @@ export default function EditWorkoutModal({
           {/* Exercises */}
           <div className="space-y-3">
             <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-wider">Egzersizler</h3>
-            {exercises.map((ex, exIdx) => {
+            <ExerciseSortableList
+              items={exercises}
+              onReorder={setExercises}
+              className="space-y-3"
+              renderItem={(ex, exIdx, dragHandle) => {
               const catalogItem = getExerciseBySlug(catalog, ex.slug);
               const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
               return (
-                <div key={exIdx} className="bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
-                  <div className="flex items-center gap-3">
+                <div className="bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    {dragHandle}
                     {catalogItem ? (
                       <ExerciseThumbnail exercise={catalogItem} size="sm" />
                     ) : (
                       <span className="text-lg">🏋️</span>
                     )}
-                    <h4 className="flex-1 text-xs font-black text-violet-600 truncate">
+                    <h4 className="flex-1 text-xs font-black text-app-text truncate">
                       {resolveExerciseName(catalog, ex.slug, ex.name)}
                     </h4>
                     <button
@@ -391,11 +397,12 @@ export default function EditWorkoutModal({
                   </button>
                 </div>
               );
-            })}
+            }}
+            />
 
             <button
               onClick={() => setShowAddExercise(true)}
-              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3 text-xs font-bold text-app-muted hover:border-violet-300 hover:text-violet-600 transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 bg-app-surface rounded-2xl border border-dashed border-app-border py-3 text-xs font-bold text-app-muted hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
             >
               <Plus size={14} weight="bold" />
               Egzersiz Ekle

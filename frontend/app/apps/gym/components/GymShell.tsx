@@ -117,10 +117,10 @@ export default function GymShell({
                 onClick={() => {
                   window.location.href = "/apps/gym/ai-helper";
                 }}
-                className="shrink-0 flex items-center justify-center w-8 h-8 text-violet-500 hover:text-violet-400 transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
+                className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
                 title="AI Analiz & Veri Laboratuvarı"
               >
-                <Sparkle size={15} weight="fill" className="animate-pulse" />
+                <Sparkle size={15} weight="fill" />
               </button>
             </div>
 

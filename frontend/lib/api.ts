@@ -69,6 +69,10 @@ function getBaseURL() {
   return getServerBaseURL();
 }
 
+export function getEncoreApiBase() {
+  return getBaseURL();
+}
+
 /**
  * Server tarafında Encore client oluşturur
  * "use server" actions içinde kullanılır

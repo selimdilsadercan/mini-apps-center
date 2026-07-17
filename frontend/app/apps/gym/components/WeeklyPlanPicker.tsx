@@ -84,7 +84,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
       <button
         type="button"
         onClick={() => setPlanOpen(true)}
-        className="w-full bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden text-left active:scale-[0.99] transition-all"
+        className="w-full bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden text-left hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 min-w-0">
@@ -114,7 +114,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                   <div key={day.dayOfWeek} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                     <span
                       className={`text-[8px] font-black uppercase tracking-wide ${
-                        isToday ? "text-violet-600" : "text-app-muted"
+                        isToday ? "text-app-text" : "text-app-muted"
                       }`}
                     >
                       {label}
@@ -123,11 +123,11 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       className={`w-full max-w-[34px] h-7 rounded-lg flex items-center justify-center border ${
                         isToday
                           ? isRest
-                            ? "bg-violet-50 border-violet-200 text-violet-300"
-                            : "bg-violet-500 border-violet-500 text-white shadow-sm"
+                            ? "bg-app-surface-muted border-app-border text-app-muted"
+                            : "bg-app-text border-app-text text-app-bg shadow-sm"
                           : isRest
                             ? "bg-app-surface-muted border-app-border text-app-muted"
-                            : "bg-violet-100/80 border-violet-100 text-violet-500"
+                            : "bg-app-tab-track border-app-border text-app-text"
                       }`}
                     >
                       {isRest ? (
@@ -180,13 +180,13 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       onClick={() => setPickerDay(day.dayOfWeek)}
                       disabled={isSaving}
                       className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all active:scale-[0.99] disabled:opacity-50 ${
-                        isToday ? "bg-violet-50/50" : "hover:bg-app-surface/80"
+                        isToday ? "bg-app-tab-active/50" : "hover:bg-app-surface-muted/30"
                       }`}
                     >
                       <div
                         className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 border ${
                           isToday
-                            ? "bg-violet-500 border-violet-500 text-white shadow-sm shadow-violet-500/20"
+                            ? "bg-app-text border-app-text text-app-bg shadow-sm"
                             : "bg-app-surface border-app-border text-app-muted"
                         }`}
                       >
@@ -203,7 +203,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       <div className="flex-1 min-w-0">
                         <p
                           className={`text-[11px] font-black truncate ${
-                            isToday ? "text-violet-900" : "text-app-text"
+                            isToday ? "text-app-text" : "text-app-text"
                           }`}
                         >
                           {isRest ? "Dinlenme" : day.routineName}
@@ -219,7 +219,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                         className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${
                           isRest
                             ? "bg-app-surface border-app-border text-app-muted"
-                            : "bg-violet-50 border-violet-100 text-violet-600"
+                            : "bg-app-tab-track border-app-border text-app-text"
                         }`}
                       >
                         {isRest ? (
@@ -259,8 +259,8 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                 disabled={savingDay !== null}
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
                   pickerDayData && !pickerDayData.routineId
-                    ? "bg-app-surface border-violet-200 shadow-sm"
-                    : "bg-app-surface border-app-border hover:border-app-muted"
+                    ? "bg-app-tab-active border-app-border shadow-sm"
+                    : "bg-app-surface border-app-border hover:bg-app-surface-muted/30"
                 }`}
               >
                 <div className="w-9 h-9 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-app-muted shrink-0">
@@ -271,7 +271,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                   <p className="text-[9px] font-bold text-app-muted">Antrenman yok</p>
                 </div>
                 {pickerDayData && !pickerDayData.routineId && (
-                  <Check size={18} weight="bold" className="text-violet-500 shrink-0" />
+                  <Check size={18} weight="bold" className="text-app-text shrink-0" />
                 )}
               </button>
 
@@ -285,11 +285,11 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                     disabled={savingDay !== null}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${
                       isSelected
-                        ? "bg-violet-50 border-violet-200 shadow-sm"
-                        : "bg-app-surface border-app-border hover:border-app-muted"
+                        ? "bg-app-tab-active border-app-border shadow-sm"
+                        : "bg-app-surface border-app-border hover:bg-app-surface-muted/30"
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-app-text shrink-0">
                       <Barbell size={16} weight="fill" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
@@ -299,7 +299,7 @@ export default function WeeklyPlanPicker({ userId, routines }: WeeklyPlanPickerP
                       </p>
                     </div>
                     {isSelected && (
-                      <Check size={18} weight="bold" className="text-violet-500 shrink-0" />
+                      <Check size={18} weight="bold" className="text-app-text shrink-0" />
                     )}
                   </button>
                 );

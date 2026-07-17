@@ -26,6 +26,7 @@ export interface RoutineEntry {
   postponed_until: string | null;
   is_completed: boolean;
   is_next_completed: boolean;
+  is_completed_today: boolean;
 }
 
 interface GetEntriesRequest {
@@ -137,6 +138,7 @@ function mapEntry(row: Record<string, unknown>): RoutineEntry {
     postponed_until: row.postponed_until ? String(row.postponed_until) : null,
     is_completed: Boolean(row.is_completed),
     is_next_completed: Boolean(row.is_next_completed),
+    is_completed_today: Boolean(row.is_completed_today),
   };
 }
 
@@ -183,8 +185,8 @@ export const getTodayAgenda = api(
     const filtered = entries.filter((e) => {
       if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
-      // One-off tasks only show if they are NOT completed
-      if (e.period_type === "once") return !e.is_completed;
+      // Tek seferlik: bekleyenler veya bugün tamamlananlar
+      if (e.period_type === "once") return !e.is_completed || e.is_completed_today;
       
       if (e.period_type === "daily") {
         if (!e.daily_slot) return true;

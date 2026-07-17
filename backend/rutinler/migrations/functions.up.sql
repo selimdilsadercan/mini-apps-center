@@ -21,7 +21,8 @@ RETURNS TABLE (
     created_at TIMESTAMPTZ,
     postponed_until TIMESTAMPTZ,
     is_completed BOOLEAN,
-    is_next_completed BOOLEAN
+    is_next_completed BOOLEAN,
+    is_completed_today BOOLEAN
 ) AS $$
 DECLARE
     v_user_id UUID;
@@ -37,9 +38,9 @@ BEGIN
         RETURN;
     END IF;
 
-    v_today := current_date;
-    v_week_start := date_trunc('week', current_date)::date;
-    v_month_start := date_trunc('month', current_date)::date;
+    v_today := (NOW() AT TIME ZONE 'Europe/Istanbul')::date;
+    v_week_start := date_trunc('week', v_today)::date;
+    v_month_start := date_trunc('month', v_today)::date;
 
     v_next_day := v_today + 1;
     v_next_week_start := v_week_start + INTERVAL '1 week';
@@ -77,7 +78,12 @@ BEGIN
                 (e.period_type = 'weekly' AND c.completed_date >= v_next_week_start AND c.completed_date < v_next_week_start + INTERVAL '1 week') OR
                 (e.period_type = 'monthly' AND c.completed_date >= v_next_month_start AND c.completed_date < v_next_month_start + INTERVAL '1 month')
             )
-        ) as is_next_completed
+        ) as is_next_completed,
+        EXISTS (
+            SELECT 1 FROM rutinler.completions c
+            WHERE c.entry_id = e.id
+            AND (c.created_at AT TIME ZONE 'Europe/Istanbul')::date = v_today
+        ) as is_completed_today
     FROM rutinler.entries e
     WHERE e.user_id = v_user_id
     ORDER BY e.period_type, e.sort_order, e.created_at;

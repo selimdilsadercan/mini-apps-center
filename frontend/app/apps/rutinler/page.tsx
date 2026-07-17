@@ -15,6 +15,7 @@ import {
   PencilSimple,
   CaretDown,
   Check,
+  CheckCircle,
   Sun,
   SunHorizon,
   Moon,
@@ -164,8 +165,8 @@ function EntryRow({
         } ${
           showComplete && entry.is_completed
             ? isGrouped
-              ? "bg-emerald-50 dark:bg-emerald-950/30"
-              : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50"
+              ? "bg-app-surface"
+              : "bg-app-surface border-app-border"
             : isPostponed
             ? isGrouped
               ? "bg-amber-50/50 dark:bg-amber-950/20"
@@ -182,12 +183,12 @@ function EntryRow({
               type="button"
               disabled={isPostponed}
               onClick={() => void onToggleComplete(entry)}
-              className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center relative overflow-hidden ${
+              className={`w-9 h-9 rounded-xl transition-all flex items-center justify-center relative overflow-hidden bg-app-surface-muted hover:bg-app-border/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                 entry.is_completed
-                  ? "bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-200"
+                  ? "text-app-muted"
                   : isPostponed
-                  ? "bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200 cursor-not-allowed"
-                  : "bg-app-surface border-app-border text-transparent hover:border-emerald-200 dark:hover:border-emerald-800"
+                  ? "text-app-muted cursor-not-allowed"
+                  : "text-app-muted hover:text-app-text"
               }`}
             >
               <AnimatePresence mode="wait">
@@ -199,7 +200,7 @@ function EntryRow({
                     exit={{ scale: 0 }}
                     transition={{ type: "spring", damping: 12, stiffness: 200 }}
                   >
-                    <Check size={14} weight="bold" />
+                    <CheckCircle size={18} weight="fill" />
                   </motion.div>
                 ) : isPostponed ? (
                   <motion.div
@@ -208,9 +209,11 @@ function EntryRow({
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
-                    <ClockAfternoon size={14} weight="fill" />
+                    <ClockAfternoon size={18} weight="fill" />
                   </motion.div>
-                ) : null}
+                ) : (
+                  <CheckCircle size={18} weight="regular" />
+                )}
               </AnimatePresence>
             </button>
           </div>

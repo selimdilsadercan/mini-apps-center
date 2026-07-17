@@ -33,18 +33,26 @@ export function syncAgendaCompletionInCache(
   patchTodayAgenda(queryClient, userId, (items) => {
     const idx = items.findIndex((item) => item.id === entry.id);
 
-    if (completed && entry.period_type === "once") {
-      return items.filter((item) => item.id !== entry.id);
-    }
-
     if (idx >= 0) {
-      return items.map((item) =>
-        item.id === entry.id ? { ...item, is_completed: completed } : item
-      );
+      return items
+        .map((item) =>
+          item.id === entry.id
+            ? {
+                ...item,
+                is_completed: completed,
+                is_completed_today: completed,
+              }
+            : item,
+        )
+        .filter((item) => !(item.period_type === "once" && item.is_completed && !item.is_completed_today));
     }
 
     if (!completed && entry.period_type === "once") {
-      return [...items, { ...entry, is_completed: false }];
+      return [...items, { ...entry, is_completed: false, is_completed_today: false }];
+    }
+
+    if (completed) {
+      return [...items, { ...entry, is_completed: true, is_completed_today: true }];
     }
 
     return items;

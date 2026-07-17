@@ -501,6 +501,7 @@ export interface TvChannel {
   icon: string;
   color: string;
   active_program: TvProgramSummary | null;
+  slot_programs: TvProgramSummary[];
 }
 
 export interface TvProgramSummary {
@@ -514,6 +515,7 @@ export interface TvProgramSummary {
   total_episodes: number;
   tmdb_id?: number | null;
   season_number?: number | null;
+  slot_time?: string | null;
 }
 
 export interface TvEpisode {
@@ -572,6 +574,39 @@ export interface TvEpisodeStatsResponse {
   emojis: Record<string, number>;
 }
 
+// ==================== TV FLOW HELPERS ====================
+
+const CHANNEL_SLOT_ORDER = ["19:00", "21:00", "23:00"] as const;
+
+function normalizeSlotTime(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return "19:00";
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return value.trim();
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+}
+
+function slotTimeSortKey(slotTime: string | null | undefined): number {
+  const normalized = normalizeSlotTime(slotTime ?? "19:00");
+  const idx = CHANNEL_SLOT_ORDER.indexOf(normalized as (typeof CHANNEL_SLOT_ORDER)[number]);
+  return idx === -1 ? 99 : idx;
+}
+
+function mapProgramRowToSummary(row: Record<string, unknown>): TvProgramSummary {
+  return {
+    id: String(row.id),
+    title: String(row.title ?? ""),
+    description: String(row.description ?? ""),
+    cover_image: String(row.cover_image ?? ""),
+    status: String(row.status ?? ""),
+    start_date: String(row.start_date ?? ""),
+    schedule_type: String(row.schedule_type ?? ""),
+    total_episodes: Number(row.total_episodes ?? 0),
+    tmdb_id: row.tmdb_id == null ? null : Number(row.tmdb_id),
+    season_number: row.season_number == null ? null : Number(row.season_number),
+    slot_time: normalizeSlotTime(row.slot_time),
+  };
+}
+
 // ==================== TV FLOW ENDPOINTS ====================
 
 /**
@@ -581,17 +616,60 @@ export interface TvEpisodeStatsResponse {
 export const getTvChannels = api(
   { expose: true, method: "GET", path: "/series-track/tv/channels" },
   async (): Promise<TvGetChannelsResponse> => {
-    const { data, error } = await supabase
-      .schema("series_track")
-      .rpc("get_channels");
+    const [channelsResult, programsResult] = await Promise.all([
+      supabase
+        .schema("series_track")
+        .from("channels")
+        .select("id, name, description, slug, icon, color")
+        .order("created_at", { ascending: true }),
+      supabase
+        .schema("series_track")
+        .from("programs")
+        .select(
+          "id, channel_id, title, description, cover_image, status, start_date, schedule_type, total_episodes, tmdb_id, season_number, slot_time",
+        )
+        .eq("status", "active"),
+    ]);
 
-    if (error) {
-      console.error("getTvChannels error:", error);
+    if (channelsResult.error) {
+      console.error("getTvChannels channels error:", channelsResult.error);
+      throw APIError.internal("Kanallar yüklenemedi");
+    }
+    if (programsResult.error) {
+      console.error("getTvChannels programs error:", programsResult.error);
       throw APIError.internal("Kanallar yüklenemedi");
     }
 
-    return { channels: data || [] };
-  }
+    const programsByChannel = new Map<string, TvProgramSummary[]>();
+    for (const row of programsResult.data ?? []) {
+      const summary = mapProgramRowToSummary(row as Record<string, unknown>);
+      const channelId = String(row.channel_id);
+      const list = programsByChannel.get(channelId) ?? [];
+      list.push(summary);
+      programsByChannel.set(channelId, list);
+    }
+
+    for (const [channelId, programs] of programsByChannel) {
+      programs.sort((a, b) => slotTimeSortKey(a.slot_time) - slotTimeSortKey(b.slot_time));
+      programsByChannel.set(channelId, programs);
+    }
+
+    const channels: TvChannel[] = (channelsResult.data ?? []).map((channel) => {
+      const slot_programs = programsByChannel.get(channel.id) ?? [];
+      return {
+        id: channel.id,
+        name: channel.name,
+        description: channel.description,
+        slug: channel.slug,
+        icon: channel.icon,
+        color: channel.color,
+        slot_programs,
+        active_program: slot_programs[0] ?? null,
+      };
+    });
+
+    return { channels };
+  },
 );
 
 /**
@@ -794,6 +872,182 @@ interface ChangeTvProgramSeasonEpisodeRequest {
   scheduleType: string;
 }
 
+interface UpdateTvChannelRequest {
+  channelId: string;
+  name: string;
+  description: string;
+  color: string;
+}
+
+interface CreateTvProgramForChannelRequest {
+  channelId: string;
+  slotTime: string;
+  tmdbId: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  startDate: string;
+  scheduleType: string;
+}
+
+async function fetchTmdbSeasonEpisodes(tmdbId: number, seasonNumber: number) {
+  const key = tmdbApiKey();
+  const url = `https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNumber}?api_key=${key}&language=tr-TR`;
+  let response = await fetch(url);
+  if (!response.ok) {
+    response = await fetch(url.replace("&language=tr-TR", ""));
+  }
+  if (!response.ok) {
+    throw APIError.internal("TMDB'den sezon bilgisi alınamadı");
+  }
+  const seasonData = (await response.json()) as { episodes?: unknown[] };
+  return seasonData.episodes || [];
+}
+
+async function fetchTmdbSeriesMeta(tmdbId: number) {
+  const key = tmdbApiKey();
+  let seriesTitle = "TV Programı";
+  let posterPath = "";
+  try {
+    const detailsUrl = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${key}&language=tr-TR`;
+    const detRes = await fetch(detailsUrl);
+    if (detRes.ok) {
+      const detData = (await detRes.json()) as { name?: string; poster_path?: string };
+      seriesTitle = detData.name || seriesTitle;
+      posterPath = detData.poster_path
+        ? `https://image.tmdb.org/t/p/w500${detData.poster_path}`
+        : "";
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return { seriesTitle, posterPath };
+}
+
+function buildEpisodesToInsert(
+  programId: string,
+  episodes: Array<{ episode_number: number; name?: string; overview?: string }>,
+  startDate: string,
+  scheduleType: string,
+  activeEpisodeNumber: number,
+) {
+  const start = new Date(startDate);
+  return episodes.map((ep) => {
+    const epNum = ep.episode_number;
+    const releaseDate = new Date(start);
+    if (scheduleType === "weekly") {
+      releaseDate.setDate(releaseDate.getDate() + (epNum - activeEpisodeNumber) * 7);
+    } else {
+      releaseDate.setDate(releaseDate.getDate() + (epNum - activeEpisodeNumber));
+    }
+    return {
+      program_id: programId,
+      episode_number: epNum,
+      title: ep.name || `Bölüm ${epNum}`,
+      description: ep.overview || "",
+      stream_info: "Netflix",
+      release_date: releaseDate.toISOString(),
+    };
+  });
+}
+
+const DEFAULT_PROGRAM_COVER =
+  "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=600";
+
+/**
+ * Kanal bilgilerini günceller (admin).
+ * PUT /series-track/tv/admin/channel/:channelId
+ */
+export const updateTvChannel = api(
+  { expose: true, method: "PUT", path: "/series-track/tv/admin/channel/:channelId" },
+  async ({ channelId, name, description, color }: UpdateTvChannelRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+      .schema("series_track")
+      .from("channels")
+      .update({ name, description, color })
+      .eq("id", channelId);
+
+    if (error) {
+      console.error("updateTvChannel error:", error);
+      throw APIError.internal("Kanal güncellenemedi");
+    }
+
+    return { success: true };
+  },
+);
+
+/**
+ * Kanala yeni aktif program oluşturur (admin).
+ * POST /series-track/tv/admin/create-program
+ */
+export const createTvProgramForChannel = api(
+  { expose: true, method: "POST", path: "/series-track/tv/admin/create-program" },
+  async (req: CreateTvProgramForChannelRequest): Promise<{ success: boolean; programId: string }> => {
+    const episodes = (await fetchTmdbSeasonEpisodes(req.tmdbId, req.seasonNumber)) as Array<{
+      episode_number: number;
+      name?: string;
+      overview?: string;
+    }>;
+
+    if (episodes.length === 0) {
+      throw APIError.internal("Bu sezonda bölüm bulunamadı");
+    }
+
+    const { seriesTitle, posterPath } = await fetchTmdbSeriesMeta(req.tmdbId);
+
+    await supabase
+      .schema("series_track")
+      .from("programs")
+      .update({ status: "finished" })
+      .eq("channel_id", req.channelId)
+      .eq("slot_time", req.slotTime)
+      .eq("status", "active");
+
+    const { data: program, error: programError } = await supabase
+      .schema("series_track")
+      .from("programs")
+      .insert({
+        channel_id: req.channelId,
+        slot_time: req.slotTime,
+        title: seriesTitle,
+        description: `${seriesTitle} yayın akışı`,
+        cover_image: posterPath || DEFAULT_PROGRAM_COVER,
+        status: "active",
+        start_date: req.startDate,
+        schedule_type: req.scheduleType,
+        total_episodes: episodes.length,
+        tmdb_id: req.tmdbId,
+        season_number: req.seasonNumber,
+      })
+      .select("id")
+      .single();
+
+    if (programError || !program) {
+      console.error("createTvProgramForChannel error:", programError);
+      throw APIError.internal("Program oluşturulamadı");
+    }
+
+    const episodesToInsert = buildEpisodesToInsert(
+      program.id,
+      episodes,
+      req.startDate,
+      req.scheduleType,
+      req.episodeNumber,
+    );
+
+    const { error: insertError } = await supabase
+      .schema("series_track")
+      .from("episodes")
+      .insert(episodesToInsert);
+
+    if (insertError) {
+      console.error("createTvProgramForChannel insertError:", insertError);
+      throw APIError.internal("Bölümler kaydedilemedi");
+    }
+
+    return { success: true, programId: program.id };
+  },
+);
+
 /**
  * TV programının sezonunu, başlangıç tarihini, tekrar sıklığını ve aktif bölümünü değiştirir.
  * POST /series-track/tv/admin/change-season-episode
@@ -801,25 +1055,16 @@ interface ChangeTvProgramSeasonEpisodeRequest {
 export const changeTvProgramSeasonEpisode = api(
   { expose: true, method: "POST", path: "/series-track/tv/admin/change-season-episode" },
   async (req: ChangeTvProgramSeasonEpisodeRequest): Promise<{ success: boolean }> => {
-    const key = tmdbApiKey();
-    const url = `https://api.themoviedb.org/3/tv/${req.tmdbId}/season/${req.seasonNumber}?api_key=${key}&language=tr-TR`;
-    let response = await fetch(url);
-    if (!response.ok) {
-      response = await fetch(url.replace("&language=tr-TR", ""));
-    }
-
-    if (!response.ok) {
-      throw APIError.internal("TMDB'den sezon bilgisi alınamadı");
-    }
-
-    const seasonData = await response.json() as any;
-    const episodes = seasonData.episodes || [];
+    const episodes = (await fetchTmdbSeasonEpisodes(req.tmdbId, req.seasonNumber)) as Array<{
+      episode_number: number;
+      name?: string;
+      overview?: string;
+    }>;
 
     if (episodes.length === 0) {
       throw APIError.internal("Bu sezonda bölüm bulunamadı");
     }
 
-    // Delete old EPG episodes for this program
     const { error: deleteError } = await supabase
       .schema("series_track")
       .from("episodes")
@@ -831,26 +1076,13 @@ export const changeTvProgramSeasonEpisode = api(
       throw APIError.internal("Eski bölümler silinemedi");
     }
 
-    // Insert new episodes with shifted dates relative to req.episodeNumber
-    const start = new Date(req.startDate);
-    const episodesToInsert = episodes.map((ep: any) => {
-      const epNum = ep.episode_number;
-      const releaseDate = new Date(start);
-      if (req.scheduleType === "weekly") {
-        releaseDate.setDate(releaseDate.getDate() + (epNum - req.episodeNumber) * 7);
-      } else {
-        releaseDate.setDate(releaseDate.getDate() + (epNum - req.episodeNumber));
-      }
-
-      return {
-        program_id: req.programId,
-        episode_number: epNum,
-        title: ep.name || `Bölüm ${epNum}`,
-        description: ep.overview || "",
-        stream_info: "Netflix",
-        release_date: releaseDate.toISOString(),
-      };
-    });
+    const episodesToInsert = buildEpisodesToInsert(
+      req.programId,
+      episodes,
+      req.startDate,
+      req.scheduleType,
+      req.episodeNumber,
+    );
 
     const { error: insertError } = await supabase
       .schema("series_track")
@@ -862,31 +1094,19 @@ export const changeTvProgramSeasonEpisode = api(
       throw APIError.internal("Yeni bölümler kaydedilemedi");
     }
 
-    // Fetch TMDB series name & poster to update the title & cover
-    let seriesTitle = "TV Programı";
-    let posterPath = "";
-    try { 
-      const detailsUrl = `https://api.themoviedb.org/3/tv/${req.tmdbId}?api_key=${key}&language=tr-TR`;
-      const detRes = await fetch(detailsUrl);
-      if (detRes.ok) {
-        const detData = await detRes.json() as any;
-        seriesTitle = detData.name || seriesTitle;
-        posterPath = detData.poster_path ? `https://image.tmdb.org/t/p/w500${detData.poster_path}` : "";
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    const { seriesTitle, posterPath } = await fetchTmdbSeriesMeta(req.tmdbId);
 
     const { error: updateError } = await supabase
       .schema("series_track")
       .from("programs")
       .update({
-        title: `${seriesTitle}`,
+        title: seriesTitle,
         season_number: req.seasonNumber,
         total_episodes: episodes.length,
         start_date: req.startDate,
         schedule_type: req.scheduleType,
-        cover_image: posterPath || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=600',
+        tmdb_id: req.tmdbId,
+        cover_image: posterPath || DEFAULT_PROGRAM_COVER,
       })
       .eq("id", req.programId);
 
@@ -896,7 +1116,7 @@ export const changeTvProgramSeasonEpisode = api(
     }
 
     return { success: true };
-  }
+  },
 );
 
 export interface TvCalendarEvent {
@@ -930,6 +1150,8 @@ export interface TodaySeriesItem {
   source: "tmdb" | "episode-club";
   isWatched: boolean;
   programId?: string | null;
+  /** Aynı dizide gösterilen bölümden sonra bekleyen ek izlenmemiş bölüm sayısı */
+  extraUnwatchedCount?: number;
 }
 
 function episodeDateKey(dateStr: string): string {
@@ -999,11 +1221,13 @@ export const getTodayEpisodes = api(
         episodeDateKey(a.release_date).localeCompare(episodeDateKey(b.release_date)),
       );
 
-      const pendingEvent = sortedEvents.find(
+      const pendingEvents = sortedEvents.filter(
         (event) =>
           episodeDateKey(event.release_date) <= todayStr &&
           !isEpisodeWatched(progress, event.season_number, event.episode_number),
       );
+
+      const pendingEvent = pendingEvents[0];
 
       if (pendingEvent) {
         addItem({
@@ -1021,6 +1245,7 @@ export const getTodayEpisodes = api(
           source: "episode-club",
           isWatched: false,
           programId: pendingEvent.program_id,
+          extraUnwatchedCount: Math.max(0, pendingEvents.length - 1),
         });
       }
 

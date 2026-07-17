@@ -3,12 +3,13 @@
 import { Plus, Check, DotsThreeVertical } from "@phosphor-icons/react";
 import { AnimatePresence } from "framer-motion";
 import {
-  exerciseUsesDuration,
-  exerciseUsesWeight,
   formatPreviousSet,
   getExerciseBySlug,
+  getExerciseTrackingType,
   resolveExerciseName,
   showExerciseDetail,
+  trackingUsesDuration,
+  trackingUsesWeight,
   type ExerciseCatalogItem,
 } from "../exercises";
 import {
@@ -35,16 +36,22 @@ export default function ExerciseBlock({
   previousSets,
   onChange,
   variant = "sheet",
+  dragHandle,
 }: {
   exercise: WorkoutExercise;
   catalog: ExerciseCatalogItem[];
   previousSets: WorkoutSet[];
   onChange: (ex: WorkoutExercise) => void;
   variant?: "sheet" | "page";
+  dragHandle?: React.ReactNode;
 }) {
   const catalogItem = getExerciseBySlug(catalog, exercise.slug);
-  const usesWeight = exerciseUsesWeight(catalogItem?.equipment);
-  const usesDuration = exerciseUsesDuration(catalogItem);
+  const trackingType = getExerciseTrackingType(
+    { slug: exercise.slug, trackingType: exercise.trackingType },
+    catalogItem,
+  );
+  const usesWeight = trackingUsesWeight(trackingType);
+  const usesDuration = trackingUsesDuration(trackingType);
   const isSheet = variant === "sheet";
 
   const gridClass = (() => {
@@ -89,12 +96,9 @@ export default function ExerciseBlock({
   const valueLabel = usesDuration ? "Süre" : "Tekrar";
 
   return (
-    <div
-      className={`bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden ${
-        isSheet ? "hover:border-app-muted transition-colors" : ""
-      }`}
-    >
-      <div className={`flex items-center ${isSheet ? "justify-between" : "gap-3"} px-4 pt-4 pb-2`}>
+    <div className="bg-app-surface rounded-2xl border border-app-border shadow-sm overflow-hidden hover:bg-app-surface-muted/30 transition-colors">
+      <div className={`flex items-center gap-2 ${isSheet ? "justify-between" : ""} px-4 pt-4 pb-2`}>
+        {dragHandle}
         <div
           onClick={() => catalogItem && showExerciseDetail(catalogItem)}
           className={`flex-1 flex items-center gap-3 min-w-0 ${catalogItem ? "cursor-pointer group" : ""}`}
@@ -102,15 +106,15 @@ export default function ExerciseBlock({
           {catalogItem ? (
             <ExerciseThumbnail exercise={catalogItem} />
           ) : (
-            <div className="w-11 h-11 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-lg">
+            <div className="w-11 h-11 rounded-xl bg-app-surface-muted flex items-center justify-center text-lg">
               🏋️
             </div>
           )}
           <h3
             className={`flex-1 text-sm font-black truncate ${
               isSheet
-                ? "text-violet-600 group-hover:text-violet-700 transition-colors"
-                : "text-violet-500"
+                ? "text-app-text group-hover:text-app-muted transition-colors"
+                : "text-app-text"
             }`}
           >
             {resolveExerciseName(catalog, exercise.slug, exercise.name)}
@@ -132,7 +136,7 @@ export default function ExerciseBlock({
           } text-[9px] font-black text-app-muted uppercase tracking-wide`}
         >
           <div className="px-2 py-2 text-center">Set</div>
-          <div className="px-1 py-2">Önceki</div>
+          <div className="px-1 py-2 text-center">Önceki</div>
           {usesWeight && <div className="px-1 py-2 text-center">Kg</div>}
           <div className="px-1 py-2 text-center">{valueLabel}</div>
           <div />
@@ -164,7 +168,7 @@ export default function ExerciseBlock({
               <div className="px-2 py-2.5 text-center text-xs font-bold text-app-muted tabular-nums">
                 {setIdx + 1}
               </div>
-              <div className={`px-1 py-2.5 text-[10px] text-app-muted ${isSheet ? "font-bold" : "font-medium"}`}>
+              <div className={`px-1 py-2.5 text-center text-[10px] text-app-muted tabular-nums ${isSheet ? "font-bold" : "font-medium"}`}>
                 {prev ? formatPreviousSet(prev, { duration: usesDuration }) : "—"}
               </div>
               {usesWeight && (

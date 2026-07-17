@@ -70,7 +70,20 @@ export interface MiniApp {
 }
 
 /** Capacitor APK/WebView (build flag veya çalışma anı). */
-export { isCapacitorNative, getAppRootUrl, getRootHomeUrl, navigateToAppRoot, APP_HOME_PATH, getPublicSubdomainUrl } from "./app-root";
+export {
+  isCapacitorNative,
+  getAppRootUrl,
+  getRootHomeUrl,
+  navigateToAppRoot,
+  APP_HOME_PATH,
+  getPublicSubdomainUrl,
+  HOME_TABS,
+  HOME_TAB_STORAGE_KEY,
+  isValidHomeTab,
+  persistHomeTab,
+  resolveInitialHomeTab,
+  type HomeTab,
+} from "./app-root";
 import { isCapacitorNative } from "./app-root";
 
 /**
@@ -116,13 +129,12 @@ export function navigateToMiniApp(
   app: MiniApp,
   router: { push: (href: string) => void },
 ): void {
-  // Save current location as back target if we are on a business profile page
   if (typeof window !== "undefined") {
     const currentUrl = window.location.href;
+    // Save current location as back target if we are on a business profile page
     if (currentUrl.includes("/place?slug=") || currentUrl.includes("/place?biz=")) {
       localStorage.setItem("last_business_url", currentUrl);
     } else {
-      // Clear it if we are coming from somewhere else
       localStorage.removeItem("last_business_url");
     }
   }
@@ -452,8 +464,8 @@ const RAW_MINI_APPS: MiniApp[] = [
   {
     id: "youtube-series",
     name: "YTDB",
-    description: "Yemek yerken, çalışırken arka planda izleyebileceğin YouTube içerikleri",
-    cta: "Arka Planda İzle",
+    description: "Yemek yerken, çalışırken arka planda izleyebileceğin videoları keşfet.",
+    cta: "İzlenecek Videolar Keşfet",
     icon: YoutubeLogo,
     category: "Eğlence & Hobi",
     color: "#FF0000",
@@ -463,16 +475,15 @@ const RAW_MINI_APPS: MiniApp[] = [
   },
   {
     id: "film-graph",
-    name: "Film Graph",
-    description: "Explore connections between movies",
-    cta: "Film Bağlantılarını Keşfet",
+    name: "Film Keşfet",
+    description: "Popüler filmleri keşfet, listene ekle ve oyuncu bağlantılarını graph'ta gör.",
+    cta: "Filmleri Keşfet",
     icon: ProjectorScreen,
     category: "Eğlence & Hobi",
-    color: "#ef4444",
+    color: "#D97706",
     href: "/apps/film-graph",
     isImplemented: true,
     subdomain: "filmgraph",
-    isCancelled: true,
   },
   {
     id: "movies-this-year",

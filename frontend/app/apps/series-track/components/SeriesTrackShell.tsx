@@ -1,7 +1,8 @@
 "use client";
 
 import { getAppRootUrl } from "@/lib/apps";
-import { CaretLeft, FilmStrip, Plus, Television, VideoCamera } from "@phosphor-icons/react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { CaretLeft, FilmStrip, Plus, Shield, Television, VideoCamera } from "@phosphor-icons/react";
 
 export type SeriesTrackTab = "tv-flow" | "my-series";
 
@@ -16,6 +17,7 @@ export default function SeriesTrackShell({
   onAdd: () => void;
   children: React.ReactNode;
 }) {
+  const { isAdmin } = useIsAdmin();
   const tabClass = (active: boolean) =>
     `inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] outline-none ${
       active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
@@ -51,6 +53,20 @@ export default function SeriesTrackShell({
             >
               <Plus size={16} weight="bold" />
             </button>
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/apps/series-track/admin";
+                }}
+                className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-app-surface border border-app-border text-app-muted hover:text-app-text hover:bg-app-surface-muted/40 transition-colors active:scale-95"
+                aria-label="Episode Club yönetimi"
+                title="Episode Club yönetimi"
+              >
+                <Shield size={16} weight="bold" />
+              </button>
+            )}
           </div>
 
           <div className="flex">
@@ -60,7 +76,7 @@ export default function SeriesTrackShell({
                 onClick={() => onTabChange("tv-flow")}
                 className={tabClass(activeTab === "tv-flow")}
               >
-                <Television size={13} weight={activeTab === "tv-flow" ? "fill" : "bold"} className={activeTab === "tv-flow" ? "text-red-500" : "text-app-muted"} />
+                <Television size={13} weight={activeTab === "tv-flow" ? "fill" : "bold"} className={activeTab === "tv-flow" ? "text-app-text" : "text-app-muted"} />
                 <span className="normal-case">Episode Club</span>
               </button>
               <button
@@ -68,7 +84,7 @@ export default function SeriesTrackShell({
                 onClick={() => onTabChange("my-series")}
                 className={tabClass(activeTab === "my-series")}
               >
-                <FilmStrip size={13} weight={activeTab === "my-series" ? "fill" : "bold"} className={activeTab === "my-series" ? "text-red-500" : "text-app-muted"} />
+                <FilmStrip size={13} weight={activeTab === "my-series" ? "fill" : "bold"} className={activeTab === "my-series" ? "text-app-text" : "text-app-muted"} />
                 <span className="normal-case">Dizi Kütüphanem</span>
               </button>
             </div>

@@ -105,9 +105,9 @@ function MonthGrid({
               <div
                 className={`w-6 h-6 flex items-center justify-center rounded-full text-[9px] font-bold tabular-nums ${
                   hasWorkout && cell.inMonth
-                    ? "bg-violet-500 text-white"
+                    ? "bg-app-text text-app-bg"
                     : isToday && cell.inMonth
-                      ? "bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-300 ring-1 ring-violet-200 dark:ring-violet-800"
+                      ? "bg-app-tab-active text-app-text ring-1 ring-app-border"
                       : "text-app-muted"
                 }`}
               >
@@ -140,7 +140,7 @@ function MonthGrid({
             <div
               className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold tabular-nums transition-colors ${
                 hasWorkout && cell.inMonth
-                  ? "bg-violet-500 text-white shadow-md shadow-violet-500/20"
+                  ? "bg-app-text text-app-bg shadow-sm"
                   : "text-app-text"
               }`}
             >
@@ -211,7 +211,7 @@ export default function WorkoutHistoryCalendar({ workouts }: WorkoutHistoryCalen
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full rounded-2xl overflow-hidden bg-app-surface border border-app-border shadow-sm text-left active:scale-[0.99] transition-all"
+        className="w-full rounded-2xl overflow-hidden bg-app-surface border border-app-border shadow-sm text-left hover:bg-app-surface-muted/40 transition-colors active:scale-[0.99]"
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 min-w-0">
