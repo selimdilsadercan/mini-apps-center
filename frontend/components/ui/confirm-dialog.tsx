@@ -66,24 +66,24 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
     <ConfirmDialogContext.Provider value={{ confirm }}>
       {children}
       <AlertDialog open={open} onOpenChange={(v) => { if (!v) handleCancel(); }}>
-        <AlertDialogContent className="max-w-xs rounded-3xl border-gray-200 p-6 gap-0">
+        <AlertDialogContent className="max-w-xs rounded-3xl border-gray-200 dark:border-zinc-800 p-6 gap-0">
           <AlertDialogHeader className="items-center text-center space-y-3 mb-6">
             {options?.icon && (
-              <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${isDanger ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"}`}>
+              <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center ${isDanger ? "bg-red-50 text-red-500 dark:bg-red-950/20 dark:text-red-400" : "bg-blue-50 text-blue-500 dark:bg-blue-950/20 dark:text-blue-400"}`}>
                 {options.icon}
               </div>
             )}
-            <AlertDialogTitle className="text-base font-bold text-gray-900">
+            <AlertDialogTitle className="text-base font-bold text-gray-900 dark:text-zinc-50">
               {options?.title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-gray-500 leading-relaxed">
+            <AlertDialogDescription className="text-xs text-gray-500 dark:text-zinc-400 leading-relaxed">
               {options?.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:flex-row">
             <AlertDialogCancel
               onClick={handleCancel}
-              className="flex-1 h-10 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border-gray-200 m-0"
+              className="flex-1 h-10 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 text-xs font-bold rounded-xl border-gray-200 dark:border-zinc-700 m-0"
             >
               {options?.cancelText || "Cancel"}
             </AlertDialogCancel>

@@ -367,7 +367,7 @@ export default function StorePreviewPage() {
             <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
               <Camera size={18} weight="fill" className="text-[#7C3AED] shrink-0" />
               <span className="truncate">
-                Store <span className="text-[#7C3AED]">Preview</span>
+                STORE PREVIEW
               </span>
             </h1>
 

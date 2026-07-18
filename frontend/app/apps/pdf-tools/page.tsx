@@ -515,7 +515,7 @@ export default function PdfToolsPage() {
             <div>
               <h1 className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
                 <FilePdf size={28} weight="fill" className="text-[#E03131]" />
-                Pdf <span className="text-[#E03131]">Tools</span>
+                PDF TOOLS
               </h1>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                 Safe & Local PDF Editor

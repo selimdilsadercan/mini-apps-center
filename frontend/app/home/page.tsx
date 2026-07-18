@@ -427,33 +427,7 @@ function HomeContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-10"
             >
-              {/* Subscriptions Section */}
-              {subscriptions.length > 0 && (
-                <section>
-                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                    {subscriptions.map(sub => (
-                      <Link 
-                        key={sub.id} 
-                        href="/apps/subcenter"
-                        className="w-40 p-4 bg-app-surface rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm"
-                          style={{ backgroundColor: sub.color }}
-                        >
-                          <span className="text-xl">{sub.icon}</span>
-                        </div>
-                        <div>
-                          <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{sub.name}</h3>
-                          <p className="text-[9px] text-app-muted font-bold mt-1">
-                            {sub.price} {sub.currency === "TRY" ? "₺" : sub.currency} / {sub.cycle === "monthly" ? "Ay" : "Yıl"}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
+
 
               <section>
                 <div className="space-y-0">

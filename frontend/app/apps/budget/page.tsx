@@ -121,42 +121,41 @@ export default function BudgetPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-blue-100">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text font-sans selection:bg-blue-100/30 overflow-x-hidden">
       <Toaster position="top-center" />
 
-      {/* Subtle Premium Background Blur (Light) */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-20 bg-blue-200" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] rounded-full blur-[100px] opacity-20 bg-pink-100" />
-      </div>
+      {/* Standard Header */}
+      <header className="sticky top-0 z-30 bg-app-header backdrop-blur-md border-b border-app-border/60">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { window.location.href = getAppRootUrl(); }}
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border/60 active:scale-95 cursor-pointer"
+            >
+              <CaretLeft size={14} weight="bold" className="text-[#EC4899]" />
+            </button>
 
-      <main className="flex-1 px-4 py-8 pb-36 max-w-md mx-auto w-full flex flex-col relative z-10">
-        {/* Top Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button 
-            onClick={() => window.location.href = getAppRootUrl()}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-all bg-white px-3.5 py-2 rounded-xl border border-gray-200/60 h-9 shadow-sm"
-          >
-            <SquaresFour size={16} weight="fill" className="text-blue-500 shrink-0" />
-            <span className="text-xs font-bold">{t.back}</span>
-          </button>
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
+              <SquaresFour size={18} weight="fill" className="text-[#EC4899] shrink-0" />
+              <span className="truncate">
+                {t.title}
+              </span>
+            </h1>
+          </div>
         </div>
+      </header>
 
-        {/* Budget Title Logo (Light) */}
-        <div className="flex items-baseline justify-center gap-2 mb-10 select-none">
-          <span className="text-4xl font-extrabold tracking-tight text-gray-900 font-mono lowercase">{t.title}</span>
-        </div>
-
+      <main className="flex-1 px-4 pt-6 pb-36 max-w-xl mx-auto w-full flex flex-col relative z-10">
         {/* Projects List */}
         <div className="flex-1 space-y-4">
           {loading ? (
-             <div className="py-20 text-center text-gray-400 text-sm font-medium animate-pulse">
+             <div className="py-20 text-center text-app-muted text-sm font-medium animate-pulse">
                {t.loadingText}
              </div>
           ) : projects.length === 0 ? (
-            <div className="py-24 text-center bg-white rounded-3xl border border-gray-200/50 p-6 flex flex-col items-center justify-center shadow-sm">
+            <div className="py-24 text-center bg-app-surface rounded-3xl border border-app-border p-6 flex flex-col items-center justify-center shadow-sm">
               <span className="text-4xl mb-4">🏖️</span>
-              <p className="text-gray-400 text-sm font-semibold">{t.emptyState}</p>
+              <p className="text-app-muted text-sm font-semibold">{t.emptyState}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -170,25 +169,25 @@ export default function BudgetPage() {
                   <div
                     key={project.id}
                     onClick={() => router.push(`/apps/budget/project?id=${project.id}`)}
-                    className="bg-white hover:bg-gray-50 border border-gray-200/50 rounded-[1.6rem] p-4 flex justify-between items-center transition-all cursor-pointer active:scale-[0.98] group shadow-sm"
+                    className="bg-app-surface hover:bg-app-surface-muted border border-app-border rounded-[1.6rem] p-4 flex justify-between items-center transition-all cursor-pointer active:scale-[0.98] group shadow-sm animate-fade-in"
                   >
                     <div className="flex items-center gap-4">
                       {/* Beach umbrella icon wrapper */}
-                      <div className="w-14 h-14 rounded-2xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-3xl shadow-inner select-none">
+                      <div className="w-14 h-14 rounded-2xl bg-app-surface-muted border border-app-border flex items-center justify-center text-3xl shadow-inner select-none">
                         {project.emoji || "🏖️"}
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-base font-bold text-gray-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-base font-bold text-app-text tracking-tight leading-tight group-hover:text-[#EC4899] transition-colors">
                           {project.name}
                         </h3>
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-400">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-app-muted">
                           <span className="flex items-center gap-1">
                             <Users size={13} />
                             {project.memberCount || 1} {t.members}
                           </span>
                           {dateRange && (
                             <>
-                              <span className="w-1 h-1 rounded-full bg-gray-300" />
+                              <span className="w-1 h-1 rounded-full bg-app-border" />
                               <span>{dateRange}</span>
                             </>
                           )}
@@ -197,15 +196,14 @@ export default function BudgetPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {/* User share badge */}
                       {project.userShare !== undefined && Number(project.userShare) > 0 && (
                         <div className="text-right">
-                          <span className="text-sm font-extrabold text-gray-900">
+                          <span className="text-sm font-extrabold text-app-text">
                             {getCurrencySymbol(project.currency)}{formatVal(Number(project.userShare))}
                           </span>
                         </div>
                       )}
-                      <div className="text-gray-400 group-hover:text-gray-900 transition-colors pr-1">
+                      <div className="text-app-muted group-hover:text-app-text transition-colors pr-1">
                         <CaretRight size={18} weight="bold" />
                       </div>
                     </div>
@@ -221,19 +219,19 @@ export default function BudgetPage() {
       <div className="fixed bottom-10 left-0 right-0 flex flex-col items-center justify-center pointer-events-none z-[50]">
         <Drawer.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <Drawer.Trigger asChild>
-            <button className="pointer-events-auto bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(37,99,235,0.25)] flex items-center justify-center active:scale-[0.9] transition-all hover:scale-105">
+            <button className="pointer-events-auto bg-[#EC4899] hover:bg-pink-600 text-white w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(236,72,153,0.25)] flex items-center justify-center active:scale-[0.9] transition-all hover:scale-105 cursor-pointer">
               <Plus size={28} weight="bold" />
             </button>
           </Drawer.Trigger>
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 select-none pointer-events-none">{t.newBudget}</span>
+          <span className="text-[10px] text-app-muted font-bold uppercase tracking-widest mt-2 select-none pointer-events-none">{t.newBudget}</span>
           
           <Drawer.Portal>
-            <Drawer.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]" />
-            <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-gray-200">
+            <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+            <Drawer.Content className="bg-app-surface text-app-text flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-app-border">
               <div className="p-6 overflow-y-auto">
-                <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
-                <Drawer.Title className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <span className="text-blue-500">🏖️</span> {isTr ? "Yeni Bütçe" : "New Budget"}
+                <div className="mx-auto w-12 h-1 rounded-full bg-app-border mb-6" />
+                <Drawer.Title className="text-xl font-black mb-6 flex items-center gap-2 text-app-text">
+                  <span className="text-[#EC4899]">🏖️</span> {isTr ? "Yeni Bütçe" : "New Budget"}
                 </Drawer.Title>
                 
                 <CreateProjectForm friends={friends} onComplete={() => {
@@ -383,10 +381,10 @@ function CreateProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-app-text">
       {/* Emoji Selection */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "İkon Seç" : "Select Icon"}
         </label>
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
@@ -397,8 +395,8 @@ function CreateProjectForm({
               onClick={() => setFormData({ ...formData, emoji: emo })}
               className={`flex-shrink-0 w-12 h-12 rounded-xl border flex items-center justify-center text-2xl transition-all active:scale-90 ${
                 formData.emoji === emo 
-                  ? "bg-blue-50 border-blue-500 shadow-sm" 
-                  : "bg-gray-50 border-gray-100 grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
+                  ? "bg-[#EC4899]/10 border-[#EC4899] shadow-sm" 
+                  : "bg-app-surface-muted border-app-border grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
               }`}
             >
               {emo}
@@ -409,7 +407,7 @@ function CreateProjectForm({
 
       {/* Title */}
       <div className="space-y-1">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {t.titleInput}
         </label>
         <input 
@@ -417,20 +415,20 @@ function CreateProjectForm({
           placeholder={t.titlePlaceholder} 
           value={formData.name} 
           onChange={e => setFormData({...formData, name: e.target.value})} 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold" 
         />
       </div>
 
       {/* Currency & Type */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {t.currency}
           </label>
           <select 
             value={formData.currency} 
             onChange={e => setFormData({...formData, currency: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold"
           >
             <option value="TRY">Türk Lirası (₺)</option>
             <option value="USD">Dolar ($)</option>
@@ -438,13 +436,13 @@ function CreateProjectForm({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {t.groupType}
           </label>
           <select 
             value={formData.groupType} 
             onChange={e => setFormData({...formData, groupType: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold"
           >
             <option value="trip">{isTr ? "Seyahat" : "Trip"}</option>
             <option value="home">{isTr ? "Ev Gideri" : "Home"}</option>
@@ -457,50 +455,50 @@ function CreateProjectForm({
       {/* Date Range (Optional) */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Başlangıç Tarihi (Opsiyonel)" : "Start Date (Optional)"}
           </label>
           <input 
             type="date" 
             value={formData.startDate} 
             onChange={e => setFormData({...formData, startDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold text-xs cursor-pointer" 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Bitiş Tarihi (Opsiyonel)" : "End Date (Optional)"}
           </label>
           <input 
             type="date" 
             value={formData.endDate} 
             onChange={e => setFormData({...formData, endDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold text-xs cursor-pointer" 
           />
         </div>
       </div>
 
       {/* Members List Box (like Tricount layout) */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {t.membersInput}
         </label>
-        <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100 bg-gray-50">
+        <div className="border border-app-border rounded-xl overflow-hidden divide-y divide-app-border/40 bg-app-surface-muted">
           {membersList.map((name) => (
-            <div key={name} className="flex justify-between items-center p-3 bg-white">
-              <span className="text-xs font-bold text-gray-700 flex items-center gap-2">
+            <div key={name} className="flex justify-between items-center p-3 bg-app-surface">
+              <span className="text-xs font-bold text-app-text flex items-center gap-2">
                 {user && name === (dbUsername || "Ben") ? (
                   <>
                     <img 
                       src={user.imageUrl} 
                       alt={name} 
-                      className="w-5 h-5 rounded-full object-cover border border-gray-200" 
+                      className="w-5 h-5 rounded-full object-cover border border-app-border" 
                     />
                     <span>{name} (Ben)</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-gray-400 text-[9px]">
+                    <div className="w-5 h-5 rounded-full bg-app-surface-muted border border-app-border flex items-center justify-center font-bold text-app-muted text-[9px]">
                       {name.slice(0, 2).toUpperCase()}
                     </div>
                     <span>{name}</span>
@@ -510,7 +508,7 @@ function CreateProjectForm({
               <button
                 type="button"
                 onClick={() => handleRemoveMember(name)}
-                className="text-gray-400 hover:text-red-500 p-1 active:scale-95 transition-all"
+                className="text-app-muted hover:text-red-500 p-1 active:scale-95 transition-all cursor-pointer"
               >
                 <Trash size={15} />
               </button>
@@ -518,7 +516,7 @@ function CreateProjectForm({
           ))}
 
           {/* Quick guest add row */}
-          <div className="flex bg-gray-50 p-2 gap-2">
+          <div className="flex bg-app-surface-muted p-2 gap-2">
             <input
               placeholder={isTr ? "Misafir adı..." : "Guest name..."}
               value={formData.guestNameInput}
@@ -529,12 +527,12 @@ function CreateProjectForm({
                   handleAddGuestMember();
                 }
               }}
-              className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-950 focus:outline-none"
+              className="flex-1 bg-app-surface border border-app-border rounded-lg px-3 py-1.5 text-xs text-app-text focus:outline-none"
             />
             <button
               type="button"
               onClick={handleAddGuestMember}
-              className="bg-blue-50 border border-blue-200 text-blue-600 rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-1"
+              className="bg-[#EC4899]/10 border border-[#EC4899]/30 text-[#EC4899] rounded-lg px-3 py-1.5 text-xs font-bold hover:bg-[#EC4899]/20 transition-all flex items-center gap-1 cursor-pointer"
             >
               <UserPlus size={14} />
               <span>{isTr ? "Ekle" : "Add"}</span>
@@ -546,7 +544,7 @@ function CreateProjectForm({
       {/* Friends Selection list */}
       {friends.length > 0 && (
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Arkadaşlarından Hızlı Ekle" : "Quick Add Friends"}
           </label>
           <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-1">
@@ -558,15 +556,15 @@ function CreateProjectForm({
                   key={friend.id}
                   type="button"
                   onClick={() => toggleFriendSelection(name)}
-                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${isSelected ? "bg-blue-50 border-blue-500 text-blue-600 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-100"}`}
+                  className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${isSelected ? "bg-[#EC4899]/10 border-[#EC4899] text-[#EC4899] shadow-sm" : "bg-app-surface border-app-border text-app-muted hover:bg-app-surface-muted"}`}
                 >
-                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
+                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-[#EC4899] bg-[#EC4899]' : 'border-app-border'}`}>
                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
                   </div>
                   {friend.avatar ? (
                     <img src={friend.avatar} alt={name} className="w-5 h-5 rounded-full object-cover" />
                   ) : (
-                    <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-400">
+                    <div className="w-5 h-5 rounded-full bg-app-surface-muted flex items-center justify-center text-[9px] font-bold text-app-muted">
                       {name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -581,7 +579,7 @@ function CreateProjectForm({
       <motion.button 
         disabled={loading} 
         whileTap={{ scale: 0.98 }} 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
+        className="w-full bg-[#EC4899] hover:bg-pink-600 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4 cursor-pointer"
       >
         {loading ? (
           <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>

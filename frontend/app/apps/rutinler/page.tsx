@@ -1,7 +1,7 @@
 "use client";
 
 import { getAppRootUrl, getAppHref, MINI_APPS } from "@/lib/apps";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -104,6 +104,29 @@ function CalendarMiniBadge({
   );
 }
 
+function CompletedBadge({ dateStr }: { dateStr: string }) {
+  const date = new Date(dateStr);
+  const day = date.getDate();
+  const month = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][date.getMonth()];
+
+  return (
+    <div className="relative h-8 w-7 shrink-0">
+      <div className="absolute top-0 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+        <span className="h-1 w-1 rounded-full border border-app-border bg-app-surface-muted" />
+        <span className="h-1 w-1 rounded-full border border-app-border bg-app-surface-muted" />
+      </div>
+      <div className="absolute inset-x-0 top-0.5 bottom-0 flex flex-col justify-center items-center rounded-[3px] border border-app-border bg-app-surface shadow-sm py-0.5">
+        <span className="text-[6px] font-bold text-app-muted uppercase tracking-wider leading-none">
+          {month}
+        </span>
+        <span className="text-[8px] font-black text-app-text tabular-nums leading-none mt-0.5">
+          {day}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function EntryRow({
   entry,
   showComplete,
@@ -121,6 +144,7 @@ function EntryRow({
   onEdit: (entry: rutinler.RoutineEntry) => void;
   renderScheduleBadges: (entry: rutinler.RoutineEntry) => React.ReactNode;
 }) {
+  const isDraggingRef = useRef(false);
   const x = useMotionValue(0);
   const opacity = useTransform(x, [0, 40], [0, 1]);
   const isPostponed = isEntryPostponed(entry);
@@ -153,12 +177,18 @@ function EntryRow({
         style={{ x }}
         dragConstraints={{ left: 0, right: 100 }}
         dragElastic={0.05}
+        onDragStart={() => {
+          isDraggingRef.current = true;
+        }}
         onDragEnd={(_, info) => {
           if (info.offset.x > 80) {
             void onPostpone(entry);
           } else {
             x.set(0);
           }
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 100);
         }}
         className={`relative z-10 flex items-center gap-3 px-4 py-3 transition-all ${
           !isGrouped ? "rounded-2xl border" : ""
@@ -221,6 +251,7 @@ function EntryRow({
 
         <div
           onClick={(e) => {
+            if (isDraggingRef.current) return;
             e.stopPropagation();
             onEdit(entry);
           }}
@@ -253,7 +284,11 @@ function EntryRow({
               )}
             </div>
           </div>
-          {renderScheduleBadges(entry)}
+          {entry.period_type === "once" && entry.is_completed && entry.completed_at ? (
+            <CompletedBadge dateStr={entry.completed_at} />
+          ) : (
+            renderScheduleBadges(entry)
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -266,6 +301,7 @@ export default function RutinlerPage() {
   const { confirm } = useConfirmDialog();
   const [mainTab, setMainTab] = useState<MainTab>("today");
   const [quickTask, setQuickTask] = useState("");
+  const [showDoneOnce, setShowDoneOnce] = useState(false);
   const [activePeriod, setActivePeriod] = useState<PeriodType | null>(null);
   const [recentlyCompletedIds, setRecentlyCompletedIds] = useState<Set<string>>(new Set());
   const [showCatalog, setShowCatalog] = useState(false);
@@ -1025,8 +1061,14 @@ export default function RutinlerPage() {
         ) : (
           <div className="space-y-4">
             {BOARDS.map((board) => {
-              const items = entriesForPeriod(board.key);
-              const isExpanded = isBoardExpanded(board.key, items.length);
+              const rawItems = entriesForPeriod(board.key);
+              const items = board.key === "once"
+                ? rawItems.filter((e) => !e.is_completed || e.is_completed_today)
+                : rawItems;
+              const pastCompletedOnceItems = board.key === "once"
+                ? rawItems.filter((e) => e.is_completed && !e.is_completed_today)
+                : [];
+              const isExpanded = isBoardExpanded(board.key, rawItems.length);
 
               return (
                 <section
@@ -1034,7 +1076,7 @@ export default function RutinlerPage() {
                   className="bg-app-surface rounded-2xl border border-app-border shadow-sm flex flex-col overflow-hidden"
                 >
                   <div
-                    onClick={() => toggleBoardExpanded(board.key, items.length)}
+                    onClick={() => toggleBoardExpanded(board.key, rawItems.length)}
                     className="flex items-center justify-between px-4 py-3 border-b border-app-border cursor-pointer hover:bg-app-surface-muted/50 transition-colors group"
                   >
                     <div className="flex items-center gap-2 text-sm font-black text-app-text uppercase tracking-tight">
@@ -1067,27 +1109,75 @@ export default function RutinlerPage() {
 
                   {isExpanded && (
                     <div className="flex-1 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                      {items.length === 0 ? (
+                      {items.length === 0 && pastCompletedOnceItems.length === 0 ? (
                         <div className="h-full min-h-[72px] flex items-center justify-center">
                           <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                             Henüz kayıt yok
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          <AnimatePresence initial={false}>
-                            {items.map((entry) => (
-                              <EntryRow
-                                key={entry.id}
-                                entry={entry}
-                                showComplete={true}
-                                onToggleComplete={handleToggleComplete}
-                                onPostpone={handlePostpone}
-                                onEdit={openEdit}
-                                renderScheduleBadges={renderScheduleBadges}
-                              />
-                            ))}
-                          </AnimatePresence>
+                        <div className="space-y-4">
+                          {items.length > 0 && (
+                            <div className="space-y-2">
+                              <AnimatePresence initial={false}>
+                                {items.map((entry) => (
+                                  <EntryRow
+                                    key={entry.id}
+                                    entry={entry}
+                                    showComplete={true}
+                                    onToggleComplete={handleToggleComplete}
+                                    onPostpone={handlePostpone}
+                                    onEdit={openEdit}
+                                    renderScheduleBadges={renderScheduleBadges}
+                                  />
+                                ))}
+                              </AnimatePresence>
+                            </div>
+                          )}
+
+                          {board.key === "once" && pastCompletedOnceItems.length > 0 && (
+                            <div className="pt-2 border-t border-app-border/40">
+                              <button
+                                type="button"
+                                onClick={() => setShowDoneOnce(!showDoneOnce)}
+                                className="w-full flex items-center justify-between py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider text-app-muted hover:text-app-text bg-app-surface-muted/30 hover:bg-app-surface-muted/60 transition-colors"
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <CheckCircle size={14} weight="bold" />
+                                  Yapılanlar ({pastCompletedOnceItems.length})
+                                </span>
+                                <CaretDown
+                                  size={12}
+                                  weight="bold"
+                                  className={`transition-transform duration-200 ${showDoneOnce ? "" : "-rotate-90"}`}
+                                />
+                              </button>
+
+                              <AnimatePresence initial={false}>
+                                {showDoneOnce && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden mt-2 space-y-2 pl-1"
+                                  >
+                                    {pastCompletedOnceItems.map((entry) => (
+                                      <EntryRow
+                                        key={entry.id}
+                                        entry={entry}
+                                        showComplete={true}
+                                        onToggleComplete={handleToggleComplete}
+                                        onPostpone={handlePostpone}
+                                        onEdit={openEdit}
+                                        renderScheduleBadges={renderScheduleBadges}
+                                      />
+                                    ))}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

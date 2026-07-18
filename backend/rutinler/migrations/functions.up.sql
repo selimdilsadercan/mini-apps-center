@@ -22,7 +22,8 @@ RETURNS TABLE (
     postponed_until TIMESTAMPTZ,
     is_completed BOOLEAN,
     is_next_completed BOOLEAN,
-    is_completed_today BOOLEAN
+    is_completed_today BOOLEAN,
+    completed_at TIMESTAMPTZ
 ) AS $$
 DECLARE
     v_user_id UUID;
@@ -83,7 +84,11 @@ BEGIN
             SELECT 1 FROM rutinler.completions c
             WHERE c.entry_id = e.id
             AND (c.created_at AT TIME ZONE 'Europe/Istanbul')::date = v_today
-        ) as is_completed_today
+        ) as is_completed_today,
+        (
+            SELECT MAX(c.created_at) FROM rutinler.completions c
+            WHERE c.entry_id = e.id
+        ) as completed_at
     FROM rutinler.entries e
     WHERE e.user_id = v_user_id
     ORDER BY e.period_type, e.sort_order, e.created_at;

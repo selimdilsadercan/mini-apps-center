@@ -60,35 +60,35 @@ export default function AppsLayout({
   if (currentApp?.isCancelled) {
     if (checkingAdmin) {
       return (
-        <div className="flex min-h-screen flex-col bg-[#FAF9F7] items-center justify-center">
+        <div className="flex min-h-screen flex-col bg-app-bg items-center justify-center">
           <div className="relative">
-            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-blue-100/20 border-t-[#339AF0] rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkle size={16} className="text-indigo-400 animate-pulse" />
+              <Sparkle size={16} className="text-[#339AF0]/60 animate-pulse" />
             </div>
           </div>
-          <p className="text-gray-500 text-xs font-semibold mt-4 tracking-wider uppercase">Yetki kontrol ediliyor...</p>
+          <p className="text-app-muted text-xs font-semibold mt-4 tracking-wider uppercase">Yetki kontrol ediliyor...</p>
         </div>
       );
     }
 
     if (!isAdmin) {
       return (
-        <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 justify-center items-center p-6 text-center">
-          <div className="bg-red-50 p-6 rounded-full text-red-500 mb-6 border border-red-100/50 shadow-sm animate-pulse">
+        <div className="flex min-h-screen flex-col bg-app-bg text-app-text justify-center items-center p-6 text-center">
+          <div className="bg-red-500/10 p-6 rounded-full text-red-500 mb-6 border border-red-500/20 shadow-sm animate-pulse">
             <Prohibit size={48} weight="bold" />
           </div>
           <h1 className="text-2xl font-[1000] tracking-tight leading-none mb-3">
             Uygulama Devre Dışı
           </h1>
-          <p className="text-gray-550 text-sm max-w-sm mb-8 leading-relaxed font-medium">
+          <p className="text-app-muted text-sm max-w-sm mb-8 leading-relaxed font-medium">
             Bu uygulama geçici olarak yayından kaldırılmış veya iptal edilmiştir. Sadece yöneticiler bu uygulamaya erişebilir.
           </p>
           <button
             onClick={() => {
               window.location.href = getAppRootUrl();
             }}
-            className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-all bg-white border border-gray-200/85 px-5 py-3 rounded-2xl shadow-sm active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
+            className="flex items-center gap-1.5 text-app-muted hover:text-app-text transition-all bg-app-surface border border-app-border px-5 py-3 rounded-2xl shadow-sm active:scale-95 text-xs font-black uppercase tracking-widest cursor-pointer"
           >
             <CaretLeft size={16} weight="bold" />
             <span>Ana Sayfaya Dön</span>

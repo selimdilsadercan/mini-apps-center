@@ -476,69 +476,70 @@ function ProjectContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900 font-sans selection:bg-blue-100">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text font-sans selection:bg-blue-100/30 overflow-x-hidden">
       <Toaster position="top-center" />
 
-      {/* Subtle Premium Background Blur (Light) */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-1/4 -right-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-15 bg-blue-200" />
-        <div className="absolute -bottom-1/4 -left-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-15 bg-pink-100" />
-      </div>
-
-      <main className={`flex-1 px-4 py-8 pb-36 mx-auto w-full flex flex-col relative z-10 transition-all duration-300 ${viewMode === "table" ? "max-w-md md:max-w-2xl lg:max-w-4xl" : "max-w-md"}`}>
-        {/* Navigation Wrapper - Always max-w-md */}
-        <div className="w-full max-w-md mx-auto">
-          {/* Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <button 
+      {/* Standard Header */}
+      <header className="sticky top-0 z-30 bg-app-header backdrop-blur-md border-b border-app-border/60">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
+          <div className="flex items-center gap-2">
+            <button
               onClick={() => router.push("/apps/budget")}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-900 border border-gray-200/60 transition-all active:scale-90 shadow-sm"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border/60 active:scale-95 cursor-pointer"
             >
-              <CaretLeft size={20} weight="bold" />
+              <CaretLeft size={14} weight="bold" className="text-[#EC4899]" />
             </button>
+
+            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
+              <SquaresFour size={18} weight="fill" className="text-[#EC4899] shrink-0" />
+              <span className="truncate">
+                {project?.name || (isTr ? "Seyahat" : "Trip")}
+              </span>
+            </h1>
+
             {project && (
-              <div className="flex items-center gap-2">
-                {/* View Mode Toggle */}
+              <div className="flex items-center gap-1.5 shrink-0">
                 {expenses.length > 0 && activeTab === "expenses" && (
-                  <div className="bg-white border border-gray-200 rounded-lg p-0.5 flex shadow-sm gap-0.5">
+                  <div className="bg-app-surface-muted border border-app-border rounded-lg p-0.5 flex gap-0.5">
                     <button
                       onClick={() => setViewMode("cards")}
-                      className={`p-1.5 rounded-[6px] transition-all ${viewMode === "cards" ? "bg-gray-100 text-gray-900 shadow-inner" : "text-gray-400 hover:text-gray-900"}`}
+                      className={`p-1 w-6 h-6 rounded flex items-center justify-center transition-all cursor-pointer ${viewMode === "cards" ? "bg-app-surface text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
                       title={isTr ? "Kartlar" : "Cards"}
                     >
-                      <SquaresFour size={16} weight="bold" />
+                      <SquaresFour size={14} weight="bold" />
                     </button>
                     <button
                       onClick={() => setViewMode("table")}
-                      className={`p-1.5 rounded-[6px] transition-all ${viewMode === "table" ? "bg-gray-100 text-gray-900 shadow-inner" : "text-gray-400 hover:text-gray-900"}`}
-                      title={isTr ? "Tablo (Excel)" : "Table (Excel)"}
+                      className={`p-1 w-6 h-6 rounded flex items-center justify-center transition-all cursor-pointer ${viewMode === "table" ? "bg-app-surface text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
+                      title={isTr ? "Tablo" : "Table"}
                     >
-                      <Table size={16} weight="bold" />
+                      <Table size={14} weight="bold" />
                     </button>
                   </div>
                 )}
-
                 <button 
                   onClick={handleShare}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-900 border border-gray-200/60 transition-all active:scale-90 shadow-sm pointer-events-auto"
+                  className="w-8 h-8 rounded-lg border border-app-border/60 flex items-center justify-center text-app-muted hover:text-[#EC4899] bg-app-surface transition-all active:scale-95 cursor-pointer"
                   title={isTr ? "Paylaş" : "Share"}
                 >
-                  <ShareNetwork size={18} weight="bold" />
+                  <ShareNetwork size={14} weight="bold" />
                 </button>
-
                 <button 
                   onClick={() => setIsProjectEditOpen(true)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-900 border border-gray-200/60 transition-all active:scale-90 shadow-sm pointer-events-auto"
+                  className="w-8 h-8 rounded-lg border border-app-border/60 flex items-center justify-center text-app-muted hover:text-[#EC4899] bg-app-surface transition-all active:scale-95 cursor-pointer"
+                  title={isTr ? "Düzenle" : "Edit"}
                 >
-                  <PencilSimple size={18} weight="bold" />
+                  <PencilSimple size={14} weight="bold" />
                 </button>
               </div>
             )}
           </div>
         </div>
+      </header>
 
+      <main className={`flex-1 px-4 pt-6 pb-36 mx-auto w-full flex flex-col relative z-10 transition-all duration-300 ${viewMode === "table" ? "max-w-xl md:max-w-2xl lg:max-w-4xl" : "max-w-xl"}`}>
         {loading ? (
-          <div className="py-20 text-center text-gray-400 text-sm font-medium animate-pulse">{t.loadingText}</div>
+          <div className="py-20 text-center text-app-muted text-sm font-medium animate-pulse">{t.loadingText}</div>
         ) : !project ? (
           <div className="py-20 text-center text-red-500 font-bold">{isTr ? "Proje bulunamadı" : "Project not found"}</div>
         ) : (
@@ -547,10 +548,10 @@ function ProjectContent() {
             <div className="w-full max-w-md mx-auto">
               {/* Plaj şemsiyesi görseli ve Başlık */}
               <div className="flex flex-col items-center text-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-white border border-gray-200/60 flex items-center justify-center text-4xl shadow-sm mb-3 select-none">
+                <div className="w-20 h-20 rounded-full bg-app-surface border border-app-border/60 flex items-center justify-center text-4xl shadow-sm mb-3 select-none">
                   {project.emoji || "🏖️"}
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                <h1 className="text-2xl font-black tracking-tight text-app-text">
                   {project.name}
                 </h1>
               </div>
@@ -558,16 +559,16 @@ function ProjectContent() {
               {/* Custom Tab Bar exactly like Tricount screen */}
               {/* Custom Tab Bar exactly like Tricount screen - show only if multiple participants */}
               {members.length > 1 && (
-                <div className="flex bg-white border border-gray-200 rounded-xl p-1 mb-6 shadow-sm">
+                <div className="flex bg-app-surface border border-app-border rounded-xl p-1 mb-6 shadow-sm">
                   <button 
                     onClick={() => setActiveTab("expenses")} 
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === "expenses" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-900"}`}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "expenses" ? "bg-app-surface-muted text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
                   >
                     {t.expenses}
                   </button>
                   <button 
                     onClick={() => setActiveTab("balances")} 
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === "balances" ? "bg-gray-100 text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-900"}`}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "balances" ? "bg-app-surface-muted text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
                   >
                     {t.balances}
                   </button>
@@ -575,17 +576,17 @@ function ProjectContent() {
               )}
 
               {/* Top Summaries Header */}
-              <div className="flex justify-around bg-white border border-gray-200 rounded-2xl py-4 px-2 mb-6 shadow-sm">
+              <div className="flex justify-around bg-app-surface border border-app-border rounded-2xl py-4 px-2 mb-6 shadow-sm">
                 <div className="flex flex-col items-center justify-center text-center">
-                  <span className="text-[10px] text-gray-400 font-semibold mb-1 uppercase tracking-wider">{t.myPaid}</span>
-                  <span className="text-sm font-extrabold text-gray-900">
+                  <span className="text-[10px] text-app-muted font-semibold mb-1 uppercase tracking-wider">{t.myPaid}</span>
+                  <span className="text-sm font-extrabold text-app-text">
                     {getCurrencySymbol(project.currency)}{formatVal(mySpent)}
                   </span>
                 </div>
-                <div className="w-[1px] bg-gray-200" />
+                <div className="w-[1px] bg-app-border" />
                 <div className="flex flex-col items-center justify-center text-center">
-                  <span className="text-[10px] text-gray-400 font-semibold mb-1 uppercase tracking-wider">{t.myDurable}</span>
-                  <span className="text-sm font-extrabold text-gray-900">
+                  <span className="text-[10px] text-app-muted font-semibold mb-1 uppercase tracking-wider">{t.myDurable}</span>
+                  <span className="text-sm font-extrabold text-app-text">
                     {getCurrencySymbol(project.currency)}{formatVal(myDurableSpent)}
                   </span>
                 </div>
@@ -597,9 +598,9 @@ function ProjectContent() {
               <div className="flex-1 space-y-4">
 
                 {filteredExpenses.length === 0 ? (
-                  <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-gray-300 flex flex-col items-center justify-center shadow-sm">
-                    <Receipt size={32} className="text-gray-300 mb-4" />
-                    <p className="text-gray-400 text-xs font-semibold">{t.noExpenses}</p>
+                  <div className="py-20 text-center bg-app-surface rounded-2xl border border-dashed border-app-border flex flex-col items-center justify-center shadow-sm">
+                    <Receipt size={32} className="text-app-muted mb-4" />
+                    <p className="text-app-muted text-xs font-semibold">{t.noExpenses}</p>
                   </div>
                 ) : viewMode === "cards" ? (
                   <div className="space-y-6">
@@ -616,7 +617,7 @@ function ProjectContent() {
                       return getWeight(dateB) - getWeight(dateA);
                     }).map(([date, items]) => (
                       <div key={date} className="space-y-3">
-                        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">{date}</h3>
+                        <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-widest pl-1">{date}</h3>
                         <div className="space-y-2">
                           {items.map(expense => (
                             <div
@@ -625,17 +626,17 @@ function ProjectContent() {
                                 setEditingExpense(expense);
                                 setIsExpenseOpen(true);
                               }}
-                              className="bg-white border border-gray-200 rounded-2xl p-4 flex justify-between items-center group transition-all shadow-sm hover:bg-gray-50 cursor-pointer"
+                              className="bg-app-surface border border-app-border rounded-2xl p-4 flex justify-between items-center group transition-all shadow-sm hover:bg-app-surface-muted cursor-pointer"
                             >
                               <div className="flex items-center gap-3.5">
-                                <div className="w-11 h-11 rounded-xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-xl shadow-inner select-none">
+                                <div className="w-11 h-11 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-xl shadow-inner select-none">
                                   {getCategoryEmoji(expense.category)}
                                 </div>
                                 <div>
-                                  <h4 className="text-sm font-bold text-gray-900 tracking-tight">
+                                  <h4 className="text-sm font-bold text-app-text tracking-tight">
                                     {expense.title}
                                   </h4>
-                                  <p className="text-[10px] text-gray-400 font-medium">
+                                  <p className="text-[10px] text-app-muted font-medium">
                                     {(() => {
                                       const total = Number(expense.amount);
                                       const payerName = getPayerName(expense.payerMemberId);
@@ -652,7 +653,7 @@ function ProjectContent() {
                               </div>
 
                               <div className="flex flex-col items-end justify-center min-h-[44px]">
-                                <span className="text-sm font-extrabold text-gray-900">
+                                <span className="text-sm font-extrabold text-app-text">
                                   {(() => {
                                     const myMember = members.find(m => m.userId === internalUserId);
                                     const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === myMember?.id);
@@ -669,11 +670,11 @@ function ProjectContent() {
                   </div>
                 ) : (
                   /* Excel-like Table View */
-                  <div className="bg-white border border-gray-200 rounded-[1.6rem] overflow-hidden shadow-sm">
+                  <div className="bg-app-surface border border-app-border rounded-[1.6rem] overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead>
-                          <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="bg-app-surface-muted border-b border-app-border text-app-muted font-bold uppercase tracking-wider text-[9px]">
                             <th className="p-3 w-14 text-center">{isTr ? "KAT" : "CAT"}</th>
                             <th className="p-3 min-w-[120px]">{isTr ? "BAŞLIK" : "TITLE"}</th>
                             <th className="p-3 w-24">{isTr ? "TUTAR" : "AMOUNT"}</th>
@@ -683,12 +684,12 @@ function ProjectContent() {
                             <th className="p-3 w-10 text-center"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 font-medium text-gray-900">
+                        <tbody className="divide-y divide-app-border font-medium text-app-text">
                           {filteredExpenses.map((expense) => {
                             const isSaving = inlineSavingId === expense.id;
                             
                             return (
-                              <tr key={expense.id} className="hover:bg-gray-50/50 transition-all group/row">
+                              <tr key={expense.id} className="hover:bg-app-surface-muted/50 transition-all group/row">
                                 {/* Category select */}
                                 <td className="p-1.5 text-center">
                                   <select
@@ -697,7 +698,7 @@ function ProjectContent() {
                                     className="bg-transparent border-none text-lg p-1.5 cursor-pointer focus:ring-0 focus:outline-none w-12 text-center"
                                   >
                                     {CATEGORIES.map(cat => (
-                                      <option key={cat.id} value={cat.id}>{cat.emoji}</option>
+                                      <option key={cat.id} value={cat.id} className="bg-app-surface text-app-text">{cat.emoji}</option>
                                     ))}
                                   </select>
                                 </td>
@@ -712,14 +713,14 @@ function ProjectContent() {
                                         handleInlineSave(expense, "title", e.target.value);
                                       }
                                     }}
-                                    className="bg-transparent border-none w-full p-1.5 focus:bg-white focus:ring-1 focus:ring-blue-500 rounded font-bold text-gray-800 text-xs focus:outline-none"
+                                    className="bg-transparent border-none w-full p-1.5 focus:bg-app-surface-muted focus:ring-1 focus:ring-[#EC4899]/30 rounded font-bold text-app-text text-xs focus:outline-none"
                                   />
                                 </td>
                                 
                                 {/* Amount Input */}
                                 <td className="p-1.5">
                                   <div className="flex items-center gap-0.5 bg-transparent border-none rounded">
-                                    <span className="text-gray-400 font-bold text-[10px] pl-1">{getCurrencySymbol(project.currency)}</span>
+                                    <span className="text-app-muted font-bold text-[10px] pl-1">{getCurrencySymbol(project.currency)}</span>
                                     <input
                                       type="number"
                                       step="0.01"
@@ -732,15 +733,15 @@ function ProjectContent() {
                                           e.target.value = String(expense.amount);
                                         }
                                       }}
-                                      className="bg-transparent border-none w-full p-1.5 focus:bg-white focus:ring-1 focus:ring-blue-500 rounded font-extrabold text-gray-900 text-xs text-right focus:outline-none"
+                                      className="bg-transparent border-none w-full p-1.5 focus:bg-app-surface-muted focus:ring-1 focus:ring-[#EC4899]/30 rounded font-extrabold text-app-text text-xs text-right focus:outline-none"
                                     />
                                   </div>
                                 </td>
 
                                 {/* My Share */}
                                 <td className="p-1.5 text-right">
-                                  <span className="text-gray-400 font-bold text-[10px] mr-1">{getCurrencySymbol(project.currency)}</span>
-                                  <span className="font-extrabold text-gray-900 text-xs">
+                                  <span className="text-app-muted font-bold text-[10px] mr-1">{getCurrencySymbol(project.currency)}</span>
+                                  <span className="font-extrabold text-app-text text-xs">
                                     {(() => {
                                       const myMember = members.find(m => m.userId === internalUserId);
                                       const myShare = shares.find(s => s.expenseId === expense.id && s.memberId === myMember?.id);
@@ -754,10 +755,10 @@ function ProjectContent() {
                                   <select
                                     value={expense.payerMemberId}
                                     onChange={(e) => handleInlineSave(expense, "payerMemberId", e.target.value)}
-                                    className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
+                                    className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-app-text text-xs focus:ring-0 focus:outline-none"
                                   >
                                     {members.map(m => (
-                                      <option key={m.id} value={m.id}>{m.name}</option>
+                                      <option key={m.id} value={m.id} className="bg-app-surface text-app-text">{m.name}</option>
                                     ))}
                                   </select>
                                 </td>
@@ -768,12 +769,12 @@ function ProjectContent() {
                                     <select
                                       value={expense.expenseDate ? expense.expenseDate.split('T')[0] : ""}
                                       onChange={(e) => handleInlineSave(expense, "expenseDate", e.target.value)}
-                                      className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
+                                      className="bg-transparent border-none w-full p-1.5 cursor-pointer font-bold text-app-text text-xs focus:ring-0 focus:outline-none"
                                     >
-                                      <option value="">{isTr ? "Genel" : "General"}</option>
-                                      <option value="1970-01-01">{isTr ? "Kalıcı" : "Durable"}</option>
+                                      <option value="" className="bg-app-surface text-app-text">{isTr ? "Genel" : "General"}</option>
+                                      <option value="1970-01-01" className="bg-app-surface text-app-text">{isTr ? "Kalıcı" : "Durable"}</option>
                                       {getProjectDays(project.startDate, project.endDate, isTr).map(day => (
-                                        <option key={day.dateStr} value={day.dateStr}>{day.label}</option>
+                                        <option key={day.dateStr} value={day.dateStr} className="bg-app-surface text-app-text">{day.label}</option>
                                       ))}
                                     </select>
                                   ) : (
@@ -781,7 +782,7 @@ function ProjectContent() {
                                       type="date"
                                       defaultValue={expense.expenseDate ? expense.expenseDate.split('T')[0] : ""}
                                       onChange={(e) => handleInlineSave(expense, "expenseDate", e.target.value)}
-                                      className="bg-transparent border-none w-full p-1 cursor-pointer font-bold text-gray-700 text-xs focus:ring-0 focus:outline-none"
+                                      className="bg-transparent border-none w-full p-1 cursor-pointer font-bold text-app-text text-xs focus:ring-0 focus:outline-none"
                                     />
                                   )}
                                 </td>
@@ -790,12 +791,12 @@ function ProjectContent() {
                                 <td className="p-1.5 text-center">
                                   <div className="flex items-center justify-center">
                                     {isSaving ? (
-                                      <div className="w-3.5 h-3.5 border border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+                                      <div className="w-3.5 h-3.5 border border-blue-600/20 border-t-[#EC4899] rounded-full animate-spin"></div>
                                     ) : (
                                       <button
                                         type="button"
                                         onClick={() => handleDeleteExpense(expense.id)}
-                                        className="opacity-0 group-hover/row:opacity-100 p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all active:scale-95"
+                                        className="opacity-0 group-hover/row:opacity-100 p-1.5 text-app-muted hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-all active:scale-95 cursor-pointer"
                                       >
                                         <Trash size={14} weight="bold" />
                                       </button>
@@ -817,15 +818,15 @@ function ProjectContent() {
             {activeTab === "balances" && (
               <div className="flex-1 space-y-6">
                 {/* Net Debt/Receivable box at the top */}
-                <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-                    <div className="w-12 h-12 rounded-xl bg-[#FAF9F7] border border-gray-100 flex items-center justify-center text-3xl select-none shadow-inner">
+                <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-3xl select-none shadow-inner">
                       💸
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                      <h4 className="text-xs font-bold text-app-muted uppercase tracking-wider mb-0.5">
                         {t.netStatus}
                       </h4>
-                      <p className={`text-base font-extrabold truncate ${Math.abs(getMyNetBalance()) < 0.01 ? 'text-gray-400' : getMyNetBalance() > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      <p className={`text-base font-extrabold truncate ${Math.abs(getMyNetBalance()) < 0.01 ? 'text-app-muted' : getMyNetBalance() > 0 ? 'text-emerald-600' : 'text-red-650'}`}>
                         {Math.abs(getMyNetBalance()) < 0.01
                           ? (isTr ? 'Dengedesin' : 'You are settled up')
                           : getMyNetBalance() > 0 
@@ -839,18 +840,18 @@ function ProjectContent() {
                 {/* Show suggested repayments link */}
                 {transactions.length > 0 && (
                   <div className="space-y-3">
-                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+                    <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-widest pl-1">
                       {isTr ? "Önerilen Transferler" : "Suggested Repayments"}
                     </h3>
                     <div className="space-y-2">
                       {transactions.map((t, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                        <div key={idx} className="flex justify-between items-center bg-app-surface border border-app-border rounded-2xl p-4 shadow-sm">
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-gray-600">{t.from}</span>
-                            <ArrowRight size={14} className="text-blue-600" />
-                            <span className="text-xs font-bold text-gray-900">{t.to}</span>
+                            <span className="text-xs font-bold text-app-text">{t.from}</span>
+                            <ArrowRight size={14} className="text-[#EC4899]" />
+                            <span className="text-xs font-bold text-app-text">{t.to}</span>
                           </div>
-                          <span className="text-xs font-extrabold text-blue-600">
+                          <span className="text-xs font-extrabold text-[#EC4899]">
                             {getCurrencySymbol(project.currency)}{formatVal(t.amount)}
                           </span>
                         </div>
@@ -861,7 +862,7 @@ function ProjectContent() {
 
                 {/* Balances List */}
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+                  <h3 className="text-[10px] font-bold text-app-muted uppercase tracking-widest pl-1">
                     {t.balances}
                   </h3>
                   <div className="space-y-2">
@@ -876,27 +877,27 @@ function ProjectContent() {
                         .reduce((sum, e) => sum + Number(e.amount), 0);
 
                       return (
-                        <div key={member.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex justify-between items-center shadow-sm">
+                        <div key={member.id} className="bg-app-surface border border-app-border rounded-2xl p-4 flex justify-between items-center shadow-sm">
                           <div className="flex items-center gap-3">
                             {isMe && user?.imageUrl ? (
                               <img 
                                 src={user.imageUrl} 
                                 alt={member.name} 
-                                className="w-10 h-10 rounded-xl object-cover border border-gray-200" 
+                                className="w-10 h-10 rounded-xl object-cover border border-app-border" 
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center font-bold text-gray-400 text-xs select-none">
+                              <div className="w-10 h-10 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center font-bold text-app-muted text-xs select-none">
                                 {member.name.slice(0, 2).toUpperCase()}
                               </div>
                             )}
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold text-gray-900 tracking-tight">{member.name}</h4>
+                                <h4 className="text-sm font-bold text-app-text tracking-tight">{member.name}</h4>
                                 {isMe && (
-                                  <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{isTr ? "BEN" : "ME"}</span>
+                                  <span className="text-[9px] font-bold text-[#EC4899] uppercase tracking-wider">{isTr ? "BEN" : "ME"}</span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                              <p className="text-[10px] text-app-muted font-medium mt-0.5">
                                 {isTr ? "Harcadı" : "Spent"}: {getCurrencySymbol(project.currency)}{formatVal(spentAmount)}
                                 {" • "}
                                 {isTr ? "Ödedi" : "Paid"}: {getCurrencySymbol(project.currency)}{formatVal(paidAmount)}
@@ -904,7 +905,7 @@ function ProjectContent() {
                             </div>
                           </div>
 
-                          <span className={`text-sm font-extrabold ${Math.abs(bal) < 0.01 ? 'text-gray-400' : bal > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          <span className={`text-sm font-extrabold ${Math.abs(bal) < 0.01 ? 'text-app-muted' : bal > 0 ? 'text-emerald-600' : 'text-red-650'}`}>
                             {Math.abs(bal) < 0.01 
                               ? `${getCurrencySymbol(project.currency)}${formatVal(0)}`
                               : bal > 0 
@@ -934,29 +935,34 @@ function ProjectContent() {
             <Drawer.Trigger asChild>
               <button 
                 onClick={() => setEditingExpense(null)}
-                className="pointer-events-auto bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(37,99,235,0.25)] flex items-center justify-center active:scale-[0.9] transition-all hover:scale-105"
+                className="pointer-events-auto bg-[#EC4899] hover:bg-pink-600 text-white w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(236,72,153,0.25)] flex items-center justify-center active:scale-[0.9] transition-all hover:scale-105 cursor-pointer"
               >
                 <Plus size={28} weight="bold" />
               </button>
             </Drawer.Trigger>
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 select-none pointer-events-none">{editingExpense ? (isTr ? "Gideri Düzenle" : "Edit Expense") : t.addExpense}</span>
+            <span className="text-[10px] text-app-muted font-bold uppercase tracking-widest mt-2 select-none pointer-events-none">{editingExpense ? (isTr ? "Gideri Düzenle" : "Edit Expense") : t.addExpense}</span>
             
             <Drawer.Portal>
-              <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
-              <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-gray-200">
+              <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+              <Drawer.Content className="bg-app-surface text-app-text flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-app-border">
                 <div className="p-6 overflow-y-auto">
-                  <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
+                  <div className="mx-auto w-12 h-1 rounded-full bg-app-border mb-6" />
                   <div className="flex justify-between items-center mb-6">
-                    <Drawer.Title className="text-xl font-bold flex items-center gap-2">
+                    <Drawer.Title className="text-xl font-black flex items-center gap-2 text-app-text">
                       <span>💵</span> {editingExpense ? (isTr ? "Gideri Düzenle" : "Edit Expense") : (isTr ? "Gider Ekle" : "Add Expense")}
                     </Drawer.Title>
                     {editingExpense && (
                       <button
                         onClick={async () => {
-                          const confirmDelete = window.confirm(
-                            isTr ? "Bu harcamayı silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this expense?"
-                          );
-                          if (confirmDelete) {
+                          const confirmed = await confirm({
+                            title: isTr ? "Harcamayı Sil" : "Delete Expense",
+                            description: isTr ? "Bu harcamayı silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this expense?",
+                            confirmText: isTr ? "Sil" : "Delete",
+                            cancelText: isTr ? "Vazgeç" : "Cancel",
+                            variant: "danger",
+                            icon: <Trash size={20} weight="fill" />
+                          });
+                          if (confirmed) {
                             try {
                               await client.budget.deleteExpense(editingExpense.id);
                               toast.success(isTr ? "Harcama silindi" : "Expense deleted");
@@ -968,7 +974,7 @@ function ProjectContent() {
                             }
                           }
                         }}
-                        className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all active:scale-95"
+                        className="p-2 text-app-muted hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-all active:scale-95 cursor-pointer"
                       >
                         <Trash size={20} weight="bold" />
                       </button>
@@ -998,11 +1004,11 @@ function ProjectContent() {
       {!loading && project && (
         <Drawer.Root open={isProjectEditOpen} onOpenChange={setIsProjectEditOpen}>
           <Drawer.Portal>
-            <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
-            <Drawer.Content className="bg-white text-gray-900 flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-gray-200">
+            <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+            <Drawer.Content className="bg-app-surface text-app-text flex flex-col rounded-t-[2.5rem] fixed bottom-0 left-0 right-0 max-h-[90dvh] outline-none z-[70] max-w-md mx-auto border-t border-app-border">
               <div className="p-6 overflow-y-auto">
-                <div className="mx-auto w-12 h-1 rounded-full bg-gray-200 mb-6" />
-                <Drawer.Title className="text-xl font-bold mb-6 flex items-center gap-2">
+                <div className="mx-auto w-12 h-1 rounded-full bg-app-border mb-6" />
+                <Drawer.Title className="text-xl font-black mb-6 flex items-center gap-2 text-app-text">
                   <span>🏖️</span> {isTr ? "Seyahati Düzenle" : "Edit Trip"}
                 </Drawer.Title>
                 
@@ -1081,10 +1087,10 @@ function EditProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-app-text">
       {/* Emoji Selection */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "İkon Seç" : "Select Icon"}
         </label>
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
@@ -1095,8 +1101,8 @@ function EditProjectForm({
               onClick={() => setFormData({ ...formData, emoji: emo })}
               className={`flex-shrink-0 w-12 h-12 rounded-xl border flex items-center justify-center text-2xl transition-all active:scale-90 ${
                 formData.emoji === emo 
-                  ? "bg-blue-50 border-blue-500 shadow-sm" 
-                  : "bg-gray-50 border-gray-100 grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
+                  ? "bg-[#EC4899]/10 border-[#EC4899] shadow-sm" 
+                  : "bg-app-surface-muted border-app-border grayscale-[0.5] opacity-60 hover:opacity-100 hover:grayscale-0"
               }`}
             >
               {emo}
@@ -1107,46 +1113,46 @@ function EditProjectForm({
 
       {/* Title */}
       <div className="space-y-1">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "Başlık" : "Title"}
         </label>
         <input 
           required 
           value={formData.name} 
           onChange={e => setFormData({...formData, name: e.target.value})} 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold" 
         />
       </div>
 
       {/* Currency & Type */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Para Birimi" : "Currency"}
           </label>
           <select 
             value={formData.currency} 
             onChange={e => setFormData({...formData, currency: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold"
           >
-            <option value="TRY">Türk Lirası (₺)</option>
-            <option value="USD">Dolar ($)</option>
-            <option value="EUR">Euro (€)</option>
+            <option value="TRY" className="bg-app-surface text-app-text">Türk Lirası (₺)</option>
+            <option value="USD" className="bg-app-surface text-app-text">Dolar ($)</option>
+            <option value="EUR" className="bg-app-surface text-app-text">Euro (€)</option>
           </select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Grup Tipi" : "Group Type"}
           </label>
           <select 
             value={formData.groupType} 
             onChange={e => setFormData({...formData, groupType: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold"
           >
-            <option value="trip">{isTr ? "Seyahat" : "Trip"}</option>
-            <option value="home">{isTr ? "Ev Gideri" : "Home"}</option>
-            <option value="event">{isTr ? "Etkinlik" : "Event"}</option>
-            <option value="other">{isTr ? "Diğer" : "Other"}</option>
+            <option value="trip" className="bg-app-surface text-app-text">{isTr ? "Seyahat" : "Trip"}</option>
+            <option value="home" className="bg-app-surface text-app-text">{isTr ? "Ev Gideri" : "Home"}</option>
+            <option value="event" className="bg-app-surface text-app-text">{isTr ? "Etkinlik" : "Event"}</option>
+            <option value="other" className="bg-app-surface text-app-text">{isTr ? "Diğer" : "Other"}</option>
           </select>
         </div>
       </div>
@@ -1154,25 +1160,25 @@ function EditProjectForm({
       {/* Date Range */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Başlangıç Tarihi" : "Start Date"}
           </label>
           <input 
             type="date" 
             value={formData.startDate} 
             onChange={e => setFormData({...formData, startDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold text-xs cursor-pointer" 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Bitiş Tarihi" : "End Date"}
           </label>
           <input 
             type="date" 
             value={formData.endDate} 
             onChange={e => setFormData({...formData, endDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold text-xs cursor-pointer" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold text-xs cursor-pointer" 
           />
         </div>
       </div>
@@ -1182,7 +1188,7 @@ function EditProjectForm({
           type="button"
           disabled={loading}
           onClick={handleDeleteProject}
-          className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 p-4 rounded-xl font-bold h-12 flex items-center justify-center gap-2 active:scale-95 transition-all"
+          className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 p-4 rounded-xl font-bold h-12 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer border border-red-500/10"
         >
           <Trash size={18} weight="bold" />
           <span>{isTr ? "Sil" : "Delete"}</span>
@@ -1192,7 +1198,7 @@ function EditProjectForm({
           type="submit"
           disabled={loading} 
           whileTap={{ scale: 0.98 }} 
-          className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all"
+          className="flex-[2] bg-[#EC4899] hover:bg-pink-600 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -1507,10 +1513,10 @@ function AddExpenseForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-gray-800">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-8 text-sm text-app-text">
       {/* Category selection */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "Kategori" : "Category"}
         </label>
         <div className="grid grid-cols-5 gap-2">
@@ -1521,10 +1527,10 @@ function AddExpenseForm({
                 key={cat.id}
                 type="button"
                 onClick={() => setFormData({ ...formData, category: cat.id })}
-                className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all active:scale-95 ${
+                className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all active:scale-95 cursor-pointer ${
                   isSelected
-                    ? "bg-blue-50 border-blue-500 text-blue-600 shadow-sm font-semibold"
-                    : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                    ? "bg-[#EC4899]/10 border-[#EC4899] text-[#EC4899] shadow-sm font-semibold"
+                    : "bg-app-surface-muted border-app-border text-app-muted hover:bg-app-surface hover:text-app-text"
                 }`}
               >
                 <span className="text-2xl mb-1 select-none">{cat.emoji}</span>
@@ -1539,7 +1545,7 @@ function AddExpenseForm({
 
       {/* Title */}
       <div className="space-y-1">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "Başlık" : "Title"}
         </label>
         <input 
@@ -1547,14 +1553,14 @@ function AddExpenseForm({
           placeholder={isTr ? "Örneğin: Pizza, Market..." : "e.g. Pizza, Fuel..."} 
           value={formData.title} 
           onChange={e => setFormData({...formData, title: e.target.value})} 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
+          className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold" 
         />
       </div>
 
       {/* Amount & Payer side-by-side */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Tutar" : "Amount"} ({getCurrencySymbol(project.currency)})
           </label>
           <input 
@@ -1564,20 +1570,20 @@ function AddExpenseForm({
             placeholder="0.00" 
             value={formData.amount} 
             onChange={e => setFormData({...formData, amount: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold" 
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+          <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
             {isTr ? "Ödeyen" : "Who Paid?"}
           </label>
           <select 
             value={formData.payerId} 
             onChange={e => setFormData({...formData, payerId: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold"
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold"
           >
             {members.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+              <option key={m.id} value={m.id} className="bg-app-surface text-app-text">{m.name}</option>
             ))}
           </select>
         </div>
@@ -1585,7 +1591,7 @@ function AddExpenseForm({
 
       {/* Date / Day selection */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider pl-1">
           {isTr ? "Tarih / Gün" : "Date / Day"}
         </label>
         {project.startDate && project.endDate ? (
@@ -1600,40 +1606,40 @@ function AddExpenseForm({
                   key={day.dateStr}
                   type="button"
                   onClick={() => setFormData({ ...formData, expenseDate: day.dateStr })}
-                  className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
+                  className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 cursor-pointer ${
                     isSelected
-                      ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                      : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
+                      ? "bg-[#EC4899]/10 border-[#EC4899] text-[#EC4899] font-bold shadow-sm"
+                      : "bg-app-surface-muted border-app-border text-app-muted hover:bg-app-surface hover:text-app-text font-semibold"
                   }`}
                 >
                   <span>{dayText}</span>
-                  <span className="text-[10px] text-gray-400 font-medium mt-0.5">({dateText})</span>
+                  <span className="text-[10px] text-app-muted font-medium mt-0.5">({dateText})</span>
                 </button>
               );
             })}
             <button
               type="button"
               onClick={() => setFormData({ ...formData, expenseDate: "" })}
-              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
+              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 cursor-pointer ${
                 formData.expenseDate === ""
-                  ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                  : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
+                  ? "bg-[#EC4899]/10 border-[#EC4899] text-[#EC4899] font-bold shadow-sm"
+                  : "bg-app-surface-muted border-app-border text-app-muted hover:bg-app-surface hover:text-app-text font-semibold"
               }`}
             >
               <span>{isTr ? "Genel" : "General"}</span>
-              <span className="text-[10px] text-gray-400 font-medium mt-0.5">{dateRangeLabel}</span>
+              <span className="text-[10px] text-app-muted font-medium mt-0.5">{dateRangeLabel}</span>
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, expenseDate: "1970-01-01" })}
-              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 ${
+              className={`flex flex-col items-center justify-center min-w-[72px] py-2 px-3 rounded-xl border text-xs transition-all active:scale-95 flex-shrink-0 cursor-pointer ${
                 formData.expenseDate === "1970-01-01"
-                  ? "bg-blue-50 border-blue-500 text-blue-600 font-bold shadow-sm"
-                  : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700 font-semibold"
+                  ? "bg-[#EC4899]/10 border-[#EC4899] text-[#EC4899] font-bold shadow-sm"
+                  : "bg-app-surface-muted border-app-border text-app-muted hover:bg-app-surface hover:text-app-text font-semibold"
               }`}
             >
               <span>{isTr ? "Kalıcı" : "Durable"}</span>
-              <span className="text-[10px] text-gray-400 font-medium mt-0.5">{isTr ? "Ekipman" : "Gear"}</span>
+              <span className="text-[10px] text-app-muted font-medium mt-0.5">{isTr ? "Ekipman" : "Gear"}</span>
             </button>
           </div>
         ) : (
@@ -1641,7 +1647,7 @@ function AddExpenseForm({
             type="date" 
             value={formData.expenseDate} 
             onChange={e => setFormData({...formData, expenseDate: e.target.value})} 
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer" 
+            className="w-full bg-app-surface-muted border border-app-border rounded-xl p-3 text-app-text focus:outline-none focus:ring-2 focus:ring-[#EC4899]/20 focus:border-[#EC4899] transition-all font-semibold cursor-pointer" 
           />
         )}
       </div>
@@ -1650,7 +1656,7 @@ function AddExpenseForm({
       {members.length > 1 && (
         <div className="space-y-2.5">
           <div className="flex justify-between items-center pl-1">
-            <label className="flex items-center gap-2.5 text-xs font-bold text-gray-950 select-none cursor-pointer">
+            <label className="flex items-center gap-2.5 text-xs font-bold text-app-text select-none cursor-pointer">
               <input 
                 type="checkbox"
                 checked={Object.values(selectedShares).every(Boolean)}
@@ -1662,7 +1668,7 @@ function AddExpenseForm({
                   });
                   setSelectedShares(updated);
                 }}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                className="rounded border-app-border text-[#EC4899] focus:ring-[#EC4899] w-4 h-4"
               />
               <span>{isTr ? "Böl" : "Split"}</span>
             </label>
@@ -1670,15 +1676,15 @@ function AddExpenseForm({
             <select
               value={splitMode}
               onChange={(e) => setSplitMode(e.target.value as any)}
-              className="bg-transparent text-xs font-bold text-gray-500 border-none outline-none focus:ring-0 cursor-pointer hover:text-gray-900 transition-colors pr-6"
+              className="bg-transparent text-xs font-bold text-app-muted border-none outline-none focus:ring-0 cursor-pointer hover:text-app-text transition-colors pr-6"
             >
-              <option value="equal">{isTr ? "Eşit Olarak" : "Equally"}</option>
-              <option value="ratio">{isTr ? "Paylara Göre" : "By Shares"}</option>
-              <option value="amount">{isTr ? "Tutar Olarak" : "By Amounts"}</option>
+              <option value="equal" className="bg-app-surface text-app-text">{isTr ? "Eşit Olarak" : "Equally"}</option>
+              <option value="ratio" className="bg-app-surface text-app-text">{isTr ? "Paylara Göre" : "By Shares"}</option>
+              <option value="amount" className="bg-app-surface text-app-text">{isTr ? "Tutar Olarak" : "By Amounts"}</option>
             </select>
           </div>
 
-          <div className="border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white">
+          <div className="border border-app-border rounded-2xl overflow-hidden divide-y divide-app-border/45 bg-app-surface">
             {members.map(m => {
               const isChecked = !!selectedShares[m.id];
               const amountVal = parseFloat(formData.amount) || 0;
@@ -1691,20 +1697,20 @@ function AddExpenseForm({
               }
 
               return (
-                <div key={m.id} className="flex justify-between items-center p-3.5 hover:bg-gray-50 transition-colors">
+                <div key={m.id} className="flex justify-between items-center p-3.5 hover:bg-app-surface-muted transition-colors">
                   <label className="flex items-center gap-3 cursor-pointer select-none flex-1 min-w-0">
                     <input
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleShare(m.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4.5 h-4.5"
+                      className="rounded border-app-border text-[#EC4899] focus:ring-[#EC4899] w-4.5 h-4.5"
                     />
-                    <span className="text-xs font-bold text-gray-700 truncate">{m.name}</span>
+                    <span className="text-xs font-bold text-app-text truncate">{m.name}</span>
                   </label>
 
                   <div className="flex items-center gap-2">
                     {splitMode === "equal" && (
-                      <span className="text-xs font-bold text-gray-400">
+                      <span className="text-xs font-bold text-app-muted">
                         {displayValue}
                       </span>
                     )}
@@ -1719,10 +1725,10 @@ function AddExpenseForm({
                           placeholder="1"
                           value={ratios[m.id] ?? (isChecked ? "1" : "0")}
                           onChange={(e) => handleRatioChange(m.id, e.target.value)}
-                          className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40"
+                          className="w-16 bg-app-surface-muted border border-app-border rounded-lg px-2 py-1 text-right text-xs font-bold text-app-text focus:outline-none focus:ring-1 focus:ring-[#EC4899] disabled:opacity-40"
                         />
                         {isChecked && (
-                          <span className="text-[10px] text-gray-400 font-bold min-w-[50px] text-right">
+                          <span className="text-[10px] text-app-muted font-bold min-w-[50px] text-right">
                             ({getCurrencySymbol(project.currency)}{formatVal(calculatedRatioAmounts[m.id] || 0)})
                           </span>
                         )}
@@ -1731,7 +1737,7 @@ function AddExpenseForm({
 
                     {splitMode === "amount" && (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs font-bold text-gray-400">{getCurrencySymbol(project.currency)}</span>
+                        <span className="text-xs font-bold text-app-muted">{getCurrencySymbol(project.currency)}</span>
                         <input
                           type="number"
                           disabled={!isChecked}
@@ -1740,7 +1746,7 @@ function AddExpenseForm({
                           placeholder="0.00"
                           value={amounts[m.id] ?? ""}
                           onChange={(e) => handleAmountChange(m.id, e.target.value)}
-                          className="w-20 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-right text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40"
+                          className="w-20 bg-app-surface-muted border border-app-border rounded-lg px-2 py-1 text-right text-xs font-bold text-app-text focus:outline-none focus:ring-1 focus:ring-[#EC4899] disabled:opacity-40"
                         />
                       </div>
                     )}
@@ -1755,7 +1761,7 @@ function AddExpenseForm({
         {splitMode === "amount" && Math.abs(sumOfAmounts - (parseFloat(formData.amount) || 0)) > 0.02 && (
           <p className="text-[10px] font-bold text-red-500 pl-1">
             {isTr 
-              ? `Toplam tutar (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) ile girilen tutarların toplamı (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}) eşleşmiyor.`
+              ? `Toplam tutar ( ${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) ile girilen tutarların toplamı (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}) eşleşmiyor.`
               : `Total amount (${getCurrencySymbol(project.currency)}${formatVal(parseFloat(formData.amount) || 0)}) does not match sum of amounts (${getCurrencySymbol(project.currency)}${formatVal(sumOfAmounts)}).`}
           </p>
         )}
@@ -1764,7 +1770,7 @@ function AddExpenseForm({
       <motion.button 
         disabled={loading} 
         whileTap={{ scale: 0.98 }} 
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
+        className="w-full bg-[#EC4899] hover:bg-pink-600 text-white p-4 rounded-xl font-bold shadow-md h-12 flex items-center justify-center gap-2 active:scale-95 transition-all mt-4 cursor-pointer"
       >
         {loading ? (
           <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -1781,8 +1787,8 @@ export default function BudgetProjectPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#FAF9F7]">
-          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+        <div className="flex min-h-screen items-center justify-center bg-app-bg">
+          <div className="w-12 h-12 border-4 border-[#EC4899]/20 border-t-[#EC4899] rounded-full animate-spin" />
         </div>
       }
     >

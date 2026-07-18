@@ -27,6 +27,7 @@ export interface RoutineEntry {
   is_completed: boolean;
   is_next_completed: boolean;
   is_completed_today: boolean;
+  completed_at: string | null;
 }
 
 interface GetEntriesRequest {
@@ -139,6 +140,7 @@ function mapEntry(row: Record<string, unknown>): RoutineEntry {
     is_completed: Boolean(row.is_completed),
     is_next_completed: Boolean(row.is_next_completed),
     is_completed_today: Boolean(row.is_completed_today),
+    completed_at: row.completed_at ? String(row.completed_at) : null,
   };
 }
 

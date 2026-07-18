@@ -86,7 +86,7 @@ export default function IconExportPage() {
             <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-gray-900 flex items-center gap-1.5">
               <ImageSquare size={18} weight="fill" className="text-[#0EA5E9] shrink-0" />
               <span className="truncate">
-                Icon <span className="text-[#0EA5E9]">Export</span>
+                ICON EXPORT
               </span>
             </h1>
           </div>

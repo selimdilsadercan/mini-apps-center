@@ -6369,6 +6369,7 @@ export namespace rutinler {
         "is_completed": boolean
         "is_next_completed": boolean
         "is_completed_today": boolean
+        "completed_at": string | null
     }
 
     export interface ToggleCompletionRequest {
