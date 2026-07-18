@@ -108,7 +108,7 @@ export default function SustainabilityPage() {
       <Toaster position="top-center" />
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
           <div className="flex items-center gap-2 mb-2.5">
             <button

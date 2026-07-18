@@ -157,11 +157,19 @@
     background-color: var(--app-header);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--app-header-border);
+    padding-top: env(safe-area-inset-top, 0px);
   }
   .app-chrome-bottom {
     background-color: var(--app-header);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--app-header-border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pb-safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;

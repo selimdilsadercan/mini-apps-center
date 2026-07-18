@@ -12,7 +12,7 @@ import {
   isValidHomeTab,
 } from "@/lib/apps";
 import { useRouter } from "next/navigation";
-import { 
+import {
   Heart,
   ChatTeardropDots,
   MagnifyingGlass,
@@ -41,6 +41,9 @@ import {
   Storefront,
   GraduationCap,
   Code,
+  Wrench,
+  EyeSlash,
+  ClockAfternoon,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -54,19 +57,21 @@ import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@/lib/api";
 import {
   invalidateDiscoverWidgets,
+  invalidateAllHubWidgets,
   syncAgendaCompletionInCache,
   discoverQueryKey,
 } from "@/lib/cache/hubAgendaCache";
+import { getTomorrowMidnightIso } from "@/lib/date-utils";
 import {
   readingRemainingDays,
   readingDailyTarget,
   readingChunks,
   getReadingBaseline,
 } from "@/lib/reading-daily";
-import { 
+import {
   rutinler,
-  workplaces, 
-  series_track, 
+  workplaces,
+  series_track,
   hub,
   subcenter,
   tasarruf_challenges,
@@ -173,24 +178,36 @@ function HomeContent() {
     persistHomeTab(activeTab);
   }, [activeTab]);
 
-  const { 
-    pinnedIds, 
-    lastUsed, 
-    usageCounts, 
-    isDataLoaded, 
+  const {
+    pinnedIds,
+    lastUsed,
+    usageCounts,
+    isDataLoaded,
     hasBusinesses,
-    updateAppUsage, 
-    togglePin: contextTogglePin 
+    updateAppUsage,
+    togglePin: contextTogglePin,
+    refreshSessionData,
   } = useHome();
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (user?.id) {
+      invalidateAllHubWidgets(queryClient);
+      refreshSessionData();
+    }
+  }, [user?.id, queryClient, refreshSessionData]);
+
   const [apps, setApps] = useState<MiniApp[]>([]);
-  
+
   // Queries
   const discoverQuery = useQuery({
     queryKey: ["hub", "discover", user?.id],
     queryFn: () => client.hub.getDiscoverWidgets({ userId: user?.id }),
     enabled: !!user?.id && activeTab === "discover",
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   const exploreQuery = useQuery({
@@ -198,6 +215,7 @@ function HomeContent() {
     queryFn: () => client.hub.getExploreWidgets({ userId: user?.id }),
     enabled: !!user?.id && activeTab === "explore",
     staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: "always",
   });
 
   const walletQuery = useQuery({
@@ -205,6 +223,7 @@ function HomeContent() {
     queryFn: () => client.hub.getWalletWidgets({ userId: user?.id }),
     enabled: !!user?.id && activeTab === "wallet",
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: "always",
   });
 
   const lifeQuery = useQuery({
@@ -212,6 +231,7 @@ function HomeContent() {
     queryFn: () => client.hub.getLifeWidgets({ userId: user?.id }),
     enabled: !!user?.id && activeTab === "life",
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: "always",
   });
 
   // Derived state from queries
@@ -240,43 +260,37 @@ function HomeContent() {
     setApps(implementedApps);
   }, []);
 
-  const hobbyApps = useMemo(() => {
-    const order = [
-      "series-track",
-      "read-tracker",
-      "youtube-series",
-      "film-graph",
-      "buyuk-maclar",
-      "game-companion",
-      "iskambil",
-      "chocolate-db",
-      "standups",
-      "concert-list",
-    ];
+  const hobbyMediaApps = useMemo(() => {
+    const order = ["series-track", "read-tracker", "youtube-series", "film-graph", "buyuk-maclar"];
     return apps
-      .filter(
-        (app) =>
-          app.category === "Eğlence & Hobi" &&
-          app.id !== "memedex" &&
-          app.id !== "gaming-hub",
-      )
-      .sort((a, b) => {
-        const ia = order.indexOf(a.id);
-        const ib = order.indexOf(b.id);
-        if (ia === -1 && ib === -1) return 0;
-        if (ia === -1) return 1;
-        if (ib === -1) return -1;
-        return ia - ib;
-      });
+      .filter((app) => app.category === "Eğlence & Hobi" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 
-  const exploreApps = useMemo(() => {
-    return apps.filter(app => app.category === "Şehrini Keşfet");
+  const hobbyGamesApps = useMemo(() => {
+    const order = ["game-companion", "iskambil"];
+    return apps
+      .filter((app) => app.category === "Eğlence & Hobi" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [apps]);
+
+  const explorePlacesApps = useMemo(() => {
+    const order = ["workplaces", "digital-menu", "stamp-card"];
+    return apps
+      .filter((app) => app.category === "Şehrini Keşfet" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [apps]);
+
+  const exploreEventsApps = useMemo(() => {
+    const order = ["campus-events", "concert-list"];
+    return apps
+      .filter((app) => app.category === "Şehrini Keşfet" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 
   const walletApps = useMemo(() => {
-    return MINI_APPS.filter(app => 
-      app.category === "Finans & Tasarruf" && 
+    return MINI_APPS.filter(app =>
+      app.category === "Finans & Tasarruf" &&
       (!app.isCancelled || ["subcenter", "tasarruf-challenges", "budget"].includes(app.id))
     );
   }, []);
@@ -303,7 +317,16 @@ function HomeContent() {
 
   // Developer tools (linked to their own pages, not the business panel).
   const proDevApps = useMemo(() => {
-    const order = ["store-preview", "icon-export", "feedback-board"];
+    const order = ["tasket", "store-preview", "icon-export", "feedback-board", "icon-set-guide"];
+    const all = [...MINI_APPS, ...BUSINESS_APPS];
+    return order
+      .map((id) => all.find((a) => a.id === id))
+      .filter((a): a is MiniApp => Boolean(a));
+  }, []);
+
+  // General utility tools.
+  const proGeneralApps = useMemo(() => {
+    const order = ["pdf-tools", "daily-weather", "tournament-manager"];
     const all = [...MINI_APPS, ...BUSINESS_APPS];
     return order
       .map((id) => all.find((a) => a.id === id))
@@ -313,6 +336,14 @@ function HomeContent() {
   // Studio packages — each shown as a single card; the bottom sheet lists its apps.
   const studioPackages = useMemo<StudioPackage[]>(
     () => [
+      {
+        id: "general",
+        name: "Genel araçlar",
+        description: "Günlük işlerini kolaylaştıran pratik araçlar.",
+        icon: Wrench,
+        color: "#10B981",
+        apps: proGeneralApps,
+      },
       {
         id: "business",
         name: "İşletmeler için",
@@ -338,7 +369,7 @@ function HomeContent() {
         apps: proDevApps,
       },
     ],
-    [proBusinessApps, proServiceApps, proDevApps]
+    [proGeneralApps, proBusinessApps, proServiceApps, proDevApps]
   );
 
   // A package card for the Studio tab — opens the contact bottom sheet.
@@ -349,11 +380,11 @@ function HomeContent() {
         key={pkg.id}
         type="button"
         onClick={() => setStudioSheetPkg(pkg)}
-        className="w-full text-left rounded-[2rem] border border-app-border bg-app-surface p-5 shadow-sm active:scale-[0.98] transition-all"
+        className="w-full text-left rounded-2xl border border-app-border bg-app-surface p-5 shadow-sm active:scale-[0.98] transition-all"
       >
         <div className="flex items-center gap-4">
           <div
-            className="w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-sm"
+            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
             style={{ backgroundColor: pkg.color }}
           >
             <Icon size={24} weight="fill" className="text-white" />
@@ -373,7 +404,7 @@ function HomeContent() {
               return (
                 <div
                   key={app.id}
-                  className="w-7 h-7 rounded-xl flex items-center justify-center border-2 border-app-surface shadow-sm"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center border-2 border-app-surface shadow-sm"
                   style={{ backgroundColor: app.color }}
                 >
                   <AppIcon size={13} weight="fill" className="text-white" />
@@ -389,18 +420,18 @@ function HomeContent() {
     );
   };
 
-  const lifeApps = useMemo(() => {
-    const order = ["eksik-var", "ev-isleri", "rutinler", "study", "meal-planner", "gym"];
+  const lifeHomeApps = useMemo(() => {
+    const order = ["ev-isleri", "rutinler"];
     return apps
-      .filter((app) => app.category === "Kampüslülere Özel")
-      .sort((a, b) => {
-        const ia = order.indexOf(a.id);
-        const ib = order.indexOf(b.id);
-        if (ia === -1 && ib === -1) return 0;
-        if (ia === -1) return 1;
-        if (ib === -1) return -1;
-        return ia - ib;
-      });
+      .filter((app) => app.category === "Kampüslülere Özel" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [apps]);
+
+  const lifeHealthApps = useMemo(() => {
+    const order = ["eksik-var", "meal-planner", "gym", "study"];
+    return apps
+      .filter((app) => app.category === "Kampüslülere Özel" && order.includes(app.id))
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 
   const toolsApps = useMemo(() => {
@@ -448,261 +479,322 @@ function HomeContent() {
           <HomeSkeleton />
         ) : (
           <AnimatePresence mode="wait">
-          {activeTab === "discover" && (
-            <motion.div
-              key="discover"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-10"
-            >
-              <section className="space-y-3">
-                <HomeSummaryCards
-                  suggestions={suggestions}
-                  activities={activities}
-                  todaySeries={todaySeries}
-                  todayGymPlan={todayGymPlan}
-                  todayMeals={todayMeals}
-                  todayAgenda={todayAgenda}
-                  weeklyChores={weeklyChores}
-                  weeklyReadingGoal={weeklyReadingGoal}
-                  userId={user?.id}
-                  loading={loading}
-                />
-              </section>
-
-              {/* Pratik Araçlar Section (Tools) */}
-              {toolsApps.length > 0 && (
-                <section>
-                  <div className="space-y-0">
-                    {toolsApps.map((app, index) => (
-                      <AppRow 
-                        key={app.id} 
-                        app={app} 
-                        index={index} 
-                        tApps={tApps}
-                        isPinned={pinnedIds.includes(app.id)}
-                        onPin={(e) => togglePin(e, app.id)}
-                        onClick={() => handleAppClick(app)}
-                      />
-                    ))}
-                  </div>
+            {activeTab === "discover" && (
+              <motion.div
+                key="discover"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-10"
+              >
+                <section className="space-y-3">
+                  <HomeSummaryCards
+                    suggestions={suggestions}
+                    activities={activities}
+                    todaySeries={todaySeries}
+                    todayGymPlan={todayGymPlan}
+                    todayMeals={todayMeals}
+                    todayAgenda={todayAgenda}
+                    weeklyChores={weeklyChores}
+                    weeklyReadingGoal={weeklyReadingGoal}
+                    userId={user?.id}
+                    loading={loading}
+                  />
                 </section>
-              )}
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === "explore" && (
-            <motion.div
-              key="explore"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-10"
-            >
-              <section>
-                <div className="space-y-0">
-                  {exploreApps.map((app, index) => (
-                    <AppRow 
-                      key={app.id} 
-                      app={app} 
-                      index={index} 
-                      tApps={tApps}
-                      isPinned={pinnedIds.includes(app.id)}
-                      onPin={(e) => togglePin(e, app.id)}
-                      onClick={() => handleAppClick(app)}
-                    />
-                  ))}
-                </div>
-              </section>
-            </motion.div>
-          )}
+            {activeTab === "explore" && (
+              <motion.div
+                key="explore"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                {/* Mekanlar & Rehberler */}
+                {explorePlacesApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Mekanlar & Rehberler
+                    </h3>
+                    <div className="space-y-0">
+                      {explorePlacesApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-          {activeTab === "hobby" && (
-            <motion.div
-              key="hobby"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-10"
-            >
-              <section>
-                <div className="space-y-0">
-                  {hobbyApps.map((app, index) => (
-                    <AppRow 
-                      key={app.id} 
-                      app={app} 
-                      index={index} 
-                      tApps={tApps}
-                      isPinned={pinnedIds.includes(app.id)}
-                      onPin={(e) => togglePin(e, app.id)}
-                      onClick={() => handleAppClick(app)}
-                    />
-                  ))}
-                </div>
-              </section>
-            </motion.div>
-          )}
+                {/* Etkinlik & Topluluk */}
+                {exploreEventsApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Etkinlik & Topluluk
+                    </h3>
+                    <div className="space-y-0">
+                      {exploreEventsApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </motion.div>
+            )}
 
-          {activeTab === "wallet" && (
-            <motion.div
-              key="wallet"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-8"
-            >
-              {/* Studio packages */}
-              <section className="space-y-3">
-                {studioPackages.map(renderStudioPackage)}
-              </section>
-            </motion.div>
-          )}
+            {activeTab === "hobby" && (
+              <motion.div
+                key="hobby"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                {/* Medya & İçerik */}
+                {hobbyMediaApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Medya & İçerik
+                    </h3>
+                    <div className="space-y-0">
+                      {hobbyMediaApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-          {activeTab === "life" && (
-            <motion.div
-              key="life"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-10"
-            >
+                {/* Oyun & Etkinlik */}
+                {hobbyGamesApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Oyun & Etkinlik
+                    </h3>
+                    <div className="space-y-0">
+                      {hobbyGamesApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </motion.div>
+            )}
 
-              {/* Suggest Inbox Widget */}
-              {suggestions.length > 0 && (
-                <section>
-                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                    {suggestions.map(suggestion => (
-                      <Link 
-                        key={suggestion.id} 
-                        href={`/apps/suggest/detail?id=${suggestion.shareId}`}
-                        className="w-48 bg-app-surface p-4 rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border shadow-inner">
-                            {suggestion.imageUrl ? (
-                              <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                <PaperPlaneTilt size={20} weight="fill" />
-                              </div>
+            {activeTab === "wallet" && (
+              <motion.div
+                key="wallet"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                {/* Studio packages */}
+                <section className="space-y-3">
+                  {studioPackages.map(renderStudioPackage)}
+                </section>
+              </motion.div>
+            )}
+
+            {activeTab === "life" && (
+              <motion.div
+                key="life"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-10"
+              >
+
+                {/* Suggest Inbox Widget */}
+                {suggestions.length > 0 && (
+                  <section>
+                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                      {suggestions.map(suggestion => (
+                        <Link
+                          key={suggestion.id}
+                          href={`/apps/suggest/detail?id=${suggestion.shareId}`}
+                          className="w-48 bg-app-surface p-4 rounded-2xl border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border shadow-inner">
+                              {suggestion.imageUrl ? (
+                                <img src={suggestion.imageUrl} alt={suggestion.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <PaperPlaneTilt size={20} weight="fill" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{suggestion.title}</h3>
+                              <p className="text-[9px] text-app-muted font-bold truncate">@{suggestion.senderUsername || "birisi"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
+                              {suggestion.category === "movie" ? "Film" :
+                                suggestion.category === "tv" ? "Dizi" :
+                                  suggestion.category === "song" ? "Şarkı" :
+                                    suggestion.category === "place" ? "Mekan" : "Öneri"}
+                            </span>
+                            {suggestion.status === "pending" && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{suggestion.title}</h3>
-                            <p className="text-[9px] text-app-muted font-bold truncate">@{suggestion.senderUsername || "birisi"}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
-                            {suggestion.category === "movie" ? "Film" : 
-                             suggestion.category === "tv" ? "Dizi" :
-                             suggestion.category === "song" ? "Şarkı" :
-                             suggestion.category === "place" ? "Mekan" : "Öneri"}
-                          </span>
-                          {suggestion.status === "pending" && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Ne Yapsak Activities Widget */}
-              {activities.length > 0 && (
-                <section>
-                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
-                    {activities.map(activity => (
-                      <Link 
-                        key={activity.id} 
-                        href={`/apps/kim-gelir/activity?id=${activity.id}`}
-                        className="w-56 bg-app-surface p-4 rounded-[2rem] border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
-                            <Users size={20} weight="fill" />
+                {/* Ne Yapsak Activities Widget */}
+                {activities.length > 0 && (
+                  <section>
+                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                      {activities.map(activity => (
+                        <Link
+                          key={activity.id}
+                          href={`/apps/kim-gelir/activity?id=${activity.id}`}
+                          className="w-56 bg-app-surface p-4 rounded-2xl border border-app-border shadow-sm shrink-0 active:scale-[0.98] transition-all text-left flex flex-col gap-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
+                              <Users size={20} weight="fill" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{activity.title}</h3>
+                              <p className="text-[9px] text-app-muted font-bold truncate">{activity.location}</p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[11px] font-black text-app-text uppercase tracking-tight truncate">{activity.title}</h3>
-                            <p className="text-[9px] text-app-muted font-bold truncate">{activity.location}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex -space-x-2">
+                              {activity.responses.slice(0, 3).map((resp, i) => (
+                                <div key={i} className="w-5 h-5 rounded-full border-2 border-white bg-gray-100 overflow-hidden">
+                                  {resp.avatar ? (
+                                    <img src={resp.avatar} alt={resp.username || ""} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-app-muted">
+                                      {(resp.username || "?")[0]}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                              {activity.responses.length > 3 && (
+                                <div className="w-5 h-5 rounded-full border-2 border-white bg-gray-900 flex items-center justify-center text-[7px] font-black text-white">
+                                  +{activity.responses.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
+                              {activity.timeOption === "custom" ? activity.customTime : activity.timeOption}
+                            </span>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex -space-x-2">
-                            {activity.responses.slice(0, 3).map((resp, i) => (
-                              <div key={i} className="w-5 h-5 rounded-full border-2 border-white bg-gray-100 overflow-hidden">
-                                {resp.avatar ? (
-                                  <img src={resp.avatar} alt={resp.username || ""} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-app-muted">
-                                    {(resp.username || "?")[0]}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            {activity.responses.length > 3 && (
-                              <div className="w-5 h-5 rounded-full border-2 border-white bg-gray-900 flex items-center justify-center text-[7px] font-black text-white">
-                                +{activity.responses.length - 3}
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-[8px] font-black text-app-muted uppercase tracking-widest">
-                            {activity.timeOption === "custom" ? activity.customTime : activity.timeOption}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Günlük Hayat */}
-              <section className="space-y-2">
-                <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-                  Günlük Hayat
-                </h3>
-                <div className="space-y-0">
-                  {lifeApps.map((app, index) => (
-                    <AppRow
-                      key={app.id}
-                      app={app}
-                      index={index}
-                      tApps={tApps}
-                      isPinned={pinnedIds.includes(app.id)}
-                      onPin={(e) => togglePin(e, app.id)}
-                      onClick={() => handleAppClick(app)}
-                    />
-                  ))}
-                </div>
-              </section>
+                {/* Ev & Düzen */}
+                {lifeHomeApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Ev & Düzen
+                    </h3>
+                    <div className="space-y-0">
+                      {lifeHomeApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Finans (Cüzdan'dan taşındı) */}
-              {walletApps.length > 0 && (
-                <section className="space-y-2">
-                  <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-                    Finans
-                  </h3>
-                  <div className="space-y-0">
-                    {walletApps.map((app, index) => (
-                      <AppRow
-                        key={app.id}
-                        app={app}
-                        index={index}
-                        tApps={tApps}
-                        isPinned={pinnedIds.includes(app.id)}
-                        onPin={(e) => togglePin(e, app.id)}
-                        onClick={() => handleAppClick(app)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+                {/* Sağlık & Odak */}
+                {lifeHealthApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Sağlık & Odak
+                    </h3>
+                    <div className="space-y-0">
+                      {lifeHealthApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Finans & Bütçe */}
+                {walletApps.length > 0 && (
+                  <section className="space-y-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                      Finans & Bütçe
+                    </h3>
+                    <div className="space-y-0">
+                      {walletApps.map((app, index) => (
+                        <AppRow
+                          key={app.id}
+                          app={app}
+                          index={index}
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </main>
 
       {/* Studio contact bottom sheet */}
@@ -714,13 +806,13 @@ function HomeContent() {
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/50 z-[190]" />
-          <Drawer.Content className="bg-app-surface flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[200] max-w-lg mx-auto border-t border-app-border">
+          <Drawer.Content className="bg-app-surface flex flex-col rounded-t-2xl fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[200] max-w-lg mx-auto border-t border-app-border">
             {studioSheetPkg && (
               <div className="flex flex-col min-h-0 p-6 pb-8">
                 <div className="mx-auto w-12 h-1.5 bg-app-border rounded-full mb-6 shrink-0" />
                 <div className="flex flex-col items-center text-center shrink-0">
                   <div
-                    className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-sm mb-4"
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm mb-4"
                     style={{ backgroundColor: studioSheetPkg.color }}
                   >
                     {(() => {
@@ -745,7 +837,7 @@ function HomeContent() {
                         className="flex items-center gap-3 py-3 border-b border-app-border/60 last:border-0"
                       >
                         <div
-                          className="w-10 h-10 rounded-[1rem] flex items-center justify-center shrink-0 shadow-sm"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
                           style={{ backgroundColor: app.color }}
                         >
                           <Icon size={20} weight="fill" className="text-white" />
@@ -816,14 +908,8 @@ function formatSeriesAirLabel(airDateStr: string): string {
   return air.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
-function buildSeriesTrackHref(item: series_track.TodaySeriesItem) {
-  if (!item.programId) return "/apps/series-track";
-  const params = new URLSearchParams({
-    program: item.programId,
-    episode: String(item.episode),
-    episodeId: item.id.replace(/-watched$/, ""),
-  });
-  return `/apps/series-track?${params.toString()}`;
+function buildSeriesTrackHref(_item: series_track.TodaySeriesItem) {
+  return "/apps/series-track";
 }
 
 function getSuggestionCategoryLabel(category: suggest.InboxSuggestion["category"]) {
@@ -982,11 +1068,7 @@ function HomeSummaryCards({
       key={item.id}
       className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60"
     >
-      <HomeTaskCheckButton
-        completed
-        disabled={actionLoading === `agenda-${item.id}`}
-        onClick={() => void handleToggleAgendaComplete(item.id, true)}
-      />
+      <HomeTaskCheckButton completed disabled />
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-black truncate text-app-muted line-through">
           {item.item_emoji ? `${item.item_emoji} ` : ""}
@@ -998,8 +1080,31 @@ function HomeSummaryCards({
       </div>
     </div>
   );
+  const { dailyWidgetStates, updateDailyWidgetStates } = useHome();
+  const ignoredSeriesIds = dailyWidgetStates?.ignoredSeriesIds || [];
+  const completedMealIds = dailyWidgetStates?.completedMealKeys || [];
+
+  const handleIgnoreSeriesToday = (item: series_track.TodaySeriesItem) => {
+    const newIds = Array.from(new Set([...ignoredSeriesIds, String(item.id), String(item.tmdbId)]));
+    updateDailyWidgetStates({ ignoredSeriesIds: newIds });
+    toast.success("Bugünlük gizlendi.");
+  };
+
+  const handleToggleMealCompleted = (mealKey: string) => {
+    const isDone = completedMealIds.includes(mealKey);
+    const newIds = isDone
+      ? completedMealIds.filter((id) => id !== mealKey)
+      : [...completedMealIds, mealKey];
+    updateDailyWidgetStates({ completedMealKeys: newIds });
+    toast.success(isDone ? "İşaret kaldırıldı." : "Öğün tamamlandı olarak işaretlendi!");
+  };
+
   const pendingAvailableSeries = todaySeries.filter(
-    (item) => !item.isWatched && isSeriesEpisodeAvailableNow(item.airDate),
+    (item) =>
+      !item.isWatched &&
+      isSeriesEpisodeAvailableNow(item.airDate) &&
+      !ignoredSeriesIds.includes(String(item.id)) &&
+      !ignoredSeriesIds.includes(String(item.tmdbId)),
   );
   const completedTodaySeries = todaySeries.filter((item) => item.isWatched);
   const pendingSeriesWidget = pendingAvailableSeries.length > 0;
@@ -1034,7 +1139,6 @@ function HomeSummaryCards({
         </p>
         <p className="text-[9px] text-app-muted font-bold truncate">
           S{item.season} B{item.episode}
-          {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
         </p>
       </div>
     </div>
@@ -1042,15 +1146,13 @@ function HomeSummaryCards({
   const sortedTodayMeals = [...todayMeals].sort(
     (a, b) => MEAL_TYPE_ORDER.indexOf(a.mealType) - MEAL_TYPE_ORDER.indexOf(b.mealType)
   );
-  const upcomingTodayMeals = sortedTodayMeals.filter((meal) =>
-    isMealTypeVisibleAtTime(meal.mealType)
-  );
   const allTodayMealsCompleted =
-    sortedTodayMeals.length > 0 && upcomingTodayMeals.length === 0;
-  const pendingTodayMeals = upcomingTodayMeals.length > 0;
-  const visibleMealTypes = MEAL_TYPE_ORDER.filter((type) => isMealTypeVisibleAtTime(type));
+    sortedTodayMeals.length > 0 &&
+    sortedTodayMeals.every((m) => completedMealIds.includes(m.id || m.mealType));
+  const pendingTodayMeals =
+    sortedTodayMeals.length > 0 && !allTodayMealsCompleted;
   const plannedMealTypes = new Set(todayMeals.map((meal) => meal.mealType));
-  const missingMealTypes = visibleMealTypes.filter((type) => !plannedMealTypes.has(type));
+  const missingMealTypes = MEAL_TYPE_ORDER.filter((type) => !plannedMealTypes.has(type));
   const needsMealPlanning = missingMealTypes.length > 0;
   const pendingMealsWidget =
     pendingTodayMeals || (needsMealPlanning && todayMeals.length === 0);
@@ -1095,7 +1197,7 @@ function HomeSummaryCards({
         if (!prev) return prev;
         return {
           ...prev,
-          suggestions: prev.suggestions.map((item: any) => 
+          suggestions: prev.suggestions.map((item: any) =>
             item.shareId === shareId ? { ...item, status } : item
           )
         };
@@ -1106,7 +1208,7 @@ function HomeSummaryCards({
         if (!prev) return prev;
         return {
           ...prev,
-          suggestions: prev.suggestions.map((item: any) => 
+          suggestions: prev.suggestions.map((item: any) =>
             item.shareId === shareId ? { ...item, status } : item
           )
         };
@@ -1234,9 +1336,9 @@ function HomeSummaryCards({
             assignments: prev.weeklyChores.assignments.map((item: any) =>
               item.id === assignmentId
                 ? {
-                    ...item,
-                    completedAt: res.completed ? new Date().toISOString() : null,
-                  }
+                  ...item,
+                  completedAt: res.completed ? new Date().toISOString() : null,
+                }
                 : item
             )
           }
@@ -1278,6 +1380,36 @@ function HomeSummaryCards({
     }
   };
 
+  const handlePostponeAgendaItem = async (entryId: string) => {
+    if (!userId) return;
+    const actionKey = `agenda-postpone-${entryId}`;
+    try {
+      setActionLoading(actionKey);
+
+      // Optimistic cache update
+      queryClient.setQueryData(discoverQueryKey(userId), (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          todayAgenda: (old.todayAgenda || []).filter((e: any) => e.id !== entryId),
+        };
+      });
+
+      await client.rutinler.postponeEntry({
+        entryId,
+        userId,
+      });
+
+      invalidateDiscoverWidgets(queryClient, userId);
+      toast.success("Yarına ertelendi");
+    } catch {
+      invalidateDiscoverWidgets(queryClient, userId);
+      toast.error("Erteleme başarısız oldu");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const widgets = [
     {
       key: "agenda",
@@ -1301,22 +1433,39 @@ function HomeSummaryCards({
           }
         >
           {previewTodayAgenda.map((item) => (
-            <div
-              key={item.id}
-              className="px-4 py-3 border-t border-app-border flex items-center gap-3"
-            >
-              <HomeTaskCheckButton
-                disabled={actionLoading === `agenda-${item.id}`}
-                onClick={() => void handleToggleAgendaComplete(item.id, false)}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black truncate text-app-text">
-                  {item.item_emoji ? `${item.item_emoji} ` : ""}
-                  {item.item_name}
-                </p>
-                <p className="text-[9px] text-app-muted font-bold truncate">
-                  {getAgendaPeriodLabel(item)}
-                </p>
+            <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center text-sm">
+                  {item.item_emoji ? (
+                    item.item_emoji
+                  ) : (
+                    <CalendarCheck size={16} weight="bold" className="text-app-muted" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate">{item.item_name}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {getAgendaPeriodLabel(item)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <WidgetActionButton
+                  onClick={() => void handleToggleAgendaComplete(item.id, false)}
+                  loading={actionLoading === `agenda-${item.id}`}
+                  icon={CheckCircle}
+                >
+                  Bitti
+                </WidgetActionButton>
+
+                <WidgetActionButton
+                  onClick={() => void handlePostponeAgendaItem(item.id)}
+                  loading={actionLoading === `agenda-postpone-${item.id}`}
+                  icon={ClockAfternoon}
+                >
+                  Ertele
+                </WidgetActionButton>
               </div>
             </div>
           ))}
@@ -1506,7 +1655,6 @@ function HomeSummaryCards({
                   <p className="text-[11px] font-black text-app-text truncate">{item.title}</p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
                     S{item.season} B{item.episode}
-                    {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
                     {" · "}
                     {formatSeriesAirLabel(item.airDate)}
                     {item.source === "episode-club" ? " · Episode Club" : ""}
@@ -1527,7 +1675,13 @@ function HomeSummaryCards({
                   loading={actionLoading === `series-${item.id}`}
                   icon={CheckCircle}
                 >
-                  İzlendi işaretle
+                  İzlendi
+                </WidgetActionButton>
+                <WidgetActionButton
+                  onClick={() => handleIgnoreSeriesToday(item)}
+                  icon={EyeSlash}
+                >
+                  Yoksay
                 </WidgetActionButton>
               </div>
             </div>
@@ -1627,11 +1781,7 @@ function HomeSummaryCards({
                       key={item.id}
                       className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60"
                     >
-                      <HomeTaskCheckButton
-                        completed
-                        disabled={actionLoading === `chore-${item.id}`}
-                        onClick={() => void handleToggleChoreComplete(item.id)}
-                      />
+                      <HomeTaskCheckButton completed disabled />
                       <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-black truncate text-app-muted line-through">
                           {item.choreIcon ? `${item.choreIcon} ` : ""}
@@ -1697,28 +1847,47 @@ function HomeSummaryCards({
                 <HomeTaskCheckButton completed disabled />
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-app-text truncate line-through">
-                    {sortedTodayMeals.map((meal) => meal.title).join(" · ")}
+                    {sortedTodayMeals.map((meal) => `${getMealTypeLabel(meal.mealType)}: ${meal.title}`).join(" · ")}
                   </p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
-                    {sortedTodayMeals.length} öğün
+                    {sortedTodayMeals.length} öğün tamamlandı
                   </p>
                 </div>
               </div>
             ) : undefined
           }
         >
-          {pendingTodayMeals && (
-            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100 text-orange-500">
-                <ChefHat size={16} weight="fill" />
+          {todayMeals.length > 0 && !allTodayMealsCompleted && (
+            <div className="px-4 py-3 border-t border-app-border space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0 border border-orange-500/20">
+                  <ChefHat size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate">
+                    {sortedTodayMeals.map((meal) => `${getMealTypeLabel(meal.mealType)}: ${meal.title}`).join(" · ")}
+                  </p>
+                  <p className="text-[9px] text-app-muted font-bold truncate">
+                    Günün Menüsü ({completedMealIds.length}/{sortedTodayMeals.length} tamamlandı)
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black text-app-text truncate">
-                  {upcomingTodayMeals.map((meal) => meal.title).join(" · ")}
-                </p>
-                <p className="text-[9px] text-app-muted font-bold truncate">
-                  {upcomingTodayMeals.map((meal) => getMealTypeLabel(meal.mealType)).join(" · ")}
-                </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {sortedTodayMeals.map((meal) => {
+                  const mealKey = meal.id || meal.mealType;
+                  const isDone = completedMealIds.includes(mealKey);
+                  return (
+                    <WidgetActionButton
+                      key={mealKey}
+                      onClick={() => handleToggleMealCompleted(mealKey)}
+                      icon={isDone ? CheckCircle : Check}
+                    >
+                      <span className={isDone ? "line-through opacity-70" : ""}>
+                        {getMealTypeLabel(meal.mealType)}
+                      </span>
+                    </WidgetActionButton>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1751,21 +1920,42 @@ function HomeSummaryCards({
     {
       key: "reading",
       loading: loading,
-      hasContent: !!weeklyReadingGoal && weeklyReadingGoal.status === "active",
-      hasCompletedOnly: !!weeklyReadingGoal && weeklyReadingGoal.status === "completed",
+      hasContent: (() => {
+        if (!weeklyReadingGoal || weeklyReadingGoal.status !== "active") return false;
+        const rgTotal = weeklyReadingGoal.book_total_pages || 0;
+        const rgCurrent = weeklyReadingGoal.book_current_page ?? 0;
+        const rgBase = readingBase ?? rgCurrent;
+        const rgRemainingDays = readingRemainingDays(weeklyReadingGoal.week_start, weeklyReadingGoal.weeks);
+        const rgDailyTarget = readingDailyTarget(rgBase, rgTotal, rgRemainingDays);
+        const rgChunks = readingChunks(rgDailyTarget);
+        const rgHasTarget = rgTotal > 0 && rgTotal - rgBase > 0 && rgChunks.length > 0;
+        const totalTodayPages = rgChunks.reduce((a, b) => a + b, 0);
+        const isTodayDone = rgHasTarget && rgCurrent >= rgBase + totalTodayPages;
+        return !isTodayDone;
+      })(),
+      hasCompletedOnly: (() => {
+        if (!weeklyReadingGoal) return false;
+        if (weeklyReadingGoal.status === "completed") return true;
+        if (weeklyReadingGoal.status === "active") {
+          const rgTotal = weeklyReadingGoal.book_total_pages || 0;
+          const rgCurrent = weeklyReadingGoal.book_current_page ?? 0;
+          const rgBase = readingBase ?? rgCurrent;
+          const rgRemainingDays = readingRemainingDays(weeklyReadingGoal.week_start, weeklyReadingGoal.weeks);
+          const rgDailyTarget = readingDailyTarget(rgBase, rgTotal, rgRemainingDays);
+          const rgChunks = readingChunks(rgDailyTarget);
+          const rgHasTarget = rgTotal > 0 && rgTotal - rgBase > 0 && rgChunks.length > 0;
+          const totalTodayPages = rgChunks.reduce((a, b) => a + b, 0);
+          return rgHasTarget && rgCurrent >= rgBase + totalTodayPages;
+        }
+        return false;
+      })(),
       card: (() => {
         const isActive = weeklyReadingGoal?.status === "active";
         const isCompleted = weeklyReadingGoal?.status === "completed";
         const isSkipped = weeklyReadingGoal?.status === "skipped";
         const bookTitle = weeklyReadingGoal?.book_title || null;
         const bookCover = weeklyReadingGoal?.book_cover || null;
-        const emptyText = isCompleted
-          ? "Bu hafta tamamlandı 🎉"
-          : isSkipped
-          ? "Bu hafta pas geçildi"
-          : "Bu hafta hedef yok";
 
-        // Daily target chunk buttons (mirrors the read-tracker app).
         const rgTotal = weeklyReadingGoal?.book_total_pages || 0;
         const rgCurrent = weeklyReadingGoal?.book_current_page ?? 0;
         const rgBase = readingBase ?? rgCurrent;
@@ -1775,12 +1965,25 @@ function HomeSummaryCards({
         const rgDailyTarget = readingDailyTarget(rgBase, rgTotal, rgRemainingDays);
         const rgChunks = readingChunks(rgDailyTarget);
         const rgHasTarget = rgTotal > 0 && rgTotal - rgBase > 0 && rgChunks.length > 0;
+        const totalTodayPages = rgChunks.reduce((a, b) => a + b, 0);
+        const isTodayTargetCompleted = isActive && rgHasTarget && rgCurrent >= rgBase + totalTodayPages;
+
+        const emptyText = isCompleted
+          ? "Bu hafta tamamlandı 🎉"
+          : isTodayTargetCompleted
+            ? "Bugünün okuma hedefi tamamlandı 🎉"
+            : isSkipped
+              ? "Bu hafta pas geçildi"
+              : "Bu hafta hedef yok";
+
         const pressReadingChunk = (i: number) => {
           const cumInc = rgChunks.slice(0, i + 1).reduce((a, b) => a + b, 0);
           const cumExc = rgChunks.slice(0, i).reduce((a, b) => a + b, 0);
           const filled = rgCurrent >= rgBase + cumInc;
           handleReadingUpdate(filled ? rgBase + cumExc : rgBase + cumInc);
         };
+
+        const hasCardContent = isActive && !isTodayTargetCompleted;
 
         return (
           <HomeSummaryCard
@@ -1791,36 +1994,53 @@ function HomeSummaryCards({
             subtitle="Oku Oku"
             loading={loading}
             emptyText={emptyText}
-            hasContent={isActive}
+            hasContent={hasCardContent}
             emptyFooter={
-              (isCompleted || isSkipped) && bookTitle ? (
-                <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
-                  {isCompleted ? <HomeTaskCheckButton completed disabled /> : null}
-                  {bookCover ? (
-                    <img
-                      src={bookCover}
-                      alt={bookTitle}
-                      className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
+              (isCompleted || isTodayTargetCompleted || isSkipped) && bookTitle ? (
+                <div className="px-4 py-3 border-t border-app-border space-y-2.5 opacity-70">
+                  <div className="flex items-center gap-3">
+                    <HomeTaskCheckButton
+                      completed
+                      onClick={
+                        isActive && isTodayTargetCompleted
+                          ? () => {
+                            const lastChunkExc = rgChunks.slice(0, rgChunks.length - 1).reduce((a, b) => a + b, 0);
+                            handleReadingUpdate(rgBase + lastChunkExc);
+                          }
+                          : undefined
+                      }
+                      disabled={!isActive || !isTodayTargetCompleted}
                     />
-                  ) : (
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
-                      <BookOpen size={16} weight="fill" />
+                    {bookCover ? (
+                      <img
+                        src={bookCover}
+                        alt={bookTitle}
+                        className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                        <BookOpen size={16} weight="fill" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[11px] font-black text-app-text truncate ${isCompleted || isTodayTargetCompleted ? "line-through" : ""}`}>
+                        {bookTitle}
+                      </p>
+                      <p className="text-[9px] text-app-muted font-bold truncate">
+                        {isCompleted
+                          ? "Kitap bitirildi 🎉"
+                          : isTodayTargetCompleted
+                            ? `Bugün tamamlandı (${rgCurrent}${rgTotal ? ` / ${rgTotal}` : ""} sayfa)`
+                            : "Pas geçildi"}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-[11px] font-black text-app-text truncate ${isCompleted ? "line-through" : ""}`}>
-                      {bookTitle}
-                    </p>
-                    <p className="text-[9px] text-app-muted font-bold">
-                      {isCompleted ? "Bitirildi" : "Pas geçildi"}
-                    </p>
                   </div>
                 </div>
               ) : undefined
             }
           >
             {isActive && bookTitle && (
-              <div className="px-4 py-3 border-t border-app-border space-y-3">
+              <div className="px-4 py-3 border-t border-app-border space-y-2.5">
                 <div className="flex items-center gap-3">
                   {bookCover ? (
                     <img
@@ -1848,27 +2068,14 @@ function HomeSummaryCards({
                       const cumInc = rgChunks.slice(0, i + 1).reduce((a, b) => a + b, 0);
                       const filled = rgCurrent >= rgBase + cumInc;
                       return (
-                        <button
+                        <WidgetActionButton
                           key={i}
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            pressReadingChunk(i);
-                          }}
-                          className={`min-w-[2.75rem] h-7 px-2 rounded-lg flex items-center justify-center gap-0.5 text-[11px] font-black active:scale-95 transition-all ${
-                            filled
-                              ? "bg-app-text/20 border border-app-text/30 text-app-text"
-                              : "bg-app-tab-track border border-app-border text-app-text"
-                          }`}
+                          onClick={() => pressReadingChunk(i)}
+                          icon={filled ? CheckCircle : Plus}
+                          selected={filled}
                         >
-                          {filled ? (
-                            <CheckCircle size={12} weight="fill" />
-                          ) : (
-                            <Plus size={11} weight="bold" />
-                          )}
-                          {c}
-                        </button>
+                          {c} <span className="normal-case font-bold">syf</span>
+                        </WidgetActionButton>
                       );
                     })}
                   </div>
@@ -1951,9 +2158,8 @@ function HomeTaskCheckButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface-muted hover:bg-app-border/30 ${
-        completed ? "text-app-muted" : "text-app-muted hover:text-app-text"
-      }`}
+      className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface-muted hover:bg-app-border/30 ${completed ? "text-app-muted" : "text-app-muted hover:text-app-text"
+        }`}
     >
       {completed ? (
         <CheckCircle size={18} weight="fill" />
@@ -1970,23 +2176,24 @@ function WidgetActionButton({
   children,
   loading,
   selected = false,
+  iconSize = 10,
 }: {
   onClick: () => void;
   icon: ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
   children: ReactNode;
   loading?: boolean;
   selected?: boolean;
+  iconSize?: number;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={loading}
-      className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:bg-app-surface-muted hover:border-app-muted active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-app-surface text-app-text border-app-border ${
-        selected ? "ring-1 ring-app-text" : ""
-      }`}
+      className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:bg-app-surface-muted hover:border-app-muted active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-app-text border-app-border ${selected ? "bg-app-text/10 border-app-text/40 ring-1 ring-app-text/30" : ""
+        }`}
     >
-      <Icon size={12} weight="bold" />
+      <Icon size={iconSize} weight="bold" />
       {children}
     </button>
   );
@@ -2058,16 +2265,16 @@ function HomeSummaryCard({
   );
 }
 
-function AppRow({ 
-  app, 
-  index, 
+function AppRow({
+  app,
+  index,
   tApps,
   isPinned,
   onPin,
-  onClick 
-}: { 
-  app: MiniApp; 
-  index: number; 
+  onClick
+}: {
+  app: MiniApp;
+  index: number;
   tApps: any;
   isPinned: boolean;
   onPin: (e: React.MouseEvent) => void;
@@ -2091,7 +2298,7 @@ function AppRow({
         tabIndex={0}
         className="w-full flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] text-left border-b border-app-border last:border-0 cursor-pointer"
       >
-        <div 
+        <div
           className="w-11 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"
           style={{ backgroundColor: app.color }}
         >
@@ -2108,18 +2315,16 @@ function AppRow({
           </p>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <button 
-            onClick={onPin}
-            className={`p-1 rounded-full transition-all ${
-              isPinned 
-                ? "text-app-muted hover:text-red-500" 
-                : "text-gray-200 hover:text-app-muted md:opacity-0 md:group-hover:opacity-100"
+        <button
+          onClick={onPin}
+          className={`p-1.5 rounded-full transition-all cursor-pointer ${isPinned
+            ? "text-app-muted hover:text-app-text hover:scale-110"
+            : "text-app-muted/30 hover:text-app-muted hover:scale-110"
             }`}
-          >
-            <Heart size={16} weight={isPinned ? "fill" : "bold"} />
-          </button>
-        </div>
+          title={isPinned ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+        >
+          <Heart size={16} weight={isPinned ? "fill" : "bold"} />
+        </button>
       </div>
     </motion.div>
   );

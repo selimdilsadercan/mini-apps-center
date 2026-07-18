@@ -108,6 +108,7 @@ export async function getUserPreferencesAction(
   pinnedApps?: string[] | null;
   lastUsedApps?: Record<string, string> | null;
   usageCounts?: Record<string, number> | null;
+  dailyWidgetStates?: Record<string, unknown> | null;
 }>> {
   try {
     const client = createBrowserClient();
@@ -120,7 +121,8 @@ export async function getUserPreferencesAction(
         isOnboardingFinished: response.isOnboardingFinished,
         pinnedApps: response.pinnedApps,
         lastUsedApps: response.lastUsedApps,
-        usageCounts: response.usageCounts
+        usageCounts: response.usageCounts,
+        dailyWidgetStates: response.dailyWidgetStates
       },
       error: null
     };
@@ -143,6 +145,7 @@ export async function updateUserPreferencesAction(
     pinnedApps?: string[];
     lastUsedApps?: Record<string, string>;
     usageCounts?: Record<string, number>;
+    dailyWidgetStates?: Record<string, unknown>;
   }
 ): Promise<ActionResponse<boolean>> {
   try {

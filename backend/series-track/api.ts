@@ -1214,7 +1214,7 @@ export const getTodayEpisodes = api(
 
     for (const [tmdbId, seriesEvents] of eventsByTmdb) {
       const userSeries = seriesByTmdb.get(tmdbId);
-      if (!userSeries) continue;
+      if (!userSeries || userSeries.status !== "watching") continue;
 
       const progress = progressMap.get(userSeries.id) || [];
       const sortedEvents = [...seriesEvents].sort((a, b) =>

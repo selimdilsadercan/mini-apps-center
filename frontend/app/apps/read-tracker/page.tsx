@@ -174,7 +174,7 @@ export default function ReadTrackerPage() {
   const [loading, setLoading] = useState(true);
 
   // Filter and Modal States
-  const [libraryFilter, setLibraryFilter] = useState<string>("all");
+  const [libraryFilter, setLibraryFilter] = useState<string>("reading");
   // How many weeks the next goal should span (used when picking a book)
   const [goalWeeks, setGoalWeeks] = useState<number>(1);
   // Per-book daily reading baseline (device-local): book id -> { date, startPage }.
@@ -235,7 +235,7 @@ export default function ReadTrackerPage() {
       // while "Yarım Bıraktım" is selected → book is added as dropped).
       const addStatus: Book["status"] =
         activeTab === "library" &&
-        ["reading", "to_read", "completed", "dropped"].includes(libraryFilter)
+          ["reading", "to_read", "completed", "dropped"].includes(libraryFilter)
           ? (libraryFilter as Book["status"])
           : "to_read";
       const addCurrentPage =
@@ -633,6 +633,21 @@ export default function ReadTrackerPage() {
     }
   };
 
+  const bookCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      reading: 0,
+      to_read: 0,
+      completed: 0,
+      dropped: 0,
+    };
+    books.forEach((b) => {
+      if (b.status && counts[b.status] !== undefined) {
+        counts[b.status]++;
+      }
+    });
+    return counts;
+  }, [books]);
+
   const filteredBooks = useMemo(() => {
     if (libraryFilter === "all") return books;
     return books.filter((b) => b.status === libraryFilter);
@@ -641,9 +656,9 @@ export default function ReadTrackerPage() {
   return (
     <div className="flex min-h-screen flex-col bg-app-bg text-app-text selection:bg-amber-100 dark:selection:bg-amber-950/40">
       <Toaster position="top-center" />
-      
+
       {/* Premium Header */}
-      <header className="sticky top-0 z-30 bg-app-surface/95 backdrop-blur-md border-b border-app-border/60 shadow-sm">
+      <header className="sticky top-0 z-30 app-chrome-top">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
           <div className="flex items-center gap-2">
             <button
@@ -726,200 +741,200 @@ export default function ReadTrackerPage() {
               </div>
 
               {currentWeekGoal && currentWeekGoal.status === "skipped" ? (
-                  <div className="text-center py-6">
-                    <span className="text-3xl">☕</span>
-                    <h3 className="text-sm font-bold text-app-text mt-2">{t.skippedWeek}</h3>
-                    <p className="text-xs text-app-muted mt-1 max-w-xs mx-auto">
-                      {t.skippedDesc}
-                    </p>
+                <div className="text-center py-6">
+                  <span className="text-3xl">☕</span>
+                  <h3 className="text-sm font-bold text-app-text mt-2">{t.skippedWeek}</h3>
+                  <p className="text-xs text-app-muted mt-1 max-w-xs mx-auto">
+                    {t.skippedDesc}
+                  </p>
+                  <button
+                    onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
+                    className="mt-4 text-xs font-bold text-[#7C5C43] hover:underline"
+                  >
+                    {t.undoSkip}
+                  </button>
+                </div>
+              ) : currentWeekGoal && currentWeekGoal.book_id ? (
+                <div>
+                  {/* Goal book details */}
+                  <div className="flex gap-4">
+                    {currentWeekGoal.book_cover ? (
+                      <img
+                        src={currentWeekGoal.book_cover}
+                        alt={currentWeekGoal.book_title || ""}
+                        className="w-16 h-20 object-cover rounded-lg shadow-sm border border-app-border"
+                      />
+                    ) : (
+                      <div className="w-16 h-20 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#7C5C43]">
+                        <BookOpen size={24} />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-base font-black text-app-text line-clamp-2 leading-tight">
+                        {currentWeekGoal.book_title}
+                      </h4>
+                      <p className="text-xs text-app-muted font-bold truncate mt-0.5">
+                        {currentWeekGoal.book_author}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    {/* Progress bar */}
+                    {(() => {
+                      const book = books.find((b) => b.id === currentWeekGoal.book_id);
+                      if (!book) return null;
+                      const total = book.total_pages || 0;
+                      const current = book.current_page || 0;
+                      const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+
+                      // Remaining days in this goal's span (inclusive of today)
+                      const start = new Date(currentWeekGoal.week_start);
+                      const lastDay = new Date(start);
+                      lastDay.setDate(
+                        start.getDate() + 7 * Math.max(1, currentWeekGoal.weeks || 1) - 1
+                      );
+                      lastDay.setHours(0, 0, 0, 0);
+                      const todayMid = new Date();
+                      todayMid.setHours(0, 0, 0, 0);
+                      const remainingDays = Math.max(
+                        1,
+                        Math.floor((lastDay.getTime() - todayMid.getTime()) / 86400000) + 1
+                      );
+
+                      // Today's baseline = page count at the start of today.
+                      const today = formatDate(new Date());
+                      const entry = dailyLog[book.id];
+                      const base =
+                        entry && entry.date === today ? entry.startPage : current;
+
+                      // Daily page target = pages remaining from today's baseline over the
+                      // remaining days. Last day → exact remainder (finish precisely);
+                      // earlier days → round up to nearest 10 so it isn't confusing.
+                      const remainingFromBase = Math.max(0, total - base);
+                      let dailyTarget = 5;
+                      if (total > 0 && remainingFromBase > 0) {
+                        if (remainingDays <= 1) {
+                          dailyTarget = remainingFromBase;
+                        } else {
+                          const rounded =
+                            Math.ceil(remainingFromBase / remainingDays / 10) * 10;
+                          dailyTarget = Math.min(Math.max(10, rounded), remainingFromBase);
+                        }
+                      }
+
+                      // Split today's target into ~30-page chunks, e.g. 80 -> [30, 30, 20]
+                      const CHUNK = 30;
+                      const chunks: number[] = [];
+                      let rem = dailyTarget;
+                      while (rem > 0 && chunks.length < 12) {
+                        const c = Math.min(CHUNK, rem);
+                        chunks.push(c);
+                        rem -= c;
+                      }
+
+                      const hasTarget =
+                        total > 0 && remainingFromBase > 0 && chunks.length > 0;
+
+                      // Fill up to (and including) chunk i; press a filled chunk to undo it.
+                      const pressChunk = (i: number) => {
+                        const cumInclusive = chunks
+                          .slice(0, i + 1)
+                          .reduce((a, b) => a + b, 0);
+                        const cumExclusive = chunks
+                          .slice(0, i)
+                          .reduce((a, b) => a + b, 0);
+                        const filled = current >= base + cumInclusive;
+                        handleUpdatePageProgress(
+                          book,
+                          filled ? base + cumExclusive : base + cumInclusive
+                        );
+                      };
+
+                      return (
+                        <div>
+                          <div className="flex justify-between text-[10px] text-app-muted font-bold mb-1">
+                            <span>{t.progress}: %{percent}</span>
+                            <span>
+                              {current} / {total || "?"} sayfa
+                            </span>
+                          </div>
+                          <div className="w-full bg-app-tab-track h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-[#7C5C43] h-full rounded-full transition-all duration-300"
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+
+                          {/* Daily target */}
+                          {hasTarget && (
+                            <div className="mt-2.5 text-[10px] font-bold text-app-muted">
+                              {t.dailyTargetLabel}:{" "}
+                              <span className="text-[#7C5C43] font-black">
+                                {dailyTarget} {t.perDay}
+                              </span>{" "}
+                              · {remainingDays} {t.daysLeft}
+                            </div>
+                          )}
+
+                          {/* Manual page input + chunked daily target buttons */}
+                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                            <PageInput
+                              value={current}
+                              max={book.total_pages}
+                              onCommit={(n) => handleUpdatePageProgress(book, n)}
+                            />
+                            {hasTarget &&
+                              chunks.map((c, i) => {
+                                const cumInclusive = chunks
+                                  .slice(0, i + 1)
+                                  .reduce((a, b) => a + b, 0);
+                                const filled = current >= base + cumInclusive;
+                                return (
+                                  <button
+                                    key={i}
+                                    onClick={() => pressChunk(i)}
+                                    className={`min-w-[2.75rem] h-7 px-2.5 rounded-lg border flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wide active:scale-95 transition-all cursor-pointer ${
+                                      filled
+                                        ? "bg-app-text/10 border-app-text/40 text-app-text ring-1 ring-app-text/30"
+                                        : "bg-transparent border-app-border text-app-text hover:bg-app-surface-muted hover:border-app-muted"
+                                    }`}
+                                  >
+                                    {filled ? (
+                                      <CheckCircle size={12} weight="fill" />
+                                    ) : (
+                                      <Plus size={10} weight="bold" />
+                                    )}
+                                    {c} <span className="normal-case font-bold">syf</span>
+                                  </button>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  <div className="border-t border-app-border mt-4 pt-3 flex items-center gap-5">
                     <button
                       onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
-                      className="mt-4 text-xs font-bold text-[#7C5C43] hover:underline"
+                      className="text-xs font-bold text-app-muted hover:text-app-text flex items-center gap-1"
                     >
-                      {t.undoSkip}
+                      <ArrowsClockwise size={14} weight="bold" />
+                      {t.changeGoal}
                     </button>
-                  </div>
-              ) : currentWeekGoal && currentWeekGoal.book_id ? (
-                  <div>
-                    {/* Goal book details */}
-                    <div className="flex gap-4">
-                      {currentWeekGoal.book_cover ? (
-                        <img
-                          src={currentWeekGoal.book_cover}
-                          alt={currentWeekGoal.book_title || ""}
-                          className="w-16 h-20 object-cover rounded-lg shadow-sm border border-app-border"
-                        />
-                      ) : (
-                        <div className="w-16 h-20 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#7C5C43]">
-                          <BookOpen size={24} />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-base font-black text-app-text line-clamp-2 leading-tight">
-                          {currentWeekGoal.book_title}
-                        </h4>
-                        <p className="text-xs text-app-muted font-bold truncate mt-0.5">
-                          {currentWeekGoal.book_author}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="mt-3">
-                          {/* Progress bar */}
-                          {(() => {
-                            const book = books.find((b) => b.id === currentWeekGoal.book_id);
-                            if (!book) return null;
-                            const total = book.total_pages || 0;
-                            const current = book.current_page || 0;
-                            const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-
-                            // Remaining days in this goal's span (inclusive of today)
-                            const start = new Date(currentWeekGoal.week_start);
-                            const lastDay = new Date(start);
-                            lastDay.setDate(
-                              start.getDate() + 7 * Math.max(1, currentWeekGoal.weeks || 1) - 1
-                            );
-                            lastDay.setHours(0, 0, 0, 0);
-                            const todayMid = new Date();
-                            todayMid.setHours(0, 0, 0, 0);
-                            const remainingDays = Math.max(
-                              1,
-                              Math.floor((lastDay.getTime() - todayMid.getTime()) / 86400000) + 1
-                            );
-
-                            // Today's baseline = page count at the start of today.
-                            const today = formatDate(new Date());
-                            const entry = dailyLog[book.id];
-                            const base =
-                              entry && entry.date === today ? entry.startPage : current;
-
-                            // Daily page target = pages remaining from today's baseline over the
-                            // remaining days. Last day → exact remainder (finish precisely);
-                            // earlier days → round up to nearest 10 so it isn't confusing.
-                            const remainingFromBase = Math.max(0, total - base);
-                            let dailyTarget = 5;
-                            if (total > 0 && remainingFromBase > 0) {
-                              if (remainingDays <= 1) {
-                                dailyTarget = remainingFromBase;
-                              } else {
-                                const rounded =
-                                  Math.ceil(remainingFromBase / remainingDays / 10) * 10;
-                                dailyTarget = Math.min(Math.max(10, rounded), remainingFromBase);
-                              }
-                            }
-
-                            // Split today's target into ~30-page chunks, e.g. 80 -> [30, 30, 20]
-                            const CHUNK = 30;
-                            const chunks: number[] = [];
-                            let rem = dailyTarget;
-                            while (rem > 0 && chunks.length < 12) {
-                              const c = Math.min(CHUNK, rem);
-                              chunks.push(c);
-                              rem -= c;
-                            }
-
-                            const hasTarget =
-                              total > 0 && remainingFromBase > 0 && chunks.length > 0;
-
-                            // Fill up to (and including) chunk i; press a filled chunk to undo it.
-                            const pressChunk = (i: number) => {
-                              const cumInclusive = chunks
-                                .slice(0, i + 1)
-                                .reduce((a, b) => a + b, 0);
-                              const cumExclusive = chunks
-                                .slice(0, i)
-                                .reduce((a, b) => a + b, 0);
-                              const filled = current >= base + cumInclusive;
-                              handleUpdatePageProgress(
-                                book,
-                                filled ? base + cumExclusive : base + cumInclusive
-                              );
-                            };
-
-                            return (
-                              <div>
-                                <div className="flex justify-between text-[10px] text-app-muted font-bold mb-1">
-                                  <span>{t.progress}: %{percent}</span>
-                                  <span>
-                                    {current} / {total || "?"} sayfa
-                                  </span>
-                                </div>
-                                <div className="w-full bg-app-tab-track h-2 rounded-full overflow-hidden">
-                                  <div
-                                    className="bg-[#7C5C43] h-full rounded-full transition-all duration-300"
-                                    style={{ width: `${percent}%` }}
-                                  />
-                                </div>
-
-                                {/* Daily target */}
-                                {hasTarget && (
-                                  <div className="mt-2.5 text-[10px] font-bold text-app-muted">
-                                    {t.dailyTargetLabel}:{" "}
-                                    <span className="text-[#7C5C43] font-black">
-                                      {dailyTarget} {t.perDay}
-                                    </span>{" "}
-                                    · {remainingDays} {t.daysLeft}
-                                  </div>
-                                )}
-
-                                {/* Manual page input + chunked daily target buttons */}
-                                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                                  <PageInput
-                                    value={current}
-                                    max={book.total_pages}
-                                    onCommit={(n) => handleUpdatePageProgress(book, n)}
-                                  />
-                                  {hasTarget &&
-                                    chunks.map((c, i) => {
-                                      const cumInclusive = chunks
-                                        .slice(0, i + 1)
-                                        .reduce((a, b) => a + b, 0);
-                                      const filled = current >= base + cumInclusive;
-                                      return (
-                                        <button
-                                          key={i}
-                                          onClick={() => pressChunk(i)}
-                                          className={`min-w-[3rem] h-7 px-2 rounded-lg flex items-center justify-center gap-0.5 text-[11px] font-black active:scale-95 transition-all ${
-                                            filled
-                                              ? "bg-app-text/20 border border-app-text/30 text-app-text"
-                                              : "bg-app-tab-track border border-app-border text-app-text hover:bg-app-bg"
-                                          }`}
-                                        >
-                                          {filled ? (
-                                            <CheckCircle size={12} weight="fill" />
-                                          ) : (
-                                            <Plus size={11} weight="bold" />
-                                          )}
-                                          {c}
-                                        </button>
-                                      );
-                                    })}
-                                </div>
-                              </div>
-                            );
-                          })()}
-                    </div>
-
-                    <div className="border-t border-app-border mt-4 pt-3 flex items-center gap-5">
+                    {currentWeekGoal.status !== "completed" && (
                       <button
-                        onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
+                        onClick={() => handleSetWeeklyGoal(currentWeekGoal.book_id, "completed", currentWeekGoal.weeks, currentWeekGoal.week_start)}
                         className="text-xs font-bold text-app-muted hover:text-app-text flex items-center gap-1"
                       >
-                        <ArrowsClockwise size={14} weight="bold" />
-                        {t.changeGoal}
+                        <CheckCircle size={14} weight="fill" />
+                        {t.completeGoal}
                       </button>
-
-                      {currentWeekGoal.status !== "completed" && (
-                        <button
-                          onClick={() => handleSetWeeklyGoal(currentWeekGoal.book_id, "completed", currentWeekGoal.weeks, currentWeekGoal.week_start)}
-                          className="text-xs font-bold text-app-muted hover:text-app-text flex items-center gap-1"
-                        >
-                          <CheckCircle size={14} weight="fill" />
-                          {t.completeGoal}
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
+                </div>
               ) : (
                 <div className="flex flex-col items-center py-6 text-center">
                   <p className="text-sm font-bold text-app-text">{t.chooseGoal}</p>
@@ -937,37 +952,36 @@ export default function ReadTrackerPage() {
                                 key={w}
                                 type="button"
                                 onClick={() => setGoalWeeks(w)}
-                                className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                                  goalWeeks === w
+                                className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${goalWeeks === w
                                     ? "bg-app-tab-active text-app-text shadow-sm"
                                     : "text-app-muted hover:text-app-text"
-                                }`}
+                                  }`}
                               >
                                 {w} {t.weekUnit}
                               </button>
                             ))}
                           </div>
                         </div>
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            handleSetWeeklyGoal(e.target.value, "active", goalWeeks);
-                          }
-                        }}
-                        className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:border-[#7C5C43] shadow-sm"
-                        defaultValue=""
-                      >
-                        <option value="" disabled>
-                          {t.selectBookPlaceholder}
-                        </option>
-                        {books
-                          .filter((b) => b.status === "reading" || b.status === "to_read")
-                          .map((b) => (
-                            <option key={b.id} value={b.id}>
-                              {b.title} - {b.author}
-                            </option>
-                          ))}
-                      </select>
+                        <select
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              handleSetWeeklyGoal(e.target.value, "active", goalWeeks);
+                            }
+                          }}
+                          className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:border-[#7C5C43] shadow-sm"
+                          defaultValue=""
+                        >
+                          <option value="" disabled>
+                            {t.selectBookPlaceholder}
+                          </option>
+                          {books
+                            .filter((b) => b.status === "reading" || b.status === "to_read")
+                            .map((b) => (
+                              <option key={b.id} value={b.id}>
+                                {b.title} - {b.author}
+                              </option>
+                            ))}
+                        </select>
                       </>
                     ) : (
                       <p className="text-xs text-app-muted">
@@ -994,22 +1008,28 @@ export default function ReadTrackerPage() {
             {/* Filter segments */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {[
-                { id: "all", label: language === "tr" ? "Tümü" : "All" },
-                { id: "reading", label: t.readingStatus.reading },
-                { id: "to_read", label: t.readingStatus.to_read },
-                { id: "completed", label: t.readingStatus.completed },
-                { id: "dropped", label: t.readingStatus.dropped },
+                { id: "reading", label: t.readingStatus.reading, count: bookCounts.reading },
+                { id: "to_read", label: t.readingStatus.to_read, count: bookCounts.to_read },
+                { id: "completed", label: t.readingStatus.completed, count: bookCounts.completed },
+                { id: "dropped", label: t.readingStatus.dropped, count: bookCounts.dropped },
               ].map((filter) => (
                 <button
                   key={filter.id}
                   onClick={() => setLibraryFilter(filter.id)}
-                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all border ${
-                    libraryFilter === filter.id
+                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all border flex items-center gap-1.5 ${libraryFilter === filter.id
                       ? "bg-[#7C5C43] border-[#7C5C43] text-white shadow-sm"
                       : "bg-app-surface border border-app-border text-app-muted hover:text-app-text"
-                  }`}
+                    }`}
                 >
-                  {filter.label}
+                  <span>{filter.label}</span>
+                  <span
+                    className={`text-[10px] font-black px-1.5 py-0.2 rounded-full tabular-nums ${libraryFilter === filter.id
+                        ? "bg-white/20 text-white"
+                        : "bg-app-surface-muted text-app-muted"
+                      }`}
+                  >
+                    {filter.count}
+                  </span>
                 </button>
               ))}
             </div>
@@ -1030,7 +1050,7 @@ export default function ReadTrackerPage() {
                   return (
                     <div
                       key={book.id}
-                      className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex gap-3.5 relative hover:border-gray-200/80 transition-all"
+                      className="bg-app-surface hover:bg-app-surface-muted/60 rounded-2xl border border-app-border p-4 shadow-sm flex gap-3.5 relative transition-all"
                     >
                       {book.cover_image ? (
                         <img
@@ -1066,15 +1086,14 @@ export default function ReadTrackerPage() {
                           <div className="flex justify-between items-center text-[10px] text-app-muted font-bold mb-1">
                             <span className="flex items-center gap-1 capitalize">
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  book.status === "reading"
+                                className={`w-1.5 h-1.5 rounded-full ${book.status === "reading"
                                     ? "bg-blue-500"
                                     : book.status === "completed"
-                                    ? "bg-green-500"
-                                    : book.status === "to_read"
-                                    ? "bg-amber-500"
-                                    : "bg-gray-400"
-                                }`}
+                                      ? "bg-green-500"
+                                      : book.status === "to_read"
+                                        ? "bg-amber-500"
+                                        : "bg-gray-400"
+                                  }`}
                               />
                               {t.readingStatus[book.status]}
                             </span>

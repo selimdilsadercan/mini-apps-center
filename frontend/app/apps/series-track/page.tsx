@@ -85,11 +85,17 @@ function EpgSlotProgCard({
   accent,
   userId,
   allSeriesProgress,
+  mySeries = [],
+  onOpenSeriesDetail,
+  onUpdateSeriesStatus,
 }: {
   prog: series_track.TvProgramSummary;
   accent: string;
   userId: string;
   allSeriesProgress: Record<string, series_track.UserProgress[]>;
+  mySeries?: series_track.UserSeries[];
+  onOpenSeriesDetail?: (tmdbId: number) => void;
+  onUpdateSeriesStatus?: (tmdbId: number, status: series_track.SeriesStatus) => void;
 }) {
   const cardClient = createBrowserClient();
   const [tvProg, setTvProg] = useState<series_track.TvProgramDetails | null>(null);
@@ -98,6 +104,7 @@ function EpgSlotProgCard({
   const [seasonEps, setSeasonEps] = useState<any[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<number>(prog.season_number || 1);
   const [loadingSeason, setLoadingSeason] = useState(false);
+  const [tmdbDetails, setTmdbDetails] = useState<any>(null);
 
   useEffect(() => {
     setLoadingProg(true);
@@ -127,6 +134,15 @@ function EpgSlotProgCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tvProg?.tmdb_id, selectedSeason]);
 
+  useEffect(() => {
+    if (!tvProg?.tmdb_id) return;
+    cardClient.series_track
+      .getSeriesDetails(tvProg.tmdb_id)
+      .then((res: any) => setTmdbDetails(res))
+      .catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tvProg?.tmdb_id]);
+
   if (loadingProg) {
     return (
       <div className="mt-2 space-y-1.5 animate-pulse">
@@ -137,16 +153,13 @@ function EpgSlotProgCard({
   }
   if (!tvProg) return null;
 
-  const seriesProgress: series_track.UserProgress[] = (() => {
-    const keys = Object.keys(allSeriesProgress);
-    for (const k of keys) {
-      const p = allSeriesProgress[k];
-      if (p && p.length > 0) {
-        // match by checking if any progress tmdb_id matches
-      }
-    }
-    return [];
-  })();
+  const userSeriesRecord = mySeries.find((s) => s.tmdb_id === tvProg.tmdb_id);
+  const isWatching = userSeriesRecord?.status === "watching";
+  const isPlanToWatch = userSeriesRecord?.status === "plan_to_watch";
+
+  const seriesProgress: series_track.UserProgress[] = userSeriesRecord
+    ? allSeriesProgress[userSeriesRecord.id] || []
+    : [];
 
   const isEpWatched = selectedEp
     ? !!(selectedEp.watched || seriesProgress?.some((p) => p.episode_number === selectedEp.episode_number && p.season_number === selectedSeason))
@@ -160,16 +173,32 @@ function EpgSlotProgCard({
     window.open(`https://www.google.com/search?q=${query}`, "_blank");
   };
 
+  const handleToggleWatched = async () => {
+    if (!selectedEp || !userId) return;
+    try {
+      const res = await cardClient.series_track.toggleTvEpisodeWatched(selectedEp.id, {
+        userId,
+      });
+      setSelectedEp((prev) => (prev ? { ...prev, watched: res.watched } : null));
+      toast.success(res.watched ? "Bölüm izlendi olarak işaretlendi!" : "İşaret kaldırıldı.");
+    } catch {
+      toast.error("İşlem başarısız.");
+    }
+  };
+
   return (
     <div className="p-3">
       <div className="flex gap-3 items-start">
         {/* Cover image */}
-        <div className="shrink-0">
+        <div
+          className={`shrink-0 ${tvProg.tmdb_id ? "cursor-pointer group" : ""}`}
+          onClick={() => tvProg.tmdb_id && onOpenSeriesDetail?.(tvProg.tmdb_id)}
+        >
           {prog.cover_image ? (
             <img
               src={prog.cover_image}
               alt={prog.title}
-              className="w-[72px] aspect-[2/3] object-cover rounded-xl border border-app-border"
+              className="w-[72px] aspect-[2/3] object-cover rounded-xl border border-app-border group-hover:opacity-90 transition-opacity"
             />
           ) : (
             <div className="w-[72px] aspect-[2/3] rounded-xl border border-app-border bg-app-surface-muted flex items-center justify-center">
@@ -178,185 +207,213 @@ function EpgSlotProgCard({
           )}
         </div>
 
-        {/* Right column: title + episode detail */}
+        {/* Right column: title + episode detail or status actions */}
         <div className="flex-1 min-w-0 flex gap-3">
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-black text-app-text leading-snug line-clamp-2">{prog.title}</h2>
-            {loadingProg ? (
-              <div className="mt-2 space-y-1.5 animate-pulse">
-                <div className="h-3 bg-app-surface-muted rounded w-1/4" />
-                <div className="h-3 bg-app-surface-muted rounded w-3/4" />
-              </div>
-            ) : selectedEp ? (
-              <div className="mt-1 w-full text-left">
-                <p className="text-[10px] font-bold" style={{ color: accent }}>
-                  S{selectedSeason} E{selectedEp.episode_number}
-                </p>
-                <h3 className="text-xs font-black text-app-text mt-0.5 leading-snug line-clamp-1">
-                  {selectedEp.title}
-                </h3>
-                {selectedEp.description && (
-                  <p className="text-[11px] text-app-muted leading-relaxed line-clamp-1 mt-0.5">
-                    {selectedEp.description}
+            <h2
+              onClick={() => tvProg.tmdb_id && onOpenSeriesDetail?.(tvProg.tmdb_id)}
+              className={`text-sm font-black text-app-text leading-snug line-clamp-2 ${
+                tvProg.tmdb_id ? "cursor-pointer hover:underline" : ""
+              }`}
+            >
+              {prog.title}
+            </h2>
+            {isWatching ? (
+              loadingProg ? (
+                <div className="mt-2 space-y-1.5 animate-pulse">
+                  <div className="h-3 bg-app-surface-muted rounded w-1/4" />
+                  <div className="h-3 bg-app-surface-muted rounded w-3/4" />
+                </div>
+              ) : selectedEp ? (
+                <div className="mt-1 w-full text-left">
+                  <p className="text-[10px] font-bold" style={{ color: accent }}>
+                    S{selectedSeason} E{selectedEp.episode_number}
                   </p>
-                )}
+                  <h3 className="text-xs font-black text-app-text mt-0.5 leading-snug line-clamp-1">
+                    {selectedEp.title}
+                  </h3>
+                  {selectedEp.description && (
+                    <p className="text-[11px] text-app-muted leading-relaxed line-clamp-1 mt-0.5">
+                      {selectedEp.description}
+                    </p>
+                  )}
+                </div>
+              ) : null
+            ) : (
+              <div className="mt-1">
+                <p className="text-[10px] font-bold" style={{ color: accent }}>
+                  S{selectedSeason} E{selectedEp?.episode_number ?? 1}
+                </p>
               </div>
-            ) : null}
+            )}
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-1.5 shrink-0">
-            <button
-              disabled={!isEpAvailable}
-              onClick={handleWatch}
-              className={`flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all ${
-                isEpAvailable
-                  ? "bg-app-text text-app-bg hover:opacity-90 active:scale-[0.98]"
-                  : "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
-              }`}
-            >
-              <Play size={12} weight="fill" />
-              İzle
-            </button>
-            <button
-              disabled={!isEpAvailable}
-              className={`flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all ${
-                !isEpAvailable
-                  ? "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
-                  : isEpWatched
-                    ? "bg-emerald-500 text-white active:scale-[0.98]"
-                    : "bg-app-tab-track text-app-text hover:bg-app-border active:scale-[0.98]"
-              }`}
-            >
-              <CheckCircle size={13} weight={isEpWatched ? "fill" : "regular"} />
-              İzledim
-            </button>
+          <div className="flex flex-col gap-1.5 shrink-0 justify-center">
+            {isWatching ? (
+              <>
+                <button
+                  disabled={!isEpAvailable}
+                  onClick={handleWatch}
+                  className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-[10px] font-black transition-all ${
+                    isEpAvailable
+                      ? "bg-app-text text-app-bg hover:opacity-90 active:scale-[0.98]"
+                      : "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  <Play size={12} weight="fill" />
+                  İzle
+                </button>
+                <button
+                  disabled={!isEpAvailable}
+                  onClick={handleToggleWatched}
+                  className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-[10px] font-black transition-all ${
+                    !isEpAvailable
+                      ? "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
+                      : isEpWatched
+                        ? "bg-emerald-500 text-white active:scale-[0.98]"
+                        : "bg-app-tab-track text-app-text hover:bg-app-border active:scale-[0.98]"
+                  }`}
+                >
+                  <CheckCircle size={13} weight={isEpWatched ? "fill" : "regular"} />
+                  İzledim
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => tvProg.tmdb_id && onUpdateSeriesStatus?.(tvProg.tmdb_id, "watching")}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-[0.98]"
+              >
+                <Plus size={12} weight="bold" />
+                Takip Et
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Episode strip below the flex row */}
-      <div className="mt-3 pt-3 border-t border-app-border">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">Bölümler</span>
-        </div>
-        {loadingSeason ? (
-          <div className="flex gap-1.5 overflow-hidden py-1">
-            {[1,2,3,4,5].map((n) => (
-              <div key={n} className="shrink-0 w-11 h-16 bg-app-tab-track rounded-xl animate-pulse" />
-            ))}
+      {/* Episode strip below the flex row — shown only when watching */}
+      {isWatching && (
+        <div className="mt-3 pt-3 border-t border-app-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">Bölümler</span>
+            {tmdbDetails?.seasons && (
+              <select
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                className="text-[10px] font-bold text-app-muted bg-app-tab-track border-0 rounded-lg px-2 py-1 outline-none cursor-pointer"
+              >
+                {tmdbDetails.seasons.map((s: { season_number: number }) => (
+                  <option key={s.season_number} value={s.season_number}>
+                    Sezon {s.season_number}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
-        ) : (
-          <div className="flex gap-1.5 overflow-x-auto py-1 -mx-1 px-1 no-scrollbar min-w-0">
-            {seasonEps.map((ep) => {
-              const isSelected = ep.episode_number === selectedEp?.episode_number;
-              
-              // Calculate date based on local program start date and schedule frequency
-              const dbEpForDate = tvProg?.episodes?.find((e) => e.episode_number === ep.episode_number);
-              
-              const epDate = (() => {
-                if (dbEpForDate?.release_date) {
-                  return new Date(dbEpForDate.release_date);
-                }
-                
-                // If not in DB, calculate offset based on program's start_date and schedule_type
-                const activeSeason = tvProg.season_number || 1;
-                
-                // Find how many episodes are released/created in the DB for active season
-                const activeEpisode = tvProg.episodes?.filter(e => e.is_released).length || 1;
-                
-                let offset = 0;
-                const targetSeason = selectedSeason;
-                const targetEpisode = ep.episode_number;
-                
-                if (targetSeason === activeSeason) {
-                  offset = targetEpisode - activeEpisode;
-                } else if (targetSeason > activeSeason) {
-                  // Fallback count if season data isn't loaded completely
-                  const activeSeasonCount = 16; 
-                  offset += (activeSeasonCount - activeEpisode);
-                  offset += targetEpisode;
-                } else {
-                  const targetSeasonCount = 16;
-                  offset -= (targetSeasonCount - targetEpisode);
-                  offset -= activeEpisode;
-                }
-                
-                const baseDate = tvProg.start_date ? new Date(tvProg.start_date) : new Date();
-                const computedDate = new Date(baseDate);
-                if (tvProg.schedule_type === "weekly") {
-                  computedDate.setDate(computedDate.getDate() + offset * 7);
-                } else {
-                  computedDate.setDate(computedDate.getDate() + offset);
-                }
-                return computedDate;
-              })();
-              
-              const EPISODE_AIR_HOUR = 19;
-              const epReleased = epDate ? Date.now() >= new Date(epDate).setHours(EPISODE_AIR_HOUR, 0, 0, 0) : false;
-              const epWatched = (dbEpForDate?.watched ?? false) || (isEpWatched && isSelected);
-              
-              const day = epDate ? epDate.getDate() : ep.episode_number;
-              const month = epDate ? TR_MONTHS_EPG[epDate.getMonth()] : "";
-              
-              return (
-                <button
-                  key={ep.id ?? ep.episode_number}
-                  onClick={() => {
-                    const dbEp = tvProg?.episodes?.find((e) => e.episode_number === ep.episode_number);
-                    if (dbEp) {
-                      setSelectedEp(dbEp);
-                    } else {
-                      // Fallback dummy episode structured like DB episode if it's not generated in DB yet
-                      setSelectedEp({
-                        id: String(ep.id),
-                        episode_number: ep.episode_number,
-                        title: ep.name || `Bölüm ${ep.episode_number}`,
-                        description: ep.overview || "",
-                        stream_info: "Netflix",
-                        release_date: epDate ? epDate.toISOString() : "",
-                        is_released: epReleased,
-                        watched: false,
-                        emoji_reaction: null
-                      });
-                    }
-                  }}
-                  className={`shrink-0 snap-center relative w-11 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 py-1 transition-all active:scale-95 ${
-                    isSelected
-                      ? "text-white shadow-sm"
-                      : !epReleased
-                        ? "bg-app-surface-muted text-app-muted"
-                        : "bg-app-tab-track text-app-text hover:bg-app-border"
-                  }`}
-                  style={isSelected ? { backgroundColor: accent, opacity: epReleased ? 1 : 0.6 } : undefined}
-                  title={`B${ep.episode_number} · ${ep.name ?? ""}`}
-                >
-                  <div
-                    className={`px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none ${
-                      isSelected ? "bg-app-surface/25 text-white" : "bg-app-surface text-app-text shadow-sm border border-app-border/70"
+          {loadingSeason ? (
+            <div className="flex gap-1.5 overflow-hidden py-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="shrink-0 w-11 h-16 bg-app-tab-track rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-1.5 overflow-x-auto py-1 -mx-1 px-1 no-scrollbar min-w-0">
+              {seasonEps.map((ep) => {
+                const isSelected = ep.episode_number === selectedEp?.episode_number;
+                const dbEpForDate = tvProg?.episodes?.find((e) => e.episode_number === ep.episode_number);
+                const epDate = (() => {
+                  if (dbEpForDate?.release_date) {
+                    return new Date(dbEpForDate.release_date);
+                  }
+                  const activeSeason = tvProg.season_number || 1;
+                  const activeEpisode = tvProg.episodes?.filter((e) => e.is_released).length || 1;
+                  let offset = 0;
+                  const targetSeason = selectedSeason;
+                  const targetEpisode = ep.episode_number;
+                  if (targetSeason === activeSeason) {
+                    offset = targetEpisode - activeEpisode;
+                  } else if (targetSeason > activeSeason) {
+                    const activeSeasonCount = 16;
+                    offset += activeSeasonCount - activeEpisode;
+                    offset += targetEpisode;
+                  } else {
+                    const targetSeasonCount = 16;
+                    offset -= activeEpisode;
+                    offset -= targetSeasonCount - targetEpisode;
+                  }
+                  const baseDate = new Date(tvProg.start_date);
+                  const daysPerEp = tvProg.schedule_type === "weekly" ? 7 : 1;
+                  baseDate.setDate(baseDate.getDate() + offset * daysPerEp);
+                  return baseDate;
+                })();
+
+                const day = epDate.getDate();
+                const month = TR_MONTHS_EPG[epDate.getMonth()];
+                const isReleased = epDate.getTime() <= Date.now();
+                const isEpWatchedThis = (dbEpForDate?.watched ?? false) || seriesProgress?.some(
+                  (p) => p.season_number === selectedSeason && p.episode_number === ep.episode_number
+                );
+
+                return (
+                  <button
+                    key={ep.id}
+                    onClick={() => setSelectedEp(ep)}
+                    className={`shrink-0 w-11 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 py-1 transition-all active:scale-95 relative ${
+                      isSelected
+                        ? "text-white shadow-sm"
+                        : !isReleased
+                          ? "bg-app-surface-muted text-app-muted hover:bg-app-tab-track"
+                          : "bg-app-tab-track text-app-text hover:bg-app-border"
                     }`}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: accent,
+                            opacity: isReleased ? 1 : 0.55,
+                          }
+                        : undefined
+                    }
                   >
-                    B{ep.episode_number}
-                  </div>
-                  {epDate ? (
-                    <>
-                      <span className={`text-sm font-black leading-none ${isSelected ? "text-white" : epReleased ? "text-app-text" : "text-app-muted"}`}>
-                        {day}
-                      </span>
-                      <span className={`text-[9px] font-bold uppercase leading-none ${isSelected ? "text-white/80" : "text-app-muted"}`}>
-                        {month}
-                      </span>
-                    </>
-                  ) : null}
-                  {epWatched && (
-                    <CheckCircle size={11} weight="fill" className={`absolute bottom-0.5 right-0.5 ${isSelected ? "text-white/90" : "text-emerald-500"}`} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                    <div
+                      className={`px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none ${
+                        !isReleased
+                          ? "bg-app-tab-track text-app-muted"
+                          : isSelected
+                            ? "bg-app-surface/25 text-white"
+                            : "bg-app-surface text-app-text shadow-sm border border-app-border/70"
+                      }`}
+                    >
+                      B{ep.episode_number}
+                    </div>
+                    <span
+                      className={`text-sm font-black leading-none ${
+                        !isReleased ? "text-app-muted" : isSelected ? "text-white" : "text-app-text"
+                      }`}
+                    >
+                      {day}
+                    </span>
+                    <span
+                      className={`text-[9px] font-bold uppercase leading-none ${
+                        isSelected ? "text-white/85" : "text-app-muted"
+                      }`}
+                    >
+                      {month}
+                    </span>
+                    {isEpWatchedThis && (
+                      <CheckCircle
+                        size={11}
+                        weight="fill"
+                        className={`absolute bottom-0.5 right-0.5 ${isSelected ? "text-white/90" : "text-emerald-500"}`}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1035,6 +1092,8 @@ export default function SeriesTrackPage() {
       window.navigator.vibrate(10);
     }
 
+    const targetStatus = activeStatusTab || "watching";
+
     try {
       const addRes = await client.series_track.addUserSeries({
         userId: user.id,
@@ -1042,7 +1101,7 @@ export default function SeriesTrackPage() {
         title: series.name,
         posterPath: series.poster_path,
         backdropPath: series.backdrop_path,
-        status: "watching",
+        status: targetStatus,
       });
       toast.success(`${series.name} listeye eklendi.`);
 
@@ -1057,6 +1116,42 @@ export default function SeriesTrackPage() {
               _cached_at: Date.now()
             }
           }));
+
+          // If added as completed (Bitti), automatically mark all episodes as watched
+          if (targetStatus === "completed" && details?.seasons) {
+            const seasonsData = details.seasons
+              ?.filter((s: any) => s.season_number > 0)
+              .map((s: any) => ({
+                season: s.season_number,
+                count: s.episode_count
+              })) || [];
+
+            if (seasonsData.length > 0) {
+              try {
+                await client.series_track.markAllEpisodesWatched({
+                  userId: user.id,
+                  seriesId: addRes.series.id,
+                  seasonsData: seasonsData,
+                });
+                const newProgress: series_track.UserProgress[] = [];
+                seasonsData.forEach((s: any) => {
+                  for (let i = 1; i <= s.count; i++) {
+                    newProgress.push({
+                      season_number: s.season,
+                      episode_number: i,
+                      watched_at: new Date().toISOString()
+                    });
+                  }
+                });
+                setAllSeriesProgress(prev => ({
+                  ...prev,
+                  [addRes.series!.id]: newProgress
+                }));
+              } catch (markErr) {
+                console.error("Failed to mark episodes watched on completed add:", markErr);
+              }
+            }
+          }
         }
       } catch (detailsErr) {
         console.error("Failed to prefetch newly added series details:", detailsErr);
@@ -1064,6 +1159,8 @@ export default function SeriesTrackPage() {
 
       fetchMySeries();
       setShowSearch(false);
+      setSearchQuery("");
+      setSearchResults([]);
     } catch (error) {
       toast.error("Dizi eklenemedi.");
     }
@@ -1165,11 +1262,12 @@ export default function SeriesTrackPage() {
   };
 
   const getRatingColor = (rating: number) => {
-    if (rating >= 9.0) return "bg-emerald-900 text-emerald-100 border-emerald-800";
-    if (rating >= 8.0) return "bg-emerald-700 text-emerald-50 border-emerald-600";
-    if (rating >= 7.0) return "bg-yellow-600/80 text-yellow-50 border-yellow-500/50";
-    if (rating >= 6.0) return "bg-orange-600/80 text-orange-50 border-orange-500/50";
-    return "bg-rose-900/80 text-rose-50 border-rose-800/50";
+    if (!rating) return "bg-app-tab-track text-app-muted border-0";
+    if (rating >= 9.0) return "bg-[#107c41] text-white border-0 font-extrabold";
+    if (rating >= 8.0) return "bg-[#258752] text-white border-0 font-bold";
+    if (rating >= 7.0) return "bg-[#cc9425] text-white border-0 font-bold";
+    if (rating >= 6.0) return "bg-[#c96324] text-white border-0 font-bold";
+    return "bg-[#b8332a] text-white border-0 font-bold";
   };
 
   const fetchSeasonDetails = async (tmdbId: number, seasonNumber: number) => {
@@ -1310,7 +1408,18 @@ export default function SeriesTrackPage() {
         seasonsData: seasonsData,
       });
 
-      // Update local state for all episodes
+      // Automatically set series status to 'completed' (Bitti)
+      try {
+        await client.series_track.updateUserSeriesStatus({
+          userId: user.id,
+          seriesId: selectedSeries.id,
+          status: "completed",
+        });
+      } catch {
+        /* status update fallback */
+      }
+
+      // Update local state for all episodes & series status
       const newProgress: series_track.UserProgress[] = [];
       seasonsData.forEach((s: any) => {
         for (let i = 1; i <= s.count; i++) {
@@ -1323,6 +1432,8 @@ export default function SeriesTrackPage() {
       });
 
       setUserProgress(newProgress);
+      setSelectedSeries(prev => prev ? { ...prev, status: "completed" } : null);
+      setMySeries(prev => prev.map(s => s.id === selectedSeries.id ? { ...s, status: "completed" } : s));
       setAllSeriesProgress(prev => ({
         ...prev,
         [selectedSeries.id]: newProgress
@@ -1378,6 +1489,20 @@ export default function SeriesTrackPage() {
 
   const updateSeriesStatus = async (status: series_track.SeriesStatus) => {
     if (!user || !selectedSeries) return;
+
+    // Deselect/remove status if clicking the already selected status
+    if (selectedSeries.status === status) {
+      try {
+        await client.series_track.deleteUserSeries(user.id, selectedSeries.id);
+        setMySeries(prev => prev.filter(s => s.id !== selectedSeries.id));
+        setSelectedSeries({ ...selectedSeries, status: undefined as any });
+        toast.success("Seçim kaldırıldı.");
+      } catch (error) {
+        toast.error("İşlem başarısız.");
+      }
+      return;
+    }
+
     try {
       await client.series_track.updateUserSeriesStatus({
         userId: user.id,
@@ -1385,10 +1510,88 @@ export default function SeriesTrackPage() {
         status: status
       });
       setSelectedSeries({ ...selectedSeries, status: status });
-      setMySeries(prev => prev.map(s => s.id === selectedSeries.id ? { ...s, status: status } : s));
+      setMySeries(prev => {
+        const exists = prev.some(s => s.id === selectedSeries.id);
+        if (exists) {
+          return prev.map(s => s.id === selectedSeries.id ? { ...s, status: status } : s);
+        } else {
+          return [...prev, { ...selectedSeries, status: status }];
+        }
+      });
+
+      // If status changed to completed (Bitti), automatically mark all episodes watched
+      if (status === "completed" && seriesDetails?.seasons) {
+        const seasonsData = seriesDetails.seasons
+          ?.filter((s: any) => s.season_number > 0)
+          .map((s: any) => ({
+            season: s.season_number,
+            count: s.episode_count
+          })) || [];
+
+        if (seasonsData.length > 0) {
+          client.series_track.markAllEpisodesWatched({
+            userId: user.id,
+            seriesId: selectedSeries.id,
+            seasonsData: seasonsData,
+          }).catch(console.error);
+
+          const newProgress: series_track.UserProgress[] = [];
+          seasonsData.forEach((s: any) => {
+            for (let i = 1; i <= s.count; i++) {
+              newProgress.push({
+                season_number: s.season,
+                episode_number: i,
+                watched_at: new Date().toISOString()
+              });
+            }
+          });
+          setUserProgress(newProgress);
+          setAllSeriesProgress(prev => ({
+            ...prev,
+            [selectedSeries.id]: newProgress
+          }));
+        }
+      }
+
       toast.success(`Durum güncellendi: ${STATUS_LABELS[status].label}`);
     } catch (error) {
       toast.error("Durum güncellenemedi.");
+    }
+  };
+
+  const handleQuickStatusUpdate = async (tmdbId: number, status: series_track.SeriesStatus) => {
+    if (!user) return;
+    const existing = mySeries.find((s) => s.tmdb_id === tmdbId);
+    if (existing) {
+      try {
+        await client.series_track.updateUserSeriesStatus({
+          userId: user.id,
+          seriesId: existing.id,
+          status: status,
+        });
+        setMySeries((prev) =>
+          prev.map((s) => (s.id === existing.id ? { ...s, status: status } : s)),
+        );
+        toast.success(`Durum güncellendi: ${STATUS_LABELS[status].label}`);
+      } catch {
+        toast.error("Durum güncellenemedi.");
+      }
+    } else {
+      try {
+        const res = await client.series_track.addUserSeries({
+          userId: user.id,
+          tmdbId: tmdbId,
+          title: "",
+          status: status,
+        });
+        if (res.series) {
+          const addedSeries = res.series;
+          setMySeries((prev) => [...prev, addedSeries]);
+        }
+        toast.success(`Diziye eklendi: ${STATUS_LABELS[status].label}`);
+      } catch {
+        toast.error("Dizi eklenemedi.");
+      }
     }
   };
 
@@ -1436,6 +1639,25 @@ export default function SeriesTrackPage() {
       toast.success("İzleme linki güncellendi.");
     } catch (e) {
       toast.error("Güncelleme başarısız.");
+    }
+  };
+
+  const handleOpenSeriesByTmdbId = (tmdbId: number) => {
+    const existing = mySeries.find((s) => s.tmdb_id === tmdbId);
+    if (existing) {
+      fetchSeriesDetails(existing);
+    } else {
+      fetchSeriesDetails({
+        id: String(tmdbId),
+        tmdb_id: tmdbId,
+        title: "",
+        poster_path: null,
+        backdrop_path: null,
+        watch_url_slug: null,
+        status: "watching",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     }
   };
 
@@ -1537,7 +1759,7 @@ export default function SeriesTrackPage() {
                                 {nextEp.isFinished ? "Bitti" : `S${nextEp.season} E${nextEp.episode}`}
                               </span>
                               {nextEp.totalLeft > 0 && (
-                                <span className="text-sm font-bold text-red-600">+{nextEp.totalLeft}</span>
+                                <span className="text-sm font-bold text-app-muted">+{nextEp.totalLeft}</span>
                               )}
                             </div>
 
@@ -1563,7 +1785,7 @@ export default function SeriesTrackPage() {
                                     }}
                                     className="px-4 py-2 bg-app-surface border border-app-border text-app-text text-[10px] font-black rounded-xl transition-colors flex items-center gap-2 shadow-sm hover:bg-app-surface-muted/40 active:scale-95 cursor-pointer"
                                   >
-                                    <Play size={14} weight="fill" className="text-red-600" />
+                                    <Play size={14} weight="fill" className="text-app-text" />
                                     <span>İZLE</span>
                                   </button>
 
@@ -1719,354 +1941,16 @@ export default function SeriesTrackPage() {
                               <Television size={28} className="mb-2 opacity-40" />
                               <span className="text-xs font-bold">Boş slot</span>
                             </div>
-                          ) : tvProgram?.tmdb_id !== prog.tmdb_id ? (
+                          ) : (
                             <EpgSlotProgCard
                               prog={prog}
                               accent={accent}
                               userId={user?.id ?? ""}
                               allSeriesProgress={allSeriesProgress}
+                              mySeries={mySeries}
+                              onOpenSeriesDetail={handleOpenSeriesByTmdbId}
+                              onUpdateSeriesStatus={handleQuickStatusUpdate}
                             />
-                          ) : (
-                            <div className="p-3">
-                              <div className="flex gap-3 items-start">
-                                <div
-                                  className="shrink-0"
-                                >
-                                  {prog.cover_image ? (
-                                    <img
-                                      src={prog.cover_image}
-                                      alt={prog.title}
-                                      className="w-[72px] aspect-[2/3] object-cover rounded-xl border border-app-border"
-                                    />
-                                  ) : (
-                                    <div className="w-[72px] aspect-[2/3] rounded-xl border border-app-border bg-app-surface-muted flex items-center justify-center">
-                                      <Television size={24} className="text-app-muted opacity-40" />
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex-1 min-w-0 flex gap-3">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="w-full text-left">
-                                      <h2 className="text-sm font-black text-app-text leading-snug line-clamp-2">
-                                        {prog.title}
-                                      </h2>
-                                    </div>
-
-                                    {tvProgram?.tmdb_id === prog.tmdb_id && showCardLoading && (
-                                      <div className="mt-2 space-y-1.5 animate-pulse">
-                                        <div className="h-3 bg-app-surface-muted rounded w-1/4" />
-                                        <div className="h-3 bg-app-surface-muted rounded w-3/4" />
-                                      </div>
-                                    )}
-
-                                    {tvProgram?.tmdb_id === prog.tmdb_id &&
-                                      !showCardLoading &&
-                                      selectedTvEpisode &&
-                                      tvProgram && (
-                                        <button
-                                          type="button"
-                                          onClick={() => void openSeriesDetailFromTv()}
-                                          className="mt-2 w-full text-left rounded-lg hover:bg-app-surface-muted/40 active:scale-[0.99] transition-all -mx-1 px-1"
-                                        >
-                                          <p className="text-[10px] font-bold" style={{ color: accent }}>
-                                            S{epgSelectedSeason || tvProgram.season_number} E
-                                            {selectedTvEpisode.episode_number}
-                                          </p>
-                                          <h3 className="text-xs font-black text-app-text mt-0.5 leading-snug line-clamp-1">
-                                            {selectedTvEpisode.title}
-                                          </h3>
-                                          <p className="text-[11px] text-app-muted leading-relaxed line-clamp-1 mt-0.5">
-                                            {selectedTvEpisode.description || "Bu bölüm için açıklama yok."}
-                                          </p>
-                                        </button>
-                                      )}
-                                  </div>
-
-                                  {tvProgram?.tmdb_id === prog.tmdb_id &&
-                                    !showCardLoading &&
-                                    selectedTvEpisode &&
-                                    tvProgram &&
-                                    (() => {
-                                      const currentSeriesRecord = mySeries.find(
-                                        (s) => s.tmdb_id === tvProgram.tmdb_id,
-                                      );
-                                      const seriesProgress = currentSeriesRecord
-                                        ? allSeriesProgress[currentSeriesRecord.id] || []
-                                        : [];
-                                      const isEpWatched = !!(
-                                        selectedTvEpisode.watched ||
-                                        seriesProgress?.some(
-                                          (p) =>
-                                            p.season_number ===
-                                            (epgSelectedSeason || tvProgram.season_number || 1) &&
-                                            p.episode_number === selectedTvEpisode.episode_number,
-                                        )
-                                      );
-                                      const selectedEpisodeReleaseDate = getEpisodeReleaseDate(
-                                        epgSelectedSeason || tvProgram.season_number || 1,
-                                        selectedTvEpisode.episode_number,
-                                      );
-                                      const isSelectedEpisodeAvailable =
-                                        isEpisodeAvailableNow(selectedEpisodeReleaseDate);
-
-                                      return (
-                                        <div className="flex flex-col gap-1.5 shrink-0 self-start">
-                                          <button
-                                            disabled={!isSelectedEpisodeAvailable}
-                                            onClick={() => {
-                                              const query = `${tvProgram.title} Sezon ${tvProgram.season_number || 1} Bölüm ${selectedTvEpisode.episode_number} izle`;
-                                              window.open(
-                                                `https://www.google.com/search?q=${encodeURIComponent(query)}`,
-                                                "_blank",
-                                              );
-                                            }}
-                                            className={`flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all ${isSelectedEpisodeAvailable
-                                                ? "bg-app-text text-app-bg hover:opacity-90 active:scale-[0.98]"
-                                                : "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
-                                              }`}
-                                          >
-                                            <Play size={12} weight="fill" />
-                                            İzle
-                                          </button>
-                                          <button
-                                            disabled={!isSelectedEpisodeAvailable}
-                                            onClick={() => handleTvWatchToggle(selectedTvEpisode)}
-                                            className={`flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-[10px] font-black transition-all ${!isSelectedEpisodeAvailable
-                                                ? "bg-app-surface-muted text-app-muted cursor-not-allowed opacity-50"
-                                                : isEpWatched
-                                                  ? "bg-emerald-500 text-white active:scale-[0.98]"
-                                                  : "bg-app-tab-track text-app-text hover:bg-app-border active:scale-[0.98]"
-                                              }`}
-                                          >
-                                            <CheckCircle size={13} weight={isEpWatched ? "fill" : "regular"} />
-                                            İzledim
-                                          </button>
-                                        </div>
-                                      );
-                                    })()}
-                                </div>
-                              </div>
-
-                              {tvProgram?.tmdb_id === prog.tmdb_id &&
-                                !showCardLoading &&
-                                selectedTvEpisode &&
-                                tvProgram &&
-                                (() => {
-                                  const currentSeriesRecord = mySeries.find(
-                                    (s) => s.tmdb_id === tvProgram.tmdb_id,
-                                  );
-                                  const seriesProgress = currentSeriesRecord
-                                    ? allSeriesProgress[currentSeriesRecord.id] || []
-                                    : [];
-                                  const isEpWatched = !!(
-                                    selectedTvEpisode.watched ||
-                                    seriesProgress?.some(
-                                      (p) =>
-                                        p.season_number ===
-                                        (epgSelectedSeason || tvProgram.season_number || 1) &&
-                                        p.episode_number === selectedTvEpisode.episode_number,
-                                    )
-                                  );
-                                  const selectedEpisodeReleaseDate = getEpisodeReleaseDate(
-                                    epgSelectedSeason || tvProgram.season_number || 1,
-                                    selectedTvEpisode.episode_number,
-                                  );
-                                  const isSelectedEpisodeAvailable =
-                                    isEpisodeAvailableNow(selectedEpisodeReleaseDate);
-
-                                  return (
-                                    <div className="mt-3 space-y-3">
-                                      {!isSelectedEpisodeAvailable && (
-                                        <p className="text-[10px] font-bold text-app-muted text-center">
-                                          {slotTime}&apos;da yayınlanacak
-                                        </p>
-                                      )}
-
-                                      {isEpWatched && (
-                                        <div className="flex items-center gap-1">
-                                          {["🔥", "😂", "😢", "😮", "👍"].map((emoji) => {
-                                            const isSelected = selectedTvEpisode.emoji_reaction === emoji;
-                                            return (
-                                              <button
-                                                key={emoji}
-                                                onClick={() => handleTvWatchToggle(selectedTvEpisode, emoji)}
-                                                className={`h-8 w-8 flex items-center justify-center text-sm rounded-lg transition-all ${isSelected
-                                                    ? "bg-red-50 ring-1 ring-red-200 scale-105"
-                                                    : "bg-app-surface-muted hover:bg-app-tab-track"
-                                                  }`}
-                                              >
-                                                {emoji}
-                                              </button>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
-
-                                      {tvEpisodeStats && tvEpisodeStats.watch_count > 0 && (
-                                        <p className="text-[10px] text-app-muted">
-                                          <span className="font-bold text-app-muted">
-                                            {tvEpisodeStats.watch_count}
-                                          </span>{" "}
-                                          kişi izledi
-                                          {Object.keys(tvEpisodeStats.emojis).length > 0 && (
-                                            <span className="ml-2">
-                                              {Object.entries(tvEpisodeStats.emojis)
-                                                .slice(0, 3)
-                                                .map(([emoji, count]) => `${emoji}${count}`)
-                                                .join(" ")}
-                                            </span>
-                                          )}
-                                        </p>
-                                      )}
-
-                                      <div id="epg-section-episodes" className="pt-3 border-t border-app-border min-w-0">
-                                        <div className="flex items-center justify-between gap-2 mb-2">
-                                          <span className="text-[10px] font-bold uppercase tracking-wider text-app-muted">
-                                            Bölümler
-                                          </span>
-                                          {tvSeriesTmdbDetails && (
-                                            <select
-                                              value={epgSelectedSeason}
-                                              onChange={(e) => setEpgSelectedSeason(Number(e.target.value))}
-                                              className="text-[10px] font-bold text-app-muted bg-app-tab-track border-0 rounded-lg px-2 py-1 outline-none cursor-pointer"
-                                            >
-                                              {tvSeriesTmdbDetails.seasons?.map((s: { season_number: number }) => (
-                                                <option key={s.season_number} value={s.season_number}>
-                                                  Sezon {s.season_number}
-                                                </option>
-                                              ))}
-                                            </select>
-                                          )}
-                                        </div>
-
-                                        {loadingEpgSeason ? (
-                                          <div className="flex gap-1.5 overflow-hidden py-1">
-                                            {[1, 2, 3, 4, 5].map((n) => (
-                                              <div
-                                                key={n}
-                                                className="shrink-0 w-11 h-16 bg-app-tab-track rounded-xl animate-pulse"
-                                              />
-                                            ))}
-                                          </div>
-                                        ) : (
-                                          <div
-                                            ref={isSlotActive ? episodeStripRef : undefined}
-                                            className="flex gap-1.5 overflow-x-auto py-1 -mx-1 px-1 snap-x snap-proximity min-w-0 no-scrollbar"
-                                            style={{
-                                              scrollbarWidth: "none",
-                                              msOverflowStyle: "none",
-                                              WebkitOverflowScrolling: "touch",
-                                            }}
-                                          >
-                                            {epgSeasonEpisodes?.map((ep) => {
-                                              const releaseDate = getEpisodeReleaseDate(
-                                                epgSelectedSeason,
-                                                ep.episode_number,
-                                              );
-                                              const { day, month } = formatEpisodeDate(releaseDate);
-                                              const isReleased = isEpisodeAvailableNow(releaseDate);
-                                              const isWatched =
-                                                epgSelectedSeason === tvProgram.season_number
-                                                  ? tvProgram.episodes?.find(
-                                                    (x) => x.episode_number === ep.episode_number,
-                                                  )?.watched
-                                                  : seriesProgress?.some(
-                                                    (p) =>
-                                                      p.season_number === epgSelectedSeason &&
-                                                      p.episode_number === ep.episode_number,
-                                                  );
-                                              const isSelected =
-                                                selectedTvEpisode.episode_number === ep.episode_number;
-
-                                              return (
-                                                <button
-                                                  key={ep.id}
-                                                  data-episode-num={ep.episode_number}
-                                                  onClick={() => {
-                                                    const nextEpisode = {
-                                                      id: ep.id,
-                                                      episode_number: ep.episode_number,
-                                                      title: ep.name || `Bölüm ${ep.episode_number}`,
-                                                      description: ep.overview || "",
-                                                      stream_info: "Netflix",
-                                                      release_date: releaseDate.toISOString(),
-                                                      is_released: isReleased,
-                                                      watched: isWatched || false,
-                                                      emoji_reaction: null,
-                                                    };
-
-                                                    if (epgSelectedSeason === tvProgram.season_number) {
-                                                      const matchedDbEp = tvProgram.episodes?.find(
-                                                        (x) => x.episode_number === ep.episode_number,
-                                                      );
-                                                      setSelectedTvEpisode(matchedDbEp ?? nextEpisode);
-                                                    } else {
-                                                      setSelectedTvEpisode(nextEpisode);
-                                                    }
-                                                  }}
-                                                  className={`shrink-0 snap-center relative w-11 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 py-1 transition-all active:scale-95 ${isSelected
-                                                      ? "text-white shadow-sm"
-                                                      : !isReleased
-                                                        ? "bg-app-surface-muted text-app-muted hover:bg-app-tab-track"
-                                                        : "bg-app-tab-track text-app-text hover:bg-app-border"
-                                                    }`}
-                                                  style={
-                                                    isSelected
-                                                      ? {
-                                                        backgroundColor: accent,
-                                                        opacity: isReleased ? 1 : 0.55,
-                                                      }
-                                                      : undefined
-                                                  }
-                                                  title={`B${ep.episode_number} · ${ep.name || `Bölüm ${ep.episode_number}`}`}
-                                                >
-                                                  <div
-                                                    className={`px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none ${!isReleased
-                                                        ? "bg-app-tab-track text-app-muted"
-                                                        : isSelected
-                                                          ? "bg-app-surface/25 text-white"
-                                                          : "bg-app-surface text-app-text shadow-sm border border-app-border/70"
-                                                      }`}
-                                                  >
-                                                    B{ep.episode_number}
-                                                  </div>
-                                                  <span
-                                                    className={`text-sm font-black leading-none ${!isReleased
-                                                        ? "text-app-muted"
-                                                        : isSelected
-                                                          ? "text-white"
-                                                          : "text-app-text"
-                                                      }`}
-                                                  >
-                                                    {day}
-                                                  </span>
-                                                  <span
-                                                    className={`text-[9px] font-bold uppercase leading-none ${isSelected
-                                                        ? "text-white/85"
-                                                        : "text-app-muted"
-                                                      }`}
-                                                  >
-                                                    {month}
-                                                  </span>
-                                                  {isWatched && (
-                                                    <CheckCircle
-                                                      size={11}
-                                                      weight="fill"
-                                                      className={`absolute bottom-0.5 right-0.5 ${isSelected ? "text-white/90" : "text-emerald-500"
-                                                        }`}
-                                                    />
-                                                  )}
-                                                </button>
-                                              );
-                                            })}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })()}
-                            </div>
                           )}
                         </div>
                       </div>
@@ -2220,11 +2104,11 @@ export default function SeriesTrackPage() {
                           ))}
                         </div>
 
-                        {selectedSeries?.status === "watching" && (
+                        {(selectedSeries?.status === "watching" || selectedSeries?.status === "dropped" || selectedSeries?.status === "plan_to_watch") && (
                           <div className="flex flex-wrap items-center gap-2 mb-8">
                             <button
                               onClick={markAllAsWatched}
-                              className="px-4 py-2 bg-app-surface border border-app-border text-emerald-600 text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-emerald-50 hover:border-emerald-200 active:scale-95 shadow-sm uppercase tracking-wider"
+                              className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black rounded-lg flex items-center gap-2 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/40 active:scale-95 shadow-sm uppercase tracking-wider"
                             >
                               <CheckCircle size={16} weight="bold" />
                               <span>Tümünü İzledim</span>
@@ -2232,9 +2116,9 @@ export default function SeriesTrackPage() {
 
                             <button
                               onClick={markSeasonAsWatched}
-                              className="px-4 py-2 bg-app-surface border border-app-border text-app-text text-[10px] font-black rounded-xl flex items-center gap-2 transition-all hover:bg-red-50 hover:border-red-200 active:scale-95 shadow-sm uppercase tracking-wider"
+                              className="px-4 py-2 bg-app-tab-track border border-app-border text-app-text text-[10px] font-black rounded-lg flex items-center gap-2 transition-all hover:bg-app-border active:scale-95 shadow-sm uppercase tracking-wider"
                             >
-                              <Monitor size={16} weight="bold" className="text-red-500" />
+                              <Monitor size={16} weight="bold" className="text-app-muted" />
                               <span>Bu Sezonu İzledim</span>
                             </button>
                           </div>
@@ -2362,11 +2246,11 @@ export default function SeriesTrackPage() {
                             {/* Legend */}
                             <div className="flex flex-wrap items-center gap-5 mb-10 px-4 bg-app-surface p-4 rounded-2xl border border-app-border w-fit shadow-sm">
                               {[
-                                { label: "Elite", color: "bg-emerald-800" },
-                                { label: "Great", color: "bg-emerald-600" },
-                                { label: "Good", color: "bg-yellow-500" },
-                                { label: "Regular", color: "bg-orange-500" },
-                                { label: "Bad", color: "bg-rose-800" },
+                                { label: "Elite", color: "bg-[#107c41]" },
+                                { label: "Great", color: "bg-[#258752]" },
+                                { label: "Good", color: "bg-[#cc9425]" },
+                                { label: "Regular", color: "bg-[#c96324]" },
+                                { label: "Bad", color: "bg-[#b8332a]" },
                               ].map(item => (
                                 <div key={item.label} className="flex items-center gap-2.5">
                                   <div className={`w-3 h-3 rounded-full ${item.color}`} />
@@ -2395,9 +2279,9 @@ export default function SeriesTrackPage() {
                                     {allSeasonsData[Number(seasonNum)].episodes?.map((ep: any) => (
                                       <div
                                         key={ep.id}
-                                        className={`w-14 h-10 rounded-lg flex flex-col items-center justify-center transition-all hover:brightness-110 cursor-default border ${getRatingColor(ep.vote_average)}`}
+                                        className={`w-14 h-10 rounded-lg flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-default shadow-sm ${getRatingColor(ep.vote_average)}`}
                                       >
-                                        <span className="text-sm font-black tracking-tighter text-white">{ep.vote_average?.toFixed(1)}</span>
+                                        <span className="text-xs font-black tracking-tighter text-white">{ep.vote_average ? ep.vote_average.toFixed(1) : "-"}</span>
                                       </div>
                                     ))}
                                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MagnifyingGlass, Plus, Barbell, Person, Timer } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, Barbell, Person, Timer, Check } from "@phosphor-icons/react";
 import {
   createCustomExerciseSlug,
   getTrackingTypeLabel,
@@ -30,7 +30,11 @@ export default function ExercisePicker({
   multiSelect?: boolean;
   allowCustom?: boolean;
 }) {
+  const [activeTab, setActiveTab] = useState<"search" | "custom">("search");
   const [query, setQuery] = useState("");
+  const [customName, setCustomName] = useState("");
+  const [customTrackingType, setCustomTrackingType] = useState<ExerciseTrackingType>("weighted");
+
   const trimmedQuery = query.trim();
 
   const results = useMemo(
@@ -38,125 +42,207 @@ export default function ExercisePicker({
     [catalog, query]
   );
 
-  const handleSelectCustom = (trackingType: ExerciseTrackingType) => {
-    if (!trimmedQuery) return;
+  const handleTabChange = (tab: "search" | "custom") => {
+    setActiveTab(tab);
+    if (tab === "custom" && !customName && trimmedQuery) {
+      setCustomName(trimmedQuery);
+    }
+  };
+
+  const handleAddCustom = () => {
+    const name = customName.trim();
+    if (!name) return;
     onSelect({
-      slug: createCustomExerciseSlug(trimmedQuery),
-      name: trimmedQuery,
-      trackingType,
+      slug: createCustomExerciseSlug(name),
+      name: name,
+      trackingType: customTrackingType,
     });
+    setCustomName("");
     setQuery("");
   };
 
-  const customTypeClass = (type: ExerciseTrackingType) =>
-    `flex-1 min-w-0 flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
-      type === "weighted"
-        ? "border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300"
-        : type === "bodyweight"
-          ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
-          : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-    }`;
-
   return (
-    <div className="space-y-3">
-      <div className="relative">
-        <MagnifyingGlass
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-        />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Egzersiz ara..."
-          className="w-full bg-white dark:bg-app-surface border border-gray-200/60 dark:border-app-border rounded-xl pl-9 pr-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 text-app-text"
-        />
-      </div>
+    <div className="space-y-3.5">
+      {allowCustom && (
+        <div className="inline-flex w-full p-1 rounded-2xl bg-app-tab-track border border-app-border">
+          <button
+            type="button"
+            onClick={() => handleTabChange("search")}
+            className={`flex-1 py-2 text-[11px] font-black uppercase tracking-wider rounded-xl transition-all ${
+              activeTab === "search"
+                ? "bg-app-tab-active text-app-text shadow-sm"
+                : "text-app-muted hover:text-app-text"
+            }`}
+          >
+            Egzersiz Ara
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("custom")}
+            className={`flex-1 py-2 text-[11px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === "custom"
+                ? "bg-app-tab-active text-app-text shadow-sm"
+                : "text-app-muted hover:text-app-text"
+            }`}
+          >
+            <Plus size={14} weight="bold" />
+            Özel Egzersiz
+          </button>
+        </div>
+      )}
 
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-        {trimmedQuery ? `${results.length} sonuç` : "Popüler / A–Z"}
-      </p>
+      {activeTab === "search" ? (
+        <div className="space-y-3">
+          <div className="relative">
+            <MagnifyingGlass
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Egzersiz ara..."
+              className="w-full bg-app-surface border border-app-border rounded-xl pl-9 pr-3.5 py-2.5 text-sm font-medium focus:outline-none focus:border-gray-400 dark:focus:border-zinc-600 text-app-text transition-colors"
+            />
+          </div>
 
-      <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
-        {allowCustom && trimmedQuery && (
-          <div className="rounded-xl border border-dashed border-violet-300 dark:border-violet-800 bg-violet-50/60 dark:bg-violet-950/20 p-3 space-y-2.5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/40 border border-violet-200 dark:border-violet-800 flex items-center justify-center shrink-0">
-                <Plus size={18} weight="bold" className="text-violet-600 dark:text-violet-300" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-violet-700 dark:text-violet-300">Özel egzersiz ekle</p>
-                <p className="text-[10px] text-violet-500 dark:text-violet-400 truncate">&quot;{trimmedQuery}&quot;</p>
-              </div>
-            </div>
-            <p className="text-[10px] font-bold text-app-muted uppercase tracking-widest">
-              Takip tipi seç
-            </p>
-            <div className="flex gap-2">
+          <div className="flex items-center justify-between text-[10px] font-bold text-app-muted uppercase tracking-wider">
+            <span>{trimmedQuery ? `${results.length} sonuç` : "Popüler / A–Z"}</span>
+            {allowCustom && trimmedQuery && (
               <button
                 type="button"
-                onClick={() => handleSelectCustom("weighted")}
-                className={customTypeClass("weighted")}
+                onClick={() => handleTabChange("custom")}
+                className="text-app-text underline hover:opacity-80 transition-opacity"
               >
-                <Barbell size={16} weight="bold" />
-                {getTrackingTypeLabel("weighted")}
+                Bulamadın mı? Özel Ekle
               </button>
+            )}
+          </div>
+
+          <div className="space-y-1.5 max-h-[48vh] overflow-y-auto pr-0.5">
+            {results.length === 0 ? (
+              <div className="text-center py-10 space-y-3 bg-app-surface rounded-2xl border border-app-border p-5">
+                <p className="text-xs font-bold text-app-muted">Aramanızla eşleşen egzersiz bulunamadı.</p>
+                {allowCustom && (
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("custom")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-app-surface border border-app-border text-xs font-black uppercase text-app-text hover:bg-app-surface-muted transition-all active:scale-95"
+                  >
+                    <Plus size={14} weight="bold" />
+                    &quot;{trimmedQuery || "Özel"}&quot; Egzersiz Ekle
+                  </button>
+                )}
+              </div>
+            ) : (
+              results.map((ex) => {
+                const isSelected = selectedSlugs?.has(ex.slug);
+                return (
+                  <button
+                    key={ex.slug}
+                    type="button"
+                    onClick={() => onSelect({ slug: ex.slug, name: ex.name })}
+                    disabled={multiSelect && isSelected}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left ${
+                      isSelected
+                        ? "bg-app-surface-muted border-gray-300 dark:border-zinc-700 opacity-60"
+                        : "bg-app-surface border-app-border hover:border-gray-300 dark:hover:border-zinc-700"
+                    }`}
+                  >
+                    <ExerciseThumbnail exercise={ex} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-app-text truncate">{ex.name}</p>
+                      <p className="text-[10px] font-medium text-app-muted truncate mt-0.5">
+                        {ex.muscleGroup}
+                        {ex.equipment[0] ? ` · ${ex.equipment[0]}` : ""}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <Check size={16} weight="bold" className="text-app-text shrink-0" />
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4 pt-1">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase tracking-wider text-app-muted">
+              Egzersiz Adı
+            </label>
+            <input
+              type="text"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="Örn: Cable Face Pull, Z-Bar Curl..."
+              className="w-full bg-app-surface border border-app-border rounded-xl px-3.5 py-2.5 text-sm font-medium text-app-text focus:outline-none focus:border-gray-400 dark:focus:border-zinc-600 transition-colors"
+              autoFocus
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase tracking-wider text-app-muted">
+              Takip Tipi Seç
+            </label>
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => handleSelectCustom("bodyweight")}
-                className={customTypeClass("bodyweight")}
+                onClick={() => setCustomTrackingType("weighted")}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center ${
+                  customTrackingType === "weighted"
+                    ? "bg-app-surface border-gray-900 dark:border-white text-app-text font-bold shadow-sm"
+                    : "bg-app-surface border-app-border text-app-muted hover:text-app-text hover:bg-app-surface-muted"
+                }`}
               >
-                <Person size={16} weight="bold" />
-                {getTrackingTypeLabel("bodyweight")}
+                <Barbell size={20} weight={customTrackingType === "weighted" ? "fill" : "bold"} />
+                <span className="text-xs font-bold">{getTrackingTypeLabel("weighted")}</span>
+                <span className="text-[9px] text-app-muted leading-none">Ağırlık + Rep</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleSelectCustom("duration")}
-                className={customTypeClass("duration")}
+                onClick={() => setCustomTrackingType("bodyweight")}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center ${
+                  customTrackingType === "bodyweight"
+                    ? "bg-app-surface border-gray-900 dark:border-white text-app-text font-bold shadow-sm"
+                    : "bg-app-surface border-app-border text-app-muted hover:text-app-text hover:bg-app-surface-muted"
+                }`}
               >
-                <Timer size={16} weight="bold" />
-                {getTrackingTypeLabel("duration")}
+                <Person size={20} weight={customTrackingType === "bodyweight" ? "fill" : "bold"} />
+                <span className="text-xs font-bold">{getTrackingTypeLabel("bodyweight")}</span>
+                <span className="text-[9px] text-app-muted leading-none">Sadece Rep</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCustomTrackingType("duration")}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center ${
+                  customTrackingType === "duration"
+                    ? "bg-app-surface border-gray-900 dark:border-white text-app-text font-bold shadow-sm"
+                    : "bg-app-surface border-app-border text-app-muted hover:text-app-text hover:bg-app-surface-muted"
+                }`}
+              >
+                <Timer size={20} weight={customTrackingType === "duration" ? "fill" : "bold"} />
+                <span className="text-xs font-bold">{getTrackingTypeLabel("duration")}</span>
+                <span className="text-[9px] text-app-muted leading-none">Süre (sn/dk)</span>
               </button>
             </div>
           </div>
-        )}
 
-        {results.length === 0 ? (
-          trimmedQuery ? (
-            allowCustom ? null : (
-              <p className="text-center py-8 text-xs font-bold text-gray-400">Sonuç bulunamadı</p>
-            )
-          ) : (
-            <p className="text-center py-8 text-xs font-bold text-gray-400">Sonuç bulunamadı</p>
-          )
-        ) : (
-          results.map((ex) => {
-            const isSelected = selectedSlugs?.has(ex.slug);
-            return (
-              <button
-                key={ex.slug}
-                type="button"
-                onClick={() => onSelect({ slug: ex.slug, name: ex.name })}
-                disabled={multiSelect && isSelected}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left ${
-                  isSelected
-                    ? "bg-violet-50 border-violet-300 opacity-60"
-                    : "bg-white dark:bg-app-surface border-gray-200/60 dark:border-app-border hover:border-violet-300"
-                }`}
-              >
-                <ExerciseThumbnail exercise={ex} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-app-text truncate">{ex.name}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-app-muted truncate">
-                    {ex.muscleGroup}
-                    {ex.equipment[0] ? ` · ${ex.equipment[0]}` : ""}
-                  </p>
-                </div>
-              </button>
-            );
-          })
-        )}
-      </div>
+          <button
+            type="button"
+            onClick={handleAddCustom}
+            disabled={!customName.trim()}
+            className="w-full mt-2 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-black uppercase tracking-wider active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Egzersiz Oluştur & Ekle
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+

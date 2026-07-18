@@ -9422,6 +9422,7 @@ export namespace users {
         pinnedApps: string[] | null
         lastUsedApps: { [key: string]: string } | null
         usageCounts: { [key: string]: number } | null
+        dailyWidgetStates: { [key: string]: any } | null
     }
 
     export type NotificationAppsJson = { [key: string]: { [key: string]: any } }
@@ -9480,6 +9481,7 @@ export namespace users {
         pinnedApps?: string[]
         lastUsedApps?: { [key: string]: string }
         usageCounts?: { [key: string]: number }
+        dailyWidgetStates?: { [key: string]: any }
     }
 
     export interface UpdateUserPreferencesResponse {

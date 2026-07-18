@@ -113,7 +113,7 @@ export function getExerciseBySlug(
   catalog: ExerciseCatalogItem[],
   slug: string
 ): ExerciseCatalogItem | undefined {
-  if (!slug) return undefined;
+  if (!slug || slug.startsWith("custom-")) return undefined;
   
   // 1. Direct UUID slug match
   const directMatch = catalog.find((e) => e.slug === slug);

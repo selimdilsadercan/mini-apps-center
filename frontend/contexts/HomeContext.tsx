@@ -8,18 +8,33 @@ import { createBrowserClient } from "@/lib/api";
 
 const client = createBrowserClient();
 
+interface DailyWidgetStates {
+  /** ISO date string (YYYY-MM-DD) the states belong to */
+  date: string;
+  /** Series tmdbIds / ids ignored today */
+  ignoredSeriesIds?: string[];
+  /** Meal keys (e.g. "breakfast", "lunch", "dinner") completed today */
+  completedMealKeys?: string[];
+}
+
 interface HomeContextType {
   pinnedIds: string[];
   lastUsed: Record<string, number>;
   usageCounts: Record<string, number>;
+  dailyWidgetStates: DailyWidgetStates | null;
   isDataLoaded: boolean;
   hasBusinesses: boolean;
   updateAppUsage: (appId: string) => Promise<void>;
   togglePin: (appId: string) => Promise<void>;
+  updateDailyWidgetStates: (patch: Partial<Omit<DailyWidgetStates, "date">>) => Promise<void>;
   refreshSessionData: () => Promise<void>;
 }
 
 const HomeContext = createContext<HomeContextType | undefined>(undefined);
+
+function getTodayDateKey(): string {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Istanbul" }).format(new Date());
+}
 
 export function HomeProvider({ children }: { children: React.ReactNode }) {
   const { isLoaded, user } = useUser();
@@ -43,6 +58,7 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
           lastUsedApps: savedLastUsed ? JSON.parse(savedLastUsed) : {},
           usageCounts: savedUsageCounts ? JSON.parse(savedUsageCounts) : {},
           isOnboardingFinished: true, // Guests skip onboarding
+          dailyWidgetStates: null,
         };
       }
     },
@@ -74,6 +90,15 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
       });
     }
     return map;
+  }, [prefsQuery.data]);
+
+  // Daily widget states — auto-expire if date doesn't match today
+  const dailyWidgetStates = useMemo<DailyWidgetStates | null>(() => {
+    const raw = prefsQuery.data?.dailyWidgetStates as DailyWidgetStates | null | undefined;
+    if (!raw) return null;
+    const today = getTodayDateKey();
+    if (raw.date !== today) return null; // expired
+    return raw;
   }, [prefsQuery.data]);
 
   const hasBusinesses = useMemo(() => (businessQuery.data?.businesses || []).length > 0, [businessQuery.data]);
@@ -124,6 +149,27 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateDailyWidgetStates = async (patch: Partial<Omit<DailyWidgetStates, "date">>) => {
+    const today = getTodayDateKey();
+    const current = dailyWidgetStates?.date === today ? dailyWidgetStates : { date: today };
+    const merged: DailyWidgetStates = {
+      ...current,
+      ...patch,
+    };
+
+    // Optimistic update
+    queryClient.setQueryData(["user", "preferences", user?.id || "guest"], (prev: any) => ({
+      ...prev,
+      dailyWidgetStates: merged,
+    }));
+
+    if (user?.id) {
+      await updateUserPreferencesAction(user.id, {
+        dailyWidgetStates: merged as unknown as Record<string, unknown>,
+      });
+    }
+  };
+
   const refreshSessionData = async () => {
     await Promise.all([
       prefsQuery.refetch(),
@@ -136,10 +182,12 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
       pinnedIds, 
       lastUsed, 
       usageCounts, 
+      dailyWidgetStates,
       isDataLoaded, 
       hasBusinesses,
       updateAppUsage, 
       togglePin,
+      updateDailyWidgetStates,
       refreshSessionData
     }}>
       {children}

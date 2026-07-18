@@ -77,6 +77,7 @@ interface GetUserPreferencesResponse {
   pinnedApps: string[] | null;
   lastUsedApps: Record<string, string> | null;
   usageCounts: Record<string, number> | null;
+  dailyWidgetStates: Record<string, unknown> | null;
 }
 
 interface UpdateUserPreferencesRequest {
@@ -85,6 +86,7 @@ interface UpdateUserPreferencesRequest {
   pinnedApps?: string[];
   lastUsedApps?: Record<string, string>;
   usageCounts?: Record<string, number>;
+  dailyWidgetStates?: Record<string, unknown>;
 }
 
 interface UpdateUserPreferencesResponse {
@@ -281,7 +283,8 @@ export const getUserPreferences = api(
         isOnboardingFinished: false,
         pinnedApps: null,
         lastUsedApps: null,
-        usageCounts: null
+        usageCounts: null,
+        dailyWidgetStates: null
       };
     }
 
@@ -292,6 +295,7 @@ export const getUserPreferences = api(
       pinnedApps: data?.[0]?.pinned_apps || null,
       lastUsedApps: data?.[0]?.last_used_apps || null,
       usageCounts: data?.[0]?.usage_counts || null,
+      dailyWidgetStates: data?.[0]?.daily_widget_states || null,
     };
   }
 );
@@ -301,13 +305,14 @@ export const getUserPreferences = api(
  */
 export const updateUserPreferences = api(
   { expose: true, method: "POST", path: "/users/preferences/update" },
-  async ({ clerkId, appOrder, pinnedApps, lastUsedApps, usageCounts }: UpdateUserPreferencesRequest): Promise<UpdateUserPreferencesResponse> => {
+  async ({ clerkId, appOrder, pinnedApps, lastUsedApps, usageCounts, dailyWidgetStates }: UpdateUserPreferencesRequest): Promise<UpdateUserPreferencesResponse> => {
     const { error } = await supabase.rpc("update_user_preferences", {
       clerk_id_param: clerkId,
       app_order_param: appOrder || null,
       pinned_apps_param: pinnedApps || null,
       last_used_apps_param: lastUsedApps || null,
       usage_counts_param: usageCounts || null,
+      daily_widget_states_param: dailyWidgetStates || null,
       is_local_param: isLocal,
     });
 

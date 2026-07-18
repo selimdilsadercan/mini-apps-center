@@ -190,9 +190,9 @@ function isWorkoutFinishedToday(finishedAt: string, now = new Date()): boolean {
 export function syncTodayGymCompletionInDiscoverCache(
   queryClient: QueryClient,
   userId: string,
-  workout: { routineId: string | null; finishedAt: string | null }
+  workout: { routineId?: string | null; finishedAt?: string | null }
 ) {
-  if (!workout.routineId || !workout.finishedAt) return;
+  if (!workout.finishedAt) return;
   if (!isWorkoutFinishedToday(workout.finishedAt)) return;
 
   queryClient.setQueryData(discoverQueryKey(userId), (prev: unknown) => {
@@ -204,16 +204,17 @@ export function syncTodayGymCompletionInDiscoverCache(
       } | null;
     };
     const plan = data.todayGymPlan;
-    if (!plan?.routine?.id || plan.routine.id !== workout.routineId) return prev;
 
     return {
       ...data,
       todayGymPlan: {
-        ...plan,
+        ...(plan || {}),
         completedToday: true,
       },
     };
   });
+
+  invalidateDiscoverWidgets(queryClient, userId);
 }
 
 export function invalidateGymQueries(queryClient: QueryClient, userId: string) {

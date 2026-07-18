@@ -102,13 +102,17 @@ export const getDiscoverWidgets = api(
       };
     }
 
-    // Helper: get Monday of current week (YYYY-MM-DD)
+    // Helper: get Monday of current week (YYYY-MM-DD) in Europe/Istanbul timezone
     const getMonday = () => {
-      const d = new Date();
+      const trStr = new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" });
+      const d = new Date(trStr);
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1);
       d.setDate(diff);
-      return d.toISOString().split("T")[0];
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const date = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${date}`;
     };
     const currentWeekStart = getMonday();
 
@@ -123,9 +127,14 @@ export const getDiscoverWidgets = api(
       fetchWithFallback(getWeeklyGoals({ userId }), { goals: [] }),
     ]);
 
-    const currentWeekGoal = readingGoalsRes.goals?.find(
-      (g: WeeklyGoal) => g.week_start === currentWeekStart
-    ) ?? null;
+    const currentWeekGoal =
+      readingGoalsRes.goals?.find(
+        (g: WeeklyGoal) => g.week_start === currentWeekStart && g.status === "active"
+      ) ??
+      readingGoalsRes.goals?.find((g: WeeklyGoal) => g.week_start === currentWeekStart) ??
+      readingGoalsRes.goals?.find((g: WeeklyGoal) => g.status === "active") ??
+      readingGoalsRes.goals?.[0] ??
+      null;
 
     return {
       suggestions: suggestRes.suggestions || [],

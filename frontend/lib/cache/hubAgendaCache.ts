@@ -72,3 +72,8 @@ export function removeAgendaEntryFromCache(
 export function invalidateDiscoverWidgets(queryClient: QueryClient, userId: string) {
   void queryClient.invalidateQueries({ queryKey: discoverQueryKey(userId) });
 }
+
+export function invalidateAllHubWidgets(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: ["hub"] });
+}
+
