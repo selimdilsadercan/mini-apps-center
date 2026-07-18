@@ -12,15 +12,15 @@ interface EmojiPickerOverlayProps {
 export function EmojiPickerOverlay({ onSelect, onClose }: EmojiPickerOverlayProps) {
   return (
     <div
-      className="absolute inset-0 z-50 flex flex-col bg-white rounded-t-3xl animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="absolute inset-0 z-50 flex flex-col bg-app-surface rounded-t-3xl animate-in slide-in-from-bottom-4 fade-in duration-200"
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <div className="px-4 pt-2 pb-2 flex items-center justify-between shrink-0 border-b border-gray-50">
-        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">Emoji Seç</p>
+      <div className="px-4 pt-2 pb-2 flex items-center justify-between shrink-0 border-b border-app-border">
+        <p className="text-sm font-black text-app-text uppercase tracking-tight">Emoji Seç</p>
         <button
           type="button"
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 active:scale-95"
+          className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text active:scale-95"
         >
           <X size={16} weight="bold" />
         </button>

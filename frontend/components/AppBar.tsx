@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
+import {
   MapTrifold,
   Heart,
   House,
-  Wallet,
+  Storefront,
   Users,
   Sparkle,
   Wrench
@@ -121,19 +121,19 @@ export default function AppBar({ activePage }: AppBarProps) {
             <span className="text-[9px] font-black uppercase tracking-tighter">Yaşam</span>
           </Link>
 
-          {/* Cüzdan */}
+          {/* Studio / İşletme */}
           <Link
             href="/home?tab=wallet"
             className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
               isActive(ActivePage.WALLET) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
             }`}
           >
-            <Wallet 
-              size={20} 
+            <Storefront
+              size={20}
               weight={isActive(ActivePage.WALLET) ? "fill" : "bold"}
               className="flex-shrink-0"
             />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Cüzdan</span>
+            <span className="text-[9px] font-black uppercase tracking-tighter">Stüdyo</span>
           </Link>
         </div>
       </div>

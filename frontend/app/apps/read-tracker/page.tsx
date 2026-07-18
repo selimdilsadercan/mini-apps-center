@@ -12,10 +12,10 @@ import {
   CalendarCheck,
   CheckCircle,
   Hourglass,
-  Minus,
   PencilSimple,
   Warning,
   CircleNotch,
+  ArrowsClockwise,
 } from "@phosphor-icons/react";
 import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
@@ -23,6 +23,8 @@ import { getAppRootUrl } from "@/lib/apps";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateDiscoverWidgets } from "@/lib/cache/hubAgendaCache";
 import { pillTabClass, PillTabBar } from "../gaming-hub/components/PillTabs";
 
 const client = createBrowserClient();
@@ -69,6 +71,17 @@ function getWeekDisplayRange(mondayStr: string, locale: string, weeks: number = 
     return mondayStr;
   }
 }
+
+const MONTH_NAMES: Record<string, string[]> = {
+  tr: [
+    "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+  ],
+  en: [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ],
+};
 
 // Small controlled input to type the current page directly.
 function PageInput({
@@ -153,6 +166,7 @@ export default function ReadTrackerPage() {
   const { locale } = useLanguage();
   const language = locale;
   const { confirm } = useConfirmDialog();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<TabType>("habit");
   const [books, setBooks] = useState<Book[]>([]);
@@ -163,6 +177,10 @@ export default function ReadTrackerPage() {
   const [libraryFilter, setLibraryFilter] = useState<string>("all");
   // How many weeks the next goal should span (used when picking a book)
   const [goalWeeks, setGoalWeeks] = useState<number>(1);
+  // Per-book daily reading baseline (device-local): book id -> { date, startPage }.
+  // "Pages read today" is derived as current_page - startPage, which keeps today's
+  // target stable and the chunk buttons' filled state consistent.
+  const [dailyLog, setDailyLog] = useState<Record<string, { date: string; startPage: number }>>({});
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
@@ -175,6 +193,10 @@ export default function ReadTrackerPage() {
   const [formRating, setFormRating] = useState<number | null>(null);
   const [formReview, setFormReview] = useState("");
   const [formCoverImage, setFormCoverImage] = useState("");
+  // Finish date (for completed books): month + year required, day optional.
+  const [formEndDay, setFormEndDay] = useState("");
+  const [formEndMonth, setFormEndMonth] = useState("");
+  const [formEndYear, setFormEndYear] = useState("");
 
   // Book Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -209,13 +231,22 @@ export default function ReadTrackerPage() {
     if (!user) return;
     try {
       setSearchLoading(true);
+      // Default the new book's status to the active library filter (e.g. adding
+      // while "Yarım Bıraktım" is selected → book is added as dropped).
+      const addStatus: Book["status"] =
+        activeTab === "library" &&
+        ["reading", "to_read", "completed", "dropped"].includes(libraryFilter)
+          ? (libraryFilter as Book["status"])
+          : "to_read";
+      const addCurrentPage =
+        addStatus === "completed" && result.pageCount ? result.pageCount : 0;
       await client.read_tracker.upsertBook({
         userId: user.id,
         title: result.title,
         author: result.authors || "Bilinmeyen Yazar",
         totalPages: result.pageCount,
-        currentPage: 0,
-        status: "to_read",
+        currentPage: addCurrentPage,
+        status: addStatus,
         coverImage: result.thumbnail || null,
       });
       toast.success(language === "tr" ? "Kitap kütüphanenize eklendi!" : "Book added to library!");
@@ -250,6 +281,10 @@ export default function ReadTrackerPage() {
       status: "Okuma Durumu",
       rating: "Puanlama",
       review: "Kişisel İnceleme / Not",
+      finishedDate: "Bitirme Tarihi",
+      monthLabel: "Ay",
+      yearLabel: "Yıl",
+      dayOptional: "Gün (ops.)",
       coverUrl: "Kapak Resmi URL (Opsiyonel)",
       save: "Kaydet",
       cancel: "Vazgeç",
@@ -258,7 +293,7 @@ export default function ReadTrackerPage() {
       noBooks: "Henüz kütüphanenize kitap eklemediniz.",
       streak: "Haftalık Seri",
       weeksStreak: "haftadır okuyor!",
-      activeGoal: "Bu Haftanın Kitabı",
+      activeGoal: "Bu Hafta",
       chooseGoal: "Bu hafta hangi kitabı okuyacaksınız?",
       skipWeek: "Bu Haftayı Pas Geç",
       changeGoal: "Kitabı Değiştir",
@@ -271,10 +306,14 @@ export default function ReadTrackerPage() {
       goalWeeksLabel: "Kaç hafta sürecek?",
       weekUnit: "hafta",
       currentPageLabel: "Kaçıncı sayfadasın?",
+      dailyTargetLabel: "Günlük hedef",
+      perDay: "sayfa/gün",
+      readTodayDone: "Bugün okudun",
+      daysLeft: "gün kaldı",
       readingStatus: {
         to_read: "Okuyacağım",
         reading: "Okuyorum",
-        completed: "Bitirdim",
+        completed: "Okudum",
         dropped: "Yarım Bıraktım",
       },
       goalStatus: {
@@ -299,6 +338,10 @@ export default function ReadTrackerPage() {
       status: "Reading Status",
       rating: "Rating",
       review: "Personal Review / Notes",
+      finishedDate: "Finish Date",
+      monthLabel: "Month",
+      yearLabel: "Year",
+      dayOptional: "Day (opt.)",
       coverUrl: "Cover Image URL (Optional)",
       save: "Save",
       cancel: "Cancel",
@@ -307,7 +350,7 @@ export default function ReadTrackerPage() {
       noBooks: "You haven't added any books to your library yet.",
       streak: "Weekly Streak",
       weeksStreak: "weeks streak!",
-      activeGoal: "This Week's Book",
+      activeGoal: "This Week",
       chooseGoal: "Which book will you read this week?",
       skipWeek: "Skip This Week",
       changeGoal: "Change Book",
@@ -320,6 +363,10 @@ export default function ReadTrackerPage() {
       goalWeeksLabel: "How many weeks?",
       weekUnit: "wk",
       currentPageLabel: "What page are you on?",
+      dailyTargetLabel: "Daily target",
+      perDay: "pages/day",
+      readTodayDone: "Read today",
+      daysLeft: "days left",
       readingStatus: {
         to_read: "To Read",
         reading: "Reading",
@@ -341,6 +388,24 @@ export default function ReadTrackerPage() {
       fetchData();
     }
   }, [isUserLoaded, user]);
+
+  // Load device-local daily reading baselines
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("read_tracker_daily");
+      if (raw) setDailyLog(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const persistDailyLog = (next: Record<string, { date: string; startPage: number }>) => {
+    try {
+      localStorage.setItem("read_tracker_daily", JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -375,6 +440,22 @@ export default function ReadTrackerPage() {
     );
   }, [goals, currentWeekStart]);
 
+  // Record the active goal book's page at the start of today (once per day),
+  // so today's target and chunk buttons stay stable through the day.
+  useEffect(() => {
+    if (!currentWeekGoal?.book_id) return;
+    const book = books.find((b) => b.id === currentWeekGoal.book_id);
+    if (!book) return;
+    const today = formatDate(new Date());
+    setDailyLog((prev) => {
+      const entry = prev[book.id];
+      if (entry && entry.date === today) return prev;
+      const next = { ...prev, [book.id]: { date: today, startPage: book.current_page } };
+      persistDailyLog(next);
+      return next;
+    });
+  }, [currentWeekGoal?.book_id, books]);
+
   // Modal actions
   const openAddModal = () => {
     setEditingBook(null);
@@ -386,6 +467,9 @@ export default function ReadTrackerPage() {
     setFormRating(null);
     setFormReview("");
     setFormCoverImage("");
+    setFormEndDay("");
+    setFormEndMonth("");
+    setFormEndYear("");
     setIsBookModalOpen(true);
   };
 
@@ -399,6 +483,17 @@ export default function ReadTrackerPage() {
     setFormRating(book.rating);
     setFormReview(book.review || "");
     setFormCoverImage(book.cover_image || "");
+    // Parse finish date (YYYY-MM-DD...) — day "01" is treated as "no day given".
+    if (book.end_date) {
+      const [y, m, d] = book.end_date.slice(0, 10).split("-");
+      setFormEndYear(y || "");
+      setFormEndMonth(m ? String(parseInt(m, 10)) : "");
+      setFormEndDay(d && d !== "01" ? String(parseInt(d, 10)) : "");
+    } else {
+      setFormEndYear("");
+      setFormEndMonth("");
+      setFormEndDay("");
+    }
     setIsBookModalOpen(true);
   };
 
@@ -414,6 +509,22 @@ export default function ReadTrackerPage() {
     const tPages = formTotalPages ? parseInt(formTotalPages, 10) : null;
     const cPage = parseInt(formCurrentPage, 10) || 0;
 
+    // Finish date: required month + year for completed books, day optional.
+    let endDate: string | null = null;
+    if (formStatus === "completed") {
+      if (!formEndMonth || !formEndYear) {
+        toast.error(
+          language === "tr"
+            ? "Bitirme ayı ve yılı zorunlu."
+            : "Finish month and year are required."
+        );
+        return;
+      }
+      const mm = String(parseInt(formEndMonth, 10)).padStart(2, "0");
+      const dd = formEndDay ? String(parseInt(formEndDay, 10)).padStart(2, "0") : "01";
+      endDate = `${formEndYear}-${mm}-${dd}`;
+    }
+
     try {
       const res = await client.read_tracker.upsertBook({
         id: editingBook?.id || null,
@@ -426,10 +537,12 @@ export default function ReadTrackerPage() {
         rating: formRating,
         review: formReview || null,
         coverImage: formCoverImage || null,
+        endDate,
       });
 
       toast.success(language === "tr" ? "Kitap başarıyla kaydedildi!" : "Book saved successfully!");
       setIsBookModalOpen(false);
+      invalidateDiscoverWidgets(queryClient, user.id);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -486,6 +599,7 @@ export default function ReadTrackerPage() {
         review: book.review,
         coverImage: book.cover_image,
       });
+      invalidateDiscoverWidgets(queryClient, user.id);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -511,6 +625,7 @@ export default function ReadTrackerPage() {
       });
       toast.success(language === "tr" ? "Haftalık hedef güncellendi!" : "Weekly goal updated!");
       setGoalWeeks(1);
+      invalidateDiscoverWidgets(queryClient, user.id);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -597,11 +712,11 @@ export default function ReadTrackerPage() {
 
             {/* Weekly Goal Area */}
             <div className="bg-app-surface rounded-2xl border border-app-border p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-black uppercase tracking-wider text-app-text">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <h2 className="text-sm font-black uppercase tracking-wider text-app-text truncate min-w-0">
                   {t.activeGoal}
                 </h2>
-                <span className="text-[10px] font-bold bg-app-bg text-app-muted border border-app-border px-2.5 py-1 rounded-full">
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-bold bg-app-bg text-app-muted border border-app-border px-2.5 py-1 rounded-full">
                   {getWeekDisplayRange(
                     currentWeekGoal?.week_start || currentWeekStart,
                     language,
@@ -640,14 +755,16 @@ export default function ReadTrackerPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-base font-black text-app-text truncate">
+                        <h4 className="text-base font-black text-app-text line-clamp-2 leading-tight">
                           {currentWeekGoal.book_title}
                         </h4>
-                        <p className="text-xs text-app-muted font-bold truncate">
+                        <p className="text-xs text-app-muted font-bold truncate mt-0.5">
                           {currentWeekGoal.book_author}
                         </p>
+                      </div>
+                    </div>
 
-                        <div className="mt-3">
+                    <div className="mt-3">
                           {/* Progress bar */}
                           {(() => {
                             const book = books.find((b) => b.id === currentWeekGoal.book_id);
@@ -655,6 +772,70 @@ export default function ReadTrackerPage() {
                             const total = book.total_pages || 0;
                             const current = book.current_page || 0;
                             const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+
+                            // Remaining days in this goal's span (inclusive of today)
+                            const start = new Date(currentWeekGoal.week_start);
+                            const lastDay = new Date(start);
+                            lastDay.setDate(
+                              start.getDate() + 7 * Math.max(1, currentWeekGoal.weeks || 1) - 1
+                            );
+                            lastDay.setHours(0, 0, 0, 0);
+                            const todayMid = new Date();
+                            todayMid.setHours(0, 0, 0, 0);
+                            const remainingDays = Math.max(
+                              1,
+                              Math.floor((lastDay.getTime() - todayMid.getTime()) / 86400000) + 1
+                            );
+
+                            // Today's baseline = page count at the start of today.
+                            const today = formatDate(new Date());
+                            const entry = dailyLog[book.id];
+                            const base =
+                              entry && entry.date === today ? entry.startPage : current;
+
+                            // Daily page target = pages remaining from today's baseline over the
+                            // remaining days. Last day → exact remainder (finish precisely);
+                            // earlier days → round up to nearest 10 so it isn't confusing.
+                            const remainingFromBase = Math.max(0, total - base);
+                            let dailyTarget = 5;
+                            if (total > 0 && remainingFromBase > 0) {
+                              if (remainingDays <= 1) {
+                                dailyTarget = remainingFromBase;
+                              } else {
+                                const rounded =
+                                  Math.ceil(remainingFromBase / remainingDays / 10) * 10;
+                                dailyTarget = Math.min(Math.max(10, rounded), remainingFromBase);
+                              }
+                            }
+
+                            // Split today's target into ~30-page chunks, e.g. 80 -> [30, 30, 20]
+                            const CHUNK = 30;
+                            const chunks: number[] = [];
+                            let rem = dailyTarget;
+                            while (rem > 0 && chunks.length < 12) {
+                              const c = Math.min(CHUNK, rem);
+                              chunks.push(c);
+                              rem -= c;
+                            }
+
+                            const hasTarget =
+                              total > 0 && remainingFromBase > 0 && chunks.length > 0;
+
+                            // Fill up to (and including) chunk i; press a filled chunk to undo it.
+                            const pressChunk = (i: number) => {
+                              const cumInclusive = chunks
+                                .slice(0, i + 1)
+                                .reduce((a, b) => a + b, 0);
+                              const cumExclusive = chunks
+                                .slice(0, i)
+                                .reduce((a, b) => a + b, 0);
+                              const filled = current >= base + cumInclusive;
+                              handleUpdatePageProgress(
+                                book,
+                                filled ? base + cumExclusive : base + cumInclusive
+                              );
+                            };
+
                             return (
                               <div>
                                 <div className="flex justify-between text-[10px] text-app-muted font-bold mb-1">
@@ -670,45 +851,68 @@ export default function ReadTrackerPage() {
                                   />
                                 </div>
 
-                                {/* Quick update controls */}
-                                <div className="flex items-center gap-2 mt-3">
-                                  <button
-                                    onClick={() => handleUpdatePageProgress(book, current - 5)}
-                                    className="w-7 h-7 rounded bg-app-surface hover:bg-app-bg border border-app-border flex items-center justify-center active:scale-95 transition-all text-app-text"
-                                  >
-                                    <Minus size={12} weight="bold" />
-                                  </button>
+                                {/* Daily target */}
+                                {hasTarget && (
+                                  <div className="mt-2.5 text-[10px] font-bold text-app-muted">
+                                    {t.dailyTargetLabel}:{" "}
+                                    <span className="text-[#7C5C43] font-black">
+                                      {dailyTarget} {t.perDay}
+                                    </span>{" "}
+                                    · {remainingDays} {t.daysLeft}
+                                  </div>
+                                )}
+
+                                {/* Manual page input + chunked daily target buttons */}
+                                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                                   <PageInput
                                     value={current}
                                     max={book.total_pages}
                                     onCommit={(n) => handleUpdatePageProgress(book, n)}
                                   />
-                                  <button
-                                    onClick={() => handleUpdatePageProgress(book, current + 5)}
-                                    className="w-7 h-7 rounded bg-app-surface hover:bg-app-bg border border-app-border flex items-center justify-center active:scale-95 transition-all text-app-text"
-                                  >
-                                    <Plus size={12} weight="bold" />
-                                  </button>
+                                  {hasTarget &&
+                                    chunks.map((c, i) => {
+                                      const cumInclusive = chunks
+                                        .slice(0, i + 1)
+                                        .reduce((a, b) => a + b, 0);
+                                      const filled = current >= base + cumInclusive;
+                                      return (
+                                        <button
+                                          key={i}
+                                          onClick={() => pressChunk(i)}
+                                          className={`min-w-[3rem] h-7 px-2 rounded-lg flex items-center justify-center gap-0.5 text-[11px] font-black active:scale-95 transition-all ${
+                                            filled
+                                              ? "bg-app-text/20 border border-app-text/30 text-app-text"
+                                              : "bg-app-tab-track border border-app-border text-app-text hover:bg-app-bg"
+                                          }`}
+                                        >
+                                          {filled ? (
+                                            <CheckCircle size={12} weight="fill" />
+                                          ) : (
+                                            <Plus size={11} weight="bold" />
+                                          )}
+                                          {c}
+                                        </button>
+                                      );
+                                    })}
                                 </div>
                               </div>
                             );
                           })()}
-                        </div>
-                      </div>
                     </div>
 
-                    <div className="border-t border-app-border mt-4 pt-3 flex justify-between">
+                    <div className="border-t border-app-border mt-4 pt-3 flex items-center gap-5">
                       <button
                         onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
-                        className="text-xs font-bold text-app-muted hover:text-app-text"
+                        className="text-xs font-bold text-app-muted hover:text-app-text flex items-center gap-1"
                       >
+                        <ArrowsClockwise size={14} weight="bold" />
                         {t.changeGoal}
                       </button>
 
                       {currentWeekGoal.status !== "completed" && (
                         <button
                           onClick={() => handleSetWeeklyGoal(currentWeekGoal.book_id, "completed", currentWeekGoal.weeks, currentWeekGoal.week_start)}
-                          className="text-xs font-black uppercase text-[#7C5C43] hover:underline flex items-center gap-1"
+                          className="text-xs font-bold text-app-muted hover:text-app-text flex items-center gap-1"
                         >
                           <CheckCircle size={14} weight="fill" />
                           {t.completeGoal}
@@ -1062,6 +1266,53 @@ export default function ReadTrackerPage() {
 
                 {formStatus === "completed" && (
                   <>
+                    <div>
+                      <label className="block text-xs font-black uppercase text-app-muted mb-1.5">
+                        {t.finishedDate}
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={31}
+                          value={formEndDay}
+                          onChange={(e) => setFormEndDay(e.target.value)}
+                          placeholder={t.dayOptional}
+                          className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:bg-app-surface focus:border-[#7C5C43] transition-all"
+                        />
+                        <select
+                          value={formEndMonth}
+                          onChange={(e) => setFormEndMonth(e.target.value)}
+                          className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:bg-app-surface focus:border-[#7C5C43] transition-all"
+                        >
+                          <option value="" disabled>
+                            {t.monthLabel}
+                          </option>
+                          {MONTH_NAMES[language === "tr" ? "tr" : "en"].map((m, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {m}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={formEndYear}
+                          onChange={(e) => setFormEndYear(e.target.value)}
+                          className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:bg-app-surface focus:border-[#7C5C43] transition-all"
+                        >
+                          <option value="" disabled>
+                            {t.yearLabel}
+                          </option>
+                          {Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - i).map(
+                            (y) => (
+                              <option key={y} value={y}>
+                                {y}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-black uppercase text-app-muted mb-1.5">
                         {t.rating}

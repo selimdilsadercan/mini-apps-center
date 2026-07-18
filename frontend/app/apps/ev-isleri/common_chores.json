@@ -23,6 +23,7 @@
     "category": "Banyo & Çamaşır",
     "items": [
       { "slug": "bathroom", "name": "Banyo Temizliği", "icon": "🚿" },
+      { "slug": "trash-bathroom", "name": "Banyo Çöpü", "icon": "🗑️" },
       { "slug": "laundry-wash", "name": "Çamaşır Yıkama", "icon": "👕" },
       { "slug": "laundry-dry", "name": "Çamaşır Asma", "icon": "🧺" },
       { "slug": "laundry-fold", "name": "Çamaşır Katlama", "icon": "🧦" }

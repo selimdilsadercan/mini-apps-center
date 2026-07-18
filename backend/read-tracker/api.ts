@@ -6,6 +6,10 @@ import { createSupabaseClient } from "../lib/supabase";
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
 
+// Optional Google Books API key (higher search quota). Set via:
+//   encore secret set --type local,dev,prod GoogleBooksApiKey
+const googleBooksApiKey = secret("GoogleBooksApiKey");
+
 // Create Supabase client
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
@@ -241,7 +245,149 @@ interface SearchBooksResponse {
 }
 
 /**
- * Search books using Open Library API (Server-side)
+ * Google Books — primary source. Much larger catalog and good Turkish coverage.
+ * Works without an API key (rate-limited); set a key later for higher limits.
+ */
+async function searchGoogleBooks(
+  query: string,
+  language?: string | null
+): Promise<SearchResultBook[]> {
+  // Optional API key — keyless calls share a low daily quota and often 429.
+  // Set the GoogleBooksApiKey secret to get the full 1,000 req/day free tier.
+  let apiKey = "";
+  try {
+    apiKey = googleBooksApiKey() || "";
+  } catch {
+    apiKey = "";
+  }
+  const keyParam = apiKey ? `&key=${apiKey}` : "";
+  const base = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+    query
+  )}&maxResults=20&printType=books&orderBy=relevance${keyParam}`;
+  // For Turkish, try language-restricted results first, then a general query.
+  const urls = language === "tr" ? [`${base}&langRestrict=tr`, base] : [base];
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      const data = (await res.json()) as any;
+      const items: any[] = data.items || [];
+      if (items.length === 0) continue;
+
+      return items.map((item: any): SearchResultBook => {
+        const v = item.volumeInfo || {};
+        const title = v.subtitle ? `${v.title}: ${v.subtitle}` : v.title || "";
+        const thumb: string | null =
+          v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || null;
+        return {
+          id: item.id || Math.random().toString(),
+          title,
+          author:
+            Array.isArray(v.authors) && v.authors.length > 0
+              ? v.authors.join(", ")
+              : "Bilinmeyen Yazar",
+          totalPages:
+            typeof v.pageCount === "number" && v.pageCount > 0 ? v.pageCount : null,
+          coverImage: thumb ? thumb.replace(/^http:\/\//, "https://") : null,
+        };
+      });
+    } catch (e) {
+      console.error("Google Books query failed:", e);
+    }
+  }
+  return [];
+}
+
+/**
+ * Open Library — fallback source when Google Books returns nothing.
+ */
+async function searchOpenLibrary(
+  query: string,
+  language?: string | null
+): Promise<SearchResultBook[]> {
+  const q = encodeURIComponent(query);
+  const olFetch = async (url: string): Promise<any[]> => {
+    try {
+      const res = await fetch(url);
+      const data = (await res.json()) as any;
+      return data.docs || [];
+    } catch (e) {
+      console.error("Open Library query failed:", e);
+      return [];
+    }
+  };
+
+  let docs: any[] = [];
+  if (language === "tr") {
+    // Turkish-language results first, then the rest (non-Turkish) below.
+    const [trDocs, generalDocs] = await Promise.all([
+      olFetch(`https://openlibrary.org/search.json?q=${q}&language=tur&limit=15`),
+      olFetch(`https://openlibrary.org/search.json?q=${q}&limit=15`),
+    ]);
+    const seen = new Set(trDocs.map((d: any) => d.key));
+    docs = [...trDocs, ...generalDocs.filter((d: any) => !seen.has(d.key))];
+  } else {
+    docs = await olFetch(`https://openlibrary.org/search.json?q=${q}&limit=15`);
+  }
+
+  return Promise.all(
+    docs.map(async (doc: any): Promise<SearchResultBook> => {
+      let title = doc.title || "";
+      let coverId = doc.cover_i;
+      let pageCount = doc.number_of_pages_median || doc.number_of_pages || null;
+
+      // Fetch editions to resolve the Turkish edition and, when the search doc
+      // has no page count, to grab a page count from any edition that has one.
+      const needsEdition = (language === "tr" || !pageCount) && doc.key;
+      if (needsEdition) {
+        try {
+          const res = await fetch(`https://openlibrary.org${doc.key}/editions.json?limit=50`);
+          const data = (await res.json()) as any;
+          const entries: any[] = data.entries || [];
+
+          if (language === "tr") {
+            const trEditions = entries.filter(
+              (e: any) => e.languages && e.languages.some((l: any) => l.key === "/languages/tur")
+            );
+            // Prefer a Turkish edition that actually has a page count.
+            const trEdition = trEditions.find((e: any) => e.number_of_pages) || trEditions[0];
+            if (trEdition) {
+              title = trEdition.title || title;
+              if (trEdition.covers && trEdition.covers.length > 0) {
+                coverId = trEdition.covers[0];
+              }
+              if (trEdition.number_of_pages) {
+                pageCount = trEdition.number_of_pages;
+              }
+            }
+          }
+
+          // Still no page count? Use any edition that reports one.
+          if (!pageCount) {
+            const anyWithPages = entries.find((e: any) => e.number_of_pages);
+            if (anyWithPages) pageCount = anyWithPages.number_of_pages;
+          }
+        } catch (err) {
+          console.error(`Failed to fetch editions for ${doc.key}:`, err);
+        }
+      }
+
+      return {
+        id: doc.key || Math.random().toString(),
+        title: title,
+        author: doc.author_name ? doc.author_name.join(", ") : "Bilinmeyen Yazar",
+        totalPages: pageCount,
+        coverImage: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null,
+      };
+    })
+  );
+}
+
+/**
+ * Search books.
+ * - Turkish: Open Library first (it resolves the Turkish edition's title/cover/
+ *   pages), then Google Books to fill in if Open Library returns nothing.
+ * - Other languages: Google Books first, Open Library as a fallback.
  */
 export const searchBooks = api(
   { expose: true, method: "GET", path: "/read-tracker/search" },
@@ -250,68 +396,19 @@ export const searchBooks = api(
       return { results: [] };
     }
 
-    let docs: any[] = [];
     try {
+      let results: SearchResultBook[];
       if (language === "tr") {
-        // Try Turkish language search first
-        try {
-          const res = await fetch(
-            `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&language=tur&limit=5`
-          );
-          const data = (await res.json()) as any;
-          docs = data.docs || [];
-        } catch (e) {
-          console.error("Turkish language query failed, falling back", e);
+        results = await searchOpenLibrary(query, language);
+        if (results.length === 0) {
+          results = await searchGoogleBooks(query, language);
+        }
+      } else {
+        results = await searchGoogleBooks(query, language);
+        if (results.length === 0) {
+          results = await searchOpenLibrary(query, language);
         }
       }
-
-      // General search fallback
-      if (docs.length === 0) {
-        const res = await fetch(
-          `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`
-        );
-        const data = (await res.json()) as any;
-        docs = data.docs || [];
-      }
-
-      const results: SearchResultBook[] = await Promise.all(
-        docs.map(async (doc: any): Promise<SearchResultBook> => {
-          let title = doc.title || "";
-          let coverId = doc.cover_i;
-          let pageCount = doc.number_of_pages_median || doc.number_of_pages || null;
-
-          if (language === "tr" && doc.language && doc.language.includes("tur") && doc.key) {
-            try {
-              const res = await fetch(`https://openlibrary.org${doc.key}/editions.json?limit=50`);
-              const data = (await res.json()) as any;
-              const entries = data.entries || [];
-              const trEdition = entries.find((e: any) =>
-                e.languages && e.languages.some((l: any) => l.key === "/languages/tur")
-              );
-              if (trEdition) {
-                title = trEdition.title || title;
-                if (trEdition.covers && trEdition.covers.length > 0) {
-                  coverId = trEdition.covers[0];
-                }
-                if (trEdition.number_of_pages) {
-                  pageCount = trEdition.number_of_pages;
-                }
-              }
-            } catch (err) {
-              console.error(`Failed to fetch editions for ${doc.key}:`, err);
-            }
-          }
-
-          return {
-            id: doc.key || Math.random().toString(),
-            title: title,
-            author: doc.author_name ? doc.author_name.join(", ") : "Bilinmeyen Yazar",
-            totalPages: pageCount,
-            coverImage: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null,
-          };
-        })
-      );
-
       return { results };
     } catch (err) {
       console.error("searchBooks backend error:", err);

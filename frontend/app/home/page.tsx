@@ -3,6 +3,7 @@
 import { useUser } from "@clerk/clerk-react";
 import {
   MINI_APPS,
+  BUSINESS_APPS,
   MiniApp,
   navigateToMiniApp,
   AppCategory,
@@ -37,6 +38,9 @@ import {
   Broom,
   Plus,
   BookOpen,
+  Storefront,
+  GraduationCap,
+  Code,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,7 +55,14 @@ import { createBrowserClient } from "@/lib/api";
 import {
   invalidateDiscoverWidgets,
   syncAgendaCompletionInCache,
+  discoverQueryKey,
 } from "@/lib/cache/hubAgendaCache";
+import {
+  readingRemainingDays,
+  readingDailyTarget,
+  readingChunks,
+  getReadingBaseline,
+} from "@/lib/reading-daily";
 import { 
   rutinler,
   workplaces, 
@@ -67,6 +78,7 @@ import {
   read_tracker,
 } from "@/lib/client";
 import Link from "next/link";
+import { Drawer } from "vaul";
 import HomeHeader from "@/components/home/HomeHeader";
 import { startGymSession } from "@/app/apps/gym/types";
 import { isRoutineDueToday } from "@/app/apps/ev-isleri/types";
@@ -269,6 +281,114 @@ function HomeContent() {
     );
   }, []);
 
+  // Studio tab: tapping a package opens a contact bottom sheet listing its apps.
+  const [studioSheetPkg, setStudioSheetPkg] = useState<StudioPackage | null>(null);
+  // TODO: set the real contact target (WhatsApp/e-mail/link) for Studio inquiries.
+  const STUDIO_CONTACT_URL = "https://wa.me/905555555555";
+
+  // Business panel promos shown under the "Pro" tab, split by audience.
+  const proBusinessApps = useMemo(() => {
+    const order = ["business-page", "digital-menu", "stamp-card", "campus-events"];
+    return BUSINESS_APPS.filter(
+      (app) => app.isImplemented && !app.isCancelled && order.includes(app.id)
+    ).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, []);
+
+  const proServiceApps = useMemo(() => {
+    const order = ["tutor-crm", "standups", "board-game-clubs"];
+    return BUSINESS_APPS.filter(
+      (app) => app.isImplemented && !app.isCancelled && order.includes(app.id)
+    ).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, []);
+
+  // Developer tools (linked to their own pages, not the business panel).
+  const proDevApps = useMemo(() => {
+    const order = ["store-preview", "icon-export", "feedback-board"];
+    const all = [...MINI_APPS, ...BUSINESS_APPS];
+    return order
+      .map((id) => all.find((a) => a.id === id))
+      .filter((a): a is MiniApp => Boolean(a));
+  }, []);
+
+  // Studio packages — each shown as a single card; the bottom sheet lists its apps.
+  const studioPackages = useMemo<StudioPackage[]>(
+    () => [
+      {
+        id: "business",
+        name: "İşletmeler için",
+        description: "İşletmeni büyütmek için ihtiyacın olan tüm araçlar bir arada.",
+        icon: Storefront,
+        color: "#6366F1",
+        apps: proBusinessApps,
+      },
+      {
+        id: "service",
+        name: "Eğitmenler & topluluklar için",
+        description: "Öğrenci, üye ve etkinlik yönetimini tek yerden.",
+        icon: GraduationCap,
+        color: "#0EA5E9",
+        apps: proServiceApps,
+      },
+      {
+        id: "dev",
+        name: "Geliştiriciler için",
+        description: "Uygulamanı yayına hazırlayan araçlar.",
+        icon: Code,
+        color: "#7C3AED",
+        apps: proDevApps,
+      },
+    ],
+    [proBusinessApps, proServiceApps, proDevApps]
+  );
+
+  // A package card for the Studio tab — opens the contact bottom sheet.
+  const renderStudioPackage = (pkg: StudioPackage) => {
+    const Icon = pkg.icon;
+    return (
+      <button
+        key={pkg.id}
+        type="button"
+        onClick={() => setStudioSheetPkg(pkg)}
+        className="w-full text-left rounded-[2rem] border border-app-border bg-app-surface p-5 shadow-sm active:scale-[0.98] transition-all"
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className="w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-sm"
+            style={{ backgroundColor: pkg.color }}
+          >
+            <Icon size={24} weight="fill" className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-app-text text-[15px] tracking-tight">{pkg.name}</h3>
+            <p className="text-app-muted text-[12px] font-medium leading-tight mt-0.5">
+              {pkg.description}
+            </p>
+          </div>
+          <ArrowRight size={16} weight="bold" className="text-app-muted shrink-0" />
+        </div>
+        <div className="flex items-center gap-2 mt-4">
+          <div className="flex -space-x-2">
+            {pkg.apps.slice(0, 5).map((app) => {
+              const AppIcon = app.icon;
+              return (
+                <div
+                  key={app.id}
+                  className="w-7 h-7 rounded-xl flex items-center justify-center border-2 border-app-surface shadow-sm"
+                  style={{ backgroundColor: app.color }}
+                >
+                  <AppIcon size={13} weight="fill" className="text-white" />
+                </div>
+              );
+            })}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-app-muted">
+            {pkg.apps.length} araç
+          </span>
+        </div>
+      </button>
+    );
+  };
+
   const lifeApps = useMemo(() => {
     const order = ["eksik-var", "ev-isleri", "rutinler", "study", "meal-planner", "gym"];
     return apps
@@ -430,24 +550,11 @@ function HomeContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-10"
+              className="space-y-8"
             >
-
-
-              <section>
-                <div className="space-y-0">
-                  {walletApps.map((app, index) => (
-                    <AppRow 
-                      key={app.id} 
-                      app={app} 
-                      index={index} 
-                      tApps={tApps}
-                      isPinned={pinnedIds.includes(app.id)}
-                      onPin={(e) => togglePin(e, app.id)}
-                      onClick={() => handleAppClick(app)}
-                    />
-                  ))}
-                </div>
+              {/* Studio packages */}
+              <section className="space-y-3">
+                {studioPackages.map(renderStudioPackage)}
               </section>
             </motion.div>
           )}
@@ -551,13 +658,17 @@ function HomeContent() {
                 </section>
               )}
 
-              <section>
+              {/* Günlük Hayat */}
+              <section className="space-y-2">
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                  Günlük Hayat
+                </h3>
                 <div className="space-y-0">
                   {lifeApps.map((app, index) => (
-                    <AppRow 
-                      key={app.id} 
-                      app={app} 
-                      index={index} 
+                    <AppRow
+                      key={app.id}
+                      app={app}
+                      index={index}
                       tApps={tApps}
                       isPinned={pinnedIds.includes(app.id)}
                       onPin={(e) => togglePin(e, app.id)}
@@ -566,13 +677,117 @@ function HomeContent() {
                   ))}
                 </div>
               </section>
+
+              {/* Finans (Cüzdan'dan taşındı) */}
+              {walletApps.length > 0 && (
+                <section className="space-y-2">
+                  <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
+                    Finans
+                  </h3>
+                  <div className="space-y-0">
+                    {walletApps.map((app, index) => (
+                      <AppRow
+                        key={app.id}
+                        app={app}
+                        index={index}
+                        tApps={tApps}
+                        isPinned={pinnedIds.includes(app.id)}
+                        onPin={(e) => togglePin(e, app.id)}
+                        onClick={() => handleAppClick(app)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       )}
       </main>
+
+      {/* Studio contact bottom sheet */}
+      <Drawer.Root
+        open={!!studioSheetPkg}
+        onOpenChange={(o) => {
+          if (!o) setStudioSheetPkg(null);
+        }}
+      >
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/50 z-[190]" />
+          <Drawer.Content className="bg-app-surface flex flex-col rounded-t-[2rem] fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[200] max-w-lg mx-auto border-t border-app-border">
+            {studioSheetPkg && (
+              <div className="flex flex-col min-h-0 p-6 pb-8">
+                <div className="mx-auto w-12 h-1.5 bg-app-border rounded-full mb-6 shrink-0" />
+                <div className="flex flex-col items-center text-center shrink-0">
+                  <div
+                    className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-sm mb-4"
+                    style={{ backgroundColor: studioSheetPkg.color }}
+                  >
+                    {(() => {
+                      const Icon = studioSheetPkg.icon;
+                      return <Icon size={32} weight="fill" className="text-white" />;
+                    })()}
+                  </div>
+                  <Drawer.Title className="text-lg font-black text-app-text tracking-tight">
+                    {studioSheetPkg.name}
+                  </Drawer.Title>
+                  <Drawer.Description className="text-sm text-app-muted font-medium mt-2 max-w-xs">
+                    {studioSheetPkg.description}
+                  </Drawer.Description>
+                </div>
+
+                <div className="mt-6 overflow-y-auto min-h-0">
+                  {studioSheetPkg.apps.map((app) => {
+                    const Icon = app.icon;
+                    return (
+                      <div
+                        key={app.id}
+                        className="flex items-center gap-3 py-3 border-b border-app-border/60 last:border-0"
+                      >
+                        <div
+                          className="w-10 h-10 rounded-[1rem] flex items-center justify-center shrink-0 shadow-sm"
+                          style={{ backgroundColor: app.color }}
+                        >
+                          <Icon size={20} weight="fill" className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-app-text text-[14px] tracking-tight truncate">
+                            {app.name}
+                          </p>
+                          <p className="text-app-muted text-[11px] font-medium leading-tight line-clamp-2 mt-0.5">
+                            {app.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <a
+                  href={STUDIO_CONTACT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 shrink-0 w-full flex items-center justify-center gap-2 bg-app-text text-app-bg py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest active:scale-[0.98] transition-all"
+                >
+                  <ChatTeardropDots size={16} weight="fill" />
+                  İletişime Geç
+                </a>
+              </div>
+            )}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
+}
+
+interface StudioPackage {
+  id: string;
+  name: string;
+  description: string;
+  icon: MiniApp["icon"];
+  color: string;
+  apps: MiniApp[];
 }
 
 const SERIES_DAILY_AIR_HOUR = 19;
@@ -701,6 +916,60 @@ function HomeSummaryCards({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Today's baseline page for the active reading goal (shared with read-tracker).
+  const [readingBase, setReadingBase] = useState<number | null>(null);
+  useEffect(() => {
+    if (
+      weeklyReadingGoal?.status === "active" &&
+      weeklyReadingGoal.book_id != null &&
+      weeklyReadingGoal.book_current_page != null
+    ) {
+      setReadingBase(
+        getReadingBaseline(weeklyReadingGoal.book_id, weeklyReadingGoal.book_current_page)
+      );
+    }
+  }, [weeklyReadingGoal?.book_id, weeklyReadingGoal?.status]);
+
+  // Update the reading goal book's page from the widget, preserving other fields.
+  const handleReadingUpdate = async (newPage: number) => {
+    if (!userId || !weeklyReadingGoal?.book_id) return;
+    const total = weeklyReadingGoal.book_total_pages || 0;
+    const clamped = Math.max(0, total ? Math.min(total, newPage) : newPage);
+    // Optimistic patch so the buttons feel instant.
+    queryClient.setQueryData(discoverQueryKey(userId), (old: any) =>
+      old?.weeklyReadingGoal
+        ? { ...old, weeklyReadingGoal: { ...old.weeklyReadingGoal, book_current_page: clamped } }
+        : old
+    );
+    try {
+      const res = await client.read_tracker.getBooks(userId);
+      const book = res.books?.find((b) => b.id === weeklyReadingGoal.book_id);
+      if (book) {
+        const validPage = Math.max(0, Math.min(book.total_pages || Infinity, newPage));
+        let status = book.status;
+        if (book.total_pages && validPage >= book.total_pages) status = "completed";
+        else if (book.status === "to_read" && validPage > 0) status = "reading";
+        await client.read_tracker.upsertBook({
+          id: book.id,
+          userId,
+          title: book.title,
+          author: book.author,
+          totalPages: book.total_pages,
+          currentPage: validPage,
+          status,
+          rating: book.rating,
+          review: book.review,
+          coverImage: book.cover_image,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      invalidateDiscoverWidgets(queryClient, userId);
+    }
+  };
+
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
   const pendingTodayAgenda = todayAgenda.filter((item) => !item.is_completed);
@@ -1495,6 +1764,24 @@ function HomeSummaryCards({
           : isSkipped
           ? "Bu hafta pas geçildi"
           : "Bu hafta hedef yok";
+
+        // Daily target chunk buttons (mirrors the read-tracker app).
+        const rgTotal = weeklyReadingGoal?.book_total_pages || 0;
+        const rgCurrent = weeklyReadingGoal?.book_current_page ?? 0;
+        const rgBase = readingBase ?? rgCurrent;
+        const rgRemainingDays = weeklyReadingGoal
+          ? readingRemainingDays(weeklyReadingGoal.week_start, weeklyReadingGoal.weeks)
+          : 1;
+        const rgDailyTarget = readingDailyTarget(rgBase, rgTotal, rgRemainingDays);
+        const rgChunks = readingChunks(rgDailyTarget);
+        const rgHasTarget = rgTotal > 0 && rgTotal - rgBase > 0 && rgChunks.length > 0;
+        const pressReadingChunk = (i: number) => {
+          const cumInc = rgChunks.slice(0, i + 1).reduce((a, b) => a + b, 0);
+          const cumExc = rgChunks.slice(0, i).reduce((a, b) => a + b, 0);
+          const filled = rgCurrent >= rgBase + cumInc;
+          handleReadingUpdate(filled ? rgBase + cumExc : rgBase + cumInc);
+        };
+
         return (
           <HomeSummaryCard
             href="/apps/read-tracker"
@@ -1533,26 +1820,59 @@ function HomeSummaryCards({
             }
           >
             {isActive && bookTitle && (
-              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
-                {bookCover ? (
-                  <img
-                    src={bookCover}
-                    alt={bookTitle}
-                    className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
-                    <BookOpen size={16} weight="fill" />
+              <div className="px-4 py-3 border-t border-app-border space-y-3">
+                <div className="flex items-center gap-3">
+                  {bookCover ? (
+                    <img
+                      src={bookCover}
+                      alt={bookTitle}
+                      className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                      <BookOpen size={16} weight="fill" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-app-text truncate">{bookTitle}</p>
+                    <p className="text-[9px] text-app-muted font-bold">
+                      {weeklyReadingGoal?.book_current_page !== undefined && weeklyReadingGoal?.book_current_page !== null
+                        ? `Sayfa ${weeklyReadingGoal.book_current_page}${weeklyReadingGoal.book_total_pages ? ` / ${weeklyReadingGoal.book_total_pages}` : ""}`
+                        : "Bu hafta okunuyor"}
+                    </p>
+                  </div>
+                </div>
+                {rgHasTarget && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {rgChunks.map((c, i) => {
+                      const cumInc = rgChunks.slice(0, i + 1).reduce((a, b) => a + b, 0);
+                      const filled = rgCurrent >= rgBase + cumInc;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            pressReadingChunk(i);
+                          }}
+                          className={`min-w-[2.75rem] h-7 px-2 rounded-lg flex items-center justify-center gap-0.5 text-[11px] font-black active:scale-95 transition-all ${
+                            filled
+                              ? "bg-app-text/20 border border-app-text/30 text-app-text"
+                              : "bg-app-tab-track border border-app-border text-app-text"
+                          }`}
+                        >
+                          {filled ? (
+                            <CheckCircle size={12} weight="fill" />
+                          ) : (
+                            <Plus size={11} weight="bold" />
+                          )}
+                          {c}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">{bookTitle}</p>
-                  <p className="text-[9px] text-app-muted font-bold">
-                    {weeklyReadingGoal?.book_current_page !== undefined && weeklyReadingGoal?.book_current_page !== null
-                      ? `Sayfa ${weeklyReadingGoal.book_current_page}${weeklyReadingGoal.book_total_pages ? ` / ${weeklyReadingGoal.book_total_pages}` : ""}`
-                      : "Bu hafta okunuyor"}
-                  </p>
-                </div>
               </div>
             )}
             {isActive && !bookTitle && (

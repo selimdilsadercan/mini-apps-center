@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { usePathname } from "next/navigation";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { NavigationBar } from "@capgo/capacitor-navigation-bar";
-import { MINI_APPS } from "@/lib/apps";
 import { isCapacitorNative } from "@/lib/apps";
 
 export interface MobileThemeConfig {
@@ -38,38 +37,11 @@ export const MobileThemeProvider: React.FC<MobileThemeProviderProps> = ({ childr
   const pathname = usePathname();
   const [themeConfig, setThemeConfig] = useState<MobileThemeConfig>({});
 
-  // 1. Get default theme based on current pathname and hostname/subdomain
-  const getDefaultThemeForPath = (path: string): MobileThemeConfig => {
-    // Check if we are inside a mini-app
-    // Paths are normally: /apps/[app-id]/...
-    const match = path.match(/^\/apps\/([^/]+)/);
-    const appId = match ? match[1] : null;
-
-    let app = null;
-    if (appId) {
-      app = MINI_APPS.find((a) => a.id === appId || a.subdomain === appId);
-    }
-
-    // Fallback: check subdomain from hostname if path matching did not yield an app
-    if (!app && typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const parts = hostname.split(".");
-      if (parts.length > 1) {
-        const potentialSubdomain = parts[0];
-        app = MINI_APPS.find((a) => a.subdomain === potentialSubdomain);
-      }
-    }
-
-    if (app) {
-      return {
-        statusBarColor: app.statusBarColor || app.color || "#FAF9F7",
-        statusBarStyle: app.statusBarStyle || "light", // default dark text/icons on light background
-        navigationBarColor: app.navigationBarColor || "#FFFFFF",
-        navigationBarStyle: app.navigationBarStyle || "light", // default light background (dark buttons)
-      };
-    }
-
-    // Default system/hub values
+  // 1. Get default theme.
+  // Status bar & navigation bar colors follow the GLOBAL light/dark theme
+  // for every screen (hub and mini-apps alike) — apps no longer set their own
+  // per-app system bar colors.
+  const getDefaultThemeForPath = (_path: string): MobileThemeConfig => {
     const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
     return {
       statusBarColor: isDark ? "#09090b" : "#FAF9F7",

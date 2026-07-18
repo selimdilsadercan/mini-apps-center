@@ -168,32 +168,32 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
 
   return (
     <div className="flex flex-col h-full min-h-[320px] overflow-hidden">
-      <div className="p-3 border-b border-gray-50 bg-gray-50/30 shrink-0">
+      <div className="p-3 border-b border-app-border bg-app-surface-muted/30 shrink-0">
         <div className="relative">
           <MagnifyingGlass
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
           />
           <input
             type="text"
             placeholder="Emoji ara..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold outline-none focus:border-violet-400/40 placeholder:text-gray-400 placeholder:font-medium"
+            className="w-full bg-app-surface border border-app-border rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold text-app-text outline-none focus:border-app-text/30 placeholder:text-app-muted placeholder:font-medium"
             autoFocus
           />
         </div>
       </div>
 
       {!search && (
-        <div className="flex overflow-x-auto p-2 gap-1 border-b border-gray-50 bg-white scrollbar-hide shrink-0">
+        <div className="flex overflow-x-auto p-2 gap-1 border-b border-app-border bg-app-surface scrollbar-hide shrink-0">
           <button
             type="button"
             onClick={() => scrollToGroup("recent")}
             className={`shrink-0 px-3 py-1.5 rounded-lg text-lg transition-all ${
               activeGroup === "recent"
-                ? "bg-violet-100 text-violet-600 scale-110"
-                : "bg-gray-50 text-gray-500 hover:bg-violet-50 hover:text-violet-600"
+                ? "bg-app-text/10 text-app-text scale-110"
+                : "bg-app-surface-muted text-app-muted hover:text-app-text"
             }`}
           >
             <Clock size={20} weight={activeGroup === "recent" ? "fill" : "bold"} />
@@ -205,8 +205,8 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
               onClick={() => scrollToGroup(group.name)}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-lg transition-all ${
                 activeGroup === group.name
-                  ? "bg-violet-100 scale-110"
-                  : "bg-gray-50 text-gray-500 hover:bg-violet-50 hover:text-violet-600"
+                  ? "bg-app-text/10 scale-110"
+                  : "bg-app-surface-muted text-app-muted hover:text-app-text"
               }`}
             >
               {group.icon}
@@ -218,7 +218,7 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 scrollbar-hide space-y-4 overscroll-contain">
         {!search && recentEmojis.length > 0 && (
           <div id="emoji-group-recent" className="space-y-2">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+            <h3 className="text-[10px] font-black text-app-muted uppercase tracking-widest px-1 flex items-center gap-1.5">
               <Clock size={12} weight="bold" />
               Son Kullanılanlar
             </h3>
@@ -231,7 +231,7 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
                     saveRecentEmoji(emoji);
                     onSelect(emoji);
                   }}
-                  className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-violet-50 rounded-xl transition-all active:scale-90 hover:scale-110"
+                  className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-app-surface-muted rounded-xl transition-all active:scale-90 hover:scale-110"
                 >
                   {emoji}
                 </button>
@@ -242,7 +242,7 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
 
         {filteredData.map((group) => (
           <div key={group.name} id={`emoji-group-${group.name}`} className="space-y-2">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">
+            <h3 className="text-[10px] font-black text-app-muted uppercase tracking-widest px-1">
               {groupTranslations[group.name] || group.name}
             </h3>
             <div className="grid grid-cols-7 gap-1">
@@ -255,7 +255,7 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
                     saveRecentEmoji(item.emoji);
                     onSelect(item.emoji);
                   }}
-                  className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-violet-50 rounded-xl transition-all active:scale-90 hover:scale-110"
+                  className="w-10 h-10 flex items-center justify-center text-2xl hover:bg-app-surface-muted rounded-xl transition-all active:scale-90 hover:scale-110"
                 >
                   {item.emoji}
                 </button>
@@ -267,7 +267,7 @@ export function CustomEmojiPicker({ onSelect }: EmojiPickerProps) {
         {filteredData.length === 0 && (
           <div className="py-12 text-center space-y-2">
             <p className="text-3xl">🔍</p>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
+            <p className="text-[10px] font-black text-app-muted uppercase tracking-wider">
               Emoji bulunamadı
             </p>
           </div>

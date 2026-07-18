@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X, MagnifyingGlass, CaretLeft } from "@phosphor-icons/react";
+import {
+  X,
+  MagnifyingGlass,
+  CaretLeft,
+  ListBullets,
+  PencilSimple,
+  Plus,
+} from "@phosphor-icons/react";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { EmojiPickerOverlay } from "../../rutinler/EmojiPickerOverlay";
 import COMMON_CHORES from "../common_chores.json";
 import type { BoardMember, ChoreTemplate, RecurrenceType } from "../types";
 import {
@@ -25,6 +33,7 @@ const ALL_CHORES: ChoreTemplate[] = COMMON_CHORES.flatMap((group) =>
 );
 
 type Step = "chore" | "recurrence" | "assignee";
+type ChoreTab = "catalog" | "custom";
 
 export default function AssignChoreDrawer({
   open,
@@ -43,19 +52,34 @@ export default function AssignChoreDrawer({
   ) => void;
 }) {
   const [step, setStep] = useState<Step>("chore");
+  const [choreTab, setChoreTab] = useState<ChoreTab>("catalog");
   const [query, setQuery] = useState("");
   const [selectedChore, setSelectedChore] = useState<ChoreTemplate | null>(null);
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>("weekly");
   const [scheduleDay, setScheduleDay] = useState(getIsoWeekday());
+  const [customName, setCustomName] = useState("");
+  const [customEmoji, setCustomEmoji] = useState("🧹");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setStep("chore");
+    setChoreTab("catalog");
     setQuery("");
     setSelectedChore(null);
     setRecurrenceType("weekly");
     setScheduleDay(getIsoWeekday());
+    setCustomName("");
+    setCustomEmoji("🧹");
+    setShowEmojiPicker(false);
   }, [open]);
+
+  function handleAddCustom() {
+    const name = customName.trim();
+    if (!name) return;
+    setSelectedChore({ slug: `custom-${Date.now()}`, name, icon: customEmoji });
+    setStep("recurrence");
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("tr-TR");
@@ -140,44 +164,104 @@ export default function AssignChoreDrawer({
 
         {step === "chore" && (
           <div className="px-4 pb-6 pt-3 max-h-[65vh] overflow-y-auto">
-            <div className="relative mb-3">
-              <MagnifyingGlass
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
-              />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Görev ara..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-app-surface-muted border border-app-border text-sm font-medium text-app-text outline-none focus:border-teal-500/40 placeholder:text-app-muted"
-              />
+            {/* Katalog / Özel tabs */}
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-app-surface-muted border border-app-border mb-3">
+              {([
+                { key: "catalog", label: "Katalog", icon: ListBullets },
+                { key: "custom", label: "Özel", icon: PencilSimple },
+              ] as const).map((tab) => {
+                const TabIcon = tab.icon;
+                const active = choreTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setChoreTab(tab.key)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-all ${
+                      active ? "bg-app-surface text-app-text shadow-sm" : "text-app-muted"
+                    }`}
+                  >
+                    <TabIcon size={14} weight="bold" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="space-y-4">
-              {grouped.map(([category, chores]) => (
-                <div key={category}>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-app-muted mb-2">
-                    {category}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {chores.map((chore) => (
-                      <button
-                        key={chore.slug}
-                        type="button"
-                        onClick={() => {
-                          setSelectedChore(chore);
-                          setStep("recurrence");
-                        }}
-                        className="px-3 py-2 rounded-xl bg-app-surface-muted border border-app-border text-xs font-bold text-app-text active:scale-95 transition-all hover:border-teal-500/30"
-                      >
-                        <span className="mr-1">{chore.icon}</span>
-                        {chore.name}
-                      </button>
-                    ))}
-                  </div>
+            {choreTab === "catalog" ? (
+              <>
+                <div className="relative mb-3">
+                  <MagnifyingGlass
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted"
+                  />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Görev ara..."
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-app-surface-muted border border-app-border text-sm font-medium text-app-text outline-none focus:border-teal-500/40 placeholder:text-app-muted"
+                  />
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-4">
+                  {grouped.map(([category, chores]) => (
+                    <div key={category}>
+                      <p className="text-[9px] font-black uppercase tracking-wider text-app-muted mb-2">
+                        {category}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {chores.map((chore) => (
+                          <button
+                            key={chore.slug}
+                            type="button"
+                            onClick={() => {
+                              setSelectedChore(chore);
+                              setStep("recurrence");
+                            }}
+                            className="px-3 py-2 rounded-xl bg-app-surface-muted border border-app-border text-xs font-bold text-app-text active:scale-95 transition-all hover:border-teal-500/30"
+                          >
+                            <span className="mr-1">{chore.icon}</span>
+                            {chore.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-app-border bg-app-surface-muted/50 p-4 space-y-4">
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(true)}
+                    className="w-20 h-20 rounded-2xl bg-app-surface border border-app-border flex items-center justify-center text-4xl active:scale-95 transition-all hover:border-teal-500/30"
+                  >
+                    {customEmoji}
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddCustom();
+                  }}
+                  placeholder="Görev adı yaz..."
+                  autoFocus
+                  className="w-full px-3 py-2.5 rounded-xl bg-app-surface border border-app-border text-sm font-medium text-app-text outline-none focus:border-teal-500/40 placeholder:text-app-muted text-center"
+                />
+                <button
+                  type="button"
+                  disabled={!customName.trim()}
+                  onClick={handleAddCustom}
+                  className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wide active:scale-[0.98] flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Plus size={16} weight="bold" />
+                  Devam
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -314,6 +398,13 @@ export default function AssignChoreDrawer({
               </button>
             ))}
           </div>
+        )}
+
+        {showEmojiPicker && (
+          <EmojiPickerOverlay
+            onSelect={setCustomEmoji}
+            onClose={() => setShowEmojiPicker(false)}
+          />
         )}
       </DrawerContent>
     </Drawer>

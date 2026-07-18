@@ -6266,7 +6266,10 @@ export namespace read_tracker {
         }
 
         /**
-         * Search books using Open Library API (Server-side)
+         * Search books.
+         * - Turkish: Open Library first (it resolves the Turkish edition's title/cover/
+         * pages), then Google Books to fill in if Open Library returns nothing.
+         * - Other languages: Google Books first, Open Library as a fallback.
          */
         public async searchBooks(params: SearchBooksRequest): Promise<SearchBooksResponse> {
             // Convert our params into the objects we need for the request
