@@ -53,6 +53,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   events: "/apps/campus-events",
   basvuru: "/apps/apply-tracker",
   seriestrack: "/apps/series-track",
+  readtracker: "/apps/read-tracker",
   weather: "/apps/daily-weather",
   menu: "/apps/digital-menu",
   dashboard: "/dashboard",

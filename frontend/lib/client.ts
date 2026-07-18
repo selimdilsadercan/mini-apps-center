@@ -68,6 +68,7 @@ export default class Client {
     public readonly ota: ota.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
+    public readonly read_tracker: read_tracker.ServiceClient
     public readonly recipe: recipe.ServiceClient
     public readonly rutinler: rutinler.ServiceClient
     public readonly scrape: scrape.ServiceClient
@@ -137,6 +138,7 @@ export default class Client {
         this.ota = new ota.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
+        this.read_tracker = new read_tracker.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
         this.rutinler = new rutinler.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
@@ -4746,6 +4748,7 @@ export namespace hub {
         todayMeals: recipe.MealPlanMeal[]
         todayAgenda: rutinler.RoutineEntry[]
         weeklyChores: ev_isleri.IntegratedTodayChores | null
+        weeklyReadingGoal: read_tracker.WeeklyGoal | null
     }
 
     export interface ExploreWidgetsResponse {
@@ -6122,6 +6125,175 @@ export namespace pomodoro {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/pomodoro/session`, JSON.stringify(params))
             return await resp.json() as PomodoroSession
+        }
+    }
+}
+
+export namespace read_tracker {
+    export interface Book {
+        id: string
+        "user_id": string
+        title: string
+        author: string
+        "total_pages": number | null
+        "current_page": number
+        status: "reading" | "completed" | "to_read" | "dropped"
+        rating: number | null
+        review: string | null
+        "cover_image": string | null
+        "start_date": string | null
+        "end_date": string | null
+        "created_at": string
+        "updated_at": string
+    }
+
+    export interface DeleteBookResponse {
+        success: boolean
+    }
+
+    export interface GetBooksResponse {
+        books: Book[]
+    }
+
+    export interface GetWeeklyGoalsResponse {
+        goals: WeeklyGoal[]
+    }
+
+    export interface SearchBooksRequest {
+        query: string
+        language?: string | null
+    }
+
+    export interface SearchBooksResponse {
+        results: SearchResultBook[]
+    }
+
+    export interface SearchResultBook {
+        id: string
+        title: string
+        author: string
+        totalPages: number | null
+        coverImage: string | null
+    }
+
+    export interface UpsertBookRequest {
+        id?: string | null
+        userId: string
+        title: string
+        author: string
+        totalPages?: number | null
+        currentPage?: number | null
+        status?: "reading" | "completed" | "to_read" | "dropped" | null
+        rating?: number | null
+        review?: string | null
+        coverImage?: string | null
+        startDate?: string | null
+        endDate?: string | null
+    }
+
+    export interface UpsertBookResponse {
+        book: Book
+    }
+
+    export interface UpsertWeeklyGoalRequest {
+        userId: string
+        weekStart: string
+        bookId: string | null
+        status: "active" | "completed" | "skipped"
+        notes?: string | null
+    }
+
+    export interface UpsertWeeklyGoalResponse {
+        goal: WeeklyGoal
+    }
+
+    export interface WeeklyGoal {
+        id: string
+        "user_id": string
+        "week_start": string
+        "book_id": string | null
+        status: "active" | "completed" | "skipped"
+        notes: string | null
+        "created_at": string
+        "updated_at": string
+        "book_title"?: string | null
+        "book_author"?: string | null
+        "book_cover"?: string | null
+        "book_current_page"?: number | null
+        "book_total_pages"?: number | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteBook = this.deleteBook.bind(this)
+            this.getBooks = this.getBooks.bind(this)
+            this.getWeeklyGoals = this.getWeeklyGoals.bind(this)
+            this.searchBooks = this.searchBooks.bind(this)
+            this.upsertBook = this.upsertBook.bind(this)
+            this.upsertWeeklyGoal = this.upsertWeeklyGoal.bind(this)
+        }
+
+        /**
+         * Delete a book
+         */
+        public async deleteBook(userId: string, id: string): Promise<DeleteBookResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/read-tracker/book/${encodeURIComponent(userId)}/${encodeURIComponent(id)}`)
+            return await resp.json() as DeleteBookResponse
+        }
+
+        /**
+         * Get user library books
+         */
+        public async getBooks(userId: string): Promise<GetBooksResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/read-tracker/books/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetBooksResponse
+        }
+
+        /**
+         * Get user weekly reading goals
+         */
+        public async getWeeklyGoals(userId: string): Promise<GetWeeklyGoalsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/read-tracker/goals/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetWeeklyGoalsResponse
+        }
+
+        /**
+         * Search books using Open Library API (Server-side)
+         */
+        public async searchBooks(params: SearchBooksRequest): Promise<SearchBooksResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                language: params.language === undefined ? undefined : String(params.language),
+                query:    params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/read-tracker/search`, undefined, {query})
+            return await resp.json() as SearchBooksResponse
+        }
+
+        /**
+         * Create or update a book
+         */
+        public async upsertBook(params: UpsertBookRequest): Promise<UpsertBookResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/read-tracker/book`, JSON.stringify(params))
+            return await resp.json() as UpsertBookResponse
+        }
+
+        /**
+         * Add or update weekly goal
+         */
+        public async upsertWeeklyGoal(params: UpsertWeeklyGoalRequest): Promise<UpsertWeeklyGoalResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/read-tracker/goal`, JSON.stringify(params))
+            return await resp.json() as UpsertWeeklyGoalResponse
         }
     }
 }

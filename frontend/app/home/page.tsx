@@ -36,6 +36,7 @@ import {
   Notepad,
   Broom,
   Plus,
+  BookOpen,
 } from "@phosphor-icons/react";
 import { useState, useEffect, useMemo, useCallback, Suspense, type ComponentType, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -63,6 +64,7 @@ import {
   gym,
   recipe,
   ev_isleri,
+  read_tracker,
 } from "@/lib/client";
 import Link from "next/link";
 import HomeHeader from "@/components/home/HomeHeader";
@@ -208,6 +210,7 @@ function HomeContent() {
   const todayMeals = discoverQuery.data?.todayMeals || [];
   const todayAgenda = discoverQuery.data?.todayAgenda || [];
   const weeklyChores = discoverQuery.data?.weeklyChores || null;
+  const weeklyReadingGoal = discoverQuery.data?.weeklyReadingGoal ?? null;
   const places = exploreQuery.data?.places || [];
   const subscriptions = walletQuery.data?.subscriptions || [];
   const savingsStats = walletQuery.data?.savingsStats || null;
@@ -228,6 +231,7 @@ function HomeContent() {
   const hobbyApps = useMemo(() => {
     const order = [
       "series-track",
+      "read-tracker",
       "youtube-series",
       "film-graph",
       "buyuk-maclar",
@@ -341,6 +345,7 @@ function HomeContent() {
                   todayMeals={todayMeals}
                   todayAgenda={todayAgenda}
                   weeklyChores={weeklyChores}
+                  weeklyReadingGoal={weeklyReadingGoal}
                   userId={user?.id}
                   loading={loading}
                 />
@@ -678,6 +683,7 @@ function HomeSummaryCards({
   todayMeals,
   todayAgenda,
   weeklyChores,
+  weeklyReadingGoal,
   userId,
   loading,
 }: {
@@ -688,6 +694,7 @@ function HomeSummaryCards({
   todayMeals: recipe.MealPlanMeal[];
   todayAgenda: rutinler.RoutineEntry[];
   weeklyChores: ev_isleri.IntegratedTodayChores | null;
+  weeklyReadingGoal: read_tracker.WeeklyGoal | null;
   userId?: string;
   loading: boolean;
 }) {
@@ -1471,6 +1478,104 @@ function HomeSummaryCards({
           )}
         </HomeSummaryCard>
       ),
+    },
+    {
+      key: "reading",
+      loading: loading,
+      hasContent: !!weeklyReadingGoal && weeklyReadingGoal.status === "active",
+      hasCompletedOnly: !!weeklyReadingGoal && weeklyReadingGoal.status === "completed",
+      card: (() => {
+        const isActive = weeklyReadingGoal?.status === "active";
+        const isCompleted = weeklyReadingGoal?.status === "completed";
+        const isSkipped = weeklyReadingGoal?.status === "skipped";
+        const bookTitle = weeklyReadingGoal?.book_title || null;
+        const bookCover = weeklyReadingGoal?.book_cover || null;
+        const emptyText = isCompleted
+          ? "Bu hafta tamamlandı 🎉"
+          : isSkipped
+          ? "Bu hafta pas geçildi"
+          : "Bu hafta hedef yok";
+        return (
+          <HomeSummaryCard
+            href="/apps/read-tracker"
+            icon={BookOpen}
+            color="#7C5C43"
+            title="Haftalık Okuma"
+            subtitle="Oku Oku"
+            loading={loading}
+            emptyText={emptyText}
+            hasContent={isActive}
+            emptyFooter={
+              (isCompleted || isSkipped) && bookTitle ? (
+                <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
+                  {isCompleted ? <HomeTaskCheckButton completed disabled /> : null}
+                  {bookCover ? (
+                    <img
+                      src={bookCover}
+                      alt={bookTitle}
+                      className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                      <BookOpen size={16} weight="fill" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-black text-app-text truncate ${isCompleted ? "line-through" : ""}`}>
+                      {bookTitle}
+                    </p>
+                    <p className="text-[9px] text-app-muted font-bold">
+                      {isCompleted ? "Bitirildi" : "Pas geçildi"}
+                    </p>
+                  </div>
+                </div>
+              ) : undefined
+            }
+          >
+            {isActive && bookTitle && (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                {bookCover ? (
+                  <img
+                    src={bookCover}
+                    alt={bookTitle}
+                    className="w-9 h-12 object-cover rounded-lg border border-app-border shrink-0"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                    <BookOpen size={16} weight="fill" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate">{bookTitle}</p>
+                  <p className="text-[9px] text-app-muted font-bold">
+                    {weeklyReadingGoal?.book_current_page !== undefined && weeklyReadingGoal?.book_current_page !== null
+                      ? `Sayfa ${weeklyReadingGoal.book_current_page}${weeklyReadingGoal.book_total_pages ? ` / ${weeklyReadingGoal.book_total_pages}` : ""}`
+                      : "Bu hafta okunuyor"}
+                  </p>
+                </div>
+              </div>
+            )}
+            {isActive && !bookTitle && (
+              <div className="px-4 py-3 border-t border-app-border space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                    <BookOpen size={16} weight="fill" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-app-text">Serbest okuma</p>
+                    <p className="text-[9px] text-app-muted font-bold">Hedef aktif</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <WidgetActionButton onClick={() => router.push("/apps/read-tracker")} icon={ArrowRight}>
+                    Uygulamayı Aç
+                  </WidgetActionButton>
+                </div>
+              </div>
+            )}
+          </HomeSummaryCard>
+        );
+      })(),
     },
   ];
 

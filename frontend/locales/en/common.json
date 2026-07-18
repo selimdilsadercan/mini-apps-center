@@ -320,6 +320,10 @@
       "name": "SeriesTrack",
       "description": "Track the series you watch, mark episodes, and monitor your progress."
     },
+    "read-tracker": {
+      "name": "Oku Oku",
+      "description": "Build a reading habit, list your books, and set weekly reading goals."
+    },
     "game-companion": {
       "name": "Scorekeeper",
       "description": "Digital scoreboard, dice, and utility tools for board games and cafe games."

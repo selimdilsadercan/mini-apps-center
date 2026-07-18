@@ -36,8 +36,10 @@ import { digitalMenuAssistant } from "../digital-menu/assistant";
 import { businessAssistant } from "../business/assistant";
 import { eksikVarAssistant } from "../eksik-var/assistant";
 import { buyukMaclarAssistant } from "../buyuk-maclar/assistant";
+import { readTrackerAssistant } from "../read-tracker/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
+  readTrackerAssistant,
   buyukMaclarAssistant,
   birikimAssistant,
   subcenterAssistant,

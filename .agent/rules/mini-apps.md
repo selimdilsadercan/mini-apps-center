@@ -181,3 +181,13 @@ Her mini-app'in header'ı aynı iskelete sahip olmalıdır. Özel/tek seferlik h
     - This is achieved using a cookie named `everything_locale` scoped to the root domain (`.allminiapps.com`).
     - **Usage:** Always use the `useLanguage` hook and `LanguageProvider` to manage and access the current locale.
     - **Implementation Detail:** The `setLocale` function in `LanguageContext.tsx` automatically handles setting this cross-subdomain cookie.
+
+## 🎨 Styling & Dark Mode Standards
+- **Dark Mode Support:** All mini-apps must support dark mode. Avoid using hardcoded light/dark colors (e.g. `bg-white`, `bg-[#FAF9F7]`, `text-gray-900`, `border-gray-200`). Instead, use the project's predefined CSS variables:
+  - Background: `bg-app-bg text-app-text`
+  - Cards & Surface elements: `bg-app-surface border border-app-border text-app-text`
+  - Interactive/tab tracks: `bg-app-tab-track border border-app-border`
+  - Active tabs: `bg-app-tab-active`
+  - Muted text: `text-app-muted`
+- **Tab Layout Width:** Segmented control/tab tracks in headers must NOT be full width (`w-full` / `max-w-none`). Use `inline-flex` without `w-full` so they shrink to fit the content, keeping them cohesive and centered/left-aligned as seen in other mini-apps.
+

@@ -14,6 +14,7 @@ import { getTodayPlan, TodayPlan } from "../gym/api";
 import { getTodayMeals, MealPlanMeal } from "../recipe/api";
 import { getTodayAgenda, RoutineEntry } from "../rutinler/api";
 import { getTodayIntegratedChores, IntegratedTodayChores } from "../ev-isleri/api";
+import { getWeeklyGoals, WeeklyGoal } from "../read-tracker/api";
 
 // Import types
 import { Place } from "../workplaces/api";
@@ -33,6 +34,7 @@ export interface DiscoverWidgetsResponse {
   todayMeals: MealPlanMeal[];
   todayAgenda: RoutineEntry[];
   weeklyChores: IntegratedTodayChores | null;
+  weeklyReadingGoal: WeeklyGoal | null;
 }
 
 export interface ExploreWidgetsResponse {
@@ -96,10 +98,21 @@ export const getDiscoverWidgets = api(
         todayMeals: [],
         todayAgenda: [],
         weeklyChores: null,
+        weeklyReadingGoal: null,
       };
     }
 
-    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes] = await Promise.all([
+    // Helper: get Monday of current week (YYYY-MM-DD)
+    const getMonday = () => {
+      const d = new Date();
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      return d.toISOString().split("T")[0];
+    };
+    const currentWeekStart = getMonday();
+
+    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes] = await Promise.all([
       fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
       fetchWithFallback(getActivities({ userId }), { activities: [] }),
       fetchWithFallback(getTodayEpisodes({ userId }), { items: [] }),
@@ -107,7 +120,12 @@ export const getDiscoverWidgets = api(
       fetchWithFallback(getTodayMeals({ userId }), { meals: [] }),
       fetchWithFallback(getTodayAgenda({ userId }), { entries: [] }),
       fetchWithFallback(getTodayIntegratedChores({ userId }), { chores: null }),
+      fetchWithFallback(getWeeklyGoals({ userId }), { goals: [] }),
     ]);
+
+    const currentWeekGoal = readingGoalsRes.goals?.find(
+      (g: WeeklyGoal) => g.week_start === currentWeekStart
+    ) ?? null;
 
     return {
       suggestions: suggestRes.suggestions || [],
@@ -117,6 +135,7 @@ export const getDiscoverWidgets = api(
       todayMeals: mealRes.meals || [],
       todayAgenda: agendaRes.entries || [],
       weeklyChores: choresRes.chores,
+      weeklyReadingGoal: currentWeekGoal,
     };
   }
 );

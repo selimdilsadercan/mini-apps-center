@@ -39,6 +39,7 @@ import {
   Leaf,
   Camera,
   ImageSquare,
+  BookOpen,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -282,6 +283,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/series-track",
     isImplemented: true,
     subdomain: "seriestrack",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "read-tracker",
+    name: "Oku Oku",
+    description: "Kitap okuma alışkanlığı kazan, kitaplarını listele ve haftalık okuma hedefleri belirle.",
+    cta: "Kitap Okuma Alışkanlığı Kazan",
+    icon: BookOpen,
+    category: "Eğlence & Hobi",
+    color: "#7C5C43",
+    href: "/apps/read-tracker",
+    isImplemented: true,
+    subdomain: "readtracker",
     statusBarColor: "#ffffff",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",

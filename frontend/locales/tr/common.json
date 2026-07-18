@@ -316,6 +316,10 @@
       "name": "SeriesTrack",
       "description": "İzlediğin dizileri takip et, bölümleri işaretle ve ilerlemeni gör."
     },
+    "read-tracker": {
+      "name": "Oku Oku",
+      "description": "Kitap okuma alışkanlığı kazan, kitaplarını listele ve haftalık okuma hedefleri belirle."
+    },
     "game-companion": {
       "name": "Yazboz",
       "description": "Masa oyunları ve kafe oyunları için skor tahtası, zar ve yardımcı araçlar."
