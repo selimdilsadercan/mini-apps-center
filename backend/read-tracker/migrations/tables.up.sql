@@ -1,7 +1,10 @@
 --------------------------------------------------------------------------------
 -- LATEST MIGRATIONS & STRUCTURAL UPDATES
--- (Empty as this is initial setup)
 --------------------------------------------------------------------------------
+
+-- Weekly goals can span more than one week (e.g. a long book over 2 weeks).
+ALTER TABLE IF EXISTS read_tracker.weekly_goals
+    ADD COLUMN IF NOT EXISTS weeks INTEGER NOT NULL DEFAULT 1;
 
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
@@ -36,6 +39,7 @@ CREATE TABLE IF NOT EXISTS read_tracker.weekly_goals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     week_start DATE NOT NULL, -- Monday's date YYYY-MM-DD
+    weeks INTEGER NOT NULL DEFAULT 1, -- how many weeks this goal spans (>= 1)
     book_id UUID REFERENCES read_tracker.books(id) ON DELETE SET NULL,
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'skipped')),
     notes TEXT,

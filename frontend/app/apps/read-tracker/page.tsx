@@ -23,6 +23,7 @@ import { getAppRootUrl } from "@/lib/apps";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { motion } from "framer-motion";
+import { pillTabClass, PillTabBar } from "../gaming-hub/components/PillTabs";
 
 const client = createBrowserClient();
 
@@ -44,12 +45,12 @@ function formatDate(d: Date): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Helper to get display week range
-function getWeekDisplayRange(mondayStr: string, locale: string): string {
+// Helper to get display week range (spanning `weeks` weeks starting from Monday)
+function getWeekDisplayRange(mondayStr: string, locale: string, weeks: number = 1): string {
   try {
     const monday = new Date(mondayStr);
     const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    sunday.setDate(monday.getDate() + 7 * Math.max(1, weeks) - 1);
 
     const optionsDay: Intl.DateTimeFormatOptions = { day: "numeric" };
     const optionsMonthYear: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
@@ -67,6 +68,50 @@ function getWeekDisplayRange(mondayStr: string, locale: string): string {
   } catch (e) {
     return mondayStr;
   }
+}
+
+// Small controlled input to type the current page directly.
+function PageInput({
+  value,
+  max,
+  onCommit,
+}: {
+  value: number;
+  max: number | null;
+  onCommit: (n: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
+  const commit = () => {
+    const n = parseInt(draft, 10);
+    if (isNaN(n)) {
+      setDraft(String(value));
+    } else {
+      onCommit(n);
+    }
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ""))}
+      onFocus={(e) => e.target.select()}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      className="w-16 text-center bg-app-surface border border-app-border rounded px-1 py-1 text-xs font-black text-app-text outline-none focus:border-[#7C5C43] transition-all"
+    />
+  );
 }
 
 interface Book {
@@ -90,6 +135,7 @@ interface WeeklyGoal {
   id: string;
   user_id: string;
   week_start: string;
+  weeks: number;
   book_id: string | null;
   status: "active" | "completed" | "skipped";
   notes: string | null;
@@ -115,6 +161,8 @@ export default function ReadTrackerPage() {
 
   // Filter and Modal States
   const [libraryFilter, setLibraryFilter] = useState<string>("all");
+  // How many weeks the next goal should span (used when picking a book)
+  const [goalWeeks, setGoalWeeks] = useState<number>(1);
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
@@ -220,6 +268,9 @@ export default function ReadTrackerPage() {
       undoSkip: "Vazgeç ve Kitap Seç",
       selectBookPlaceholder: "Kitaplığından bir kitap seç...",
       setGoalBtn: "Hedef Olarak Ayarla",
+      goalWeeksLabel: "Kaç hafta sürecek?",
+      weekUnit: "hafta",
+      currentPageLabel: "Kaçıncı sayfadasın?",
       readingStatus: {
         to_read: "Okuyacağım",
         reading: "Okuyorum",
@@ -266,6 +317,9 @@ export default function ReadTrackerPage() {
       undoSkip: "Set a Book Instead",
       selectBookPlaceholder: "Select a book from library...",
       setGoalBtn: "Set as Weekly Goal",
+      goalWeeksLabel: "How many weeks?",
+      weekUnit: "wk",
+      currentPageLabel: "What page are you on?",
       readingStatus: {
         to_read: "To Read",
         reading: "Reading",
@@ -308,30 +362,17 @@ export default function ReadTrackerPage() {
     }
   };
 
-  // Find goal for current week
+  // Find goal covering the current week (a goal may span multiple weeks)
   const currentWeekGoal = useMemo(() => {
-    return goals.find((g) => g.week_start === currentWeekStart) || null;
-  }, [goals, currentWeekStart]);
-
-  // Compute Streak
-  const streakCount = useMemo(() => {
-    let streak = 0;
-    // Sort goals by week_start ascending
-    const sortedGoals = [...goals].sort((a, b) => a.week_start.localeCompare(b.week_start));
-    for (const g of sortedGoals) {
-      if (g.status === "completed") {
-        streak++;
-      } else if (g.status === "active") {
-        // Do not break if current week is active
-        if (g.week_start !== currentWeekStart) {
-          streak = 0;
-        }
-      } else if (g.status === "skipped") {
-        // Skipped weeks do not break the streak, but don't increment it
-        continue;
-      }
-    }
-    return streak;
+    const cur = new Date(currentWeekStart);
+    return (
+      goals.find((g) => {
+        const start = new Date(g.week_start);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 7 * Math.max(1, g.weeks || 1));
+        return cur >= start && cur < end;
+      }) || null
+    );
   }, [goals, currentWeekStart]);
 
   // Modal actions
@@ -451,17 +492,25 @@ export default function ReadTrackerPage() {
     }
   };
 
-  // Set weekly goal
-  const handleSetWeeklyGoal = async (bookId: string | null, status: "active" | "completed" | "skipped") => {
+  // Set weekly goal. `weeks` sets how many weeks the goal spans; `weekStart`
+  // lets callers update an existing multi-week goal on its own start week.
+  const handleSetWeeklyGoal = async (
+    bookId: string | null,
+    status: "active" | "completed" | "skipped",
+    weeks: number = 1,
+    weekStart: string = currentWeekStart
+  ) => {
     if (!user) return;
     try {
       await client.read_tracker.upsertWeeklyGoal({
         userId: user.id,
-        weekStart: currentWeekStart,
+        weekStart,
+        weeks: Math.max(1, weeks),
         bookId,
         status,
       });
       toast.success(language === "tr" ? "Haftalık hedef güncellendi!" : "Weekly goal updated!");
+      setGoalWeeks(1);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -507,31 +556,23 @@ export default function ReadTrackerPage() {
           </div>
 
           {/* Segmented control tabs */}
-          <div className="flex mt-3">
-            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track">
+          <div className="mt-2">
+            <PillTabBar className="!w-auto">
               <button
                 onClick={() => setActiveTab("habit")}
-                className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] outline-none ${
-                  activeTab === "habit"
-                    ? "bg-app-tab-active text-[#7C5C43] shadow-sm font-black"
-                    : "text-app-muted hover:text-app-text font-bold"
-                }`}
+                className={pillTabClass(activeTab === "habit")}
               >
-                <CalendarCheck size={14} weight={activeTab === "habit" ? "fill" : "bold"} />
+                <CalendarCheck size={13} weight={activeTab === "habit" ? "fill" : "bold"} />
                 {t.today}
               </button>
               <button
                 onClick={() => setActiveTab("library")}
-                className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] outline-none ${
-                  activeTab === "library"
-                    ? "bg-app-tab-active text-[#7C5C43] shadow-sm font-black"
-                    : "text-app-muted hover:text-app-text font-bold"
-                }`}
+                className={pillTabClass(activeTab === "library")}
               >
-                <Bookmarks size={14} weight={activeTab === "library" ? "fill" : "bold"} />
+                <Bookmarks size={13} weight={activeTab === "library" ? "fill" : "bold"} />
                 {t.library}
               </button>
-            </div>
+            </PillTabBar>
           </div>
         </div>
       </header>
@@ -553,25 +594,6 @@ export default function ReadTrackerPage() {
           </div>
         ) : activeTab === "habit" ? (
           <div className="flex flex-col gap-4">
-            
-            {/* Streak card */}
-            <div className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-app-muted">
-                  {t.streak}
-                </h3>
-                <p className="text-lg font-black text-app-text mt-1">
-                  {streakCount > 0
-                    ? `${streakCount} ${t.weeksStreak}`
-                    : language === "tr"
-                    ? "Seriye başla! 🔥"
-                    : "Start a streak! 🔥"}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600">
-                <Star size={24} weight="fill" />
-              </div>
-            </div>
 
             {/* Weekly Goal Area */}
             <div className="bg-app-surface rounded-2xl border border-app-border p-5 shadow-sm">
@@ -580,12 +602,15 @@ export default function ReadTrackerPage() {
                   {t.activeGoal}
                 </h2>
                 <span className="text-[10px] font-bold bg-app-bg text-app-muted border border-app-border px-2.5 py-1 rounded-full">
-                  {getWeekDisplayRange(currentWeekStart, language)}
+                  {getWeekDisplayRange(
+                    currentWeekGoal?.week_start || currentWeekStart,
+                    language,
+                    currentWeekGoal?.weeks || 1
+                  )}
                 </span>
               </div>
 
-              {currentWeekGoal ? (
-                currentWeekGoal.status === "skipped" ? (
+              {currentWeekGoal && currentWeekGoal.status === "skipped" ? (
                   <div className="text-center py-6">
                     <span className="text-3xl">☕</span>
                     <h3 className="text-sm font-bold text-app-text mt-2">{t.skippedWeek}</h3>
@@ -593,13 +618,13 @@ export default function ReadTrackerPage() {
                       {t.skippedDesc}
                     </p>
                     <button
-                      onClick={() => handleSetWeeklyGoal(null, "active")}
+                      onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
                       className="mt-4 text-xs font-bold text-[#7C5C43] hover:underline"
                     >
                       {t.undoSkip}
                     </button>
                   </div>
-                ) : (
+              ) : currentWeekGoal && currentWeekGoal.book_id ? (
                   <div>
                     {/* Goal book details */}
                     <div className="flex gap-4">
@@ -645,7 +670,7 @@ export default function ReadTrackerPage() {
                                   />
                                 </div>
 
-                                {/* Quick update buttons */}
+                                {/* Quick update controls */}
                                 <div className="flex items-center gap-2 mt-3">
                                   <button
                                     onClick={() => handleUpdatePageProgress(book, current - 5)}
@@ -653,17 +678,16 @@ export default function ReadTrackerPage() {
                                   >
                                     <Minus size={12} weight="bold" />
                                   </button>
+                                  <PageInput
+                                    value={current}
+                                    max={book.total_pages}
+                                    onCommit={(n) => handleUpdatePageProgress(book, n)}
+                                  />
                                   <button
                                     onClick={() => handleUpdatePageProgress(book, current + 5)}
                                     className="w-7 h-7 rounded bg-app-surface hover:bg-app-bg border border-app-border flex items-center justify-center active:scale-95 transition-all text-app-text"
                                   >
                                     <Plus size={12} weight="bold" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleUpdatePageProgress(book, total)}
-                                    className="ml-auto text-[10px] font-black uppercase text-[#7C5C43] hover:underline"
-                                  >
-                                    {t.completeGoal}
                                   </button>
                                 </div>
                               </div>
@@ -675,16 +699,16 @@ export default function ReadTrackerPage() {
 
                     <div className="border-t border-app-border mt-4 pt-3 flex justify-between">
                       <button
-                        onClick={() => handleSetWeeklyGoal(null, "active")}
+                        onClick={() => handleSetWeeklyGoal(null, "active", currentWeekGoal.weeks, currentWeekGoal.week_start)}
                         className="text-xs font-bold text-app-muted hover:text-app-text"
                       >
                         {t.changeGoal}
                       </button>
-                      
+
                       {currentWeekGoal.status !== "completed" && (
                         <button
-                          onClick={() => handleSetWeeklyGoal(currentWeekGoal.book_id, "completed")}
-                          className="text-xs font-black uppercase text-green-600 hover:underline flex items-center gap-1"
+                          onClick={() => handleSetWeeklyGoal(currentWeekGoal.book_id, "completed", currentWeekGoal.weeks, currentWeekGoal.week_start)}
+                          className="text-xs font-black uppercase text-[#7C5C43] hover:underline flex items-center gap-1"
                         >
                           <CheckCircle size={14} weight="fill" />
                           {t.completeGoal}
@@ -692,16 +716,38 @@ export default function ReadTrackerPage() {
                       )}
                     </div>
                   </div>
-                )
               ) : (
                 <div className="flex flex-col items-center py-6 text-center">
                   <p className="text-sm font-bold text-app-text">{t.chooseGoal}</p>
                   <div className="mt-4 w-full max-w-xs flex flex-col gap-2">
                     {books.filter((b) => b.status === "reading" || b.status === "to_read").length > 0 ? (
+                      <>
+                        {/* Week span selector */}
+                        <div className="flex flex-col items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">
+                            {t.goalWeeksLabel}
+                          </span>
+                          <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-app-border bg-app-tab-track">
+                            {[1, 2, 3, 4].map((w) => (
+                              <button
+                                key={w}
+                                type="button"
+                                onClick={() => setGoalWeeks(w)}
+                                className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                                  goalWeeks === w
+                                    ? "bg-app-tab-active text-app-text shadow-sm"
+                                    : "text-app-muted hover:text-app-text"
+                                }`}
+                              >
+                                {w} {t.weekUnit}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       <select
                         onChange={(e) => {
                           if (e.target.value) {
-                            handleSetWeeklyGoal(e.target.value, "active");
+                            handleSetWeeklyGoal(e.target.value, "active", goalWeeks);
                           }
                         }}
                         className="w-full bg-app-bg border border-app-border rounded-xl px-3 py-2 text-sm text-app-text outline-none focus:border-[#7C5C43] shadow-sm"
@@ -718,6 +764,7 @@ export default function ReadTrackerPage() {
                             </option>
                           ))}
                       </select>
+                      </>
                     ) : (
                       <p className="text-xs text-app-muted">
                         {language === "tr"

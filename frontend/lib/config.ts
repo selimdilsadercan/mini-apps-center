@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
-  version: "0.7.4",
-  buildNumber: 59,
+  version: "0.8.1",
+  buildNumber: 60,
   name: "Everything",
   supportEmail: "taillesscatstudios@gmail.com",
 } as const;

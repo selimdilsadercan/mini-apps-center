@@ -6198,6 +6198,7 @@ export namespace read_tracker {
     export interface UpsertWeeklyGoalRequest {
         userId: string
         weekStart: string
+        weeks?: number | null
         bookId: string | null
         status: "active" | "completed" | "skipped"
         notes?: string | null
@@ -6211,6 +6212,7 @@ export namespace read_tracker {
         id: string
         "user_id": string
         "week_start": string
+        weeks: number
         "book_id": string | null
         status: "active" | "completed" | "skipped"
         notes: string | null

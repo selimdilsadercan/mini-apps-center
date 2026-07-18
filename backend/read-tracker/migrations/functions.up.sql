@@ -184,6 +184,7 @@ RETURNS TABLE (
     id UUID,
     user_id UUID,
     week_start DATE,
+    weeks INTEGER,
     book_id UUID,
     status TEXT,
     notes TEXT,
@@ -204,10 +205,11 @@ BEGIN
     v_user_uuid := public.get_internal_user_id(p_user_id);
 
     RETURN QUERY
-    SELECT 
+    SELECT
         wg.id,
         wg.user_id,
         wg.week_start,
+        wg.weeks,
         wg.book_id,
         wg.status,
         wg.notes,
@@ -230,9 +232,11 @@ $$;
 --------------------------------------------------------------------------------
 DROP FUNCTION IF EXISTS read_tracker.upsert_weekly_goal(UUID, DATE, UUID, TEXT, TEXT);
 DROP FUNCTION IF EXISTS read_tracker.upsert_weekly_goal(TEXT, DATE, UUID, TEXT, TEXT);
+DROP FUNCTION IF EXISTS read_tracker.upsert_weekly_goal(TEXT, DATE, INTEGER, UUID, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION read_tracker.upsert_weekly_goal(
     p_user_id TEXT,
     p_week_start DATE,
+    p_weeks INTEGER,
     p_book_id UUID,
     p_status TEXT,
     p_notes TEXT
@@ -251,18 +255,21 @@ BEGIN
     INSERT INTO read_tracker.weekly_goals (
         user_id,
         week_start,
+        weeks,
         book_id,
         status,
         notes
     ) VALUES (
         v_user_uuid,
         p_week_start,
+        GREATEST(COALESCE(p_weeks, 1), 1),
         p_book_id,
         p_status,
         p_notes
     )
     ON CONFLICT (user_id, week_start) DO UPDATE
-    SET 
+    SET
+        weeks = GREATEST(COALESCE(EXCLUDED.weeks, 1), 1),
         book_id = EXCLUDED.book_id,
         status = EXCLUDED.status,
         notes = EXCLUDED.notes,

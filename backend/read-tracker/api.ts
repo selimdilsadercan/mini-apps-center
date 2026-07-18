@@ -32,6 +32,7 @@ export interface WeeklyGoal {
   id: string;
   user_id: string;
   week_start: string; // YYYY-MM-DD
+  weeks: number; // how many weeks this goal spans (>= 1)
   book_id: string | null;
   status: "active" | "completed" | "skipped";
   notes: string | null;
@@ -93,6 +94,7 @@ interface GetWeeklyGoalsResponse {
 interface UpsertWeeklyGoalRequest {
   userId: string;
   weekStart: string; // YYYY-MM-DD
+  weeks?: number | null; // how many weeks this goal spans (defaults to 1)
   bookId: string | null;
   status: "active" | "completed" | "skipped";
   notes?: string | null;
@@ -204,6 +206,7 @@ export const upsertWeeklyGoal = api(
       .rpc("upsert_weekly_goal", {
         p_user_id: req.userId,
         p_week_start: req.weekStart,
+        p_weeks: req.weeks || 1,
         p_book_id: req.bookId,
         p_status: req.status,
         p_notes: req.notes || null,
