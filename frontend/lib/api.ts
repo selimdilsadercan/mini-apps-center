@@ -81,6 +81,7 @@ export async function createServerClient(): Promise<Client> {
   const baseURL = getBaseURL();
   return new Client(baseURL, {
     requestInit: {
+      cache: "no-store",
       headers: {
         "X-App-Version": APP_CONFIG.version,
       },
@@ -96,6 +97,7 @@ export function createBrowserClient(): Client {
   const baseURL = getBaseURL();
   return new Client(baseURL, {
     requestInit: {
+      cache: "no-store",
       headers: {
         "X-App-Version": APP_CONFIG.version,
       },

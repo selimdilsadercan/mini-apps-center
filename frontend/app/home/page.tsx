@@ -24,7 +24,7 @@ import {
   ArrowRight,
   Heart,
 } from "@phosphor-icons/react";
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, Suspense, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -46,6 +46,8 @@ import {
   type ev_isleri,
   type read_tracker,
   type gym,
+  type buyuk_maclar,
+  type ytdb,
 } from "@/lib/client";
 
 // Sub-components
@@ -91,7 +93,7 @@ function useUserPins(_apps?: any) {
     try {
       const stored = localStorage.getItem("user_pinned_apps");
       if (stored) setPinnedIds(JSON.parse(stored));
-    } catch {}
+    } catch { }
     setIsLoaded(true);
   }, []);
 
@@ -100,12 +102,12 @@ function useUserPins(_apps?: any) {
       const next = prev.includes(appId) ? prev.filter((id) => id !== appId) : [...prev, appId];
       try {
         localStorage.setItem("user_pinned_apps", JSON.stringify(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
 
-  const updateAppUsage = (_appId: string) => {};
+  const updateAppUsage = (_appId: string) => { };
 
   return { pinnedIds, isLoaded, togglePin, updateAppUsage };
 }
@@ -204,6 +206,7 @@ export default function HomePage() {
 
 function HomePageContent() {
   const { user, isLoaded } = useUser();
+  const userId = user?.id;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -217,6 +220,116 @@ function HomePageContent() {
     }
     return resolveInitialHomeTab(tabParam);
   });
+
+  // Pull to Refresh State and Refs
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const startYRef = useRef(0);
+  const isPullingRef = useRef(false);
+
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0 && !isRefreshing) {
+        startYRef.current = e.touches[0].clientY;
+        isPullingRef.current = true;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isPullingRef.current || isRefreshing) return;
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startYRef.current;
+      if (diff > 0 && window.scrollY === 0) {
+        if (e.cancelable) e.preventDefault();
+        setPullDistance(Math.min(diff * 0.4, 80));
+      } else {
+        isPullingRef.current = false;
+        setPullDistance(0);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isPullingRef.current || isRefreshing) return;
+      isPullingRef.current = false;
+      if (pullDistance >= 50) {
+        setIsRefreshing(true);
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: discoverQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: exploreQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: walletQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: lifeQueryKey(userId) }),
+        ]).then(() => {
+          setTimeout(() => {
+            setIsRefreshing(false);
+            setPullDistance(0);
+          }, 600);
+        }).catch(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        });
+      } else {
+        setPullDistance(0);
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (window.scrollY === 0 && !isRefreshing) {
+        startYRef.current = e.clientY;
+        isPullingRef.current = true;
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPullingRef.current || isRefreshing) return;
+      const diff = e.clientY - startYRef.current;
+      if (diff > 0 && window.scrollY === 0) {
+        setPullDistance(Math.min(diff * 0.4, 80));
+      } else {
+        isPullingRef.current = false;
+        setPullDistance(0);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isPullingRef.current || isRefreshing) return;
+      isPullingRef.current = false;
+      if (pullDistance >= 50) {
+        setIsRefreshing(true);
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: discoverQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: exploreQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: walletQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: lifeQueryKey(userId) }),
+        ]).then(() => {
+          setTimeout(() => {
+            setIsRefreshing(false);
+            setPullDistance(0);
+          }, 600);
+        }).catch(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        });
+      } else {
+        setPullDistance(0);
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [userId, isRefreshing, pullDistance, queryClient]);
 
   useEffect(() => {
     if (isValidHomeTab(tabParam)) {
@@ -256,7 +369,6 @@ function HomePageContent() {
   }, [handleTabChange]);
 
   const { confirm } = useConfirmDialog();
-  const userId = user?.id;
 
   // Real-time synchronization: staleTime: 0 & instant refetching on window focus / reconnect
   const discoverQuery = useQuery({
@@ -323,6 +435,8 @@ function HomePageContent() {
   const todayAgenda = data?.todayAgenda || [];
   const weeklyChores = data?.weeklyChores || null;
   const weeklyReadingGoal = data?.weeklyReadingGoal || null;
+  const todayMatches: buyuk_maclar.BigMatch[] = data?.todayMatches || [];
+  const youtubeSeries: ytdb.Series[] = data?.youtubeSeries || [];
 
   const explorePlacesApps = useMemo(() => {
     const order = ["workplaces", "digital-menu", "stamp-card"];
@@ -439,14 +553,14 @@ function HomePageContent() {
   );
 
   const lifeHomeApps = useMemo(() => {
-    const order = ["ev-isleri", "rutinler"];
+    const order = ["ev-isleri", "eksik-var"];
     return apps
       .filter((app: MiniApp) => app.category === "Kampüslülere Özel" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 
   const lifeHealthApps = useMemo(() => {
-    const order = ["eksik-var", "meal-planner", "gym", "study"];
+    const order = ["rutinler", "meal-planner", "gym", "study"];
     return apps
       .filter((app: MiniApp) => app.category === "Kampüslülere Özel" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
@@ -492,6 +606,27 @@ function HomePageContent() {
       />
       <AppBar activePage={getActivePage()} />
 
+      {/* Pull to Refresh Indicator */}
+      <div
+        className="w-full flex items-center justify-center overflow-hidden transition-all duration-150 ease-out bg-app-bg"
+        style={{
+          height: pullDistance > 0 || isRefreshing ? `${Math.max(pullDistance, isRefreshing ? 48 : 0)}px` : "0px",
+          opacity: pullDistance > 0 || isRefreshing ? 1 : 0,
+        }}
+      >
+        <div className="flex items-center gap-2 text-app-muted text-[10px] font-black uppercase tracking-wider py-2">
+          <div
+            className={`w-4 h-4 border-2 border-app-border border-t-red-500 rounded-full ${
+              isRefreshing ? "animate-spin" : ""
+            }`}
+            style={{
+              transform: isRefreshing ? undefined : `rotate(${pullDistance * 4}deg)`,
+            }}
+          />
+          <span>{isRefreshing ? "Yenileniyor..." : pullDistance >= 50 ? "Bırak ve Yenile" : "Yenilemek için çek"}</span>
+        </div>
+      </div>
+
       <main className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
         {isHomeLoading ? (
           <HomeSkeleton />
@@ -515,6 +650,8 @@ function HomePageContent() {
                     todayAgenda={todayAgenda}
                     weeklyChores={weeklyChores}
                     weeklyReadingGoal={weeklyReadingGoal}
+                    todayMatches={todayMatches}
+                    youtubeSeries={youtubeSeries}
                     userId={user?.id}
                     loading={loading}
                   />
@@ -775,6 +912,8 @@ function HomeSummaryCards({
   todayAgenda,
   weeklyChores,
   weeklyReadingGoal,
+  todayMatches,
+  youtubeSeries,
   userId,
   loading,
 }: {
@@ -786,6 +925,8 @@ function HomeSummaryCards({
   todayAgenda: rutinler.RoutineEntry[];
   weeklyChores: ev_isleri.IntegratedTodayChores | null;
   weeklyReadingGoal: read_tracker.WeeklyGoal | null;
+  todayMatches: buyuk_maclar.BigMatch[];
+  youtubeSeries: ytdb.Series[];
   userId?: string;
   loading: boolean;
 }) {
@@ -1253,6 +1394,8 @@ function HomeSummaryCards({
       completedTodayChores={completedTodayChores}
       choresEmptyText={choresEmptyText}
       handleToggleChoreComplete={handleToggleChoreComplete}
+      todayMatches={todayMatches}
+      youtubeSeries={youtubeSeries}
     />
   );
 }

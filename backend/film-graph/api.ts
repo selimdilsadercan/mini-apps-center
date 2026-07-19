@@ -1,9 +1,14 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
+import { createSupabaseClient } from "../lib/supabase";
 
 const tmdbApiKey = secret("TmdbApiKey");
 const BASE_URL = "https://api.themoviedb.org/3";
 const LANG = "tr-TR";
+
+const supabaseUrl = secret("SupabaseUrl");
+const supabaseAnonKey = secret("SupabaseAnonKey");
+const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 interface CacheEntry<T> {
   data: T;
@@ -281,4 +286,258 @@ export const getFilmDetails = api(
       throw APIError.internal(`Failed to fetch film details: ${message}`);
     }
   },
+);
+
+// ==================== DB ENDPOINTS & DAILY SUGGESTIONS SYNC ====================
+
+export interface DBUserFilm {
+  movie_id: string;
+  title: string;
+  year: number;
+  status: string;
+  poster_url?: string;
+  vote_average?: number;
+}
+
+export interface SyncUserFilmRequest {
+  userId: string;
+  movie: DBUserFilm;
+}
+
+export interface GetDailySuggestionsResponse {
+  movie1: any;
+  movie2: any;
+}
+
+export const getUserFilms = api(
+  { expose: true, method: "GET", path: "/film-graph/user-films/:userId" },
+  async ({ userId }: { userId: string }): Promise<{ films: DBUserFilm[] }> => {
+    const { data, error } = await supabase
+      .schema("film_graph")
+      .from("user_films")
+      .select("movie_id, title, year, status, poster_url, vote_average")
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("getUserFilms db error:", error);
+      throw APIError.internal("Filmler yüklenemedi");
+    }
+
+    return { films: data || [] };
+  }
+);
+
+export const syncUserFilm = api(
+  { expose: true, method: "POST", path: "/film-graph/user-films/sync" },
+  async ({ userId, movie }: SyncUserFilmRequest): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+      .schema("film_graph")
+      .from("user_films")
+      .upsert({
+        user_id: userId,
+        movie_id: movie.movie_id,
+        title: movie.title,
+        year: movie.year,
+        status: movie.status,
+        poster_url: movie.poster_url || null,
+        vote_average: movie.vote_average || null,
+      }, {
+        onConflict: "user_id,movie_id"
+      });
+
+    if (error) {
+      console.error("syncUserFilm db error:", error);
+      throw APIError.internal("Film senkronize edilemedi");
+    }
+
+    return { success: true };
+  }
+);
+
+export const deleteUserFilm = api(
+  { expose: true, method: "DELETE", path: "/film-graph/user-films/:userId/:movieId" },
+  async ({ userId, movieId }: { userId: string; movieId: string }): Promise<{ success: boolean }> => {
+    const { error } = await supabase
+      .schema("film_graph")
+      .from("user_films")
+      .delete()
+      .eq("user_id", userId)
+      .eq("movie_id", movieId);
+
+    if (error) {
+      console.error("deleteUserFilm db error:", error);
+      throw APIError.internal("Film silinemedi");
+    }
+
+    return { success: true };
+  }
+);
+
+export const ignoreFilm = api(
+  { expose: true, method: "POST", path: "/film-graph/ignore" },
+  async ({ userId, movieId }: { userId: string; movieId: string }): Promise<{ success: boolean }> => {
+    // 1. Add to ignored
+    const { error: ignoreError } = await supabase
+      .schema("film_graph")
+      .from("user_ignored")
+      .upsert({
+        user_id: userId,
+        movie_id: movieId,
+      }, {
+        onConflict: "user_id,movie_id"
+      });
+
+    if (ignoreError) {
+      console.error("ignoreFilm db error:", ignoreError);
+      throw APIError.internal("Film yoksayılamadı");
+    }
+
+    // 2. Remove today's suggestion so it regenerates dynamically next time getDailySuggestions is called
+    const todayStr = new Date().toISOString().split("T")[0];
+    await supabase
+      .schema("film_graph")
+      .from("daily_suggestions")
+      .delete()
+      .eq("user_id", userId)
+      .eq("suggestion_date", todayStr);
+
+    return { success: true };
+  }
+);
+
+export const getDailySuggestions = api(
+  { expose: true, method: "GET", path: "/film-graph/daily-suggestions/:userId" },
+  async ({ userId }: { userId: string }): Promise<GetDailySuggestionsResponse> => {
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // Check if suggestions for today already exist
+    const { data: suggestionData, error: suggestionError } = await supabase
+      .schema("film_graph")
+      .from("daily_suggestions")
+      .select("movie_1, movie_2")
+      .eq("user_id", userId)
+      .eq("suggestion_date", todayStr)
+      .maybeSingle();
+
+    if (!suggestionError && suggestionData) {
+      const { data: savedFilms } = await supabase
+        .schema("film_graph")
+        .from("user_films")
+        .select("movie_id, status")
+        .eq("user_id", userId);
+
+      const savedList = savedFilms || [];
+      const savedIds = new Set(savedList.map((f) => f.movie_id));
+      const watchedIds = new Set(savedList.filter((f) => f.status === "watched").map((f) => f.movie_id));
+
+      const m1 = suggestionData.movie_1;
+      const m2 = suggestionData.movie_2;
+
+      // If either suggested movie is now watched, delete suggestion so it regenerates
+      if (
+        (m1 && watchedIds.has(String(m1.id))) ||
+        (m2 && watchedIds.has(String(m2.id)))
+      ) {
+        await supabase
+          .schema("film_graph")
+          .from("daily_suggestions")
+          .delete()
+          .eq("user_id", userId)
+          .eq("suggestion_date", todayStr);
+      } else {
+        return {
+          movie1: m1 ? { ...m1, isSaved: savedIds.has(String(m1.id)) } : null,
+          movie2: m2 ? { ...m2, isSaved: savedIds.has(String(m2.id)) } : null,
+        };
+      }
+    }
+
+    // Otherwise, generate suggestions:
+    // Load user saved films and ignored list
+    const [savedFilmsRes, ignoredRes, popularRes] = await Promise.all([
+      supabase.schema("film_graph").from("user_films").select("movie_id, title, year, status, poster_url, vote_average").eq("user_id", userId),
+      supabase.schema("film_graph").from("user_ignored").select("movie_id").eq("user_id", userId),
+      fetchTrendingAndPopular(1),
+    ]);
+
+    const savedList = savedFilmsRes.data || [];
+    const ignoredIds = (ignoredRes.data || []).map((i) => i.movie_id);
+
+    const wantCandidates = savedList.filter(
+      (f) => f.status === "want" && !ignoredIds.includes(f.movie_id)
+    );
+
+    const discoveryCandidates = (popularRes.movies || []).filter((m) => {
+      const mId = String(m.id);
+      const isSaved = savedList.some((f) => f.movie_id === mId);
+      const isIgnored = ignoredIds.includes(mId);
+      return !isSaved && !isIgnored;
+    });
+
+    const selected: any[] = [];
+    const todaySeed = new Date().getDate();
+
+    // 1. Saved Movie candidate
+    if (wantCandidates.length > 0) {
+      const chosen = wantCandidates[todaySeed % wantCandidates.length];
+      selected.push({
+        id: chosen.movie_id,
+        title: chosen.title,
+        year: chosen.year,
+        voteAverage: chosen.vote_average,
+        posterUrl: chosen.poster_url,
+        isSaved: true,
+      });
+    }
+
+    // 2. Discovery Movie candidate
+    const remainingDiscovery = discoveryCandidates.filter(
+      (m) => !selected.some((s) => String(s.id) === String(m.id))
+    );
+
+    if (remainingDiscovery.length > 0) {
+      const chosen = remainingDiscovery[todaySeed % remainingDiscovery.length];
+      selected.push({
+        id: String(chosen.id),
+        title: chosen.title,
+        year: chosen.year,
+        voteAverage: chosen.voteAverage,
+        posterUrl: chosen.posterUrl,
+        isSaved: false,
+      });
+    }
+
+    // Fallback if needed
+    if (selected.length < 2 && remainingDiscovery.length > 1) {
+      const chosen = remainingDiscovery[(todaySeed + 1) % remainingDiscovery.length];
+      selected.push({
+        id: String(chosen.id),
+        title: chosen.title,
+        year: chosen.year,
+        voteAverage: chosen.voteAverage,
+        posterUrl: chosen.posterUrl,
+        isSaved: false,
+      });
+    }
+
+    const movie1 = selected[0] || null;
+    const movie2 = selected[1] || null;
+
+    // Save to daily suggestion table
+    if (movie1 || movie2) {
+      await supabase
+        .schema("film_graph")
+        .from("daily_suggestions")
+        .upsert({
+          user_id: userId,
+          suggestion_date: todayStr,
+          movie_1: movie1,
+          movie_2: movie2,
+        }, {
+          onConflict: "user_id,suggestion_date"
+        });
+    }
+
+    return { movie1, movie2 };
+  }
 );

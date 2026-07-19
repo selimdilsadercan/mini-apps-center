@@ -145,7 +145,11 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
     }));
     
     if (user?.id) {
-      await updateUserPreferencesAction(user.id, { pinnedApps: newPinned });
+      try {
+        await updateUserPreferencesAction(user.id, { pinnedApps: newPinned });
+      } catch (err) {
+        console.error("Failed to save pinned apps:", err);
+      }
     } else {
       localStorage.setItem(`pinned_apps_guest`, JSON.stringify(newPinned));
     }
@@ -166,9 +170,13 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
     }));
 
     if (user?.id) {
-      await updateUserPreferencesAction(user.id, {
-        dailyWidgetStates: merged as unknown as Record<string, unknown>,
-      });
+      try {
+        await updateUserPreferencesAction(user.id, {
+          dailyWidgetStates: merged as unknown as Record<string, unknown>,
+        });
+      } catch (err) {
+        console.error("Failed to save daily widget states:", err);
+      }
     }
   };
 

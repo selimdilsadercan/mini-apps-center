@@ -3749,6 +3749,15 @@ export namespace feedback {
 }
 
 export namespace film_graph {
+    export interface DBUserFilm {
+        "movie_id": string
+        title: string
+        year: number
+        status: string
+        "poster_url"?: string
+        "vote_average"?: number
+    }
+
     export interface FilmCatalogItem {
         id: string
         title: string
@@ -3767,10 +3776,20 @@ export namespace film_graph {
         imdbId?: string
     }
 
+    export interface GetDailySuggestionsResponse {
+        movie1: any
+        movie2: any
+    }
+
     export interface ListFilmsResponse {
         movies: FilmCatalogItem[]
         page: number
         totalPages: number
+    }
+
+    export interface SyncUserFilmRequest {
+        userId: string
+        movie: DBUserFilm
     }
 
     export class ServiceClient {
@@ -3778,10 +3797,31 @@ export namespace film_graph {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.deleteUserFilm = this.deleteUserFilm.bind(this)
+            this.getDailySuggestions = this.getDailySuggestions.bind(this)
             this.getFilmDetails = this.getFilmDetails.bind(this)
             this.getPopularFilms = this.getPopularFilms.bind(this)
             this.getTopRatedFilms = this.getTopRatedFilms.bind(this)
+            this.getUserFilms = this.getUserFilms.bind(this)
+            this.ignoreFilm = this.ignoreFilm.bind(this)
             this.searchFilms = this.searchFilms.bind(this)
+            this.syncUserFilm = this.syncUserFilm.bind(this)
+        }
+
+        public async deleteUserFilm(userId: string, movieId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/film-graph/user-films/${encodeURIComponent(userId)}/${encodeURIComponent(movieId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        public async getDailySuggestions(userId: string): Promise<GetDailySuggestionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/daily-suggestions/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetDailySuggestionsResponse
         }
 
         /**
@@ -3832,6 +3872,29 @@ export namespace film_graph {
             return await resp.json() as ListFilmsResponse
         }
 
+        public async getUserFilms(userId: string): Promise<{
+    films: DBUserFilm[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/user-films/${encodeURIComponent(userId)}`)
+            return await resp.json() as {
+    films: DBUserFilm[]
+}
+        }
+
+        public async ignoreFilm(params: {
+    userId: string
+    movieId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/ignore`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
         /**
          * Film arama
          * GET /film-graph/search?query=inception&page=1
@@ -3849,6 +3912,16 @@ export namespace film_graph {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/search`, undefined, {query})
             return await resp.json() as ListFilmsResponse
+        }
+
+        public async syncUserFilm(params: SyncUserFilmRequest): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/user-films/sync`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
         }
     }
 }
@@ -4749,6 +4822,8 @@ export namespace hub {
         todayAgenda: rutinler.RoutineEntry[]
         weeklyChores: ev_isleri.IntegratedTodayChores | null
         weeklyReadingGoal: read_tracker.WeeklyGoal | null
+        todayMatches: buyuk_maclar.BigMatch[]
+        youtubeSeries: ytdb.Series[]
     }
 
     export interface ExploreWidgetsResponse {

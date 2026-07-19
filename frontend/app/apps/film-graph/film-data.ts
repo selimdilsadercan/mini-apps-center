@@ -16,6 +16,7 @@ export interface Film {
   imgUrl?: string;
   overview?: string;
   voteAverage?: number;
+  status?: "want" | "watched" | "soon" | "later";
 }
 
 export interface FilmCatalogItem {

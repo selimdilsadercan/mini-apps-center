@@ -100,7 +100,6 @@ export default function DiscoverTab({
             [
               ["popular", "Popüler"],
               ["rating", "Puan"],
-              ["year", "Yıl"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -115,26 +114,6 @@ export default function DiscoverTab({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <p className="text-[10px] font-black text-app-muted uppercase tracking-widest">
-            {headerLabel}
-          </p>
-          <p className="text-[10px] text-app-muted mt-0.5">
-            {loading ? "Yükleniyor..." : `${movies.length} film`}
-            {!debouncedQuery && sort === "popular" && !loading && " · canlı veri"}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void loadMovies()}
-          disabled={loading}
-          className="shrink-0 w-8 h-8 rounded-lg border border-app-border bg-app-surface text-app-muted hover:text-app-text flex items-center justify-center disabled:opacity-50"
-          aria-label="Yenile"
-        >
-          <ArrowClockwise size={14} weight="bold" className={loading ? "animate-spin" : ""} />
-        </button>
-      </div>
 
       {error && (
         <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-700 dark:text-red-300">

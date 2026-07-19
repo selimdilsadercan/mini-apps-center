@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, X, Archive } from "@phosphor-icons/react";
 import type { ComponentType, ReactNode } from "react";
 
 export function HomeTaskCheckButton({
@@ -93,9 +93,11 @@ export function HomeSummaryCard({
   emptyText,
   hasContent,
   emptyFooter,
+  onHide,
+  hideLabel,
   children,
 }: {
-  href: string;
+  href?: string;
   icon: ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
   color: string;
   title: string;
@@ -104,10 +106,12 @@ export function HomeSummaryCard({
   emptyText: string;
   hasContent: boolean;
   emptyFooter?: ReactNode;
+  onHide?: () => void;
+  hideLabel?: string;
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden flex flex-col">
       <div className="flex items-center gap-3 px-4 py-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
@@ -119,13 +123,15 @@ export function HomeSummaryCard({
           <p className="text-[12px] font-black text-app-text tracking-tight">{title}</p>
           <p className="text-[9px] font-bold text-app-muted tracking-wide">{subtitle}</p>
         </div>
-        <Link
-          href={href}
-          className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-app-muted hover:text-app-text hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
-          aria-label={`${title} uygulamasını aç`}
-        >
-          <ArrowRight size={16} weight="bold" />
-        </Link>
+        {href && (
+          <Link
+            href={href}
+            className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-app-muted hover:text-app-text hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
+            aria-label={`${title} uygulamasını aç`}
+          >
+            <ArrowRight size={16} weight="bold" />
+          </Link>
+        )}
       </div>
 
       {loading ? (
@@ -143,6 +149,22 @@ export function HomeSummaryCard({
             </div>
           )}
           {emptyFooter}
+        </div>
+      )}
+
+      {onHide && (
+        <div className="px-4 py-2 border-t border-app-border/60 bg-app-surface-muted/20 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onHide();
+            }}
+            className="flex items-center gap-1.5 text-app-muted hover:text-app-text text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shrink-0"
+          >
+            <Archive size={12} weight="bold" />
+            <span>{hideLabel || "Bugünlük Gizle"}</span>
+          </button>
         </div>
       )}
     </div>

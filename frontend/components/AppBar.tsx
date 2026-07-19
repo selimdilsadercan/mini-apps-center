@@ -109,20 +109,8 @@ export default function AppBar({ activePage }: AppBarProps) {
             <span className="text-[9px] font-black uppercase tracking-tighter">Hobi</span>
           </Link>
 
-          {/* Asistan */}
-          <Link
-            href="/home?tab=ai-chat"
-            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
-              isActive(ActivePage.AI_CHAT) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
-            }`}
-          >
-            <Robot 
-              size={20} 
-              weight={isActive(ActivePage.AI_CHAT) ? "fill" : "bold"}
-              className={`flex-shrink-0 ${isActive(ActivePage.AI_CHAT) ? "text-violet-500" : ""}`}
-            />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Asistan</span>
-          </Link>
+
+
 
           {/* Yaşam */}
           <Link

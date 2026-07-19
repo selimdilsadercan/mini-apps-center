@@ -28,7 +28,26 @@ import {
   ListBullets,
   Cards,
   Sparkle,
+  Trophy,
+  YoutubeLogo,
+  FilmStrip,
+  ProjectorScreen,
+  Archive,
+  CaretDown,
+  CaretUp,
 } from "@phosphor-icons/react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { createBrowserClient } from "@/lib/api";
+import { useHome } from "@/contexts/HomeContext";
+import { toast } from "react-hot-toast";
+
+const browserClient = createBrowserClient();
+
+const DEFAULT_MOVIES = [
+  { id: "101", title: "Dune: Part Two", year: 2024, voteAverage: 8.6, posterUrl: "https://image.tmdb.org/t/p/w500/1pdfLPoL6VFiH2G2WFiipM32M2Y.jpg" },
+  { id: "102", title: "Oppenheimer", year: 2023, voteAverage: 8.9, posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
+  { id: "103", title: "Interstellar", year: 2014, voteAverage: 8.7, posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
+];
 import {
   HomeSummaryCard,
   HomeTaskCheckButton,
@@ -98,9 +117,10 @@ interface DiscoverTabProps {
   completedTodayChores: any[];
   choresEmptyText: string;
   handleToggleChoreComplete: (choreId: string) => Promise<void>;
+  todayMatches: any[];
+  youtubeSeries: any[];
 }
 
-import { useState } from "react";
 import { DeckView } from "./DeckView";
 
 export function DiscoverTab(props: DiscoverTabProps) {
@@ -154,10 +174,145 @@ export function DiscoverTab(props: DiscoverTabProps) {
     completedTodayChores,
     choresEmptyText,
     handleToggleChoreComplete,
+    todayMatches = [],
+    youtubeSeries = [],
   } = props;
 
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<"cards" | "list" | "assistant">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "list" | "assistant">("list");
+  const [movieSuggestions, setMovieSuggestions] = useState<any[]>([]);
+  const [moviesLoading, setMoviesLoading] = useState(true);
+  const loadDailySuggestions = useCallback(() => {
+    if (!userId) {
+      setMoviesLoading(false);
+      return;
+    }
+    setMoviesLoading(true);
+    browserClient.film_graph
+      .getDailySuggestions(userId)
+      .then((res) => {
+        const list = [];
+        if (res.movie1) list.push(res.movie1);
+        if (res.movie2) list.push(res.movie2);
+        setMovieSuggestions(list);
+      })
+      .catch((err) => {
+        console.error("Failed to load daily film suggestions:", err);
+      })
+      .finally(() => {
+        setMoviesLoading(false);
+      });
+  }, [userId]);
+
+  useEffect(() => {
+    loadDailySuggestions();
+  }, [loadDailySuggestions]);
+
+  const ignoreMovie = async (movieId: string) => {
+    if (!userId) return;
+    try {
+      await browserClient.film_graph.ignoreFilm({
+        userId,
+        movieId: String(movieId),
+      });
+      loadDailySuggestions();
+    } catch (e) {
+      console.error(e);
+      toast.error("Film listeden kaldırılamadı");
+    }
+  };
+
+  const addHomeMovieToList = async (movie: any, status: "want" | "watched") => {
+    if (!userId) return;
+    try {
+      const dbMovie = {
+        movie_id: String(movie.id),
+        title: movie.title,
+        year: movie.year || 0,
+        status: status,
+        poster_url: movie.posterUrl || "",
+        vote_average: movie.voteAverage || 0,
+      };
+
+      await browserClient.film_graph.syncUserFilm({
+        userId,
+        movie: dbMovie,
+      });
+
+      // Maintain local storage compatibility for film-graph app
+      const savedData = localStorage.getItem("everything_films");
+      let films = [];
+      let personsObj = {};
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        films = parsed.films || [];
+        personsObj = parsed.persons || {};
+      }
+
+      const mId = String(movie.id);
+      const newFilm = {
+        id: mId,
+        title: movie.title,
+        year: movie.year || 0,
+        directorId: movie.directorId || "",
+        actorIds: movie.actorIds || [],
+        imgUrl: movie.posterUrl,
+        overview: movie.overview || "",
+        voteAverage: movie.voteAverage || 0,
+        status: status
+      };
+
+      if (films.some((f: any) => String(f.id) === mId)) {
+        films = films.map((f: any) => String(f.id) === mId ? { ...f, status } : f);
+      } else {
+        films.push(newFilm);
+      }
+
+      localStorage.setItem("everything_films", JSON.stringify({ films, persons: personsObj }));
+
+      loadDailySuggestions();
+      toast.success(status === "watched" ? "İzledim olarak kaydedildi!" : "İzleneceklere eklendi!");
+    } catch (e) {
+      console.error(e);
+      toast.error("İşlem gerçekleştirilemedi");
+    }
+  };
+
+  const { dailyWidgetStates, updateDailyWidgetStates } = useHome();
+  const hiddenCardIds = dailyWidgetStates?.hiddenCardIds || [];
+
+  const handleToggleHideCard = (cardId: string) => {
+    const newHidden = hiddenCardIds.includes(cardId)
+      ? hiddenCardIds.filter((id) => id !== cardId)
+      : [...hiddenCardIds, cardId];
+    void updateDailyWidgetStates({ hiddenCardIds: newHidden });
+  };
+
+  const getWidgetCardId = (key: string) => {
+    const map: Record<string, string> = {
+      agenda: "agenda-unified",
+      chores: "chores-unified",
+      series: "series-unified",
+      seriesTrack: "series-unified",
+      reading: "read-tracker",
+      readTracker: "read-tracker",
+      youtubeSeries: "youtube-series-unified",
+      matches: "matches-unified",
+      gym: "gym-today",
+      meals: "meals-today",
+    };
+    return map[key] || key;
+  };
+
+  const isWidgetHidden = (key: string) => {
+    return hiddenCardIds.includes(getWidgetCardId(key));
+  };
+
+  const handleToggleHide = (key: string) => {
+    handleToggleHideCard(getWidgetCardId(key));
+  };
+
+  const [isHiddenExpanded, setIsHiddenExpanded] = useState(false);
 
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
@@ -199,6 +354,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={agendaEmptyText}
           hasContent={pendingTodayAgenda.length > 0}
+          onHide={() => handleToggleHide("agenda")}
           emptyFooter={
             !pendingTodayAgenda.length && completedTodayAgenda.length > 0 ? (
               <>{completedTodayAgenda.map(renderCompletedAgendaRow)}</>
@@ -269,12 +425,13 @@ export function DiscoverTab(props: DiscoverTabProps) {
         <HomeSummaryCard
           href="/apps/suggest"
           icon={PaperPlaneTilt}
-          color="#6366f1"
-          title="Gelen Öneriler"
-          subtitle="Suggest"
+          color="#EC4899"
+          title="Sana Özel Öneriler"
+          subtitle="Tavsiyeler"
           loading={loading}
-          emptyText="Yeni öneri yok"
+          emptyText="Henüz sana gelen yeni bir öneri yok ✨"
           hasContent={previewSuggestions.length > 0}
+          onHide={() => handleToggleHide("suggest")}
         >
           {previewSuggestions.map((suggestion: any) => (
             <div key={suggestion.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
@@ -346,12 +503,13 @@ export function DiscoverTab(props: DiscoverTabProps) {
         <HomeSummaryCard
           href="/apps/kim-gelir"
           icon={Users}
-          color="#FF5252"
-          title="Plan Davetleri"
-          subtitle="Ne Yapsak?"
+          color="#3B82F6"
+          title="Etkinlik Davetleri"
+          subtitle="Kim Gelir"
           loading={loading}
-          emptyText="Aktif davet yok"
+          emptyText="Henüz yeni bir etkinlik davetin yok 🎉"
           hasContent={previewActivities.length > 0}
+          onHide={() => handleToggleHide("activities")}
         >
           {previewActivities.map((activity: any) => {
             const myResponse = activity.responses.find((response: any) => response.userId === userId)?.status;
@@ -401,6 +559,77 @@ export function DiscoverTab(props: DiscoverTabProps) {
       ),
     },
     {
+      key: "matches",
+      loading: loading,
+      hasContent: todayMatches.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/buyuk-maclar"
+          icon={Trophy}
+          color="#EAB308"
+          title="Yakındaki Büyük Maçlar"
+          subtitle="Büyük Maçlar"
+          loading={loading}
+          emptyText="Yakın tarihte takip edilen büyük maç yok 🏆"
+          hasContent={todayMatches.length > 0}
+          onHide={() => handleToggleHide("matches")}
+        >
+          {todayMatches.slice(0, 4).map((match: any) => {
+            const isLive = match.state === "live";
+            const isFinished = match.state === "finished";
+            const matchDate = new Date(match.startAt);
+            const startTime = matchDate.toLocaleTimeString("tr-TR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            const startDate = matchDate.toLocaleDateString("tr-TR", {
+              day: "numeric",
+              month: "short",
+            });
+            return (
+              <div key={match.id} className="px-4 py-3 border-t border-app-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 px-1.5 py-1 rounded-xl bg-app-surface border border-app-border flex flex-col items-center justify-center shrink-0">
+                    {isLive ? (
+                      <span className="text-[8px] font-black text-rose-500 uppercase tracking-wider animate-pulse flex items-center gap-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                        CANLI
+                      </span>
+                    ) : (
+                      <span className="text-[7px] font-black text-app-muted uppercase">
+                        {startDate}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-black text-app-text tabular-nums mt-0.5">
+                      {startTime}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black text-app-text truncate">
+                        {match.home} <span className="text-app-muted font-bold text-[10px] mx-0.5">vs</span> {match.away}
+                      </p>
+                      <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                        {match.competitionTr}
+                      </p>
+                    </div>
+
+                    {(isLive || isFinished) && (
+                      <span className="shrink-0 px-2.5 py-1 rounded-xl bg-app-surface border border-app-border text-[11px] font-black text-app-text tabular-nums">
+                        {match.homeScore} - {match.awayScore}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      ),
+    },
+    {
       key: "series",
       loading: loading,
       hasContent: pendingSeriesWidget,
@@ -409,12 +638,13 @@ export function DiscoverTab(props: DiscoverTabProps) {
         <HomeSummaryCard
           href={seriesTrackHref}
           icon={VideoCamera}
-          color="#E50914"
+          color="#EF4444"
           title="Bugünün Dizileri"
           subtitle="SeriesTrack"
           loading={loading}
           emptyText={seriesEmptyText}
-          hasContent={pendingSeriesWidget}
+          hasContent={pendingAvailableSeries.length > 0}
+          onHide={() => handleToggleHide("seriesTrack")}
           emptyFooter={
             !pendingSeriesWidget && completedTodaySeries.length > 0 ? (
               <>{completedTodaySeries.map(renderCompletedSeriesRow)}</>
@@ -463,12 +693,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 >
                   İzlendi
                 </WidgetActionButton>
-                <WidgetActionButton
-                  onClick={() => handleIgnoreSeriesToday(item)}
-                  icon={EyeSlash}
-                >
-                  Yoksay
-                </WidgetActionButton>
               </div>
             </div>
           ))}
@@ -489,8 +713,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
           title="Bugünün Antrenmanı"
           subtitle="Gym"
           loading={loading}
-          emptyText={gymEmptyText}
+          emptyText="Bugün dinlenme günü 🛋️"
           hasContent={pendingTodayGym}
+          onHide={() => handleToggleHide("gym")}
           emptyFooter={
             completedTodayGym ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
@@ -557,6 +782,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={choresEmptyText}
           hasContent={pendingTodayChores.length > 0}
+          onHide={() => handleToggleHide("chores")}
           emptyFooter={
             completedTodayChores.length > 0 ? (
               <>
@@ -627,6 +853,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={mealsEmptyText}
           hasContent={pendingMealsWidget}
+          onHide={() => handleToggleHide("meals")}
           emptyFooter={
             allTodayMealsCompleted ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
@@ -781,6 +1008,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
             loading={loading}
             emptyText={emptyText}
             hasContent={hasCardContent}
+            onHide={() => handleToggleHide("readTracker")}
             emptyFooter={
               (isCompleted || isTodayTargetCompleted || isSkipped) && bookTitle ? (
                 <div className="px-4 py-3 border-t border-app-border space-y-2.5 opacity-70">
@@ -892,215 +1120,321 @@ export function DiscoverTab(props: DiscoverTabProps) {
         );
       })(),
     },
+    {
+      key: "youtubeSeries",
+      loading: loading,
+      hasContent: youtubeSeries.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/youtube-discover"
+          icon={YoutubeLogo}
+          color="#FF0000"
+          title="İzlenecek Videolar Bul"
+          subtitle="YTDB"
+          loading={loading}
+          emptyText="İzlenecek videolar bulunmuyor 📺"
+          hasContent={youtubeSeries.length > 0}
+          onHide={() => handleToggleHide("youtubeSeries")}
+        >
+          {youtubeSeries.slice(0, 4).map((series: any) => {
+            const thumbnailUrl = series.youtube_id
+              ? `https://img.youtube.com/vi/${series.youtube_id}/mqdefault.jpg`
+              : null;
+            return (
+              <div
+                key={series.id}
+                onClick={() => router.push(`/apps/youtube-discover/seri?id=${series.id}`)}
+                className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-12 h-9 rounded-lg overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center">
+                    {thumbnailUrl ? (
+                      <img
+                        src={thumbnailUrl}
+                        alt={series.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-md">{series.emoji || "📺"}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-app-text truncate">
+                      {series.title}
+                    </p>
+                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                      {series.creator} · {series.episode_count || series.episodes?.length || 0} Bölüm
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      ),
+    },
+    {
+      key: "movies",
+      loading: moviesLoading,
+      hasContent: movieSuggestions.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/film-graph"
+          icon={ProjectorScreen}
+          color="#D97706"
+          title="Bir Film İzle"
+          subtitle="Film Keşfet"
+          loading={moviesLoading}
+          emptyText="İzlenecek film bulunamadı 🍿"
+          hasContent={movieSuggestions.length > 0}
+          onHide={() => handleToggleHide("movies")}
+        >
+          {movieSuggestions.map((movie: any) => (
+            <div
+              key={movie.id}
+              className="px-4 py-3 border-t border-app-border space-y-2.5"
+            >
+              <div
+                onClick={() => router.push(`/apps/film-graph?movie=${movie.id}`)}
+                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-all text-left"
+              >
+                <div className="w-9 h-12 rounded-lg overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center">
+                  {movie.posterUrl ? (
+                    <img
+                      src={movie.posterUrl}
+                      alt={movie.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ProjectorScreen size={18} className="text-app-muted" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-app-text truncate flex items-center gap-1.5">
+                    <span>{movie.title}</span>
+                    {movie.isSaved && (
+                      <span className="shrink-0 px-1 py-0.2 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-wider">
+                        Listemden
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {movie.year || (movie.releaseDate ? movie.releaseDate.split("-")[0] : "")} {movie.voteAverage ? `· ★ ${typeof movie.voteAverage === "number" ? movie.voteAverage.toFixed(1) : movie.voteAverage}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <WidgetActionButton
+                  onClick={() => addHomeMovieToList(movie, "watched")}
+                  icon={CheckCircle}
+                >
+                  İzledim
+                </WidgetActionButton>
+
+                {!movie.isSaved && (
+                  <WidgetActionButton
+                    onClick={() => addHomeMovieToList(movie, "want")}
+                    icon={BookmarkSimple}
+                  >
+                    Kaydet
+                  </WidgetActionButton>
+                )}
+
+                <WidgetActionButton
+                  onClick={() => ignoreMovie(movie.id)}
+                  icon={EyeSlash}
+                >
+                  İlgilenmiyorum
+                </WidgetActionButton>
+              </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      ),
+    },
   ];
 
-  const pendingWidgets = widgets.filter((widget) => widget.loading || widget.hasContent);
+  const pendingWidgets = widgets.filter(
+    (widget) =>
+      widget.key !== "matches" &&
+      widget.key !== "youtubeSeries" &&
+      widget.key !== "movies" &&
+      !isWidgetHidden(widget.key) &&
+      (widget.loading || widget.hasContent)
+  );
+
   const finishedWidgets = widgets.filter((widget) => {
-    if (widget.key === "suggest" || widget.key === "activities") return false;
+    if (
+      widget.key === "suggest" ||
+      widget.key === "activities" ||
+      widget.key === "matches" ||
+      widget.key === "youtubeSeries" ||
+      widget.key === "movies" ||
+      isWidgetHidden(widget.key)
+    )
+      return false;
     return !widget.loading && !widget.hasContent;
   });
 
   return (
     <div className="space-y-4">
-      {/* Görünüm modu: Kartlar / Liste / Asistan */}
-      <div className="flex justify-center">
-        <div className="inline-flex items-center gap-0.5 p-1 rounded-xl border border-app-border bg-app-surface-muted">
-          <button
-            type="button"
-            onClick={() => setViewMode("cards")}
-            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-              viewMode === "cards"
-                ? "bg-app-surface text-app-text border border-app-border shadow-xs"
-                : "text-app-muted hover:text-app-text"
-            }`}
-          >
-            <Cards size={13} weight="bold" />
-            <span>Kartlar</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("list")}
-            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-              viewMode === "list"
-                ? "bg-app-surface text-app-text border border-app-border shadow-xs"
-                : "text-app-muted hover:text-app-text"
-            }`}
-          >
-            <ListBullets size={13} weight="bold" />
-            <span>Liste</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("assistant")}
-            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all ${
-              viewMode === "assistant"
-                ? "bg-app-surface text-app-text border border-app-border shadow-xs"
-                : "text-app-muted hover:text-app-text"
-            }`}
-          >
-            <Sparkle size={13} weight="bold" />
-            <span>Asistan</span>
-          </button>
+      {/* 1. YAPILACAKLAR */}
+      {pendingWidgets.length > 0 && (
+        <div className="space-y-2.5">
+          <HomeGroupHeader title="Yapılacaklar" />
+          <div className="space-y-2.5">
+            <AnimatePresence initial={false}>
+              {pendingWidgets.map((widget) => (
+                <motion.div
+                  key={widget.key}
+                  layout
+                  initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, height: "auto", scale: 1 }}
+                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="overflow-hidden"
+                >
+                  {widget.card}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+      )}
 
-      <AnimatePresence mode="wait">
-        {viewMode === "cards" ? (
-          <motion.div
-            key="cards"
-            initial={{ opacity: 0, scale: 0.93, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.93, y: -15 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-          >
-            <DeckView {...props} />
-          </motion.div>
-        ) : viewMode === "assistant" ? (
-          <motion.div
-            key="assistant"
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -15 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-          >
-            <AIChatView />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -15 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="space-y-4"
-          >
-            {/* 1. YAPILACAKLAR */}
-            {pendingWidgets.length > 0 && (
-              <div className="space-y-2.5">
-                <HomeGroupHeader title="Yapılacaklar" />
-                {pendingWidgets.map((widget) => (
-                  <div key={widget.key}>{widget.card}</div>
-                ))}
-              </div>
-            )}
+      {/* 2. BAŞKA NE YAPABİLİRİM? */}
+      {(() => {
+        const matchesWidget = widgets.find((w) => w.key === "matches");
+        const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
+        const moviesWidget = widgets.find((w) => w.key === "movies");
 
-            {/* 2. BAŞKA NE YAPABİLİRİM? */}
-            <div className="pt-2 space-y-2.5">
-              <HomeGroupHeader title="Başka Ne Yapabilirim?" />
-              <div className="space-y-3">
-                {/* Dizi & Film Keşfet Card */}
-                <HomeSummaryCard
-                  href={seriesTrackHref}
-                  icon={VideoCamera}
-                  color="#E50914"
-                  title="Popüler Dizi & Filmler"
-                  subtitle="SeriesTrack & Trendler"
-                  loading={false}
-                  emptyText="Trend Dizileri Keşfet"
-                  hasContent={true}
-                >
-                  <div className="px-4 py-3 border-t border-app-border space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center shrink-0">
-                        <VideoCamera size={20} weight="fill" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black text-app-text truncate">
-                          SeriesTrack Keşfet
-                        </p>
-                        <p className="text-[9px] font-bold text-app-muted truncate mt-0.5">
-                          Yeni bölümler, trend yapımlar ve sinema önerileri
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <WidgetActionButton onClick={() => router.push(seriesTrackHref)} icon={Play}>
-                        Trend Yapımları Gör
-                      </WidgetActionButton>
-                    </div>
-                  </div>
-                </HomeSummaryCard>
+        const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
+        const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
+        const visibleMovies = moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies");
 
-                {/* Şehrini Keşfet Card */}
-                <HomeSummaryCard
-                  href="/home?tab=explore"
-                  icon={Compass}
-                  color="#10B981"
-                  title="Şehrini Keşfet & Etkinlikler"
-                  subtitle="Mekanlar & Rotalar"
-                  loading={false}
-                  emptyText="Keşfet"
-                  hasContent={true}
-                >
-                  <div className="px-4 py-3 border-t border-app-border space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                        <Compass size={20} weight="fill" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black text-app-text truncate">
-                          Popüler Mekanlar & Etkinlikler
-                        </p>
-                        <p className="text-[9px] font-bold text-app-muted truncate mt-0.5">
-                          Çevrendeki kafeler, restoranlar ve etkinlik takvimi
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <WidgetActionButton onClick={() => router.push("/home?tab=explore")} icon={ArrowRight}>
-                        Mekanları İncele
-                      </WidgetActionButton>
-                    </div>
-                  </div>
-                </HomeSummaryCard>
+        const hasAny = visibleMatches || visibleYt || visibleMovies;
 
-                {/* Hobi & Oyunlar Card */}
-                <HomeSummaryCard
-                  href="/home?tab=hobby"
-                  icon={GameController}
-                  color="#8B5CF6"
-                  title="Hobi & Eğlence"
-                  subtitle="Oyunlar & Müzik"
-                  loading={false}
-                  emptyText="Keşfet"
-                  hasContent={true}
-                >
-                  <div className="px-4 py-3 border-t border-app-border space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center shrink-0">
-                        <GameController size={20} weight="fill" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black text-app-text truncate">
-                          Oyunlar & Hobi Dünyası
-                        </p>
-                        <p className="text-[9px] font-bold text-app-muted truncate mt-0.5">
-                          Mini oyunlar, çalma listeleri ve hobi araçları
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <WidgetActionButton onClick={() => router.push("/home?tab=hobby")} icon={ArrowRight}>
-                        Eğlenceye Geç
-                      </WidgetActionButton>
-                    </div>
-                  </div>
-                </HomeSummaryCard>
-              </div>
+        if (!hasAny) return null;
+
+        return (
+          <div className="pt-2 space-y-2.5">
+            <HomeGroupHeader title="Başka Ne Yapabilirim?" />
+            <div className="space-y-3">
+              <AnimatePresence initial={false}>
+                {visibleMatches && matchesWidget && (
+                  <motion.div
+                    key="matches"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {matchesWidget.card}
+                  </motion.div>
+                )}
+                {visibleYt && ytWidget && (
+                  <motion.div
+                    key="youtubeSeries"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {ytWidget.card}
+                  </motion.div>
+                )}
+                {visibleMovies && moviesWidget && (
+                  <motion.div
+                    key="movies"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {moviesWidget.card}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+          </div>
+        );
+      })()}
 
-            {/* 3. BİTENLER (Bugün Bitirdiklerim) */}
-            {finishedWidgets.length > 0 && (
-              <div className="space-y-2.5 pt-2">
-                <HomeGroupHeader title="Bugün Bitirdiklerim" />
-                {finishedWidgets.map((widget) => (
-                  <div key={widget.key}>{widget.card}</div>
-                ))}
+      {/* 3. BİTENLER (Bugün Bitirdiklerim) */}
+      {finishedWidgets.length > 0 && (
+        <div className="space-y-2.5 pt-2">
+          <HomeGroupHeader title="Bugün Bitirdiklerim" />
+          <div className="space-y-2.5">
+            <AnimatePresence initial={false}>
+              {finishedWidgets.map((widget) => (
+                <motion.div
+                  key={widget.key}
+                  layout
+                  initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, height: "auto", scale: 1 }}
+                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="overflow-hidden"
+                >
+                  {widget.card}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) */}
+      {(() => {
+        const hidden = widgets.filter((w) => isWidgetHidden(w.key));
+        if (hidden.length === 0) return null;
+        return (
+          <div className="pt-3 border-t border-app-border/60 space-y-2.5">
+            <button
+              type="button"
+              onClick={() => setIsHiddenExpanded((prev) => !prev)}
+              className="w-full flex items-center justify-between px-1 py-1.5 text-app-muted hover:text-app-text transition-all cursor-pointer select-none group"
+            >
+              <div className="flex items-center gap-2">
+                <Archive size={14} weight="bold" className="text-app-muted group-hover:text-app-text" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-app-muted group-hover:text-app-text">
+                  Bugün Gizlenenler ({hidden.length})
+                </span>
               </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {isHiddenExpanded ? (
+                <CaretUp size={14} weight="bold" />
+              ) : (
+                <CaretDown size={14} weight="bold" />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {isHiddenExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-3 overflow-hidden pt-1"
+                >
+                  {hidden.map((w) => (
+                    <div key={w.key}>{w.card}</div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })()}
     </div>
   );
 }

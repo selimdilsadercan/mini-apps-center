@@ -15,6 +15,8 @@ import { getTodayMeals, MealPlanMeal } from "../recipe/api";
 import { getTodayAgenda, RoutineEntry } from "../rutinler/api";
 import { getTodayIntegratedChores, IntegratedTodayChores } from "../ev-isleri/api";
 import { getWeeklyGoals, WeeklyGoal } from "../read-tracker/api";
+import { listMatches, BigMatch } from "../buyuk-maclar/api";
+import { listSeries, Series } from "../ytdb/api";
 
 // Import types
 import { Place } from "../workplaces/api";
@@ -35,6 +37,8 @@ export interface DiscoverWidgetsResponse {
   todayAgenda: RoutineEntry[];
   weeklyChores: IntegratedTodayChores | null;
   weeklyReadingGoal: WeeklyGoal | null;
+  todayMatches: BigMatch[];
+  youtubeSeries: Series[];
 }
 
 export interface ExploreWidgetsResponse {
@@ -99,6 +103,8 @@ export const getDiscoverWidgets = api(
         todayAgenda: [],
         weeklyChores: null,
         weeklyReadingGoal: null,
+        todayMatches: [],
+        youtubeSeries: [],
       };
     }
 
@@ -116,7 +122,7 @@ export const getDiscoverWidgets = api(
     };
     const currentWeekStart = getMonday();
 
-    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes] = await Promise.all([
+    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes, matchRes, ytRes] = await Promise.all([
       fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
       fetchWithFallback(getActivities({ userId }), { activities: [] }),
       fetchWithFallback(getTodayEpisodes({ userId }), { items: [] }),
@@ -125,6 +131,8 @@ export const getDiscoverWidgets = api(
       fetchWithFallback(getTodayAgenda({ userId }), { entries: [] }),
       fetchWithFallback(getTodayIntegratedChores({ userId }), { chores: null }),
       fetchWithFallback(getWeeklyGoals({ userId }), { goals: [] }),
+      fetchWithFallback(listMatches({ sport: "all" }), { matches: [], fetchedAt: "", source: "" }),
+      fetchWithFallback(listSeries(), { series: [] }),
     ]);
 
     const currentWeekGoal =
@@ -136,6 +144,18 @@ export const getDiscoverWidgets = api(
       readingGoalsRes.goals?.[0] ??
       null;
 
+    const maxLookaheadMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const now = Date.now();
+    const filteredMatches = (matchRes.matches || []).filter((m: BigMatch) => {
+      if (m.state === "live") return true;
+      const t = Date.parse(m.startAt);
+      if (Number.isNaN(t)) return false;
+      if (m.state === "finished") {
+        return now - t <= 24 * 60 * 60 * 1000;
+      }
+      return t - now <= maxLookaheadMs;
+    });
+
     return {
       suggestions: suggestRes.suggestions || [],
       activities: activityRes.activities || [],
@@ -145,6 +165,8 @@ export const getDiscoverWidgets = api(
       todayAgenda: agendaRes.entries || [],
       weeklyChores: choresRes.chores,
       weeklyReadingGoal: currentWeekGoal,
+      todayMatches: filteredMatches,
+      youtubeSeries: ytRes.series || [],
     };
   }
 );

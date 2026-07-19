@@ -7,12 +7,14 @@ import {
   MagnifyingGlass,
   BookmarkSimple,
   Graph,
+  Plus,
 } from "@phosphor-icons/react";
 import { ACCENT, FilmTab } from "../film-data";
 
 interface FilmGraphShellProps {
   activeTab: FilmTab;
   onTabChange: (tab: FilmTab) => void;
+  onAddClick?: () => void;
   children: React.ReactNode;
   graphLayout?: boolean;
 }
@@ -20,6 +22,7 @@ interface FilmGraphShellProps {
 export default function FilmGraphShell({
   activeTab,
   onTabChange,
+  onAddClick,
   children,
   graphLayout = false,
 }: FilmGraphShellProps) {
@@ -56,6 +59,17 @@ export default function FilmGraphShell({
                 Film <span style={{ color: ACCENT }}>Keşfet</span>
               </span>
             </h1>
+
+            {onAddClick && (
+              <button
+                type="button"
+                onClick={onAddClick}
+                className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
+                title="Film Ekle"
+              >
+                <Plus size={16} weight="bold" style={{ color: ACCENT }} />
+              </button>
+            )}
           </div>
 
           <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track">

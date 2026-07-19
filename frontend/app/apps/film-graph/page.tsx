@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useUser } from "@clerk/clerk-react";
+import Client, { Local } from "@/lib/client";
 import { toast, Toaster } from "react-hot-toast";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import AddFilmModal from "./components/AddFilmModal";
@@ -31,19 +33,26 @@ interface FilmDataInput {
   actors: Person[];
 }
 
+const client = new Client(Local);
+
 export default function FilmGraphPage() {
   const { confirm } = useConfirmDialog();
-  const [activeTab, setActiveTab] = useState<FilmTab>("discover");
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const userId = user?.id;
+
+  const [films, setFilms] = useState<Film[]>([]);
+  const [persons, setPersons] = useState<Map<string, Person>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<FilmTab>("list");
+
+  const [detailFilm, setDetailFilm] = useState<FilmCatalogItem | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [catalogCache, setCatalogCache] = useState<Map<string, FilmCatalogItem>>(
     new Map(),
   );
-  const [films, setFilms] = useState<Film[]>([]);
-  const [persons, setPersons] = useState<Map<string, Person>>(new Map());
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [detailFilm, setDetailFilm] = useState<FilmCatalogItem | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const listIds = useMemo(() => new Set(films.map((f) => f.id)), [films]);
 
@@ -88,6 +97,40 @@ export default function FilmGraphPage() {
     }
   }, []);
 
+  // Sync with Database when User is loaded
+  useEffect(() => {
+    if (!isUserLoaded || !userId) return;
+
+    client.film_graph.getUserFilms(userId).then((res) => {
+      if (res.films && res.films.length > 0) {
+        const mappedFilms: Film[] = res.films.map((f) => ({
+          id: f.movie_id,
+          title: f.title,
+          year: f.year,
+          status: f.status as "want" | "watched",
+          imgUrl: f.poster_url || "",
+          directorId: "",
+          actorIds: [],
+        }));
+
+        setFilms((prev) => {
+          const merged = [...prev];
+          mappedFilms.forEach((rf) => {
+            const index = merged.findIndex((lf) => lf.id === rf.id);
+            if (index > -1) {
+              merged[index] = { ...merged[index], status: rf.status, imgUrl: rf.imgUrl || merged[index].imgUrl };
+            } else {
+              merged.push(rf);
+            }
+          });
+          return merged;
+        });
+      }
+    }).catch((err) => {
+      console.error("Failed to load user films from DB:", err);
+    });
+  }, [userId, isUserLoaded]);
+
   useEffect(() => {
     if (films.length === 0 && persons.size === 0) return;
     localStorage.setItem(
@@ -116,7 +159,7 @@ export default function FilmGraphPage() {
   }, []);
 
   const addCatalogToList = useCallback(
-    async (item: FilmCatalogItem) => {
+    async (item: FilmCatalogItem, status: "want" | "watched" = "want") => {
       if (listIds.has(item.id)) {
         toast.success("Zaten listende");
         return;
@@ -125,15 +168,31 @@ export default function FilmGraphPage() {
       try {
         const full = await ensureFilmDetails(item);
         const { film, persons: ps } = catalogItemToEntry(full);
-        setFilms((prev) => [...prev, film]);
+        setFilms((prev) => [...prev, { ...film, status }]);
         mergePersons(ps);
-        toast.success("Listeye eklendi");
+
+        // DB sync
+        if (userId) {
+          void client.film_graph.syncUserFilm({
+            userId,
+            movie: {
+              movie_id: String(item.id),
+              title: item.title,
+              year: item.year,
+              status: status,
+              poster_url: item.posterUrl || "",
+              vote_average: item.voteAverage || 0,
+            }
+          });
+        }
+
+        toast.success(status === "watched" ? "İzledim olarak eklendi" : "Listeye eklendi");
       } catch (e) {
         console.error("Failed to add film:", e);
         toast.error("Film eklenemedi");
       }
     },
-    [listIds, mergePersons, ensureFilmDetails],
+    [listIds, mergePersons, ensureFilmDetails, userId],
   );
 
   const handleAddFilm = useCallback(
@@ -145,21 +204,102 @@ export default function FilmGraphPage() {
         year: filmData.year,
         directorId: filmData.director.id,
         actorIds: filmData.actors.map((a) => a.id),
+        status: "want",
       };
       setFilms((prev) => [...prev, newFilm]);
+
+      // DB Sync
+      if (userId) {
+        void client.film_graph.syncUserFilm({
+          userId,
+          movie: {
+            movie_id: newFilm.id,
+            title: newFilm.title,
+            year: newFilm.year,
+            status: "want",
+            poster_url: "",
+            vote_average: 0,
+          }
+        });
+      }
+
       toast.success("Film eklendi");
     },
-    [mergePersons],
+    [mergePersons, userId],
   );
 
   const handleDeleteFilm = useCallback(
     (filmId: string) => {
       setFilms((prev) => prev.filter((f) => f.id !== filmId));
       if (selectedNode?.id === filmId) setSelectedNode(null);
+
+      // DB Sync
+      if (userId) {
+        void client.film_graph.deleteUserFilm(userId, filmId);
+      }
+
       toast.success("Listeden kaldırıldı");
     },
-    [selectedNode],
+    [selectedNode, userId],
   );
+
+  const handleToggleFilmStatus = useCallback((filmId: string) => {
+    setFilms((prev) => {
+      const updated = prev.map((f) => {
+        if (f.id === filmId) {
+          const nextStatus = f.status === "watched" ? "want" : "watched";
+          
+          // DB Sync
+          if (userId) {
+            void client.film_graph.syncUserFilm({
+              userId,
+              movie: {
+                movie_id: filmId,
+                title: f.title,
+                year: f.year,
+                status: nextStatus,
+                poster_url: f.imgUrl || "",
+                vote_average: 0,
+              }
+            });
+          }
+          return { ...f, status: nextStatus as "want" | "watched" };
+        }
+        return f;
+      });
+      return updated;
+    });
+    toast.success("Film durumu güncellendi");
+  }, [userId]);
+
+  const handleTogglePriority = useCallback((filmId: string) => {
+    setFilms((prev) => {
+      const updated = prev.map((f) => {
+        if (f.id === filmId) {
+          const nextStatus = f.status === "later" ? "soon" : "later";
+
+          // DB Sync
+          if (userId) {
+            void client.film_graph.syncUserFilm({
+              userId,
+              movie: {
+                movie_id: filmId,
+                title: f.title,
+                year: f.year,
+                status: nextStatus,
+                poster_url: f.imgUrl || "",
+                vote_average: 0,
+              }
+            });
+          }
+          return { ...f, status: nextStatus as any };
+        }
+        return f;
+      });
+      return updated;
+    });
+    toast.success("Film önceliği güncellendi");
+  }, [userId]);
 
   const handleResetData = useCallback(async () => {
     const ok = await confirm({
@@ -199,7 +339,18 @@ export default function FilmGraphPage() {
       }
 
       const film = films.find((f) => f.id === filmId);
-      if (!film) return;
+      if (!film) {
+        try {
+          setDetailLoading(true);
+          const full = await fetchFilmDetails(filmId);
+          setDetailFilm(full);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setDetailLoading(false);
+        }
+        return;
+      }
 
       void handleDiscoverSelect({
         id: film.id,
@@ -219,6 +370,17 @@ export default function FilmGraphPage() {
     },
     [catalogCache, films, persons, handleDiscoverSelect],
   );
+
+  useEffect(() => {
+    if (loading) return;
+    const query = new URLSearchParams(window.location.search);
+    const movieId = query.get("movie") || query.get("id");
+    if (movieId) {
+      // Clear URL parameter so it doesn't reopen on every render
+      window.history.replaceState({}, document.title, window.location.pathname);
+      void openFilmDetail(movieId);
+    }
+  }, [loading, openFilmDetail]);
 
   const openGraphForFilm = useCallback(
     (filmId: string) => {
@@ -252,6 +414,7 @@ export default function FilmGraphPage() {
       <FilmGraphShell
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onAddClick={() => setIsModalOpen(true)}
         graphLayout={activeTab === "graph"}
       >
         {activeTab === "discover" && (
@@ -265,6 +428,8 @@ export default function FilmGraphPage() {
             onResetClick={() => void handleResetData()}
             onFilmClick={(filmId) => void openFilmDetail(filmId)}
             onDeleteFilm={handleDeleteFilm}
+            onToggleFilmStatus={handleToggleFilmStatus}
+            onTogglePriority={handleTogglePriority}
           />
         )}
 
@@ -284,9 +449,19 @@ export default function FilmGraphPage() {
         film={detailFilm}
         loading={detailLoading}
         inList={detailFilm ? listIds.has(detailFilm.id) : false}
+        filmStatus={detailFilm ? films.find((f) => f.id === detailFilm.id)?.status || "want" : null}
         onClose={() => setDetailFilm(null)}
-        onAddToList={() => {
-          if (detailFilm) void addCatalogToList(detailFilm);
+        onAddToList={(status) => {
+          if (detailFilm) void addCatalogToList(detailFilm, status);
+        }}
+        onToggleStatus={() => {
+          if (detailFilm) handleToggleFilmStatus(detailFilm.id);
+        }}
+        onRemoveFromList={() => {
+          if (detailFilm) {
+            handleDeleteFilm(detailFilm.id);
+            setDetailFilm(null);
+          }
         }}
         onOpenGraph={() => {
           if (detailFilm) openGraphForFilm(detailFilm.id);
