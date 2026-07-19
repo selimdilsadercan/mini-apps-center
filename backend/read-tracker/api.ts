@@ -6,10 +6,6 @@ import { createSupabaseClient } from "../lib/supabase";
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
 
-// Optional Google Books API key (higher search quota). Set via:
-//   encore secret set --type local,dev,prod GoogleBooksApiKey
-const googleBooksApiKey = secret("GoogleBooksApiKey");
-
 // Create Supabase client
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
@@ -252,15 +248,7 @@ async function searchGoogleBooks(
   query: string,
   language?: string | null
 ): Promise<SearchResultBook[]> {
-  // Optional API key — keyless calls share a low daily quota and often 429.
-  // Set the GoogleBooksApiKey secret to get the full 1,000 req/day free tier.
-  let apiKey = "";
-  try {
-    apiKey = googleBooksApiKey() || "";
-  } catch {
-    apiKey = "";
-  }
-  const keyParam = apiKey ? `&key=${apiKey}` : "";
+  const keyParam = "";
   const base = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
     query
   )}&maxResults=20&printType=books&orderBy=relevance${keyParam}`;
