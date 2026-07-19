@@ -9,7 +9,9 @@ import {
   Storefront,
   Users,
   Sparkle,
-  Wrench
+  Wrench,
+  ListChecks,
+  Robot,
 } from "@phosphor-icons/react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
@@ -22,6 +24,7 @@ export enum ActivePage {
   LIFE = "life",
   TOOLS = "tools",
   HOME = "home",
+  DECK = "deck",
   // Diğer sayfalar (sidebar'da olmayanlar için uyumluluk)
   HUB = "hub",
   PROFILE = "profile",
@@ -61,14 +64,14 @@ export default function AppBar({ activePage }: AppBarProps) {
     <div className="fixed bottom-0 left-0 right-0 z-[150] app-chrome-bottom pb-safe-area-inset-bottom transition-all duration-500">
       <div className="max-w-lg mx-auto w-full relative">
         <div className="flex items-center justify-around py-2 px-1 gap-0.5">
-          {/* Bugün (Hub) */}
+          {/* Bugün (Liste) */}
           <Link
             href="/home?tab=discover"
             className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
               isActive(ActivePage.HOME) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
             }`}
           >
-            <House 
+            <ListChecks 
               size={20} 
               weight={isActive(ActivePage.HOME) ? "fill" : "bold"}
               className="flex-shrink-0"
@@ -104,6 +107,21 @@ export default function AppBar({ activePage }: AppBarProps) {
               className="flex-shrink-0"
             />
             <span className="text-[9px] font-black uppercase tracking-tighter">Hobi</span>
+          </Link>
+
+          {/* Asistan */}
+          <Link
+            href="/home?tab=ai-chat"
+            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
+              isActive(ActivePage.AI_CHAT) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
+            }`}
+          >
+            <Robot 
+              size={20} 
+              weight={isActive(ActivePage.AI_CHAT) ? "fill" : "bold"}
+              className={`flex-shrink-0 ${isActive(ActivePage.AI_CHAT) ? "text-violet-500" : ""}`}
+            />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Asistan</span>
           </Link>
 
           {/* Yaşam */}

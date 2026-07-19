@@ -833,8 +833,9 @@ export default function ReadTrackerPage() {
                         rem -= c;
                       }
 
+                      const isBookFinished = total > 0 && current >= total;
                       const hasTarget =
-                        total > 0 && remainingFromBase > 0 && chunks.length > 0;
+                        total > 0 && remainingFromBase > 0 && chunks.length > 0 && !isBookFinished;
 
                       // Fill up to (and including) chunk i; press a filled chunk to undo it.
                       const pressChunk = (i: number) => {
@@ -866,8 +867,13 @@ export default function ReadTrackerPage() {
                             />
                           </div>
 
-                          {/* Daily target */}
-                          {hasTarget && (
+                          {/* Daily target / Completion info */}
+                          {isBookFinished ? (
+                            <div className="mt-2.5 text-[10px] font-bold text-[#7C5C43] flex items-center gap-1">
+                              <CheckCircle size={13} weight="fill" />
+                              <span>Hedef kitap tamamlandı! 🎉</span>
+                            </div>
+                          ) : hasTarget ? (
                             <div className="mt-2.5 text-[10px] font-bold text-app-muted">
                               {t.dailyTargetLabel}:{" "}
                               <span className="text-[#7C5C43] font-black">
@@ -875,7 +881,7 @@ export default function ReadTrackerPage() {
                               </span>{" "}
                               · {remainingDays} {t.daysLeft}
                             </div>
-                          )}
+                          ) : null}
 
                           {/* Manual page input + chunked daily target buttons */}
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -894,18 +900,18 @@ export default function ReadTrackerPage() {
                                   <button
                                     key={i}
                                     onClick={() => pressChunk(i)}
-                                    className={`min-w-[2.75rem] h-7 px-2.5 rounded-lg border flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wide active:scale-95 transition-all cursor-pointer ${
-                                      filled
-                                        ? "bg-app-text/10 border-app-text/40 text-app-text ring-1 ring-app-text/30"
-                                        : "bg-transparent border-app-border text-app-text hover:bg-app-surface-muted hover:border-app-muted"
+                                    className={`min-w-[2.75rem] h-7 px-2.5 rounded-lg border flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-wide active:scale-95 transition-all cursor-pointer bg-transparent border-app-border text-app-text hover:bg-app-surface-muted hover:border-app-muted ${
+                                      filled ? "opacity-60" : ""
                                     }`}
                                   >
                                     {filled ? (
-                                      <CheckCircle size={12} weight="fill" />
+                                      <CheckCircle size={10} weight="fill" />
                                     ) : (
                                       <Plus size={10} weight="bold" />
                                     )}
-                                    {c} <span className="normal-case font-bold">syf</span>
+                                    <span className={filled ? "line-through" : ""}>
+                                      {c} <span className="normal-case font-bold">syf</span>
+                                    </span>
                                   </button>
                                 );
                               })}

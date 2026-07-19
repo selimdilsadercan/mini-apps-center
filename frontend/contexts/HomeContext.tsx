@@ -15,6 +15,8 @@ interface DailyWidgetStates {
   ignoredSeriesIds?: string[];
   /** Meal keys (e.g. "breakfast", "lunch", "dinner") completed today */
   completedMealKeys?: string[];
+  cardOrder?: string[];
+  hiddenCardIds?: string[];
 }
 
 interface HomeContextType {

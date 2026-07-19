@@ -21,6 +21,7 @@ import {
   Moon,
   CalendarCheck,
   ClockAfternoon,
+  ArrowUpRight,
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
@@ -30,6 +31,7 @@ import { getTomorrowMidnightIso, isPostponedUntilFutureDay } from "@/lib/date-ut
 import { rutinler } from "@/lib/client";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import ROUTINE_CATALOG from "./routine_catalog.json";
+import { getLinkedAppForRoutine } from "./routineAppLinks";
 import { EmojiPickerOverlay } from "./EmojiPickerOverlay";
 import {
   invalidateDiscoverWidgets,
@@ -148,6 +150,7 @@ function EntryRow({
   const x = useMotionValue(0);
   const opacity = useTransform(x, [0, 40], [0, 1]);
   const isPostponed = isEntryPostponed(entry);
+  const linkedApp = getLinkedAppForRoutine(entry.item_name);
 
   return (
     <motion.div
@@ -284,6 +287,20 @@ function EntryRow({
               )}
             </div>
           </div>
+          {linkedApp && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = linkedApp.appHref;
+              }}
+              className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-app-surface-muted border border-app-border text-[9px] font-bold text-app-muted hover:text-app-text hover:border-app-muted transition-all active:scale-95 ml-auto"
+              title={`${linkedApp.label} uygulamasını aç`}
+            >
+              <span>{linkedApp.label}</span>
+              <ArrowUpRight size={10} weight="bold" />
+            </button>
+          )}
           {entry.period_type === "once" && entry.is_completed && entry.completed_at ? (
             <CompletedBadge dateStr={entry.completed_at} />
           ) : (
@@ -1306,30 +1323,6 @@ export default function RutinlerPage() {
                       </div>
                     </div>
                   ))}
-
-                      {EV_ISLERI_APP && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            window.location.href = getAppHref(EV_ISLERI_APP);
-                          }}
-                          className="flex w-full items-center justify-between gap-3 rounded-xl border border-teal-100 bg-teal-50/60 px-4 py-3 text-left transition-all active:scale-[0.99]"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-black text-teal-700 uppercase tracking-wider">
-                              Ev işleri & temizlik
-                            </p>
-                            <p className="text-[11px] font-bold text-teal-600/90 mt-0.5">
-                              Bulaşık, çamaşır, süpürme → Ev İşleri
-                            </p>
-                          </div>
-                          <EV_ISLERI_APP.icon
-                            size={20}
-                            weight="duotone"
-                            className="shrink-0 text-teal-600"
-                          />
-                        </button>
-                      )}
                 </div>
               </>
             ) : (

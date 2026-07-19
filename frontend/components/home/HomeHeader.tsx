@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 
-type HomeTab = "discover" | "explore" | "hobby" | "wallet" | "life";
+type HomeTab = "discover" | "deck" | "explore" | "hobby" | "wallet" | "life";
 
 interface HomeHeaderProps {
   activeTab: string;
@@ -33,6 +33,7 @@ function getGreetingKey(hour: number): "greetingMorning" | "greetingAfternoon" |
 
 const TAB_KEYS: Record<HomeTab, string> = {
   discover: "tabDiscover",
+  deck: "tabDeck",
   explore: "tabExplore",
   hobby: "tabHobby",
   wallet: "tabWallet",
@@ -52,7 +53,7 @@ export default function HomeHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const tab = (["discover", "explore", "hobby", "wallet", "life"].includes(activeTab)
+  const tab = (["discover", "deck", "explore", "hobby", "wallet", "life"].includes(activeTab)
     ? activeTab
     : "discover") as HomeTab;
 
@@ -103,7 +104,7 @@ export default function HomeHeader({
       dateShort,
       dateLong,
       displayName: user?.firstName || user?.username || t("guestName"),
-      tabLabel: t(TAB_KEYS[tab]),
+      tabLabel: tab === "deck" ? "Günün Kartları" : t(TAB_KEYS[tab]),
     };
   }, [locale, t, tab, user?.firstName, user?.username]);
 

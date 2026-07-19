@@ -87,6 +87,16 @@
     ]
   },
   {
+    "category": "Ev İşleri & Temizlik",
+    "items": [
+      { "slug": "dishes", "name": "Bulaşık Yıkama", "emoji": "🍽️", "keywords": ["temizlik", "ev işleri", "bulaşık"] },
+      { "slug": "laundry", "name": "Çamaşır Yıkama", "emoji": "🧺", "keywords": ["temizlik", "ev işleri", "çamaşır"] },
+      { "slug": "vacuum", "name": "Evi Süpürme", "emoji": "🧹", "keywords": ["temizlik", "ev işleri", "süpürge"] },
+      { "slug": "chores-organize", "name": "Ev Düzenleme", "emoji": "✨", "keywords": ["temizlik", "ev işleri", "düzen"] },
+      { "slug": "shopping-list", "name": "Alışveriş Listesi", "emoji": "🛒", "keywords": ["market", "süpermarket", "eksik var"] }
+    ]
+  },
+  {
     "category": "Aylık & Yıllık",
     "items": [
       { "slug": "annual-checkup", "name": "Sağlık Kontrolü", "emoji": "🏥" },

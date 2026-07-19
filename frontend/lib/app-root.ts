@@ -59,7 +59,7 @@ export function getPublicSubdomainUrl(subdomain: string, path: string): string {
 /** Hub ana sayfası path'i (Capacitor + web aynı origin). */
 export const APP_HOME_PATH = "/home";
 
-export const HOME_TABS = ["discover", "explore", "hobby", "wallet", "life"] as const;
+export const HOME_TABS = ["discover", "explore", "hobby", "ai-chat", "wallet", "life"] as const;
 export type HomeTab = (typeof HOME_TABS)[number];
 
 export const HOME_TAB_STORAGE_KEY = "last_active_tab";
