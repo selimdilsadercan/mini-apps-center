@@ -22,6 +22,7 @@ import {
   Plus,
   BookOpen,
   Broom,
+  Basket,
   ArrowRight,
   Compass,
   GameController,
@@ -36,7 +37,8 @@ import {
   CaretDown,
   CaretUp,
 } from "@phosphor-icons/react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
 import { useHome } from "@/contexts/HomeContext";
 import { toast } from "react-hot-toast";
@@ -119,6 +121,9 @@ interface DiscoverTabProps {
   handleToggleChoreComplete: (choreId: string) => Promise<void>;
   todayMatches: any[];
   youtubeSeries: any[];
+  movieSuggestions: any[];
+  moviesLoading: boolean;
+  eksikItems: any[];
 }
 
 import { DeckView } from "./DeckView";
@@ -176,38 +181,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
     handleToggleChoreComplete,
     todayMatches = [],
     youtubeSeries = [],
+    movieSuggestions = [],
+    moviesLoading = true,
+    eksikItems = [],
   } = props;
 
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"cards" | "list" | "assistant">("list");
-  const [movieSuggestions, setMovieSuggestions] = useState<any[]>([]);
-  const [moviesLoading, setMoviesLoading] = useState(true);
-  const loadDailySuggestions = useCallback(() => {
-    if (!userId) {
-      setMoviesLoading(false);
-      return;
-    }
-    setMoviesLoading(true);
-    browserClient.film_graph
-      .getDailySuggestions(userId)
-      .then((res) => {
-        const list = [];
-        if (res.movie1) list.push(res.movie1);
-        if (res.movie2) list.push(res.movie2);
-        setMovieSuggestions(list);
-      })
-      .catch((err) => {
-        console.error("Failed to load daily film suggestions:", err);
-      })
-      .finally(() => {
-        setMoviesLoading(false);
-      });
-  }, [userId]);
-
-  useEffect(() => {
-    loadDailySuggestions();
-  }, [loadDailySuggestions]);
-
   const ignoreMovie = async (movieId: string) => {
     if (!userId) return;
     try {
@@ -215,7 +196,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
         userId,
         movieId: String(movieId),
       });
-      loadDailySuggestions();
+      void queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] });
     } catch (e) {
       console.error(e);
       toast.error("Film listeden kaldırılamadı");
@@ -270,7 +251,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
       localStorage.setItem("everything_films", JSON.stringify({ films, persons: personsObj }));
 
-      loadDailySuggestions();
+      void queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] });
       toast.success(status === "watched" ? "İzledim olarak kaydedildi!" : "İzleneceklere eklendi!");
     } catch (e) {
       console.error(e);
@@ -340,6 +321,74 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const widgets = [
     {
+      key: "eksik-var",
+      loading: loading,
+      hasContent: (() => {
+        const activeMissing = (eksikItems || []).filter((i: any) => !i.is_used);
+        const todayItems = activeMissing.filter((i: any) => (i.timing || "today") === "today");
+        const monthItems = activeMissing.filter((i: any) => (i.timing || "today") === "month_start");
+        return todayItems.length > 0 || monthItems.length > 0;
+      })(),
+      hasCompletedOnly: false,
+      card: (() => {
+        const activeMissing = (eksikItems || []).filter((i: any) => !i.is_used);
+        const todayItems = activeMissing.filter((i: any) => (i.timing || "today") === "today");
+        const monthItems = activeMissing.filter((i: any) => (i.timing || "today") === "month_start");
+
+        const formatItemsLine = (items: any[]) => {
+          if (items.length === 0) return "";
+          if (items.length <= 2) {
+            return items.map((i) => i.name).join(", ");
+          }
+          const firstTwo = items.slice(0, 2).map((i) => i.name).join(", ");
+          return `${firstTwo}, +${items.length - 2} ürün`;
+        };
+
+        const hasContent = todayItems.length > 0 || monthItems.length > 0;
+
+        return (
+          <HomeSummaryCard
+            href="/apps/eksik-var"
+            icon={Basket}
+            color="#10B981"
+            title="Alışveriş Listem"
+            subtitle="Eksik Var"
+            loading={loading}
+            emptyText="Tüm eksikler tamamlandı! 🛒"
+            hasContent={hasContent}
+            onHide={() => handleToggleHide("eksik-var")}
+          >
+            {todayItems.length > 0 && (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/50">
+                  <Basket size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate">Bugün Alınacaklar</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {formatItemsLine(todayItems)}
+                  </p>
+                </div>
+              </div>
+            )}
+            {monthItems.length > 0 && (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/50">
+                  <Basket size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text truncate">Ay Başı Alınacaklar</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {formatItemsLine(monthItems)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </HomeSummaryCard>
+        );
+      })(),
+    },
+    {
       key: "agenda",
       loading: loading,
       hasContent: pendingTodayAgenda.length > 0,
@@ -349,7 +398,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           href="/apps/rutinler"
           icon={CalendarCheck}
           color="#7C3AED"
-          title="Bugünün Planı"
+          title="Bugünün Yapılacakları"
           subtitle="Ajanda"
           loading={loading}
           emptyText={agendaEmptyText}
@@ -1427,7 +1476,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   className="space-y-3 overflow-hidden pt-1"
                 >
                   {hidden.map((w) => (
-                    <div key={w.key}>{w.card}</div>
+                    <div key={w.key}>
+                      {React.isValidElement(w.card)
+                        ? React.cloneElement(w.card as any, { hideLabel: "Gizlemeyi Kaldır" })
+                        : w.card}
+                    </div>
                   ))}
                 </motion.div>
               )}

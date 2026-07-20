@@ -17,6 +17,7 @@ import { getTodayIntegratedChores, IntegratedTodayChores } from "../ev-isleri/ap
 import { getWeeklyGoals, WeeklyGoal } from "../read-tracker/api";
 import { listMatches, BigMatch } from "../buyuk-maclar/api";
 import { listSeries, Series } from "../ytdb/api";
+import { getItems as getEksikItems, MissingItem } from "../eksik-var/api";
 
 // Import types
 import { Place } from "../workplaces/api";
@@ -39,6 +40,7 @@ export interface DiscoverWidgetsResponse {
   weeklyReadingGoal: WeeklyGoal | null;
   todayMatches: BigMatch[];
   youtubeSeries: Series[];
+  eksikItems: MissingItem[];
 }
 
 export interface ExploreWidgetsResponse {
@@ -105,6 +107,7 @@ export const getDiscoverWidgets = api(
         weeklyReadingGoal: null,
         todayMatches: [],
         youtubeSeries: [],
+        eksikItems: [],
       };
     }
 
@@ -122,7 +125,7 @@ export const getDiscoverWidgets = api(
     };
     const currentWeekStart = getMonday();
 
-    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes, matchRes, ytRes] = await Promise.all([
+    const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes, matchRes, ytRes, eksikRes] = await Promise.all([
       fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
       fetchWithFallback(getActivities({ userId }), { activities: [] }),
       fetchWithFallback(getTodayEpisodes({ userId }), { items: [] }),
@@ -133,15 +136,18 @@ export const getDiscoverWidgets = api(
       fetchWithFallback(getWeeklyGoals({ userId }), { goals: [] }),
       fetchWithFallback(listMatches({ sport: "all" }), { matches: [], fetchedAt: "", source: "" }),
       fetchWithFallback(listSeries(), { series: [] }),
+      fetchWithFallback(getEksikItems({ userId }), { items: [] }),
     ]);
 
     const currentWeekGoal =
+      // 1. Bu haftanın aktif hedefi
       readingGoalsRes.goals?.find(
         (g: WeeklyGoal) => g.week_start === currentWeekStart && g.status === "active"
       ) ??
-      readingGoalsRes.goals?.find((g: WeeklyGoal) => g.week_start === currentWeekStart) ??
+      // 2. Herhangi bir haftadan kalan ve hala aktif (devam eden) hedef
       readingGoalsRes.goals?.find((g: WeeklyGoal) => g.status === "active") ??
-      readingGoalsRes.goals?.[0] ??
+      // 3. Bu haftaya ait tamamlanmış veya pas geçilmiş hedef
+      readingGoalsRes.goals?.find((g: WeeklyGoal) => g.week_start === currentWeekStart) ??
       null;
 
     const maxLookaheadMs = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -167,6 +173,7 @@ export const getDiscoverWidgets = api(
       weeklyReadingGoal: currentWeekGoal,
       todayMatches: filteredMatches,
       youtubeSeries: ytRes.series || [],
+      eksikItems: (typeof eksikRes !== "undefined" && eksikRes?.items) || [],
     };
   }
 );

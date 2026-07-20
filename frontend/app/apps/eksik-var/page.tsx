@@ -9,6 +9,7 @@ import {
   Trash,
   CaretLeft,
   CaretUp,
+  CaretRight,
   Basket,
   ShareNetwork,
   UserMinus,
@@ -53,6 +54,7 @@ import { eksik_var } from "@/lib/client";
 import toast, { Toaster } from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { Drawer } from "vaul";
 
 const client = createBrowserClient();
 
@@ -236,22 +238,14 @@ function ListToolbar({
   onTabChange,
   missingCount,
   homeCount,
-  viewMode,
-  onViewModeChange,
 }: {
   activeTab: "missing" | "home";
   onTabChange: (tab: "missing" | "home") => void;
   missingCount: number;
   homeCount: number;
-  viewMode: "grid" | "list";
-  onViewModeChange: (mode: "grid" | "list") => void;
 }) {
   const segmentClass = (active: boolean) =>
     `inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all active:scale-[0.98] ${active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
-    }`;
-
-  const viewSegmentClass = (active: boolean) =>
-    `inline-flex items-center justify-center px-2 py-1.5 rounded-lg transition-all active:scale-[0.98] ${active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-muted"
     }`;
 
   return (
@@ -260,37 +254,16 @@ function ListToolbar({
         <button type="button" onClick={() => onTabChange("missing")} className={segmentClass(activeTab === "missing")}>
           <Basket size={14} weight={activeTab === "missing" ? "fill" : "duotone"} />
           <span className="uppercase tracking-wide whitespace-nowrap">Eksiklerim</span>
-          <span
-            className={`tabular-nums ${activeTab === "missing" ? "text-emerald-600" : "text-app-muted"}`}
-          >
+          <span className="tabular-nums font-bold">
             {missingCount}
           </span>
         </button>
         <button type="button" onClick={() => onTabChange("home")} className={segmentClass(activeTab === "home")}>
           <House size={14} weight={activeTab === "home" ? "fill" : "duotone"} />
           <span className="uppercase tracking-wide whitespace-nowrap">Evde Var</span>
-          <span className={`tabular-nums ${activeTab === "home" ? "text-emerald-600" : "text-app-muted"}`}>
+          <span className="tabular-nums font-bold">
             {homeCount}
           </span>
-        </button>
-      </div>
-
-      <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track shrink-0">
-        <button
-          type="button"
-          onClick={() => onViewModeChange("grid")}
-          className={viewSegmentClass(viewMode === "grid")}
-          aria-label="Izgara görünümü"
-        >
-          <SquaresFour size={14} weight={viewMode === "grid" ? "fill" : "duotone"} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onViewModeChange("list")}
-          className={viewSegmentClass(viewMode === "list")}
-          aria-label="Liste görünümü"
-        >
-          <List size={14} weight={viewMode === "list" ? "fill" : "duotone"} />
         </button>
       </div>
     </div>
@@ -337,7 +310,6 @@ function ItemsByCategory({
             <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
               {category}
             </span>
-            <span className="text-[10px] font-bold text-app-muted">{categoryItems.length}</span>
           </div>
 
           <div className={viewMode === "grid" ? "grid grid-cols-3 gap-2" : "bg-app-surface rounded-xl border border-app-border overflow-hidden divide-y divide-app-border shadow-sm"}>
@@ -542,6 +514,7 @@ export default function EksikVarPage() {
       return response.items || [];
     },
     enabled: !!user,
+    refetchInterval: 4000,
   });
 
   const [inputValue, setInputValue] = useState("");
@@ -569,18 +542,22 @@ export default function EksikVarPage() {
   const [selectedAddNotes, setSelectedAddNotes] = useState("");
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null);
   const [activeListTab, setActiveListTab] = useState<"missing" | "home">("missing");
-  const [listViewMode, setListViewMode] = useState<"grid" | "list">("grid");
+  const [activeTimingTab, setActiveTimingTab] = useState<"today" | "month_start">("today");
+  const [editTiming, setEditTiming] = useState<string>("today");
+  const [editCategoryOpen, setEditCategoryOpen] = useState(false);
+  const [quickCheckItem, setQuickCheckItem] = useState<eksik_var.MissingItem | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Mutations
   const addItemMutation = useMutation({
-    mutationFn: async (vars: { name: string; category?: string; notes?: string }) => {
+    mutationFn: async (vars: { name: string; category?: string; notes?: string; timing?: string }) => {
       if (!user) throw new Error("No user");
       const res = await client.eksik_var.addItem({
         userId: user.id,
         name: vars.name,
         category: vars.category,
         notes: vars.notes,
+        timing: vars.timing || activeTimingTab,
       });
       return res.item;
     },
@@ -593,6 +570,7 @@ export default function EksikVarPage() {
         name: newItem.name,
         category: newItem.category || null,
         notes: newItem.notes || null,
+        timing: newItem.timing || activeTimingTab,
         is_used: activeListTab === "home",
         created_at: new Date().toISOString(),
       };
@@ -665,13 +643,14 @@ export default function EksikVarPage() {
   });
 
   const updateItemMutation = useMutation({
-    mutationFn: async (vars: { id: string; name?: string; category?: string; notes?: string }) => {
+    mutationFn: async (vars: { id: string; name?: string; category?: string; notes?: string; timing?: string }) => {
       if (!user) throw new Error("No user");
       const res = await client.eksik_var.updateItem(vars.id, {
         userId: user.id,
         name: vars.name,
         category: vars.category,
         notes: vars.notes,
+        timing: vars.timing,
       });
       return res.item;
     },
@@ -825,13 +804,10 @@ export default function EksikVarPage() {
   const handleCreateInvite = async () => {
     if (!user) return;
     try {
-      const res = await client.eksik_var.createShareInvite({ userId: user.id });
-      if (res.inviteId) {
-        const inviteUrl = `${window.location.origin}/apps/eksik-var/s?t=${res.inviteId}`;
-        await navigator.clipboard.writeText(inviteUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
+      const inviteUrl = `${window.location.origin}/friends?add=${user.id}`;
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("handleCreateInvite error:", error);
     }
@@ -981,6 +957,7 @@ export default function EksikVarPage() {
     setEditName(item.name);
     setEditCategory(getDisplayCategory(item));
     setEditNotes(item.notes || "");
+    setEditTiming(item.timing || "today");
   };
 
   const closeEditSheet = () => {
@@ -988,6 +965,8 @@ export default function EksikVarPage() {
     setEditName("");
     setEditCategory(null);
     setEditNotes("");
+    setEditTiming("today");
+    setEditCategoryOpen(false);
   };
 
   const startLongPress = (item: eksik_var.MissingItem) => {
@@ -1006,13 +985,19 @@ export default function EksikVarPage() {
       longPressTimerRef.current = null;
     }
   };
-
+  const handleQuickTimingChange = (item: eksik_var.MissingItem, newTiming: string) => {
+    updateItemMutation.mutate({
+      id: item.id,
+      timing: newTiming,
+    });
+    setQuickCheckItem({ ...item, timing: newTiming });
+  };
   const handleItemTap = (item: eksik_var.MissingItem) => {
     if (longPressTriggeredRef.current) {
       longPressTriggeredRef.current = false;
       return;
     }
-    handleToggleUsed(item.id);
+    setQuickCheckItem(item);
   };
 
   const getLongPressProps = (item: eksik_var.MissingItem) => ({
@@ -1039,6 +1024,7 @@ export default function EksikVarPage() {
     const categoryChanged =
       editCategory !== null && editCategory !== (editingItem.category ?? getItemCategory(editingItem.name));
     const notesChanged = editNotes !== (editingItem.notes || "");
+    const timingChanged = editTiming !== (editingItem.timing || "today");
     const isCustom = isCustomItemName(normalized) || !!editingItem.category;
 
     if (
@@ -1053,7 +1039,7 @@ export default function EksikVarPage() {
       return;
     }
 
-    if (!nameChanged && !(isCustom && categoryChanged) && !notesChanged) {
+    if (!nameChanged && !(isCustom && categoryChanged) && !notesChanged && !timingChanged) {
       closeEditSheet();
       return;
     }
@@ -1063,6 +1049,7 @@ export default function EksikVarPage() {
       ...(nameChanged ? { name: normalized } : {}),
       ...(isCustom && categoryChanged && editCategory ? { category: editCategory } : {}),
       ...(notesChanged ? { notes: editNotes } : {}),
+      ...(timingChanged ? { timing: editTiming } : {}),
     });
     closeEditSheet();
   };
@@ -1131,10 +1118,9 @@ export default function EksikVarPage() {
               onTabChange={setActiveListTab}
               missingCount={items.filter((i) => !i.is_used).length}
               homeCount={items.filter((i) => i.is_used).length}
-              viewMode={listViewMode}
-              onViewModeChange={setListViewMode}
             />
           )}
+
 
           {/* Input & Autocomplete */}
           {user && (
@@ -1268,11 +1254,39 @@ export default function EksikVarPage() {
             <p className="text-sm font-bold text-app-muted">Eksik listeni görebilmek için giriş yapmalısın.</p>
           </div>
         ) : user ? (() => {
-          const filteredItems = items.filter(i => activeListTab === "missing" ? !i.is_used : i.is_used);
+          const filteredItems = items.filter(i => (activeListTab === "missing" ? !i.is_used : i.is_used) && (i.timing || "today") === activeTimingTab);
           const isEmpty = filteredItems.length === 0;
 
           return (
-            <div className="relative">
+            <div className="relative space-y-4">
+              {activeListTab === "missing" && (
+                <div className="flex items-center justify-start">
+                  <div className="inline-flex items-center gap-0.5 p-0.5 rounded-xl border border-app-border bg-app-tab-track shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTimingTab("today")}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                        activeTimingTab === "today"
+                          ? "bg-app-tab-active text-app-text shadow-sm"
+                          : "text-app-muted hover:text-app-text"
+                      }`}
+                    >
+                      Bugün ({items.filter((i) => !i.is_used && (i.timing || "today") === "today").length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTimingTab("month_start")}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                        activeTimingTab === "month_start"
+                          ? "bg-app-tab-active text-app-text shadow-sm"
+                          : "text-app-muted hover:text-app-text"
+                      }`}
+                    >
+                      Ay Başı ({items.filter((i) => !i.is_used && (i.timing || "today") === "month_start").length})
+                    </button>
+                  </div>
+                </div>
+              )}
               {isEmpty ? (
                 <div className="text-center py-10 bg-app-surface rounded-2xl border border-app-border shadow-sm">
                   {activeListTab === "missing" ? (
@@ -1291,7 +1305,7 @@ export default function EksikVarPage() {
                 <ItemsByCategory
                   key={activeListTab}
                   items={filteredItems}
-                  viewMode={listViewMode}
+                  viewMode="grid"
                   isHomeList={activeListTab === "home"}
                   onItemTap={(item) => handleItemTap(item)}
                   getLongPressProps={getLongPressProps}
@@ -1430,17 +1444,62 @@ export default function EksikVarPage() {
                 />
               </div>
 
-              {(isCustomItemName(editName.trim() || editingItem.name) || editingItem.category) ? (
-                <div>
-                  <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
-                    Kategori
-                  </label>
-                  <CategoryPicker
-                    value={editCategory}
-                    onChange={setEditCategory}
-                  />
+              <div>
+                <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-1.5 block">
+                  Zamanlama
+                </label>
+                <div className="inline-flex items-center gap-0.5 p-0.5 rounded-xl border border-app-border bg-app-tab-track">
+                  <button
+                    type="button"
+                    onClick={() => setEditTiming("today")}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                      editTiming === "today"
+                        ? "bg-app-tab-active text-app-text shadow-sm"
+                        : "text-app-muted hover:text-app-text"
+                    }`}
+                  >
+                    Bugün
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTiming("month_start")}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                      editTiming === "month_start"
+                        ? "bg-app-tab-active text-app-text shadow-sm"
+                        : "text-app-muted hover:text-app-text"
+                    }`}
+                  >
+                    Ay Başı
+                  </button>
                 </div>
-              ) : (
+              </div>
+
+              {(isCustomItemName(editName.trim() || editingItem.name) || editingItem.category) ? (() => {
+                const currentCategory = editCategory || getItemCategory(editName.trim() || editingItem.name);
+                const IconComponent = CATEGORY_ICONS[currentCategory] ?? Package;
+                return (
+                  <div>
+                    <label className="text-[10px] font-bold text-app-muted uppercase tracking-wider mb-2 block">
+                      Kategori
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setEditCategoryOpen(true)}
+                      className="w-full flex items-center justify-between bg-app-surface-muted border border-app-border rounded-xl px-4 py-3 hover:border-emerald-500/40 active:scale-[0.98] transition-all text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50">
+                          <IconComponent size={16} weight="bold" />
+                        </div>
+                        <span className="text-sm font-bold text-app-text">
+                          {currentCategory}
+                        </span>
+                      </div>
+                      <CaretRight size={16} className="text-app-muted" />
+                    </button>
+                  </div>
+                );
+              })() : (
                 <div className="flex items-center justify-between bg-app-surface-muted rounded-xl px-4 py-3 border border-app-border">
                   <span className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                     Kategori
@@ -1451,30 +1510,152 @@ export default function EksikVarPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleSaveEdit}
-                disabled={updateItemMutation.isPending || !editName.trim()}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
-              >
-                <Check size={16} weight="bold" />
-                {updateItemMutation.isPending ? "Kaydediliyor..." : "Kaydet"}
-              </button>
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-app-border">
+                {/* Delete Button (Icon only) */}
+                <button
+                  type="button"
+                  onClick={handleEditDelete}
+                  className="w-12 h-12 shrink-0 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-red-500 flex items-center justify-center transition-all active:scale-95 border border-neutral-800/80"
+                  title="Listeden Sil"
+                >
+                  <Trash size={18} weight="bold" />
+                </button>
 
-              <button
-                onClick={handleEditToggle}
-                className="w-full bg-app-surface border border-app-border hover:border-emerald-500/30 text-app-text font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-              >
-                <ArrowsClockwise size={16} weight="bold" className="text-emerald-500" />
-                {editingItem.is_used ? "Eksiklere Geri Al" : "Evde Var Olarak İşaretle"}
-              </button>
+                {/* Toggle Used Button (Icon only) */}
+                <button
+                  type="button"
+                  onClick={handleEditToggle}
+                  className="w-12 h-12 shrink-0 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-emerald-500 flex items-center justify-center transition-all active:scale-95 border border-neutral-800/80"
+                  title={editingItem.is_used ? "Eksiklere Geri Al" : "Evde Var Olarak İşaretle"}
+                >
+                  <ArrowsClockwise size={18} weight="bold" />
+                </button>
 
+                {/* Save Button (Takes remaining space) */}
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={updateItemMutation.isPending || !editName.trim()}
+                  className="flex-1 h-12 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-neutral-800/80 shadow-md shadow-black/10"
+                >
+                  <Check size={18} weight="bold" />
+                  <span>{updateItemMutation.isPending ? "Kaydediliyor..." : "Kaydet"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Quick Mark Received/Add Back Bottom Sheet */}
+      <Drawer.Root open={!!quickCheckItem} onOpenChange={(open) => !open && setQuickCheckItem(null)}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-app-border bg-app-surface shadow-2xl outline-none p-6 pb-8">
+            <div className="mx-auto mt-1 mb-6 h-1.5 w-12 shrink-0 rounded-full bg-app-border/80" />
+            <Drawer.Title className="sr-only">Hızlı İşlem</Drawer.Title>
+            
+            {quickCheckItem && (
+              <div className="flex flex-col items-center text-center space-y-5 pb-4">
+                <ItemThumbnail
+                  name={quickCheckItem.name}
+                  size="sheet"
+                />
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-black text-app-text tracking-tight uppercase">
+                    {quickCheckItem.name}
+                  </h3>
+                  {quickCheckItem.notes && (
+                    <p className="text-xs font-medium text-app-muted">
+                      {quickCheckItem.notes}
+                    </p>
+                  )}
+                </div>
+
+                {/* Timing Tabs inside Drawer */}
+                <div className="inline-flex items-center gap-0.5 p-0.5 rounded-xl border border-app-border bg-app-tab-track shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickTimingChange(quickCheckItem, "today")}
+                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                      (quickCheckItem.timing || "today") === "today"
+                        ? "bg-app-tab-active text-app-text shadow-sm"
+                        : "text-app-muted hover:text-app-text"
+                    }`}
+                  >
+                    Bugüne
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickTimingChange(quickCheckItem, "month_start")}
+                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                      (quickCheckItem.timing || "today") === "month_start"
+                        ? "bg-app-tab-active text-app-text shadow-sm"
+                        : "text-app-muted hover:text-app-text"
+                    }`}
+                  >
+                    Ay Başına
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    handleToggleUsed(quickCheckItem.id);
+                    setQuickCheckItem(null);
+                  }}
+                  className={`w-full font-bold text-sm py-3.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md ${
+                    quickCheckItem.is_used
+                      ? "bg-white hover:bg-neutral-50 text-neutral-900 border border-neutral-200 shadow-sm"
+                      : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-950/15"
+                  }`}
+                >
+                  {quickCheckItem.is_used ? (
+                    <>
+                      <ArrowsClockwise size={18} weight="bold" />
+                      <span>Tekrar Listeye Koy</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={18} weight="bold" />
+                      <span>Alındı İşaretle</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      {/* Category Selection Sub-Sheet */}
+      {editCategoryOpen && editingItem && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/45 z-[60] transition-opacity animate-fade-in"
+            onClick={() => setEditCategoryOpen(false)}
+          />
+
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-[70] p-6 shadow-2xl max-h-[85vh] flex flex-col animate-slide-up">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-app-border shrink-0">
+              <h2 className="text-lg font-black text-app-text flex items-center gap-2 uppercase tracking-tight">
+                Kategori Seç
+              </h2>
               <button
-                onClick={handleEditDelete}
-                className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                onClick={() => setEditCategoryOpen(false)}
+                className="w-8 h-8 rounded-full bg-app-surface-muted flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95"
               >
-                <Trash size={16} weight="bold" />
-                Listeden Sil
+                <X size={16} weight="bold" />
               </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <CategoryPicker
+                value={editCategory || getItemCategory(editName.trim() || editingItem.name)}
+                onChange={(cat) => {
+                  setEditCategory(cat);
+                  setEditCategoryOpen(false);
+                }}
+              />
             </div>
           </div>
         </>
@@ -1605,30 +1786,6 @@ export default function EksikVarPage() {
               </button>
             </div>
 
-            {/* Invite Link Section */}
-            <div className="mb-6 bg-emerald-50/40 rounded-2xl p-4 border border-emerald-500/10">
-              <h3 className="text-xs font-black text-emerald-800 uppercase tracking-wider mb-1.5">Davet Linki</h3>
-              <p className="text-xs text-emerald-600/80 mb-3 leading-relaxed">
-                Bu linki gönderdiğin kişiler alışveriş listene ortak olabilir, yeni ürün ekleyip silebilirler.
-              </p>
-              <button
-                onClick={handleCreateInvite}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-emerald-900/10"
-              >
-                {copied ? (
-                  <>
-                    <Check size={14} weight="bold" />
-                    <span>Kopyalandı!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} weight="bold" />
-                    <span>Davet Linkini Kopyala</span>
-                  </>
-                )}
-              </button>
-            </div>
-
             {/* Loading state for sharing data */}
             {loadingShareData ? (
               <div className="text-center py-8 text-xs font-bold text-app-muted uppercase tracking-widest animate-pulse">
@@ -1666,7 +1823,7 @@ export default function EksikVarPage() {
                               @{member.username || "Kullanıcı"}
                             </span>
                             {member.is_owner && (
-                              <span className="bg-gray-200 text-app-muted text-[8px] font-black px-1.5 py-0.5 rounded leading-none">
+                              <span className="bg-app-surface-muted text-app-muted text-[8px] font-black px-1.5 py-0.5 rounded leading-none border border-app-border">
                                 Sahibi
                               </span>
                             )}
@@ -1690,6 +1847,23 @@ export default function EksikVarPage() {
                 {/* Direct Share with Friends */}
                 <div>
                   <h3 className="text-xs font-black text-app-muted uppercase tracking-wider mb-3">Arkadaşlarından Ekle</h3>
+                  
+                  <button
+                    onClick={handleCreateInvite}
+                    className="w-full bg-app-surface-muted hover:bg-app-border/40 text-app-text border border-app-border font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all mb-4"
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={14} className="text-emerald-500" weight="bold" />
+                        <span>Davet Linki Kopyalandı!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} className="text-app-muted" weight="bold" />
+                        <span>Yeni Arkadaş Ekle (Davet Linki Kopyala)</span>
+                      </>
+                    )}
+                  </button>
                   {friends.length === 0 ? (
                     <p className="text-xs text-app-muted italic bg-app-surface-muted p-3 rounded-xl text-center border border-dashed border-app-border">
                       Arkadaş listen boş.
@@ -1714,7 +1888,7 @@ export default function EksikVarPage() {
                           {unsharedFriends.map((friend) => (
                             <div
                               key={friend.id}
-                              className="flex items-center justify-between p-2.5 bg-app-surface rounded-xl border border-gray-150"
+                              className="flex items-center justify-between p-2.5 bg-app-surface-muted/60 rounded-xl border border-app-border"
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {friend.avatar ? (
@@ -1735,7 +1909,7 @@ export default function EksikVarPage() {
 
                               <button
                                 onClick={() => handleShareWithFriend(friend.id)}
-                                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition-all active:scale-95"
+                                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition-all active:scale-95 border border-emerald-500/10"
                               >
                                 Paylaş
                               </button>

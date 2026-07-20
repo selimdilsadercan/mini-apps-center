@@ -17,6 +17,7 @@ export interface MissingItem {
   notes?: string | null;
   is_used: boolean;
   category?: string | null;
+  timing: string;
   created_at: string;
 }
 
@@ -47,6 +48,7 @@ interface AddItemRequest {
   name: string;
   category?: string;
   notes?: string;
+  timing?: string;
 }
 
 interface AddItemResponse {
@@ -78,6 +80,7 @@ interface UpdateItemRequest {
   isUsed?: boolean;
   category?: string;
   notes?: string;
+  timing?: string;
 }
 
 interface UpdateItemResponse {
@@ -159,12 +162,13 @@ export const getItems = api(
  */
 export const addItem = api(
   { expose: true, method: "POST", path: "/eksik-var/add" },
-  async ({ userId, name, category, notes }: AddItemRequest): Promise<AddItemResponse> => {
+  async ({ userId, name, category, notes, timing }: AddItemRequest): Promise<AddItemResponse> => {
     const { data, error } = await supabase.schema("eksik_var").rpc("add_missing_item", {
       clerk_id_param: userId,
       name_param: name,
       category_param: category ?? null,
       notes_param: notes ?? null,
+      timing_param: timing ?? "today",
     });
 
     if (error) {
@@ -224,7 +228,7 @@ export const toggleItemUsed = api(
  */
 export const updateItem = api(
   { expose: true, method: "PUT", path: "/eksik-var/item/:id" },
-  async ({ id, userId, name, isUsed, category, notes }: UpdateItemRequest): Promise<UpdateItemResponse> => {
+  async ({ id, userId, name, isUsed, category, notes, timing }: UpdateItemRequest): Promise<UpdateItemResponse> => {
     const { data, error } = await supabase.schema("eksik_var").rpc("update_missing_item", {
       item_id_param: id,
       clerk_id_param: userId,
@@ -232,6 +236,7 @@ export const updateItem = api(
       is_used_param: isUsed ?? null,
       category_param: category ?? null,
       notes_param: notes ?? null,
+      timing_param: timing ?? null,
     });
 
     if (error) {

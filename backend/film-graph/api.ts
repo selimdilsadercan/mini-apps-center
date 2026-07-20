@@ -471,11 +471,20 @@ export const getDailySuggestions = api(
       const mId = String(m.id);
       const isSaved = savedList.some((f) => f.movie_id === mId);
       const isIgnored = ignoredIds.includes(mId);
-      return !isSaved && !isIgnored;
+      const isLowQuality = (m.voteAverage || 0) < 5.5 || (m.voteCount || 0) < 50;
+      return !isSaved && !isIgnored && !isLowQuality;
     });
 
     const selected: any[] = [];
-    const todaySeed = new Date().getDate();
+    const getDeterministicSeed = (str: string) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    };
+    const todaySeed = getDeterministicSeed(userId + todayStr);
 
     // 1. Saved Movie candidate
     if (wantCandidates.length > 0) {

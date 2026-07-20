@@ -2964,6 +2964,7 @@ export namespace eksik_var {
         name: string
         category?: string
         notes?: string
+        timing?: string
     }
 
     export interface AddItemResponse {
@@ -3006,6 +3007,7 @@ export namespace eksik_var {
         notes?: string | null
         "is_used": boolean
         category?: string | null
+        timing: string
         "created_at": string
     }
 
@@ -3048,6 +3050,7 @@ export namespace eksik_var {
         isUsed?: boolean
         category?: string
         notes?: string
+        timing?: string
     }
 
     export interface UpdateItemResponse {
@@ -4824,6 +4827,7 @@ export namespace hub {
         weeklyReadingGoal: read_tracker.WeeklyGoal | null
         todayMatches: buyuk_maclar.BigMatch[]
         youtubeSeries: ytdb.Series[]
+        eksikItems: eksik_var.MissingItem[]
     }
 
     export interface ExploreWidgetsResponse {

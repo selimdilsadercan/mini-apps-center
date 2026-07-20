@@ -45,9 +45,10 @@ import {
   type series_track,
   type ev_isleri,
   type read_tracker,
-  type gym,
   type buyuk_maclar,
   type ytdb,
+  type eksik_var,
+  type gym,
 } from "@/lib/client";
 
 // Sub-components
@@ -258,6 +259,7 @@ function HomePageContent() {
           queryClient.invalidateQueries({ queryKey: exploreQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: walletQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: lifeQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] }),
         ]).then(() => {
           setTimeout(() => {
             setIsRefreshing(false);
@@ -300,6 +302,7 @@ function HomePageContent() {
           queryClient.invalidateQueries({ queryKey: exploreQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: walletQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: lifeQueryKey(userId) }),
+          queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] }),
         ]).then(() => {
           setTimeout(() => {
             setIsRefreshing(false);
@@ -381,6 +384,16 @@ function HomePageContent() {
     refetchOnReconnect: "always",
   });
 
+  const dailyMoviesQuery = useQuery({
+    queryKey: ["film-graph", "daily-suggestions", userId],
+    queryFn: () => client.film_graph.getDailySuggestions(userId || ""),
+    enabled: isLoaded && !!userId && activeTab === "discover",
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
+  });
+
   const exploreQuery = useQuery({
     queryKey: exploreQueryKey(userId),
     queryFn: () => client.hub.getExploreWidgets({ userId }),
@@ -437,6 +450,7 @@ function HomePageContent() {
   const weeklyReadingGoal = data?.weeklyReadingGoal || null;
   const todayMatches: buyuk_maclar.BigMatch[] = data?.todayMatches || [];
   const youtubeSeries: ytdb.Series[] = data?.youtubeSeries || [];
+  const eksikItems: eksik_var.MissingItem[] = data?.eksikItems || [];
 
   const explorePlacesApps = useMemo(() => {
     const order = ["workplaces", "digital-menu", "stamp-card"];
@@ -595,6 +609,15 @@ function HomePageContent() {
     }
   };
 
+  const movieSuggestions = useMemo(() => {
+    const list = [];
+    if (dailyMoviesQuery.data?.movie1) list.push(dailyMoviesQuery.data.movie1);
+    if (dailyMoviesQuery.data?.movie2) list.push(dailyMoviesQuery.data.movie2);
+    return list;
+  }, [dailyMoviesQuery.data]);
+
+  const moviesLoading = dailyMoviesQuery.isLoading;
+
   return (
     <div className="flex min-h-screen flex-col bg-app-bg pb-32">
       <HomeHeader
@@ -616,9 +639,8 @@ function HomePageContent() {
       >
         <div className="flex items-center gap-2 text-app-muted text-[10px] font-black uppercase tracking-wider py-2">
           <div
-            className={`w-4 h-4 border-2 border-app-border border-t-red-500 rounded-full ${
-              isRefreshing ? "animate-spin" : ""
-            }`}
+            className={`w-4 h-4 border-2 border-app-border border-t-red-500 rounded-full ${isRefreshing ? "animate-spin" : ""
+              }`}
             style={{
               transform: isRefreshing ? undefined : `rotate(${pullDistance * 4}deg)`,
             }}
@@ -654,6 +676,9 @@ function HomePageContent() {
                     youtubeSeries={youtubeSeries}
                     userId={user?.id}
                     loading={loading}
+                    movieSuggestions={movieSuggestions}
+                    moviesLoading={moviesLoading}
+                    eksikItems={eksikItems}
                   />
                 </section>
               </motion.div>
@@ -916,6 +941,9 @@ function HomeSummaryCards({
   youtubeSeries,
   userId,
   loading,
+  movieSuggestions,
+  moviesLoading,
+  eksikItems,
 }: {
   suggestions: suggest.InboxSuggestion[];
   activities: kim_gelir.Activity[];
@@ -929,6 +957,9 @@ function HomeSummaryCards({
   youtubeSeries: ytdb.Series[];
   userId?: string;
   loading: boolean;
+  movieSuggestions: any[];
+  moviesLoading: boolean;
+  eksikItems: eksik_var.MissingItem[];
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -1396,6 +1427,9 @@ function HomeSummaryCards({
       handleToggleChoreComplete={handleToggleChoreComplete}
       todayMatches={todayMatches}
       youtubeSeries={youtubeSeries}
+      movieSuggestions={movieSuggestions}
+      moviesLoading={moviesLoading}
+      eksikItems={eksikItems}
     />
   );
 }

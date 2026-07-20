@@ -491,32 +491,32 @@ function FriendsContent() {
                 )}
 
                 {/* Action button in search result */}
-                {user.id === searchedUser.clerk_id ? (
+                {user.id === searchedUser.id ? (
                   <div className="w-full py-3.5 bg-app-surface-muted text-app-muted rounded-2xl font-bold text-sm">
                     {locale === "tr" ? "Bu sizin profiliniz" : "This is your profile"}
                   </div>
-                ) : friends.some(f => f.id === searchedUser.clerk_id) ? (
+                ) : friends.some(f => f.id === searchedUser.id) ? (
                   <div className="w-full py-3.5 bg-indigo-500/10 text-indigo-600 rounded-2xl font-bold text-sm border border-indigo-500/20">
                     {t("alreadyFriends")}
                   </div>
-                ) : pendingRequests.some(r => r.id === searchedUser.clerk_id) ? (
+                ) : pendingRequests.some(r => r.id === searchedUser.id) ? (
                   <button
                     onClick={async () => {
-                      await handleAcceptRequest(searchedUser.clerk_id);
+                      await handleAcceptRequest(searchedUser.id);
                     }}
                     className="w-full py-3.5 bg-emerald-500/100 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95 shadow-md shadow-emerald-100"
                   >
                     <Check size={18} weight="bold" />
                     {locale === "tr" ? "İsteği Kabul Et" : "Accept Request"}
                   </button>
-                ) : sentRequests.some(r => r.id === searchedUser.clerk_id) ? (
+                ) : sentRequests.some(r => r.id === searchedUser.id) ? (
                   <div className="w-full flex flex-col gap-2">
                     <div className="w-full py-3 bg-app-surface-muted text-app-muted rounded-2xl font-bold text-xs border border-app-border">
                       {locale === "tr" ? "Arkadaşlık İsteği Gönderildi" : "Friend Request Sent"}
                     </div>
                     <button
                       onClick={async () => {
-                        await handleCancelRequest(searchedUser.clerk_id);
+                        await handleCancelRequest(searchedUser.id);
                       }}
                       className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl font-bold text-xs transition-all cursor-pointer active:scale-95 border border-red-500/20"
                     >
@@ -526,7 +526,7 @@ function FriendsContent() {
                 ) : (
                   <button
                     onClick={async () => {
-                      await handleSendRequest(searchedUser.clerk_id);
+                      await handleSendRequest(searchedUser.id);
                     }}
                     disabled={actionLoading}
                     className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"

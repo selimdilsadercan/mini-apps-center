@@ -10,6 +10,7 @@
 
 ALTER TABLE eksik_var.missing_items ADD COLUMN IF NOT EXISTS is_used BOOLEAN DEFAULT FALSE NOT NULL;
 ALTER TABLE eksik_var.missing_items ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE eksik_var.missing_items ADD COLUMN IF NOT EXISTS timing TEXT DEFAULT 'today' NOT NULL;
 
 CREATE TABLE IF NOT EXISTS eksik_var.shared_lists (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS eksik_var.missing_items (
     notes TEXT,
     is_used BOOLEAN DEFAULT FALSE NOT NULL,
     category TEXT,
+    timing TEXT DEFAULT 'today' NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
