@@ -946,6 +946,29 @@ export const deleteCatalogMovie = api(
 );
 
 /**
+ * Katalogdan bir maçı siler
+ * DELETE /catalog/match/:matchId
+ */
+export const deleteCatalogMatch = api(
+  { expose: true, method: "DELETE", path: "/catalog/match/:matchId" },
+  async ({ matchId }: { matchId: string }): Promise<{ success: boolean }> => {
+    try {
+      const { error } = await supabase
+        .schema("catalog")
+        .from("matches")
+        .delete()
+        .eq("id", matchId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      throw APIError.internal(`Failed to delete catalog match: ${msg}`);
+    }
+  }
+);
+
+/**
  * Bir filmi TMDB'den çekip yüksek popülerlikle yerel kataloğa ekler/öne çıkarır
  * POST /catalog/movie/promote
  */

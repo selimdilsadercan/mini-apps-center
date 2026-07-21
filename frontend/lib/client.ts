@@ -2194,6 +2194,7 @@ export namespace catalog {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.deleteCatalogMatch = this.deleteCatalogMatch.bind(this)
             this.deleteCatalogMovie = this.deleteCatalogMovie.bind(this)
             this.getAdminCatalog = this.getAdminCatalog.bind(this)
             this.getBigMatches = this.getBigMatches.bind(this)
@@ -2206,6 +2207,20 @@ export namespace catalog {
             this.runSyncPopularFilms = this.runSyncPopularFilms.bind(this)
             this.searchFilms = this.searchFilms.bind(this)
             this.searchSeries = this.searchSeries.bind(this)
+        }
+
+        /**
+         * Katalogdan bir maçı siler
+         * DELETE /catalog/match/:matchId
+         */
+        public async deleteCatalogMatch(matchId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/catalog/match/${encodeURIComponent(matchId)}`)
+            return await resp.json() as {
+    success: boolean
+}
         }
 
         /**

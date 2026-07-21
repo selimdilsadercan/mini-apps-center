@@ -48,7 +48,7 @@ const COMPETITIONS: CompetitionDef[] = [
   },
   {
     sportPath: "soccer",
-    slug: "uefa.european_championship",
+    slug: "uefa.euro",
     sport: "football",
     name: "UEFA Euro",
     nameTr: "Avrupa Şampiyonası",
@@ -75,6 +75,48 @@ const COMPETITIONS: CompetitionDef[] = [
     nameTr: "Şampiyonlar Ligi",
   },
   {
+    sportPath: "soccer",
+    slug: "uefa.champions_qual",
+    sport: "football",
+    name: "UEFA Champions League Qualifying",
+    nameTr: "Şampiyonlar Ligi Elemeleri",
+  },
+  {
+    sportPath: "soccer",
+    slug: "uefa.europa",
+    sport: "football",
+    name: "UEFA Europa League",
+    nameTr: "Avrupa Ligi",
+  },
+  {
+    sportPath: "soccer",
+    slug: "uefa.europa_qual",
+    sport: "football",
+    name: "UEFA Europa League Qualifying",
+    nameTr: "Avrupa Ligi Elemeleri",
+  },
+  {
+    sportPath: "soccer",
+    slug: "uefa.europa.conf",
+    sport: "football",
+    name: "UEFA Conference League",
+    nameTr: "Konferans Ligi",
+  },
+  {
+    sportPath: "soccer",
+    slug: "uefa.europa.conf_qual",
+    sport: "football",
+    name: "UEFA Conference League Qualifying",
+    nameTr: "Konferans Ligi Elemeleri",
+  },
+  {
+    sportPath: "soccer",
+    slug: "tur.1",
+    sport: "football",
+    name: "Turkish Süper Lig",
+    nameTr: "Trendyol Süper Lig",
+  },
+  {
     sportPath: "basketball",
     slug: "nba",
     sport: "basketball",
@@ -97,22 +139,22 @@ const VOLLEYBALL_LEAGUES: Array<{
   name: string;
   nameTr: string;
 }> = [
-  {
-    id: "5613",
-    name: "European Volleyball Championship",
-    nameTr: "Avrupa Voleybol Şampiyonası",
-  },
-  {
-    id: "5848",
-    name: "European Volleyball League",
-    nameTr: "Avrupa Voleybol Ligi",
-  },
-  {
-    id: "5849",
-    name: "Women's European Volleyball League",
-    nameTr: "Kadınlar Avrupa Voleybol Ligi",
-  },
-];
+    {
+      id: "5613",
+      name: "European Volleyball Championship",
+      nameTr: "Avrupa Voleybol Şampiyonası",
+    },
+    {
+      id: "5848",
+      name: "European Volleyball League",
+      nameTr: "Avrupa Voleybol Ligi",
+    },
+    {
+      id: "5849",
+      name: "Women's European Volleyball League",
+      nameTr: "Kadınlar Avrupa Voleybol Ligi",
+    },
+  ];
 
 interface EspnCompetitor {
   homeAway?: string;
@@ -337,28 +379,84 @@ function normalizeF1Event(event: EspnEvent, def: CompetitionDef): BigMatch | nul
   };
 }
 
+const TURKISH_TEAM_KEYWORDS = [
+  "fenerbahce", "fenerbahçe",
+  "galatasaray",
+  "besiktas", "beşiktaş",
+  "trabzonspor",
+  "basaksehir", "başakşehir",
+  "konyaspor",
+  "sivasspor",
+  "antalyaspor",
+  "alanyaspor",
+  "kayserispor",
+  "gaziantep",
+  "goztepe", "göztepe",
+  "samsunspor",
+  "kasimpasa", "kasımpasa", "kasımpaşa",
+  "rizespor",
+  "hatayspor",
+  "bodrum",
+  "eyupspor", "eyüpspor",
+  "adana demirspor",
+  "kocaelispor",
+  "sakaryaspor",
+  "ankaragucu", "ankaragücü",
+  "karagumruk", "karagümrük",
+  "pendikspor",
+  "umraniyespor", "ümraniyespor",
+  "giresunspor",
+  "malatyaspor",
+  "altay",
+  "erzurumspor",
+  "denizlispor",
+  "genclerbirligi", "gençlerbirliği",
+  "akhisar",
+  "bursaspor",
+  "karabukspor",
+  "turkey", "türkiye"
+];
+
 async function fetchEspnCompetition(
   def: CompetitionDef,
   dates: string,
 ): Promise<BigMatch[]> {
   const url = `https://site.api.espn.com/apis/site/v2/sports/${def.sportPath}/${def.slug}/scoreboard?dates=${dates}`;
+  console.log(`[DEBUG_MATCHES] Fetching ESPN: ${url}`);
   try {
     const res = await fetch(url, {
       headers: { Accept: "application/json" },
     });
+    console.log(`[DEBUG_MATCHES] ESPN response for ${def.slug}: status=${res.status}`);
     if (!res.ok) return [];
     const data = (await res.json()) as EspnScoreboard;
     const matches: BigMatch[] = [];
-    for (const event of data.events ?? []) {
+    const events = data.events ?? [];
+    console.log(`[DEBUG_MATCHES] ESPN data events count for ${def.slug}: ${events.length}`);
+    for (const event of events) {
       const match =
         def.kind === "f1"
           ? normalizeF1Event(event, def)
           : normalizeTeamEvent(event, def);
-      if (match) matches.push(match);
+      if (match) {
+        if (def.slug.startsWith("uefa.")) {
+          const homeLower = match.home.toLowerCase();
+          const awayLower = match.away.toLowerCase();
+          const hasTurkishTeam = TURKISH_TEAM_KEYWORDS.some(
+            (kw) => homeLower.includes(kw) || awayLower.includes(kw)
+          );
+          if (!hasTurkishTeam) {
+            continue;
+          }
+        }
+        console.log(`[DEBUG_MATCHES] Found match: ${match.home} vs ${match.away} (${match.state}) - Date: ${match.startAt}`);
+        matches.push(match);
+      }
     }
+    console.log(`[DEBUG_MATCHES] Total matches parsed for ${def.slug}: ${matches.length}`);
     return matches;
   } catch (err) {
-    console.error(`buyuk-maclar ESPN fetch failed for ${def.slug}:`, err);
+    console.error(`[DEBUG_MATCHES] buyuk-maclar ESPN fetch failed for ${def.slug}:`, err);
     return [];
   }
 }

@@ -139,6 +139,19 @@ export default function AdminCatalogPage() {
     }
   });
 
+  const deleteMatchMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      return await client.catalog.deleteCatalogMatch(matchId);
+    },
+    onSuccess: () => {
+      toast.success("Maç katalogdan kaldırıldı.");
+      queryClient.invalidateQueries({ queryKey: ["adminCatalog"] });
+    },
+    onError: (err: any) => {
+      toast.error(`Silme hatası: ${err.message || "Bilinmeyen hata"}`);
+    }
+  });
+
   const rawMovies = data?.movies || [];
   const rawSeries = data?.series || [];
   const matches = data?.matches || [];
@@ -452,12 +465,13 @@ export default function AdminCatalogPage() {
                     <th className="p-4">Spor</th>
                     <th className="p-4">Durum</th>
                     <th className="p-4 text-right">Başlangıç</th>
+                    <th className="p-4 w-10 text-center">İşlem</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 text-stone-700">
                   {filteredMatches.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center py-12 text-stone-400 text-xs font-bold">Katalogda maç bulunamadı.</td>
+                      <td colSpan={6} className="text-center py-12 text-stone-400 text-xs font-bold">Katalogda maç bulunamadı.</td>
                     </tr>
                   ) : (
                     filteredMatches.map((match) => (
@@ -503,6 +517,20 @@ export default function AdminCatalogPage() {
                             hour: "2-digit",
                             minute: "2-digit"
                           })}
+                        </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => {
+                              if (confirm("Bu maçı silmek istediğinize emin misiniz?")) {
+                                deleteMatchMutation.mutate(match.id);
+                              }
+                            }}
+                            disabled={deleteMatchMutation.isPending}
+                            className="p-1 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 active:scale-95 transition-all disabled:opacity-50"
+                            title="Maçı Katalogdan Sil"
+                          >
+                            <Trash size={14} weight="bold" />
+                          </button>
                         </td>
                       </tr>
                     ))
