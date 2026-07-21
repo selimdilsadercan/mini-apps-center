@@ -416,6 +416,13 @@ export default function FilmGraphPage() {
         onTabChange={setActiveTab}
         onAddClick={() => setIsModalOpen(true)}
         graphLayout={activeTab === "graph"}
+        onBack={
+          detailFilm
+            ? () => setDetailFilm(null)
+            : selectedNode
+            ? () => setSelectedNode(null)
+            : undefined
+        }
       >
         {activeTab === "discover" && (
           <DiscoverTab listIds={listIds} onSelect={(film) => void handleDiscoverSelect(film)} />

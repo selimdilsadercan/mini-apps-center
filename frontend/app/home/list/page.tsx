@@ -43,6 +43,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [apps, setApps] = useState<MiniApp[]>([]);
   const [cancelledApps, setCancelledApps] = useState<MiniApp[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const implementedApps = MINI_APPS.filter((app) => app.isImplemented && !app.isCancelled);
@@ -50,6 +52,29 @@ export default function Home() {
     setApps(implementedApps);
     setCancelledApps(cancelled);
   }, []);
+
+  const filteredApps = useMemo(() => {
+    if (!searchQuery) return apps;
+    const query = searchQuery.toLowerCase().trim();
+    return apps.filter(app => {
+      const nameTr = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : "";
+      const descTr = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : "";
+      
+      const appName = app.name.toLowerCase();
+      const appDesc = app.description.toLowerCase();
+      const appCta = (app.cta || "").toLowerCase();
+      const appCategory = app.category.toLowerCase();
+      
+      return (
+        nameTr.toLowerCase().includes(query) ||
+        descTr.toLowerCase().includes(query) ||
+        appName.includes(query) ||
+        appDesc.includes(query) ||
+        appCta.includes(query) ||
+        appCategory.includes(query)
+      );
+    });
+  }, [apps, searchQuery, tApps]);
 
   // Group apps by category
   const groupedApps = useMemo(() => {
@@ -64,7 +89,7 @@ export default function Home() {
       "Kampüslülere Özel"
     ];
 
-    apps.forEach(app => {
+    filteredApps.forEach(app => {
       if (!grouped[app.category]) grouped[app.category] = [];
       grouped[app.category].push(app);
     });
@@ -74,11 +99,29 @@ export default function Home() {
       const indexB = categoryOrder.indexOf(catB);
       return (indexA > -1 ? indexA : 99) - (indexB > -1 ? indexB : 99);
     });
-  }, [apps]);
+  }, [filteredApps]);
 
   const pinnedApps = useMemo(() => {
-    return apps.filter(app => pinnedIds.includes(app.id));
-  }, [apps, pinnedIds]);
+    const filtered = apps.filter(app => pinnedIds.includes(app.id));
+    if (!searchQuery) return filtered;
+    const query = searchQuery.toLowerCase().trim();
+    return filtered.filter(app => {
+      const nameTr = tApps(`${app.id}.name`) !== `apps.${app.id}.name` ? tApps(`${app.id}.name`) : "";
+      const descTr = tApps(`${app.id}.description`) !== `apps.${app.id}.description` ? tApps(`${app.id}.description`) : "";
+      
+      const appName = app.name.toLowerCase();
+      const appDesc = app.description.toLowerCase();
+      const appCta = (app.cta || "").toLowerCase();
+      
+      return (
+        nameTr.toLowerCase().includes(query) ||
+        descTr.toLowerCase().includes(query) ||
+        appName.includes(query) ||
+        appDesc.includes(query) ||
+        appCta.includes(query)
+      );
+    });
+  }, [apps, pinnedIds, searchQuery, tApps]);
 
   const handleAppClick = (app: MiniApp) => {
     // 1. Önce hemen yönlendir
@@ -111,19 +154,68 @@ export default function Home() {
           <h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter uppercase">
             Everything
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setIsSearchOpen(!isSearchOpen);
+                if (isSearchOpen) setSearchQuery("");
+              }}
+              className={`w-9 h-9 rounded-full flex items-center justify-center border active:scale-95 transition-all cursor-pointer ${
+                isSearchOpen 
+                  ? "bg-gray-900 border-gray-900 text-white" 
+                  : "bg-white border-gray-100 text-gray-600 hover:text-gray-900"
+              }`}
+              aria-label="Arama yap"
+            >
+              <MagnifyingGlass size={18} weight={isSearchOpen ? "bold" : "regular"} />
+            </button>
+
             <button 
               onClick={() => router.push("/profile")}
-              className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
+              className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
             >
               {user?.imageUrl ? (
                 <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <UserCircle size={40} weight="fill" className="text-gray-300" />
+                <UserCircle size={36} weight="fill" className="text-gray-300" />
               )}
             </button>
           </div>
         </section>
+
+        {/* Collapsible Search Input */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+              animate={{ height: "auto", opacity: 1, marginBottom: 16 }}
+              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="relative flex items-center">
+                <MagnifyingGlass size={16} className="absolute left-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Uygulama ara..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-9 py-2 bg-gray-100/80 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1.5 focus:ring-gray-300 focus:bg-white transition-all"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 p-0.5 rounded-full bg-gray-200 text-gray-500 hover:text-gray-700 active:scale-95 transition-all"
+                  >
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Pills (Tabs) */}
         <div className="flex gap-2 mb-6">
@@ -150,33 +242,40 @@ export default function Home() {
         </div>
 
         {/* Special Pinned Section */}
-        <section className="mb-4">
-          {isAdmin && (
-            <SpecialRow 
-              title="Yönetim Paneli" 
-              subtitle="Sistem ayarları ve kullanıcı yönetimi"
-              icon={ShieldCheck}
-              color="#4F46E5"
-              onClick={() => router.push("/admin")}
-            />
-          )}
-          {(isAdmin || hasBusinesses) && (
-            <SpecialRow 
-              title="İşletme Paneli" 
-              subtitle="İşletmeni yönet ve istatistikleri gör"
-              icon={Storefront}
-              color="#EF4444"
-              onClick={() => router.push("/dashboard")}
-            />
-          )}
-          <SpecialRow 
-            title="Feedback Ver" 
-            subtitle="Uygulamayı geliştirmemize yardımcı ol"
-            icon={ChatTeardropDots}
-            color="#7C3AED"
-            onClick={() => router.push("/f?board=9be81ce2")}
-          />
-        </section>
+        {(!searchQuery || 
+          "yönetim paneli sistem ayarları kullanıcı yönetimi".includes(searchQuery.toLowerCase()) ||
+          "işletme paneli işletmeni yönet istatistikleri gör".includes(searchQuery.toLowerCase()) ||
+          "feedback ver uygulamayı geliştirmemize yardımcı ol".includes(searchQuery.toLowerCase())) && (
+          <section className="mb-4">
+            {isAdmin && (!searchQuery || "yönetim paneli sistem ayarları kullanıcı yönetimi".includes(searchQuery.toLowerCase())) && (
+              <SpecialRow 
+                title="Yönetim Paneli" 
+                subtitle="Sistem ayarları ve kullanıcı yönetimi"
+                icon={ShieldCheck}
+                color="#4F46E5"
+                onClick={() => router.push("/admin")}
+              />
+            )}
+            {(isAdmin || hasBusinesses) && (!searchQuery || "işletme paneli işletmeni yönet istatistikleri gör".includes(searchQuery.toLowerCase())) && (
+              <SpecialRow 
+                title="İşletme Paneli" 
+                subtitle="İşletmeni yönet ve istatistikleri gör"
+                icon={Storefront}
+                color="#EF4444"
+                onClick={() => router.push("/dashboard")}
+              />
+            )}
+            {(!searchQuery || "feedback ver uygulamayı geliştirmemize yardımcı ol".includes(searchQuery.toLowerCase())) && (
+              <SpecialRow 
+                title="Feedback Ver" 
+                subtitle="Uygulamayı geliştirmemize yardımcı ol"
+                icon={ChatTeardropDots}
+                color="#7C3AED"
+                onClick={() => router.push("/f?board=9be81ce2")}
+              />
+            )}
+          </section>
+        )}
 
         {/* Main Content Area */}
         <AnimatePresence mode="wait">
@@ -188,26 +287,33 @@ export default function Home() {
               exit={{ opacity: 0, x: 10 }}
               className="space-y-10 mt-8"
             >
-              {groupedApps.map(([category, categoryApps]) => (
-                <section key={category} className="space-y-3">
-                  <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] px-1">
-                    {category}
-                  </h2>
-                  <div className="space-y-0">
-                    {categoryApps.map((app, index) => (
-                      <AppRow 
-                        key={app.id} 
-                        app={app} 
-                        index={index} 
-                        tApps={tApps}
-                        isPinned={pinnedIds.includes(app.id)}
-                        onPin={(e) => togglePin(e, app.id)}
-                        onClick={() => handleAppClick(app)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))}
+              {filteredApps.length === 0 ? (
+                <div className="py-16 text-center">
+                  <MagnifyingGlass size={40} weight="light" className="mx-auto text-gray-200 mb-3" />
+                  <p className="text-gray-400 text-xs font-semibold">Aramanıza uygun uygulama bulunamadı.</p>
+                </div>
+              ) : (
+                groupedApps.map(([category, categoryApps]) => (
+                  <section key={category} className="space-y-3">
+                    <h2 className="text-[11px] font-[1000] text-gray-400 uppercase tracking-[0.2em] px-1">
+                      {category}
+                    </h2>
+                    <div className="space-y-0">
+                      {categoryApps.map((app, index) => (
+                        <AppRow 
+                          key={app.id} 
+                          app={app} 
+                          index={index} 
+                          tApps={tApps}
+                          isPinned={pinnedIds.includes(app.id)}
+                          onPin={(e) => togglePin(e, app.id)}
+                          onClick={() => handleAppClick(app)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))
+              )}
             </motion.div>
           ) : (
             <motion.div

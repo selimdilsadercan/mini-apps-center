@@ -84,7 +84,6 @@ export default function PuanlarTab({
       if (res.gameSave) {
         setGameSave(mapGameSaveToFrontend(res.gameSave));
       }
-      toast.success("Tur kaydedildi!");
     } catch (e) {
       console.error(e);
       toast.error("Tur kaydedilemedi!");
@@ -142,10 +141,14 @@ export default function PuanlarTab({
   });
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
-  // Get players data - filter by players selected in this game save
-  const gamePlayers = (players || []).filter((player: any) =>
-    gameSave?.players?.includes(player._id || player.id)
-  );
+  // Get players data - filter by players selected in this game save and order them strictly by gameSave.players order
+  const gamePlayers = (() => {
+    const unfiltered = players || [];
+    const playerMap = new Map(unfiltered.map((p: any) => [p._id || p.id, p]));
+    return (gameSave?.players || [])
+      .map((id: string) => playerMap.get(id))
+      .filter(Boolean);
+  })();
 
   // For team mode, group players by teams
   const getTeamPlayers = () => {
@@ -516,6 +519,29 @@ export default function PuanlarTab({
       if (!gameSave?.teamLaps || gameSave.teamLaps.length === 0) return;
       
       try {
+        const lastRound = gameSave.teamLaps[gameSave.teamLaps.length - 1];
+        if (lastRound) {
+          const redTeamScore = lastRound[0];
+          const blueTeamScore = lastRound[1];
+          
+          if (gameSave?.settings.calculationMode === "NoPoints") {
+            setCrownWinners({
+              redTeam: redTeamScore === 1,
+              blueTeam: blueTeamScore === 1,
+            });
+          } else if (gameSave?.settings.pointsPerRound === "Multiple") {
+            setMultipleScores({
+              redTeam: Array.isArray(redTeamScore) ? redTeamScore : [Number(redTeamScore) || 0],
+              blueTeam: Array.isArray(blueTeamScore) ? blueTeamScore : [Number(blueTeamScore) || 0],
+            });
+          } else {
+            setCurrentScores({
+              redTeam: Number(redTeamScore) || 0,
+              blueTeam: Number(blueTeamScore) || 0,
+            });
+          }
+        }
+
         // Remove the last round from teamLaps
         const updatedTeamLaps = gameSave.teamLaps.slice(0, -1);
         
@@ -531,6 +557,37 @@ export default function PuanlarTab({
       if (!gameSave?.laps || gameSave.laps.length === 0) return;
       
       try {
+        const playersList = gamePlayers || [];
+        const newCrownWinners: { [key: string]: boolean } = {};
+        const newMultipleScores: { [key: string]: number[] } = {};
+        const newCurrentScores: { [key: string]: number } = {};
+        
+        let hasData = false;
+        playersList.forEach((player: any, i: number) => {
+          const playerLaps = gameSave.laps[i];
+          if (playerLaps && playerLaps.length > 0) {
+            hasData = true;
+            const score = playerLaps[playerLaps.length - 1];
+            if (gameSave?.settings.calculationMode === "NoPoints") {
+              newCrownWinners[player._id] = score === 1;
+            } else if (gameSave?.settings.pointsPerRound === "Multiple") {
+              newMultipleScores[player._id] = Array.isArray(score) ? score : [Number(score) || 0];
+            } else {
+              newCurrentScores[player._id] = Number(score) || 0;
+            }
+          }
+        });
+        
+        if (hasData) {
+          if (gameSave?.settings.calculationMode === "NoPoints") {
+            setCrownWinners(newCrownWinners);
+          } else if (gameSave?.settings.pointsPerRound === "Multiple") {
+            setMultipleScores(newMultipleScores);
+          } else {
+            setCurrentScores(newCurrentScores);
+          }
+        }
+
         // Remove the last round from all players
         const updatedLaps = gameSave.laps.map(
           (playerLaps: any[]) => playerLaps.slice(0, -1) // Remove last element
@@ -784,22 +841,20 @@ export default function PuanlarTab({
 
             {/* Total Column */}
             <div className="flex flex-col">
-              <div className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 text-app-muted">
+              <button
+                onClick={toggleHideTotalColumn}
+                className="h-9 px-4 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 text-app-muted hover:bg-app-surface-muted/50 rounded-xl transition-all active:scale-[0.98] cursor-pointer"
+                title={gameSave?.settings.hideTotalColumn ? "Toplamı Göster" : "Toplamı Gizle"}
+              >
                 <span>Toplam</span>
-                <button
-                  onClick={toggleHideTotalColumn}
-                  className="p-0.5 hover:bg-app-surface-muted rounded transition-colors text-app-muted hover:text-blue-500 flex items-center justify-center"
-                  title={gameSave?.settings.hideTotalColumn ? "Toplamı Göster" : "Toplamı Gizle"}
-                >
-                  {gameSave?.settings.hideTotalColumn ? <EyeSlash size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
+                {gameSave?.settings.hideTotalColumn ? <EyeSlash size={14} /> : <Eye size={14} />}
+              </button>
               {gameSave?.settings.gameplay === "takimli" ? (
                 <>
                   <div className="h-[52px] px-4 flex items-center justify-center border-b border-app-border">
                     <div className="font-black text-blue-600">
                       {gameSave?.settings.hideTotalColumn ? (
-                        "••"
+                        "—"
                       ) : (
                         getTeamTotalScore(redTeamPlayers || [])
                       )}
@@ -808,7 +863,7 @@ export default function PuanlarTab({
                   <div className="h-[52px] px-4 flex items-center justify-center">
                     <div className="font-black text-blue-600">
                       {gameSave?.settings.hideTotalColumn ? (
-                        "••"
+                        "—"
                       ) : (
                         getTeamTotalScore(blueTeamPlayers || [])
                       )}
@@ -823,7 +878,7 @@ export default function PuanlarTab({
                   >
                     <div className="font-black text-blue-600">
                       {gameSave?.settings.hideTotalColumn ? (
-                        "••"
+                        "—"
                       ) : (
                         getTotalScore(player._id)
                       )}

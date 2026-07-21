@@ -209,5 +209,80 @@
       "pointsPerRound": "Single",
       "hideTotalColumn": false
     }
+  },
+  {
+    "_id": "g17",
+    "name": "Pişti",
+    "emoji": "🎴",
+    "listName": "İskambil Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": false,
+      "iskambilId": "pisti"
+    }
+  },
+  {
+    "_id": "g18",
+    "name": "51",
+    "emoji": "🃏",
+    "listName": "İskambil Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Lowest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": true,
+      "iskambilId": "51"
+    }
+  },
+  {
+    "_id": "g19",
+    "name": "Batak",
+    "emoji": "♠️",
+    "listName": "İskambil Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": false,
+      "iskambilId": "batak-spades"
+    }
+  },
+  {
+    "_id": "g20",
+    "name": "Pis Yedili",
+    "emoji": "🍀",
+    "listName": "İskambil Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Lowest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": false,
+      "iskambilId": "pis-yedili"
+    }
+  },
+  {
+    "_id": "g21",
+    "name": "Altmışaltı (66)",
+    "emoji": "🔂",
+    "listName": "İskambil Oyunları",
+    "settings": {
+      "gameplay": "herkes-tek",
+      "calculationMode": "Points",
+      "scoringTiming": "tur-sonu",
+      "roundWinner": "Highest",
+      "pointsPerRound": "Multiple",
+      "hideTotalColumn": false,
+      "iskambilId": "sixty-six"
+    }
   }
 ]

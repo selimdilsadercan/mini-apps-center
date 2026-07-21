@@ -1,34 +1,186 @@
 {
-  "id": "51",
-  "name_tr": "51",
-  "name_en": "51 Rummy",
-  "originalName": "51 Rummy",
-  "description_tr": "Türkiye'de yaygın oynanan, çift deste ve jokerlerle oynanan barajlı rummy/okey mantıklı kart oyunu.",
-  "description_en": "A popular Turkish rummy/Okey-style game played with two decks and jokers, using a minimum opening threshold of 51 points.",
-  "rules_tr": [
-    "Genellikle 2-5 oyuncuyla, iki standart deste ve jokerler dahil 106 kartla oynanır.",
-    "Her oyuncuya 14 kart, başlayacak oyuncuya 15 kart dağıtılır.",
-    "Amaç eldeki kartları setlere ve serilere ayırıp masaya açmak ve eldeki kartları bitirmektir.",
-    "Oyuncunun ilk kez yere açabilmesi için açtığı perlerin toplam değeri en az 51 olmalıdır.",
-    "Açıldıktan sonra oyuncu masadaki kendi veya diğer oyuncuların perlerine uygun kart işleyebilir.",
-    "Sırası gelen oyuncu kapalı desteden veya atık destesinden kart alır ve elinden bir kart atar.",
-    "Elindeki kartları bitiren oyuncu eli kazanır.",
-    "Diğer oyuncular elde kalan kartlarının değerine göre ceza puanı alır; joker ve özel bitiş kuralları ev kuralına göre değişebilir."
-  ],
-  "rules_en": [
-    "Usually played with 2-5 players using two standard decks including jokers, for 106 cards total.",
-    "Each player receives 14 cards, and the starting player receives 15 cards.",
-    "The goal is to arrange cards into sets and runs, lay them on the table, and eventually empty the hand.",
-    "To make the first meld, a player's opened melds must total at least 51 points.",
-    "After opening, a player may add suitable cards to their own melds or to other players' melds on the table.",
-    "On each turn, a player draws from the stock or discard pile and discards one card.",
-    "The player who gets rid of all cards wins the hand.",
-    "Other players receive penalty points based on cards left in hand; joker and special going-out rules vary by house rule."
-  ],
-  "minPlayers": 2,
-  "maxPlayers": 5,
-  "deckCount_tr": "2 Deste + Jokerler",
-  "deckCount_en": "2 Decks + Jokers",
-  "category_tr": "Rumi / Per Yapma",
-  "category_en": "Rummy / Meld-building"
+"id": "51",
+"name_tr": "51",
+"name_en": "51 Rummy",
+"originalName": "51",
+"description_tr": "Türkiye'de yaygın olarak oynanan, iki deste ve jokerlerle oynanan; oyuncuların ilk açılışta en az 51 puanlık per oluşturmasını gerektiren bir rumi oyunudur.",
+"description_en": "A popular Turkish rummy game played with two decks and jokers, where players must initially open melds worth at least 51 points.",
+"quickRules_tr": [
+"Genellikle 2-5 oyuncuyla, iki standart deste ve jokerler kullanılarak oynanır.",
+"Her oyuncuya 14 kart, oyuna başlayacak oyuncuya 15 kart dağıtılır.",
+"Amaç kartları seri ve setlerden oluşan geçerli perlere ayırarak eldeki kartları bitirmektir.",
+"Oyuncunun ilk kez açabilmesi için yere koyduğu perlerin toplam değeri en az 51 olmalıdır.",
+"İlk açılış yapıldıktan sonra masadaki uygun perlere kart işlenebilir.",
+"Her turda oyuncu bir kart alır ve elinden bir kart atar.",
+"Elindeki bütün kartları kurallara uygun biçimde bitiren oyuncu eli kazanır."
+],
+"quickRules_en": [
+"Usually played by 2-5 players using two standard decks and jokers.",
+"Each player receives 14 cards, while the starting player receives 15 cards.",
+"The goal is to arrange cards into valid runs and sets and empty the hand.",
+"For the initial opening, the player's melds must have a total value of at least 51 points.",
+"After making the initial opening, the player may add cards to suitable melds on the table.",
+"On each turn, the player draws one card and discards one card.",
+"The first player to legally get rid of all cards wins the hand."
+],
+"setup_tr": [
+"İki standart 52 kartlık deste birleştirilir.",
+"Destelerde bulunan jokerler de oyuna eklenir; toplam kart sayısı kullanılan joker sayısına göre genellikle 106 olur.",
+"Kartlar iyice karıştırılır.",
+"Her oyuncuya kapalı şekilde 14 kart dağıtılır.",
+"Oyuna başlayacak oyuncuya 15 kart verilir.",
+"Kalan kartlar kapalı çekme destesi olarak masanın ortasına yerleştirilir.",
+"Başlangıç oyuncusu kart çekmeden elinden bir kart atarak oyunu başlatır.",
+"Atılan kartlar açık atık destesini oluşturur."
+],
+"setup_en": [
+"Combine two standard 52-card decks.",
+"Add the jokers included with the decks; the game usually uses 106 cards in total.",
+"Shuffle all cards thoroughly.",
+"Deal 14 face-down cards to each player.",
+"Give 15 cards to the starting player.",
+"Place the remaining cards face down in the center as the stock pile.",
+"The starting player begins by discarding one card without drawing.",
+"Discarded cards form a face-up discard pile."
+],
+"objective_tr": "Amaç, eldeki kartları geçerli seri ve setler hâlinde açmak, masadaki perlere uygun kartlar işlemek ve bütün kartları ilk bitiren oyuncu olmaktır.",
+"objective_en": "The objective is to open valid runs and sets, add suitable cards to melds on the table, and become the first player to empty the hand.",
+"gameplay_tr": [
+"Sırası gelen oyuncu kapalı destenin üstünden veya izin verilen kurala göre atık destesinden bir kart alır.",
+"Oyuncu kart aldıktan sonra elindeki kartlarla yeni perler oluşturabilir.",
+"İlk kez açacak oyuncunun aynı turda masaya koyduğu perlerin toplam puanı en az 51 olmalıdır.",
+"51 puan şartı yalnızca oyuncunun kendi elinden açtığı geçerli perlerle tamamlanır.",
+"Oyuncu ilk açılışını yaptıktan sonra sonraki turlarda 51 puan şartı aranmadan yeni perler açabilir.",
+"Açılmış bir oyuncu masadaki kendi perlerine veya diğer oyuncuların perlerine uygun kartlar işleyebilir.",
+"Oyuncu turunun sonunda elinden bir kartı açık şekilde atık destesine bırakır.",
+"Bir oyuncu aynı tur içinde hem açılış yapabilir hem de kurallar izin veriyorsa masadaki diğer perlere kart işleyebilir.",
+"Oyuncunun attığı kartla birlikte elinde hiç kart kalmazsa oyuncu eli bitirmiş olur.",
+"Çekme destesi biterse atık destesindeki kartlar, üstteki son kart ayrıldıktan sonra yeniden karıştırılarak çekme destesi yapılabilir."
+],
+"gameplay_en": [
+"On a turn, the player draws the top card of the stock or, when allowed by the rules, takes a card from the discard pile.",
+"After drawing, the player may form new melds using cards from the hand.",
+"For the initial opening, all melds placed during that turn must have a combined value of at least 51 points.",
+"The 51-point requirement must be met using valid melds from the player's own hand.",
+"After completing the initial opening, the player may open additional melds on later turns without meeting 51 points again.",
+"A player who has opened may add suitable cards to their own melds or to other players' melds on the table.",
+"At the end of the turn, the player discards one card face up onto the discard pile.",
+"A player may make the initial opening and also add cards to table melds during the same turn if the rules allow it.",
+"If the player has no cards left after the final discard or legal finishing move, the hand is completed.",
+"If the stock pile is exhausted, the discard pile may be reshuffled into a new stock after keeping its top card aside."
+],
+"areas_tr": [
+"Oyuncu Eli: Her oyuncunun diğer oyunculardan gizli tuttuğu kartlardır.",
+"Çekme Destesi: Oyuncuların sıraları geldiğinde kapalı olarak kart çektiği destedir.",
+"Atık Destesi: Oyuncuların tur sonunda açık şekilde attığı kartların toplandığı alandır.",
+"Per Alanı: Oyuncuların geçerli seri ve setlerini açık şekilde yerleştirdiği masa bölümüdür."
+],
+"areas_en": [
+"Player Hand: The cards each player keeps hidden from the other players.",
+"Stock Pile: The face-down pile players normally draw from during their turns.",
+"Discard Pile: The face-up pile containing cards discarded at the end of turns.",
+"Meld Area: The table area where players place valid runs and sets face up."
+],
+"movement_tr": [
+"Seri, aynı türden en az üç ardışık karttan oluşur.",
+"Örneğin kupa 5, kupa 6 ve kupa 7 geçerli bir seridir.",
+"Set, aynı değerde ve farklı türlerde en az üç karttan oluşur.",
+"Örneğin sinek 9, karo 9 ve maça 9 geçerli bir settir.",
+"Aynı karttan iki deste bulunduğu için aynı tür ve değerde iki eş kart oyunda bulunabilir.",
+"Setlerde aynı türden tamamen aynı iki kartın birlikte kullanılıp kullanılamayacağı ev kuralına göre değişebilir.",
+"As genellikle serilerde 2'nin altında veya Papaz'ın üstünde kullanılabilir.",
+"As'ın Papaz ile 2'yi birbirine bağlayarak Kral-As-2 biçiminde kullanılması genellikle geçerli değildir.",
+"Joker, eksik olan herhangi bir kartın yerine kullanılabilir.",
+"Bazı kurallarda oyuncu, jokerin temsil ettiği gerçek kartı masaya koyarak jokeri eline alabilir.",
+"Masadaki perler, tur sonunda hâlâ geçerli seri veya setler oluşturacak şekilde düzenlenmelidir."
+],
+"movement_en": [
+"A run consists of at least three consecutive cards of the same suit.",
+"For example, 5, 6, and 7 of hearts form a valid run.",
+"A set consists of at least three cards of the same rank in different suits.",
+"For example, 9 of clubs, 9 of diamonds, and 9 of spades form a valid set.",
+"Because two decks are used, two identical cards of the same rank and suit may exist in the game.",
+"Whether two completely identical cards may be used together in the same set depends on the house rules.",
+"An Ace may usually be used below 2 or above King in a run.",
+"Using an Ace to connect King and 2 in a King-Ace-2 sequence is usually not allowed.",
+"A joker may represent any missing card in a valid meld.",
+"Under some rules, a player may replace a joker with the exact card it represents and take the joker into the hand.",
+"Any rearranged table melds must still form valid runs or sets at the end of the turn."
+],
+"scoring_tr": [
+"2-10 arasındaki kartlar üzerlerindeki sayı kadar puandır.",
+"Vale, Kız ve Papaz 10 puandır.",
+"As 11, joker 25 puan sayılır."
+],
+"scoring_en": [
+"Cards from 2 to 10 are worth their printed values.",
+"Jacks, Queens, and Kings are worth 10 points.",
+"Aces are worth 11 points and jokers are worth 25 points."
+],
+"ending_tr": [
+"Bir oyuncu elindeki bütün kartları geçerli şekilde kullandığında veya son kartını atarak bitirdiğinde el sona erer.",
+"Eli bitiren oyuncu o eli kazanır.",
+"Diğer oyuncuların ellerinde kalan kartların değerleri hesaplanarak ceza puanı yazılır.",
+"Belirlenen el sayısı tamamlandığında veya hedef puana ulaşıldığında oyun sona erer.",
+"Toplam ceza puanı en düşük olan oyuncu genel oyunun kazananı olur.",
+"Jokerle bitme, elden bitme veya çift açarak bitme gibi özel durumlar ev kurallarına göre ek puan ya da katlı ceza verebilir."
+],
+"ending_en": [
+"The hand ends when a player legally uses all cards or finishes by discarding the final card.",
+"The player who empties the hand wins that hand.",
+"The values of cards remaining in the other players' hands are counted as penalty points.",
+"The game ends after the agreed number of hands or when a target score is reached.",
+"The player with the lowest total penalty score wins the overall game.",
+"Special finishes such as going out with a joker, going out without previously opening, or finishing with pairs may award bonuses or multiplied penalties under house rules."
+],
+"variants_tr": [
+"Elden Bitme: Oyuncu daha önce açmadan bütün elini tek turda açarak bitirir.",
+"Çift Açma: Bazı masalarda oyuncu belirli sayıda çift toplayarak normal perler yerine çiftlerle açabilir.",
+"Katlamalı Ceza: Hiç açamayan, jokerle bitişe yakalanan veya özel bitiş durumunda kalan oyuncuların cezaları katlanabilir.",
+"Atılan Kartı Alma: Bazı kurallarda yalnızca en üstteki atık kartı alınabilir; bazı kurallarda alınan kartın aynı turda kullanılması gerekir.",
+"Joker Değiştirme: Jokerin masadan alınabilmesi için yerine tam olarak temsil ettiği kartın konması gerekebilir.",
+"As Değeri: Bazı gruplar As'ı her zaman 11, bazıları serideki konumuna göre 1 veya 11 kabul eder."
+],
+"variants_en": [
+"Going Out From Hand: A player completes the entire hand in one turn without having opened previously.",
+"Pair Opening: Some groups allow a player to open using a required number of pairs instead of normal melds.",
+"Multiplied Penalties: Penalties may be doubled or multiplied for players who never opened or lose against a special finish.",
+"Taking Discards: Some rules allow only the top discard to be taken, and may require it to be used immediately.",
+"Replacing Jokers: A joker may only be taken from the table by replacing it with the exact card it represents.",
+"Ace Value: Some groups always count an Ace as 11, while others count it as 1 or 11 depending on its position."
+],
+"customSections": [
+{
+"title_tr": "Cezalar",
+"title_en": "Penalties",
+"content_tr": [
+"Normal bitişte açmış oyuncular, ellerinde kalan kartların toplamı kadar ceza alır.",
+"Normal bitişte hiç açmamış oyuncu 100 ceza alır.",
+"Elden bitişte rakiplerin cezaları iki katına çıkar; hiç açmamış oyuncu 200 ceza alır.",
+"Jokerle bitişte rakiplerin cezaları iki katına çıkar.",
+"Çiftten bitişte rakiplerin cezaları iki katına çıkar.",
+"Jokerle çiftten bitişte rakiplerin cezaları dört katına çıkar.",
+"Çift açıp bitiremeyen oyuncunun kendi cezası iki kat hesaplanır.",
+"Yanlış açma veya masaya işlenebilecek bir kartı atma genellikle 50 ceza puanıdır.",
+"Ceza değerleri ev kurallarına göre değişebilir."
+],
+"content_en": [
+"After a normal finish, players who opened receive penalty points equal to the value of the cards left in their hands.",
+"After a normal finish, a player who never opened receives 100 penalty points.",
+"Going out from hand doubles the opponents' penalties; a player who never opened receives 200 penalty points.",
+"Finishing with a joker doubles the opponents' penalties.",
+"Finishing from pairs doubles the opponents' penalties.",
+"Finishing from pairs with a joker makes the opponents' penalties four times higher.",
+"A player who opened with pairs but did not finish has their own penalty doubled.",
+"An invalid opening or discarding a card that could be added to the table is commonly penalized by 50 points.",
+"Penalty values may vary according to house rules."
+]
+}
+],
+"minPlayers": 2,
+"maxPlayers": 5,
+"deckCount_tr": "2 deste + jokerler",
+"deckCount_en": "2 decks + jokers",
+"category_tr": "Rumi / Per Yapma",
+"category_en": "Rummy / Meld-building"
 }

@@ -16,6 +16,7 @@ import WyrmspanHorizontalScorepad from "../components/WyrmspanHorizontalScorepad
 import CatanHorizontalScorepad from "../components/CatanHorizontalScorepad";
 import CarcassoneScoreboard from "../components/CarcassoneScoreboard";
 import MunchkinScoreboard from "../components/MunchkinScoreboard";
+import RulesDrawer from "../components/RulesDrawer";
 import { MOCK_GAMES, mapGameSaveToFrontend } from "../lib/games";
 
 import { useUser as useClerkUser } from "@clerk/clerk-react";
@@ -31,6 +32,7 @@ function GameSessionContent() {
 
   const [gameSave, setGameSave] = useState<any>(undefined);
   const [loading, setLoading] = useState(true);
+  const [isRulesOpen, setIsRulesOpen] = useState(false);
 
   useEffect(() => {
     if (isClerkLoaded && !isClerkSignedIn) {
@@ -86,7 +88,6 @@ function GameSessionContent() {
   const isCatanGame = gameTemplateId === "j97468qwc0r8f3n0a04bhpgtz57sww2t" || gameTemplateId === "g5" || gameTemplateId === "g9" || gameName === "Catan";
   const isCarcassonneGame = gameTemplateId === "j977k8t8rhgtxyzvwyafvk0nc17wkqh3" || gameTemplateId === "g6" || gameTemplateId === "g11" || gameName === "Carcassonne";
   const isMunchkinGame = gameTemplateId === "g10" || gameName === "Munchkin";
-
   const handleBack = () => {
     router.push("/apps/game-companion/history");
   };
@@ -102,6 +103,11 @@ function GameSessionContent() {
     return new Date(gameSave.createdTime).toLocaleDateString("tr-TR");
   };
 
+  const iskambilId = (() => {
+    const gameInfo = MOCK_GAMES.find((g: any) => g._id === gameTemplateId || g.name === gameName);
+    return gameInfo?.settings?.iskambilId || null;
+  })();
+
   return (
     <div className="min-h-screen bg-app-bg">
       {/* Fixed Header */}
@@ -114,11 +120,17 @@ function GameSessionContent() {
             <ArrowLeft size={14} weight="bold" className="text-blue-500" />
           </button>
           <h1 className="flex-1 min-w-0 text-base font-black text-app-text tracking-tight uppercase leading-none truncate">{gameName}</h1>
+          {iskambilId && (
+            <button
+              onClick={() => setIsRulesOpen(true)}
+              className="shrink-0 flex items-center justify-center px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-500 hover:text-blue-600 transition-all bg-blue-500/10 hover:bg-blue-500/20 rounded-md active:scale-95 border border-blue-500/20 mr-1 cursor-pointer"
+            >
+              Kurallar
+            </button>
+          )}
           <span className="text-[10px] font-black uppercase tracking-widest text-app-muted shrink-0">{getTimeAgo()}</span>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="pt-14 pb-6 max-w-xl mx-auto">
         {isWyrmspanGame ? (
           <WyrmspanHorizontalScorepad gameSaveId={gameSaveId as any} />
@@ -136,6 +148,14 @@ function GameSessionContent() {
           />
         )}
       </div>
+
+      {iskambilId && (
+        <RulesDrawer
+          isOpen={isRulesOpen}
+          onClose={() => setIsRulesOpen(false)}
+          iskambilId={iskambilId}
+        />
+      )}
     </div>
   );
 }

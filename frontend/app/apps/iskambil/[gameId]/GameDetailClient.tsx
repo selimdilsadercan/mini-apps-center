@@ -6,7 +6,8 @@ import {
   Users,
   Cards,
   CheckCircle,
-  SquaresFour
+  SquaresFour,
+  CaretLeft
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
@@ -149,95 +150,118 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
   const customSections = initialGame.customSections as GameSection[] | null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-app-bg text-app-text font-sans selection:bg-gray-200">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text font-sans selection:bg-[#e03131]/20 selection:text-app-text">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 app-chrome-top">
-        <div className="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-40 bg-app-surface/95 backdrop-blur-md border-b border-app-border/60 shadow-sm w-full">
+        <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 px-3.5 py-2 bg-app-surface hover:bg-app-surface-muted text-gray-500 hover:text-app-text rounded-xl border border-app-border/60 h-9 shadow-sm transition-all active:scale-95"
+              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-text/70 hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
               title={t.back}
             >
-              <SquaresFour size={16} weight="fill" className="text-zinc-900 shrink-0" />
-              <span className="text-xs font-bold">{t.back}</span>
+              <CaretLeft size={14} weight="bold" className="text-[#e03131] shrink-0" />
             </button>
-            <div className="flex flex-col">
-              <h1 className="text-lg md:text-xl font-black tracking-tight flex items-center gap-2 uppercase leading-none text-app-text">
-                {gameName}
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-sm font-black tracking-tight flex items-center gap-1.5 uppercase leading-none text-app-text truncate">
+                <Cards size={16} weight="fill" className="text-[#e03131] shrink-0" />
+                <span className="truncate">{gameName}</span>
               </h1>
               {initialGame.originalName && initialGame.originalName.toLowerCase() !== gameName.toLowerCase() && (
-                <p className="text-[10px] text-app-muted font-bold mt-1 uppercase tracking-wider">
+                <p className="text-[9px] text-app-muted font-bold mt-0.5 uppercase tracking-wider pl-[22px] truncate">
                   ({initialGame.originalName})
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleToggleKnown}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_known
-                  ? "bg-zinc-900 border-zinc-900 text-white"
-                  : "bg-app-surface border-app-border text-app-muted hover:text-zinc-900 hover:bg-app-surface-muted"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_known
+                  ? "bg-[#e03131]/10 border-[#e03131]/20 text-[#e03131]"
+                  : "bg-app-surface border-app-border text-app-muted hover:text-app-text hover:bg-app-surface-muted"
                 }`}
               title={t.known}
             >
-              <CheckCircle size={18} weight={userState.is_known ? "fill" : "bold"} />
+              <CheckCircle size={16} weight={userState.is_known ? "fill" : "bold"} />
             </button>
 
             <button
               onClick={handleToggleFavorite}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_favorite
-                  ? "bg-rose-50 border-rose-200 text-rose-500"
-                  : "bg-app-surface border-app-border text-app-muted hover:text-rose-500 hover:bg-rose-50"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm ${userState.is_favorite
+                  ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
+                  : "bg-app-surface border-app-border text-app-muted hover:text-rose-500 hover:bg-rose-500/10"
                 }`}
               title={t.favorite}
             >
-              <Heart size={18} weight={userState.is_favorite ? "fill" : "bold"} />
+              <Heart size={16} weight={userState.is_favorite ? "fill" : "bold"} />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Layout */}
-      <main className="flex-1 w-full max-w-xl mx-auto px-4 pt-20 pb-8">
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 pt-6 pb-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col gap-6"
         >
-          {/* Rules Column */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-app-surface border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-1 shadow-sm text-center justify-between min-w-0">
+              <Users size={18} className="text-app-muted/70 shrink-0 mt-0.5" />
+              <span className="text-[8px] sm:text-[9px] font-black text-app-muted uppercase tracking-wider leading-tight min-h-[22px] flex items-center justify-center">{t.playerCapacity}</span>
+              <span className="line-clamp-2 leading-tight text-[10px] sm:text-xs font-bold text-app-text">
+                {initialGame.minPlayers === initialGame.maxPlayers
+                  ? `${initialGame.minPlayers} P`
+                  : `${initialGame.minPlayers}-${initialGame.maxPlayers} P`}
+              </span>
+            </div>
 
-            <div className="bg-app-surface border border-app-border rounded-3xl p-6 md:p-8 space-y-8 shadow-sm">
-              {quickRules ? (
-                <div className="space-y-8">
+            <div className="bg-app-surface border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-1 shadow-sm text-center justify-between min-w-0">
+              <Cards size={18} className="text-app-muted/70 shrink-0 mt-0.5" />
+              <span className="text-[8px] sm:text-[9px] font-black text-app-muted uppercase tracking-wider leading-tight min-h-[22px] flex items-center justify-center">{t.deckRequirement}</span>
+              <span className="line-clamp-2 leading-tight text-[10px] sm:text-xs font-bold text-app-text">{deckCount}</span>
+            </div>
 
-                  {/* Quick Summary */}
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
-                      {lang === "tr" ? "Hızlı Özet" : "Quick Summary"}
-                    </h4>
-                    <ol className="space-y-3 list-decimal list-inside pl-1">
-                      {quickRules.map((rule, idx) => (
-                        <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                          <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{rule}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
+            <div className="bg-app-surface border border-app-border rounded-2xl p-2.5 flex flex-col items-center gap-1 shadow-sm text-center justify-between min-w-0">
+              <SquaresFour size={18} className="text-app-muted/70 shrink-0 mt-0.5" />
+              <span className="text-[8px] sm:text-[9px] font-black text-app-muted uppercase tracking-wider leading-tight min-h-[22px] flex items-center justify-center">{t.gameType}</span>
+              <span className="line-clamp-2 leading-tight text-[10px] sm:text-xs font-bold text-app-text uppercase tracking-tight">{gameCategory}</span>
+            </div>
+          </div>
 
+          {/* Rules Section (no card wrapper to save space) */}
+          <div className="space-y-8 py-2 px-1">
+            {quickRules ? (
+              <div className="space-y-8">
+                {/* Quick Summary */}
+                <div className="bg-app-surface border border-app-border rounded-2xl p-5 shadow-sm space-y-4">
+                  <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
+                    {lang === "tr" ? "Hızlı Özet" : "Quick Summary"}
+                  </h4>
+                  <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
+                    {quickRules.map((rule, idx) => (
+                      <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                        <span className="inline text-app-text/80">{rule}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                {/* Rules Details Card */}
+                <div className="bg-app-surface border border-app-border rounded-2xl p-5 md:p-6 space-y-8 shadow-sm">
                   {/* Setup */}
                   {setup && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Kurulum" : "Setup"}
                       </h4>
-                      <ol className="space-y-3 list-decimal list-inside pl-1">
+                      <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                         {setup.map((step, idx) => (
-                          <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                            <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{step}</span>
+                          <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                            <span className="inline text-app-text/80">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -247,25 +271,25 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                   {/* Objective */}
                   {objective && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Amaç" : "Objective"}
                       </h4>
-                      <div className="p-4 bg-app-surface-muted border border-app-border rounded-2xl text-gray-700 text-sm leading-relaxed font-medium">
+                      <p className="text-app-text/80 text-sm leading-relaxed pl-1 font-medium">
                         {objective}
-                      </div>
+                      </p>
                     </div>
                   )}
 
                   {/* Gameplay */}
                   {gameplay && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Oynanış" : "Gameplay"}
                       </h4>
-                      <ol className="space-y-3 list-decimal list-inside pl-1">
+                      <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                         {gameplay.map((step, idx) => (
-                          <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                            <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{step}</span>
+                          <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                            <span className="inline text-app-text/80">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -275,13 +299,13 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                   {/* Scoring */}
                   {scoring && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Puanlama" : "Scoring"}
                       </h4>
-                      <ol className="space-y-3 list-decimal list-inside pl-1">
+                      <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                         {scoring.map((rule, idx) => (
-                          <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                            <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{rule}</span>
+                          <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                            <span className="inline text-app-text/80">{rule}</span>
                           </li>
                         ))}
                       </ol>
@@ -295,13 +319,13 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                     if (!title || !content || content.length === 0) return null;
                     return (
                       <div key={sIdx} className="space-y-3">
-                        <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                        <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                           {title}
                         </h4>
-                        <ol className="space-y-3 list-decimal list-inside pl-1">
+                        <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                           {content.map((rule, idx) => (
-                            <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                              <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{rule}</span>
+                            <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                              <span className="inline text-app-text/80">{rule}</span>
                             </li>
                           ))}
                         </ol>
@@ -312,13 +336,13 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                   {/* Ending */}
                   {ending && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Oyun Sonu" : "Ending"}
                       </h4>
-                      <ol className="space-y-3 list-decimal list-inside pl-1">
+                      <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                         {ending.map((rule, idx) => (
-                          <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                            <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{rule}</span>
+                          <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                            <span className="inline text-app-text/80">{rule}</span>
                           </li>
                         ))}
                       </ol>
@@ -328,59 +352,26 @@ export default function GameDetailClient({ initialGame }: { initialGame: GameDat
                   {/* Notes */}
                   {notes && (
                     <div className="space-y-3">
-                      <h4 className="text-[10px] font-black uppercase text-zinc-900/40 tracking-widest border-b border-gray-50 pb-2">
+                      <h4 className="text-[10px] font-black uppercase text-app-muted tracking-widest border-b border-app-border/40 pb-2">
                         {lang === "tr" ? "Özel Notlar" : "Notes"}
                       </h4>
-                      <ol className="space-y-3 list-decimal list-inside pl-1">
+                      <ol className="space-y-2.5 list-decimal pl-5 text-app-text/90">
                         {notes.map((note, idx) => (
-                          <li key={idx} className="marker:text-zinc-900 marker:font-black pb-1 last:pb-0">
-                            <span className="inline-block md:inline text-gray-600 text-sm leading-relaxed font-medium">{note}</span>
+                          <li key={idx} className="marker:text-app-muted marker:font-black pb-0.5 last:pb-0 leading-relaxed text-sm">
+                            <span className="inline text-app-text/80">{note}</span>
                           </li>
                         ))}
                       </ol>
                     </div>
                   )}
-
                 </div>
-              ) : (
-                <div className="text-center text-app-muted py-12 flex flex-col items-center gap-2">
-                  <Cards size={48} className="opacity-20" />
-                  <span className="font-bold">{t.noRules}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Info & Notes Column */}
-          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 h-fit">
-            {/* Quick Info Tags */}
-            <div className="flex flex-col gap-3">
-              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.playerCapacity}</span>
-                <span className="text-sm font-bold text-app-text flex items-center gap-2">
-                  <Users size={18} className="text-zinc-900" />
-                  {initialGame.minPlayers === initialGame.maxPlayers
-                    ? `${initialGame.minPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`
-                    : `${initialGame.minPlayers}-${initialGame.maxPlayers} ${lang === "tr" ? "Oyuncu" : "Players"}`}
-                </span>
               </div>
-
-              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.deckRequirement}</span>
-                <span className="text-sm font-bold text-app-text flex items-center gap-2">
-                  <Cards size={18} className="text-zinc-900" />
-                  {deckCount}
-                </span>
+            ) : (
+              <div className="text-center text-app-muted py-12 flex flex-col items-center gap-2 bg-app-surface border border-app-border rounded-2xl shadow-sm">
+                <Cards size={48} className="opacity-20" />
+                <span className="font-bold">{t.noRules}</span>
               </div>
-
-              <div className="bg-app-surface border border-app-border rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-                <span className="text-[9px] font-black text-app-muted uppercase tracking-widest">{t.gameType}</span>
-                <span className="text-sm font-bold text-app-text flex items-center gap-2 uppercase tracking-tight">
-                  <SquaresFour size={18} weight="fill" className="text-zinc-900" />
-                  {gameCategory}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </main>

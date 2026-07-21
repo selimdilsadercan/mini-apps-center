@@ -138,31 +138,6 @@ export default function GamesPage() {
           </div>
         ) : (
           <div className="space-y-8 mb-8">
-            {/* Recently Played Games Section */}
-            <div>
-              <div className="grid grid-cols-2 gap-3">
-                {getRecentlyPlayedGames().map((game: any) => (
-                  <div
-                    key={game._id}
-                    className="bg-app-surface rounded-xl border border-app-border cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-md p-3 h-[50px] flex items-center shadow-sm"
-                    onClick={() => handleGameSelect(game._id)}
-                  >
-                    <div className="flex items-center h-full w-full">
-                      <GameImage
-                        game={game}
-                        size="md"
-                        className="mr-3 flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-app-text text-sm leading-tight truncate">
-                          {game.name}
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Dynamic Game Lists */}
             {gameLists && gameLists.length > 0
@@ -172,8 +147,8 @@ export default function GamesPage() {
 
                   return (
                     <div key={list._id}>
-                      <div className="flex items-center gap-2 mb-4">
-                        <h2 className="text-lg font-black text-app-text uppercase tracking-tight">
+                      <div className="flex items-center gap-2 mb-2.5 px-1">
+                        <h2 className="text-[10px] font-black text-app-muted tracking-widest uppercase">
                           {list.name}
                         </h2>
                       </div>
@@ -202,8 +177,8 @@ export default function GamesPage() {
 
             {/* Tüm Oyunlar - Always show as last section */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-black text-app-text uppercase tracking-tight">
+              <div className="flex items-center gap-2 mb-2.5 px-1">
+                <h2 className="text-[10px] font-black text-app-muted tracking-widest uppercase">
                   Tüm Oyunlar
                 </h2>
               </div>

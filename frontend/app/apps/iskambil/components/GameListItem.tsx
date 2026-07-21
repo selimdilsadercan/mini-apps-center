@@ -36,16 +36,12 @@ export default function GameListItem({
   onToggleFavorite,
   onToggleKnown,
 }: GameListItemProps) {
-  const showDeck =
-    game.deckCount !== "1 Deste" && game.deckCount !== "1" && game.deckCount !== "1 Deck";
-
   const playerLabel =
     game.minPlayers === game.maxPlayers
       ? `${game.minPlayers} ${labels.players.toLowerCase()}`
       : `${game.minPlayers}-${game.maxPlayers} ${labels.players.toLowerCase()}`;
 
   const metaParts = [game.category, playerLabel];
-  if (showDeck) metaParts.push(game.deckCount);
 
   return (
     <div
@@ -61,11 +57,11 @@ export default function GameListItem({
       className="w-full px-3 py-2.5 bg-app-surface rounded-2xl border border-app-border shadow-sm hover:border-app-muted/40 active:scale-[0.99] transition-all cursor-pointer text-left"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[13px] font-black text-app-text tracking-tight truncate leading-tight">
+        <div className="min-w-0 flex-1 flex flex-col gap-2">
+          <h3 className="text-[13px] font-black text-app-text tracking-tight truncate leading-snug capitalize">
             {game.name}
           </h3>
-          <p className="text-[10px] text-app-muted font-medium truncate mt-0.5">
+          <p className="text-[10px] text-app-muted font-medium truncate">
             {metaParts.join(" · ")}
           </p>
         </div>

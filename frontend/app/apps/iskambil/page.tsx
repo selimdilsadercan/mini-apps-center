@@ -80,7 +80,9 @@ const translations = {
     fivePlusPlayers: "5+ Oyuncu",
     searchNoResult: "Aramanızla eşleşen oyun bulunamadı.",
     back: "Geri",
-    rulesHeader: "Oynanış ve Kurallar"
+    rulesHeader: "Oynanış ve Kurallar",
+    popularGames: "Popüler Oyunlar",
+    discoverGames: "Yeni Oyunlar Keşfet"
   },
   en: {
     loading: "Loading...",
@@ -111,7 +113,9 @@ const translations = {
     fivePlusPlayers: "5+ Players",
     searchNoResult: "No games found matching your search.",
     back: "Back",
-    rulesHeader: "How to Play & Rules"
+    rulesHeader: "How to Play & Rules",
+    popularGames: "Popular Games",
+    discoverGames: "Explore New Games"
   }
 };
 
@@ -247,6 +251,30 @@ export default function IskambilRehberi() {
     });
   }, [sortedGames, searchQuery, selectedCategory, selectedPlayers, lang]);
 
+  const POPULAR_GAME_IDS = [
+    "batak-spades",
+    "esli-batak",
+    "gommeli-batak",
+    "pisti",
+    "pis-yedili",
+    "51",
+    "blof",
+    "papaz-kacti"
+  ];
+
+  const { popularGames, otherGames } = useMemo(() => {
+    const popular: Game[] = [];
+    const others: Game[] = [];
+    for (const game of filteredGames) {
+      if (POPULAR_GAME_IDS.includes(game.id)) {
+        popular.push(game);
+      } else {
+        others.push(game);
+      }
+    }
+    return { popularGames: popular, otherGames: others };
+  }, [filteredGames]);
+
   const handleToggleFavorite = async (gameId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user?.id) return;
@@ -327,60 +355,115 @@ export default function IskambilRehberi() {
           </div>
         </section>
 
-        <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] font-black uppercase tracking-wider text-app-muted">
-            {filteredGames.length} {t.gamesListed}
-          </span>
-        </div>
-
         {filteredGames.length === 0 ? (
           <div className="text-center py-12 bg-app-surface border border-app-border rounded-2xl shadow-sm">
             <p className="text-sm font-bold text-app-muted">{t.searchNoResult}</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            <AnimatePresence mode="popLayout">
-              {filteredGames.map((game) => {
-                const gameName = lang === "tr" ? game.name_tr : game.name_en;
-                const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
-                const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
-                const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
+          <div className="space-y-6">
+            {popularGames.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-[9px] font-black text-app-muted tracking-widest px-1 uppercase">
+                  {t.popularGames}
+                </h3>
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {popularGames.map((game) => {
+                      const gameName = lang === "tr" ? game.name_tr : game.name_en;
+                      const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
+                      const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
+                      const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
 
-                return (
-                  <motion.div
-                    key={game.id}
-                    layout
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <GameListItem
-                      game={{
-                        id: game.id,
-                        name: gameName,
-                        category: gameCategory,
-                        description: gameRules[0] || "",
-                        minPlayers: game.min_players,
-                        maxPlayers: game.max_players,
-                        deckCount,
-                        isFavorite: game.is_favorite,
-                        isKnown: game.is_known,
-                        hasNote: !!game.user_note,
-                      }}
-                      labels={{
-                        noRules: t.noRules,
-                        players: t.players,
-                        known: t.known,
-                        noted: t.noted,
-                        favorite: t.favorite,
-                      }}
-                      onOpen={() => router.push(`/apps/iskambil/${game.id}`)}
-                      onToggleFavorite={(e) => handleToggleFavorite(game.id, e)}
-                      onToggleKnown={(e) => handleToggleKnown(game.id, e)}
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                      return (
+                        <motion.div
+                          key={game.id}
+                          layout
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          <GameListItem
+                            game={{
+                              id: game.id,
+                              name: gameName,
+                              category: gameCategory,
+                              description: gameRules[0] || "",
+                              minPlayers: game.min_players,
+                              maxPlayers: game.max_players,
+                              deckCount,
+                              isFavorite: game.is_favorite,
+                              isKnown: game.is_known,
+                              hasNote: !!game.user_note,
+                            }}
+                            labels={{
+                              noRules: t.noRules,
+                              players: t.players,
+                              known: t.known,
+                              noted: t.noted,
+                              favorite: t.favorite,
+                            }}
+                            onOpen={() => router.push(`/apps/iskambil/${game.id}`)}
+                            onToggleFavorite={(e) => handleToggleFavorite(game.id, e)}
+                            onToggleKnown={(e) => handleToggleKnown(game.id, e)}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
+
+            {otherGames.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-[9px] font-black text-app-muted tracking-widest px-1 uppercase">
+                  {t.discoverGames}
+                </h3>
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {otherGames.map((game) => {
+                      const gameName = lang === "tr" ? game.name_tr : game.name_en;
+                      const gameCategory = lang === "tr" ? game.category_tr : game.category_en;
+                      const gameRules = lang === "tr" ? game.rules_tr : game.rules_en;
+                      const deckCount = lang === "tr" ? game.deck_count_tr : game.deck_count_en;
+
+                      return (
+                        <motion.div
+                          key={game.id}
+                          layout
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          <GameListItem
+                            game={{
+                              id: game.id,
+                              name: gameName,
+                              category: gameCategory,
+                              description: gameRules[0] || "",
+                              minPlayers: game.min_players,
+                              maxPlayers: game.max_players,
+                              deckCount,
+                              isFavorite: game.is_favorite,
+                              isKnown: game.is_known,
+                              hasNote: !!game.user_note,
+                            }}
+                            labels={{
+                              noRules: t.noRules,
+                              players: t.players,
+                              known: t.known,
+                              noted: t.noted,
+                              favorite: t.favorite,
+                            }}
+                            onOpen={() => router.push(`/apps/iskambil/${game.id}`)}
+                            onToggleFavorite={(e) => handleToggleFavorite(game.id, e)}
+                            onToggleKnown={(e) => handleToggleKnown(game.id, e)}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

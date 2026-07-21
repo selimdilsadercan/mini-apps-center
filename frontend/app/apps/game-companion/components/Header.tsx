@@ -1,10 +1,10 @@
-import { CaretLeft, GameController, House, Clock } from "@phosphor-icons/react";
+import { CaretLeft, GameController, House, Clock, Cards } from "@phosphor-icons/react";
 import { getAppRootUrl } from "@/lib/apps";
 import Link from "next/link";
 
 interface HeaderProps {
   className?: string;
-  activeTab?: "games" | "history";
+  activeTab?: "games" | "history" | "iskambil";
 }
 
 export default function Header({ className = "", activeTab }: HeaderProps) {
@@ -38,6 +38,10 @@ export default function Header({ className = "", activeTab }: HeaderProps) {
               <Link href="/apps/game-companion/games" className={tabClass(activeTab === "games")}>
                 <House size={13} weight={activeTab === "games" ? "fill" : "bold"} className={activeTab === "games" ? "text-blue-500" : "text-app-muted"} />
                 <span className="normal-case">Oyunlar</span>
+              </Link>
+              <Link href="/apps/game-companion/iskambil" className={tabClass(activeTab === "iskambil")}>
+                <Cards size={13} weight={activeTab === "iskambil" ? "fill" : "bold"} className={activeTab === "iskambil" ? "text-blue-500" : "text-app-muted"} />
+                <span className="normal-case">İskambil</span>
               </Link>
               <Link href="/apps/game-companion/history" className={tabClass(activeTab === "history")}>
                 <Clock size={13} weight={activeTab === "history" ? "fill" : "bold"} className={activeTab === "history" ? "text-blue-500" : "text-app-muted"} />

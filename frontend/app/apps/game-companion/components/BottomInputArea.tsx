@@ -133,36 +133,24 @@ export default function BottomInputArea({
     >
       {showSettings ? (
         /* Settings Modal */
-        <div className="p-4 border-b border-app-border">
+        <div className="p-4 border-b border-app-border bg-app-surface">
           <div className="space-y-3">
             <button 
               onClick={() =>
-                handleConfirmAction(undoLastRound, {
-                title: "Son Turu Geri Al",
-                message: "Son turu geri almak istediğinizden emin misiniz?",
-                confirmText: "Geri Al",
+                handleConfirmAction(() => {
+                  undoLastRound();
+                  setShowSettings(false);
+                }, {
+                  title: "Son Turu Geri Al",
+                  message: "Son turu geri almak istediğinizden emin misiniz? Puanlar giriş alanlarına geri yüklenecektir.",
+                  confirmText: "Geri Al",
                   isDestructive: true,
                 })
               }
-              className="flex items-center space-x-2 text-rose-600 hover:text-rose-700 w-full justify-start py-3 px-4 bg-rose-50 rounded-xl font-bold transition-all"
+              className="flex items-center space-x-2 text-rose-500 hover:text-rose-600 w-full justify-start py-3 px-4 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 rounded-xl font-bold transition-all active:scale-[0.99] cursor-pointer"
             >
               <ArrowCounterClockwise size={18} weight="bold" />
               <span className="text-sm">Son Turu Geri Al</span>
-            </button>
-            <button 
-              onClick={() =>
-                handleConfirmAction(resetAllRounds, {
-                title: "Turları Sıfırla",
-                  message:
-                    "Tüm turları sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-                confirmText: "Sıfırla",
-                  isDestructive: true,
-                })
-              }
-              className="flex items-center space-x-2 text-rose-600 hover:text-rose-700 w-full justify-start py-3 px-4 bg-rose-50 rounded-xl font-bold transition-all"
-            >
-              <Trash size={18} weight="bold" />
-              <span className="text-sm">Turları Sıfırla</span>
             </button>
           </div>
         </div>
@@ -230,7 +218,7 @@ export default function BottomInputArea({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] uppercase tracking-tight">
+                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] tracking-tight">
                         {redTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Kırmızı Takım"}
                       </span>
@@ -282,7 +270,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-app-border rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -398,7 +386,7 @@ export default function BottomInputArea({
                           </div>
                         )}
                       </div>
-                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] uppercase tracking-tight">
+                      <span className="font-bold text-app-text text-xs truncate max-w-[100px] tracking-tight">
                         {blueTeamPlayers?.map((p) => p.name).join(", ") ||
                           "Mavi Takım"}
                       </span>
@@ -450,7 +438,7 @@ export default function BottomInputArea({
                                   };
                                 });
                               }}
-                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-app-border rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                               placeholder="0"
                             />
                           </div>
@@ -547,7 +535,7 @@ export default function BottomInputArea({
                           </span>
                       </div>
                     )}
-                      <span className="font-bold text-app-text text-xs truncate max-w-[200px] uppercase tracking-tight">
+                       <span className="font-bold text-app-text text-xs truncate max-w-[85px] tracking-tight">
                         {player.name}
                       </span>
                   </div>
@@ -584,7 +572,7 @@ export default function BottomInputArea({
                                     value
                                   );
                             }}
-                                className="w-24 h-12 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                                className="w-24 h-12 bg-app-surface border-2 border-app-border rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                             placeholder="0"
                           />
                         </div>
@@ -631,7 +619,7 @@ export default function BottomInputArea({
                               [player._id]: Math.max(0, value),
                           }));
                         }}
-                          className="w-20 h-10 bg-app-surface border-2 border-blue-100 rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
+                          className="w-20 h-10 bg-app-surface border-2 border-app-border rounded-xl text-center font-black text-app-text text-lg focus:outline-none focus:border-blue-500 transition-all shadow-sm"
                         placeholder="0"
                       />
                     </div>
@@ -649,22 +637,22 @@ export default function BottomInputArea({
         <div className="flex items-center justify-between gap-3">
           <button
             onClick={endRound}
-            className="flex-1 bg-blue-600 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
+            className="flex-1 bg-blue-600 text-white h-11 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center hover:bg-blue-700 shadow-md shadow-blue-900/10 transition-all active:scale-95 cursor-pointer"
           >
             {getNextRoundNumber()}. Turu Bitir
           </button>
           <button 
             onClick={() => setShowSettings(!showSettings)}
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg ${
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-sm cursor-pointer ${
               showSettings 
-                ? "bg-zinc-900 text-white shadow-zinc-900/20"
-                : "bg-app-surface border-2 border-app-border text-app-muted hover:text-app-text shadow-sm"
+                ? "bg-zinc-900 text-white shadow-zinc-900/10"
+                : "bg-app-surface border border-app-border text-app-muted hover:text-app-text"
             }`}
           >
             {showSettings ? (
-              <X size={24} weight="bold" />
+              <X size={20} weight="bold" />
             ) : (
-              <Gear size={24} weight="bold" />
+              <Gear size={20} weight="bold" />
             )}
           </button>
         </div>

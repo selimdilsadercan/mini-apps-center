@@ -17,6 +17,7 @@ interface DailyWidgetStates {
   completedMealKeys?: string[];
   cardOrder?: string[];
   hiddenCardIds?: string[];
+  permanentlyHiddenCardIds?: string[];
 }
 
 interface HomeContextType {
@@ -54,13 +55,14 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
         const savedPinned = localStorage.getItem(`pinned_apps_guest`);
         const savedLastUsed = localStorage.getItem(`last_used_apps_guest`);
         const savedUsageCounts = localStorage.getItem(`usage_counts_guest`);
+        const savedDailyStates = localStorage.getItem(`daily_widget_states_guest`);
         
         return {
           pinnedApps: savedPinned ? JSON.parse(savedPinned) : [],
           lastUsedApps: savedLastUsed ? JSON.parse(savedLastUsed) : {},
           usageCounts: savedUsageCounts ? JSON.parse(savedUsageCounts) : {},
           isOnboardingFinished: true, // Guests skip onboarding
-          dailyWidgetStates: null,
+          dailyWidgetStates: savedDailyStates ? JSON.parse(savedDailyStates) : null,
         };
       }
     },
@@ -94,12 +96,17 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
     return map;
   }, [prefsQuery.data]);
 
-  // Daily widget states — auto-expire if date doesn't match today
+  // Daily widget states — auto-expire if date doesn't match today, but preserve permanentlyHiddenCardIds
   const dailyWidgetStates = useMemo<DailyWidgetStates | null>(() => {
     const raw = prefsQuery.data?.dailyWidgetStates as DailyWidgetStates | null | undefined;
     if (!raw) return null;
     const today = getTodayDateKey();
-    if (raw.date !== today) return null; // expired
+    if (raw.date !== today) {
+      return {
+        date: today,
+        permanentlyHiddenCardIds: raw.permanentlyHiddenCardIds || [],
+      };
+    }
     return raw;
   }, [prefsQuery.data]);
 
@@ -157,7 +164,9 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
 
   const updateDailyWidgetStates = async (patch: Partial<Omit<DailyWidgetStates, "date">>) => {
     const today = getTodayDateKey();
-    const current = dailyWidgetStates?.date === today ? dailyWidgetStates : { date: today };
+    const current = dailyWidgetStates?.date === today
+      ? dailyWidgetStates
+      : { date: today, permanentlyHiddenCardIds: dailyWidgetStates?.permanentlyHiddenCardIds || [] };
     const merged: DailyWidgetStates = {
       ...current,
       ...patch,
@@ -177,6 +186,8 @@ export function HomeProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error("Failed to save daily widget states:", err);
       }
+    } else {
+      localStorage.setItem("daily_widget_states_guest", JSON.stringify(merged));
     }
   };
 

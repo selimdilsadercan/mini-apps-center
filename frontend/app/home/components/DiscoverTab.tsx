@@ -16,6 +16,7 @@ import {
   Question,
   VideoCamera,
   EyeSlash,
+  Prohibit,
   Barbell,
   ChefHat,
   Notepad,
@@ -39,10 +40,18 @@ import {
   ArrowsClockwise,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
+import { MOCK_GAMES, mapGameSaveToFrontend } from "../../apps/game-companion/lib/games";
 import { useHome } from "@/contexts/HomeContext";
 import { toast } from "react-hot-toast";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 const browserClient = createBrowserClient();
 
@@ -191,6 +200,48 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const gameSavesQuery = useQuery({
+    queryKey: ["yazboz", "recent-saves", userId],
+    queryFn: () => browserClient.yazboz.getGameSaves(userId || ""),
+    enabled: !!userId,
+    staleTime: 0,
+  });
+
+  const recentGameSaves = useMemo(() => {
+    if (!gameSavesQuery.data?.gameSaves) return [];
+    return gameSavesQuery.data.gameSaves
+      .map(mapGameSaveToFrontend)
+      .filter(Boolean)
+      .sort((a: any, b: any) => (b.createdTime || 0) - (a.createdTime || 0))
+      .slice(0, 5);
+  }, [gameSavesQuery.data]);
+
+  const recentGameTemplates = useMemo(() => {
+    const playedTemplateIds = new Set<string>();
+    const templates: any[] = [];
+    
+    recentGameSaves.forEach((save: any) => {
+      const templateId = save.gameTemplate;
+      if (templateId && !playedTemplateIds.has(templateId)) {
+        playedTemplateIds.add(templateId);
+        const g = MOCK_GAMES.find((game: any) => game._id === templateId);
+        if (g) templates.push(g);
+      }
+    });
+
+    const fallbacks = ["g1", "g6", "g9"]; // 101 Okey, Carcassonne, Catan
+    fallbacks.forEach((id) => {
+      if (templates.length < 3 && !playedTemplateIds.has(id)) {
+        playedTemplateIds.add(id);
+        const g = MOCK_GAMES.find((game: any) => game._id === id);
+        if (g) templates.push(g);
+      }
+    });
+
+    return templates.slice(0, 3);
+  }, [recentGameSaves]);
+
   const [viewMode, setViewMode] = useState<"cards" | "list" | "assistant">("list");
   const ignoreMovie = async (movieId: string) => {
     if (!userId) return;
@@ -264,13 +315,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const { dailyWidgetStates, updateDailyWidgetStates } = useHome();
   const hiddenCardIds = dailyWidgetStates?.hiddenCardIds || [];
-
-  const handleToggleHideCard = (cardId: string) => {
-    const newHidden = hiddenCardIds.includes(cardId)
-      ? hiddenCardIds.filter((id) => id !== cardId)
-      : [...hiddenCardIds, cardId];
-    void updateDailyWidgetStates({ hiddenCardIds: newHidden });
-  };
+  const permanentlyHiddenCardIds = dailyWidgetStates?.permanentlyHiddenCardIds || [];
 
   const getWidgetCardId = (key: string) => {
     const map: Record<string, string> = {
@@ -288,15 +333,77 @@ export function DiscoverTab(props: DiscoverTabProps) {
     return map[key] || key;
   };
 
-  const isWidgetHidden = (key: string) => {
+  const isWidgetTodayHidden = (key: string) => {
     return hiddenCardIds.includes(getWidgetCardId(key));
   };
 
-  const handleToggleHide = (key: string) => {
-    handleToggleHideCard(getWidgetCardId(key));
+  const isWidgetPermanentlyHidden = (key: string) => {
+    return permanentlyHiddenCardIds.includes(getWidgetCardId(key));
+  };
+
+  const isWidgetHidden = (key: string) => {
+    const cardId = getWidgetCardId(key);
+    return hiddenCardIds.includes(cardId) || permanentlyHiddenCardIds.includes(cardId);
   };
 
   const [isHiddenExpanded, setIsHiddenExpanded] = useState(false);
+  const [isPermHiddenExpanded, setIsPermHiddenExpanded] = useState(false);
+
+  const [hideNoticeOpen, setHideNoticeOpen] = useState(false);
+  const [pendingHideAction, setPendingHideAction] = useState<{
+    cardId: string;
+    mode: "today" | "permanent";
+  } | null>(null);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  const executeHide = (cardId: string, mode: "today" | "permanent") => {
+    if (mode === "today") {
+      const newHidden = hiddenCardIds.includes(cardId)
+        ? hiddenCardIds.filter((id: string) => id !== cardId)
+        : [...hiddenCardIds, cardId];
+      const newPerm = permanentlyHiddenCardIds.filter((id: string) => id !== cardId);
+      void updateDailyWidgetStates({ hiddenCardIds: newHidden, permanentlyHiddenCardIds: newPerm });
+      toast.success("Widget bugünlük gizlendi");
+    } else {
+      const newPerm = permanentlyHiddenCardIds.includes(cardId)
+        ? permanentlyHiddenCardIds.filter((id: string) => id !== cardId)
+        : [...permanentlyHiddenCardIds, cardId];
+      const newHidden = hiddenCardIds.filter((id: string) => id !== cardId);
+      void updateDailyWidgetStates({ permanentlyHiddenCardIds: newPerm, hiddenCardIds: newHidden });
+      toast.success("Widget tüm günlerde gizlendi");
+    }
+  };
+
+  const handleRestoreWidget = (key: string) => {
+    const cardId = getWidgetCardId(key);
+    const newHidden = hiddenCardIds.filter((id: string) => id !== cardId);
+    const newPerm = permanentlyHiddenCardIds.filter((id: string) => id !== cardId);
+    void updateDailyWidgetStates({ hiddenCardIds: newHidden, permanentlyHiddenCardIds: newPerm });
+    toast.success("Widget tekrar görünür yapıldı");
+  };
+
+  const triggerHide = (key: string, mode: "today" | "permanent") => {
+    const cardId = getWidgetCardId(key);
+    const isNoticeDismissed = localStorage.getItem("everything_hide_notice_dismissed") === "true";
+    if (isNoticeDismissed) {
+      executeHide(cardId, mode);
+    } else {
+      setPendingHideAction({ cardId, mode });
+      setDontShowAgain(false);
+      setHideNoticeOpen(true);
+    }
+  };
+
+  const confirmHideNotice = () => {
+    if (dontShowAgain) {
+      localStorage.setItem("everything_hide_notice_dismissed", "true");
+    }
+    if (pendingHideAction) {
+      executeHide(pendingHideAction.cardId, pendingHideAction.mode);
+    }
+    setHideNoticeOpen(false);
+    setPendingHideAction(null);
+  };
 
   const previewSuggestions = suggestions.slice(0, 2);
   const previewActivities = activities.slice(0, 2);
@@ -324,7 +431,60 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const widgets = [
     {
+      key: "yazboz-widget",
+      title: "Masa Oyunu Oynayın",
+      icon: GameController,
+      color: "#3B82F6",
+      loading: loading || gameSavesQuery.isLoading,
+      hasContent: true,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/game-companion"
+          icon={GameController}
+          color="#3B82F6"
+          title="Bir Masa Oyunu Oynayın"
+          subtitle="Yazboz"
+          loading={loading || gameSavesQuery.isLoading}
+          emptyText=""
+          hasContent={true}
+          onHideToday={() => triggerHide("yazboz-widget", "today")}
+          onHidePermanent={() => triggerHide("yazboz-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("yazboz-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("yazboz-widget")}
+          onRestore={() => handleRestoreWidget("yazboz-widget")}
+        >
+          {recentGameTemplates.map((game: any) => (
+            <div key={game._id} className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-9 h-9 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-lg shrink-0">
+                  {game.emoji || "🎲"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-app-text truncate capitalize">{game.name}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {game.listName || "Masa Oyunu"}
+                  </p>
+                </div>
+              </div>
+              <WidgetActionButton
+                onClick={() => {
+                  router.push(`/apps/game-companion/create-game?gameId=${game._id}`);
+                }}
+                icon={Play}
+              >
+                Oyna
+              </WidgetActionButton>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      ),
+    },
+    {
       key: "eksik-var",
+      title: "Alışveriş Listem",
+      icon: Basket,
+      color: "#10B981",
       loading: loading,
       hasContent: (() => {
         const activeMissing = (eksikItems || []).filter((i: any) => !i.is_used);
@@ -359,7 +519,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
             loading={loading}
             emptyText="Tüm eksikler tamamlandı! 🛒"
             hasContent={hasContent}
-            onHide={() => handleToggleHide("eksik-var")}
+            onHideToday={() => triggerHide("eksik-var", "today")}
+            onHidePermanent={() => triggerHide("eksik-var", "permanent")}
+            isTodayHidden={isWidgetTodayHidden("eksik-var")}
+            isPermanentlyHidden={isWidgetPermanentlyHidden("eksik-var")}
+            onRestore={() => handleRestoreWidget("eksik-var")}
           >
             {todayItems.length > 0 && (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
@@ -393,6 +557,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "agenda",
+      title: "Rutinler",
+      icon: CalendarCheck,
+      color: "#6366F1",
       loading: loading,
       hasContent: pendingTodayAgenda.length > 0,
       hasCompletedOnly: completedTodayAgenda.length > 0,
@@ -406,7 +573,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={agendaEmptyText}
           hasContent={pendingTodayAgenda.length > 0}
-          onHide={() => handleToggleHide("agenda")}
+          onHideToday={() => triggerHide("agenda", "today")}
+          onHidePermanent={() => triggerHide("agenda", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("agenda")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("agenda")}
+          onRestore={() => handleRestoreWidget("agenda")}
           emptyFooter={
             !pendingTodayAgenda.length && completedTodayAgenda.length > 0 ? (
               <>{completedTodayAgenda.map(renderCompletedAgendaRow)}</>
@@ -470,6 +641,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "suggest",
+      title: "Sana Öneriler",
+      icon: PaperPlaneTilt,
+      color: "#8B5CF6",
       loading: loading,
       hasContent: previewSuggestions.length > 0,
       hasCompletedOnly: false,
@@ -483,7 +657,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Henüz sana gelen yeni bir öneri yok ✨"
           hasContent={previewSuggestions.length > 0}
-          onHide={() => handleToggleHide("suggest")}
+          onHideToday={() => triggerHide("suggest", "today")}
+          onHidePermanent={() => triggerHide("suggest", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("suggest")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("suggest")}
+          onRestore={() => handleRestoreWidget("suggest")}
         >
           {previewSuggestions.map((suggestion: any) => (
             <div key={suggestion.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
@@ -548,6 +726,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "activities",
+      title: "Etkinlikler",
+      icon: Users,
+      color: "#EC4899",
       loading: loading,
       hasContent: previewActivities.length > 0,
       hasCompletedOnly: false,
@@ -561,7 +742,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Henüz yeni bir etkinlik davetin yok 🎉"
           hasContent={previewActivities.length > 0}
-          onHide={() => handleToggleHide("activities")}
+          onHideToday={() => triggerHide("activities", "today")}
+          onHidePermanent={() => triggerHide("activities", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("activities")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("activities")}
+          onRestore={() => handleRestoreWidget("activities")}
         >
           {previewActivities.map((activity: any) => {
             const myResponse = activity.responses.find((response: any) => response.userId === userId)?.status;
@@ -612,6 +797,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "matches",
+      title: "Büyük Maçlar",
+      icon: Trophy,
+      color: "#3B82F6",
       loading: loading,
       hasContent: todayMatches.length > 0,
       hasCompletedOnly: false,
@@ -625,7 +813,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Yakın tarihte takip edilen büyük maç yok 🏆"
           hasContent={todayMatches.length > 0}
-          onHide={() => handleToggleHide("matches")}
+          onHideToday={() => triggerHide("matches", "today")}
+          onHidePermanent={() => triggerHide("matches", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("matches")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("matches")}
+          onRestore={() => handleRestoreWidget("matches")}
         >
           {todayMatches.slice(0, 4).map((match: any) => {
             const isLive = match.state === "live";
@@ -683,6 +875,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "series",
+      title: "Dizilerim",
+      icon: Play,
+      color: "#EF4444",
       loading: loading,
       hasContent: pendingSeriesWidget,
       hasCompletedOnly: completedTodaySeries.length > 0,
@@ -696,7 +891,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={seriesEmptyText}
           hasContent={pendingAvailableSeries.length > 0}
-          onHide={() => handleToggleHide("seriesTrack")}
+          onHideToday={() => triggerHide("seriesTrack", "today")}
+          onHidePermanent={() => triggerHide("seriesTrack", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("seriesTrack")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("seriesTrack")}
+          onRestore={() => handleRestoreWidget("seriesTrack")}
           emptyFooter={
             !pendingSeriesWidget && completedTodaySeries.length > 0 ? (
               <>{completedTodaySeries.map(renderCompletedSeriesRow)}</>
@@ -754,6 +953,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "gym",
+      title: "Bugünün Antrenmanı",
+      icon: Barbell,
+      color: "#10B981",
       loading: loading,
       hasContent: pendingTodayGym,
       hasCompletedOnly: completedTodayGym,
@@ -767,7 +969,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Bugün dinlenme günü"
           hasContent={pendingTodayGym}
-          onHide={() => handleToggleHide("gym")}
+          onHideToday={() => triggerHide("gym", "today")}
+          onHidePermanent={() => triggerHide("gym", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("gym")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("gym")}
+          onRestore={() => handleRestoreWidget("gym")}
           emptyFooter={
             completedTodayGym ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
@@ -821,6 +1027,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "chores",
+      title: "Bugünün Ev İşleri",
+      icon: Broom,
+      color: "#F97316",
       loading: loading,
       hasContent: pendingTodayChores.length > 0,
       hasCompletedOnly: completedTodayChores.length > 0,
@@ -834,7 +1043,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={choresEmptyText}
           hasContent={pendingTodayChores.length > 0}
-          onHide={() => handleToggleHide("chores")}
+          onHideToday={() => triggerHide("chores", "today")}
+          onHidePermanent={() => triggerHide("chores", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("chores")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("chores")}
+          onRestore={() => handleRestoreWidget("chores")}
           emptyFooter={
             completedTodayChores.length > 0 ? (
               <>
@@ -892,6 +1105,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "meals",
+      title: "Bugünün Öğünleri",
+      icon: ChefHat,
+      color: "#10B981",
       loading: loading,
       hasContent: pendingMealsWidget,
       hasCompletedOnly: allTodayMealsCompleted,
@@ -905,7 +1121,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText={mealsEmptyText}
           hasContent={pendingMealsWidget}
-          onHide={() => handleToggleHide("meals")}
+          onHideToday={() => triggerHide("meals", "today")}
+          onHidePermanent={() => triggerHide("meals", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("meals")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("meals")}
+          onRestore={() => handleRestoreWidget("meals")}
           emptyFooter={
             allTodayMealsCompleted ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
@@ -984,6 +1204,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "reading",
+      title: "Okuma Hedefin",
+      icon: BookOpen,
+      color: "#3B82F6",
       loading: loading,
       hasContent: (() => {
         if (!weeklyReadingGoal || weeklyReadingGoal.status !== "active") return false;
@@ -1060,7 +1283,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
             loading={loading}
             emptyText={emptyText}
             hasContent={hasCardContent}
-            onHide={() => handleToggleHide("readTracker")}
+            onHideToday={() => triggerHide("readTracker", "today")}
+            onHidePermanent={() => triggerHide("readTracker", "permanent")}
+            isTodayHidden={isWidgetTodayHidden("readTracker")}
+            isPermanentlyHidden={isWidgetPermanentlyHidden("readTracker")}
+            onRestore={() => handleRestoreWidget("readTracker")}
             emptyFooter={
               (isCompleted || isTodayTargetCompleted || isSkipped) && bookTitle ? (
                 <div className="px-4 py-3 border-t border-app-border space-y-2.5 opacity-70">
@@ -1174,6 +1401,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "youtubeSeries",
+      title: "YouTube Serileri",
+      icon: YoutubeLogo,
+      color: "#FF0000",
       loading: loading,
       hasContent: youtubeSeries.length > 0,
       hasCompletedOnly: false,
@@ -1187,7 +1417,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="İzlenecek videolar bulunmuyor 📺"
           hasContent={youtubeSeries.length > 0}
-          onHide={() => handleToggleHide("youtubeSeries")}
+          onHideToday={() => triggerHide("youtubeSeries", "today")}
+          onHidePermanent={() => triggerHide("youtubeSeries", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("youtubeSeries")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("youtubeSeries")}
+          onRestore={() => handleRestoreWidget("youtubeSeries")}
         >
           {youtubeSeries.slice(0, 4).map((series: any) => {
             const thumbnailUrl = series.youtube_id
@@ -1228,6 +1462,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "movies",
+      title: "Günün Film Önerileri",
+      icon: FilmStrip,
+      color: "#8B5CF6",
       loading: moviesLoading,
       hasContent: movieSuggestions.length > 0,
       hasCompletedOnly: false,
@@ -1241,7 +1478,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={moviesLoading}
           emptyText="İzlenecek film bulunamadı 🍿"
           hasContent={movieSuggestions.length > 0}
-          onHide={() => handleToggleHide("movies")}
+          onHideToday={() => triggerHide("movies", "today")}
+          onHidePermanent={() => triggerHide("movies", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("movies")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("movies")}
+          onRestore={() => handleRestoreWidget("movies")}
           footerAction={
             onResetMovieSuggestions && (
               <button
@@ -1478,8 +1719,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
       {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) */}
       {(() => {
-        const hidden = widgets.filter((w) => isWidgetHidden(w.key));
-        if (hidden.length === 0) return null;
+        const todayHidden = widgets.filter((w) => isWidgetTodayHidden(w.key));
+        if (todayHidden.length === 0) return null;
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">
             <button
@@ -1488,9 +1729,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
               className="w-full flex items-center justify-between px-1 py-1.5 text-app-muted hover:text-app-text transition-all cursor-pointer select-none group"
             >
               <div className="flex items-center gap-2">
-                <Archive size={14} weight="bold" className="text-app-muted group-hover:text-app-text" />
+                <Archive size={16} weight="bold" className="text-app-muted group-hover:text-app-text" />
                 <span className="text-[11px] font-black uppercase tracking-widest text-app-muted group-hover:text-app-text">
-                  Bugün Gizlenenler ({hidden.length})
+                  Bugün Gizlenenler ({todayHidden.length})
                 </span>
               </div>
               {isHiddenExpanded ? (
@@ -1509,12 +1750,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   transition={{ duration: 0.2 }}
                   className="space-y-3 overflow-hidden pt-1"
                 >
-                  {hidden.map((w) => (
-                    <div key={w.key}>
-                      {React.isValidElement(w.card)
-                        ? React.cloneElement(w.card as any, { hideLabel: "Gizlemeyi Kaldır" })
-                        : w.card}
-                    </div>
+                  {todayHidden.map((w) => (
+                    <div key={w.key}>{w.card}</div>
                   ))}
                 </motion.div>
               )}
@@ -1522,6 +1759,97 @@ export function DiscoverTab(props: DiscoverTabProps) {
           </div>
         );
       })()}
+
+      {/* 5. KOMPLE GİZLENENLER (Collapsible Accordion) */}
+      {(() => {
+        const permHidden = widgets.filter((w) => isWidgetPermanentlyHidden(w.key));
+        if (permHidden.length === 0) return null;
+        return (
+          <div className="pt-3 border-t border-app-border/60 space-y-2.5">
+            <button
+              type="button"
+              onClick={() => setIsPermHiddenExpanded((prev) => !prev)}
+              className="w-full flex items-center justify-between px-1 py-1.5 text-app-muted hover:text-app-text transition-all cursor-pointer select-none group"
+            >
+              <div className="flex items-center gap-2">
+                <Prohibit size={16} weight="bold" className="text-app-muted group-hover:text-app-text" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-app-muted group-hover:text-app-text">
+                  Kalıcı Gizlenenler ({permHidden.length})
+                </span>
+              </div>
+              {isPermHiddenExpanded ? (
+                <CaretUp size={14} weight="bold" />
+              ) : (
+                <CaretDown size={14} weight="bold" />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {isPermHiddenExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-3 overflow-hidden pt-1"
+                >
+                  {permHidden.map((w) => (
+                    <div key={w.key}>{w.card}</div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })()}
+
+      {/* Bottom Sheet for first time Hide Notification */}
+      <Drawer open={hideNoticeOpen} onOpenChange={setHideNoticeOpen}>
+        <DrawerContent className="max-w-xl mx-auto rounded-t-3xl border-t border-app-border bg-app-surface p-5 pb-6">
+          <DrawerHeader className="px-4 pt-4 pb-2 text-center flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 mb-3 shadow-2xs">
+              <Archive size={24} weight="fill" />
+            </div>
+            <DrawerTitle className="text-base font-black text-app-text uppercase tracking-tight text-center">
+              Widget Gizleniyor
+            </DrawerTitle>
+            <DrawerDescription className="text-xs text-app-muted mt-1.5 text-center max-w-xs">
+              {pendingHideAction?.mode === "permanent"
+                ? "Bu widget tüm günlerde gizlenecektir. Sayfanın en altındaki 'Kalıcı Gizlenenler' bölümünden dilediğiniz zaman tekrar görünür yapabilirsiniz."
+                : "Bu widget bugünlük gizlenecektir. Sayfanın altındaki 'Bugün Gizlenenler' bölümünden dilediğiniz zaman tekrar görünür yapabilirsiniz."}
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="py-3 border-t border-b border-app-border/80 my-3 flex items-center justify-center">
+            <label className="flex items-center gap-2.5 text-xs font-bold text-app-text cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+                className="w-4 h-4 rounded border-app-border text-amber-500 focus:ring-amber-500 cursor-pointer accent-amber-500"
+              />
+              <span>Bir daha gösterme</span>
+            </label>
+          </div>
+
+          <div className="pt-2 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setHideNoticeOpen(false)}
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-app-muted hover:text-app-text bg-app-surface-muted transition-all active:scale-95 cursor-pointer w-full max-w-[120px]"
+            >
+              Vazgeç
+            </button>
+            <button
+              type="button"
+              onClick={confirmHideNotice}
+              className="px-6 py-2.5 rounded-xl text-xs font-black text-white bg-amber-500 hover:bg-amber-600 transition-all active:scale-95 shadow-sm cursor-pointer w-full max-w-[150px]"
+            >
+              Tamam, Gizle
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

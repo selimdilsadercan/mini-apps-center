@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle, X, Archive } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, X, Archive, Prohibit, ArrowsClockwise } from "@phosphor-icons/react";
 import type { ComponentType, ReactNode } from "react";
 
 export function HomeTaskCheckButton({
@@ -94,6 +94,11 @@ export function HomeSummaryCard({
   hasContent,
   emptyFooter,
   onHide,
+  onHideToday,
+  onHidePermanent,
+  isTodayHidden,
+  isPermanentlyHidden,
+  onRestore,
   hideLabel,
   footerAction,
   children,
@@ -108,33 +113,48 @@ export function HomeSummaryCard({
   hasContent: boolean;
   emptyFooter?: ReactNode;
   onHide?: () => void;
+  onHideToday?: () => void;
+  onHidePermanent?: () => void;
+  isTodayHidden?: boolean;
+  isPermanentlyHidden?: boolean;
+  onRestore?: () => void;
   hideLabel?: string;
   footerAction?: ReactNode;
   children?: ReactNode;
 }) {
-  return (
-    <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm overflow-hidden flex flex-col">
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
-          style={{ backgroundColor: color }}
-        >
-          <Icon size={20} weight="fill" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-black text-app-text tracking-tight">{title}</p>
-          <p className="text-[9px] font-bold text-app-muted tracking-wide">{subtitle}</p>
-        </div>
-        {href && (
-          <Link
-            href={href}
-            className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-app-muted hover:text-app-text hover:bg-app-surface-muted active:scale-95 transition-all shrink-0"
-            aria-label={`${title} uygulamasını aç`}
-          >
-            <ArrowRight size={16} weight="bold" />
-          </Link>
-        )}
+  const headerContent = (
+    <>
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm transition-transform group-hover/header:scale-105"
+        style={{ backgroundColor: color }}
+      >
+        <Icon size={20} weight="fill" />
       </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] font-black text-app-text tracking-tight">{title}</p>
+        <p className="text-[9px] font-bold text-app-muted tracking-wide">{subtitle}</p>
+      </div>
+      {href && (
+        <ArrowRight size={14} className="text-app-muted group-hover/header:text-app-text transition-colors shrink-0" />
+      )}
+    </>
+  );
+
+  return (
+    <div className="rounded-2xl border border-app-border bg-app-surface shadow-sm flex flex-col">
+      {href ? (
+        <Link
+          href={href}
+          className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all select-none group/header border-b border-transparent rounded-t-2xl"
+          aria-label={`${title} uygulamasını aç`}
+        >
+          {headerContent}
+        </Link>
+      ) : (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-t-2xl">
+          {headerContent}
+        </div>
+      )}
 
       {loading ? (
         <div className="px-4 py-4 border-t border-app-border space-y-2">
@@ -154,24 +174,77 @@ export function HomeSummaryCard({
         </div>
       )}
 
-      {(onHide || footerAction) && (
-        <div className="px-4 py-2 border-t border-app-border/60 bg-app-surface-muted/20 flex items-center justify-between gap-4">
+      {(onHideToday || onHidePermanent || onHide || onRestore || footerAction) && (
+        <div className="px-4 py-2 border-t border-app-border/60 bg-app-surface-muted/20 flex items-center justify-between gap-4 rounded-b-2xl">
           <div className="flex-1 text-left">
             {footerAction}
           </div>
-          {onHide && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onHide();
-              }}
-              className="flex items-center gap-1.5 text-app-muted hover:text-app-text text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shrink-0"
-            >
-              <Archive size={12} weight="bold" />
-              <span>{hideLabel || "Bugünlük Gizle"}</span>
-            </button>
-          )}
+
+          <div className="flex items-center gap-1 shrink-0">
+            {/* 1. Bugünlük Gizle / Kaldır Button */}
+            {(onHideToday || onHide) && (
+              <div className="relative group flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isTodayHidden) {
+                      if (onRestore) onRestore();
+                      else if (onHide) onHide();
+                    } else {
+                      if (onHideToday) onHideToday();
+                      else if (onHide) onHide();
+                    }
+                  }}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+                    isTodayHidden
+                      ? "text-app-text bg-app-surface-muted hover:bg-app-surface-muted/80"
+                      : "text-app-muted hover:text-app-text hover:bg-app-surface-muted"
+                  }`}
+                  aria-label={isTodayHidden ? "Gizlemeyi Kaldır" : "Bugünlük Gizle"}
+                >
+                  <Archive size={18} weight={isTodayHidden ? "fill" : "bold"} />
+                </button>
+                <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-50 pointer-events-none transition-all duration-150">
+                  <div className="bg-black text-white text-[11px] font-medium py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap leading-none">
+                    {isTodayHidden ? "Gizlemeyi Kaldır" : "Bugünlük Gizle"}
+                  </div>
+                  <div className="w-2 h-2 bg-black rotate-45 -mt-1 shadow-md"></div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Kalıcı Gizle / Kaldır Button */}
+            {onHidePermanent && (
+              <div className="relative group flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isPermanentlyHidden) {
+                      if (onRestore) onRestore();
+                    } else {
+                      onHidePermanent();
+                    }
+                  }}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+                    isPermanentlyHidden
+                      ? "text-app-text bg-app-surface-muted hover:bg-app-surface-muted/80"
+                      : "text-app-muted hover:text-app-text hover:bg-app-surface-muted"
+                  }`}
+                  aria-label={isPermanentlyHidden ? "Gizlemeyi Kaldır" : "Kalıcı Gizle"}
+                >
+                  <Prohibit size={18} weight={isPermanentlyHidden ? "fill" : "bold"} />
+                </button>
+                <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-50 pointer-events-none transition-all duration-150">
+                  <div className="bg-black text-white text-[11px] font-medium py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap leading-none">
+                    {isPermanentlyHidden ? "Gizlemeyi Kaldır" : "Kalıcı Gizle"}
+                  </div>
+                  <div className="w-2 h-2 bg-black rotate-45 -mt-1 shadow-md"></div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

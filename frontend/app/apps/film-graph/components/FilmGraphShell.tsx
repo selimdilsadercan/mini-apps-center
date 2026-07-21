@@ -17,6 +17,7 @@ interface FilmGraphShellProps {
   onAddClick?: () => void;
   children: React.ReactNode;
   graphLayout?: boolean;
+  onBack?: () => void;
 }
 
 export default function FilmGraphShell({
@@ -25,6 +26,7 @@ export default function FilmGraphShell({
   onAddClick,
   children,
   graphLayout = false,
+  onBack,
 }: FilmGraphShellProps) {
   const tabClass = (active: boolean) =>
     `inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
@@ -41,7 +43,11 @@ export default function FilmGraphShell({
             <button
               type="button"
               onClick={() => {
-                window.location.href = getAppRootUrl();
+                if (onBack) {
+                  onBack();
+                } else {
+                  window.location.href = getAppRootUrl();
+                }
               }}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
             >

@@ -11,12 +11,12 @@ const translations = {
   tr: {
     archiveTitle: "İskambil Rehberi",
     discoverTab: "Keşfet",
-    foryouTab: "Sana Özel",
+    foryouTab: "Listem",
   },
   en: {
     archiveTitle: "Card Games Guide",
     discoverTab: "Discover",
-    foryouTab: "For You",
+    foryouTab: "My List",
   },
 };
 
