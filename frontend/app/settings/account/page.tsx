@@ -216,7 +216,7 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      <AppBar activePage={ActivePage.PROFILE} />
+      {/* <AppBar activePage={ActivePage.PROFILE} /> */}
     </div>
   );
 }

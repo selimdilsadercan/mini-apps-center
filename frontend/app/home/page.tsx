@@ -408,7 +408,7 @@ function HomePageContent() {
   const exploreQuery = useQuery({
     queryKey: exploreQueryKey(userId),
     queryFn: () => client.hub.getExploreWidgets({ userId }),
-    enabled: isLoaded && activeTab === "explore",
+    enabled: isLoaded && (activeTab as string) === "explore",
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
@@ -418,7 +418,7 @@ function HomePageContent() {
   const walletQuery = useQuery({
     queryKey: walletQueryKey(userId),
     queryFn: () => client.hub.getWalletWidgets({ userId }),
-    enabled: isLoaded && activeTab === "wallet",
+    enabled: isLoaded && (activeTab as string) === "wallet",
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
@@ -428,7 +428,7 @@ function HomePageContent() {
   const lifeQuery = useQuery({
     queryKey: lifeQueryKey(userId),
     queryFn: () => client.hub.getLifeWidgets({ userId }),
-    enabled: isLoaded && activeTab === "life",
+    enabled: isLoaded && (activeTab as string) === "life",
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
@@ -436,11 +436,11 @@ function HomePageContent() {
   });
 
   const activeQuery =
-    activeTab === "discover" || activeTab === "ai-chat"
+    activeTab === "discover" || (activeTab as string) === "ai-chat"
       ? discoverQuery
-      : activeTab === "explore"
+      : (activeTab as string) === "explore"
         ? exploreQuery
-        : activeTab === "wallet"
+        : (activeTab as string) === "wallet"
           ? walletQuery
           : lifeQuery;
 
@@ -601,10 +601,10 @@ function HomePageContent() {
     contextTogglePin(appId);
   };
 
-  const isHomeLoading = activeTab !== "ai-chat" && (!isLoaded || !isDataLoaded || loading);
+  const isHomeLoading = (activeTab as string) !== "ai-chat" && (!isLoaded || !isDataLoaded || loading);
 
   const getActivePage = () => {
-    switch (activeTab) {
+    switch (activeTab as string) {
       case "explore":
         return ActivePage.EXPLORE;
       case "hobby":
@@ -639,7 +639,7 @@ function HomePageContent() {
         isAdmin={isAdmin}
         hasBusinesses={hasBusinesses}
       />
-      <AppBar activePage={getActivePage()} />
+      {/* <AppBar activePage={getActivePage()} /> */}
 
       {/* Pull to Refresh Indicator */}
       <div
@@ -697,7 +697,7 @@ function HomePageContent() {
               </motion.div>
             )}
 
-            {activeTab === "explore" && (
+            {(activeTab as string) === "explore" && (
               <motion.div
                 key="explore"
                 initial={{ opacity: 0, y: 10 }}
@@ -715,7 +715,7 @@ function HomePageContent() {
               </motion.div>
             )}
 
-            {activeTab === "hobby" && (
+            {(activeTab as string) === "hobby" && (
               <motion.div
                 key="hobby"
                 initial={{ opacity: 0, y: 10 }}
@@ -733,7 +733,7 @@ function HomePageContent() {
               </motion.div>
             )}
 
-            {activeTab === "wallet" && (
+            {(activeTab as string) === "wallet" && (
               <motion.div
                 key="wallet"
                 initial={{ opacity: 0, y: 10 }}
@@ -747,7 +747,7 @@ function HomePageContent() {
               </motion.div>
             )}
 
-            {activeTab === "life" && (
+            {(activeTab as string) === "life" && (
               <motion.div
                 key="life"
                 initial={{ opacity: 0, y: 10 }}
@@ -768,7 +768,7 @@ function HomePageContent() {
               </motion.div>
             )}
 
-            {activeTab === "ai-chat" && (
+            {(activeTab as string) === "ai-chat" && (
               <motion.div
                 key="ai-chat"
                 initial={{ opacity: 0, y: 10 }}

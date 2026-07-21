@@ -114,7 +114,7 @@ export default function FeedPage() {
         <main className="flex-1 flex items-center justify-center">
           <Spinner size={32} className="text-blue-600 animate-spin" />
         </main>
-        <AppBar activePage={ActivePage.FEED} />
+        {/* <AppBar activePage={ActivePage.FEED} /> */}
       </div>
     );
   }
@@ -379,7 +379,7 @@ export default function FeedPage() {
         </div>
       )}
 
-      <AppBar activePage={ActivePage.FEED} />
+      {/* <AppBar activePage={ActivePage.FEED} /> */}
     </div>
   );
 }

@@ -146,4 +146,3 @@ export default function AppBar({ activePage }: AppBarProps) {
     </div>
   );
 }
-  

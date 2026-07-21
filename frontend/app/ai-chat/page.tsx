@@ -603,7 +603,7 @@ export default function AIChatPage() {
         )}
       </AnimatePresence>
 
-      <AppBar activePage={ActivePage.AI_CHAT} />
+      {/* <AppBar activePage={ActivePage.AI_CHAT} /> */}
     </div>
   );
 }

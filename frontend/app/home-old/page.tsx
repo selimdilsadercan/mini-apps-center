@@ -176,7 +176,7 @@ export default function Home() {
             </div>
           </div>
         </main>
-        <AppBar activePage={ActivePage.HUB} />
+        {/* <AppBar activePage={ActivePage.HUB} /> */}
       </div>
     );
   }
@@ -280,7 +280,7 @@ export default function Home() {
         </div>
       </main>
 
-      <AppBar activePage={ActivePage.HUB} />
+      {/* <AppBar activePage={ActivePage.HUB} /> */}
     </div>
   );
 }

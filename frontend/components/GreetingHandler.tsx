@@ -50,8 +50,9 @@ export function GreetingHandler() {
       const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
       
       // Additional safeguard: Check localStorage if the query still says false
+      // Onboarding temporarily disabled, keep infrastructure
       const locallyFinished = localStorage.getItem(`onboarding_completed_${user.id}`) === "true";
-      const actuallyFinished = pref.isOnboardingFinished || locallyFinished;
+      const actuallyFinished = true; // pref.isOnboardingFinished || locallyFinished;
 
       if (!actuallyFinished && !ignoredPaths.includes(pathname)) {
         console.log("Onboarding not finished, redirecting...", { 

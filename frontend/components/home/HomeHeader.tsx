@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 
-type HomeTab = "discover" | "deck" | "explore" | "hobby" | "wallet" | "life";
+type HomeTab = "discover" | "deck";
 
 interface HomeHeaderProps {
   activeTab: string;
@@ -34,10 +34,6 @@ function getGreetingKey(hour: number): "greetingMorning" | "greetingAfternoon" |
 const TAB_KEYS: Record<HomeTab, string> = {
   discover: "tabDiscover",
   deck: "tabDeck",
-  explore: "tabExplore",
-  hobby: "tabHobby",
-  wallet: "tabWallet",
-  life: "tabLife",
 };
 
 export default function HomeHeader({
@@ -53,7 +49,7 @@ export default function HomeHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const tab = (["discover", "deck", "explore", "hobby", "wallet", "life"].includes(activeTab)
+  const tab = (["discover", "deck"].includes(activeTab)
     ? activeTab
     : "discover") as HomeTab;
 
@@ -156,34 +152,15 @@ export default function HomeHeader({
                 </button>
               )}
 
-              {showMenu && (
-                <div className="relative" ref={menuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen((v) => !v)}
-                    className={actionBtn}
-                    aria-label={t("moreActions")}
-                  >
-                    <DotsThreeVertical size={16} weight="bold" />
-                  </button>
-
-                  {menuOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-44 py-1 bg-app-surface rounded-xl border border-app-border shadow-lg z-50">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          router.push("/home/list");
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-xs font-bold text-app-text hover:bg-app-surface-muted transition-colors cursor-pointer"
-                      >
-                        <List size={16} weight="bold" className="text-app-muted" />
-                        {t("appList")}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* List sayfasının butonu - Herkese açık */}
+              <button
+                type="button"
+                onClick={() => router.push("/home/list")}
+                className={actionBtn}
+                title={t("appList")}
+              >
+                <List size={16} weight="bold" />
+              </button>
 
               <button
                 type="button"
