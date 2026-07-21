@@ -43,8 +43,10 @@ export default class Client {
     public readonly buyuk_maclar: buyuk_maclar.ServiceClient
     public readonly campus_concerts: campus_concerts.ServiceClient
     public readonly campus_events: campus_events.ServiceClient
+    public readonly catalog: catalog.ServiceClient
     public readonly chocolate_db: chocolate_db.ServiceClient
     public readonly concert_list: concert_list.ServiceClient
+    public readonly contributions: contributions.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
     public readonly digital_menu: digital_menu.ServiceClient
     public readonly eksik_var: eksik_var.ServiceClient
@@ -113,8 +115,10 @@ export default class Client {
         this.buyuk_maclar = new buyuk_maclar.ServiceClient(base)
         this.campus_concerts = new campus_concerts.ServiceClient(base)
         this.campus_events = new campus_events.ServiceClient(base)
+        this.catalog = new catalog.ServiceClient(base)
         this.chocolate_db = new chocolate_db.ServiceClient(base)
         this.concert_list = new concert_list.ServiceClient(base)
+        this.contributions = new contributions.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
         this.digital_menu = new digital_menu.ServiceClient(base)
         this.eksik_var = new eksik_var.ServiceClient(base)
@@ -2064,6 +2068,320 @@ export namespace campus_events {
     }
 }
 
+export namespace catalog {
+    export interface AdminCatalogResponse {
+        movies: any[]
+        series: any[]
+        matches: any[]
+    }
+
+    export interface BigMatch {
+        id: string
+        sport: MatchSport
+        competition: string
+        competitionTr: string
+        competitionSlug: string
+        home: string
+        away: string
+        homeLogo: string | null
+        awayLogo: string | null
+        homeScore: string | null
+        awayScore: string | null
+        state: MatchState
+        statusText: string
+        clock: string | null
+        startAt: string
+        venue: string | null
+    }
+
+    export interface CatalogListMatchesRequest {
+        sport?: MatchSport | "all"
+        liveOnly?: boolean
+    }
+
+    export interface CatalogListMatchesResponse {
+        matches: BigMatch[]
+        fetchedAt: string
+    }
+
+    export interface FilmCatalogItem {
+        id: string
+        title: string
+        originalTitle: string
+        year: number
+        overview: string
+        voteAverage: number
+        voteCount: number
+        popularity: number
+        posterUrl?: string
+        backdropUrl?: string
+        directorId: string
+        directorName: string
+        actorIds: string[]
+        castNames: string[]
+        imdbId?: string
+        imdbRating?: number
+    }
+
+    export interface ListFilmsResponse {
+        movies: FilmCatalogItem[]
+        page: number
+        totalPages: number
+    }
+
+    export type MatchSport = "football" | "basketball" | "volleyball" | "f1"
+
+    export type MatchState = "live" | "upcoming" | "finished"
+
+    export interface TmdbSearchResponse {
+        results: {
+            id: number
+            name: string
+            "poster_path": string | null
+            "backdrop_path": string | null
+            "first_air_date": string
+            overview: string
+            "vote_average": number
+        }[]
+    }
+
+    export interface TmdbSeasonDetails {
+        id: number
+        "season_number": number
+        episodes: {
+            id: number
+            "episode_number": number
+            name: string
+            overview: string
+            "still_path": string | null
+            "vote_average": number
+            "air_date": string
+        }[]
+    }
+
+    export interface TmdbSeriesDetails {
+        id: number
+        name: string
+        "poster_path": string | null
+        "backdrop_path": string | null
+        "first_air_date": string
+        overview: string
+        "vote_average": number
+        "number_of_seasons": number
+        "number_of_episodes": number
+        seasons: {
+            "season_number": number
+            "episode_count": number
+            name: string
+            "poster_path": string | null
+        }[]
+        "next_episode_to_air"?: {
+            "air_date": string
+            "episode_number": number
+            "season_number": number
+            name: string
+        } | null
+        "last_episode_to_air"?: {
+            "air_date": string
+            "episode_number": number
+            "season_number": number
+            name: string
+        } | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteCatalogMovie = this.deleteCatalogMovie.bind(this)
+            this.getAdminCatalog = this.getAdminCatalog.bind(this)
+            this.getBigMatches = this.getBigMatches.bind(this)
+            this.getFilmDetails = this.getFilmDetails.bind(this)
+            this.getPopularFilms = this.getPopularFilms.bind(this)
+            this.getSeasonDetails = this.getSeasonDetails.bind(this)
+            this.getSeriesDetails = this.getSeriesDetails.bind(this)
+            this.promoteMovieToPopular = this.promoteMovieToPopular.bind(this)
+            this.runSyncBigMatches = this.runSyncBigMatches.bind(this)
+            this.runSyncPopularFilms = this.runSyncPopularFilms.bind(this)
+            this.searchFilms = this.searchFilms.bind(this)
+            this.searchSeries = this.searchSeries.bind(this)
+        }
+
+        /**
+         * Katalogdan bir filmi siler
+         * DELETE /catalog/movie/:movieId
+         */
+        public async deleteCatalogMovie(movieId: string): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/catalog/movie/${encodeURIComponent(movieId)}`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Admin paneli için yerel katalog verilerini listeler (Son 100 kayıt)
+         * GET /catalog/admin/data
+         */
+        public async getAdminCatalog(): Promise<AdminCatalogResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/admin/data`)
+            return await resp.json() as AdminCatalogResponse
+        }
+
+        /**
+         * Kayıtlı maçları veritabanından getirir (Eğer veritabanı boşsa veya eski kalmışsa arkaplanda sync tetikler)
+         * GET /catalog/matches
+         */
+        public async getBigMatches(params: CatalogListMatchesRequest): Promise<CatalogListMatchesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                liveOnly: params.liveOnly === undefined ? undefined : String(params.liveOnly),
+                sport:    params.sport === undefined ? undefined : String(params.sport),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/matches`, undefined, {query})
+            return await resp.json() as CatalogListMatchesResponse
+        }
+
+        /**
+         * Tek bir filmin detaylarını getirir (Lokal DB'de varsa oradan, yoksa TMDB'den zenginleştirip çeker)
+         * GET /catalog/movie/:movieId
+         */
+        public async getFilmDetails(movieId: string): Promise<{
+    movie: FilmCatalogItem
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/movie/${encodeURIComponent(movieId)}`)
+            return await resp.json() as {
+    movie: FilmCatalogItem
+}
+        }
+
+        /**
+         * Popüler filmleri getirir (önce local DB'den, yoksa TMDB'den çeker)
+         * GET /catalog/popular?page=1
+         */
+        public async getPopularFilms(params: {
+    page?: number
+}): Promise<ListFilmsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                page: params.page === undefined ? undefined : String(params.page),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/popular`, undefined, {query})
+            return await resp.json() as ListFilmsResponse
+        }
+
+        /**
+         * Dizi sezon detaylarını getirir (bölümleri)
+         * GET /catalog/series/season/:tmdbId/:seasonNumber
+         */
+        public async getSeasonDetails(tmdbId: number, seasonNumber: number): Promise<TmdbSeasonDetails> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/series/season/${encodeURIComponent(tmdbId)}/${encodeURIComponent(seasonNumber)}`)
+            return await resp.json() as TmdbSeasonDetails
+        }
+
+        /**
+         * Dizi detaylarını getirir (TMDB'den çeker, local DB'ye yazar)
+         * GET /catalog/series/details/:tmdbId
+         */
+        public async getSeriesDetails(tmdbId: number): Promise<TmdbSeriesDetails> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/series/details/${encodeURIComponent(tmdbId)}`)
+            return await resp.json() as TmdbSeriesDetails
+        }
+
+        /**
+         * Bir filmi TMDB'den çekip yüksek popülerlikle yerel kataloğa ekler/öne çıkarır
+         * POST /catalog/movie/promote
+         */
+        public async promoteMovieToPopular(params: {
+    movieId: string
+    popularity?: number
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/catalog/movie/promote`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * ESPN ve TSDB'den canlı maçları çeker ve yerel DB'ye yazar
+         * POST /catalog/sync-matches
+         */
+        public async runSyncBigMatches(): Promise<{
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/catalog/sync-matches`)
+            return await resp.json() as {
+    count: number
+}
+        }
+
+        /**
+         * Cron veya manuel tetikleme ile popüler filmleri senkronize eder
+         * POST /catalog/sync-popular
+         */
+        public async runSyncPopularFilms(): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/catalog/sync-popular`)
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Film arar (TMDB'den arar, sonuçları local DB'de önbelleğe alır ve döner)
+         * GET /catalog/search?query=inception&page=1
+         */
+        public async searchFilms(params: {
+    query: string
+    page?: number
+}): Promise<ListFilmsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                page:  params.page === undefined ? undefined : String(params.page),
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/search`, undefined, {query})
+            return await resp.json() as ListFilmsResponse
+        }
+
+        /**
+         * TV Dizisi arar (TMDB'den arar, sonuçları local DB'de önbelleğe alır ve döner)
+         * GET /catalog/series/search?query=breaking
+         */
+        public async searchSeries(params: {
+    query: string
+}): Promise<TmdbSearchResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                query: params.query,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/catalog/series/search`, undefined, {query})
+            return await resp.json() as TmdbSearchResponse
+        }
+    }
+}
+
 export namespace chocolate_db {
     export interface AddReviewRequest {
         "chocolate_id": string
@@ -2426,6 +2744,108 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/concerts/${encodeURIComponent(userId)}`)
             return await resp.json() as GetConcertsResponse
+        }
+    }
+}
+
+export namespace contributions {
+    export interface AddContributionRequest {
+        userId: string
+        contentType: string
+        title: string
+        imageUrl?: string | null
+        data: { [key: string]: any }
+    }
+
+    export interface AddContributionResponse {
+        contribution: ContributionItem | null
+    }
+
+    export interface ApproveContributionRequest {
+        id: string
+        approved: boolean
+    }
+
+    export interface ApproveContributionResponse {
+        success: boolean
+    }
+
+    export interface ContributionItem {
+        id: string
+        createdUserId: string
+        contentType: string
+        title: string
+        imageUrl?: string | null
+        data: { [key: string]: any }
+        approved: boolean
+        createdAt: string
+        contributorName: string
+    }
+
+    export interface GetContributionResponse {
+        contribution: ContributionItem | null
+    }
+
+    export interface GetContributionsResponse {
+        contributions: ContributionItem[]
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addContribution = this.addContribution.bind(this)
+            this.approveContribution = this.approveContribution.bind(this)
+            this.getContributionById = this.getContributionById.bind(this)
+            this.getContributions = this.getContributions.bind(this)
+        }
+
+        /**
+         * Yeni bir topluluk katkısı ekler (Varsayılan olarak onay bekler)
+         * POST /contributions/add
+         */
+        public async addContribution(params: AddContributionRequest): Promise<AddContributionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/contributions/add`, JSON.stringify(params))
+            return await resp.json() as AddContributionResponse
+        }
+
+        /**
+         * Katkıyı onaylar veya reddedip siler (Sadece admin için)
+         * POST /contributions/approve
+         */
+        public async approveContribution(params: ApproveContributionRequest): Promise<ApproveContributionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/contributions/approve`, JSON.stringify(params))
+            return await resp.json() as ApproveContributionResponse
+        }
+
+        /**
+         * ID ile tek bir topluluk katkısını getirir
+         * GET /contributions/get/:id
+         */
+        public async getContributionById(id: string): Promise<GetContributionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/contributions/get/${encodeURIComponent(id)}`)
+            return await resp.json() as GetContributionResponse
+        }
+
+        /**
+         * Belirli bir tipteki topluluk katkılarını listeler
+         * GET /contributions/list/:contentType
+         */
+        public async getContributions(contentType: string, params: {
+    onlyApproved?: boolean
+}): Promise<GetContributionsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                onlyApproved: params.onlyApproved === undefined ? undefined : String(params.onlyApproved),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/contributions/list/${encodeURIComponent(contentType)}`, undefined, {query})
+            return await resp.json() as GetContributionsResponse
         }
     }
 }
@@ -3777,11 +4197,13 @@ export namespace film_graph {
         actorIds: string[]
         castNames: string[]
         imdbId?: string
+        imdbRating?: number
     }
 
     export interface GetDailySuggestionsResponse {
         movie1: any
         movie2: any
+        movie3: any
     }
 
     export interface ListFilmsResponse {
@@ -3807,6 +4229,7 @@ export namespace film_graph {
             this.getTopRatedFilms = this.getTopRatedFilms.bind(this)
             this.getUserFilms = this.getUserFilms.bind(this)
             this.ignoreFilm = this.ignoreFilm.bind(this)
+            this.resetDailySuggestions = this.resetDailySuggestions.bind(this)
             this.searchFilms = this.searchFilms.bind(this)
             this.syncUserFilm = this.syncUserFilm.bind(this)
         }
@@ -3893,6 +4316,22 @@ export namespace film_graph {
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/ignore`, JSON.stringify(params))
+            return await resp.json() as {
+    success: boolean
+}
+        }
+
+        /**
+         * Bugünün film önerilerini sıfırlar (veritabanından siler, böylece dinamik olarak yeniden üretilir)
+         * POST /film-graph/daily-suggestions/reset
+         */
+        public async resetDailySuggestions(params: {
+    userId: string
+}): Promise<{
+    success: boolean
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/daily-suggestions/reset`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
 }

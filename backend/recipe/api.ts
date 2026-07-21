@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient, Recipe, RecipeSummary, Ingredient, Instruction } from "../lib/supabase";
+import { contributions } from "~encore/clients";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -108,6 +109,24 @@ export const createRecipe = api(
     }
 
     const row = data as any;
+    if (row) {
+      try {
+        await contributions.addContribution({
+          userId: userId,
+          contentType: "recipe",
+          title: row.title,
+          imageUrl: row.image_url,
+          data: {
+            ingredients: row.ingredients || [],
+            instructions: row.instructions || [],
+            category: row.category || null,
+          },
+        });
+      } catch (cErr) {
+        console.error("Failed to register recipe contribution:", cErr);
+      }
+    }
+
     return { 
       recipe: row ? {
         id: row.id,

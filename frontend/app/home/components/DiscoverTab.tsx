@@ -36,6 +36,7 @@ import {
   Archive,
   CaretDown,
   CaretUp,
+  ArrowsClockwise,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -123,6 +124,7 @@ interface DiscoverTabProps {
   youtubeSeries: any[];
   movieSuggestions: any[];
   moviesLoading: boolean;
+  onResetMovieSuggestions?: () => void;
   eksikItems: any[];
 }
 
@@ -183,6 +185,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     youtubeSeries = [],
     movieSuggestions = [],
     moviesLoading = true,
+    onResetMovieSuggestions,
     eksikItems = [],
   } = props;
 
@@ -762,7 +765,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           title="Bugünün Antrenmanı"
           subtitle="Gym"
           loading={loading}
-          emptyText="Bugün dinlenme günü 🛋️"
+          emptyText="Bugün dinlenme günü"
           hasContent={pendingTodayGym}
           onHide={() => handleToggleHide("gym")}
           emptyFooter={
@@ -1239,6 +1242,18 @@ export function DiscoverTab(props: DiscoverTabProps) {
           emptyText="İzlenecek film bulunamadı 🍿"
           hasContent={movieSuggestions.length > 0}
           onHide={() => handleToggleHide("movies")}
+          footerAction={
+            onResetMovieSuggestions && (
+              <button
+                type="button"
+                onClick={onResetMovieSuggestions}
+                className="flex items-center gap-1 text-app-muted hover:text-amber-500 hover:bg-amber-500/5 text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 py-1 px-2 rounded-lg shrink-0"
+              >
+                <ArrowsClockwise size={12} />
+                <span>Önerileri Yenile</span>
+              </button>
+            )
+          }
         >
           {movieSuggestions.map((movie: any) => (
             <div
@@ -1263,14 +1278,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-black text-app-text truncate flex items-center gap-1.5">
                     <span>{movie.title}</span>
-                    {movie.isSaved && (
-                      <span className="shrink-0 px-1 py-0.2 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-wider">
-                        Listemden
-                      </span>
-                    )}
                   </p>
                   <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {movie.year || (movie.releaseDate ? movie.releaseDate.split("-")[0] : "")} {movie.voteAverage ? `· ★ ${typeof movie.voteAverage === "number" ? movie.voteAverage.toFixed(1) : movie.voteAverage}` : ""}
+                    {movie.year || (movie.releaseDate ? movie.releaseDate.split("-")[0] : "")} {movie.imdbRating ? `· ★ ${!isNaN(parseFloat(String(movie.imdbRating))) ? parseFloat(String(movie.imdbRating)).toFixed(1) : movie.imdbRating}` : movie.voteAverage ? `· ★ ${typeof movie.voteAverage === "number" ? movie.voteAverage.toFixed(1) : movie.voteAverage}` : ""}
                   </p>
                 </div>
               </div>
@@ -1314,6 +1324,17 @@ export function DiscoverTab(props: DiscoverTabProps) {
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
+
+  const hasAnyDiscover = (() => {
+    const matchesWidget = widgets.find((w) => w.key === "matches");
+    const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
+    const moviesWidget = widgets.find((w) => w.key === "movies");
+    return (
+      Boolean(matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches")) ||
+      Boolean(ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries")) ||
+      Boolean(moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies"))
+    );
+  })();
 
   const finishedWidgets = widgets.filter((widget) => {
     if (
@@ -1438,6 +1459,19 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state: tüm widget'lar gizlendiğinde */}
+      {pendingWidgets.length === 0 && finishedWidgets.length === 0 && !hasAnyDiscover && widgets.some((w) => isWidgetHidden(w.key)) && (
+        <div className="flex flex-col items-center justify-center py-10 gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+            <Check size={30} weight="bold" className="text-emerald-500" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-black text-app-text">Bugün için her şey tamam!</p>
+            <p className="text-xs text-app-muted mt-0.5">Tüm widget'ları bugün için gizledin.</p>
           </div>
         </div>
       )}

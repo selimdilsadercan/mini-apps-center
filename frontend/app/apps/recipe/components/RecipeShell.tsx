@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getAppRootUrl } from "@/lib/apps";
 import { CaretLeft, ChefHat, Plus, Calendar } from "@phosphor-icons/react";
+import { Toaster } from "react-hot-toast";
 
 export type RecipeTab = "recipes" | "plan";
 
@@ -68,6 +69,7 @@ export default function RecipeShell({
       </header>
 
       <main className="flex-1 px-4 pt-4 pb-8 max-w-xl mx-auto w-full">{children}</main>
+      <Toaster position="bottom-center" />
     </div>
   );
 }

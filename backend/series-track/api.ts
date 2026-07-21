@@ -2,6 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { getDateKeyInTimezone } from "../lib/istanbul-date";
 import { createSupabaseClient } from "../lib/supabase";
+import { catalog } from "~encore/clients";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
@@ -366,41 +367,12 @@ export const markAllEpisodesWatched = api(
 export const searchSeries = api(
   { expose: true, method: "GET", path: "/series-track/search" },
   async ({ query }: SearchSeriesRequest): Promise<TmdbSearchResponse> => {
-    const cacheKey = `search:${query}`;
-    const cached = getFromCache<TmdbSearchResponse>(cacheKey);
-    if (cached) return cached;
-
-    const key = tmdbApiKey();
-    if (!key) {
-      console.error("TMDB API Key is missing!");
-      throw APIError.internal("TMDB API Key is not configured");
-    }
-
-    const fetchWithRetry = async (url: string) => {
-      let response = await fetch(url);
-      if (!response.ok && url.includes("language=tr-TR")) {
-        // Fallback to English if Turkish fails
-        const fallbackUrl = url.replace("&language=tr-TR", "");
-        response = await fetch(fallbackUrl);
-      }
-      return response;
-    };
-
-    const url = `https://api.themoviedb.org/3/search/tv?api_key=${key}&query=${encodeURIComponent(query)}&language=tr-TR`;
-    
     try {
-      const response = await fetchWithRetry(url);
-
-      if (!response.ok) {
-        throw APIError.internal(`TMDB search failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setToCache(cacheKey, data);
-      return data as TmdbSearchResponse;
+      const res = await catalog.searchSeries({ query });
+      return res as TmdbSearchResponse;
     } catch (err: any) {
-      console.error("TMDB fetch error:", err);
-      throw APIError.internal(`TMDB fetch error: ${err.message}`);
+      console.error("Catalog search series error:", err);
+      throw APIError.internal(`Catalog search error: ${err.message}`);
     }
   }
 );
@@ -411,31 +383,13 @@ export const searchSeries = api(
 export const getSeriesDetails = api(
   { expose: true, method: "GET", path: "/series-track/details/:tmdbId" },
   async ({ tmdbId }: GetSeriesDetailsRequest): Promise<TmdbSeriesDetails> => {
-    const cacheKey = `details:${tmdbId}`;
-    const cached = getFromCache<TmdbSeriesDetails>(cacheKey);
-    if (cached) return cached;
-
-    const fetchWithRetry = async (url: string) => {
-      let response = await fetch(url);
-      if (!response.ok && url.includes("language=tr-TR")) {
-        // Fallback to English if Turkish fails
-        const fallbackUrl = url.replace("&language=tr-TR", "");
-        response = await fetch(fallbackUrl);
-      }
-      return response;
-    };
-
-    const response = await fetchWithRetry(
-      `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${tmdbApiKey()}&language=tr-TR`
-    );
-
-    if (!response.ok) {
-      throw APIError.internal(`TMDB details fetch failed: ${response.status}`);
+    try {
+      const res = await catalog.getSeriesDetails({ tmdbId });
+      return res as TmdbSeriesDetails;
+    } catch (err: any) {
+      console.error("Catalog get series details error:", err);
+      throw APIError.internal(`Catalog get details error: ${err.message}`);
     }
-
-    const data = await response.json();
-    setToCache(cacheKey, data);
-    return data as TmdbSeriesDetails;
   }
 );
 
@@ -445,31 +399,13 @@ export const getSeriesDetails = api(
 export const getSeasonDetails = api(
   { expose: true, method: "GET", path: "/series-track/season/:tmdbId/:seasonNumber" },
   async ({ tmdbId, seasonNumber }: GetSeasonDetailsRequest): Promise<TmdbSeasonDetails> => {
-    const cacheKey = `season:${tmdbId}:${seasonNumber}`;
-    const cached = getFromCache<TmdbSeasonDetails>(cacheKey);
-    if (cached) return cached;
-
-    const fetchWithRetry = async (url: string) => {
-      let response = await fetch(url);
-      if (!response.ok && url.includes("language=tr-TR")) {
-        // Fallback to English if Turkish fails
-        const fallbackUrl = url.replace("&language=tr-TR", "");
-        response = await fetch(fallbackUrl);
-      }
-      return response;
-    };
-
-    const response = await fetchWithRetry(
-      `https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNumber}?api_key=${tmdbApiKey()}&language=tr-TR`
-    );
-
-    if (!response.ok) {
-      throw APIError.internal(`TMDB season fetch failed: ${response.status}`);
+    try {
+      const res = await catalog.getSeasonDetails({ tmdbId, seasonNumber });
+      return res as TmdbSeasonDetails;
+    } catch (err: any) {
+      console.error("Catalog get season details error:", err);
+      throw APIError.internal(`Catalog get season error: ${err.message}`);
     }
-
-    const data = await response.json();
-    setToCache(cacheKey, data);
-    return data as TmdbSeasonDetails;
   }
 );
 

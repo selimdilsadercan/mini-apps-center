@@ -95,6 +95,7 @@ export function HomeSummaryCard({
   emptyFooter,
   onHide,
   hideLabel,
+  footerAction,
   children,
 }: {
   href?: string;
@@ -108,6 +109,7 @@ export function HomeSummaryCard({
   emptyFooter?: ReactNode;
   onHide?: () => void;
   hideLabel?: string;
+  footerAction?: ReactNode;
   children?: ReactNode;
 }) {
   return (
@@ -152,19 +154,24 @@ export function HomeSummaryCard({
         </div>
       )}
 
-      {onHide && (
-        <div className="px-4 py-2 border-t border-app-border/60 bg-app-surface-muted/20 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onHide();
-            }}
-            className="flex items-center gap-1.5 text-app-muted hover:text-app-text text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shrink-0"
-          >
-            <Archive size={12} weight="bold" />
-            <span>{hideLabel || "Bugünlük Gizle"}</span>
-          </button>
+      {(onHide || footerAction) && (
+        <div className="px-4 py-2 border-t border-app-border/60 bg-app-surface-muted/20 flex items-center justify-between gap-4">
+          <div className="flex-1 text-left">
+            {footerAction}
+          </div>
+          {onHide && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onHide();
+              }}
+              className="flex items-center gap-1.5 text-app-muted hover:text-app-text text-[9px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 shrink-0"
+            >
+              <Archive size={12} weight="bold" />
+              <span>{hideLabel || "Bugünlük Gizle"}</span>
+            </button>
+          )}
         </div>
       )}
     </div>

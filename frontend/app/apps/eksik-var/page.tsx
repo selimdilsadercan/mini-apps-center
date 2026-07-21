@@ -340,17 +340,17 @@ function ItemsByCategory({
                         onItemTap(item);
                       }
                     }}
-                    className={viewMode === "grid" 
+                    className={viewMode === "grid"
                       ? `scroll-mt-28 ${cardClass} relative flex flex-col items-center justify-center px-2 py-4 text-left w-full ${isOptimistic ? "opacity-60" : ""}`
                       : `scroll-mt-28 flex items-center gap-3 px-3 py-3 min-h-[52px] hover:bg-app-surface-muted/80 active:bg-emerald-50/50 transition-colors cursor-pointer select-none text-left w-full ${isOptimistic ? "opacity-60" : ""}`
                     }
                   >
                     {viewMode === "list" && <ChecklistToggle checked={isHomeList} />}
                     <ItemThumbnail name={item.name} size={viewMode === "grid" ? "card" : "suggestion"} />
-                    
+
                     <div className={viewMode === "grid" ? "w-full" : "flex-1 min-w-0"}>
                       <div className={viewMode === "grid" ? "flex flex-col items-center" : "flex items-center gap-1.5"}>
-                        <h3 className={viewMode === "grid" 
+                        <h3 className={viewMode === "grid"
                           ? "text-[12px] font-bold text-app-text text-center leading-tight line-clamp-2 px-1"
                           : "text-sm font-bold text-app-text leading-snug line-clamp-2"
                         }>
@@ -411,8 +411,8 @@ function CategoryPicker({
                   type="button"
                   onClick={() => onChange(category)}
                   className={`flex flex-col items-center justify-center gap-1 min-h-[68px] text-[9px] font-bold leading-tight px-1 py-2 rounded-xl border transition-all active:scale-[0.98] ${isSelected
-                      ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-900/10"
-                      : "bg-app-surface-muted text-app-text border-app-border hover:border-emerald-500/30"
+                    ? "bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-900/10"
+                    : "bg-app-surface-muted text-app-text border-app-border hover:border-emerald-500/30"
                     }`}
                 >
                   <IconComponent
@@ -1208,8 +1208,8 @@ export default function EksikVarPage() {
                           }
                         }}
                         className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-all flex items-center gap-3 border-b border-app-border last:border-b-0 cursor-pointer ${isSelected
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "text-app-text hover:bg-app-surface-muted hover:text-emerald-600"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "text-app-text hover:bg-app-surface-muted hover:text-emerald-600"
                           }`}
                       >
                         <ItemThumbnail name={item.name} size="suggestion" />
@@ -1265,22 +1265,20 @@ export default function EksikVarPage() {
                     <button
                       type="button"
                       onClick={() => setActiveTimingTab("today")}
-                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                        activeTimingTab === "today"
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${activeTimingTab === "today"
                           ? "bg-app-tab-active text-app-text shadow-sm"
                           : "text-app-muted hover:text-app-text"
-                      }`}
+                        }`}
                     >
                       Bugün ({items.filter((i) => !i.is_used && (i.timing || "today") === "today").length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveTimingTab("month_start")}
-                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                        activeTimingTab === "month_start"
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${activeTimingTab === "month_start"
                           ? "bg-app-tab-active text-app-text shadow-sm"
                           : "text-app-muted hover:text-app-text"
-                      }`}
+                        }`}
                     >
                       Ay Başı ({items.filter((i) => !i.is_used && (i.timing || "today") === "month_start").length})
                     </button>
@@ -1452,22 +1450,20 @@ export default function EksikVarPage() {
                   <button
                     type="button"
                     onClick={() => setEditTiming("today")}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                      editTiming === "today"
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${editTiming === "today"
                         ? "bg-app-tab-active text-app-text shadow-sm"
                         : "text-app-muted hover:text-app-text"
-                    }`}
+                      }`}
                   >
                     Bugün
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditTiming("month_start")}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                      editTiming === "month_start"
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${editTiming === "month_start"
                         ? "bg-app-tab-active text-app-text shadow-sm"
                         : "text-app-muted hover:text-app-text"
-                    }`}
+                      }`}
                   >
                     Ay Başı
                   </button>
@@ -1553,7 +1549,7 @@ export default function EksikVarPage() {
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-h-[85vh] w-full max-w-xl flex-col rounded-t-3xl border-t border-app-border bg-app-surface shadow-2xl outline-none p-6 pb-8">
             <div className="mx-auto mt-1 mb-6 h-1.5 w-12 shrink-0 rounded-full bg-app-border/80" />
             <Drawer.Title className="sr-only">Hızlı İşlem</Drawer.Title>
-            
+
             {quickCheckItem && (
               <div className="flex flex-col items-center text-center space-y-5 pb-4">
                 <ItemThumbnail
@@ -1577,22 +1573,20 @@ export default function EksikVarPage() {
                   <button
                     type="button"
                     onClick={() => handleQuickTimingChange(quickCheckItem, "today")}
-                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                      (quickCheckItem.timing || "today") === "today"
+                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${(quickCheckItem.timing || "today") === "today"
                         ? "bg-app-tab-active text-app-text shadow-sm"
                         : "text-app-muted hover:text-app-text"
-                    }`}
+                      }`}
                   >
                     Bugüne
                   </button>
                   <button
                     type="button"
                     onClick={() => handleQuickTimingChange(quickCheckItem, "month_start")}
-                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
-                      (quickCheckItem.timing || "today") === "month_start"
+                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-[0.98] ${(quickCheckItem.timing || "today") === "month_start"
                         ? "bg-app-tab-active text-app-text shadow-sm"
                         : "text-app-muted hover:text-app-text"
-                    }`}
+                      }`}
                   >
                     Ay Başına
                   </button>
@@ -1603,11 +1597,10 @@ export default function EksikVarPage() {
                     handleToggleUsed(quickCheckItem.id);
                     setQuickCheckItem(null);
                   }}
-                  className={`w-full font-bold text-sm py-3.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md ${
-                    quickCheckItem.is_used
+                  className={`w-full font-bold text-sm py-3.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md ${quickCheckItem.is_used
                       ? "bg-white hover:bg-neutral-50 text-neutral-900 border border-neutral-200 shadow-sm"
                       : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-950/15"
-                  }`}
+                    }`}
                 >
                   {quickCheckItem.is_used ? (
                     <>
@@ -1734,8 +1727,8 @@ export default function EksikVarPage() {
                               onClick={() => handleCatalogItemTap(item.name)}
                               disabled={alreadyAdded}
                               className={`rounded-xl border relative flex flex-col items-center justify-center px-2 py-3 transition-all text-left w-full ${alreadyAdded
-                                  ? "bg-emerald-50/60 border-emerald-200/60 opacity-70 cursor-default"
-                                  : "bg-app-surface-muted border-app-border hover:border-emerald-500/30 active:scale-95"
+                                ? "bg-emerald-50/60 border-emerald-200/60 opacity-70 cursor-default"
+                                : "bg-app-surface-muted border-app-border hover:border-emerald-500/30 active:scale-95"
                                 }`}
                             >
                               {alreadyAdded && (
@@ -1847,7 +1840,7 @@ export default function EksikVarPage() {
                 {/* Direct Share with Friends */}
                 <div>
                   <h3 className="text-xs font-black text-app-muted uppercase tracking-wider mb-3">Arkadaşlarından Ekle</h3>
-                  
+
                   <button
                     onClick={handleCreateInvite}
                     className="w-full bg-app-surface-muted hover:bg-app-border/40 text-app-text border border-app-border font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all mb-4"

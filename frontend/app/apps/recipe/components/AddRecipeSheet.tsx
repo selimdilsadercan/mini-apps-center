@@ -7,6 +7,7 @@ import { CaretDown, CaretUp, X } from "@phosphor-icons/react";
 import { parseRecipeInput } from "../parse-recipe-input";
 import { RECIPE_JSON_EXAMPLE } from "../recipe-json-format";
 import { createRecipe, getOrCreateUserAction } from "../create/actions";
+import toast from "react-hot-toast";
 import RecipeJsonGuide from "./RecipeJsonGuide";
 import CATEGORIES from "../categories.json";
 
@@ -21,7 +22,7 @@ export default function AddRecipeSheet({
 }) {
   const router = useRouter();
   const { user } = useUser();
-
+  
   const [recipeText, setRecipeText] = useState("");
   const [simpleTitle, setSimpleTitle] = useState("");
   const [createMode, setCreateMode] = useState<CreateMode>("simple");
@@ -96,6 +97,7 @@ export default function AddRecipeSheet({
 
       if (recipeResult.data) {
         onClose();
+        toast.success("Tarifiniz başarıyla kaydedildi ve topluluğa katkı olarak eklendi! 🍳", { duration: 4000 });
         router.push(`/apps/recipe?id=${recipeResult.data.id}`);
         return;
       }

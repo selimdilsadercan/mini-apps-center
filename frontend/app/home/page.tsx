@@ -394,6 +394,17 @@ function HomePageContent() {
     refetchOnReconnect: "always",
   });
 
+  const handleResetMovieSuggestions = async () => {
+    if (!userId) return;
+    try {
+      await client.film_graph.resetDailySuggestions({ userId });
+      toast.success("Bugünün film önerileri yenilendi!");
+      void queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] });
+    } catch (err: any) {
+      toast.error(`Sıfırlama hatası: ${err.message || "Bilinmeyen hata"}`);
+    }
+  };
+
   const exploreQuery = useQuery({
     queryKey: exploreQueryKey(userId),
     queryFn: () => client.hub.getExploreWidgets({ userId }),
@@ -613,6 +624,7 @@ function HomePageContent() {
     const list = [];
     if (dailyMoviesQuery.data?.movie1) list.push(dailyMoviesQuery.data.movie1);
     if (dailyMoviesQuery.data?.movie2) list.push(dailyMoviesQuery.data.movie2);
+    if (dailyMoviesQuery.data?.movie3) list.push(dailyMoviesQuery.data.movie3);
     return list;
   }, [dailyMoviesQuery.data]);
 
@@ -678,6 +690,7 @@ function HomePageContent() {
                     loading={loading}
                     movieSuggestions={movieSuggestions}
                     moviesLoading={moviesLoading}
+                    onResetMovieSuggestions={handleResetMovieSuggestions}
                     eksikItems={eksikItems}
                   />
                 </section>
@@ -943,6 +956,7 @@ function HomeSummaryCards({
   loading,
   movieSuggestions,
   moviesLoading,
+  onResetMovieSuggestions,
   eksikItems,
 }: {
   suggestions: suggest.InboxSuggestion[];
@@ -959,6 +973,7 @@ function HomeSummaryCards({
   loading: boolean;
   movieSuggestions: any[];
   moviesLoading: boolean;
+  onResetMovieSuggestions: () => void;
   eksikItems: eksik_var.MissingItem[];
 }) {
   const router = useRouter();
@@ -1429,6 +1444,7 @@ function HomeSummaryCards({
       youtubeSeries={youtubeSeries}
       movieSuggestions={movieSuggestions}
       moviesLoading={moviesLoading}
+      onResetMovieSuggestions={onResetMovieSuggestions}
       eksikItems={eksikItems}
     />
   );

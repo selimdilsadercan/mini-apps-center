@@ -7,6 +7,7 @@ import { CaretLeft, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { parseRecipeInput } from "../parse-recipe-input";
 import { RECIPE_JSON_EXAMPLE } from "../recipe-json-format";
 import { createRecipe, getOrCreateUserAction } from "./actions";
+import toast from "react-hot-toast";
 import { useShareIntent } from "@/lib/use-share-intent";
 import RecipeJsonGuide from "../components/RecipeJsonGuide";
 
@@ -89,6 +90,7 @@ function CreateRecipeContent() {
       );
 
       if (recipeResult.data) {
+        toast.success("Tarifiniz başarıyla kaydedildi ve topluluğa katkı olarak eklendi! 🍳", { duration: 4000 });
         router.push(`/apps/recipe?id=${recipeResult.data.id}`);
         return;
       }

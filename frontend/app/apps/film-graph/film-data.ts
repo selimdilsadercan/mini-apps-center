@@ -16,6 +16,7 @@ export interface Film {
   imgUrl?: string;
   overview?: string;
   voteAverage?: number;
+  imdbRating?: number;
   status?: "want" | "watched" | "soon" | "later";
 }
 
@@ -35,6 +36,7 @@ export interface FilmCatalogItem {
   actorIds: string[];
   castNames: string[];
   imdbId?: string;
+  imdbRating?: number;
 }
 
 export type FilmTab = "discover" | "list" | "graph";
@@ -106,6 +108,8 @@ export function parseCatalogRawItem(item: Record<string, unknown>): {
     directorName: directors[0] ? String(directors[0].name) : "",
     actorIds,
     castNames: cast.slice(0, 5).map((a) => String(a.name)),
+    imdbId: item.imdb_id ? String(item.imdb_id) : undefined,
+    imdbRating: item.imdb_rating ? Number(item.imdb_rating) : undefined,
   };
 
   const film: Film = {
@@ -117,6 +121,7 @@ export function parseCatalogRawItem(item: Record<string, unknown>): {
     imgUrl: posterUrl,
     overview: catalog.overview,
     voteAverage: catalog.voteAverage,
+    imdbRating: catalog.imdbRating,
   };
 
   return { catalog, film, persons };

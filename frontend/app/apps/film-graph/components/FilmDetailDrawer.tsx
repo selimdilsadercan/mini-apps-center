@@ -119,10 +119,10 @@ export default function FilmDetailDrawer({
 
                     {/* Rating & Meta Badges */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                      {film.voteAverage > 0 && (
+                      {film.imdbRating && film.imdbRating > 0 && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-black">
                           <Star size={13} weight="fill" />
-                          <span>{film.voteAverage.toFixed(1)}</span>
+                          <span>{film.imdbRating.toFixed(1)} IMDb</span>
                         </span>
                       )}
 

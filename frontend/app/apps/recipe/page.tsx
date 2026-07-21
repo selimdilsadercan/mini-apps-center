@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CaretLeft, PencilSimple, DotsThreeVertical, Trash } from "@phosphor-icons/react";
 import { useUser } from "@clerk/clerk-react";
-import { getRecipeByIdAction, deleteRecipeAction, getOrCreateUserAction, getMealPlanAction } from "./actions";
+import { getRecipeByIdAction, deleteRecipeAction, getOrCreateUserAction, getMealPlanAction, getContributionByIdAction } from "./actions";
 import RecipeHub from "./components/RecipeHub";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getRecipeEmoji } from "./recipe-emoji";
@@ -125,15 +125,40 @@ function RecipeContent() {
 
     try {
       setLoading(true);
-      const result = await getRecipeByIdAction(recipeId);
-      if (result.data) {
-        setRecipe(result.data);
-        const normalized = normalizeRecipeIngredients(
-          (result.data.ingredients as unknown as RecipeIngredient[]) || []
-        );
-        setSelectedKeys(buildDefaultSelectedKeys(normalized));
+      const source = searchParams.get("source");
+      if (source === "community") {
+        const result = await getContributionByIdAction(recipeId);
+        if (result.data) {
+          const contrib = result.data;
+          const fakeRecipe: lib.Recipe = {
+            id: contrib.id,
+            title: contrib.title,
+            image_url: contrib.imageUrl || null,
+            category: (contrib.data?.category as string) || null,
+            created_user_id: contrib.createdUserId,
+            created_at: contrib.createdAt,
+            ingredients: (contrib.data?.ingredients || []) as any,
+            instructions: (contrib.data?.instructions || []) as any,
+          };
+          setRecipe(fakeRecipe);
+          const normalized = normalizeRecipeIngredients(
+            (fakeRecipe.ingredients as unknown as RecipeIngredient[]) || []
+          );
+          setSelectedKeys(buildDefaultSelectedKeys(normalized));
+        } else {
+          setError(result.error || "Tarif bulunamadı");
+        }
       } else {
-        setError(result.error || "Tarif bulunamadı");
+        const result = await getRecipeByIdAction(recipeId);
+        if (result.data) {
+          setRecipe(result.data);
+          const normalized = normalizeRecipeIngredients(
+            (result.data.ingredients as unknown as RecipeIngredient[]) || []
+          );
+          setSelectedKeys(buildDefaultSelectedKeys(normalized));
+        } else {
+          setError(result.error || "Tarif bulunamadı");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -212,6 +237,8 @@ function RecipeContent() {
       active ? "bg-app-tab-active text-orange-600 shadow-sm" : "text-app-muted hover:text-app-text"
     }`;
 
+  const isCommunity = searchParams.get("source") === "community";
+
   return (
     <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
       <header className="sticky top-0 z-30 app-chrome-top">
@@ -228,32 +255,36 @@ function RecipeContent() {
             {recipe.title}
           </h1>
 
-          <button
-            onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
-            className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all"
-          >
-            <PencilSimple size={16} weight="bold" />
-          </button>
-
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all">
-                <DotsThreeVertical size={16} weight="bold" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-48 p-1">
+          {!isCommunity && (
+            <>
               <button
-                onClick={() => {
-                  setIsPopoverOpen(false);
-                  setIsDeleteDialogOpen(true);
-                }}
-                className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
+                onClick={() => router.push(`/apps/recipe/edit?id=${recipeId}`)}
+                className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all"
               >
-                <Trash size={20} />
-                <span className="font-medium">Tarifi Sil</span>
+                <PencilSimple size={16} weight="bold" />
               </button>
-            </PopoverContent>
-          </Popover>
+
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text bg-app-surface rounded-lg border border-app-border active:scale-95 transition-all">
+                    <DotsThreeVertical size={16} weight="bold" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-48 p-1">
+                  <button
+                    onClick={() => {
+                      setIsPopoverOpen(false);
+                      setIsDeleteDialogOpen(true);
+                    }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
+                  >
+                    <Trash size={20} />
+                    <span className="font-medium">Tarifi Sil</span>
+                  </button>
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
         </div>
       </header>
 

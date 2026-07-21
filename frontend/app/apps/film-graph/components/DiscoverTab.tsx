@@ -169,7 +169,7 @@ export default function DiscoverTab({
               <div className="flex items-center gap-1 mt-0.5">
                 <Star size={10} weight="fill" className="text-amber-500" />
                 <span className="text-[10px] font-bold text-app-muted">
-                  {film.voteAverage.toFixed(1)} · {film.year}
+                  {film.imdbRating ? `${parseFloat(String(film.imdbRating)).toFixed(1)}` : "-"} · {film.year}
                 </span>
               </div>
             </button>

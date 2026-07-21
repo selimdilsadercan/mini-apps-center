@@ -10,6 +10,7 @@ import {
   SquaresFour,
   Camera,
   ImageSquare,
+  Database,
 } from "@phosphor-icons/react";
 import { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -30,6 +31,12 @@ function Sidebar() {
       icon: SquaresFour,
       path: "/admin/businesses",
       active: pathname.startsWith("/admin/businesses")
+    },
+    {
+      title: "Katalog",
+      icon: Database,
+      path: "/admin/catalog",
+      active: pathname.startsWith("/admin/catalog")
     },
     {
       title: "İstatistikler",

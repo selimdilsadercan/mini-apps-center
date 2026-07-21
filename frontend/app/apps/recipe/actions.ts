@@ -10,7 +10,7 @@ import {
   isNotFoundError,
   isUnauthenticatedError,
 } from "@/lib/api-error-handler";
-import type { lib } from "@/lib/client";
+import type { lib, contributions } from "@/lib/client";
 
 // Standardized response format
 interface ActionResponse<T> {
@@ -193,6 +193,99 @@ export async function setMealPlanAction(
       return { data: null, error: "ENDPOINT_NOT_FOUND" };
     }
     console.error("Failed to save meal plan:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * Topluluktaki tüm tarifleri (recipe katkılarını) getirir
+ */
+export async function getCommunityRecipesAction(): Promise<ActionResponse<contributions.ContributionItem[]>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.contributions.getContributions("recipe", { onlyApproved: true });
+    return {
+      data: response.contributions ?? [],
+      error: null,
+    };
+  } catch (error) {
+    console.error("Failed to fetch community contributions:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * ID ile tek bir topluluk katkısını getirir
+ */
+export async function getContributionByIdAction(
+  id: string
+): Promise<ActionResponse<contributions.ContributionItem>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.contributions.getContributionById(id);
+    if (response.contribution) {
+      return {
+        data: response.contribution,
+        error: null,
+      };
+    }
+    return {
+      data: null,
+      error: "Katkı bulunamadı",
+    };
+  } catch (error) {
+    console.error("Failed to fetch contribution by ID:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * Tüm topluluk katkılarını (onay bekleyenler dahil) getirir - Admin Paneli için
+ */
+export async function getAdminContributionsAction(
+  contentType: string
+): Promise<ActionResponse<contributions.ContributionItem[]>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.contributions.getContributions(contentType, { onlyApproved: false });
+    return {
+      data: response.contributions ?? [],
+      error: null,
+    };
+  } catch (error) {
+    console.error("Failed to fetch admin contributions:", error);
+    return {
+      data: null,
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * Bir topluluk katkısını onaylar veya siler - Admin Paneli için
+ */
+export async function approveContributionAction(
+  id: string,
+  approved: boolean
+): Promise<ActionResponse<boolean>> {
+  try {
+    const client = createBrowserClient();
+    const response = await client.contributions.approveContribution({ id, approved });
+    return {
+      data: response.success,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Failed to approve contribution:", error);
     return {
       data: null,
       error: getErrorMessage(error),

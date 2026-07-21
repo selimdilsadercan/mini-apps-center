@@ -1,6 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
+import { catalog } from "~encore/clients";
 
 const tmdbApiKey = secret("TmdbApiKey");
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -48,6 +49,7 @@ export interface FilmCatalogItem {
   actorIds: string[];
   castNames: string[];
   imdbId?: string;
+  imdbRating?: number;
 }
 
 interface ListFilmsResponse {
@@ -137,32 +139,37 @@ async function tmdbFetch<T>(path: string): Promise<T> {
 }
 
 async function fetchTrendingAndPopular(page: number): Promise<ListFilmsResponse> {
-  const cacheKey = `popular:${page}`;
+  try {
+    const res = await catalog.getPopularFilms({ page });
+    return res;
+  } catch (err) {
+    console.error("Failed to fetch trending and popular from catalog service:", err);
+    return { movies: [], page, totalPages: 0 };
+  }
+}
+
+async function fetchTopRated(page: number): Promise<ListFilmsResponse> {
+  const cacheKey = `top-rated:${page}`;
   const cached = getFromCache<ListFilmsResponse>(cacheKey);
   if (cached) return cached;
 
-  const [trending, popular] = await Promise.all([
-    tmdbFetch<{ results: TmdbMovie[]; total_pages: number }>(
-      `/trending/movie/day?language=${LANG}&page=${page}`,
-    ),
-    tmdbFetch<{ results: TmdbMovie[]; total_pages: number }>(
-      `/movie/popular?language=${LANG}&region=TR&page=${page}`,
-    ),
-  ]);
+  try {
+    const data = await tmdbFetch<{ results: TmdbMovie[]; total_pages: number }>(
+      `/movie/top_rated?language=${LANG}&page=${page}`,
+    );
 
-  const merged = new Map<string, FilmCatalogItem>();
-  [...trending.results, ...popular.results].forEach((movie) => {
-    merged.set(String(movie.id), mapBasicMovie(movie));
-  });
+    const response: ListFilmsResponse = {
+      movies: data.results.map(mapBasicMovie),
+      page,
+      totalPages: data.total_pages,
+    };
 
-  const response: ListFilmsResponse = {
-    movies: Array.from(merged.values()),
-    page,
-    totalPages: Math.max(trending.total_pages, popular.total_pages),
-  };
-
-  setToCache(cacheKey, response);
-  return response;
+    setToCache(cacheKey, response);
+    return response;
+  } catch (error) {
+    console.error("Failed to fetch top rated films:", error);
+    return { movies: [], page, totalPages: 0 };
+  }
 }
 
 /**
@@ -173,10 +180,15 @@ export const getPopularFilms = api(
   { expose: true, method: "GET", path: "/film-graph/popular" },
   async ({ page = 1 }: { page?: number }): Promise<ListFilmsResponse> => {
     try {
-      return await fetchTrendingAndPopular(page);
+      const res = await catalog.getPopularFilms({ page });
+      return {
+        movies: res.movies as FilmCatalogItem[],
+        page: res.page,
+        totalPages: res.totalPages,
+      };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      throw APIError.internal(`Failed to fetch popular films: ${message}`);
+      throw APIError.internal(`Failed to fetch popular films from catalog: ${message}`);
     }
   },
 );
@@ -230,26 +242,16 @@ export const searchFilms = api(
       return { movies: [], page: 1, totalPages: 0 };
     }
 
-    const cacheKey = `search:${trimmed.toLowerCase()}:${page}`;
-    const cached = getFromCache<ListFilmsResponse>(cacheKey);
-    if (cached) return cached;
-
     try {
-      const data = await tmdbFetch<{ results: TmdbMovie[]; total_pages: number }>(
-        `/search/movie?language=${LANG}&query=${encodeURIComponent(trimmed)}&page=${page}&include_adult=false`,
-      );
-
-      const response: ListFilmsResponse = {
-        movies: data.results.map(mapBasicMovie),
-        page,
-        totalPages: data.total_pages,
+      const res = await catalog.searchFilms({ query: trimmed, page });
+      return {
+        movies: res.movies as FilmCatalogItem[],
+        page: res.page,
+        totalPages: res.totalPages,
       };
-
-      setToCache(cacheKey, response);
-      return response;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      throw APIError.internal(`Failed to search films: ${message}`);
+      throw APIError.internal(`Failed to search films via catalog: ${message}`);
     }
   },
 );
@@ -261,29 +263,14 @@ export const searchFilms = api(
 export const getFilmDetails = api(
   { expose: true, method: "GET", path: "/film-graph/movie/:movieId" },
   async ({ movieId }: { movieId: string }): Promise<{ movie: FilmCatalogItem }> => {
-    const cacheKey = `movie:${movieId}`;
-    const cached = getFromCache<{ movie: FilmCatalogItem }>(cacheKey);
-    if (cached) return cached;
-
     try {
-      const [details, creditsData, externalIds] = await Promise.all([
-        tmdbFetch<TmdbMovie>(`/movie/${movieId}?language=${LANG}`),
-        tmdbFetch<TmdbCredits>(`/movie/${movieId}/credits?language=${LANG}`),
-        tmdbFetch<{ imdb_id?: string | null }>(`/movie/${movieId}/external_ids`),
-      ]);
-
-      const movie = mapMovieWithCredits(
-        details,
-        creditsData,
-        externalIds.imdb_id || undefined,
-      );
-
-      const response = { movie };
-      setToCache(cacheKey, response);
-      return response;
+      const res = await catalog.getFilmDetails({ movieId });
+      return {
+        movie: res.movie as FilmCatalogItem,
+      };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      throw APIError.internal(`Failed to fetch film details: ${message}`);
+      throw APIError.internal(`Failed to fetch film details via catalog: ${message}`);
     }
   },
 );
@@ -307,6 +294,7 @@ export interface SyncUserFilmRequest {
 export interface GetDailySuggestionsResponse {
   movie1: any;
   movie2: any;
+  movie3: any;
 }
 
 export const getUserFilms = api(
@@ -405,6 +393,259 @@ export const ignoreFilm = api(
   }
 );
 
+/**
+ * Bugünün film önerilerini sıfırlar (veritabanından siler, böylece dinamik olarak yeniden üretilir)
+ * POST /film-graph/daily-suggestions/reset
+ */
+export const resetDailySuggestions = api(
+  { expose: true, method: "POST", path: "/film-graph/daily-suggestions/reset" },
+  async ({ userId }: { userId: string }): Promise<{ success: boolean }> => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    
+    // Generate new suggestions using a random seed and save them
+    await generateSuggestions(userId, todayStr, true);
+
+    return { success: true };
+  }
+);
+
+async function enrichWithImdbRating(movie: any): Promise<any> {
+  if (!movie) return null;
+  try {
+    // 1. Check local DB cache first
+    const { data: cached } = await supabase
+      .schema("catalog")
+      .from("movies")
+      .select("imdb_rating, imdb_id")
+      .eq("id", movie.id)
+      .maybeSingle();
+
+    if (cached && cached.imdb_rating) {
+      return {
+        ...movie,
+        imdbRating: String(cached.imdb_rating),
+      };
+    }
+
+    // 2. Fetch from external sources if not cached
+    const imdbId = cached?.imdb_id || (await tmdbFetch<{ imdb_id?: string | null }>(`/movie/${movie.id}/external_ids`)).imdb_id;
+    
+    if (imdbId) {
+      const omdbRes = await fetch(`https://www.omdbapi.com/?apikey=fc1fef96&i=${imdbId}`);
+      if (omdbRes.ok) {
+        const omdbData = (await omdbRes.json()) as { Response?: string; imdbRating?: string };
+        if (omdbData.Response !== "False" && omdbData.imdbRating && omdbData.imdbRating !== "N/A") {
+          const ratingNum = Number(omdbData.imdbRating) || 0;
+          
+          // Save to local catalog.movies cache
+          await supabase
+            .schema("catalog")
+            .from("movies")
+            .upsert({
+              id: movie.id,
+              title: movie.title,
+              year: movie.year,
+              imdb_id: imdbId,
+              imdb_rating: ratingNum,
+              vote_average: movie.voteAverage || null,
+              poster_url: movie.posterUrl || null,
+            }, { onConflict: "id" });
+
+          return {
+            ...movie,
+            imdbRating: omdbData.imdbRating,
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to fetch IMDb rating for movie ${movie.id}:`, err);
+  }
+  return movie;
+}
+
+async function generateSuggestions(userId: string, todayStr: string, forceRandom: boolean = false): Promise<GetDailySuggestionsResponse> {
+  // Load user saved films, ignored list, popular list, and top-rated list
+  const [savedFilmsRes, ignoredRes, popularRes, topRatedRes] = await Promise.all([
+    supabase.schema("film_graph").from("user_films").select("movie_id, title, year, status, poster_url, vote_average").eq("user_id", userId),
+    supabase.schema("film_graph").from("user_ignored").select("movie_id").eq("user_id", userId),
+    fetchTrendingAndPopular(1),
+    fetchTopRated(1),
+  ]);
+
+  const savedList = savedFilmsRes.data || [];
+  const ignoredIds = (ignoredRes.data || []).map((i) => i.movie_id);
+
+  // Candidates definitions
+  // 1. Want/Saved Candidates
+  const wantCandidates = savedList.filter(
+    (f) => f.status === "want" && !ignoredIds.includes(f.movie_id)
+  );
+
+  // 2. Popular Candidates
+  const popularCandidates = (popularRes.movies || []).filter((m) => {
+    const mId = String(m.id);
+    const isSaved = savedList.some((f) => f.movie_id === mId);
+    const isIgnored = ignoredIds.includes(mId);
+    const isLowQuality = (m.voteAverage || 0) < 5.5 || (m.voteCount || 0) < 50;
+    return !isSaved && !isIgnored && !isLowQuality;
+  });
+
+  // 3. Top Rated / High IMDb Candidates
+  const topRatedCandidates = (topRatedRes.movies || []).filter((m) => {
+    const mId = String(m.id);
+    const isSaved = savedList.some((f) => f.movie_id === mId);
+    const isIgnored = ignoredIds.includes(mId);
+    const isLowQuality = (m.voteAverage || 0) < 6.5 || (m.voteCount || 0) < 100;
+    return !isSaved && !isIgnored && !isLowQuality;
+  });
+
+  const selected: any[] = [];
+  const selectedIds = new Set<string>();
+
+  const getDeterministicSeed = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  };
+  const todaySeed = forceRandom
+    ? Math.floor(Math.random() * 1000000)
+    : getDeterministicSeed(userId + todayStr);
+
+  // 1. Slot 1 Selection: Saved Movie first, then (Popular AND Top Rated) intersection, then Popular fallback
+  let slot1Movie: any = null;
+  if (wantCandidates.length > 0) {
+    const chosen = wantCandidates[todaySeed % wantCandidates.length];
+    slot1Movie = {
+      id: String(chosen.movie_id),
+      title: chosen.title,
+      year: chosen.year,
+      voteAverage: chosen.vote_average,
+      posterUrl: chosen.poster_url,
+      isSaved: true,
+      badgeText: "Listemden",
+    };
+  } else {
+    // Check intersection of popular and top-rated
+    const intersection = popularCandidates.filter(p => topRatedCandidates.some(t => String(t.id) === String(p.id)));
+    if (intersection.length > 0) {
+      const chosen = intersection[todaySeed % intersection.length];
+      slot1Movie = {
+        id: String(chosen.id),
+        title: chosen.title,
+        year: chosen.year,
+        voteAverage: chosen.voteAverage,
+        posterUrl: chosen.posterUrl,
+        isSaved: false,
+        badgeText: "Popüler & Yüksek Puan",
+      };
+    } else if (popularCandidates.length > 0) {
+      const chosen = popularCandidates[todaySeed % popularCandidates.length];
+      slot1Movie = {
+        id: String(chosen.id),
+        title: chosen.title,
+        year: chosen.year,
+        voteAverage: chosen.voteAverage,
+        posterUrl: chosen.posterUrl,
+        isSaved: false,
+        badgeText: "Popüler Film",
+      };
+    }
+  }
+
+  if (slot1Movie) {
+    selected.push(slot1Movie);
+    selectedIds.add(String(slot1Movie.id));
+  }
+
+  // 2. Slot 2 Selection: Popular candidates
+  const remainingPopular = popularCandidates.filter(c => !selectedIds.has(String(c.id)));
+  if (remainingPopular.length > 0) {
+    const chosen = remainingPopular[todaySeed % remainingPopular.length];
+    selected.push({
+      id: String(chosen.id),
+      title: chosen.title,
+      year: chosen.year,
+      voteAverage: chosen.voteAverage,
+      posterUrl: chosen.posterUrl,
+      isSaved: false,
+      badgeText: "Popüler Film",
+    });
+    selectedIds.add(String(chosen.id));
+  }
+
+  // 3. Slot 3 Selection: High IMDb / Top Rated candidates
+  const remainingTopRated = topRatedCandidates.filter(c => !selectedIds.has(String(c.id)));
+  if (remainingTopRated.length > 0) {
+    const chosen = remainingTopRated[todaySeed % remainingTopRated.length];
+    selected.push({
+      id: String(chosen.id),
+      title: chosen.title,
+      year: chosen.year,
+      voteAverage: chosen.voteAverage,
+      posterUrl: chosen.posterUrl,
+      isSaved: false,
+      badgeText: "Yüksek Puan",
+    });
+    selectedIds.add(String(chosen.id));
+  }
+
+  // Fallbacks if we couldn't fill 3 slots (e.g., user had no saved movies)
+  const allAvailableCandidates = [
+    ...popularCandidates.map(c => ({ ...c, badgeText: "Popüler Film" })),
+    ...topRatedCandidates.map(c => ({ ...c, badgeText: "Yüksek Puan" }))
+  ].filter(c => !selectedIds.has(String(c.id)));
+
+  let fallbackIndex = 0;
+  while (selected.length < 3 && allAvailableCandidates.length > fallbackIndex) {
+    const candidate = allAvailableCandidates[(todaySeed + fallbackIndex) % allAvailableCandidates.length];
+    if (!selectedIds.has(String(candidate.id))) {
+      selected.push({
+        id: String(candidate.id),
+        title: candidate.title,
+        year: candidate.year,
+        voteAverage: candidate.voteAverage,
+        posterUrl: candidate.posterUrl,
+        isSaved: false,
+        badgeText: candidate.badgeText,
+      });
+      selectedIds.add(String(candidate.id));
+    }
+    fallbackIndex++;
+  }
+
+  const [enrichedM1, enrichedM2, enrichedM3] = await Promise.all([
+    enrichWithImdbRating(selected[0]),
+    enrichWithImdbRating(selected[1]),
+    enrichWithImdbRating(selected[2]),
+  ]);
+
+  const movie1 = enrichedM1;
+  const movie2 = enrichedM2;
+  const movie3 = enrichedM3;
+
+  // Save to daily suggestion table
+  if (movie1 || movie2 || movie3) {
+    await supabase
+      .schema("film_graph")
+      .from("daily_suggestions")
+      .upsert({
+        user_id: userId,
+        suggestion_date: todayStr,
+        movie_1: movie1,
+        movie_2: movie2,
+        movie_3: movie3,
+      }, {
+        onConflict: "user_id,suggestion_date"
+      });
+  }
+
+  return { movie1, movie2, movie3 };
+}
+
 export const getDailySuggestions = api(
   { expose: true, method: "GET", path: "/film-graph/daily-suggestions/:userId" },
   async ({ userId }: { userId: string }): Promise<GetDailySuggestionsResponse> => {
@@ -414,7 +655,7 @@ export const getDailySuggestions = api(
     const { data: suggestionData, error: suggestionError } = await supabase
       .schema("film_graph")
       .from("daily_suggestions")
-      .select("movie_1, movie_2")
+      .select("movie_1, movie_2, movie_3")
       .eq("user_id", userId)
       .eq("suggestion_date", todayStr)
       .maybeSingle();
@@ -432,11 +673,13 @@ export const getDailySuggestions = api(
 
       const m1 = suggestionData.movie_1;
       const m2 = suggestionData.movie_2;
+      const m3 = suggestionData.movie_3;
 
       // If either suggested movie is now watched, delete suggestion so it regenerates
       if (
         (m1 && watchedIds.has(String(m1.id))) ||
-        (m2 && watchedIds.has(String(m2.id)))
+        (m2 && watchedIds.has(String(m2.id))) ||
+        (m3 && watchedIds.has(String(m3.id)))
       ) {
         await supabase
           .schema("film_graph")
@@ -448,105 +691,12 @@ export const getDailySuggestions = api(
         return {
           movie1: m1 ? { ...m1, isSaved: savedIds.has(String(m1.id)) } : null,
           movie2: m2 ? { ...m2, isSaved: savedIds.has(String(m2.id)) } : null,
+          movie3: m3 ? { ...m3, isSaved: savedIds.has(String(m3.id)) } : null,
         };
       }
     }
 
     // Otherwise, generate suggestions:
-    // Load user saved films and ignored list
-    const [savedFilmsRes, ignoredRes, popularRes] = await Promise.all([
-      supabase.schema("film_graph").from("user_films").select("movie_id, title, year, status, poster_url, vote_average").eq("user_id", userId),
-      supabase.schema("film_graph").from("user_ignored").select("movie_id").eq("user_id", userId),
-      fetchTrendingAndPopular(1),
-    ]);
-
-    const savedList = savedFilmsRes.data || [];
-    const ignoredIds = (ignoredRes.data || []).map((i) => i.movie_id);
-
-    const wantCandidates = savedList.filter(
-      (f) => f.status === "want" && !ignoredIds.includes(f.movie_id)
-    );
-
-    const discoveryCandidates = (popularRes.movies || []).filter((m) => {
-      const mId = String(m.id);
-      const isSaved = savedList.some((f) => f.movie_id === mId);
-      const isIgnored = ignoredIds.includes(mId);
-      const isLowQuality = (m.voteAverage || 0) < 5.5 || (m.voteCount || 0) < 50;
-      return !isSaved && !isIgnored && !isLowQuality;
-    });
-
-    const selected: any[] = [];
-    const getDeterministicSeed = (str: string) => {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return Math.abs(hash);
-    };
-    const todaySeed = getDeterministicSeed(userId + todayStr);
-
-    // 1. Saved Movie candidate
-    if (wantCandidates.length > 0) {
-      const chosen = wantCandidates[todaySeed % wantCandidates.length];
-      selected.push({
-        id: chosen.movie_id,
-        title: chosen.title,
-        year: chosen.year,
-        voteAverage: chosen.vote_average,
-        posterUrl: chosen.poster_url,
-        isSaved: true,
-      });
-    }
-
-    // 2. Discovery Movie candidate
-    const remainingDiscovery = discoveryCandidates.filter(
-      (m) => !selected.some((s) => String(s.id) === String(m.id))
-    );
-
-    if (remainingDiscovery.length > 0) {
-      const chosen = remainingDiscovery[todaySeed % remainingDiscovery.length];
-      selected.push({
-        id: String(chosen.id),
-        title: chosen.title,
-        year: chosen.year,
-        voteAverage: chosen.voteAverage,
-        posterUrl: chosen.posterUrl,
-        isSaved: false,
-      });
-    }
-
-    // Fallback if needed
-    if (selected.length < 2 && remainingDiscovery.length > 1) {
-      const chosen = remainingDiscovery[(todaySeed + 1) % remainingDiscovery.length];
-      selected.push({
-        id: String(chosen.id),
-        title: chosen.title,
-        year: chosen.year,
-        voteAverage: chosen.voteAverage,
-        posterUrl: chosen.posterUrl,
-        isSaved: false,
-      });
-    }
-
-    const movie1 = selected[0] || null;
-    const movie2 = selected[1] || null;
-
-    // Save to daily suggestion table
-    if (movie1 || movie2) {
-      await supabase
-        .schema("film_graph")
-        .from("daily_suggestions")
-        .upsert({
-          user_id: userId,
-          suggestion_date: todayStr,
-          movie_1: movie1,
-          movie_2: movie2,
-        }, {
-          onConflict: "user_id,suggestion_date"
-        });
-    }
-
-    return { movie1, movie2 };
+    return await generateSuggestions(userId, todayStr, false);
   }
 );
