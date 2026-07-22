@@ -40,7 +40,7 @@ export async function importPlaylistProgressively(
   onUpdate: (job: Partial<PlaylistImportJob>) => void,
   startEpisodeNumber = 1,
   seriesTitle = "",
-  options?: { onEpisodeAdded?: (seriesId: string) => Promise<void> }
+  options?: { onEpisodeAdded?: (seriesId: string) => Promise<void>; seasonNumber?: number }
 ) {
   let done = 0;
   let skipped = 0;
@@ -68,6 +68,7 @@ export async function importPlaylistProgressively(
         title: video.title,
         thumbnailUrl: video.thumbnailUrl,
         episodeNumber,
+        seasonNumber: options?.seasonNumber,
         publishedAt: video.publishedAt,
       });
 
@@ -161,7 +162,7 @@ export async function createAndImportPlaylist({
     (patch) => onUpdate({ seriesId: series.id, seriesTitle: series.title, ...patch } as PlaylistImportJob),
     1,
     series.title,
-    { onEpisodeAdded }
+    { onEpisodeAdded, seasonNumber: 1 }
   );
 
   return { preview, series, imported: done, skipped };
@@ -173,6 +174,7 @@ export async function importPlaylistToSeries({
   url,
   seriesTitle,
   startEpisodeNumber,
+  seasonNumber,
   onUpdate,
   onEpisodeAdded,
 }: {
@@ -181,6 +183,7 @@ export async function importPlaylistToSeries({
   url: string;
   seriesTitle: string;
   startEpisodeNumber: number;
+  seasonNumber?: number;
   onUpdate: (job: Partial<PlaylistImportJob>) => void;
   onEpisodeAdded?: (seriesId: string) => Promise<void>;
 }) {
@@ -207,6 +210,7 @@ export async function importPlaylistToSeries({
       title: video.title,
       thumbnailUrl: video.thumbnailUrl,
       episodeNumber: startEpisodeNumber,
+      seasonNumber,
       publishedAt: video.publishedAt,
     });
 
@@ -227,6 +231,6 @@ export async function importPlaylistToSeries({
     (patch) => onUpdate({ seriesId, seriesTitle, ...patch }),
     startEpisodeNumber,
     seriesTitle,
-    { onEpisodeAdded }
+    { onEpisodeAdded, seasonNumber }
   ).then(({ done, skipped }) => ({ preview, imported: done, skipped }));
 }

@@ -455,7 +455,13 @@ export function DiscoverTab(props: DiscoverTabProps) {
           onRestore={() => handleRestoreWidget("yazboz-widget")}
         >
           {recentGameTemplates.map((game: any) => (
-            <div key={game._id} className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3">
+            <div 
+              key={game._id} 
+              onClick={() => {
+                router.push(`/apps/game-companion/create-game?gameId=${game._id}`);
+              }}
+              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 active:bg-app-surface-muted/60 transition-all select-none"
+            >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-9 h-9 rounded-xl bg-app-surface-muted border border-app-border flex items-center justify-center text-lg shrink-0">
                   {game.emoji || "🎲"}
@@ -467,14 +473,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   </p>
                 </div>
               </div>
-              <WidgetActionButton
-                onClick={() => {
-                  router.push(`/apps/game-companion/create-game?gameId=${game._id}`);
-                }}
-                icon={Play}
-              >
-                Oyna
-              </WidgetActionButton>
             </div>
           ))}
         </HomeSummaryCard>
@@ -1562,6 +1560,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "matches" &&
       widget.key !== "youtubeSeries" &&
       widget.key !== "movies" &&
+      widget.key !== "yazboz-widget" &&
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
@@ -1570,10 +1569,12 @@ export function DiscoverTab(props: DiscoverTabProps) {
     const matchesWidget = widgets.find((w) => w.key === "matches");
     const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
     const moviesWidget = widgets.find((w) => w.key === "movies");
+    const yazbozWidget = widgets.find((w) => w.key === "yazboz-widget");
     return (
       Boolean(matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches")) ||
       Boolean(ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries")) ||
-      Boolean(moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies"))
+      Boolean(moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies")) ||
+      Boolean(yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget"))
     );
   })();
 
@@ -1584,6 +1585,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key === "matches" ||
       widget.key === "youtubeSeries" ||
       widget.key === "movies" ||
+      widget.key === "yazboz-widget" ||
       isWidgetHidden(widget.key)
     )
       return false;
@@ -1621,12 +1623,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const matchesWidget = widgets.find((w) => w.key === "matches");
         const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
         const moviesWidget = widgets.find((w) => w.key === "movies");
+        const yazbozWidget = widgets.find((w) => w.key === "yazboz-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
         const visibleMovies = moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies");
+        const visibleYazboz = yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies;
+        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz;
 
         if (!hasAny) return null;
 
@@ -1635,6 +1639,32 @@ export function DiscoverTab(props: DiscoverTabProps) {
             <HomeGroupHeader title="Başka Ne Yapabilirim?" />
             <div className="space-y-3">
               <AnimatePresence initial={false}>
+                {visibleMovies && moviesWidget && (
+                  <motion.div
+                    key="movies"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {moviesWidget.card}
+                  </motion.div>
+                )}
+                {visibleYazboz && yazbozWidget && (
+                  <motion.div
+                    key="yazboz-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {yazbozWidget.card}
+                  </motion.div>
+                )}
                 {visibleMatches && matchesWidget && (
                   <motion.div
                     key="matches"
@@ -1659,19 +1689,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className="overflow-hidden"
                   >
                     {ytWidget.card}
-                  </motion.div>
-                )}
-                {visibleMovies && moviesWidget && (
-                  <motion.div
-                    key="movies"
-                    layout
-                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
-                  >
-                    {moviesWidget.card}
                   </motion.div>
                 )}
               </AnimatePresence>

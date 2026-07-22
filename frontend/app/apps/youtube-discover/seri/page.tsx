@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -209,17 +209,52 @@ function SeriesDetailContent() {
           <h3 className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
             Bölümler
           </h3>
-          <div className="space-y-2">
-            {sortedEpisodes.map((ep, index) => (
-              <EpisodeListRow
-                key={ep.id}
-                episode={ep}
-                displayNumber={index + 1}
-                isWatched={userData.watchedEpisodes.includes(ep.id)}
-                onPlay={() => setPlayingVideo(ep)}
-                onToggleWatched={() => handleToggleEpisode(ep.id)}
-              />
-            ))}
+          <div className="space-y-4">
+            {(() => {
+              const groupedEpisodes: Record<string, typeof sortedEpisodes> = {};
+              sortedEpisodes.forEach((ep) => {
+                let key = "";
+                if (series.seasoning === "monthly") {
+                  if (ep.publishedAt) {
+                    const date = new Date(ep.publishedAt);
+                    key = date.toLocaleString("tr-TR", { month: "long", year: "numeric" });
+                  } else {
+                    key = "Tarih Belirtilmemiş";
+                  }
+                } else {
+                  key = `Sezon ${ep.seasonNumber || 1}`;
+                }
+                if (!groupedEpisodes[key]) groupedEpisodes[key] = [];
+                groupedEpisodes[key].push(ep);
+              });
+
+              const entries = Object.entries(groupedEpisodes);
+
+              // If there's only one group and it's Sezon 1, we can skip group headers to keep it clean
+              const showGroupHeaders = entries.length > 1 || series.seasoning === "monthly";
+
+              return entries.map(([groupTitle, eps]) => (
+                <div key={groupTitle} className="space-y-2">
+                  {showGroupHeaders && (
+                    <h4 className="text-[10px] font-black uppercase tracking-wider text-red-500/80 px-1 pt-2 first:pt-0">
+                      {groupTitle}
+                    </h4>
+                  )}
+                  <div className="space-y-2">
+                    {eps.map((ep, index) => (
+                      <EpisodeListRow
+                        key={ep.id}
+                        episode={ep}
+                        displayNumber={index + 1}
+                        isWatched={userData.watchedEpisodes.includes(ep.id)}
+                        onPlay={() => setPlayingVideo(ep)}
+                        onToggleWatched={() => handleToggleEpisode(ep.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </section>
       </div>

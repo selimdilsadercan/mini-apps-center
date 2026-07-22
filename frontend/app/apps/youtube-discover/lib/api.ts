@@ -28,6 +28,7 @@ function mapEpisode(ep: ytdb.Episode): Episode {
     id: ep.id,
     title: ep.title,
     episodeNumber: ep.episode_number,
+    seasonNumber: ep.season_number,
     duration: ep.duration,
     youtubeId: ep.youtube_id,
     thumbnail: ep.thumbnail_url || undefined,
@@ -63,6 +64,7 @@ function mapSeries(row: ytdb.Series): Series {
           row.source_type === "channel")),
     sourceType: (row.source_type || "manual") as SourceType,
     sourceUrl: row.source_url || undefined,
+    seasoning: (row.seasoning || "manual") as "manual" | "monthly",
     episodes,
   };
 }
@@ -207,6 +209,8 @@ export async function upsertSeries(
     attention_level: data.attentionLevel,
     emoji: data.emoji || null,
     gradient: data.gradient || null,
+    seasoning: data.seasoning,
+    source_url: data.sourceUrl,
   });
   return mapSeries(res.series);
 }
@@ -219,13 +223,14 @@ export async function addEpisodeFromUrl(
   userId: string,
   seriesId: string,
   url: string,
-  options?: { episodeNumber?: number; title?: string }
+  options?: { episodeNumber?: number; seasonNumber?: number; title?: string }
 ) {
   const res = await client.ytdb.addEpisodeFromUrl({
     userId,
     series_id: seriesId,
     url,
     episode_number: options?.episodeNumber,
+    season_number: options?.seasonNumber,
     title: options?.title,
   });
   return mapEpisode(res.episode);
@@ -239,6 +244,7 @@ export async function addEpisodeFromMeta(
     title: string;
     thumbnailUrl?: string;
     episodeNumber?: number;
+    seasonNumber?: number;
     publishedAt?: string | null;
   }
 ) {
@@ -249,6 +255,7 @@ export async function addEpisodeFromMeta(
     title: data.title,
     thumbnail_url: data.thumbnailUrl,
     episode_number: data.episodeNumber,
+    season_number: data.seasonNumber,
     published_at: data.publishedAt,
   });
   return {
@@ -257,11 +264,17 @@ export async function addEpisodeFromMeta(
   };
 }
 
-export async function importEpisodesFromUrl(userId: string, seriesId: string, url: string) {
+export async function importEpisodesFromUrl(
+  userId: string,
+  seriesId: string,
+  url: string,
+  seasonNumber?: number
+) {
   const res = await client.ytdb.importEpisodesToSeries({
     userId,
     series_id: seriesId,
     url,
+    season_number: seasonNumber,
   });
   return {
     importedCount: res.imported_count,

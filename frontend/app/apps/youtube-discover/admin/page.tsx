@@ -128,6 +128,8 @@ const EMPTY_FORM = {
   year: new Date().getFullYear(),
   contexts: ["yemek"] as Context[],
   attentionLevel: "light" as AttentionLevel,
+  seasoning: "manual" as "manual" | "monthly",
+  sourceUrl: "",
 };
 
 export default function AdminPage() {
@@ -147,6 +149,7 @@ export default function AdminPage() {
   const [quickPreview, setQuickPreview] = useState<YouTubeSourcePreview | null>(null);
 
   const [addEpisodeUrl, setAddEpisodeUrl] = useState("");
+  const [addEpisodeSeason, setAddEpisodeSeason] = useState(1);
   const [addEpisodeLoading, setAddEpisodeLoading] = useState(false);
   const [importJob, setImportJob] = useState<PlaylistImportJob | null>(null);
 
@@ -337,7 +340,11 @@ export default function AdminPage() {
     if (!userId || !addEpisodeUrl.trim()) return;
     setAddEpisodeLoading(true);
 
-    const startEpisodeNumber = (expandedSeries?.episodes?.length || 0) + 1;
+    const seasonEpisodes = (expandedSeries?.episodes || []).filter(
+      (ep) => (ep.seasonNumber ?? 1) === addEpisodeSeason
+    );
+    const startEpisodeNumber = seasonEpisodes.length + 1;
+
     patchImportJob({
       seriesId,
       seriesTitle,
@@ -355,6 +362,7 @@ export default function AdminPage() {
         url: addEpisodeUrl.trim(),
         seriesTitle,
         startEpisodeNumber,
+        seasonNumber: addEpisodeSeason,
         onUpdate: patchImportJob,
         onEpisodeAdded: (id) => refreshExpandedSeries(id),
       });
@@ -420,6 +428,8 @@ export default function AdminPage() {
       year: series.year,
       contexts: series.contexts || ["yemek"],
       attentionLevel: series.attentionLevel || "light",
+      seasoning: series.seasoning || "manual",
+      sourceUrl: series.sourceUrl || "",
     });
     setShowForm(true);
   }
@@ -600,6 +610,13 @@ export default function AdminPage() {
               rows={2}
               className="w-full px-3 py-2 border border-app-border rounded-xl text-sm font-medium resize-none"
             />
+            <input
+              type="url"
+              value={form.sourceUrl}
+              onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
+              placeholder="Bağlantılı YouTube URL (Kanal veya Playlist - Otomatik Senkronizasyon)"
+              className="w-full h-10 px-3 border border-app-border rounded-xl text-xs font-semibold"
+            />
             <div className="grid grid-cols-2 gap-2">
               <select
                 value={form.category}
@@ -621,17 +638,31 @@ export default function AdminPage() {
                 <option value="tamamlandi">Tamamlandı</option>
               </select>
             </div>
+            
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-black uppercase tracking-wider text-app-muted px-1">
+                Sezonlama Yöntemi
+              </label>
+              <select
+                value={form.seasoning}
+                onChange={(e) => setForm({ ...form, seasoning: e.target.value as "manual" | "monthly" })}
+                className="h-10 px-3 border border-app-border rounded-xl text-[11px] font-black uppercase bg-app-surface"
+              >
+                <option value="manual">Manuel (Sezon No)</option>
+                <option value="monthly">Aylık (Yayın Ayına Göre)</option>
+              </select>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {(Object.keys(CONTEXT_LABELS) as Context[]).map((ctx) => (
                 <button
                   key={ctx}
                   type="button"
                   onClick={() => toggleContext(ctx)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border ${
-                    form.contexts.includes(ctx)
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border ${form.contexts.includes(ctx)
                       ? "text-white border-transparent"
                       : "bg-app-surface text-app-muted border-app-border"
-                  }`}
+                    }`}
                   style={form.contexts.includes(ctx) ? { backgroundColor: ACCENT } : undefined}
                 >
                   {CONTEXT_LABELS[ctx]}
@@ -721,13 +752,6 @@ export default function AdminPage() {
                       <p className="text-xs text-app-muted text-center py-4">Yükleniyor...</p>
                     ) : (
                       <>
-                        <SeriesPlaylistImport
-                          url={addEpisodeUrl}
-                          onChange={setAddEpisodeUrl}
-                          onImport={() => handleAddEpisode(source.id, source.title)}
-                          loading={addEpisodeLoading}
-                        />
-
                         {importJob?.seriesId === source.id && importJob.phase !== "done" && (
                           <PlaylistImportProgress job={importJob} />
                         )}
@@ -835,13 +859,6 @@ export default function AdminPage() {
                       <p className="text-xs text-app-muted text-center py-4">Yükleniyor...</p>
                     ) : (
                       <>
-                        <SeriesPlaylistImport
-                          url={addEpisodeUrl}
-                          onChange={setAddEpisodeUrl}
-                          onImport={() => handleAddEpisode(series.id, series.title)}
-                          loading={addEpisodeLoading}
-                        />
-
                         {importJob?.seriesId === series.id && importJob.phase !== "done" && (
                           <PlaylistImportProgress job={importJob} />
                         )}

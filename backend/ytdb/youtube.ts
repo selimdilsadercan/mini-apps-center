@@ -183,7 +183,7 @@ function parsePublishDateFromHtml(html: string): string | null {
   return null;
 }
 
-export async function fetchVideoPublishDateFromPage(youtubeId: string): Promise<string | null> {
+export async function fetchVideoMetaFromPage(youtubeId: string): Promise<{ publishedAt: string | null; isShort: boolean }> {
   const response = await axios.get(`https://www.youtube.com/watch?v=${youtubeId}`, {
     timeout: 10000,
     headers: {
@@ -193,7 +193,34 @@ export async function fetchVideoPublishDateFromPage(youtubeId: string): Promise<
     },
   });
 
-  return parsePublishDateFromHtml(String(response.data));
+  const html = String(response.data);
+  let isShort = html.includes("youtube.com/shorts/") || html.includes("/shorts/");
+
+  if (!isShort) {
+    const match = html.match(/<meta\s+itemprop="duration"\s+content="([^"]+)"/i);
+    if (match?.[1]) {
+      const durationStr = match[1];
+      const secondsMatch = durationStr.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
+      if (secondsMatch) {
+        const minutes = parseInt(secondsMatch[1] || "0", 10);
+        const seconds = parseInt(secondsMatch[2] || "0", 10);
+        const totalSeconds = minutes * 60 + seconds;
+        if (totalSeconds > 0 && totalSeconds <= 60) {
+          isShort = true;
+        }
+      }
+    }
+  }
+
+  return {
+    publishedAt: parsePublishDateFromHtml(html),
+    isShort,
+  };
+}
+
+export async function fetchVideoPublishDateFromPage(youtubeId: string): Promise<string | null> {
+  const res = await fetchVideoMetaFromPage(youtubeId).catch(() => null);
+  return res ? res.publishedAt : null;
 }
 
 async function mapWithConcurrency<T, R>(

@@ -2,11 +2,11 @@ import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 import { users } from "~encore/clients";
-import { fetchYouTubeMetadata, resolveYouTubeSource, enrichVideosWithPublishDates, fetchVideoPublishDateFromPage } from "./youtube";
+import { fetchYouTubeMetadata, resolveYouTubeSource, enrichVideosWithPublishDates, fetchVideoPublishDateFromPage, fetchVideoMetaFromPage } from "./youtube";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
-const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+export const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 // ==================== TYPES ====================
 
@@ -15,6 +15,7 @@ export interface Episode {
   series_id: string;
   title: string;
   episode_number: number;
+  season_number: number;
   duration: string;
   youtube_id: string;
   thumbnail_url: string | null;
@@ -39,6 +40,7 @@ export interface Series {
   source_id?: string | null;
   source_url?: string | null;
   is_raw?: boolean;
+  seasoning?: string; // ADDED
   created_at: string;
   episode_count?: number;
   episodes?: Episode[];
@@ -89,12 +91,13 @@ type SeriesInsertPayload = {
   source_id?: string | null;
   source_url?: string;
   is_raw?: boolean;
+  seasoning?: string;
 };
 
 async function insertSeriesRow(payload: SeriesInsertPayload) {
   let current: Record<string, unknown> = { ...payload };
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     const result = await supabase
       .from("ytdb_series")
       .insert(current)
@@ -104,6 +107,11 @@ async function insertSeriesRow(payload: SeriesInsertPayload) {
     if (!result.error) return result;
 
     const msg = result.error.message;
+    if (msg.includes("seasoning") && "seasoning" in current) {
+      const { seasoning: _removed, ...rest } = current;
+      current = rest;
+      continue;
+    }
     if (msg.includes("is_raw") && "is_raw" in current) {
       const { is_raw: _removed, ...rest } = current;
       current = rest;
@@ -169,6 +177,7 @@ type EpisodeInsertPayload = {
   series_id: string;
   title: string;
   episode_number: number;
+  season_number?: number;
   youtube_id: string;
   thumbnail_url?: string | null;
   published_at?: string | null;
@@ -199,6 +208,11 @@ async function insertEpisodeRow(payload: EpisodeInsertPayload, withSelect = fals
 
 function sortEpisodesByPublishedDate(episodes: Episode[]): Episode[] {
   return [...episodes].sort((a, b) => {
+    const aSeason = a.season_number ?? 1;
+    const bSeason = b.season_number ?? 1;
+    if (aSeason !== bSeason) {
+      return aSeason - bSeason;
+    }
     if (a.published_at && b.published_at) {
       return new Date(a.published_at).getTime() - new Date(b.published_at).getTime();
     }
@@ -322,6 +336,7 @@ export const getSeriesById = api(
       .from("ytdb_episodes")
       .select("*")
       .eq("series_id", id)
+      .order("season_number", { ascending: true })
       .order("episode_number", { ascending: true });
 
     if (epError) {
@@ -407,12 +422,16 @@ export const importFromUrl = api(
     }
 
     const first = preview.videos[0];
-    const seriesTitle =
+    let seriesTitle =
       preview.type === "video"
         ? req.title?.trim() || first.title
         : req.title?.trim() || preview.title;
     const seriesCreator =
       req.creator?.trim() || preview.author || first.author || "YouTube";
+
+    if (preview.type === "channel") {
+      seriesTitle = `${seriesCreator} Tüm Videoları`;
+    }
 
     const isRaw = true;
 
@@ -430,6 +449,7 @@ export const importFromUrl = api(
       source_id: preview.sourceId,
       source_url: req.url.trim(),
       is_raw: isRaw,
+      seasoning: preview.type === "channel" ? "monthly" : "manual",
     });
 
     if (seriesError || !series) {
@@ -450,11 +470,28 @@ export const importFromUrl = api(
 
     let imported = 0;
     let skipped = 0;
+    let epIndex = 1;
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     for (let i = 0; i < preview.videos.length; i++) {
       const [video] = await enrichVideosWithPublishDates([preview.videos[i]]);
+      
+      if (preview.type === "channel") {
+        if (video.publishedAt) {
+          const pubDate = new Date(video.publishedAt);
+          if (pubDate.getFullYear() !== currentYear || pubDate.getMonth() !== currentMonth) {
+            continue; // Skip videos not from this month
+          }
+        } else {
+          continue; // Skip if publish date cannot be resolved for channels
+        }
+      }
+
       const { error } = await insertEpisodeRow(
-        episodePayloadFromVideo(series.id, video, i + 1)
+        episodePayloadFromVideo(series.id, video, epIndex)
       );
 
       if (error) {
@@ -465,10 +502,14 @@ export const importFromUrl = api(
         }
       } else {
         imported++;
+        epIndex++;
       }
     }
 
-    if (imported === 0) {
+    if (imported === 0 && preview.type === "channel") {
+      // Allow channels to import 0 episodes for the current month without deleting the series row
+      // but let's just keep the series
+    } else if (imported === 0) {
       await supabase.from("ytdb_series").delete().eq("id", series.id);
       throw APIError.invalidArgument("Hiçbir video içe aktarılamadı");
     }
@@ -477,6 +518,7 @@ export const importFromUrl = api(
       .from("ytdb_episodes")
       .select("*")
       .eq("series_id", series.id)
+      .order("season_number", { ascending: true })
       .order("episode_number", { ascending: true });
 
     return {
@@ -499,16 +541,36 @@ export const upsertSeries = api(
         title: string;
         creator: string;
         category: string;
+        source_url?: string;
       }
   ): Promise<{ series: Series }> => {
     await requireAdmin(req.userId);
+
+    let sourceType = "manual";
+    let sourceId: string | null = null;
+    let sourceUrl: string | null = null;
+    let youtubeId = req.youtube_id || null;
+
+    if (req.source_url?.trim()) {
+      try {
+        const preview = await resolveYouTubeSource(req.source_url.trim(), { enrichDates: false });
+        sourceType = preview.type;
+        sourceId = preview.sourceId;
+        sourceUrl = req.source_url.trim();
+        if (!youtubeId && preview.videos[0]?.youtubeId) {
+          youtubeId = preview.videos[0].youtubeId;
+        }
+      } catch (err: any) {
+        throw APIError.invalidArgument(`YouTube URL'si çözümlenemedi: ${err.message}`);
+      }
+    }
 
     const payload = {
       id: req.id,
       title: req.title.trim(),
       description: req.description?.trim() || "",
       creator: req.creator.trim(),
-      youtube_id: req.youtube_id || null,
+      youtube_id: youtubeId,
       category: req.category,
       status: req.status || "devam-ediyor",
       year: req.year || new Date().getFullYear(),
@@ -517,6 +579,10 @@ export const upsertSeries = api(
       emoji: req.emoji || null,
       gradient: req.gradient || null,
       is_raw: false,
+      seasoning: req.seasoning || "manual",
+      source_type: sourceType,
+      source_id: sourceId,
+      source_url: sourceUrl,
     };
 
     const { data, error } = await supabase
@@ -654,6 +720,7 @@ export const addEpisodeFromMeta = api(
       title: string;
       thumbnail_url?: string;
       episode_number?: number;
+      season_number?: number;
       published_at?: string | null;
     }
   ): Promise<{ episode: Episode | null; skipped: boolean }> => {
@@ -661,7 +728,7 @@ export const addEpisodeFromMeta = api(
 
     const { data: series, error: seriesError } = await supabase
       .from("ytdb_series")
-      .select("id")
+      .select("id, source_type")
       .eq("id", req.series_id)
       .maybeSingle();
 
@@ -669,12 +736,14 @@ export const addEpisodeFromMeta = api(
       throw APIError.notFound("Series not found");
     }
 
+    const seasonNumber = req.season_number ?? 1;
     let episodeNumber = req.episode_number ?? 0;
     if (!episodeNumber) {
       const { data: latest } = await supabase
         .from("ytdb_episodes")
         .select("episode_number")
         .eq("series_id", req.series_id)
+        .eq("season_number", seasonNumber)
         .order("episode_number", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -699,11 +768,38 @@ export const addEpisodeFromMeta = api(
       publishedAt = enriched.publishedAt || null;
     }
 
+    // Filter by current month and skip Shorts if this is a channel import
+    if (series.source_type === "channel") {
+      const meta = await fetchVideoMetaFromPage(youtubeId).catch(() => null);
+      if (meta?.isShort) {
+        return { episode: null, skipped: true };
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const actualPublishedAt = publishedAt || meta?.publishedAt;
+
+      if (actualPublishedAt) {
+        const pubDate = new Date(actualPublishedAt);
+        if (pubDate.getFullYear() !== currentYear || pubDate.getMonth() !== currentMonth) {
+          return { episode: null, skipped: true };
+        }
+      } else {
+        return { episode: null, skipped: true };
+      }
+      
+      if (!publishedAt && meta?.publishedAt) {
+        publishedAt = meta.publishedAt;
+      }
+    }
+
     const { data, error } = await insertEpisodeRow(
       {
         series_id: req.series_id,
         title: req.title.trim() || "YouTube Videosu",
         episode_number: episodeNumber,
+        season_number: seasonNumber,
         youtube_id: youtubeId,
         thumbnail_url:
           req.thumbnail_url?.trim() ||
@@ -737,6 +833,7 @@ export const addEpisodeFromUrl = api(
       series_id: string;
       url: string;
       episode_number?: number;
+      season_number?: number;
       title?: string;
     }
   ): Promise<{ episode: Episode }> => {
@@ -764,12 +861,14 @@ export const addEpisodeFromUrl = api(
       meta = enriched;
     }
 
+    const seasonNumber = req.season_number ?? 1;
     let episodeNumber = req.episode_number ?? 0;
     if (!episodeNumber) {
       const { data: latest } = await supabase
         .from("ytdb_episodes")
         .select("episode_number")
         .eq("series_id", req.series_id)
+        .eq("season_number", seasonNumber)
         .order("episode_number", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -782,6 +881,7 @@ export const addEpisodeFromUrl = api(
         series_id: req.series_id,
         title: req.title?.trim() || meta.title,
         episode_number: episodeNumber,
+        season_number: seasonNumber,
         youtube_id: meta.youtubeId,
         thumbnail_url: meta.thumbnailUrl,
         published_at: meta.publishedAt || null,
@@ -813,6 +913,7 @@ export const importEpisodesToSeries = api(
     req: AdminRequest & {
       series_id: string;
       url: string;
+      season_number?: number;
     }
   ): Promise<{ imported_count: number; skipped_count: number; episodes: Episode[] }> => {
     await requireAdmin(req.userId);
@@ -834,10 +935,12 @@ export const importEpisodesToSeries = api(
       throw APIError.invalidArgument(err?.message || "YouTube kaynağı çözümlenemedi");
     }
 
+    const seasonNumber = req.season_number ?? 1;
     const { data: latest } = await supabase
       .from("ytdb_episodes")
       .select("episode_number")
       .eq("series_id", req.series_id)
+      .eq("season_number", seasonNumber)
       .order("episode_number", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -848,9 +951,9 @@ export const importEpisodesToSeries = api(
 
     for (const video of preview.videos) {
       const [enriched] = await enrichVideosWithPublishDates([video]);
-      const { error } = await insertEpisodeRow(
-        episodePayloadFromVideo(req.series_id, enriched, nextNumber)
-      );
+      const payload = episodePayloadFromVideo(req.series_id, enriched, nextNumber);
+      payload.season_number = seasonNumber;
+      const { error } = await insertEpisodeRow(payload);
 
       if (error) {
         if (error.code === "23505") skipped++;
@@ -865,6 +968,7 @@ export const importEpisodesToSeries = api(
       .from("ytdb_episodes")
       .select("*")
       .eq("series_id", req.series_id)
+      .order("season_number", { ascending: true })
       .order("episode_number", { ascending: true });
 
     return {

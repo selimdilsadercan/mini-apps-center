@@ -20,6 +20,7 @@ export interface Episode {
   id: string;
   title: string;
   episodeNumber: number;
+  seasonNumber: number;
   duration: string;
   youtubeId: string;
   thumbnail?: string;
@@ -47,6 +48,7 @@ export interface Series {
   attentionLevel?: AttentionLevel;
   episodes?: Episode[];
   isRaw?: boolean;
+  seasoning?: "manual" | "monthly";
   sourceType?: SourceType;
   sourceUrl?: string;
 }

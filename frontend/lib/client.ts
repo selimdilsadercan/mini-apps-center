@@ -10639,6 +10639,7 @@ export namespace ytdb {
         "series_id": string
         title: string
         "episode_number": number
+        "season_number": number
         duration: string
         "youtube_id": string
         "thumbnail_url": string | null
@@ -10663,6 +10664,7 @@ export namespace ytdb {
         "source_id"?: string | null
         "source_url"?: string | null
         "is_raw"?: boolean
+        seasoning?: string
         "created_at": string
         "episode_count"?: number
         episodes?: Episode[]
@@ -10712,6 +10714,7 @@ export namespace ytdb {
     title: string
     "thumbnail_url"?: string
     "episode_number"?: number
+    "season_number"?: number
     "published_at"?: string | null
 }): Promise<{
     episode: Episode | null
@@ -10730,6 +10733,7 @@ export namespace ytdb {
     "series_id": string
     url: string
     "episode_number"?: number
+    "season_number"?: number
     title?: string
 }): Promise<{
     episode: Episode
@@ -10800,6 +10804,7 @@ export namespace ytdb {
     userId: string
     "series_id": string
     url: string
+    "season_number"?: number
 }): Promise<{
     "imported_count": number
     "skipped_count": number
@@ -10906,8 +10911,9 @@ export namespace ytdb {
     gradient?: string | null
     "source_type"?: string | null
     "source_id"?: string | null
-    "source_url"?: string | null
+    "source_url"?: string
     "is_raw"?: boolean
+    seasoning?: string
     "created_at"?: string
     "episode_count"?: number
     episodes?: Episode[]
