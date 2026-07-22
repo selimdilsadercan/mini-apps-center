@@ -1,4 +1,4 @@
-import { setCookie, getCookie } from "@/lib/cookies";
+import { setCookie, getCookie, deleteCookie } from "@/lib/cookies";
 
 const AUTH_SESSION_COOKIE = "everything_auth_session";
 
@@ -27,7 +27,7 @@ export function readWebAuthSession(): WebAuthSession | null {
 }
 
 export function clearWebAuthSession() {
-  setCookie(AUTH_SESSION_COOKIE, "", -1);
+  deleteCookie(AUTH_SESSION_COOKIE);
 }
 
 export function webAuthSessionToUser(session: WebAuthSession) {

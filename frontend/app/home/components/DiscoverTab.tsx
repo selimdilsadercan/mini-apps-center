@@ -115,7 +115,7 @@ interface DiscoverTabProps {
   mealPlanningPrompt: string;
   mealsEmptyText: string;
   getMealTypeLabel: (type: any) => string;
-  handleToggleMealCompleted: (mealKey: string) => void;
+  handleToggleMealCompleted: (mealKeyOrKeys: string | string[]) => void;
   // Reading
   weeklyReadingGoal: any;
   readingBase: number | null;
@@ -135,6 +135,7 @@ interface DiscoverTabProps {
   moviesLoading: boolean;
   onResetMovieSuggestions?: () => void;
   eksikItems: any[];
+  hasFollowedSeries: boolean;
 }
 
 import { DeckView } from "./DeckView";
@@ -196,6 +197,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     moviesLoading = true,
     onResetMovieSuggestions,
     eksikItems = [],
+    hasFollowedSeries,
   } = props;
 
   const queryClient = useQueryClient();
@@ -485,6 +487,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
       color: "#10B981",
       loading: loading,
       hasContent: (() => {
+        const hasUsed = eksikItems && eksikItems.length > 0;
+        if (!hasUsed) return true;
         const activeMissing = (eksikItems || []).filter((i: any) => !i.is_used);
         const todayItems = activeMissing.filter((i: any) => (i.timing || "today") === "today");
         const monthItems = activeMissing.filter((i: any) => (i.timing || "today") === "month_start");
@@ -492,6 +496,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       })(),
       hasCompletedOnly: false,
       card: (() => {
+        const hasUsed = eksikItems && eksikItems.length > 0;
         const activeMissing = (eksikItems || []).filter((i: any) => !i.is_used);
         const todayItems = activeMissing.filter((i: any) => (i.timing || "today") === "today");
         const monthItems = activeMissing.filter((i: any) => (i.timing || "today") === "month_start");
@@ -505,7 +510,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           return `${firstTwo}, +${items.length - 2} ürün`;
         };
 
-        const hasContent = todayItems.length > 0 || monthItems.length > 0;
+        const hasContent = !hasUsed || todayItems.length > 0 || monthItems.length > 0;
 
         return (
           <HomeSummaryCard
@@ -523,31 +528,47 @@ export function DiscoverTab(props: DiscoverTabProps) {
             isPermanentlyHidden={isWidgetPermanentlyHidden("eksik-var")}
             onRestore={() => handleRestoreWidget("eksik-var")}
           >
-            {todayItems.length > 0 && (
+            {!hasUsed ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/50">
                   <Basket size={16} weight="fill" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">Bugün Alınacaklar</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {formatItemsLine(todayItems)}
+                  <p className="text-[11px] font-black text-app-text">Listeniz Boş</p>
+                  <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                    Henüz listenize ürün eklemediniz. İhtiyaçlarınızı kaydetmek için tıklayın.
                   </p>
                 </div>
               </div>
-            )}
-            {monthItems.length > 0 && (
-              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/50">
-                  <Basket size={16} weight="fill" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">Ay Başı Alınacaklar</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {formatItemsLine(monthItems)}
-                  </p>
-                </div>
-              </div>
+            ) : (
+              <>
+                {todayItems.length > 0 && (
+                  <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/50">
+                      <Basket size={16} weight="fill" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black text-app-text">Bugün Alınacaklar</p>
+                      <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                        {formatItemsLine(todayItems)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {monthItems.length > 0 && (
+                  <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100/50">
+                      <Basket size={16} weight="fill" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black text-app-text">Ay Başı Alınacaklar</p>
+                      <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                        {formatItemsLine(monthItems)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </HomeSummaryCard>
         );
@@ -559,7 +580,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: CalendarCheck,
       color: "#6366F1",
       loading: loading,
-      hasContent: pendingTodayAgenda.length > 0,
+      hasContent: (() => {
+        const hasUsed = todayAgenda && todayAgenda.length > 0;
+        if (!hasUsed) return true;
+        return pendingTodayAgenda.length > 0;
+      })(),
       hasCompletedOnly: completedTodayAgenda.length > 0,
       card: (
         <HomeSummaryCard
@@ -570,69 +595,83 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle="Ajanda"
           loading={loading}
           emptyText={agendaEmptyText}
-          hasContent={pendingTodayAgenda.length > 0}
+          hasContent={todayAgenda.length === 0 || pendingTodayAgenda.length > 0}
           onHideToday={() => triggerHide("agenda", "today")}
           onHidePermanent={() => triggerHide("agenda", "permanent")}
           isTodayHidden={isWidgetTodayHidden("agenda")}
           isPermanentlyHidden={isWidgetPermanentlyHidden("agenda")}
           onRestore={() => handleRestoreWidget("agenda")}
           emptyFooter={
-            !pendingTodayAgenda.length && completedTodayAgenda.length > 0 ? (
+            todayAgenda.length > 0 && !pendingTodayAgenda.length && completedTodayAgenda.length > 0 ? (
               <>{completedTodayAgenda.map(renderCompletedAgendaRow)}</>
             ) : undefined
           }
         >
-          {previewTodayAgenda.map((item: any) => (
-            <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center text-sm">
-                  {item.item_emoji ? (
-                    item.item_emoji
-                  ) : (
-                    <CalendarCheck size={16} weight="bold" className="text-app-muted" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">{item.item_name}</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {getAgendaPeriodLabel(item)}
-                  </p>
-                </div>
+          {todayAgenda.length === 0 ? (
+            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+                <CalendarCheck size={16} weight="fill" />
               </div>
-
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <WidgetActionButton
-                  onClick={() => void handleToggleAgendaComplete(item.id, false)}
-                  loading={actionLoading === `agenda-${item.id}`}
-                  icon={CheckCircle}
-                >
-                  Bitti
-                </WidgetActionButton>
-
-                <WidgetActionButton
-                  onClick={() => void handlePostponeAgendaItem(item.id)}
-                  loading={actionLoading === `agenda-postpone-${item.id}`}
-                  icon={ClockAfternoon}
-                >
-                  Ertele
-                </WidgetActionButton>
-
-                {(() => {
-                  const linkedApp = getLinkedAppForRoutine(item.item_name);
-                  if (!linkedApp) return null;
-                  return (
-                    <WidgetActionButton
-                      onClick={() => router.push(linkedApp.appHref)}
-                      icon={ArrowUpRight}
-                    >
-                      {linkedApp.label}
-                    </WidgetActionButton>
-                  );
-                })()}
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-app-text">Göreviniz Yok</p>
+                <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                  Henüz bir rutin eklemediniz. Günlük alışkanlıklarınızı ve görevlerinizi takip etmek için tıklayın.
+                </p>
               </div>
             </div>
-          ))}
-          {pendingTodayAgenda.length > 0 &&
+          ) : (
+            previewTodayAgenda.map((item: any) => (
+              <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center text-sm">
+                    {item.item_emoji ? (
+                      item.item_emoji
+                    ) : (
+                      <CalendarCheck size={16} weight="bold" className="text-app-muted" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-app-text truncate">{item.item_name}</p>
+                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                      {getAgendaPeriodLabel(item)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <WidgetActionButton
+                    onClick={() => void handleToggleAgendaComplete(item.id, false)}
+                    loading={actionLoading === `agenda-${item.id}`}
+                    icon={CheckCircle}
+                  >
+                    Bitti
+                  </WidgetActionButton>
+
+                  <WidgetActionButton
+                    onClick={() => void handlePostponeAgendaItem(item.id)}
+                    loading={actionLoading === `agenda-postpone-${item.id}`}
+                    icon={ClockAfternoon}
+                  >
+                    Ertele
+                  </WidgetActionButton>
+
+                  {(() => {
+                    const linkedApp = getLinkedAppForRoutine(item.item_name);
+                    if (!linkedApp) return null;
+                    return (
+                      <WidgetActionButton
+                        onClick={() => router.push(linkedApp.appHref)}
+                        icon={ArrowUpRight}
+                      >
+                        {linkedApp.label}
+                      </WidgetActionButton>
+                    );
+                  })()}
+                </div>
+              </div>
+            ))
+          )}
+          {todayAgenda.length > 0 && pendingTodayAgenda.length > 0 &&
             completedTodayAgenda.map(renderCompletedAgendaRow)}
         </HomeSummaryCard>
       ),
@@ -877,7 +916,10 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: Play,
       color: "#EF4444",
       loading: loading,
-      hasContent: pendingSeriesWidget,
+      hasContent: (() => {
+        if (!hasFollowedSeries) return true;
+        return pendingSeriesWidget;
+      })(),
       hasCompletedOnly: completedTodaySeries.length > 0,
       card: (
         <HomeSummaryCard
@@ -888,64 +930,78 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle="SeriesTrack"
           loading={loading}
           emptyText={seriesEmptyText}
-          hasContent={pendingAvailableSeries.length > 0}
+          hasContent={!hasFollowedSeries || pendingAvailableSeries.length > 0}
           onHideToday={() => triggerHide("seriesTrack", "today")}
           onHidePermanent={() => triggerHide("seriesTrack", "permanent")}
           isTodayHidden={isWidgetTodayHidden("seriesTrack")}
           isPermanentlyHidden={isWidgetPermanentlyHidden("seriesTrack")}
           onRestore={() => handleRestoreWidget("seriesTrack")}
           emptyFooter={
-            !pendingSeriesWidget && completedTodaySeries.length > 0 ? (
+            hasFollowedSeries && !pendingSeriesWidget && completedTodaySeries.length > 0 ? (
               <>{completedTodaySeries.map(renderCompletedSeriesRow)}</>
             ) : undefined
           }
         >
-          {pendingAvailableSeries.map((item: any) => (
-            <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
-                  {item.posterPath ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                      <VideoCamera size={16} weight="fill" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">{item.title}</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate">
-                    S{item.season} B{item.episode}
-                    {" · "}
-                    {formatSeriesAirLabel(item.airDate)}
-                    {item.source === "episode-club" ? " · Episode Club" : ""}
-                  </p>
-                </div>
-                {(item.extraUnwatchedCount ?? 0) > 0 && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-app-surface-muted text-app-muted text-[9px] font-black tabular-nums border border-app-border">
-                    +{item.extraUnwatchedCount}
-                  </span>
-                )}
+          {!hasFollowedSeries ? (
+            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100/50">
+                <VideoCamera size={16} weight="fill" />
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
-                  İzle
-                </WidgetActionButton>
-                <WidgetActionButton
-                  onClick={() => handleToggleWatched(item)}
-                  loading={actionLoading === `series-${item.id}`}
-                  icon={CheckCircle}
-                >
-                  İzlendi
-                </WidgetActionButton>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-app-text">Takip Edilen Dizi Yok</p>
+                <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                  Henüz bir dizi takip etmiyorsunuz. Yeni bölümleri kaçırmamak için dizilerinizi ekleyin.
+                </p>
               </div>
             </div>
-          ))}
-          {pendingSeriesWidget && completedTodaySeries.map(renderCompletedSeriesRow)}
+          ) : (
+            pendingAvailableSeries.map((item: any) => (
+              <div key={item.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl overflow-hidden bg-app-surface-muted shrink-0 border border-app-border">
+                    {item.posterPath ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w200${item.posterPath}`}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <VideoCamera size={16} weight="fill" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-app-text truncate">{item.title}</p>
+                    <p className="text-[9px] text-app-muted font-bold truncate">
+                      S{item.season} B{item.episode}
+                      {" · "}
+                      {formatSeriesAirLabel(item.airDate)}
+                      {item.source === "episode-club" ? " · Episode Club" : ""}
+                    </p>
+                  </div>
+                  {(item.extraUnwatchedCount ?? 0) > 0 && (
+                    <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-app-surface-muted text-app-muted text-[9px] font-black tabular-nums border border-app-border">
+                      +{item.extraUnwatchedCount}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <WidgetActionButton onClick={() => openSeriesWatch(item)} icon={Play}>
+                    İzle
+                  </WidgetActionButton>
+                  <WidgetActionButton
+                    onClick={() => handleToggleWatched(item)}
+                    loading={actionLoading === `series-${item.id}`}
+                    icon={CheckCircle}
+                  >
+                    İzlendi
+                  </WidgetActionButton>
+                </div>
+              </div>
+            ))
+          )}
+          {hasFollowedSeries && pendingSeriesWidget && completedTodaySeries.map(renderCompletedSeriesRow)}
         </HomeSummaryCard>
       ),
     },
@@ -955,7 +1011,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: Barbell,
       color: "#10B981",
       loading: loading,
-      hasContent: pendingTodayGym,
+      hasContent: (() => {
+        const hasUsed = todayGymPlan && todayGymPlan.hasRoutines;
+        if (!hasUsed) return true;
+        return pendingTodayGym;
+      })(),
       hasCompletedOnly: completedTodayGym,
       card: (
         <HomeSummaryCard
@@ -966,36 +1026,18 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle="Gym"
           loading={loading}
           emptyText="Bugün dinlenme günü"
-          hasContent={pendingTodayGym}
+          hasContent={!(todayGymPlan && todayGymPlan.hasRoutines) || pendingTodayGym}
           onHideToday={() => triggerHide("gym", "today")}
           onHidePermanent={() => triggerHide("gym", "permanent")}
           isTodayHidden={isWidgetTodayHidden("gym")}
           isPermanentlyHidden={isWidgetPermanentlyHidden("gym")}
           onRestore={() => handleRestoreWidget("gym")}
           emptyFooter={
-            completedTodayGym ? (
+            completedTodayGym && todayGymPlan?.routine ? (
               <div className="px-4 py-3 border-t border-app-border flex items-center gap-3 opacity-60">
                 <HomeTaskCheckButton completed disabled />
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-app-text truncate line-through">
-                    {todayGymPlan!.routine!.name}
-                  </p>
-                  <p className="text-[9px] text-app-muted font-bold truncate">
-                    {todayGymPlan!.routine!.exercises.length} egzersiz
-                  </p>
-                </div>
-              </div>
-            ) : undefined
-          }
-        >
-          {todayGymPlan?.routine && (
-            <div className="px-4 py-3 border-t border-app-border space-y-2.5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 border border-violet-100 text-violet-600">
-                  <Barbell size={16} weight="fill" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black text-app-text truncate">
                     {todayGymPlan.routine.name}
                   </p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
@@ -1003,22 +1045,54 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <WidgetActionButton
-                  onClick={() => {
-                    startGymSession(
-                      todayGymPlan.routine!.name,
-                      todayGymPlan.routine!.id,
-                      todayGymPlan.routine!.exercises
-                    );
-                    router.push("/apps/gym/session");
-                  }}
-                  icon={Play}
-                >
-                  Başlat
-                </WidgetActionButton>
+            ) : undefined
+          }
+        >
+          {!(todayGymPlan && todayGymPlan.hasRoutines) ? (
+            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center shrink-0 border border-violet-100/50">
+                <Barbell size={16} weight="fill" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-app-text">Programınız Yok</p>
+                <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                  Henüz bir antrenman programı oluşturmadınız. Antrenmanlarınızı takip etmek için program oluşturun.
+                </p>
               </div>
             </div>
+          ) : (
+            todayGymPlan?.routine && (
+              <div className="px-4 py-3 border-t border-app-border space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 border border-violet-100 text-violet-600">
+                    <Barbell size={16} weight="fill" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-app-text truncate">
+                      {todayGymPlan.routine.name}
+                    </p>
+                    <p className="text-[9px] text-app-muted font-bold truncate">
+                      {todayGymPlan.routine.exercises.length} egzersiz
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <WidgetActionButton
+                    onClick={() => {
+                      startGymSession(
+                        todayGymPlan.routine!.name,
+                        todayGymPlan.routine!.id,
+                        todayGymPlan.routine!.exercises
+                      );
+                      router.push("/apps/gym/session");
+                    }}
+                    icon={Play}
+                  >
+                    Başlat
+                  </WidgetActionButton>
+                </div>
+              </div>
+            )
           )}
         </HomeSummaryCard>
       ),
@@ -1029,7 +1103,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: Broom,
       color: "#F97316",
       loading: loading,
-      hasContent: pendingTodayChores.length > 0,
+      hasContent: (() => {
+        const hasUsed = weeklyChores !== null;
+        if (!hasUsed) return true;
+        return pendingTodayChores.length > 0;
+      })(),
       hasCompletedOnly: completedTodayChores.length > 0,
       card: (
         <HomeSummaryCard
@@ -1040,14 +1118,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle={weeklyChores?.boardName ?? "Ev İşleri"}
           loading={loading}
           emptyText={choresEmptyText}
-          hasContent={pendingTodayChores.length > 0}
+          hasContent={weeklyChores === null || pendingTodayChores.length > 0}
           onHideToday={() => triggerHide("chores", "today")}
           onHidePermanent={() => triggerHide("chores", "permanent")}
           isTodayHidden={isWidgetTodayHidden("chores")}
           isPermanentlyHidden={isWidgetPermanentlyHidden("chores")}
           onRestore={() => handleRestoreWidget("chores")}
           emptyFooter={
-            completedTodayChores.length > 0 ? (
+            weeklyChores !== null && completedTodayChores.length > 0 ? (
               <>
                 {completedTodayChores.map((item: any) => {
                   const isMine = item.assigneeClerkId === userId;
@@ -1074,30 +1152,44 @@ export function DiscoverTab(props: DiscoverTabProps) {
             ) : undefined
           }
         >
-          {pendingTodayChores.map((item: any) => {
-            const isMine = item.assigneeClerkId === userId;
-            return (
-              <div
-                key={item.id}
-                className="px-4 py-3 border-t border-app-border flex items-center gap-3"
-              >
-                <HomeTaskCheckButton
-                  disabled={actionLoading === `chore-${item.id}`}
-                  onClick={() => void handleToggleChoreComplete(item.id)}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-black truncate text-app-text">
-                    {item.choreIcon ? `${item.choreIcon} ` : ""}
-                    {item.choreName}
-                  </p>
-                  <p className="text-[9px] text-app-muted font-bold truncate">
-                    {item.assigneeUsername ?? "Üye"}
-                    {isMine ? " · Sen" : ""}
-                  </p>
-                </div>
+          {weeklyChores === null ? (
+            <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 border border-teal-100/50">
+                <Broom size={16} weight="fill" />
               </div>
-            );
-          })}
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-app-text">Pano Bulunmadı</p>
+                <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                  Henüz bir ev işi panosu oluşturmadınız. Ev işlerini planlamak ve paylaşmak için pano oluşturun.
+                </p>
+              </div>
+            </div>
+          ) : (
+            pendingTodayChores.map((item: any) => {
+              const isMine = item.assigneeClerkId === userId;
+              return (
+                <div
+                  key={item.id}
+                  className="px-4 py-3 border-t border-app-border flex items-center gap-3"
+                >
+                  <HomeTaskCheckButton
+                    disabled={actionLoading === `chore-${item.id}`}
+                    onClick={() => void handleToggleChoreComplete(item.id)}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black truncate text-app-text">
+                      {item.choreIcon ? `${item.choreIcon} ` : ""}
+                      {item.choreName}
+                    </p>
+                    <p className="text-[9px] text-app-muted font-bold truncate">
+                      {item.assigneeUsername ?? "Üye"}
+                      {isMine ? " · Sen" : ""}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </HomeSummaryCard>
       ),
     },
@@ -1130,7 +1222,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 <HomeTaskCheckButton completed disabled />
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-app-text truncate line-through">
-                    {sortedTodayMeals.map((meal: any) => `${getMealTypeLabel(meal.mealType)}: ${meal.title}`).join(" · ")}
+                    {sortedTodayMeals.map((m) => m.title).join(" · ")}
                   </p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
                     {sortedTodayMeals.length} öğün tamamlandı
@@ -1148,7 +1240,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] font-black text-app-text truncate">
-                    {sortedTodayMeals.map((meal: any) => `${getMealTypeLabel(meal.mealType)}: ${meal.title}`).join(" · ")}
+                    {sortedTodayMeals.map((m) => m.title).join(" · ")}
                   </p>
                   <p className="text-[9px] text-app-muted font-bold truncate">
                     Günün Menüsü ({completedMealIds.length}/{sortedTodayMeals.length} tamamlandı)
@@ -1156,21 +1248,40 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {sortedTodayMeals.map((meal: any) => {
-                  const mealKey = meal.id || meal.mealType;
-                  const isDone = completedMealIds.includes(mealKey);
-                  return (
-                    <WidgetActionButton
-                      key={mealKey}
-                      onClick={() => handleToggleMealCompleted(mealKey)}
-                      icon={isDone ? CheckCircle : Check}
-                    >
-                      <span className={isDone ? "line-through opacity-70" : ""}>
-                        {getMealTypeLabel(meal.mealType)}
-                      </span>
-                    </WidgetActionButton>
-                  );
-                })}
+                {(() => {
+                  const groups: Record<string, { mealType: string; isDone: boolean; keys: string[] }> = {};
+                  sortedTodayMeals.forEach((meal: any) => {
+                    const type = meal.mealType;
+                    const mealKey = meal.id || meal.mealType;
+                    const isMealDone = completedMealIds.includes(mealKey);
+                    
+                    if (!groups[type]) {
+                      groups[type] = {
+                        mealType: type,
+                        isDone: true,
+                        keys: [],
+                      };
+                    }
+                    groups[type].keys.push(mealKey);
+                    if (!isMealDone) {
+                      groups[type].isDone = false;
+                    }
+                  });
+
+                  return Object.values(groups).map((group) => {
+                    return (
+                      <WidgetActionButton
+                        key={group.mealType}
+                        onClick={() => handleToggleMealCompleted(group.keys)}
+                        icon={group.isDone ? CheckCircle : Check}
+                      >
+                        <span className={group.isDone ? "line-through opacity-70" : ""}>
+                          {getMealTypeLabel(group.mealType)}
+                        </span>
+                      </WidgetActionButton>
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -1207,7 +1318,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
       color: "#3B82F6",
       loading: loading,
       hasContent: (() => {
-        if (!weeklyReadingGoal || weeklyReadingGoal.status !== "active") return false;
+        if (!weeklyReadingGoal) return true;
+        if (weeklyReadingGoal.status !== "active") return false;
         const rgTotal = weeklyReadingGoal.book_total_pages || 0;
         const rgCurrent = weeklyReadingGoal.book_current_page ?? 0;
         const rgBase = readingBase ?? rgCurrent;
@@ -1269,7 +1381,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           handleReadingUpdate(filled ? rgBase + cumExc : rgBase + cumInc);
         };
 
-        const hasCardContent = isActive && !isTodayTargetCompleted;
+        const hasCardContent = !weeklyReadingGoal || (isActive && !isTodayTargetCompleted);
 
         return (
           <HomeSummaryCard
@@ -1330,7 +1442,19 @@ export function DiscoverTab(props: DiscoverTabProps) {
               ) : undefined
             }
           >
-            {isActive && bookTitle && (
+            {!weeklyReadingGoal ? (
+              <div className="px-4 py-3 border-t border-app-border flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                  <BookOpen size={16} weight="fill" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-app-text">Hedef Belirlenmedi</p>
+                  <p className="text-[9px] text-app-muted font-bold mt-0.5 whitespace-normal">
+                    Henüz bir okuma hedefi belirlemediniz. Kitap okuma alışkanlığınızı takip etmek için hedef oluşturun.
+                  </p>
+                </div>
+              </div>
+            ) : isActive && bookTitle ? (
               <div className="px-4 py-3 border-t border-app-border space-y-2.5">
                 <div className="flex items-center gap-3">
                   {bookCover ? (
@@ -1374,24 +1498,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   </div>
                 )}
               </div>
-            )}
-            {isActive && !bookTitle && (
-              <div className="px-4 py-3 border-t border-app-border space-y-2.5">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
-                    <BookOpen size={16} weight="fill" />
+            ) : (
+              isActive && !bookTitle && (
+                <div className="px-4 py-3 border-t border-app-border space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                      <BookOpen size={16} weight="fill" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black text-app-text">Serbest okuma</p>
+                      <p className="text-[9px] text-app-muted font-bold">Hedef aktif</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-app-text">Serbest okuma</p>
-                    <p className="text-[9px] text-app-muted font-bold">Hedef aktif</p>
+                  <div className="flex items-center gap-1.5">
+                    <WidgetActionButton onClick={() => router.push("/apps/read-tracker")} icon={ArrowRight}>
+                      Uygulamayı Aç
+                    </WidgetActionButton>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <WidgetActionButton onClick={() => router.push("/apps/read-tracker")} icon={ArrowRight}>
-                    Uygulamayı Aç
-                  </WidgetActionButton>
-                </div>
-              </div>
+              )
             )}
           </HomeSummaryCard>
         );
@@ -1589,7 +1714,16 @@ export function DiscoverTab(props: DiscoverTabProps) {
       isWidgetHidden(widget.key)
     )
       return false;
-    return !widget.loading && !widget.hasContent;
+
+    let isUsed = true;
+    if (widget.key === "eksik-var") isUsed = eksikItems && eksikItems.length > 0;
+    if (widget.key === "agenda") isUsed = todayAgenda && todayAgenda.length > 0;
+    if (widget.key === "series") isUsed = hasFollowedSeries;
+    if (widget.key === "gym") isUsed = !!(todayGymPlan && todayGymPlan.hasRoutines);
+    if (widget.key === "chores") isUsed = weeklyChores !== null;
+    if (widget.key === "reading") isUsed = weeklyReadingGoal !== null;
+
+    return !widget.loading && !widget.hasContent && isUsed;
   });
 
   return (
@@ -1606,7 +1740,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   layout
                   initial={{ opacity: 0, height: 0, scale: 0.98 }}
                   animate={{ opacity: 1, height: "auto", scale: 1 }}
-                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  exit={{
+                    opacity: 0,
+                    scale: 1.15,
+                    y: -30,
+                    filter: "blur(12px)",
+                    height: 0,
+                    transition: { duration: 0.45, ease: "easeOut" }
+                  }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   className="overflow-hidden"
                 >
@@ -1645,7 +1786,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className="overflow-hidden"
                   >
@@ -1658,7 +1806,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className="overflow-hidden"
                   >
@@ -1671,7 +1826,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className="overflow-hidden"
                   >
@@ -1684,7 +1846,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className="overflow-hidden"
                   >
@@ -1709,7 +1878,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   layout
                   initial={{ opacity: 0, height: 0, scale: 0.98 }}
                   animate={{ opacity: 1, height: "auto", scale: 1 }}
-                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  exit={{
+                    opacity: 0,
+                    scale: 1.15,
+                    y: -30,
+                    filter: "blur(12px)",
+                    height: 0,
+                    transition: { duration: 0.45, ease: "easeOut" }
+                  }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   className="overflow-hidden"
                 >
@@ -1737,7 +1913,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
       {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) */}
       {(() => {
         const todayHidden = widgets.filter((w) => isWidgetTodayHidden(w.key));
-        if (todayHidden.length === 0) return null;
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">
             <button
@@ -1767,9 +1942,34 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   transition={{ duration: 0.2 }}
                   className="space-y-3 overflow-hidden pt-1"
                 >
-                  {todayHidden.map((w) => (
-                    <div key={w.key}>{w.card}</div>
-                  ))}
+                  {todayHidden.length === 0 ? (
+                    <p className="text-[10px] text-app-muted font-bold text-center py-2">
+                      Bugün gizlenen widget yok
+                    </p>
+                  ) : (
+                    <AnimatePresence initial={false}>
+                      {todayHidden.map((w) => (
+                        <motion.div
+                          key={w.key}
+                          layout
+                          initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, height: "auto", scale: 1 }}
+                          exit={{
+                            opacity: 0,
+                            scale: 1.15,
+                            y: -30,
+                            filter: "blur(12px)",
+                            height: 0,
+                            transition: { duration: 0.45, ease: "easeOut" }
+                          }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          className="overflow-hidden"
+                        >
+                          {w.card}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1780,7 +1980,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
       {/* 5. KOMPLE GİZLENENLER (Collapsible Accordion) */}
       {(() => {
         const permHidden = widgets.filter((w) => isWidgetPermanentlyHidden(w.key));
-        if (permHidden.length === 0) return null;
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">
             <button
@@ -1810,9 +2009,34 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   transition={{ duration: 0.2 }}
                   className="space-y-3 overflow-hidden pt-1"
                 >
-                  {permHidden.map((w) => (
-                    <div key={w.key}>{w.card}</div>
-                  ))}
+                  {permHidden.length === 0 ? (
+                    <p className="text-[10px] text-app-muted font-bold text-center py-2">
+                      Kalıcı gizlenen widget yok
+                    </p>
+                  ) : (
+                    <AnimatePresence initial={false}>
+                      {permHidden.map((w) => (
+                        <motion.div
+                          key={w.key}
+                          layout
+                          initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, height: "auto", scale: 1 }}
+                          exit={{
+                            opacity: 0,
+                            scale: 1.15,
+                            y: -30,
+                            filter: "blur(12px)",
+                            height: 0,
+                            transition: { duration: 0.45, ease: "easeOut" }
+                          }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          className="overflow-hidden"
+                        >
+                          {w.card}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

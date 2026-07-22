@@ -13,7 +13,7 @@ export default function Page() {
       if (isSignedIn) {
         router.replace("/home");
       } else {
-        router.replace("/sign-in");
+        router.replace("/login");
       }
     }
   }, [isLoaded, isSignedIn, router]);

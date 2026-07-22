@@ -152,15 +152,17 @@ export default function HomeHeader({
                 </button>
               )}
 
-              {/* List sayfasının butonu - Herkese açık */}
-              <button
-                type="button"
-                onClick={() => router.push("/home/list")}
-                className={actionBtn}
-                title={t("appList")}
-              >
-                <List size={16} weight="bold" />
-              </button>
+              {/* List sayfasının butonu - Sadece Admin */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/home/list")}
+                  className={actionBtn}
+                  title={t("appList")}
+                >
+                  <List size={16} weight="bold" />
+                </button>
+              )}
 
               <button
                 type="button"

@@ -1,18 +1,13 @@
 import { CronJob } from "encore.dev/cron";
+import { api } from "encore.dev/api";
 import { supabase } from "./api";
 import { resolveYouTubeSource, fetchVideoMetaFromPage, fetchVideoPublishDateFromPage } from "./youtube";
-import { log } from "encore.dev/log";
+import log from "encore.dev/log";
 
-// Define a cron job to automatically sync new videos from connected YouTube channels or playlists.
-// Runs every 6 hours.
-const _ytdbSync = new CronJob("sync-ytdb-connected-sources", {
-  title: "Sync connected YouTube channels and playlists",
-  every: "6h",
-  endpoint: syncConnectedSources,
-});
-
-export async function syncConnectedSources(): Promise<void> {
-  log.info("Starting connected YouTube sources sync...");
+export const syncConnectedSources = api(
+  {},
+  async (): Promise<void> => {
+    log.info("Starting connected YouTube sources sync...");
 
   const { data: seriesList, error } = await supabase
     .from("ytdb_series")
@@ -130,4 +125,12 @@ export async function syncConnectedSources(): Promise<void> {
   }
 
   log.info("Finished connected YouTube sources sync job.");
-}
+});
+
+// Define a cron job to automatically sync new videos from connected YouTube channels or playlists.
+// Runs every 6 hours.
+const _ytdbSync = new CronJob("sync-ytdb-connected-sources", {
+  title: "Sync connected YouTube channels and playlists",
+  every: "6h",
+  endpoint: syncConnectedSources,
+});

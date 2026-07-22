@@ -24,7 +24,7 @@ function getFromCache<T>(key: string): T | null {
   const entry = cache.get(key);
   if (!entry) return null;
   if (Date.now() > entry.expiry) {
-    cache.delete(key);  
+    cache.delete(key);
     return null;
   }
   return entry.data;
@@ -419,10 +419,10 @@ export const testTmdbKey = api(
     const url = `https://api.themoviedb.org/3/configuration?api_key=${key}`;
     const response = await fetch(url);
     const body = await response.text();
-    return { 
-      status: response.status, 
-      body: body.substring(0, 100), 
-      keyLength: key ? key.length : 0 
+    return {
+      status: response.status,
+      body: body.substring(0, 100),
+      keyLength: key ? key.length : 0
     };
   }
 );
@@ -707,7 +707,7 @@ export const toggleTvEpisodeWatched = api(
           status_param: "watching",
           watch_url_slug_param: null,
         });
-      
+
       if (newSeries) {
         seriesId = (newSeries as any).id;
       }
@@ -1109,9 +1109,9 @@ function isEpisodeWatched(
  */
 export const getTodayEpisodes = api(
   { expose: true, method: "GET", path: "/series-track/today/:userId" },
-  async ({ userId }: { userId: string }): Promise<{ items: TodaySeriesItem[] }> => {
+  async ({ userId }: { userId: string }): Promise<{ items: TodaySeriesItem[]; hasFollowedSeries: boolean }> => {
     const { series } = await getUserSeries({ userId });
-    if (!series.length) return { items: [] };
+    if (!series.length) return { items: [], hasFollowedSeries: false };
 
     const { events } = await getTvCalendarEvents();
 
@@ -1213,7 +1213,7 @@ export const getTodayEpisodes = api(
       return a.airDate.localeCompare(b.airDate);
     });
 
-    return { items };
+    return { items, hasFollowedSeries: true };
   }
 );
 

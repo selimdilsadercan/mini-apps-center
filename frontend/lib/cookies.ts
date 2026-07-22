@@ -31,3 +31,23 @@ export function getCookie(name: string): string | null {
   }
   return null;
 }
+
+export function deleteCookie(name: string) {
+  if (typeof document === "undefined") return;
+
+  const hostname = window.location.hostname;
+  let domain = "";
+  if (hostname.endsWith(".localhost")) {
+    domain = ".localhost";
+  } else if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+    const parts = hostname.split(".");
+    if (parts.length >= 2) {
+      domain = `.${parts.slice(-2).join(".")}`;
+    }
+  }
+
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+  if (domain) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`;
+  }
+}

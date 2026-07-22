@@ -68,6 +68,7 @@ export interface TodayPlan {
   dayOfWeek: number;
   routine: Routine | null;
   completedToday: boolean;
+  hasRoutines: boolean;
 }
 
 // ==================== HELPERS ====================
@@ -330,7 +331,10 @@ export const setWeeklyPlanDay = api(
 export const getTodayPlan = api(
   { expose: true, method: "GET", path: "/gym/today-plan/:userId" },
   async ({ userId }: { userId: string }): Promise<TodayPlan> => {
-    const [planResult, workoutsResult] = await Promise.all([
+    const userRes = await supabase.schema("public").from("users").select("id").eq("clerk_id", userId).maybeSingle();
+    const internalUserId = userRes.data?.id;
+
+    const [planResult, workoutsResult, routinesResult] = await Promise.all([
       supabase.schema("gym").rpc("get_weekly_plan", {
         p_clerk_id: userId,
       }),
@@ -338,6 +342,9 @@ export const getTodayPlan = api(
         p_clerk_id: userId,
         p_limit: 10,
       }),
+      internalUserId
+        ? supabase.schema("gym").from("routines").select("id").eq("user_id", internalUserId).limit(1)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     if (planResult.error) {
@@ -345,13 +352,14 @@ export const getTodayPlan = api(
       throw APIError.internal("Bugünün planı yüklenemedi");
     }
 
+    const hasRoutines = (routinesResult.data || []).length > 0;
     const today = getIsoWeekday();
     const row = (planResult.data as Record<string, unknown>[] || []).find(
       (entry) => Number(entry.day_of_week) === today
     );
 
     if (!row?.routine_id) {
-      return { dayOfWeek: today, routine: null, completedToday: false };
+      return { dayOfWeek: today, routine: null, completedToday: false, hasRoutines };
     }
 
     const routineId = row.routine_id as string;
@@ -369,6 +377,7 @@ export const getTodayPlan = api(
         createdAt: "",
       },
       completedToday,
+      hasRoutines,
     };
   }
 );

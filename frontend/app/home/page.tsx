@@ -462,6 +462,7 @@ function HomePageContent() {
   const todayMatches: buyuk_maclar.BigMatch[] = data?.todayMatches || [];
   const youtubeSeries: ytdb.Series[] = data?.youtubeSeries || [];
   const eksikItems: eksik_var.MissingItem[] = data?.eksikItems || [];
+  const hasFollowedSeries = data?.hasFollowedSeries || false;
 
   const explorePlacesApps = useMemo(() => {
     const order = ["workplaces", "digital-menu", "stamp-card"];
@@ -692,6 +693,7 @@ function HomePageContent() {
                     moviesLoading={moviesLoading}
                     onResetMovieSuggestions={handleResetMovieSuggestions}
                     eksikItems={eksikItems}
+                    hasFollowedSeries={hasFollowedSeries}
                   />
                 </section>
               </motion.div>
@@ -958,6 +960,7 @@ function HomeSummaryCards({
   moviesLoading,
   onResetMovieSuggestions,
   eksikItems,
+  hasFollowedSeries,
 }: {
   suggestions: suggest.InboxSuggestion[];
   activities: kim_gelir.Activity[];
@@ -975,6 +978,7 @@ function HomeSummaryCards({
   moviesLoading: boolean;
   onResetMovieSuggestions: () => void;
   eksikItems: eksik_var.MissingItem[];
+  hasFollowedSeries: boolean;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -1060,13 +1064,21 @@ function HomeSummaryCards({
     toast.success("Bugünlük gizlendi.");
   };
 
-  const handleToggleMealCompleted = (mealKey: string) => {
-    const isDone = completedMealIds.includes(mealKey);
-    const newIds = isDone
-      ? completedMealIds.filter((id) => id !== mealKey)
-      : [...completedMealIds, mealKey];
+  const handleToggleMealCompleted = (mealKeyOrKeys: string | string[]) => {
+    const keys = Array.isArray(mealKeyOrKeys) ? mealKeyOrKeys : [mealKeyOrKeys];
+    const allDone = keys.every((key) => completedMealIds.includes(key));
+    let newIds = [...completedMealIds];
+    if (allDone) {
+      newIds = newIds.filter((id) => !keys.includes(id));
+    } else {
+      keys.forEach((key) => {
+        if (!newIds.includes(key)) {
+          newIds.push(key);
+        }
+      });
+    }
     updateDailyWidgetStates({ completedMealKeys: newIds });
-    toast.success(isDone ? "İşaret kaldırıldı." : "Öğün tamamlandı olarak işaretlendi!");
+    toast.success(allDone ? "İşaret kaldırıldı." : "Öğün tamamlandı olarak işaretlendi!");
   };
 
   const pendingAvailableSeries = todaySeries.filter(
@@ -1446,6 +1458,7 @@ function HomeSummaryCards({
       moviesLoading={moviesLoading}
       onResetMovieSuggestions={onResetMovieSuggestions}
       eksikItems={eksikItems}
+      hasFollowedSeries={hasFollowedSeries}
     />
   );
 }

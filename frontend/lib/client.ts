@@ -4991,6 +4991,7 @@ export namespace gym {
         dayOfWeek: number
         routine: Routine | null
         completedToday: boolean
+        hasRoutines: boolean
     }
 
     export interface WeeklyPlanDay {
@@ -5282,6 +5283,7 @@ export namespace hub {
         todayMatches: buyuk_maclar.BigMatch[]
         youtubeSeries: ytdb.Series[]
         eksikItems: eksik_var.MissingItem[]
+        hasFollowedSeries: boolean
     }
 
     export interface ExploreWidgetsResponse {
@@ -7633,11 +7635,13 @@ export namespace series_track {
          */
         public async getTodayEpisodes(userId: string): Promise<{
     items: TodaySeriesItem[]
+    hasFollowedSeries: boolean
 }> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/series-track/today/${encodeURIComponent(userId)}`)
             return await resp.json() as {
     items: TodaySeriesItem[]
+    hasFollowedSeries: boolean
 }
         }
 

@@ -62,6 +62,7 @@ export default function AddMealDrawer({
   const [customTitle, setCustomTitle] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [mealType, setMealType] = useState<MealType>(defaultMealType ?? "dinner");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -77,6 +78,7 @@ export default function AddMealDrawer({
       setActiveTab("recipes");
       setCategory(null);
       setMealType(defaultMealType ?? "dinner");
+      setSearchQuery("");
     }
     onOpenChange(nextOpen);
   }
@@ -101,7 +103,12 @@ export default function AddMealDrawer({
     }`;
 
   const groupedRecipes = useMemo(() => {
-    const grouped = recipes.reduce<Record<string, lib.RecipeSummary[]>>((acc, recipe) => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? recipes.filter((r) => r.title.toLowerCase().includes(query))
+      : recipes;
+
+    const grouped = filtered.reduce<Record<string, lib.RecipeSummary[]>>((acc, recipe) => {
       const cat = recipe.category || "Diğer";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(recipe);
@@ -118,7 +125,7 @@ export default function AddMealDrawer({
         return a.localeCompare(b);
       })
       .map((catName) => ({ catName, items: grouped[catName] }));
-  }, [recipes]);
+  }, [recipes, searchQuery]);
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -211,36 +218,50 @@ export default function AddMealDrawer({
             </div>
           ) : (
             <div className="space-y-4">
-              {groupedRecipes.map(({ catName, items }) => (
-                <div key={catName} className="space-y-2">
-                  <h3 className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
-                    {catName} ({items.length})
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {items.map((recipe) => (
-                      <button
-                        key={recipe.id}
-                        type="button"
-                        onClick={() => handleSelectRecipe(recipe)}
-                        className="bg-app-surface rounded-xl border border-app-border relative flex flex-col items-center justify-center px-2 py-4 hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 text-left w-full select-none"
-                      >
-                        {recipe.image_url ? (
-                          <img
-                            src={recipe.image_url}
-                            alt=""
-                            className="w-11 h-11 mb-1.5 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <RecipeInitial title={recipe.title} />
-                        )}
-                        <h4 className="text-[12px] font-bold text-app-text text-center leading-tight line-clamp-2 px-1">
-                          {recipe.title}
-                        </h4>
-                      </button>
-                    ))}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tariflerinde ara..."
+                className="w-full px-3 py-2 text-xs border border-app-border rounded-xl focus:outline-none focus:border-orange-500/40 bg-app-surface font-semibold text-app-text mb-2"
+              />
+
+              {groupedRecipes.length === 0 ? (
+                <p className="text-center text-xs font-bold text-app-muted py-6">
+                  Eşleşen tarif bulunamadı
+                </p>
+              ) : (
+                groupedRecipes.map(({ catName, items }) => (
+                  <div key={catName} className="space-y-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-app-muted px-1">
+                      {catName} ({items.length})
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {items.map((recipe) => (
+                        <button
+                          key={recipe.id}
+                          type="button"
+                          onClick={() => handleSelectRecipe(recipe)}
+                          className="bg-app-surface rounded-xl border border-app-border relative flex flex-col items-center justify-center px-2 py-4 hover:border-orange-500/30 hover:shadow-md transition-all shadow-sm overflow-hidden active:scale-95 text-left w-full select-none"
+                        >
+                          {recipe.image_url ? (
+                            <img
+                              src={recipe.image_url}
+                              alt=""
+                              className="w-11 h-11 mb-1.5 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <RecipeInitial title={recipe.title} />
+                          )}
+                          <h4 className="text-[12px] font-bold text-app-text text-center leading-tight line-clamp-2 px-1">
+                            {recipe.title}
+                          </h4>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>

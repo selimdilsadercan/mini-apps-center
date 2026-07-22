@@ -59,7 +59,7 @@ import { Drawer } from "vaul";
 const client = createBrowserClient();
 
 import COMMON_ITEMS from "./common_items.json";
-import { getItemImageUrl, getItemInitial, normalizeItemNameForAdd, formatItemName } from "./item-images";
+import { resolveItemImageUrl, getItemInitial, normalizeItemNameForAdd, formatItemName } from "./item-images";
 
 type CommonItem = {
   name: string;
@@ -198,7 +198,7 @@ function ItemThumbnail({
   size?: "card" | "sheet" | "suggestion";
 }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const imageUrl = getItemImageUrl(name);
+  const imageUrl = resolveItemImageUrl(name);
   const initial = getItemInitial(name);
   const boxClass =
     size === "sheet"
@@ -1244,7 +1244,7 @@ export default function EksikVarPage() {
       </header>
 
       <main className="flex-1 px-4 pt-4 pb-32 max-w-xl mx-auto w-full">
-        {isLoading ? (
+        {!isUserLoaded || isLoading ? (
           <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
             Yükleniyor...
           </div>
@@ -1254,7 +1254,11 @@ export default function EksikVarPage() {
             <p className="text-sm font-bold text-app-muted">Eksik listeni görebilmek için giriş yapmalısın.</p>
           </div>
         ) : user ? (() => {
-          const filteredItems = items.filter(i => (activeListTab === "missing" ? !i.is_used : i.is_used) && (i.timing || "today") === activeTimingTab);
+          const filteredItems = items.filter(i => 
+            activeListTab === "missing" 
+              ? (!i.is_used && (i.timing || "today") === activeTimingTab)
+              : i.is_used
+          );
           const isEmpty = filteredItems.length === 0;
 
           return (
@@ -1551,7 +1555,20 @@ export default function EksikVarPage() {
             <Drawer.Title className="sr-only">Hızlı İşlem</Drawer.Title>
 
             {quickCheckItem && (
-              <div className="flex flex-col items-center text-center space-y-5 pb-4">
+              <div className="relative flex flex-col items-center text-center space-y-5 pb-4 w-full">
+                {/* Edit Button in Top Right */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuickCheckItem(null);
+                    openEditSheet(quickCheckItem);
+                  }}
+                  className="absolute right-0 -top-2 w-8 h-8 rounded-full bg-app-surface-muted border border-app-border flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95 shadow-sm"
+                  title="Düzenle"
+                >
+                  <PencilSimple size={16} weight="bold" />
+                </button>
+
                 <ItemThumbnail
                   name={quickCheckItem.name}
                   size="sheet"

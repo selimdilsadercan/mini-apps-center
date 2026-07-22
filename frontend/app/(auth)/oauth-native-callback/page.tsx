@@ -7,11 +7,11 @@ import { useEffect, useState, Suspense } from "react";
 
 function LoadingCard({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#FAF9F7] p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-app-bg p-6 text-app-text">
+      <div className="w-full max-w-md bg-app-surface border border-app-border rounded-2xl shadow-lg p-8 text-center">
         <div className="w-12 h-12 border-4 border-[#FF6B35]/30 border-t-[#FF6B35] rounded-full animate-spin mx-auto mb-6" />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
-        <p className="text-gray-600">{subtitle}</p>
+        <h1 className="text-2xl font-bold text-app-text mb-2">{title}</h1>
+        <p className="text-app-muted">{subtitle}</p>
       </div>
     </div>
   );
@@ -51,13 +51,13 @@ function OAuthNativeCallbackContent() {
 
   if (error) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#FAF9F7] p-6">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Hata Oluştu</h1>
-          <p className="text-gray-600 mb-8">{error}</p>
+      <div className="flex min-h-[100dvh] items-center justify-center bg-app-bg p-6 text-app-text">
+        <div className="w-full max-w-md bg-app-surface border border-app-border rounded-2xl shadow-lg p-8 text-center">
+          <h1 className="text-2xl font-bold text-app-text mb-2">Hata Oluştu</h1>
+          <p className="text-app-muted mb-8">{error}</p>
           <button
-            onClick={() => router.push("/sign-in")}
-            className="w-full border border-gray-200 rounded-xl py-3 px-4 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => router.push("/login")}
+            className="w-full border border-app-border rounded-xl py-3 px-4 font-medium text-app-text hover:bg-app-surface-muted transition-colors cursor-pointer"
           >
             Giriş Sayfasına Dön
           </button>

@@ -47,7 +47,7 @@ export function GreetingHandler() {
   useEffect(() => {
     if (isLoaded && user && prefsQuery.data) {
       const pref = prefsQuery.data;
-      const ignoredPaths = ["/onboarding", "/sign-in", "/landing", "/"];
+      const ignoredPaths = ["/onboarding", "/login", "/landing", "/"];
       
       // Additional safeguard: Check localStorage if the query still says false
       // Onboarding temporarily disabled, keep infrastructure

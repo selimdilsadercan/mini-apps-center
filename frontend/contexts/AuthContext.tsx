@@ -354,7 +354,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await logOut();
       setUser(null);
       setBackendUser(null);
-      router.push("/");
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      } else {
+        router.push("/login");
+      }
     } catch (error) {
       console.error("Sign-out error:", error);
     }

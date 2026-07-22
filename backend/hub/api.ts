@@ -41,6 +41,7 @@ export interface DiscoverWidgetsResponse {
   todayMatches: BigMatch[];
   youtubeSeries: Series[];
   eksikItems: MissingItem[];
+  hasFollowedSeries: boolean;
 }
 
 export interface ExploreWidgetsResponse {
@@ -108,6 +109,7 @@ export const getDiscoverWidgets = api(
         todayMatches: [],
         youtubeSeries: [],
         eksikItems: [],
+        hasFollowedSeries: false,
       };
     }
 
@@ -128,7 +130,7 @@ export const getDiscoverWidgets = api(
     const [suggestRes, activityRes, seriesRes, gymRes, mealRes, agendaRes, choresRes, readingGoalsRes, matchRes, ytRes, eksikRes] = await Promise.all([
       fetchWithFallback(getInbox({ userId }), { suggestions: [] }),
       fetchWithFallback(getActivities({ userId }), { activities: [] }),
-      fetchWithFallback(getTodayEpisodes({ userId }), { items: [] }),
+      fetchWithFallback(getTodayEpisodes({ userId }), { items: [], hasFollowedSeries: false }),
       fetchWithFallback(getTodayPlan({ userId }), null),
       fetchWithFallback(getTodayMeals({ userId }), { meals: [] }),
       fetchWithFallback(getTodayAgenda({ userId }), { entries: [] }),
@@ -174,6 +176,7 @@ export const getDiscoverWidgets = api(
       todayMatches: filteredMatches,
       youtubeSeries: ytRes.series || [],
       eksikItems: (typeof eksikRes !== "undefined" && eksikRes?.items) || [],
+      hasFollowedSeries: seriesRes.hasFollowedSeries || false,
     };
   }
 );

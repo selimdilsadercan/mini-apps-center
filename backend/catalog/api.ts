@@ -580,7 +580,7 @@ export const getBigMatches = api(
   async ({ sport, liveOnly }: CatalogListMatchesRequest): Promise<CatalogListMatchesResponse> => {
     try {
       // Önce veritabanından çekelim
-      let query = supabase.schema("catalog").from("matches").select("*");
+      let query = supabase.schema("catalog").from("matches").select("*").neq("state", "finished");
 
       if (sport && sport !== "all") {
         query = query.eq("sport", sport);
@@ -589,7 +589,7 @@ export const getBigMatches = api(
         query = query.eq("state", "live");
       }
 
-      // Sıralama: live -> upcoming -> finished
+      // Sıralama: live -> upcoming
       const { data, error } = await query;
       if (error) throw error;
 

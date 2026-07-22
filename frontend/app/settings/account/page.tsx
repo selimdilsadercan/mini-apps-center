@@ -60,7 +60,7 @@ export default function AccountSettingsPage() {
       setDeleteStatus(t("deleteModalStatusSignOut"));
       await signOut();
 
-      router.replace("/sign-in");
+      router.replace("/login");
     } catch (error) {
       console.error("Account delete error:", error);
       setDeleteError(t("deleteModalError"));
