@@ -54,9 +54,6 @@ async function syncBackendUser(effectiveUser: User) {
   const res = await (client.users.getOrCreateUser as any)({
     clerkId: effectiveUser.uid,
     firebaseId: effectiveUser.uid,
-    username: effectiveUser.displayName
-      ? effectiveUser.displayName.toLowerCase().replace(/\s+/g, "")
-      : undefined,
     fullName: effectiveUser.displayName || undefined,
     avatarUrl: effectiveUser.photoURL || undefined,
   });
@@ -254,7 +251,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const res = await (client.users.getOrCreateUser as any)({
             clerkId: nativeUser.uid,
             firebaseId: nativeUser.uid,
-            username: nativeUser.displayName ? nativeUser.displayName.toLowerCase().replace(/\s+/g, "") : undefined,
             fullName: nativeUser.displayName || undefined,
             avatarUrl: nativeUser.photoURL || undefined
           });
@@ -308,7 +304,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const res = await (client.users.getOrCreateUser as any)({
             clerkId: user.uid,
             firebaseId: user.uid,
-            username: user.displayName ? user.displayName.toLowerCase().replace(/\s+/g, "") : undefined,
             fullName: user.displayName || undefined,
             avatarUrl: user.photoURL || undefined
           });

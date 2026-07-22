@@ -125,22 +125,7 @@ export default function DailyWeatherPage() {
     (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
       ?.isNativePlatform?.();
 
-  useEffect(() => {
-    if (!isUserLoaded) return;
-    if (!user) return;
 
-    const client = createBrowserClient();
-    client.users
-      .getOrCreateUser({
-        clerkId: user.id,
-        username:
-          user.username ||
-          user.fullName ||
-          user.primaryEmailAddress?.emailAddress?.split("@")[0],
-        avatarUrl: user.imageUrl,
-      })
-      .catch((err) => console.error("daily-weather user sync:", err));
-  }, [isUserLoaded, user]);
 
   const activeDay = (weather && weather.dailyForecast && weather.dailyForecast[selectedDayIndex])
     ? weather.dailyForecast[selectedDayIndex]

@@ -70,7 +70,6 @@ export function GreetingHandler() {
       const fullName = user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || null;
       client.users.getOrCreateUser({ 
         clerkId: user.id,
-        username: user.username || undefined,
         fullName: fullName || undefined,
         avatarUrl: user.imageUrl
       }).then(res => {

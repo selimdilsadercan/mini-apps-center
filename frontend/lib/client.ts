@@ -7054,7 +7054,7 @@ export namespace rutinler {
         entries: RoutineEntry[]
     }
 
-    export type PeriodType = "daily" | "weekly" | "monthly" | "once"
+    export type PeriodType = "daily" | "weekly" | "monthly" | "once" | "later"
 
     export interface PostponeEntryRequest {
         entryId: string
@@ -7110,6 +7110,8 @@ export namespace rutinler {
          * "0" = unset, "1"-"31" = day of month
          */
         dayOfMonth: string
+
+        periodType?: PeriodType
     }
 
     export interface UpdateEntryResponse {
@@ -7386,7 +7388,7 @@ export namespace series_track {
         episode: number
         episodeTitle?: string
         airDate: string
-        source: "tmdb" | "episode-club"
+        source: "tmdb" | "episode-club" | "my-library"
         isWatched: boolean
         programId?: string | null
         /**
@@ -10025,6 +10027,17 @@ export namespace users {
         success: boolean
     }
 
+    export interface UpdateUserProfileRequest {
+        clerkId: string
+        username: string
+        fullName: string
+    }
+
+    export interface UpdateUserProfileResponse {
+        success: boolean
+        error?: string
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -10044,6 +10057,7 @@ export namespace users {
             this.updateAppOrder = this.updateAppOrder.bind(this)
             this.updateUniversity = this.updateUniversity.bind(this)
             this.updateUserPreferences = this.updateUserPreferences.bind(this)
+            this.updateUserProfile = this.updateUserProfile.bind(this)
         }
 
         /**
@@ -10168,6 +10182,15 @@ export namespace users {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/users/preferences/update`, JSON.stringify(params))
             return await resp.json() as UpdateUserPreferencesResponse
+        }
+
+        /**
+         * Kullanıcı adını ve gerçek adını günceller. Kullanıcı adının benzersizliğini kontrol eder.
+         */
+        public async updateUserProfile(params: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/users/profile/update`, JSON.stringify(params))
+            return await resp.json() as UpdateUserProfileResponse
         }
     }
 }

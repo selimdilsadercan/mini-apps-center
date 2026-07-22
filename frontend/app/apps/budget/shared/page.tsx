@@ -138,12 +138,7 @@ function SharedContent() {
       // Fetch internal user ID if signed in
       let currentInternalUserId = internalUserId;
       if (isUserLoaded && user?.id && !currentInternalUserId) {
-        const userRes = await client.users.getOrCreateUser({
-          clerkId: user.id,
-          username: user.username || user.firstName || "User",
-          fullName: user.fullName || undefined,
-          avatarUrl: user.imageUrl || undefined
-        });
+        const userRes = await client.users.getUserByClerkId(user.id);
         if (userRes.user) {
           currentInternalUserId = userRes.user.id;
           setInternalUserId(currentInternalUserId);

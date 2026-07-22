@@ -1912,7 +1912,20 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
       {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) */}
       {(() => {
-        const todayHidden = widgets.filter((w) => isWidgetTodayHidden(w.key));
+        const HIDDEN_WIDGET_ORDER: Record<string, number> = {
+          "agenda": 1,
+          "meals": 2,
+          "reading": 3,
+          "movies": 4,
+          "yazboz-widget": 1000,
+        };
+        const todayHidden = widgets
+          .filter((w) => isWidgetTodayHidden(w.key))
+          .sort((a, b) => {
+            const orderA = HIDDEN_WIDGET_ORDER[a.key] ?? 999;
+            const orderB = HIDDEN_WIDGET_ORDER[b.key] ?? 999;
+            return orderA - orderB;
+          });
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">
             <button

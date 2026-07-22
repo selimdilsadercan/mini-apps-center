@@ -61,11 +61,21 @@
     "signOut": "Sign Out",
     "friendsStat": "Friends",
     "appsStat": "Mini",
-    "manageFriends": "Manage Friends",
+    "manageFriends": "My Friendships",
     "manageFriendsSubtitle": "New Requests & Connections",
     "accountSettings": "Account Settings",
     "accountSettingsSubtitle": "Delete account and data management",
-    "version": "Version: {version}"
+    "version": "Version: {version}",
+    "editProfile": "Edit Profile",
+    "settings": "Settings",
+    "preferences": "App Preferences",
+    "supportAndInfo": "Support & Info",
+    "feedbackAndContact": "Feedback & Contact",
+    "rateSeries": "Rate SeriesTrack",
+    "aboutUs": "About Us",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "account": "Account"
   },
   "account": {
     "title": "Account Settings",

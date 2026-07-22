@@ -22,6 +22,7 @@ import {
   CalendarCheck,
   ClockAfternoon,
   ArrowUpRight,
+  ClipboardText,
 } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "react-hot-toast";
@@ -39,9 +40,9 @@ import {
   syncAgendaCompletionInCache,
 } from "@/lib/cache/hubAgendaCache";
 
-type PeriodType = "daily" | "weekly" | "monthly" | "once";
+type PeriodType = "daily" | "weekly" | "monthly" | "once" | "later";
 type DrawerTab = "catalog" | "custom";
-type MainTab = "today" | "manage";
+type MainTab = "today" | "manage" | "tasks";
 type CatalogItem = {
   slug: string;
   name: string;
@@ -54,9 +55,21 @@ const client = createBrowserClient();
 
 const BOARDS: { key: PeriodType; label: string }[] = [
   { key: "once", label: "Tek Seferlik" },
+  { key: "later", label: "Daha Sonra" },
+  { key: "monthly", label: "Aylık" },
+  { key: "weekly", label: "Haftalık" },
   { key: "daily", label: "Günlük" },
+];
+
+const ROUTINE_BOARDS: { key: PeriodType; label: string }[] = [
   { key: "weekly", label: "Haftalık" },
   { key: "monthly", label: "Aylık" },
+  { key: "daily", label: "Günlük" },
+];
+
+const TASK_BOARDS: { key: PeriodType; label: string }[] = [
+  { key: "once", label: "Tek Seferlik" },
+  { key: "later", label: "Daha Sonra" },
 ];
 
 const DAILY_SLOT_ORDER: Record<rutinler.DailySlot, number> = {
@@ -335,12 +348,15 @@ export default function RutinlerPage() {
   const [selectedDailySlot, setSelectedDailySlot] = useState<rutinler.DailySlot>("morning");
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number>(new Date().getDay() || 7);
   const [selectedMonthDay, setSelectedMonthDay] = useState<number>(1);
-  const [boardOverrides, setBoardOverrides] = useState<Partial<Record<PeriodType, boolean>>>({});
+  const [boardOverrides, setBoardOverrides] = useState<Partial<Record<PeriodType | "completed", boolean>>>({});
 
   const isBoardExpanded = useCallback(
-    (boardKey: PeriodType, itemCount: number) => {
+    (boardKey: PeriodType | "completed", itemCount: number) => {
       if (boardOverrides[boardKey] !== undefined) {
         return boardOverrides[boardKey]!;
+      }
+      if (boardKey === "completed") {
+        return false;
       }
       return itemCount > 0;
     },
@@ -348,7 +364,7 @@ export default function RutinlerPage() {
   );
 
   const toggleBoardExpanded = useCallback(
-    (boardKey: PeriodType, itemCount: number) => {
+    (boardKey: PeriodType | "completed", itemCount: number) => {
       setBoardOverrides((prev) => ({
         ...prev,
         [boardKey]: !isBoardExpanded(boardKey, itemCount),
@@ -468,7 +484,7 @@ export default function RutinlerPage() {
                 onClick={() => setSelectedDailySlot(slot.key)}
                 className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all ${
                   active
-                    ? "bg-violet-50 border-violet-200 text-violet-600"
+                    ? "bg-violet-500/15 border-violet-500/30 text-violet-600 dark:text-violet-400"
                     : "bg-app-surface-muted border-app-border text-app-muted"
                 }`}
               >
@@ -502,7 +518,7 @@ export default function RutinlerPage() {
                 onClick={() => setSelectedDayOfWeek(day.key)}
                 className={`shrink-0 w-11 h-11 flex items-center justify-center rounded-xl border text-[10px] font-black uppercase transition-all ${
                   active
-                    ? "bg-violet-50 border-violet-200 text-violet-600"
+                    ? "bg-violet-500/15 border-violet-500/30 text-violet-600 dark:text-violet-400"
                     : "bg-app-surface-muted border-app-border text-app-muted"
                 }`}
               >
@@ -834,6 +850,36 @@ export default function RutinlerPage() {
     }
   }
 
+  async function handleMovePeriod(entry: rutinler.RoutineEntry, targetPeriod: PeriodType) {
+    if (!user) return;
+    try {
+      setUpdating(true);
+      await client.rutinler.updateEntry({
+        entryId: entry.id,
+        userId: user.id,
+        itemName: entry.item_name,
+        itemEmoji: entry.item_emoji,
+        periodType: targetPeriod,
+        ...(entry.period_type === "daily" ? { dailySlot: entry.daily_slot || undefined } : {}),
+        dayOfWeek: entry.period_type === "weekly" ? String(entry.day_of_week) : "0",
+        dayOfMonth: entry.period_type === "monthly" ? String(entry.day_of_month) : "0",
+      });
+      // Optimistic state update
+      patchEntries((prev) =>
+        prev.map((e) => (e.id === entry.id ? { ...e, period_type: targetPeriod } : e))
+      );
+      invalidateDiscoverWidgets(queryClient, user.id);
+      toast.success(targetPeriod === "once" ? "Yapılacaklara taşındı" : "Daha sonraya taşındı");
+      closeEdit();
+    } catch (err) {
+      console.error(err);
+      toast.error("Taşıma işlemi başarısız oldu");
+      void refetchEntries();
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   async function handleAdd(item: CatalogItem) {
     await handleAddEntry(item.name, item.emoji, item.slug);
   }
@@ -931,8 +977,8 @@ export default function RutinlerPage() {
   const { todayEntries, oneOffTasks, routineTasks, hasScheduledToday } = useMemo(() => {
     const allToday = BOARDS.flatMap((board) => entriesForToday(board.key));
     const scheduledToday = BOARDS.flatMap((board) => entriesScheduledForToday(board.key));
-    const oneOff = allToday.filter((e) => e.period_type === "once");
-    const routines = allToday.filter((e) => e.period_type !== "once");
+    const oneOff = allToday.filter((e) => e.period_type === "once" || e.period_type === "later");
+    const routines = allToday.filter((e) => e.period_type !== "once" && e.period_type !== "later");
     return {
       todayEntries: allToday,
       oneOffTasks: oneOff,
@@ -979,6 +1025,14 @@ export default function RutinlerPage() {
               >
                 <ListBullets size={14} weight={mainTab === "manage" ? "fill" : "duotone"} />
                 <span>Rutinlerim</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMainTab("tasks")}
+                className={pillTabClass(mainTab === "tasks")}
+              >
+                <ClipboardText size={14} weight={mainTab === "tasks" ? "fill" : "duotone"} />
+                <span>Yapılacaklar</span>
               </button>
             </div>
           </div>
@@ -1077,14 +1131,12 @@ export default function RutinlerPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {BOARDS.map((board) => {
+            {(mainTab === "manage" ? ROUTINE_BOARDS : TASK_BOARDS).map((board) => {
               const rawItems = entriesForPeriod(board.key);
-              const items = board.key === "once"
-                ? rawItems.filter((e) => !e.is_completed || e.is_completed_today)
+              // For once-off and later tasks, items are uncompleted ones
+              const items = (board.key === "once" || board.key === "later")
+                ? rawItems.filter((e) => !e.is_completed)
                 : rawItems;
-              const pastCompletedOnceItems = board.key === "once"
-                ? rawItems.filter((e) => e.is_completed && !e.is_completed_today)
-                : [];
               const isExpanded = isBoardExpanded(board.key, rawItems.length);
 
               return (
@@ -1118,83 +1170,36 @@ export default function RutinlerPage() {
                         openCatalog(board.key);
                       }}
                       className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center active:scale-95 border border-violet-100 relative z-10 hover:bg-violet-100 transition-all"
-                      aria-label={`${board.label} rutin ekle`}
+                      aria-label={`${board.label} ekle`}
                     >
                       <Plus size={16} weight="bold" />
                     </button>
                   </div>
 
                   {isExpanded && (
-                    <div className="flex-1 p-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                      {items.length === 0 && pastCompletedOnceItems.length === 0 ? (
-                        <div className="h-full min-h-[72px] flex items-center justify-center">
+                    <div className="flex-1 animate-in fade-in slide-in-from-top-1 duration-200 divide-y divide-app-border border-t border-app-border">
+                      {items.length === 0 ? (
+                        <div className="h-full min-h-[72px] flex items-center justify-center p-4">
                           <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
                             Henüz kayıt yok
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          {items.length > 0 && (
-                            <div className="space-y-2">
-                              <AnimatePresence initial={false}>
-                                {items.map((entry) => (
-                                  <EntryRow
-                                    key={entry.id}
-                                    entry={entry}
-                                    showComplete={true}
-                                    onToggleComplete={handleToggleComplete}
-                                    onPostpone={handlePostpone}
-                                    onEdit={openEdit}
-                                    renderScheduleBadges={renderScheduleBadges}
-                                  />
-                                ))}
-                              </AnimatePresence>
-                            </div>
-                          )}
-
-                          {board.key === "once" && pastCompletedOnceItems.length > 0 && (
-                            <div className="pt-2 border-t border-app-border/40">
-                              <button
-                                type="button"
-                                onClick={() => setShowDoneOnce(!showDoneOnce)}
-                                className="w-full flex items-center justify-between py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider text-app-muted hover:text-app-text bg-app-surface-muted/30 hover:bg-app-surface-muted/60 transition-colors"
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <CheckCircle size={14} weight="bold" />
-                                  Yapılanlar ({pastCompletedOnceItems.length})
-                                </span>
-                                <CaretDown
-                                  size={12}
-                                  weight="bold"
-                                  className={`transition-transform duration-200 ${showDoneOnce ? "" : "-rotate-90"}`}
-                                />
-                              </button>
-
-                              <AnimatePresence initial={false}>
-                                {showDoneOnce && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden mt-2 space-y-2 pl-1"
-                                  >
-                                    {pastCompletedOnceItems.map((entry) => (
-                                      <EntryRow
-                                        key={entry.id}
-                                        entry={entry}
-                                        showComplete={true}
-                                        onToggleComplete={handleToggleComplete}
-                                        onPostpone={handlePostpone}
-                                        onEdit={openEdit}
-                                        renderScheduleBadges={renderScheduleBadges}
-                                      />
-                                    ))}
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          )}
+                        <div className="divide-y divide-app-border">
+                          <AnimatePresence initial={false}>
+                            {items.map((entry) => (
+                              <EntryRow
+                                key={entry.id}
+                                entry={entry}
+                                showComplete={true}
+                                isGrouped={true}
+                                onToggleComplete={handleToggleComplete}
+                                onPostpone={handlePostpone}
+                                onEdit={openEdit}
+                                renderScheduleBadges={renderScheduleBadges}
+                              />
+                            ))}
+                          </AnimatePresence>
                         </div>
                       )}
                     </div>
@@ -1202,6 +1207,70 @@ export default function RutinlerPage() {
                 </section>
               );
             })}
+
+            {/* Yapılanlar Section (Sadece Görevler Sekmesinde) */}
+            {mainTab === "tasks" && (
+              (() => {
+                const completedTasks = entries.filter(
+                  (e) => (e.period_type === "once" || e.period_type === "later") && e.is_completed
+                );
+                const isExpanded = isBoardExpanded("completed" as any, completedTasks.length);
+
+                return (
+                  <section className="bg-app-surface rounded-2xl border border-app-border shadow-sm flex flex-col overflow-hidden">
+                    <div
+                      onClick={() => toggleBoardExpanded("completed" as any, completedTasks.length)}
+                      className="flex items-center justify-between px-4 py-3 border-b border-app-border cursor-pointer hover:bg-app-surface-muted/50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2 text-sm font-black text-app-text uppercase tracking-tight">
+                        <CaretDown
+                          size={14}
+                          weight="bold"
+                          className={`text-app-muted transition-transform duration-300 ${
+                            isExpanded ? "" : "-rotate-90"
+                          }`}
+                        />
+                        <span>Yapılanlar</span>
+                        {completedTasks.length > 0 && (
+                          <span className="text-[10px] font-bold text-app-muted normal-case tracking-normal">
+                            {completedTasks.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="flex-1 animate-in fade-in slide-in-from-top-1 duration-200 divide-y divide-app-border border-t border-app-border bg-app-surface-muted/10">
+                        {completedTasks.length === 0 ? (
+                          <div className="h-full min-h-[72px] flex items-center justify-center p-4">
+                            <p className="text-[10px] font-bold text-app-muted uppercase tracking-wider">
+                              Henüz tamamlanan görev yok
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-app-border">
+                            <AnimatePresence initial={false}>
+                              {completedTasks.map((entry) => (
+                                <EntryRow
+                                  key={entry.id}
+                                  entry={entry}
+                                  showComplete={true}
+                                  isGrouped={true}
+                                  onToggleComplete={handleToggleComplete}
+                                  onPostpone={handlePostpone}
+                                  onEdit={openEdit}
+                                  renderScheduleBadges={renderScheduleBadges}
+                                />
+                              ))}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                );
+              })()
+            )}
           </div>
         )}
       </main>
@@ -1235,7 +1304,7 @@ export default function RutinlerPage() {
             </div>
 
             <div className="px-4 mb-3 shrink-0">
-              {activePeriod !== "once" && (
+              {activePeriod !== "once" && activePeriod !== "later" && (
             <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border/80 bg-app-tab-track w-full">
                   {(
                     [
@@ -1445,16 +1514,16 @@ export default function RutinlerPage() {
                   />
                 </div>
 
-                {/* Gelecek Periyot Tamamlama (Erken Tamamlama) */}
-                {editingEntry && editingEntry.period_type !== "once" && editingEntry.is_completed && (
+                 {/* Gelecek Periyot Tamamlama (Erken Tamamlama) */}
+                 {editingEntry && editingEntry.period_type !== "once" && editingEntry.period_type !== "later" && editingEntry.is_completed && (
                   <div className="pt-2">
                     <button
                       type="button"
                       onClick={() => void handleToggleComplete(editingEntry, true)}
-                      className={`w-full py-3.5 rounded-xl border-2 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
+                      className={`w-full py-3.5 rounded-xl border flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider transition-all active:scale-[0.98] ${
                         editingEntry.is_next_completed
-                          ? "bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-200"
-                          : "bg-app-surface border-blue-100 text-blue-500 hover:bg-blue-50"
+                          ? "bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                          : "bg-blue-500/10 dark:bg-blue-500/15 border-blue-500/20 text-blue-500 hover:bg-blue-500/20"
                       }`}
                     >
                       <Check size={16} weight="bold" />
@@ -1467,11 +1536,26 @@ export default function RutinlerPage() {
                 )}
 
                 <div className="flex flex-col gap-2 pt-2">
+                  {editingEntry && (editingEntry.period_type === "once" || editingEntry.period_type === "later") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (editingEntry) {
+                          void handleMovePeriod(editingEntry, editingEntry.period_type === "once" ? "later" : "once");
+                        }
+                      }}
+                      className="w-full py-3.5 rounded-xl border border-violet-500/25 bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-violet-500/20"
+                    >
+                      <ClipboardText size={16} weight="bold" />
+                      {editingEntry.period_type === "once" ? "Daha Sonraya Taşı" : "Yapılacaklara Taşı"}
+                    </button>
+                  )}
+
                   {editingEntry && isEntryPostponed(editingEntry) ? (
                     <button
                       type="button"
                       onClick={() => void handleClearPostpone(editingEntry)}
-                      className="w-full py-3.5 rounded-xl border-2 border-amber-500 bg-amber-500 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm shadow-amber-200 hover:bg-amber-600 hover:border-amber-600"
+                      className="w-full py-3.5 rounded-xl border border-amber-500 bg-amber-500 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-amber-500/20 hover:bg-amber-600 hover:border-amber-600"
                     >
                       <ClockAfternoon size={16} weight="fill" />
                       Ertelemeyi Kaldır
@@ -1482,7 +1566,7 @@ export default function RutinlerPage() {
                       onClick={() => {
                         if (editingEntry) void handlePostpone(editingEntry);
                       }}
-                      className="w-full py-3.5 rounded-xl border border-amber-100 bg-amber-50 text-amber-600 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-amber-100"
+                      className="w-full py-3.5 rounded-xl border border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-500 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-amber-500/20"
                     >
                       <ClockAfternoon size={16} weight="bold" />
                       Yarına Ertele
@@ -1496,7 +1580,7 @@ export default function RutinlerPage() {
                         if (editingEntry)
                           void handleDelete(editingEntry).then(() => closeEdit());
                       }}
-                      className="flex-1 py-3.5 rounded-xl border border-red-100 bg-red-50 text-red-500 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-red-100"
+                      className="flex-1 py-3.5 rounded-xl border border-red-500/25 bg-red-500/10 text-red-500 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-red-500/20"
                     >
                       <Trash size={16} weight="bold" />
                       Sil
@@ -1505,7 +1589,7 @@ export default function RutinlerPage() {
                       type="button"
                       disabled={updating || !editName.trim()}
                       onClick={() => void handleUpdateEntry()}
-                      className="flex-[2] py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-violet-200"
+                      className="flex-[2] py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg shadow-violet-500/25"
                     >
                       <Check size={16} weight="bold" />
                       Güncelle

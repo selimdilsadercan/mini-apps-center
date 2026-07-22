@@ -61,11 +61,21 @@
     "signOut": "Çıkış Yap",
     "friendsStat": "Arkadaş",
     "appsStat": "Mini",
-    "manageFriends": "Arkadaşlarımı Yönet",
+    "manageFriends": "Arkadaşlıklarım",
     "manageFriendsSubtitle": "Yeni istekler & Bağlantılar",
     "accountSettings": "Hesap Ayarları",
     "accountSettingsSubtitle": "Hesap silme ve veri yönetimi",
-    "version": "Versiyon: {version}"
+    "version": "Versiyon: {version}",
+    "editProfile": "Profili Düzenle",
+    "settings": "Ayarlar",
+    "preferences": "Uygulama Tercihleri",
+    "supportAndInfo": "Destek ve Bilgi",
+    "feedbackAndContact": "Geri Bildirim & İletişim",
+    "rateSeries": "Dizi Değerlendirin",
+    "aboutUs": "Hakkımızda",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsOfUse": "Kullanım Şartları",
+    "account": "Hesap"
   },
   "account": {
     "title": "Hesap Ayarları",

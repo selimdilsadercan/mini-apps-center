@@ -8,7 +8,7 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
-export type PeriodType = "daily" | "weekly" | "monthly" | "once";
+export type PeriodType = "daily" | "weekly" | "monthly" | "once" | "later";
 export type DailySlot = "morning" | "afternoon" | "evening";
 
 export interface RoutineEntry {
@@ -85,6 +85,7 @@ interface UpdateEntryRequest {
   dayOfWeek: string;
   /** "0" = unset, "1"-"31" = day of month */
   dayOfMonth: string;
+  periodType?: PeriodType;
 }
 
 interface UpdateEntryResponse {
@@ -188,7 +189,7 @@ export const getTodayAgenda = api(
       if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
       // Tek seferlik: bekleyenler veya bugün tamamlananlar
-      if (e.period_type === "once") return !e.is_completed || e.is_completed_today;
+      if (e.period_type === "once" || e.period_type === "later") return !e.is_completed || e.is_completed_today;
       
       if (e.period_type === "daily") {
         if (!e.daily_slot) return true;
@@ -279,6 +280,7 @@ export const updateEntry = api(
       daily_slot_param: req.dailySlot ?? null,
       day_of_week_param: parseScheduleInt(req.dayOfWeek),
       day_of_month_param: parseScheduleInt(req.dayOfMonth),
+      period_type_param: req.periodType ?? null,
     });
 
     if (error) {

@@ -562,3 +562,56 @@ function getAppPatch(apps: NotificationAppsJson, appKey: string): Record<string,
   const raw = apps[appKey];
   return raw && typeof raw === "object" ? raw : {};
 }
+
+interface UpdateUserProfileRequest {
+  clerkId: string;
+  username: string;
+  fullName: string;
+}
+
+interface UpdateUserProfileResponse {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Kullanıcı adını ve gerçek adını günceller. Kullanıcı adının benzersizliğini kontrol eder.
+ */
+export const updateUserProfile = api(
+  { expose: true, method: "POST", path: "/users/profile/update" },
+  async ({ clerkId, username, fullName }: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> => {
+    const cleanUsername = username.trim().toLowerCase();
+    
+    // Check uniqueness
+    const { data: existingUsers, error: searchError } = await supabase
+      .from("users")
+      .select("id, clerk_id")
+      .eq("username", cleanUsername);
+
+    if (searchError) {
+      console.error("Search username error:", searchError);
+      return { success: false, error: "Kullanıcı adı kontrol edilirken hata oluştu." };
+    }
+
+    const takenByOther = existingUsers && existingUsers.some(u => u.clerk_id !== clerkId);
+    if (takenByOther) {
+      return { success: false, error: "Bu kullanıcı adı zaten başkası tarafından kullanılıyor." };
+    }
+
+    // Update profile
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        username: cleanUsername,
+        full_name: fullName.trim(),
+      })
+      .eq("clerk_id", clerkId);
+
+    if (updateError) {
+      console.error("Update profile error:", updateError);
+      return { success: false, error: "Profil güncellenemedi." };
+    }
+
+    return { success: true };
+  }
+);

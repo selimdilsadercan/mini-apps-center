@@ -1083,7 +1083,7 @@ export interface TodaySeriesItem {
   episode: number;
   episodeTitle?: string;
   airDate: string;
-  source: "tmdb" | "episode-club";
+  source: "tmdb" | "episode-club" | "my-library";
   isWatched: boolean;
   programId?: string | null;
   /** Aynı dizide gösterilen bölümden sonra bekleyen ek izlenmemiş bölüm sayısı */
@@ -1207,6 +1207,114 @@ export const getTodayEpisodes = api(
         });
       }
     }
+
+    // Process series that are in "watching" status but don't have an item added yet
+    const watchingSeries = series.filter((s) => s.status === "watching");
+    await Promise.all(
+      watchingSeries.map(async (userSeries) => {
+        const alreadyAdded = items.some((item) => item.seriesId === userSeries.id);
+        if (alreadyAdded) return;
+
+        try {
+          const details = await catalog.getSeriesDetails({ tmdbId: userSeries.tmdb_id });
+          const progress = progressMap.get(userSeries.id) || [];
+
+          // Find the highest watched season/episode
+          let lastSeason = 0;
+          let lastEpisode = 0;
+          progress.forEach((p) => {
+            if (p.season_number > lastSeason || (p.season_number === lastSeason && p.episode_number > lastEpisode)) {
+              lastSeason = p.season_number;
+              lastEpisode = p.episode_number;
+            }
+          });
+
+          // Calculate next episode
+          let nextSeasonNum = 1;
+          let nextEpisodeNum = 1;
+
+          if (lastSeason > 0) {
+            const currentSeason = details.seasons?.find((s: any) => s.season_number === lastSeason);
+            if (currentSeason && lastEpisode < currentSeason.episode_count) {
+              nextSeasonNum = lastSeason;
+              nextEpisodeNum = lastEpisode + 1;
+            } else {
+              const nextSeason = details.seasons?.find((s: any) => s.season_number === lastSeason + 1);
+              if (nextSeason) {
+                nextSeasonNum = lastSeason + 1;
+                nextEpisodeNum = 1;
+              } else {
+                return; // No more seasons/episodes
+              }
+            }
+          }
+
+          // Check if next episode is aired
+          let isAired = false;
+          let airDate = "";
+          const lastAiredInfo = details.last_episode_to_air;
+          const nextToAir = details.next_episode_to_air;
+
+          if (lastAiredInfo) {
+            if (
+              nextSeasonNum < lastAiredInfo.season_number ||
+              (nextSeasonNum === lastAiredInfo.season_number && nextEpisodeNum <= lastAiredInfo.episode_number)
+            ) {
+              isAired = true;
+            } else if (
+              nextToAir &&
+              nextSeasonNum === nextToAir.season_number &&
+              nextEpisodeNum === nextToAir.episode_number
+            ) {
+              airDate = nextToAir.air_date || "";
+              if (airDate && episodeDateKey(airDate) <= todayStr) {
+                isAired = true;
+              }
+            }
+          } else {
+            isAired = true; // Fallback
+          }
+
+          if (isAired) {
+            let totalAiredCount = 0;
+            if (lastAiredInfo) {
+              details.seasons?.forEach((s: any) => {
+                if (s.season_number > 0) {
+                  if (s.season_number < lastAiredInfo.season_number) {
+                    totalAiredCount += s.episode_count;
+                  } else if (s.season_number === lastAiredInfo.season_number) {
+                    totalAiredCount += lastAiredInfo.episode_number;
+                  }
+                }
+              });
+            } else {
+              totalAiredCount = details.number_of_episodes || 0;
+            }
+
+            const totalUnwatchedAired = Math.max(0, totalAiredCount - progress.length);
+
+            addItem({
+              id: `${userSeries.id}-${nextSeasonNum}-${nextEpisodeNum}`,
+              seriesId: userSeries.id,
+              tmdbId: userSeries.tmdb_id,
+              title: userSeries.title,
+              posterPath: userSeries.poster_path,
+              watchUrlSlug: userSeries.watch_url_slug,
+              streamInfo: null,
+              season: nextSeasonNum,
+              episode: nextEpisodeNum,
+              episodeTitle: `Sezon ${nextSeasonNum}, Bölüm ${nextEpisodeNum}`,
+              airDate: airDate || todayStr,
+              source: "my-library",
+              isWatched: false,
+              extraUnwatchedCount: Math.max(0, totalUnwatchedAired - 1),
+            });
+          }
+        } catch (err) {
+          console.error(`Error processing TMDB watch series ${userSeries.title}:`, err);
+        }
+      })
+    );
 
     items.sort((a, b) => {
       if (a.isWatched !== b.isWatched) return a.isWatched ? 1 : -1;

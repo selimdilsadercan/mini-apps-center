@@ -10,6 +10,7 @@ import {
   DotsThreeVertical,
 } from "@phosphor-icons/react";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
+import { useProfileUser } from "@/lib/cache/profileCache";
 
 type HomeTab = "discover" | "deck";
 
@@ -46,6 +47,7 @@ export default function HomeHeader({
   const router = useRouter();
   const { locale } = useLanguage();
   const t = useTranslations("home");
+  const { dbUser } = useProfileUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -99,10 +101,10 @@ export default function HomeHeader({
       greeting: t(getGreetingKey(hour)),
       dateShort,
       dateLong,
-      displayName: user?.firstName || user?.username || t("guestName"),
+      displayName: dbUser?.username || dbUser?.full_name || user?.firstName || user?.username || t("guestName"),
       tabLabel: tab === "deck" ? "Günün Kartları" : t(TAB_KEYS[tab]),
     };
-  }, [locale, t, tab, user?.firstName, user?.username]);
+  }, [locale, t, tab, user?.firstName, user?.username, dbUser?.username, dbUser?.full_name]);
 
   return (
     <header className="sticky top-0 z-30 app-chrome-top">

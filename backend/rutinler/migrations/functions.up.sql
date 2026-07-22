@@ -68,7 +68,7 @@ BEGIN
                 (e.period_type = 'daily' AND c.completed_date = v_today) OR
                 (e.period_type = 'weekly' AND c.completed_date >= v_week_start AND c.completed_date < v_next_week_start) OR
                 (e.period_type = 'monthly' AND c.completed_date >= v_month_start AND c.completed_date < v_next_month_start) OR
-                (e.period_type = 'once')
+                (e.period_type = 'once' OR e.period_type = 'later')
             )
         ) as is_completed,
         EXISTS (
@@ -233,7 +233,7 @@ BEGIN
             AND user_id = v_user_id
             AND completed_date >= v_target_date 
             AND completed_date < v_target_date + INTERVAL '1 month';
-        ELSIF v_period_type = 'once' THEN
+        ELSIF v_period_type = 'once' OR v_period_type = 'later' THEN
             DELETE FROM rutinler.completions
             WHERE entry_id = entry_id_param 
             AND user_id = v_user_id;
@@ -246,6 +246,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. Update Entry
 DROP FUNCTION IF EXISTS rutinler.update_entry(UUID, TEXT, TEXT, TEXT, TEXT, SMALLINT, SMALLINT);
+DROP FUNCTION IF EXISTS rutinler.update_entry(UUID, TEXT, TEXT, TEXT, TEXT, SMALLINT, SMALLINT, TEXT);
 CREATE OR REPLACE FUNCTION rutinler.update_entry(
     entry_id_param UUID,
     clerk_id_param TEXT,
@@ -253,7 +254,8 @@ CREATE OR REPLACE FUNCTION rutinler.update_entry(
     item_emoji_param TEXT,
     daily_slot_param TEXT DEFAULT NULL,
     day_of_week_param SMALLINT DEFAULT NULL,
-    day_of_month_param SMALLINT DEFAULT NULL
+    day_of_month_param SMALLINT DEFAULT NULL,
+    period_type_param TEXT DEFAULT NULL
 )
 RETURNS SETOF rutinler.entries AS $$
 DECLARE
@@ -271,7 +273,8 @@ BEGIN
         item_emoji = item_emoji_param,
         daily_slot = daily_slot_param,
         day_of_week = day_of_week_param,
-        day_of_month = day_of_month_param
+        day_of_month = day_of_month_param,
+        period_type = COALESCE(period_type_param, period_type)
     WHERE id = entry_id_param AND user_id = v_user_id
     RETURNING *;
 END;
