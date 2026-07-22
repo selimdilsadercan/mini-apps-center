@@ -290,6 +290,59 @@ function parsePlaylistVideoRenderer(renderer: Record<string, unknown>): YouTubeV
   };
 }
 
+function subtractTime(date: Date, value: number, unit: string): string {
+  const d = new Date(date);
+  if (unit === "second") d.setSeconds(d.getSeconds() - value);
+  else if (unit === "minute") d.setMinutes(d.getMinutes() - value);
+  else if (unit === "hour") d.setHours(d.getHours() - value);
+  else if (unit === "day") d.setDate(d.getDate() - value);
+  else if (unit === "week") d.setDate(d.getDate() - value * 7);
+  else if (unit === "month") d.setMonth(d.getMonth() - value);
+  else if (unit === "year") d.setFullYear(d.getFullYear() - value);
+  return d.toISOString();
+}
+
+function parseRelativeDate(text: string): string | null {
+  if (!text) return null;
+  const cleaned = text.trim().toLowerCase();
+  const now = new Date();
+  
+  // English matchers
+  let match = cleaned.match(/^(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/);
+  if (match) {
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    return subtractTime(now, value, unit);
+  }
+  
+  // Turkish matchers
+  match = cleaned.match(/^(\d+)\s+(saniye|dakika|saat|gün|hafta|ay|yıl)\s+önce$/);
+  if (match) {
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const unitMap: Record<string, string> = {
+      saniye: "second",
+      dakika: "minute",
+      saat: "hour",
+      gün: "day",
+      hafta: "week",
+      ay: "month",
+      yıl: "year",
+    };
+    return subtractTime(now, value, unitMap[unit]);
+  }
+
+  if (cleaned === "dün" || cleaned === "yesterday") {
+    return subtractTime(now, 1, "day");
+  }
+  
+  if (cleaned.includes("şimdi") || cleaned.includes("just now") || cleaned.includes("yeni") || cleaned.includes("new")) {
+    return now.toISOString();
+  }
+
+  return null;
+}
+
 function parseLockupViewModel(lockup: Record<string, unknown>): YouTubeVideoMeta | null {
   const contentType = lockup.contentType;
   if (contentType && contentType !== "LOCKUP_CONTENT_TYPE_VIDEO") {
@@ -327,6 +380,17 @@ function parseLockupViewModel(lockup: Record<string, unknown>): YouTubeVideoMeta
               a11yLabel?: string;
             };
           };
+          metadata?: {
+            contentMetadataViewModel?: {
+              metadataRows?: Array<{
+                metadataParts?: Array<{
+                  text?: {
+                    content?: string;
+                  };
+                }>;
+              }>;
+            };
+          };
         };
       }
     | undefined;
@@ -342,7 +406,31 @@ function parseLockupViewModel(lockup: Record<string, unknown>): YouTubeVideoMeta
     thumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
   }
 
-  return { youtubeId, title, author, thumbnailUrl, publishedAt: null };
+  // Extract relative publish time
+  const contentMetadata = metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel;
+  const metadataRows = contentMetadata?.metadataRows || [];
+  let relativeTimeText = "";
+  for (const row of metadataRows) {
+    const parts = row.metadataParts || [];
+    for (const part of parts) {
+      const text = part.text?.content || "";
+      if (
+        text.includes("önce") ||
+        text.includes("ago") ||
+        text.includes("dün") ||
+        text.includes("yesterday") ||
+        text.includes("yeni") ||
+        text.includes("new")
+      ) {
+        relativeTimeText = text;
+        break;
+      }
+    }
+    if (relativeTimeText) break;
+  }
+  const publishedAt = parseRelativeDate(relativeTimeText);
+
+  return { youtubeId, title, author, thumbnailUrl, publishedAt };
 }
 
 function collectVideosFromInnertubePayload(payload: unknown) {
