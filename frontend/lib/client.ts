@@ -75,6 +75,7 @@ export default class Client {
     public readonly rutinler: rutinler.ServiceClient
     public readonly scrape: scrape.ServiceClient
     public readonly series_track: series_track.ServiceClient
+    public readonly siparis_takip: siparis_takip.ServiceClient
     public readonly stamp_card: stamp_card.ServiceClient
     public readonly standups: standups.ServiceClient
     public readonly storage: storage.ServiceClient
@@ -147,6 +148,7 @@ export default class Client {
         this.rutinler = new rutinler.ServiceClient(base)
         this.scrape = new scrape.ServiceClient(base)
         this.series_track = new series_track.ServiceClient(base)
+        this.siparis_takip = new siparis_takip.ServiceClient(base)
         this.stamp_card = new stamp_card.ServiceClient(base)
         this.standups = new standups.ServiceClient(base)
         this.storage = new storage.ServiceClient(base)
@@ -7825,6 +7827,207 @@ export namespace series_track {
             return await resp.json() as {
     success: boolean
 }
+        }
+    }
+}
+
+export namespace siparis_takip {
+    export interface Customer {
+        id: string
+        name: string
+        phone?: string | null
+        instagramUsername?: string | null
+        address?: string | null
+        notes?: string | null
+        createdAt: string
+        orderCount: number
+    }
+
+    export interface DeleteCustomerRequest {
+        userId: string
+    }
+
+    export interface DeleteCustomerResponse {
+        success: boolean
+    }
+
+    export interface DeleteOrderRequest {
+        userId: string
+    }
+
+    export interface DeleteOrderResponse {
+        success: boolean
+    }
+
+    export interface GetCustomersResponse {
+        customers: Customer[]
+    }
+
+    export interface GetOrdersRequest {
+        status?: string | null
+    }
+
+    export interface GetOrdersResponse {
+        orders: Order[]
+    }
+
+    export interface GetSummaryResponse {
+        stats: SummaryStats
+    }
+
+    export interface Order {
+        id: string
+        customerId: string
+        customerName: string
+        customerInstagram?: string | null
+        customerPhone?: string | null
+        title: string
+        price: number
+        paidAmount: number
+        status: "received" | "in_progress" | "ready" | "delivered" | "cancelled"
+        orderDate: string
+        deadline?: string | null
+        materialsNotes?: string | null
+        notes?: string | null
+        createdAt: string
+    }
+
+    export interface SummaryStats {
+        totalOrders: number
+        activeOrders: number
+        totalEarnings: number
+        pendingPayments: number
+    }
+
+    export interface UpsertCustomerRequest {
+        id?: string | null
+        userId: string
+        name: string
+        phone?: string | null
+        instagramUsername?: string | null
+        address?: string | null
+        notes?: string | null
+    }
+
+    export interface UpsertCustomerResponse {
+        customer: Customer
+    }
+
+    export interface UpsertOrderRequest {
+        id?: string | null
+        userId: string
+        customerId: string
+        title: string
+        price: number
+        paidAmount: number
+        status: "received" | "in_progress" | "ready" | "delivered" | "cancelled"
+        orderDate: string
+        deadline?: string | null
+        materialsNotes?: string | null
+        notes?: string | null
+    }
+
+    export interface UpsertOrderResponse {
+        order: Order
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.deleteCustomer = this.deleteCustomer.bind(this)
+            this.deleteOrder = this.deleteOrder.bind(this)
+            this.getCustomers = this.getCustomers.bind(this)
+            this.getOrders = this.getOrders.bind(this)
+            this.getSummary = this.getSummary.bind(this)
+            this.upsertCustomer = this.upsertCustomer.bind(this)
+            this.upsertOrder = this.upsertOrder.bind(this)
+        }
+
+        /**
+         * Müşteriyi siler.
+         * DELETE /siparis-takip/customer/:customerId
+         */
+        public async deleteCustomer(customerId: string, params: DeleteCustomerRequest): Promise<DeleteCustomerResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/siparis-takip/customer/${encodeURIComponent(customerId)}`, undefined, {query})
+            return await resp.json() as DeleteCustomerResponse
+        }
+
+        /**
+         * Siparişi siler.
+         * DELETE /siparis-takip/order/:orderId
+         */
+        public async deleteOrder(orderId: string, params: DeleteOrderRequest): Promise<DeleteOrderResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/siparis-takip/order/${encodeURIComponent(orderId)}`, undefined, {query})
+            return await resp.json() as DeleteOrderResponse
+        }
+
+        /**
+         * Kullanıcıya ait tüm müşterileri listeler.
+         * GET /siparis-takip/customers/:userId
+         */
+        public async getCustomers(userId: string): Promise<GetCustomersResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/siparis-takip/customers/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetCustomersResponse
+        }
+
+        /**
+         * Siparişleri listeler (isteğe bağlı durum filtresi ile).
+         * GET /siparis-takip/orders/:userId
+         */
+        public async getOrders(userId: string, params: GetOrdersRequest): Promise<GetOrdersResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                status: params.status === undefined ? undefined : String(params.status),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/siparis-takip/orders/${encodeURIComponent(userId)}`, undefined, {query})
+            return await resp.json() as GetOrdersResponse
+        }
+
+        /**
+         * Sipariş durum özet istatistiklerini getirir.
+         * GET /siparis-takip/summary/:userId
+         */
+        public async getSummary(userId: string): Promise<GetSummaryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/siparis-takip/summary/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetSummaryResponse
+        }
+
+        /**
+         * Müşteri oluşturur veya günceller.
+         * POST /siparis-takip/customer
+         */
+        public async upsertCustomer(params: UpsertCustomerRequest): Promise<UpsertCustomerResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/siparis-takip/customer`, JSON.stringify(params))
+            return await resp.json() as UpsertCustomerResponse
+        }
+
+        /**
+         * Sipariş oluşturur veya günceller.
+         * POST /siparis-takip/order
+         */
+        public async upsertOrder(params: UpsertOrderRequest): Promise<UpsertOrderResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/siparis-takip/order`, JSON.stringify(params))
+            return await resp.json() as UpsertOrderResponse
         }
     }
 }

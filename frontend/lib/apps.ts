@@ -928,6 +928,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     subdomain: "iconexport",
     isCancelled: true,
   },
+  {
+    id: "siparis-takip",
+    name: "Sipariş Takip",
+    description: "Müşterilerinizin siparişlerini, detaylarını ve ödemelerini kolayca yönetin.",
+    cta: "Siparişleri Yönet",
+    icon: Storefront,
+    category: "Pratik Araçlar",
+    color: "#EC4899",
+    href: "/apps/siparis-takip",
+    isImplemented: true,
+    subdomain: "siparistakip",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
 ];
 
 const RAW_BUSINESS_APPS: MiniApp[] = [

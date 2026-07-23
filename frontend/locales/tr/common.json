@@ -381,6 +381,10 @@
     "icon-export": {
       "name": "Icon Export",
       "description": "Tek PNG'den iOS, Android ve web için tüm ikon boyutlarını ZIP olarak indir."
+    },
+    "siparis-takip": {
+      "name": "Sipariş Takip",
+      "description": "Müşterilerinizin siparişlerini, detaylarını ve ödemelerini kolayca yönetin."
     }
   },
   "birikim": {

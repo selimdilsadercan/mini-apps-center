@@ -385,6 +385,10 @@
     "icon-export": {
       "name": "Icon Export",
       "description": "Generate iOS, Android, and web icon sizes from one PNG as a ZIP."
+    },
+    "siparis-takip": {
+      "name": "Order Tracker",
+      "description": "Easily manage your customers' orders, details, and payments."
     }
   },
   "birikim": {
