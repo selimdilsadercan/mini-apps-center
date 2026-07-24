@@ -16,6 +16,7 @@ const LOGO_PATH = join(ROOT, "logo-small.png");
 const OUT_DIR = join(ROOT, "output");
 const TMP_DIR = join(OUT_DIR, ".tmp");
 const OUTPUT = join(OUT_DIR, "sunum.mp4");
+const OUTPUT_SHORT = join(OUT_DIR, "sunum-secilenler.mp4");
 
 const WIDTH = 1920;
 const HEIGHT = 1080;
@@ -60,11 +61,15 @@ interface ImageItem {
   absolutePath: string;
   category: string;
   filename: string;
+  isMarked: boolean;
 }
+
+const MARKER_PATTERN = /^([*+!_]|\[[xXvV]\]|⭐|✅|📌)\s*/;
 
 function getSlideTitle(category: string): string {
   // Format clean name from category directory name
-  let title = category
+  const cleanCat = category.replace(MARKER_PATTERN, "");
+  let title = cleanCat
     .replace(/-/g, " ") // replace dashes with spaces
     .trim();
 
@@ -188,10 +193,12 @@ for (const cat of categoryDirs) {
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   for (const file of files) {
+    const isMarked = file.includes("+");
     items.push({
       absolutePath: join(catPath, file),
       category: cat,
       filename: file,
+      isMarked,
     });
   }
 }
@@ -201,17 +208,34 @@ if (items.length === 0) {
   process.exit(1);
 }
 
-console.log(`🖼  ${items.length} görsel bulundu (${categoryDirs.length} kategori)`);
-const clips = items.map((_, i) => join(TMP_DIR, `${String(i + 1).padStart(2, "0")}-img.mp4`));
+const markedCount = items.filter((item) => item.isMarked).length;
+console.log(`🖼  ${items.length} görsel bulundu (${categoryDirs.length} kategori, ${markedCount} görsel işaretli)`);
+const clips = items.map((_, i) => join(TMP_DIR, `${String(i + 1).padStart(3, "0")}-img.mp4`));
 
 await runPool(items, clips);
 
 console.log("🎬 Videolar birleştiriliyor...");
 concatClips(clips, OUTPUT);
 
+const markedClips = clips.filter((_, i) => items[i].isMarked);
+
+if (markedClips.length > 0) {
+  console.log("🎬 Seçilenler için video birleştiriliyor...");
+  concatClips(markedClips, OUTPUT_SHORT);
+} else {
+  console.log("\nℹ️  İşaretlenmiş görsel bulunamadı, kısa versiyon üretilmedi.");
+  console.log("   (Kısa versiyona dahil etmek istediğiniz resimlerin dosya adına '+' ekleyebilirsiniz. Örn: '1+.jpeg' veya '+1.jpeg')");
+}
+
 rmSync(TMP_DIR, { recursive: true, force: true });
 
 const durationMin = ((clips.length * SLIDE_SEC) / 60).toFixed(1);
 console.log(`\n✅ Hazır: ${OUTPUT}`);
 console.log(`   ${clips.length} slayt × ${SLIDE_SEC}s ≈ ${durationMin} dk`);
+
+if (markedClips.length > 0) {
+  const durationShortMin = ((markedClips.length * SLIDE_SEC) / 60).toFixed(1);
+  console.log(`✅ Hazır (Seçilenler): ${OUTPUT_SHORT}`);
+  console.log(`   ${markedClips.length} slayt × ${SLIDE_SEC}s ≈ ${durationShortMin} dk`);
+}
 
