@@ -41,6 +41,18 @@ BEGIN
     END IF;
 END $$;
 
+-- 2. Migration: Add upcoming_concerts table
+CREATE TABLE IF NOT EXISTS concert_list.upcoming_concerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    artist TEXT NOT NULL,
+    date DATE NOT NULL,
+    venue TEXT,
+    description TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_upcoming_concerts_date ON concert_list.upcoming_concerts(date);
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------
@@ -71,12 +83,24 @@ CREATE TABLE IF NOT EXISTS concert_list.concert_friends (
     PRIMARY KEY (concert_id, friend_id)
 );
 
--- 4. Indexes
+-- 4. Upcoming Concerts Table
+CREATE TABLE IF NOT EXISTS concert_list.upcoming_concerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    artist TEXT NOT NULL,
+    date DATE NOT NULL,
+    venue TEXT,
+    description TEXT,
+    image_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 5. Indexes
 CREATE INDEX IF NOT EXISTS idx_concerts_user_id ON concert_list.concerts(user_id);
 CREATE INDEX IF NOT EXISTS idx_concerts_date ON concert_list.concerts(date);
 CREATE INDEX IF NOT EXISTS idx_concert_friends_concert_id ON concert_list.concert_friends(concert_id);
+CREATE INDEX IF NOT EXISTS idx_upcoming_concerts_date ON concert_list.upcoming_concerts(date);
 
--- 5. Grants
+-- 6. Grants
 GRANT ALL ON ALL TABLES IN SCHEMA concert_list TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA concert_list TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA concert_list GRANT ALL ON TABLES TO anon, authenticated, service_role;

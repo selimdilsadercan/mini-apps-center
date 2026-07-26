@@ -278,6 +278,10 @@
       "name": "Suggest",
       "description": "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et, durumlarını takip et!"
     },
+    "outdoor-activities": {
+      "name": "Dışarıda Ne Yapılır?",
+      "description": "At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet."
+    },
     "neyapsam": {
       "name": "Ne Yapsak?",
       "description": "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et."

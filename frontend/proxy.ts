@@ -47,6 +47,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   birikim: "/apps/birikim",
   kavanoz: "/apps/penalty-jar",
   oneday: "/apps/one-day-city-guide",
+  outdoor: "/apps/outdoor-activities",
   budget: "/apps/budget",
   stampcard: "/apps/stamp-card",
   esles: "/apps/esles",

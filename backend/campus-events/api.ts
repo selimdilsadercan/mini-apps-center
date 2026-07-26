@@ -355,3 +355,43 @@ export const getSubmissions = api(
     return { submissions: data || [] };
   }
 );
+
+/**
+ * Seed Kahramanmaraş August Fair events
+ * POST /campus-events/seed-maras
+ */
+export const seedMarasEvents = api(
+  { expose: true, method: "POST", path: "/campus-events/seed-maras" },
+  async (): Promise<{ success: boolean; count: number }> => {
+    const events = [
+      { title: "Eypio Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-01T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Dedublüman Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-04T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Madrigal Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-06T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Zakkum Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-07T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Funda Arar Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-08T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Ekin Uzunlar Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-11T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Aydilge Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-12T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Kubat Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-14T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Gripin Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-15T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Burak Kut Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-18T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Semicenk Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-21T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Yeni Türkü Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-22T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Çelik Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-25T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Öykü Gürman Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-27T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Tuğçe Kandemir Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-28T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" },
+      { title: "Soner Sarıkabadayı Konseri - Maraş Fuarı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", location: "KAFUM (Kahramanmaraş Fuar Merkezi)", event_date: "2026-08-29T21:30:00+03:00", organizer_club: "Kahramanmaraş Büyükşehir Belediyesi", category: "Konser" }
+    ];
+
+    const titles = events.map(e => e.title);
+    await supabase.schema("campus_events").from("events").delete().in("title", titles);
+
+    const { data, error } = await supabase.schema("campus_events").from("events").insert(events).select();
+
+    if (error) {
+      console.error("seedMarasEvents error:", error);
+      throw APIError.internal(`Failed to seed events: ${error.message}`);
+    }
+
+    return { success: true, count: data?.length || 0 };
+  }
+);

@@ -24,6 +24,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { concert_list, friendship } from "@/lib/client";
 import { useRouter } from "next/navigation";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const client = createBrowserClient();
 
@@ -41,6 +42,12 @@ export default function ConcertListPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const router = useRouter();
 
+  const [activeTab, setActiveTab] = useState<"discover" | "attended">("discover");
+  const [upcomingConcerts, setUpcomingConcerts] = useState<concert_list.UpcomingConcert[]>([]);
+  const [upcomingLoading, setUpcomingLoading] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const { isAdmin } = useIsAdmin();
+
   // Load concerts when user is loaded
   useEffect(() => {
     if (isUserLoaded) {
@@ -48,6 +55,35 @@ export default function ConcertListPage() {
       fetchFriends();
     }
   }, [isUserLoaded, user]);
+
+  useEffect(() => {
+    fetchUpcomingConcerts();
+  }, []);
+
+  const fetchUpcomingConcerts = async () => {
+    try {
+      setUpcomingLoading(true);
+      const res = await client.concert_list.getUpcomingConcerts();
+      setUpcomingConcerts(res.concerts || []);
+    } catch (error) {
+      console.error("fetchUpcomingConcerts error:", error);
+    } finally {
+      setUpcomingLoading(false);
+    }
+  };
+
+  const handleSeedUpcoming = async () => {
+    try {
+      setIsSeeding(true);
+      const res = await client.concert_list.seedUpcomingConcerts();
+      toast.success(`${res.count} Fuar konseri başarıyla yüklendi!`);
+      await fetchUpcomingConcerts();
+    } catch (error: any) {
+      toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   const fetchFriends = async () => {
     if (!user) return;
@@ -133,45 +169,80 @@ export default function ConcertListPage() {
       </div>
 
       {/* Mandatory Header Pattern */}
-      <header className="sticky top-0 z-30 app-chrome-top">
-        <div className="px-4 py-3 max-w-xl mx-auto w-full flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <button
-              onClick={() => window.location.href = getAppRootUrl()}
-              className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
-            >
-              <CaretLeft size={14} weight="bold" className="text-[#FF1493]" />
-            </button>
+      <header className="sticky top-0 z-30 app-chrome-top bg-app-surface/95 backdrop-blur-md border-b border-app-border/60">
+        <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                onClick={() => window.location.href = getAppRootUrl()}
+                className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
+              >
+                <CaretLeft size={14} weight="bold" className="text-[#FF1493]" />
+              </button>
 
-            <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
-              <MusicNotes size={18} weight="fill" className="text-[#FF1493] shrink-0" />
-              <span className="truncate">
-                My <span className="text-[#FF1493]">Concert List</span>
-              </span>
-            </h1>
+              <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
+                <MusicNotes size={18} weight="fill" className="text-[#FF1493] shrink-0" />
+                <span className="truncate">
+                  My <span className="text-[#FF1493]">Concert List</span>
+                </span>
+              </h1>
+            </div>
+
+            {user && activeTab === "attended" && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => setShowImportDrawer(true)}
+                  className="bg-app-surface hover:bg-app-surface-muted text-app-text text-[10px] font-black px-2.5 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-app-border shadow-sm cursor-pointer"
+                >
+                  <ArrowSquareIn size={12} weight="bold" />
+                  <span>İçe Aktar</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedConcertForEdit(null);
+                    setShowAddDrawer(true);
+                  }}
+                  className="bg-[#FF1493] hover:opacity-90 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                >
+                  <Plus size={12} weight="bold" />
+                  <span>Yeni</span>
+                </button>
+              </div>
+            )}
+
+            {user && activeTab === "discover" && isAdmin && (
+              <button
+                onClick={handleSeedUpcoming}
+                disabled={isSeeding}
+                className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <span>{isSeeding ? "Yükleniyor..." : "Fuarı Yükle 🎡"}</span>
+              </button>
+            )}
           </div>
 
-          {user && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setShowImportDrawer(true)}
-                className="bg-app-surface hover:bg-app-surface-muted text-app-text text-[10px] font-black px-2.5 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 border border-app-border shadow-sm cursor-pointer"
-              >
-                <ArrowSquareIn size={12} weight="bold" />
-                <span>İçe Aktar</span>
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedConcertForEdit(null);
-                  setShowAddDrawer(true);
-                }}
-                className="bg-[#FF1493] hover:opacity-90 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
-              >
-                <Plus size={12} weight="bold" />
-                <span>Yeni</span>
-              </button>
-            </div>
-          )}
+          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-surface-muted mt-2.5">
+            <button
+              onClick={() => setActiveTab("discover")}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                activeTab === "discover"
+                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
+                  : "text-app-muted hover:text-app-text"
+              }`}
+            >
+              Keşfet
+            </button>
+            <button
+              onClick={() => setActiveTab("attended")}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                activeTab === "attended"
+                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
+                  : "text-app-muted hover:text-app-text"
+              }`}
+            >
+              Gittiklerim
+            </button>
+          </div>
         </div>
       </header>
 
@@ -188,7 +259,83 @@ export default function ConcertListPage() {
         </div>
 
         {/* Timelines / Lists */}
-        {loading ? (
+        {activeTab === "discover" ? (
+          upcomingLoading ? (
+            <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
+              Konserler yükleniyor...
+            </div>
+          ) : upcomingConcerts.length === 0 ? (
+            <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
+              <MusicNotes size={40} className="text-app-muted mb-4" />
+              <p className="text-sm font-bold text-app-muted">Yaklaşan konser bulunamadı 🎭</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {upcomingConcerts
+                .filter((c) => 
+                  c.artist.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  (c.venue && c.venue.toLowerCase().includes(searchQuery.toLowerCase()))
+                )
+                .map((upcoming) => {
+                  return (
+                    <div
+                      key={upcoming.id}
+                      className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex gap-4 items-center justify-between"
+                    >
+                      <div className="flex gap-4 items-center min-w-0 flex-1">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                          {upcoming.imageUrl ? (
+                            <img src={upcoming.imageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
+                              <MusicNotes size={24} className="text-[#FF1493]/60" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[9px] text-[#FF1493] font-black uppercase tracking-wider block mb-0.5">
+                            {formatDate(upcoming.date)}
+                          </span>
+                          <h3 className="text-sm font-black text-app-text truncate">{upcoming.artist}</h3>
+                          <p className="text-[11px] text-app-muted font-bold truncate mt-0.5 flex items-center gap-1">
+                            <MapPin size={10} weight="fill" className="text-app-muted shrink-0" />
+                            <span>{upcoming.venue || "Şehir Etkinliği"}</span>
+                          </p>
+                          {upcoming.description && (
+                            <p className="text-[10px] text-app-muted truncate mt-1">{upcoming.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {user && (
+                        <button
+                          onClick={() => {
+                            const mockConcert: concert_list.Concert = {
+                              id: "",
+                              userId: internalUserId || "",
+                              artist: upcoming.artist,
+                              date: upcoming.date,
+                              venue: upcoming.venue || "",
+                              notes: "",
+                              rating: 5,
+                              createdAt: new Date().toISOString(),
+                              friends: [],
+                              imageUrl: upcoming.imageUrl || null
+                            };
+                            setSelectedConcertForEdit(mockConcert);
+                            setShowAddDrawer(true);
+                          }}
+                          className="bg-[#FF1493] hover:opacity-90 text-white text-[10px] font-black px-3 py-2 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                        >
+                          Gittiklerime Ekle
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          )
+        ) : loading ? (
           <div className="text-center py-20 text-app-muted text-xs font-bold uppercase tracking-widest animate-pulse">
             Zaman tüneli yükleniyor...
           </div>
@@ -228,89 +375,86 @@ export default function ConcertListPage() {
 
                 <div className="space-y-6 pt-8">
                   {groupedByYear[year].map((concert) => {
-                    const companions: { id: string; username: string | null; avatar: string | null }[] = [];
-                    const isMe = concert.userId === internalUserId;
-                    if (!isMe) {
-                      companions.push({
-                        id: concert.userId,
-                        username: concert.creatorUsername || "Arkadaş",
-                        avatar: concert.creatorAvatar || null
-                      });
-                    }
-                    if (concert.friends) {
-                      concert.friends.forEach((f: any) => {
-                        if (f.id !== internalUserId) {
-                          companions.push(f);
-                        }
-                      });
-                    }
-
+                    const companions = concert.friends || [];
                     return (
                       <motion.div
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
                         key={concert.id}
-                        className="bg-app-surface rounded-2xl p-5 border border-app-border relative group hover:border-[#FF1493]/30 hover:bg-app-surface-muted active:scale-[0.99] transition-all cursor-pointer shadow-sm"
-                        onClick={() => {
-                          setSelectedConcertForEdit(concert);
-                          setShowAddDrawer(true);
-                        }}
+                        layout
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-app-surface rounded-3xl border border-app-border p-5 relative shadow-sm hover:border-[#FF1493]/30 transition-all group"
                       >
-                        {/* Timeline node dot */}
-                        <div className="absolute left-[-33px] top-6 w-3 h-3 rounded-full bg-[#FF1493] ring-4 ring-[#FF1493]/20" />
+                        {/* Rating Star */}
+                        {concert.rating && (
+                          <div className="absolute top-5 right-5 flex items-center gap-1 bg-[#FF1493]/10 text-[#FF1493] px-2 py-0.5 rounded-full text-[10px] font-black">
+                            <Star size={10} weight="fill" />
+                            <span>{concert.rating}/5</span>
+                          </div>
+                        )}
 
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex items-center gap-3">
-                            <ArtistAvatar artistName={concert.artist} customImageUrl={concert.imageUrl} />
-                            <div>
-                              <h3 className="text-base font-black text-app-text leading-tight group-hover:text-[#FF1493] transition-colors">
-                                {concert.artist}
-                              </h3>
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-app-muted mt-2">
-                                <span className="flex items-center gap-1">
-                                  <Calendar size={12} className="text-[#FF1493]" />
-                                  {formatDate(concert.date)}
-                                </span>
-                                {concert.venue && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin size={12} className="text-app-muted" />
-                                    {concert.venue}
-                                  </span>
-                                )}
+                        <div className="flex items-start gap-4">
+                          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                            {concert.imageUrl ? (
+                              <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
+                                <MusicNotes size={24} className="text-[#FF1493]/60" />
                               </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1 pr-12">
+                            <h3 className="text-base font-black text-app-text truncate group-hover:text-[#FF1493] transition-colors">
+                              {concert.artist}
+                            </h3>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-muted font-bold">
+                              <span className="flex items-center gap-1">
+                                <Calendar size={12} />
+                                {formatDate(concert.date)}
+                              </span>
+                              {concert.venue && (
+                                <span className="flex items-center gap-1 truncate">
+                                  <MapPin size={12} />
+                                  {concert.venue}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
+
+                        {/* Hover Actions */}
+                        {concert.userId === internalUserId && (
+                          <div className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setSelectedConcertForEdit(concert);
+                                setShowAddDrawer(true);
+                              }}
+                              className="w-7 h-7 rounded-lg bg-app-bg hover:bg-app-surface-muted text-app-muted hover:text-app-text border border-app-border flex items-center justify-center transition-colors cursor-pointer"
+                              title="Düzenle"
+                            >
+                              <PencilSimple size={13} weight="bold" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTargetId(concert.id)}
+                              className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Sil"
+                            >
+                              <Trash size={13} weight="bold" />
+                            </button>
+                          </div>
+                        )}
+
+                        {concert.userId !== internalUserId && (
+                          <div className="absolute bottom-5 right-5 flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-app-muted bg-app-surface-muted px-2 py-1 rounded-md border border-app-border">
+                            <span>Arkadaştan</span>
+                          </div>
+                        )}
 
                         {concert.notes && (
                           <div className="mt-4 pt-3 border-t border-app-border flex items-start gap-2 text-xs text-app-muted leading-relaxed italic">
                             <Notebook size={14} className="shrink-0 text-[#FF1493]/70 mt-0.5" />
                             <p>{concert.notes}</p>
-                          </div>
-                        )}
-
-                        {companions.length > 0 && (
-                          <div className="mt-4 pt-3 border-t border-app-border flex items-center gap-2">
-                            <span className="text-[10px] text-app-muted font-black uppercase tracking-wider shrink-0">Beraber:</span>
-                            <div className="flex -space-x-1.5 overflow-hidden shrink-0">
-                              {companions.map((companion) => (
-                                <div
-                                  key={companion.id}
-                                  title={companion.username || "Arkadaş"}
-                                  className="w-5.5 h-5.5 rounded-full bg-app-surface-muted border border-app-border flex items-center justify-center text-[9px] font-black uppercase text-app-muted overflow-hidden shrink-0"
-                                >
-                                  {companion.avatar ? (
-                                    <img src={companion.avatar} alt={companion.username || ""} className="w-full h-full object-cover" />
-                                  ) : (
-                                    companion.username?.charAt(0) || "👤"
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            <span className="text-[10px] text-app-muted font-bold truncate">
-                              {companions.map((c) => c.username || "Arkadaş").join(", ")}
-                            </span>
                           </div>
                         )}
                       </motion.div>

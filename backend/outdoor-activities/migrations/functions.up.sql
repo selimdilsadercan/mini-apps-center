@@ -1,0 +1,2 @@
+-- FUNCTIONS
+-- 1. (No custom functions defined yet, using direct supabase client schema operations)

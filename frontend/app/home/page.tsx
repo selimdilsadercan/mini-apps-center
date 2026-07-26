@@ -35,6 +35,7 @@ import { isRoutineDueToday } from "@/app/apps/ev-isleri/types";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useHome } from "@/contexts/HomeContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "react-hot-toast";
 import {
   type hub,
@@ -49,6 +50,10 @@ import {
   type ytdb,
   type eksik_var,
   type gym,
+  type campus_events,
+  type workplaces,
+  type concert_list,
+  type outdoor_activities,
 } from "@/lib/client";
 
 // Sub-components
@@ -388,6 +393,30 @@ function HomePageContent() {
     refetchOnReconnect: "always",
   });
 
+  const eventsQuery = useQuery({
+    queryKey: ["campus-events-all", userId],
+    queryFn: () => client.campus_events.getEvents({ userId: userId || undefined }),
+    enabled: isLoaded && activeTab === "discover",
+  });
+
+  const placesQuery = useQuery({
+    queryKey: ["workplaces-all", userId],
+    queryFn: () => client.workplaces.listPlaces({ userId: userId || undefined }),
+    enabled: isLoaded && activeTab === "discover",
+  });
+
+  const upcomingConcertsQuery = useQuery({
+    queryKey: ["upcoming-concerts-all"],
+    queryFn: () => client.concert_list.getUpcomingConcerts(),
+    enabled: isLoaded && activeTab === "discover",
+  });
+
+  const outdoorVenuesQuery = useQuery({
+    queryKey: ["outdoor-venues-all"],
+    queryFn: () => client.outdoor_activities.getVenues({}),
+    enabled: isLoaded && activeTab === "discover",
+  });
+
   const dailyMoviesQuery = useQuery({
     queryKey: ["film-graph", "daily-suggestions", userId],
     queryFn: () => client.film_graph.getDailySuggestions(userId || ""),
@@ -453,7 +482,7 @@ function HomePageContent() {
   const isDataLoaded = !loading && !!data;
 
   const apps: MiniApp[] = data?.apps || MINI_APPS;
-  const isAdmin = data?.user?.isAdmin || false;
+  const { isAdmin } = useIsAdmin();
   const hasBusinesses = data?.user?.hasBusinesses || false;
   const suggestions = data?.suggestions || [];
   const activities = data?.activities || [];
@@ -467,6 +496,10 @@ function HomePageContent() {
   const youtubeSeries: ytdb.Series[] = data?.youtubeSeries || [];
   const eksikItems: eksik_var.MissingItem[] = data?.eksikItems || [];
   const hasFollowedSeries = data?.hasFollowedSeries || false;
+  const events = eventsQuery.data?.events || [];
+  const places = placesQuery.data?.places || [];
+  const upcomingConcerts = upcomingConcertsQuery.data?.concerts || [];
+  const outdoorVenues = outdoorVenuesQuery.data?.venues || [];
 
   const explorePlacesApps = useMemo(() => {
     const order = ["workplaces", "digital-menu", "stamp-card"];
@@ -476,7 +509,7 @@ function HomePageContent() {
   }, [apps]);
 
   const exploreEventsApps = useMemo(() => {
-    const order = ["campus-events", "concert-list"];
+    const order = ["campus-events", "concert-list", "outdoor-activities"];
     return apps
       .filter((app: MiniApp) => app.category === "Şehrini Keşfet" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
@@ -644,7 +677,7 @@ function HomePageContent() {
         isAdmin={isAdmin}
         hasBusinesses={hasBusinesses}
       />
-      {/* <AppBar activePage={getActivePage()} /> */}
+      {/* AppBar is hidden completely per request */}
 
       {/* Pull to Refresh Indicator */}
       <div
@@ -681,6 +714,11 @@ function HomePageContent() {
               >
                 <section className="space-y-3">
                   <HomeSummaryCards
+                    isAdmin={isAdmin}
+                    events={events}
+                    places={places}
+                    upcomingConcerts={upcomingConcerts}
+                    outdoorVenues={outdoorVenues}
                     suggestions={suggestions}
                     activities={activities}
                     todaySeries={todaySeries}
@@ -798,6 +836,8 @@ function HomePageContent() {
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/50 z-[190]" />
           <Drawer.Content className="bg-app-surface flex flex-col rounded-t-2xl fixed bottom-0 left-0 right-0 max-h-[85vh] outline-none z-[200] max-w-lg mx-auto border-t border-app-border">
+            <Drawer.Title className="sr-only">Stüdyo Detayı</Drawer.Title>
+            <Drawer.Description className="sr-only">Stüdyo paketi detayları ve uygulamaları</Drawer.Description>
             {studioSheetPkg && (
               <div className="flex flex-col min-h-0 p-6 pb-8">
                 <div className="w-12 h-1.5 bg-app-border rounded-full self-center mb-6 shrink-0" />
@@ -948,6 +988,11 @@ function getAgendaPeriodLabel(item: rutinler.RoutineEntry) {
 }
 
 function HomeSummaryCards({
+  isAdmin,
+  events,
+  places,
+  upcomingConcerts,
+  outdoorVenues,
   suggestions,
   activities,
   todaySeries,
@@ -966,6 +1011,11 @@ function HomeSummaryCards({
   eksikItems,
   hasFollowedSeries,
 }: {
+  isAdmin: boolean;
+  events: campus_events.CampusEvent[];
+  places: workplaces.Place[];
+  upcomingConcerts: concert_list.UpcomingConcert[];
+  outdoorVenues: outdoor_activities.Venue[];
   suggestions: suggest.InboxSuggestion[];
   activities: kim_gelir.Activity[];
   todaySeries: series_track.TodaySeriesItem[];
@@ -1406,6 +1456,11 @@ function HomeSummaryCards({
 
   return (
     <DiscoverTab
+      isAdmin={isAdmin}
+      events={events}
+      places={places}
+      upcomingConcerts={upcomingConcerts}
+      outdoorVenues={outdoorVenues}
       loading={loading}
       userId={userId}
       actionLoading={actionLoading}

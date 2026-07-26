@@ -79,54 +79,6 @@ export default function AppBar({ activePage }: AppBarProps) {
             <span className="text-[9px] font-black uppercase tracking-tighter">Bugün</span>
           </Link>
 
-          {/* Şehrini Keşfet */}
-          <Link
-            href="/home?tab=explore"
-            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
-              isActive(ActivePage.EXPLORE) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
-            }`}
-          >
-            <MapTrifold 
-              size={20} 
-              weight={isActive(ActivePage.EXPLORE) ? "fill" : "bold"}
-              className="flex-shrink-0"
-            />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Keşfet</span>
-          </Link>
-
-          {/* Hobiler */}
-          <Link
-            href="/home?tab=hobby"
-            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
-              isActive(ActivePage.HOBBY) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
-            }`}
-          >
-            <Heart 
-              size={20} 
-              weight={isActive(ActivePage.HOBBY) ? "fill" : "bold"}
-              className="flex-shrink-0"
-            />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Hobi</span>
-          </Link>
-
-
-
-
-          {/* Yaşam */}
-          <Link
-            href="/home?tab=life"
-            className={`relative flex-1 flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-200 ${
-              isActive(ActivePage.LIFE) ? "text-app-text" : "text-app-muted hover:text-app-text/80"
-            }`}
-          >
-            <Sparkle 
-              size={20} 
-              weight={isActive(ActivePage.LIFE) ? "fill" : "bold"}
-              className="flex-shrink-0"
-            />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Yaşam</span>
-          </Link>
-
           {/* Studio / İşletme */}
           <Link
             href="/home?tab=wallet"

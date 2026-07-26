@@ -31,6 +31,20 @@ export interface Concert {
   imageUrl?: string | null;
 }
 
+export interface UpcomingConcert {
+  id: string;
+  artist: string;
+  date: string; // YYYY-MM-DD
+  venue?: string;
+  description?: string;
+  imageUrl?: string;
+  createdAt: string;
+}
+
+interface GetUpcomingConcertsResponse {
+  concerts: UpcomingConcert[];
+}
+
 // ==================== REQ/RES INTERFACES ====================
 
 interface GetConcertsRequest {
@@ -465,5 +479,115 @@ export const getArtistImages = api(
     }
 
     return { imageUrls: urls };
+  }
+);
+
+/**
+ * Get all upcoming concerts
+ * GET /concert-list/upcoming
+ */
+export const getUpcomingConcerts = api(
+  { expose: true, method: "GET", path: "/concert-list/upcoming" },
+  async (): Promise<GetUpcomingConcertsResponse> => {
+    const { data, error } = await supabase
+      .schema("concert_list")
+      .from("upcoming_concerts")
+      .select("*")
+      .order("date", { ascending: true });
+
+    if (error) {
+      console.error("getUpcomingConcerts error:", error);
+      throw APIError.internal(`Failed to fetch upcoming concerts: ${error.message}`);
+    }
+
+    const formatted = (data || []).map((row: any) => ({
+      id: row.id,
+      artist: row.artist,
+      date: row.date,
+      venue: row.venue || undefined,
+      description: row.description || undefined,
+      imageUrl: row.image_url || undefined,
+      createdAt: row.created_at,
+    }));
+
+    return { concerts: formatted };
+  }
+);
+
+/**
+ * Helper to fetch artist high-res image from iTunes API
+ */
+async function fetchArtistImage(artist: string): Promise<string> {
+  try {
+    const cleanArtist = artist.split("-")[0].trim();
+    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtist)}&entity=song&limit=1`;
+    const itunesRes = await fetch(itunesUrl);
+    const itunesData = (await itunesRes.json()) as any;
+    const result = itunesData.results?.[0];
+    if (result?.artworkUrl100) {
+      return result.artworkUrl100.replace("/100x100bb.jpg", "/600x600bb.jpg");
+    }
+  } catch (err) {
+    console.error("fetchArtistImage error:", err);
+  }
+  return "";
+}
+
+/**
+ * Seed upcoming concerts with Kahramanmaraş August Fair concerts
+ * POST /concert-list/seed-upcoming
+ */
+export const seedUpcomingConcerts = api(
+  { expose: true, method: "POST", path: "/concert-list/seed-upcoming" },
+  async (): Promise<{ success: boolean; count: number }> => {
+    const concertsToSeed = [
+      { artist: "Eypio", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-01" },
+      { artist: "Dedublüman", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-04" },
+      { artist: "Madrigal", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-06" },
+      { artist: "Zakkum", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-07" },
+      { artist: "Funda Arar", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-08" },
+      { artist: "Ekin Uzunlar", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-11" },
+      { artist: "Aydilge", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-12" },
+      { artist: "Kubat", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-14" },
+      { artist: "Gripin", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-15" },
+      { artist: "Burak Kut", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-18" },
+      { artist: "Semicenk", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-21" },
+      { artist: "Yeni Türkü", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-22" },
+      { artist: "Çelik", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-25" },
+      { artist: "Öykü Gürman", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-27" },
+      { artist: "Tuğçe Kandemir", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-28" },
+      { artist: "Soner Sarıkabadayı", description: "Uluslararası Geleneksel Kahramanmaraş Ağustos Fuarı Konserleri", venue: "KAFUM (Kahramanmaraş Fuar Merkezi)", date: "2026-08-29" }
+    ];
+
+    // Fetch images for all artists in parallel
+    const seededConcerts = await Promise.all(
+      concertsToSeed.map(async (c) => {
+        const image = await fetchArtistImage(c.artist);
+        return {
+          artist: c.artist,
+          description: c.description,
+          venue: c.venue,
+          date: c.date,
+          image_url: image || null
+        };
+      })
+    );
+
+    // Delete existing upcoming concerts to avoid duplicates
+    const artists = concertsToSeed.map(c => c.artist);
+    await supabase.schema("concert_list").from("upcoming_concerts").delete().in("artist", artists);
+
+    const { data, error } = await supabase
+      .schema("concert_list")
+      .from("upcoming_concerts")
+      .insert(seededConcerts)
+      .select();
+
+    if (error) {
+      console.error("seedUpcomingConcerts error:", error);
+      throw APIError.internal(`Failed to seed upcoming concerts: ${error.message}`);
+    }
+
+    return { success: true, count: data?.length || 0 };
   }
 );

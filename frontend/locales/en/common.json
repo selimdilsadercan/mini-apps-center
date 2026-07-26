@@ -282,6 +282,10 @@
       "name": "Suggest",
       "description": "Recommend movies, series, games, or venues to your friends and track their status!"
     },
+    "outdoor-activities": {
+      "name": "Outdoor Activities",
+      "description": "Discover outdoor activities like horse riding, canoeing, paintball, gokart, and find venues in your city."
+    },
     "neyapsam": {
       "name": "What to Do?",
       "description": "Quickly create activity invitations or polls, and invite your friends."

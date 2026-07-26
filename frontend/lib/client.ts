@@ -68,6 +68,7 @@ export default class Client {
     public readonly memedex: memedex.ServiceClient
     public readonly movies_this_year: movies_this_year.ServiceClient
     public readonly ota: ota.ServiceClient
+    public readonly outdoor_activities: outdoor_activities.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly read_tracker: read_tracker.ServiceClient
@@ -141,6 +142,7 @@ export default class Client {
         this.memedex = new memedex.ServiceClient(base)
         this.movies_this_year = new movies_this_year.ServiceClient(base)
         this.ota = new ota.ServiceClient(base)
+        this.outdoor_activities = new outdoor_activities.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.read_tracker = new read_tracker.ServiceClient(base)
@@ -1952,6 +1954,7 @@ export namespace campus_events {
             this.getEvent = this.getEvent.bind(this)
             this.getEvents = this.getEvents.bind(this)
             this.getSubmissions = this.getSubmissions.bind(this)
+            this.seedMarasEvents = this.seedMarasEvents.bind(this)
             this.setAttendance = this.setAttendance.bind(this)
             this.submitForm = this.submitForm.bind(this)
             this.updateEvent = this.updateEvent.bind(this)
@@ -2028,6 +2031,22 @@ export namespace campus_events {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/campus-events/events/${encodeURIComponent(id)}/submissions`)
             return await resp.json() as GetSubmissionsResponse
+        }
+
+        /**
+         * Seed Kahramanmaraş August Fair events
+         * POST /campus-events/seed-maras
+         */
+        public async seedMarasEvents(): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/campus-events/seed-maras`)
+            return await resp.json() as {
+    success: boolean
+    count: number
+}
         }
 
         /**
@@ -2669,6 +2688,20 @@ export namespace concert_list {
         concerts: Concert[]
     }
 
+    export interface GetUpcomingConcertsResponse {
+        concerts: UpcomingConcert[]
+    }
+
+    export interface UpcomingConcert {
+        id: string
+        artist: string
+        date: string
+        venue?: string
+        description?: string
+        imageUrl?: string
+        createdAt: string
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
@@ -2681,6 +2714,8 @@ export namespace concert_list {
             this.getArtistImage = this.getArtistImage.bind(this)
             this.getArtistImages = this.getArtistImages.bind(this)
             this.getConcerts = this.getConcerts.bind(this)
+            this.getUpcomingConcerts = this.getUpcomingConcerts.bind(this)
+            this.seedUpcomingConcerts = this.seedUpcomingConcerts.bind(this)
         }
 
         /**
@@ -2761,6 +2796,32 @@ export namespace concert_list {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/concerts/${encodeURIComponent(userId)}`)
             return await resp.json() as GetConcertsResponse
+        }
+
+        /**
+         * Get all upcoming concerts
+         * GET /concert-list/upcoming
+         */
+        public async getUpcomingConcerts(): Promise<GetUpcomingConcertsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/concert-list/upcoming`)
+            return await resp.json() as GetUpcomingConcertsResponse
+        }
+
+        /**
+         * Seed upcoming concerts with Kahramanmaraş August Fair concerts
+         * POST /concert-list/seed-upcoming
+         */
+        public async seedUpcomingConcerts(): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/concert-list/seed-upcoming`)
+            return await resp.json() as {
+    success: boolean
+    count: number
+}
         }
     }
 }
@@ -6387,6 +6448,105 @@ export namespace ota {
             return await resp.json() as {
     success: boolean
     error?: string
+}
+        }
+    }
+}
+
+/**
+ * Encore service definition for outdoor-activities
+ */
+export namespace outdoor_activities {
+    export interface AddVenueRequest {
+        name: string
+        category: string
+        city: string
+        district?: string
+        address?: string
+        notes?: string
+        rating?: number
+        websiteUrl?: string
+        imageUrl?: string
+        createdByClerkId?: string
+    }
+
+    export interface AddVenueResponse {
+        venue: Venue | null
+    }
+
+    export interface GetVenuesRequest {
+        category?: string
+        city?: string
+    }
+
+    export interface GetVenuesResponse {
+        venues: Venue[]
+    }
+
+    export interface Venue {
+        id: string
+        name: string
+        category: string
+        city: string
+        district?: string | null
+        address?: string | null
+        notes?: string | null
+        rating?: number | null
+        websiteUrl?: string | null
+        imageUrl?: string | null
+        createdBy?: string | null
+        createdAt: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addVenue = this.addVenue.bind(this)
+            this.getVenues = this.getVenues.bind(this)
+            this.seedOutdoorVenues = this.seedOutdoorVenues.bind(this)
+        }
+
+        /**
+         * Add a new outdoor venue
+         * POST /outdoor-activities/venues/add
+         */
+        public async addVenue(params: AddVenueRequest): Promise<AddVenueResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/outdoor-activities/venues/add`, JSON.stringify(params))
+            return await resp.json() as AddVenueResponse
+        }
+
+        /**
+         * Retrieve outdoor venues list
+         * GET /outdoor-activities/venues
+         */
+        public async getVenues(params: GetVenuesRequest): Promise<GetVenuesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                category: params.category,
+                city:     params.city,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/outdoor-activities/venues`, undefined, {query})
+            return await resp.json() as GetVenuesResponse
+        }
+
+        /**
+         * Seed initial sample outdoor venues
+         * POST /outdoor-activities/seed
+         */
+        public async seedOutdoorVenues(): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/outdoor-activities/seed`)
+            return await resp.json() as {
+    success: boolean
+    count: number
 }
         }
     }

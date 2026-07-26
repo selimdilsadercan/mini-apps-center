@@ -159,6 +159,22 @@ export function navigateToMiniApp(
 
 const RAW_MINI_APPS: MiniApp[] = [
   {
+    id: "outdoor-activities",
+    name: "Dışarıda Ne Yapılır?",
+    description: "At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.",
+    cta: "Aktivite Mekanlarını Keşfet",
+    icon: Compass,
+    category: "Şehrini Keşfet",
+    color: "#0F766E",
+    href: "/apps/outdoor-activities",
+    isImplemented: true,
+    subdomain: "outdoor",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
     id: "kalimba",
     name: "Kalimba",
     description: "Kalimba notalarını interaktif olarak görüntüleyin, dinleyin ve çalın.",

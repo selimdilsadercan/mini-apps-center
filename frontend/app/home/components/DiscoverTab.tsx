@@ -38,6 +38,15 @@ import {
   CaretDown,
   CaretUp,
   ArrowsClockwise,
+  Megaphone,
+  Coffee,
+  MusicNotes,
+  Waves,
+  Snowflake,
+  Tent,
+  Target,
+  Anchor,
+  Car,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { MINI_APPS } from "@/lib/apps";
@@ -72,6 +81,11 @@ import { getLinkedAppForRoutine } from "@/app/apps/rutinler/routineAppLinks";
 import { AIChatView } from "@/components/ai-chat/AIChatView";
 
 interface DiscoverTabProps {
+  isAdmin?: boolean;
+  events?: any[];
+  places?: any[];
+  upcomingConcerts?: any[];
+  outdoorVenues?: any[];
   loading: boolean;
   userId?: string;
   actionLoading: string | null;
@@ -143,6 +157,11 @@ import { DeckView } from "./DeckView";
 
 export function DiscoverTab(props: DiscoverTabProps) {
   const {
+    isAdmin = false,
+    events = [],
+    places = [],
+    upcomingConcerts = [],
+    outdoorVenues = [],
     loading,
     userId,
     actionLoading,
@@ -203,6 +222,21 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [subTab, setSubTab] = useState<"explore" | "daily">("explore");
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeedMaras = async () => {
+    try {
+      setIsSeeding(true);
+      const res = await browserClient.campus_events.seedMarasEvents();
+      toast.success(`${res.count} Maraş Fuarı konseri yüklendi!`);
+      void queryClient.invalidateQueries({ queryKey: ["campus-events-all", userId] });
+    } catch (err: any) {
+      toast.error(`Yükleme hatası: ${err.message || "Bilinmeyen hata"}`);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   const gameSavesQuery = useQuery({
     queryKey: ["yazboz", "recent-saves", userId],
@@ -436,6 +470,247 @@ export function DiscoverTab(props: DiscoverTabProps) {
   const isYtdbImplemented = MINI_APPS.find((app) => app.id === "youtube-series")?.isImplemented !== false;
 
   const widgets = [
+    {
+      key: "outdoor-activities-widget",
+      title: "Dışarıda Ne Yapılır?",
+      icon: Compass,
+      color: "#0F766E",
+      loading: loading,
+      hasContent: outdoorVenues.length > 0,
+      card: (() => {
+        const grouped = outdoorVenues.reduce((acc: any, venue: any) => {
+          if (!acc[venue.category]) {
+            acc[venue.category] = [];
+          }
+          acc[venue.category].push(venue);
+          return acc;
+        }, {});
+
+        const CATEGORY_ACTIONS: Record<string, string> = {
+          "horse-riding": "Ata Binmeye Git 🏇",
+          "canoeing": "Kano Yapmaya Git 🚣",
+          "skiing": "Kayak Yapmaya Git ⛷️",
+          "camping": "Kampa Git 🏕️",
+          "lasertag": "Lasertag Oynamaya Git 🔫",
+          "paintball": "Paintball Oynamaya Git 🎯",
+          "diving": "Dalış Yapmaya Git 🤿",
+          "gokart": "Gokart Sürmeye Git 🏎️",
+        };
+
+        const CATEGORY_ICONS: Record<string, any> = {
+          "horse-riding": Compass,
+          "canoeing": Waves,
+          "skiing": Snowflake,
+          "camping": Tent,
+          "lasertag": Target,
+          "paintball": Target,
+          "diving": Anchor,
+          "gokart": Car,
+        };
+
+        return (
+          <HomeSummaryCard
+            href="/apps/outdoor-activities"
+            icon={Compass}
+            color="#0F766E"
+            title="Dışarıda Ne Yapılır?"
+            subtitle="Aktif Doğa ve Spor Seçenekleri"
+            loading={loading}
+            emptyText="Aktivite mekanı bulunamadı 🏕️"
+            hasContent={outdoorVenues.length > 0}
+            onHideToday={() => triggerHide("outdoor-activities-widget", "today")}
+            onHidePermanent={() => triggerHide("outdoor-activities-widget", "permanent")}
+            isTodayHidden={isWidgetTodayHidden("outdoor-activities-widget")}
+            isPermanentlyHidden={isWidgetPermanentlyHidden("outdoor-activities-widget")}
+            onRestore={() => handleRestoreWidget("outdoor-activities-widget")}
+          >
+            {Object.entries(grouped).slice(0, 3).map(([catId, catVenues]: any) => {
+              const actionName = CATEGORY_ACTIONS[catId] || "Aktivite Yap 🌟";
+              const CatIcon = CATEGORY_ICONS[catId] || Compass;
+              const firstVenue = catVenues[0];
+
+              return (
+                <div
+                  key={catId}
+                  onClick={() => router.push(`/apps/outdoor-activities?category=${catId}`)}
+                  className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-[36px] h-[36px] rounded-xl bg-[#0F766E]/10 flex items-center justify-center shrink-0">
+                      <CatIcon size={18} className="text-[#0F766E]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-black text-app-text truncate">{actionName}</p>
+                      <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                        📍 {firstVenue.name} ({firstVenue.district || firstVenue.city}) {catVenues.length > 1 ? `ve ${catVenues.length - 1} yer daha` : ""}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </HomeSummaryCard>
+        );
+      })()
+    },
+    {
+      key: "upcoming-concerts-widget",
+      title: "Yaklaşan Konserler",
+      icon: MusicNotes,
+      color: "#FF1493",
+      loading: loading,
+      hasContent: upcomingConcerts.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/concert-list"
+          icon={MusicNotes}
+          color="#FF1493"
+          title="Yaklaşan Konserler"
+          subtitle="Şehirde Canlı Müzik"
+          loading={loading}
+          emptyText="Yakında konser bulunamadı 🎸"
+          hasContent={upcomingConcerts.length > 0}
+          onHideToday={() => triggerHide("upcoming-concerts-widget", "today")}
+          onHidePermanent={() => triggerHide("upcoming-concerts-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("upcoming-concerts-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("upcoming-concerts-widget")}
+          onRestore={() => handleRestoreWidget("upcoming-concerts-widget")}
+        >
+          {upcomingConcerts.slice(0, 3).map((concert: any) => {
+            const concertDate = new Date(concert.date);
+            const dateStr = concertDate.toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
+            return (
+              <div
+                key={concert.id}
+                onClick={() => router.push(`/apps/concert-list`)}
+                className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                    {concert.imageUrl ? (
+                      <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <MusicNotes size={16} className="text-app-muted" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-app-text truncate">{concert.artist}</p>
+                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                      {concert.venue || "Konser Salonu"} · {dateStr}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      )
+    },
+    {
+      key: "events-widget",
+      title: "Bugünün Etkinlikleri",
+      icon: Megaphone,
+      color: "#00aeef",
+      loading: loading,
+      hasContent: events.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/campus-events"
+          icon={Megaphone}
+          color="#00aeef"
+          title="Bugünün Etkinlikleri"
+          subtitle="Şehirde Neler Var?"
+          loading={loading}
+          emptyText="Bugün için planlanmış etkinlik yok 🎭"
+          hasContent={events.length > 0}
+          onHideToday={() => triggerHide("events-widget", "today")}
+          onHidePermanent={() => triggerHide("events-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("events-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("events-widget")}
+          onRestore={() => handleRestoreWidget("events-widget")}
+        >
+          {events.slice(0, 3).map((event: any) => {
+            const eventDate = new Date(event.event_date);
+            const timeStr = eventDate.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+            return (
+              <div
+                key={event.id}
+                onClick={() => router.push(`/apps/campus-events/event?id=${event.id}`)}
+                className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                    {event.image_url ? (
+                      <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Megaphone size={16} className="text-app-muted" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-app-text truncate">{event.title}</p>
+                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                      {event.location || "Şehir Etkinliği"} · {timeStr}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </HomeSummaryCard>
+      )
+    },
+    {
+      key: "workplaces-widget",
+      title: "Çalışmaya Gidilecek Yerler",
+      icon: Coffee,
+      color: "#6F4E37",
+      loading: loading,
+      hasContent: places.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/workplaces"
+          icon={Coffee}
+          color="#6F4E37"
+          title="Çalışmaya Gidilecek Yerler"
+          subtitle="Workplaces"
+          loading={loading}
+          emptyText="Kaydedilmiş mekan bulunamadı ☕"
+          hasContent={places.length > 0}
+          onHideToday={() => triggerHide("workplaces-widget", "today")}
+          onHidePermanent={() => triggerHide("workplaces-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("workplaces-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("workplaces-widget")}
+          onRestore={() => handleRestoreWidget("workplaces-widget")}
+        >
+          {places.slice(0, 3).map((place: any) => (
+            <div
+              key={place.id}
+              onClick={() => router.push(`/apps/workplaces/place?slug=${place.id}`)}
+              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                  {place.image_url ? (
+                    <img src={place.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Coffee size={16} className="text-app-muted" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {place.district || "Popüler Mekan"} · {place.tags?.slice(0, 2).join(", ") || "Kafeler"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      )
+    },
     {
       key: "yazboz-widget",
       title: "Masa Oyunu Oynayın",
@@ -1684,30 +1959,51 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
   ];
 
-  const pendingWidgets = widgets.filter(
+  const filteredWidgets = widgets.filter((w) => {
+    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget";
+    if (subTab === "explore") {
+      return isExploreWidget;
+    } else {
+      return !isExploreWidget;
+    }
+  });
+
+  const pendingWidgets = filteredWidgets.filter(
     (widget) =>
       widget.key !== "matches" &&
       widget.key !== "youtubeSeries" &&
       widget.key !== "movies" &&
       widget.key !== "yazboz-widget" &&
+      widget.key !== "events-widget" &&
+      widget.key !== "workplaces-widget" &&
+      widget.key !== "upcoming-concerts-widget" &&
+      widget.key !== "outdoor-activities-widget" &&
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
 
   const hasAnyDiscover = (() => {
-    const matchesWidget = widgets.find((w) => w.key === "matches");
-    const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
-    const moviesWidget = widgets.find((w) => w.key === "movies");
-    const yazbozWidget = widgets.find((w) => w.key === "yazboz-widget");
+    const matchesWidget = filteredWidgets.find((w) => w.key === "matches");
+    const ytWidget = filteredWidgets.find((w) => w.key === "youtubeSeries");
+    const moviesWidget = filteredWidgets.find((w) => w.key === "movies");
+    const yazbozWidget = filteredWidgets.find((w) => w.key === "yazboz-widget");
+    const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
+    const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
+    const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
+    const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
     return (
       Boolean(matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches")) ||
       Boolean(ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries")) ||
       Boolean(moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies")) ||
-      Boolean(yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget"))
+      Boolean(yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget")) ||
+      Boolean(eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget")) ||
+      Boolean(workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget")) ||
+      Boolean(upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget")) ||
+      Boolean(outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget"))
     );
   })();
 
-  const finishedWidgets = widgets.filter((widget) => {
+  const finishedWidgets = filteredWidgets.filter((widget) => {
     if (
       widget.key === "suggest" ||
       widget.key === "activities" ||
@@ -1715,6 +2011,10 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key === "youtubeSeries" ||
       widget.key === "movies" ||
       widget.key === "yazboz-widget" ||
+      widget.key === "events-widget" ||
+      widget.key === "workplaces-widget" ||
+      widget.key === "upcoming-concerts-widget" ||
+      widget.key === "outdoor-activities-widget" ||
       isWidgetHidden(widget.key)
     )
       return false;
@@ -1732,6 +2032,33 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   return (
     <div className="space-y-4">
+      {/* Admin Sub-Tabs */}
+      {isAdmin && (
+        <div className="flex justify-center mb-2">
+          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-surface-muted shadow-sm">
+            <button
+              onClick={() => setSubTab("explore")}
+              className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                subTab === "explore"
+                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
+                  : "text-app-muted hover:text-app-text"
+              }`}
+            >
+              Keşfet
+            </button>
+            <button
+              onClick={() => setSubTab("daily")}
+              className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                subTab === "daily"
+                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
+                  : "text-app-muted hover:text-app-text"
+              }`}
+            >
+              Gündelik
+            </button>
+          </div>
+        </div>
+      )}
       {/* 1. YAPILACAKLAR */}
       {pendingWidgets.length > 0 && (
         <div className="space-y-2.5">
@@ -1765,25 +2092,113 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
       {/* 2. BAŞKA NE YAPABİLİRİM? */}
       {(() => {
-        const matchesWidget = widgets.find((w) => w.key === "matches");
-        const ytWidget = widgets.find((w) => w.key === "youtubeSeries");
-        const moviesWidget = widgets.find((w) => w.key === "movies");
-        const yazbozWidget = widgets.find((w) => w.key === "yazboz-widget");
+        const matchesWidget = filteredWidgets.find((w) => w.key === "matches");
+        const ytWidget = filteredWidgets.find((w) => w.key === "youtubeSeries");
+        const moviesWidget = filteredWidgets.find((w) => w.key === "movies");
+        const yazbozWidget = filteredWidgets.find((w) => w.key === "yazboz-widget");
+        const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
+        const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
+        const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
+        const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
         const visibleMovies = moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies");
         const visibleYazboz = yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget");
+        const visibleEvents = eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget");
+        const visibleWorkplaces = workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget");
+        const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget");
+        const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz;
+        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleEvents || visibleWorkplaces || visibleUpcomingConcerts || visibleOutdoor;
 
         if (!hasAny) return null;
 
         return (
           <div className="pt-2 space-y-2.5">
-            <HomeGroupHeader title="Başka Ne Yapabilirim?" />
+            <HomeGroupHeader title={subTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
             <div className="space-y-3">
               <AnimatePresence initial={false}>
+                {visibleEvents && eventsWidget && (
+                  <motion.div
+                    key="events-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {eventsWidget.card}
+                  </motion.div>
+                )}
+                {visibleUpcomingConcerts && upcomingConcertsWidget && (
+                  <motion.div
+                    key="upcoming-concerts-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {upcomingConcertsWidget.card}
+                  </motion.div>
+                )}
+                {visibleOutdoor && outdoorWidget && (
+                  <motion.div
+                    key="outdoor-activities-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {outdoorWidget.card}
+                  </motion.div>
+                )}
+                {visibleWorkplaces && workplacesWidget && (
+                  <motion.div
+                    key="workplaces-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {workplacesWidget.card}
+                  </motion.div>
+                )}
                 {visibleMovies && moviesWidget && (
                   <motion.div
                     key="movies"
@@ -1923,7 +2338,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           "movies": 4,
           "yazboz-widget": 1000,
         };
-        const todayHidden = widgets
+        const todayHidden = filteredWidgets
           .filter((w) => isWidgetTodayHidden(w.key))
           .sort((a, b) => {
             const orderA = HIDDEN_WIDGET_ORDER[a.key] ?? 999;
@@ -1996,7 +2411,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
       {/* 5. KOMPLE GİZLENENLER (Collapsible Accordion) */}
       {(() => {
-        const permHidden = widgets.filter((w) => isWidgetPermanentlyHidden(w.key));
+        const permHidden = filteredWidgets.filter((w) => isWidgetPermanentlyHidden(w.key));
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">
             <button
