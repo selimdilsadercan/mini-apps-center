@@ -9,7 +9,6 @@ import AddFilmModal from "./components/AddFilmModal";
 import DiscoverTab from "./components/DiscoverTab";
 import FilmDetailDrawer from "./components/FilmDetailDrawer";
 import FilmGraphShell from "./components/FilmGraphShell";
-import GraphTab from "./components/GraphTab";
 import MyListTab from "./components/MyListTab";
 import { fetchFilmDetails } from "./film-api";
 import {
@@ -19,6 +18,7 @@ import {
   Film,
   FilmCatalogItem,
   FilmTab,
+  DiscoverSubTab,
   getConnectedNodes,
   Person,
   STORAGE_KEY,
@@ -43,7 +43,8 @@ export default function FilmGraphPage() {
   const [films, setFilms] = useState<Film[]>([]);
   const [persons, setPersons] = useState<Map<string, Person>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<FilmTab>("list");
+  const [activeTab, setActiveTab] = useState<FilmTab>("discover");
+  const [discoverSubTab, setDiscoverSubTab] = useState<DiscoverSubTab>("sessions");
 
   const [detailFilm, setDetailFilm] = useState<FilmCatalogItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -94,6 +95,22 @@ export default function FilmGraphPage() {
       /* ignore corrupt storage */
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab === "discover" || tab === "list") {
+      setActiveTab(tab as FilmTab);
+    }
+    const sub = params.get("sub");
+    if (sub === "sessions" || sub === "popular" || sub === "toprated") {
+      setDiscoverSubTab(sub as DiscoverSubTab);
+    } else if (tab === "sessions") {
+      // legacy: ?tab=sessions redirects to sessions sub-tab
+      setActiveTab("discover");
+      setDiscoverSubTab("sessions");
     }
   }, []);
 
@@ -382,23 +399,7 @@ export default function FilmGraphPage() {
     }
   }, [loading, openFilmDetail]);
 
-  const openGraphForFilm = useCallback(
-    (filmId: string) => {
-      setDetailFilm(null);
-      setActiveTab("graph");
-      const node = graphData.nodes.find((n) => n.id === filmId && n.type === "film");
-      if (node) setSelectedNode(node);
-      else {
-        setSelectedNode({
-          id: filmId,
-          name: films.find((f) => f.id === filmId)?.title || "",
-          type: "film",
-          color: ACCENT,
-        });
-      }
-    },
-    [graphData.nodes, films],
-  );
+
 
   if (loading) {
     return (
@@ -415,7 +416,7 @@ export default function FilmGraphPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => setIsModalOpen(true)}
-        graphLayout={activeTab === "graph"}
+        graphLayout={false}
         onBack={
           detailFilm
             ? () => setDetailFilm(null)
@@ -425,7 +426,13 @@ export default function FilmGraphPage() {
         }
       >
         {activeTab === "discover" && (
-          <DiscoverTab listIds={listIds} onSelect={(film) => void handleDiscoverSelect(film)} />
+          <DiscoverTab
+            listIds={listIds}
+            onSelect={handleDiscoverSelect}
+            discoverSubTab={discoverSubTab}
+            onDiscoverSubTabChange={setDiscoverSubTab}
+            onFilmClick={(tmdbId) => void openFilmDetail(tmdbId)}
+          />
         )}
 
         {activeTab === "list" && (
@@ -437,17 +444,6 @@ export default function FilmGraphPage() {
             onDeleteFilm={handleDeleteFilm}
             onToggleFilmStatus={handleToggleFilmStatus}
             onTogglePriority={handleTogglePriority}
-          />
-        )}
-
-        {activeTab === "graph" && (
-          <GraphTab
-            graphData={graphData}
-            selectedNode={selectedNode}
-            connectedNodes={connectedNodes}
-            onNodeClick={setSelectedNode}
-            onClosePanel={() => setSelectedNode(null)}
-            filmCount={films.length}
           />
         )}
       </FilmGraphShell>
@@ -469,9 +465,6 @@ export default function FilmGraphPage() {
             handleDeleteFilm(detailFilm.id);
             setDetailFilm(null);
           }
-        }}
-        onOpenGraph={() => {
-          if (detailFilm) openGraphForFilm(detailFilm.id);
         }}
       />
 

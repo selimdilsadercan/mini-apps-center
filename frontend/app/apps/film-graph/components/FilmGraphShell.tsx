@@ -4,10 +4,9 @@ import { getAppRootUrl } from "@/lib/apps";
 import {
   CaretLeft,
   ProjectorScreen,
-  MagnifyingGlass,
   BookmarkSimple,
-  Graph,
   Plus,
+  Compass,
 } from "@phosphor-icons/react";
 import { ACCENT, FilmTab } from "../film-data";
 
@@ -32,6 +31,13 @@ export default function FilmGraphShell({
     `inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
       active
         ? "bg-app-tab-active text-app-text shadow-sm"
+        : "text-app-muted hover:text-app-text"
+    }`;
+
+  const subTabClass = (active: boolean) =>
+    `inline-flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wide whitespace-nowrap transition-all active:scale-[0.98] cursor-pointer ${
+      active
+        ? "text-app-text shadow-sm border border-app-border bg-app-surface"
         : "text-app-muted hover:text-app-text"
     }`;
 
@@ -78,13 +84,14 @@ export default function FilmGraphShell({
             )}
           </div>
 
+          {/* Main Tabs only */}
           <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track">
             <button
               type="button"
               onClick={() => onTabChange("discover")}
               className={tabClass(activeTab === "discover")}
             >
-              <MagnifyingGlass size={14} weight={activeTab === "discover" ? "fill" : "bold"} />
+              <Compass size={14} weight={activeTab === "discover" ? "fill" : "bold"} />
               Keşfet
             </button>
             <button
@@ -94,14 +101,6 @@ export default function FilmGraphShell({
             >
               <BookmarkSimple size={14} weight={activeTab === "list" ? "fill" : "bold"} />
               Listem
-            </button>
-            <button
-              type="button"
-              onClick={() => onTabChange("graph")}
-              className={tabClass(activeTab === "graph")}
-            >
-              <Graph size={14} weight={activeTab === "graph" ? "fill" : "bold"} />
-              Graph
             </button>
           </div>
         </div>

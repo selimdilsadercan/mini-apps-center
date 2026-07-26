@@ -190,4 +190,5 @@ Her mini-app'in header'ı aynı iskelete sahip olmalıdır. Özel/tek seferlik h
   - Active tabs: `bg-app-tab-active`
   - Muted text: `text-app-muted`
 - **Tab Layout Width:** Segmented control/tab tracks in headers must NOT be full width (`w-full` / `max-w-none`). Use `inline-flex` without `w-full` so they shrink to fit the content, keeping them cohesive and centered/left-aligned as seen in other mini-apps.
+- **Hover State Borders:** Cards and list items must NOT change their border color on hover (avoid styles like `hover:border-[COLOR]/30` or `hover:border-gray-300`). Card borders must remain consistent across all states (both light and dark mode).
 

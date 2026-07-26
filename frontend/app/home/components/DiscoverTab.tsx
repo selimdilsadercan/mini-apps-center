@@ -45,8 +45,9 @@ import {
   Snowflake,
   Tent,
   Target,
-  Anchor,
   Car,
+  Ticket,
+  Anchor,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { MINI_APPS } from "@/lib/apps";
@@ -244,6 +245,24 @@ export function DiscoverTab(props: DiscoverTabProps) {
     enabled: !!userId,
     staleTime: 0,
   });
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const cineverseSessionsQuery = useQuery({
+    queryKey: ["film-graph", "cineverse-sessions", todayStr],
+    queryFn: async () => {
+      const sessionsRes = await browserClient.film_graph.getCineverseSessions({ date: todayStr, theaterSlug: "piazza-kahramanmaras" });
+      const moviesRes = await browserClient.film_graph.getCineverseMovies();
+      return {
+        sessions: sessionsRes.sessions || [],
+        movies: moviesRes.movies || []
+      };
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const cineverseData = cineverseSessionsQuery.data;
+  const sessionsLoading = cineverseSessionsQuery.isLoading;
 
   const recentGameSaves = useMemo(() => {
     if (!gameSavesQuery.data?.gameSaves) return [];
@@ -524,26 +543,145 @@ export function DiscoverTab(props: DiscoverTabProps) {
             isPermanentlyHidden={isWidgetPermanentlyHidden("outdoor-activities-widget")}
             onRestore={() => handleRestoreWidget("outdoor-activities-widget")}
           >
-            {Object.entries(grouped).slice(0, 3).map(([catId, catVenues]: any) => {
-              const actionName = CATEGORY_ACTIONS[catId] || "Aktivite Yap 🌟";
-              const CatIcon = CATEGORY_ICONS[catId] || Compass;
-              const firstVenue = catVenues[0];
+            {(() => {
+              const CATEGORY_ORDER = ["horse-riding", "canoeing", "camping", "lasertag", "paintball", "diving", "gokart", "skiing"];
+              const sorted = Object.entries(grouped).sort((a, b) => {
+                const idxA = CATEGORY_ORDER.indexOf(a[0]);
+                const idxB = CATEGORY_ORDER.indexOf(b[0]);
+                return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+              });
+              return sorted.slice(0, 3).map(([catId, catVenues]: any) => {
+                const actionName = CATEGORY_ACTIONS[catId] || "Aktivite Yap 🌟";
+                const CatIcon = CATEGORY_ICONS[catId] || Compass;
+                const firstVenue = catVenues[0];
 
+                return (
+                  <div
+                    key={catId}
+                    onClick={() => router.push(`/apps/outdoor-activities?category=${catId}`)}
+                    className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-[36px] h-[36px] rounded-xl bg-[#0F766E]/10 flex items-center justify-center shrink-0">
+                        <CatIcon size={18} className="text-[#0F766E]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-black text-app-text truncate">{actionName}</p>
+                        <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                          📍 {firstVenue.name} ({firstVenue.district || firstVenue.city}) {catVenues.length > 1 ? `ve ${catVenues.length - 1} yer daha` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </HomeSummaryCard>
+        );
+      })()
+    },
+    {
+      key: "cinema-sessions-widget",
+      title: "Bugün Sinemada",
+      icon: Ticket,
+      color: "#DC2626",
+      loading: sessionsLoading,
+      hasContent: (cineverseData?.sessions || []).length > 0,
+      card: (() => {
+        const sessions = cineverseData?.sessions || [];
+        const movies = cineverseData?.movies || [];
+
+        // Group sessions by movie
+        const grouped = sessions.reduce((acc: any, s: any) => {
+          if (!acc[s.movie_title]) acc[s.movie_title] = [];
+          acc[s.movie_title].push(s);
+          return acc;
+        }, {});
+
+        const hasContent = Object.keys(grouped).length > 0;
+
+        return (
+          <HomeSummaryCard
+            href="/apps/film-graph?tab=sessions"
+            icon={Ticket}
+            color="#DC2626"
+            title="Sinema Seansları"
+            subtitle="Piazza Kahramanmaraş"
+            loading={sessionsLoading}
+            emptyText="Bugün için sinema seansı bulunamadı 🎬"
+            hasContent={hasContent}
+            onHideToday={() => triggerHide("cinema-sessions-widget", "today")}
+            onHidePermanent={() => triggerHide("cinema-sessions-widget", "permanent")}
+            isTodayHidden={isWidgetTodayHidden("cinema-sessions-widget")}
+            isPermanentlyHidden={isWidgetPermanentlyHidden("cinema-sessions-widget")}
+            onRestore={() => handleRestoreWidget("cinema-sessions-widget")}
+          >
+            {Object.entries(grouped).slice(0, 3).map(([movieTitle, movieSessions]: any) => {
+              const movieInfo = movies.find((m: any) => m.title === movieTitle);
               return (
                 <div
-                  key={catId}
-                  onClick={() => router.push(`/apps/outdoor-activities?category=${catId}`)}
-                  className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+                  key={movieTitle}
+                  className="px-4 py-3.5 border-t border-app-border flex gap-3.5 text-left hover:bg-app-surface-muted/10 transition-colors"
                 >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-[36px] h-[36px] rounded-xl bg-[#0F766E]/10 flex items-center justify-center shrink-0">
-                      <CatIcon size={18} className="text-[#0F766E]" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-black text-app-text truncate">{actionName}</p>
-                      <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                        📍 {firstVenue.name} ({firstVenue.district || firstVenue.city}) {catVenues.length > 1 ? `ve ${catVenues.length - 1} yer daha` : ""}
+                  {/* Poster */}
+                  <div
+                    onClick={() => router.push("/apps/film-graph?tab=sessions")}
+                    className="w-10 h-14 rounded-lg overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center cursor-pointer"
+                  >
+                    {movieInfo?.image_url ? (
+                      <img
+                        src={movieInfo.image_url}
+                        alt={movieTitle}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Ticket size={20} className="text-app-muted" />
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1 flex flex-col justify-between">
+                    <div className="cursor-pointer" onClick={() => router.push("/apps/film-graph?tab=sessions")}>
+                      <p className="text-[11px] font-black text-app-text truncate uppercase tracking-tight">
+                        {movieTitle}
                       </p>
+                      <p className="text-[8px] text-app-muted font-bold truncate mt-0.5 uppercase tracking-widest">
+                        {movieInfo?.genre} {movieInfo?.duration ? `· ${movieInfo.duration}` : ""}
+                      </p>
+                    </div>
+
+                    {/* Showtime Badges */}
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {movieSessions.slice(0, 5).map((s: any, idx: number) => {
+                        const isPast = !s.booking_url;
+                        return isPast ? (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 text-[8px] font-black tracking-widest border border-app-border text-app-muted/30 line-through rounded cursor-not-allowed"
+                            title="Geçmiş Seans"
+                          >
+                            {s.time}
+                          </span>
+                        ) : (
+                          <a
+                            key={idx}
+                            href={s.booking_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-0.5 text-[8px] font-black tracking-widest bg-red-600/10 text-red-600 border border-red-600/20 hover:bg-red-600 hover:text-white rounded transition-colors"
+                          >
+                            {s.time}
+                          </a>
+                        );
+                      })}
+                      {movieSessions.length > 5 && (
+                        <span 
+                          onClick={() => router.push("/apps/film-graph?tab=sessions")}
+                          className="px-2 py-0.5 text-[8px] font-black tracking-widest text-app-muted hover:text-app-text cursor-pointer"
+                        >
+                          +{movieSessions.length - 5}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -554,7 +692,93 @@ export function DiscoverTab(props: DiscoverTabProps) {
       })()
     },
     {
+      key: "cinema-widget",
+      title: "Bugün Sinemada",
+      icon: Ticket,
+      color: "#D97706",
+      loading: sessionsLoading,
+      hasContent: (cineverseData?.sessions || []).length > 0,
+      hasCompletedOnly: false,
+      card: (() => {
+        const sessions = cineverseData?.sessions || [];
+        const movies = cineverseData?.movies || [];
+        // Group sessions by movie title and take top 3 movies
+        const grouped: Record<string, { title: string; posterUrl: string; times: { time: string; bookingUrl: string | null }[] }> = {};
+        sessions.forEach((s: any) => {
+          if (!grouped[s.movie_title]) {
+            const movie = movies.find((m: any) => m.title === s.movie_title);
+            grouped[s.movie_title] = {
+              title: s.movie_title,
+              posterUrl: movie?.image_url || s.poster_url || "",
+              times: [],
+            };
+          }
+          grouped[s.movie_title].times.push({ time: s.time, bookingUrl: s.booking_url });
+        });
+        const topMovies = Object.values(grouped)
+          .sort((a, b) => b.times.length - a.times.length)
+          .slice(0, 3);
+        return (
+          <HomeSummaryCard
+            href="/apps/film-graph"
+            icon={Ticket}
+            color="#D97706"
+            title="Bugün Sinemada"
+            subtitle="Paribu Cineverse Piazza"
+            loading={sessionsLoading}
+            emptyText="Bugün için seans bilgisi yok 🎬"
+            hasContent={sessions.length > 0}
+            onHideToday={() => triggerHide("cinema-widget", "today")}
+            onHidePermanent={() => triggerHide("cinema-widget", "permanent")}
+            isTodayHidden={isWidgetTodayHidden("cinema-widget")}
+            isPermanentlyHidden={isWidgetPermanentlyHidden("cinema-widget")}
+            onRestore={() => handleRestoreWidget("cinema-widget")}
+          >
+            {topMovies.map((movie) => (
+              <div
+                key={movie.title}
+                className="px-4 py-3 border-t border-app-border"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                    {movie.posterUrl ? (
+                      <img src={movie.posterUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Ticket size={16} className="text-app-muted" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-app-text truncate">{movie.title}</p>
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                      {movie.times.slice(0, 4).map(({ time, bookingUrl }) => (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (bookingUrl) window.open(bookingUrl, "_blank");
+                            else router.push("/apps/film-graph");
+                          }}
+                          className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer"
+                        >
+                          {time}
+                        </button>
+                      ))}
+                      {movie.times.length > 4 && (
+                        <span className="text-[9px] text-app-muted font-bold">+{movie.times.length - 4}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </HomeSummaryCard>
+        );
+      })(),
+    },
+    {
       key: "upcoming-concerts-widget",
+
       title: "Yaklaşan Konserler",
       icon: MusicNotes,
       color: "#FF1493",
@@ -1960,7 +2184,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget";
+    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget";
     if (subTab === "explore") {
       return isExploreWidget;
     } else {
@@ -1974,6 +2198,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "youtubeSeries" &&
       widget.key !== "movies" &&
       widget.key !== "yazboz-widget" &&
+      widget.key !== "cinema-widget" &&
       widget.key !== "events-widget" &&
       widget.key !== "workplaces-widget" &&
       widget.key !== "upcoming-concerts-widget" &&
@@ -2096,21 +2321,23 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const ytWidget = filteredWidgets.find((w) => w.key === "youtubeSeries");
         const moviesWidget = filteredWidgets.find((w) => w.key === "movies");
         const yazbozWidget = filteredWidgets.find((w) => w.key === "yazboz-widget");
+        const cinemaWidget = filteredWidgets.find((w) => w.key === "cinema-widget");
+        const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
         const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
         const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
-        const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
         const visibleMovies = moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies");
         const visibleYazboz = yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget");
+        const visibleCinema = cinemaWidget && cinemaWidget.hasContent && !isWidgetHidden("cinema-widget");
+        const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
         const visibleEvents = eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget");
         const visibleWorkplaces = workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget");
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget");
-        const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleEvents || visibleWorkplaces || visibleUpcomingConcerts || visibleOutdoor;
+        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visibleWorkplaces || visibleUpcomingConcerts || visibleOutdoor;
 
         if (!hasAny) return null;
 
@@ -2119,6 +2346,26 @@ export function DiscoverTab(props: DiscoverTabProps) {
             <HomeGroupHeader title={subTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
             <div className="space-y-3">
               <AnimatePresence initial={false}>
+                {visibleOutdoor && outdoorWidget && (
+                  <motion.div
+                    key="outdoor-activities-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {outdoorWidget.card}
+                  </motion.div>
+                )}
                 {visibleEvents && eventsWidget && (
                   <motion.div
                     key="events-widget"
@@ -2139,6 +2386,26 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     {eventsWidget.card}
                   </motion.div>
                 )}
+                {visibleCinema && cinemaWidget && (
+                  <motion.div
+                    key="cinema-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {cinemaWidget.card}
+                  </motion.div>
+                )}
                 {visibleUpcomingConcerts && upcomingConcertsWidget && (
                   <motion.div
                     key="upcoming-concerts-widget"
@@ -2157,26 +2424,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className="overflow-hidden"
                   >
                     {upcomingConcertsWidget.card}
-                  </motion.div>
-                )}
-                {visibleOutdoor && outdoorWidget && (
-                  <motion.div
-                    key="outdoor-activities-widget"
-                    layout
-                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 1.15,
-                      y: -30,
-                      filter: "blur(12px)",
-                      height: 0,
-                      transition: { duration: 0.45, ease: "easeOut" }
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
-                  >
-                    {outdoorWidget.card}
                   </motion.div>
                 )}
                 {visibleWorkplaces && workplacesWidget && (

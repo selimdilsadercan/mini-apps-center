@@ -39,7 +39,8 @@ export interface FilmCatalogItem {
   imdbRating?: number;
 }
 
-export type FilmTab = "discover" | "list" | "graph";
+export type FilmTab = "discover" | "list";
+export type DiscoverSubTab = "sessions" | "popular" | "toprated";
 
 export const STORAGE_KEY = "film-graph-data";
 export const ACCENT = "#D97706";

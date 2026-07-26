@@ -166,13 +166,6 @@ export default function OutdoorActivitiesPage() {
 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
-              onClick={handleSeed}
-              disabled={isSeeding}
-              className="bg-app-surface hover:bg-app-surface-muted text-app-text text-[10px] font-black px-2.5 py-1.5 rounded-lg active:scale-95 transition-all border border-app-border shadow-sm cursor-pointer disabled:opacity-50"
-            >
-              Örnek Yükle 🎡
-            </button>
-            <button
               onClick={() => setShowAddDrawer(true)}
               className="bg-[#0F766E] hover:opacity-90 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
             >
@@ -223,7 +216,14 @@ export default function OutdoorActivitiesPage() {
                 return acc;
               }, {});
 
-              return Object.entries(grouped).map(([catId, catVenues]: any) => {
+              const CATEGORY_ORDER = ["horse-riding", "canoeing", "camping", "lasertag", "paintball", "diving", "gokart", "skiing"];
+              const sorted = Object.entries(grouped).sort((a, b) => {
+                const idxA = CATEGORY_ORDER.indexOf(a[0]);
+                const idxB = CATEGORY_ORDER.indexOf(b[0]);
+                return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+              });
+
+              return sorted.map(([catId, catVenues]: any) => {
                 const catConfig = CATEGORIES.find(c => c.id === catId);
                 const CatIcon = catConfig?.icon || Compass;
                 const actionName = CATEGORY_ACTIONS[catId] || catConfig?.name || "Aktivite";
@@ -246,7 +246,7 @@ export default function OutdoorActivitiesPage() {
                       {catVenues.map((venue: any) => (
                         <div
                           key={venue.id}
-                          className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex flex-col md:flex-row gap-4 items-start relative group hover:border-[#0F766E]/30 transition-all"
+                          className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex flex-col md:flex-row gap-4 items-start relative group transition-all"
                         >
                           <div className="w-full md:w-28 h-28 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
                             {venue.imageUrl ? (

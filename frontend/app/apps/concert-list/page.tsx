@@ -382,7 +382,7 @@ export default function ConcertListPage() {
                         layout
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-app-surface rounded-3xl border border-app-border p-5 relative shadow-sm hover:border-[#FF1493]/30 transition-all group"
+                        className="bg-app-surface rounded-3xl border border-app-border p-5 relative shadow-sm transition-all group"
                       >
                         {/* Rating Star */}
                         {concert.rating && (

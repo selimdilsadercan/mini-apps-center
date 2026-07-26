@@ -4250,6 +4250,28 @@ export namespace feedback {
 }
 
 export namespace film_graph {
+    export interface CineverseMovie {
+        id: string
+        title: string
+        "image_url": string
+        duration: string
+        genre: string
+        description: string
+        "tmdb_id": number | null
+        "created_at": string
+    }
+
+    export interface CineverseSession {
+        id: string
+        "movie_title": string
+        "theater_name": string
+        "theater_slug": string
+        time: string
+        date: string
+        "booking_url": string | null
+        "created_at": string
+    }
+
     export interface DBUserFilm {
         "movie_id": string
         title: string
@@ -4278,6 +4300,14 @@ export namespace film_graph {
         imdbRating?: number
     }
 
+    export interface GetCineverseMoviesResponse {
+        movies: CineverseMovie[]
+    }
+
+    export interface GetCineverseSessionsResponse {
+        sessions: CineverseSession[]
+    }
+
     export interface GetDailySuggestionsResponse {
         movie1: any
         movie2: any
@@ -4301,6 +4331,8 @@ export namespace film_graph {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.deleteUserFilm = this.deleteUserFilm.bind(this)
+            this.getCineverseMovies = this.getCineverseMovies.bind(this)
+            this.getCineverseSessions = this.getCineverseSessions.bind(this)
             this.getDailySuggestions = this.getDailySuggestions.bind(this)
             this.getFilmDetails = this.getFilmDetails.bind(this)
             this.getPopularFilms = this.getPopularFilms.bind(this)
@@ -4310,6 +4342,7 @@ export namespace film_graph {
             this.resetDailySuggestions = this.resetDailySuggestions.bind(this)
             this.searchFilms = this.searchFilms.bind(this)
             this.syncUserFilm = this.syncUserFilm.bind(this)
+            this.triggerCineverseSync = this.triggerCineverseSync.bind(this)
         }
 
         public async deleteUserFilm(userId: string, movieId: string): Promise<{
@@ -4320,6 +4353,35 @@ export namespace film_graph {
             return await resp.json() as {
     success: boolean
 }
+        }
+
+        /**
+         * Get current Cineverse movies in theaters
+         * GET /film-graph/cineverse/movies
+         */
+        public async getCineverseMovies(): Promise<GetCineverseMoviesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/cineverse/movies`)
+            return await resp.json() as GetCineverseMoviesResponse
+        }
+
+        /**
+         * Get active sessions for a specific date and theater
+         * GET /film-graph/cineverse/sessions
+         */
+        public async getCineverseSessions(params: {
+    date?: string
+    theaterSlug?: string
+}): Promise<GetCineverseSessionsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                date:        params.date,
+                theaterSlug: params.theaterSlug,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/film-graph/cineverse/sessions`, undefined, {query})
+            return await resp.json() as GetCineverseSessionsResponse
         }
 
         public async getDailySuggestions(userId: string): Promise<GetDailySuggestionsResponse> {
@@ -4441,6 +4503,21 @@ export namespace film_graph {
             const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/user-films/sync`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        /**
+         * 1. Sync Trigger Endpoint
+         */
+        public async triggerCineverseSync(): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/cineverse/sync`)
+            return await resp.json() as {
+    success: boolean
+    count: number
 }
         }
     }

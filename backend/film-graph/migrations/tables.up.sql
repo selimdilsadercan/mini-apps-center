@@ -13,6 +13,33 @@ BEGIN
     END IF;
 END $$;
 
+-- [2026-07-26] Add Cineverse tables to film_graph schema
+CREATE TABLE IF NOT EXISTS film_graph.cineverse_movies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT UNIQUE NOT NULL,
+    image_url TEXT,
+    duration TEXT,
+    genre TEXT,
+    description TEXT,
+    tmdb_id INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_graph.cineverse_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    movie_title TEXT NOT NULL,
+    theater_name TEXT NOT NULL,
+    theater_slug TEXT NOT NULL,
+    time TEXT NOT NULL,
+    date DATE NOT NULL,
+    booking_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE(movie_title, theater_slug, time, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_film_graph_cineverse_sessions_date ON film_graph.cineverse_sessions(date);
+CREATE INDEX IF NOT EXISTS idx_film_graph_cineverse_sessions_theater ON film_graph.cineverse_sessions(theater_slug);
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------
@@ -76,6 +103,35 @@ CREATE TABLE IF NOT EXISTS film_graph.movies (
     imdb_rating NUMERIC,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- 5. Cineverse Movies Table
+CREATE TABLE IF NOT EXISTS film_graph.cineverse_movies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT UNIQUE NOT NULL,
+    image_url TEXT,
+    duration TEXT,
+    genre TEXT,
+    description TEXT,
+    tmdb_id INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- 6. Cineverse Sessions Table
+CREATE TABLE IF NOT EXISTS film_graph.cineverse_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    movie_title TEXT NOT NULL,
+    theater_name TEXT NOT NULL,
+    theater_slug TEXT NOT NULL,
+    time TEXT NOT NULL,
+    date DATE NOT NULL,
+    booking_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE(movie_title, theater_slug, time, date)
+);
+
+-- 7. Indexes
+CREATE INDEX IF NOT EXISTS idx_film_graph_cineverse_sessions_date ON film_graph.cineverse_sessions(date);
+CREATE INDEX IF NOT EXISTS idx_film_graph_cineverse_sessions_theater ON film_graph.cineverse_sessions(theater_slug);
 
 GRANT ALL ON ALL TABLES IN SCHEMA film_graph TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA film_graph TO anon, authenticated, service_role;

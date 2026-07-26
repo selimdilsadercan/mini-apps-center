@@ -1,4 +1,5 @@
 import { api, APIError } from "encore.dev/api";
+import log from "encore.dev/log";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 import { catalog } from "~encore/clients";
@@ -9,7 +10,7 @@ const LANG = "tr-TR";
 
 const supabaseUrl = secret("SupabaseUrl");
 const supabaseAnonKey = secret("SupabaseAnonKey");
-const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
+export const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
 interface CacheEntry<T> {
   data: T;
@@ -698,5 +699,99 @@ export const getDailySuggestions = api(
 
     // Otherwise, generate suggestions:
     return await generateSuggestions(userId, todayStr, false);
+  }
+);
+
+// ==================== CINEVERSE TYPES & ENDPOINTS ====================
+
+export interface CineverseMovie {
+  id: string;
+  title: string;
+  image_url: string;
+  duration: string;
+  genre: string;
+  description: string;
+  tmdb_id: number | null;
+  created_at: string;
+}
+
+export interface CineverseSession {
+  id: string;
+  movie_title: string;
+  theater_name: string;
+  theater_slug: string;
+  time: string;
+  date: string;
+  booking_url: string | null;
+  created_at: string;
+}
+
+export interface GetCineverseSessionsResponse {
+  sessions: CineverseSession[];
+}
+
+export interface GetCineverseMoviesResponse {
+  movies: CineverseMovie[];
+}
+
+/**
+ * Get active sessions for a specific date and theater
+ * GET /film-graph/cineverse/sessions
+ */
+export const getCineverseSessions = api(
+  { expose: true, method: "GET", path: "/film-graph/cineverse/sessions" },
+  async ({ date, theaterSlug }: { date?: string; theaterSlug?: string }): Promise<GetCineverseSessionsResponse> => {
+    let query = supabase
+      .schema("film_graph")
+      .from("cineverse_sessions")
+      .select("*");
+
+    if (date) {
+      query = query.eq("date", date);
+    } else {
+      // Default to today
+      const todayStr = new Date().toISOString().split('T')[0];
+      query = query.eq("date", todayStr);
+    }
+
+    if (theaterSlug) {
+      query = query.eq("theater_slug", theaterSlug);
+    } else {
+      // Default to Piazza Kahramanmaraş
+      query = query.eq("theater_slug", "piazza-kahramanmaras");
+    }
+
+    // Sort by movie and then showtime time
+    query = query.order("movie_title").order("time");
+
+    const { data, error } = await query;
+    if (error) {
+      log.error(`Failed to fetch cineverse sessions: ${error.message}`);
+      return { sessions: [] };
+    }
+
+    return { sessions: data as CineverseSession[] };
+  }
+);
+
+/**
+ * Get current Cineverse movies in theaters
+ * GET /film-graph/cineverse/movies
+ */
+export const getCineverseMovies = api(
+  { expose: true, method: "GET", path: "/film-graph/cineverse/movies" },
+  async (): Promise<GetCineverseMoviesResponse> => {
+    const { data, error } = await supabase
+      .schema("film_graph")
+      .from("cineverse_movies")
+      .select("*")
+      .order("title");
+
+    if (error) {
+      log.error(`Failed to fetch cineverse movies: ${error.message}`);
+      return { movies: [] };
+    }
+
+    return { movies: data as CineverseMovie[] };
   }
 );

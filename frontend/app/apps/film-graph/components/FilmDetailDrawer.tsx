@@ -4,7 +4,6 @@ import { Drawer } from "vaul";
 import { FilmCatalogItem, ACCENT } from "../film-data";
 import {
   Star,
-  Graph,
   Plus,
   Check,
   CheckCircle,
@@ -23,7 +22,6 @@ interface FilmDetailDrawerProps {
   onAddToList: (status?: "want" | "watched") => void;
   onToggleStatus?: () => void;
   onRemoveFromList?: () => void;
-  onOpenGraph: () => void;
 }
 
 export default function FilmDetailDrawer({
@@ -35,7 +33,6 @@ export default function FilmDetailDrawer({
   onAddToList,
   onToggleStatus,
   onRemoveFromList,
-  onOpenGraph,
 }: FilmDetailDrawerProps) {
   return (
     <Drawer.Root open={!!film} onOpenChange={(open) => !open && onClose()}>
@@ -219,16 +216,7 @@ export default function FilmDetailDrawer({
                   )}
                 </div>
 
-                {/* GRAPH ACTION BUTTON */}
-                <button
-                  type="button"
-                  onClick={onOpenGraph}
-                  disabled={!inList}
-                  className="w-full h-11 rounded-2xl border border-app-border bg-app-surface-muted hover:bg-app-border/40 text-app-text text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Graph size={16} weight="bold" style={{ color: ACCENT }} />
-                  <span>Graph Bağlantılarını Gör</span>
-                </button>
+
 
                 {/* OVERVIEW / STORY */}
                 {film.overview && (
