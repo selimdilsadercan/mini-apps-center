@@ -75,11 +75,15 @@ function HomeSkeleton() {
 
 function getReadingBaseline(bookId: number, currentPage: number): number {
   if (typeof window === "undefined") return currentPage;
+  const today = new Date().toISOString().split("T")[0];
+  const DAILY_KEY = "read_tracker_daily";
   try {
-    const key = `reading_baseline_${bookId}`;
-    const stored = localStorage.getItem(key);
-    if (stored !== null) return parseInt(stored, 10);
-    localStorage.setItem(key, String(currentPage));
+    const raw = localStorage.getItem(DAILY_KEY);
+    const log = raw ? JSON.parse(raw) : {};
+    const entry = log[String(bookId)];
+    if (entry && entry.date === today) return entry.startPage;
+    log[String(bookId)] = { date: today, startPage: currentPage };
+    localStorage.setItem(DAILY_KEY, JSON.stringify(log));
     return currentPage;
   } catch {
     return currentPage;
@@ -481,14 +485,14 @@ function HomePageContent() {
   const hobbyMediaApps = useMemo(() => {
     const order = ["series-track", "read-tracker", "youtube-series", "film-graph", "buyuk-maclar"];
     return apps
-      .filter((app: MiniApp) => app.category === "Eğlence & Hobi" && order.includes(app.id))
+      .filter((app: MiniApp) => app.category === "Eğlence & Hobi" && app.isImplemented && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 
   const hobbyGamesApps = useMemo(() => {
     const order = ["game-companion", "iskambil"];
     return apps
-      .filter((app: MiniApp) => app.category === "Eğlence & Hobi" && order.includes(app.id))
+      .filter((app: MiniApp) => app.category === "Eğlence & Hobi" && app.isImplemented && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }, [apps]);
 

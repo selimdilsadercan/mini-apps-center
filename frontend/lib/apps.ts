@@ -312,7 +312,7 @@ const RAW_MINI_APPS: MiniApp[] = [
     category: "Eğlence & Hobi",
     color: "#228BE6",
     href: "/apps/game-companion",
-    isImplemented: true,
+    isImplemented: false,
     subdomain: "yazboz",
     statusBarColor: "#ffffff",
     statusBarStyle: "light",
@@ -482,7 +482,7 @@ const RAW_MINI_APPS: MiniApp[] = [
     category: "Eğlence & Hobi",
     color: "#FF0000",
     href: "/apps/youtube-discover/kesfet",
-    isImplemented: true,
+    isImplemented: false,
     subdomain: "ytdb",
   },
   {

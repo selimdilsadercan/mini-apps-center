@@ -188,8 +188,11 @@ export const getTodayAgenda = api(
     const filtered = entries.filter((e) => {
       if (isPostponedUntilFutureDay(e.postponed_until, now)) return false;
 
+      // "later" (daha sonra) items should not appear in today's agenda/todo widget
+      if (e.period_type === "later") return false;
+
       // Tek seferlik: bekleyenler veya bugün tamamlananlar
-      if (e.period_type === "once" || e.period_type === "later") return !e.is_completed || e.is_completed_today;
+      if (e.period_type === "once") return !e.is_completed || e.is_completed_today;
       
       if (e.period_type === "daily") {
         if (!e.daily_slot) return true;

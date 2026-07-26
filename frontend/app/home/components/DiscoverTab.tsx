@@ -40,6 +40,7 @@ import {
   ArrowsClockwise,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { MINI_APPS } from "@/lib/apps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
 import { MOCK_GAMES, mapGameSaveToFrontend } from "../../apps/game-companion/lib/games";
@@ -431,6 +432,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
     </div>
   );
 
+  const isYazbozImplemented = MINI_APPS.find((app) => app.id === "game-companion")?.isImplemented !== false;
+  const isYtdbImplemented = MINI_APPS.find((app) => app.id === "youtube-series")?.isImplemented !== false;
+
   const widgets = [
     {
       key: "yazboz-widget",
@@ -438,7 +442,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: GameController,
       color: "#3B82F6",
       loading: loading || gameSavesQuery.isLoading,
-      hasContent: true,
+      hasContent: isYazbozImplemented,
       hasCompletedOnly: false,
       card: (
         <HomeSummaryCard
@@ -449,7 +453,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle="Yazboz"
           loading={loading || gameSavesQuery.isLoading}
           emptyText=""
-          hasContent={true}
+          hasContent={isYazbozImplemented}
           onHideToday={() => triggerHide("yazboz-widget", "today")}
           onHidePermanent={() => triggerHide("yazboz-widget", "permanent")}
           isTodayHidden={isWidgetTodayHidden("yazboz-widget")}
@@ -1528,7 +1532,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: YoutubeLogo,
       color: "#FF0000",
       loading: loading,
-      hasContent: youtubeSeries.length > 0,
+      hasContent: isYtdbImplemented && youtubeSeries.length > 0,
       hasCompletedOnly: false,
       card: (
         <HomeSummaryCard
@@ -1539,7 +1543,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
           subtitle="YTDB"
           loading={loading}
           emptyText="İzlenecek videolar bulunmuyor 📺"
-          hasContent={youtubeSeries.length > 0}
+          hasContent={isYtdbImplemented && youtubeSeries.length > 0}
           onHideToday={() => triggerHide("youtubeSeries", "today")}
           onHidePermanent={() => triggerHide("youtubeSeries", "permanent")}
           isTodayHidden={isWidgetTodayHidden("youtubeSeries")}
