@@ -2,19 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Ticket, MapPin } from "@phosphor-icons/react";
-import Client, { Local, film_graph } from "@/lib/client";
+import Client, { film_graph } from "@/lib/client";
 import { ACCENT } from "../film-data";
+import { getEncoreApiBase } from "@/lib/api";
 
 interface SessionsTabProps {
   onFilmClick?: (tmdbId: string) => void;
 }
 
-const client = new Client(Local);
+const client = new Client(getEncoreApiBase());
 
 export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
   const [cineverseMovies, setCineverseMovies] = useState<film_graph.CineverseMovie[]>([]);
   const [cineverseSessions, setCineverseSessions] = useState<film_graph.CineverseSession[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,7 +50,13 @@ export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
     for (let i = 0; i < 7; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const dateString = d.toISOString().split('T')[0];
+      
+      // Use local timezone values to build YYYY-MM-DD
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
       const dayLabel = `${d.getDate()} ${months[d.getMonth()]}`;
       const dayOfWeekLabel = daysOfWeek[d.getDay()];
       dates.push({ dateString, dayLabel, dayOfWeekLabel });

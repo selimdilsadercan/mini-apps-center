@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import Client, { Local } from "@/lib/client";
+import { getEncoreApiBase } from "@/lib/api";
+import Client from "@/lib/client";
 import { toast, Toaster } from "react-hot-toast";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import AddFilmModal from "./components/AddFilmModal";
@@ -33,7 +34,7 @@ interface FilmDataInput {
   actors: Person[];
 }
 
-const client = new Client(Local);
+const client = new Client(getEncoreApiBase());
 
 export default function FilmGraphPage() {
   const { confirm } = useConfirmDialog();
