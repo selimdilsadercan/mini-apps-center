@@ -25,6 +25,13 @@ export default function AppsLayout({
 
   const currentApp = MINI_APPS.find((app) => app.id === appId);
 
+  // Update browser tab title dynamically per mini-app
+  useEffect(() => {
+    if (currentApp) {
+      document.title = `${currentApp.name} | Everything`;
+    }
+  }, [currentApp, pathname]);
+
   // Only check admin status if the current app is cancelled
   useEffect(() => {
     if (!currentApp?.isCancelled) {
@@ -98,8 +105,11 @@ export default function AppsLayout({
     }
   }
 
+  const appTitle = currentApp ? `${currentApp.name} | Everything` : "Everything";
+
   return (
     <>
+      <title>{appTitle}</title>
       {children}
     </>
   );

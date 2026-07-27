@@ -34,8 +34,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Everything",
-  description: "Your unified toolkit for daily life - Productivity, Utilities, and more.",
+  title: {
+    default: "Everything",
+    template: "%s | Everything",
+  },
+  description: "Günlük yaşamınız için pratik mobil uygulamalar, şehir rehberleri, etkinlikler ve verimlilik araçları.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",

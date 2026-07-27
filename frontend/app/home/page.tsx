@@ -232,6 +232,20 @@ function HomePageContent() {
     return resolveInitialHomeTab(tabParam);
   });
 
+  // Dynamic document title based on active home tab
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      discover: "Ana Sayfa | Everything",
+      explore: "Şehrini Keşfet | Everything",
+      hobby: "Eğlence & Hobi | Everything",
+      wallet: "Finans & Cüzdan | Everything",
+      life: "Kampüs & Yaşam | Everything",
+      studio: "Studio | Everything",
+      ai: "AI Asistan | Everything",
+    };
+    document.title = titles[activeTab as string] || "Ana Sayfa | Everything";
+  }, [activeTab]);
+
   // Pull to Refresh State and Refs
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -678,6 +692,21 @@ function HomePageContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-app-bg pb-32">
+      <title>
+        {(activeTab as string) === "explore"
+          ? "Şehrini Keşfet | Everything"
+          : (activeTab as string) === "hobby"
+          ? "Eğlence & Hobi | Everything"
+          : (activeTab as string) === "wallet"
+          ? "Finans & Cüzdan | Everything"
+          : (activeTab as string) === "life"
+          ? "Kampüs & Yaşam | Everything"
+          : (activeTab as string) === "studio"
+          ? "Studio | Everything"
+          : (activeTab as string) === "ai"
+          ? "AI Asistan | Everything"
+          : "Ana Sayfa | Everything"}
+      </title>
       <HomeHeader
         activeTab={activeTab}
         isLoaded={isLoaded}
