@@ -85,6 +85,7 @@ interface DiscoverTabProps {
   isAdmin?: boolean;
   events?: any[];
   places?: any[];
+  cafeRestaurantPlaces?: any[];
   upcomingConcerts?: any[];
   outdoorVenues?: any[];
   loading: boolean;
@@ -161,6 +162,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     isAdmin = false,
     events = [],
     places = [],
+    cafeRestaurantPlaces = [],
     upcomingConcerts = [],
     outdoorVenues = [],
     loading,
@@ -759,7 +761,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                             if (bookingUrl) window.open(bookingUrl, "_blank");
                             else router.push("/apps/film-graph");
                           }}
-                          className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer"
+                          className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-app-surface border border-app-border text-app-text hover:bg-app-tab-active transition-all cursor-pointer"
                         >
                           {time}
                         </button>
@@ -930,6 +932,61 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   </p>
                 </div>
               </div>
+            </div>
+          ))}
+        </HomeSummaryCard>
+      )
+    },
+    {
+      key: "places-widget",
+      title: "Nereye Gitsek?",
+      icon: Coffee,
+      color: "#D97706",
+      loading: loading,
+      hasContent: cafeRestaurantPlaces.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/places"
+          icon={Coffee}
+          color="#D97706"
+          title="Nereye Gitsek?"
+          subtitle="Places"
+          loading={loading}
+          emptyText="Yakınlarda mekan bulunamadı ☕"
+          hasContent={cafeRestaurantPlaces.length > 0}
+          onHideToday={() => triggerHide("places-widget", "today")}
+          onHidePermanent={() => triggerHide("places-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("places-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("places-widget")}
+          onRestore={() => handleRestoreWidget("places-widget")}
+        >
+          {cafeRestaurantPlaces.slice(0, 3).map((place: any) => (
+            <div
+              key={place.id}
+              onClick={() => router.push(`/apps/places?id=${place.id}`)}
+              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                  {place.image_url ? (
+                    <img src={place.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Coffee size={16} className="text-app-muted" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {place.district || "Popüler Mekan"} · {place.category} {place.rating ? `· ★ ${place.rating}` : ""}
+                  </p>
+                </div>
+              </div>
+              {place.business_id && (
+                <span className="text-[9px] font-black text-[#D97706] bg-[#D97706]/10 px-1.5 py-0.5 rounded-full border border-[#D97706]/20 uppercase tracking-tight shrink-0">
+                  MENÜ
+                </span>
+              )}
             </div>
           ))}
         </HomeSummaryCard>
@@ -2184,7 +2241,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget";
+    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget";
     if (subTab === "explore") {
       return isExploreWidget;
     } else {
@@ -2201,6 +2258,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "cinema-widget" &&
       widget.key !== "events-widget" &&
       widget.key !== "workplaces-widget" &&
+      widget.key !== "places-widget" &&
       widget.key !== "upcoming-concerts-widget" &&
       widget.key !== "outdoor-activities-widget" &&
       !isWidgetHidden(widget.key) &&
@@ -2214,6 +2272,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     const yazbozWidget = filteredWidgets.find((w) => w.key === "yazboz-widget");
     const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
     const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
+    const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
     const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
     const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
     return (
@@ -2223,6 +2282,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       Boolean(yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget")) ||
       Boolean(eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget")) ||
       Boolean(workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget")) ||
+      Boolean(placesWidget && placesWidget.hasContent && !isWidgetHidden("places-widget")) ||
       Boolean(upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget")) ||
       Boolean(outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget"))
     );
@@ -2238,6 +2298,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key === "yazboz-widget" ||
       widget.key === "events-widget" ||
       widget.key === "workplaces-widget" ||
+      widget.key === "places-widget" ||
       widget.key === "upcoming-concerts-widget" ||
       widget.key === "outdoor-activities-widget" ||
       isWidgetHidden(widget.key)
@@ -2325,6 +2386,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
         const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
         const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
+        const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
@@ -2335,9 +2397,10 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
         const visibleEvents = eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget");
         const visibleWorkplaces = workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget");
+        const visiblePlaces = placesWidget && placesWidget.hasContent && !isWidgetHidden("places-widget");
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visibleWorkplaces || visibleUpcomingConcerts || visibleOutdoor;
+        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visibleWorkplaces || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
 
         if (!hasAny) return null;
 
@@ -2364,6 +2427,26 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className="overflow-hidden"
                   >
                     {outdoorWidget.card}
+                  </motion.div>
+                )}
+                {visiblePlaces && placesWidget && (
+                  <motion.div
+                    key="places-widget"
+                    layout
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="overflow-hidden"
+                  >
+                    {placesWidget.card}
                   </motion.div>
                 )}
                 {visibleEvents && eventsWidget && (

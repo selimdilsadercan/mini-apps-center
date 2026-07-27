@@ -52,6 +52,7 @@ import {
   type gym,
   type campus_events,
   type workplaces,
+  type places,
   type concert_list,
   type outdoor_activities,
 } from "@/lib/client";
@@ -405,6 +406,12 @@ function HomePageContent() {
     enabled: isLoaded && activeTab === "discover",
   });
 
+  const cafeRestaurantPlacesQuery = useQuery({
+    queryKey: ["places-all", userId],
+    queryFn: () => client.places.listPlaces({ userId: userId || undefined }),
+    enabled: isLoaded && activeTab === "discover",
+  });
+
   const upcomingConcertsQuery = useQuery({
     queryKey: ["upcoming-concerts-all"],
     queryFn: () => client.concert_list.getUpcomingConcerts(),
@@ -498,11 +505,12 @@ function HomePageContent() {
   const hasFollowedSeries = data?.hasFollowedSeries || false;
   const events = eventsQuery.data?.events || [];
   const places = placesQuery.data?.places || [];
+  const cafeRestaurantPlaces = cafeRestaurantPlacesQuery.data?.places || [];
   const upcomingConcerts = upcomingConcertsQuery.data?.concerts || [];
   const outdoorVenues = outdoorVenuesQuery.data?.venues || [];
 
   const explorePlacesApps = useMemo(() => {
-    const order = ["workplaces", "digital-menu", "stamp-card"];
+    const order = ["workplaces", "places", "digital-menu", "stamp-card"];
     return apps
       .filter((app: MiniApp) => app.category === "Şehrini Keşfet" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
@@ -717,6 +725,7 @@ function HomePageContent() {
                     isAdmin={isAdmin}
                     events={events}
                     places={places}
+                    cafeRestaurantPlaces={cafeRestaurantPlaces}
                     upcomingConcerts={upcomingConcerts}
                     outdoorVenues={outdoorVenues}
                     suggestions={suggestions}
@@ -991,6 +1000,7 @@ function HomeSummaryCards({
   isAdmin,
   events,
   places,
+  cafeRestaurantPlaces,
   upcomingConcerts,
   outdoorVenues,
   suggestions,
@@ -1014,6 +1024,7 @@ function HomeSummaryCards({
   isAdmin: boolean;
   events: campus_events.CampusEvent[];
   places: workplaces.Place[];
+  cafeRestaurantPlaces: places.Place[];
   upcomingConcerts: concert_list.UpcomingConcert[];
   outdoorVenues: outdoor_activities.Venue[];
   suggestions: suggest.InboxSuggestion[];
@@ -1459,6 +1470,7 @@ function HomeSummaryCards({
       isAdmin={isAdmin}
       events={events}
       places={places}
+      cafeRestaurantPlaces={cafeRestaurantPlaces}
       upcomingConcerts={upcomingConcerts}
       outdoorVenues={outdoorVenues}
       loading={loading}

@@ -294,6 +294,10 @@
       "name": "Workplaces",
       "description": "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner."
     },
+    "places": {
+      "name": "Places",
+      "description": "Şehirdeki en iyi kafe ve restoranları keşfet, menülerini incele ve favorilerini kaydet."
+    },
     "digital-menu": {
       "name": "Dijital Menü",
       "description": "Kafelerin QR menülerini görüntüle, siparişini planla ve masadan garson çağır."

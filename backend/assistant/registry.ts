@@ -37,8 +37,10 @@ import { businessAssistant } from "../business/assistant";
 import { eksikVarAssistant } from "../eksik-var/assistant";
 import { buyukMaclarAssistant } from "../buyuk-maclar/assistant";
 import { readTrackerAssistant } from "../read-tracker/assistant";
+import { placesAssistant } from "../places/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
+  placesAssistant,
   readTrackerAssistant,
   buyukMaclarAssistant,
   birikimAssistant,

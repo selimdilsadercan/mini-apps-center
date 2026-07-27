@@ -70,6 +70,7 @@ export default class Client {
     public readonly ota: ota.ServiceClient
     public readonly outdoor_activities: outdoor_activities.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
+    public readonly places: places.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly read_tracker: read_tracker.ServiceClient
     public readonly recipe: recipe.ServiceClient
@@ -144,6 +145,7 @@ export default class Client {
         this.ota = new ota.ServiceClient(base)
         this.outdoor_activities = new outdoor_activities.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
+        this.places = new places.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.read_tracker = new read_tracker.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
@@ -6849,6 +6851,151 @@ export namespace penalty_jar {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/penalty-jar/infraction/vote`, JSON.stringify(params))
             return await resp.json() as VoteInfractionResponse
+        }
+    }
+}
+
+/**
+ * Places service - manages cafes, restaurants, user favorites, and their integration with digital menus.
+ */
+export namespace places {
+    export interface AddPlaceRequest {
+        name: string
+        description?: string
+        category: string
+        address?: string
+        district?: string
+        latitude?: number
+        longitude?: number
+        "image_url"?: string
+        "working_hours"?: string
+        features?: string[]
+        "business_id"?: string
+    }
+
+    export interface AddPlaceResponse {
+        place: Place
+    }
+
+    export interface GetPlaceRequest {
+        userId?: string
+    }
+
+    export interface GetPlaceResponse {
+        place: Place
+    }
+
+    export interface ListPlacesRequest {
+        userId?: string
+    }
+
+    export interface ListPlacesResponse {
+        places: Place[]
+    }
+
+    export interface Place {
+        id: string
+        name: string
+        description: string | null
+        category: string
+        address: string | null
+        district: string | null
+        latitude: number | null
+        longitude: number | null
+        "image_url": string | null
+        rating: number
+        "working_hours": string | null
+        features: string[]
+        "business_id": string | null
+        "created_at": string
+        "is_favorite": boolean
+    }
+
+    export interface SeedPlacesResponse {
+        success: boolean
+        count: number
+    }
+
+    export interface ToggleFavoriteRequest {
+        placeId: string
+        userId: string
+    }
+
+    export interface ToggleFavoriteResponse {
+        success: boolean
+        isFavorite: boolean
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addPlace = this.addPlace.bind(this)
+            this.getPlace = this.getPlace.bind(this)
+            this.listPlaces = this.listPlaces.bind(this)
+            this.seedPlaces = this.seedPlaces.bind(this)
+            this.toggleFavorite = this.toggleFavorite.bind(this)
+        }
+
+        /**
+         * Add a new place
+         * POST /places/add
+         */
+        public async addPlace(params: AddPlaceRequest): Promise<AddPlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/places/add`, JSON.stringify(params))
+            return await resp.json() as AddPlaceResponse
+        }
+
+        /**
+         * Get details for a specific place
+         * GET /places/:id
+         */
+        public async getPlace(id: string, params: GetPlaceRequest): Promise<GetPlaceResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/places/${encodeURIComponent(id)}`, undefined, {query})
+            return await resp.json() as GetPlaceResponse
+        }
+
+        /**
+         * List all cafes and restaurants
+         * GET /places
+         */
+        public async listPlaces(params: ListPlacesRequest): Promise<ListPlacesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/places`, undefined, {query})
+            return await resp.json() as ListPlacesResponse
+        }
+
+        /**
+         * Seed initial mock places
+         * POST /places/seed
+         */
+        public async seedPlaces(): Promise<SeedPlacesResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/places/seed`)
+            return await resp.json() as SeedPlacesResponse
+        }
+
+        /**
+         * Toggle favorite status of a place
+         * POST /places/favorite
+         */
+        public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/places/favorite`, JSON.stringify(params))
+            return await resp.json() as ToggleFavoriteResponse
         }
     }
 }

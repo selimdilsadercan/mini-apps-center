@@ -44,25 +44,6 @@ export function GreetingHandler() {
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 
-  useEffect(() => {
-    if (isLoaded && user && prefsQuery.data) {
-      const pref = prefsQuery.data;
-      const ignoredPaths = ["/onboarding", "/login", "/landing", "/"];
-      
-      // Additional safeguard: Check localStorage if the query still says false
-      // Onboarding temporarily disabled, keep infrastructure
-      const locallyFinished = localStorage.getItem(`onboarding_completed_${user.id}`) === "true";
-      const actuallyFinished = true; // pref.isOnboardingFinished || locallyFinished;
-
-      if (!actuallyFinished && !ignoredPaths.includes(pathname)) {
-        console.log("Onboarding not finished, redirecting...", { 
-          isOnboardingFinished: pref.isOnboardingFinished, 
-          locallyFinished 
-        });
-        router.replace("/onboarding");
-      }
-    }
-  }, [isLoaded, user, prefsQuery.data, pathname, router]);
 
   useEffect(() => {
     if (isLoaded && user) {

@@ -210,6 +210,13 @@ export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
           })}
         </div>
       )}
+
+      {/* Disclaimer / Bilgi Notu */}
+      <div className="text-center py-2.5 px-4 bg-app-surface-muted/30 border border-app-border/40 rounded-xl mt-2">
+        <p className="text-[9px] text-app-muted font-bold leading-normal">
+          Seans bilgileri değişebilir. Güncel bilgi ve bilet için Paribu Cineverse’i kontrol edin.
+        </p>
+      </div>
     </div>
   );
 }

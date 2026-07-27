@@ -28,8 +28,13 @@ const CATEGORY_ORDER = [
 ];
 
 export default function OnboardingPage() {
-  const { user, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
+  
+  useEffect(() => {
+    router.replace("/home");
+  }, [router]);
+
+  const { user, isLoaded: isUserLoaded } = useUser();
   const queryClient = useQueryClient();
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);

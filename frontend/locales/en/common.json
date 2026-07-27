@@ -298,6 +298,10 @@
       "name": "Workplaces",
       "description": "Discover libraries and cafes suitable for working, and suggest new ones."
     },
+    "places": {
+      "name": "Places",
+      "description": "Discover the best cafes and restaurants in the city, check their menus, and save your favorites."
+    },
     "digital-menu": {
       "name": "Digital Menu",
       "description": "View QR menus of cafes, plan your order, and call a waiter from your table."
