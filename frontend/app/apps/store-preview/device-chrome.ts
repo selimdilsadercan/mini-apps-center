@@ -25,6 +25,7 @@ export function injectIframeViewport(
   doc: Document,
   width: number,
   height: number,
+  chromeTop: number,
   presetId?: string,
 ) {
   let meta = doc.querySelector('meta[name="viewport"]');
@@ -52,40 +53,37 @@ export function injectIframeViewport(
 
   const tabletLayout = isTablet
     ? `
-    html.store-preview-tablet .max-w-lg,
-    html.store-preview-tablet .max-w-xl,
-    html.store-preview-tablet .max-w-md,
-    html.store-preview-tablet .max-w-2xl {
-      max-width: 100% !important;
+    html.store-preview-tablet [class*="max-w-"] {
+      max-width: 800px !important;
+      width: 100% !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    html.store-preview-tablet body > div {
       width: 100% !important;
     }
 
     html.store-preview-tablet main {
-      padding-left: 40px !important;
-      padding-right: 40px !important;
-    }
-
-    html.store-preview-tablet header .max-w-lg,
-    html.store-preview-tablet .app-chrome-bottom .max-w-lg {
-      max-width: 100% !important;
-      padding-left: 40px !important;
-      padding-right: 40px !important;
-    }
-
-    html.store-preview-tablet main .space-y-10 > section.space-y-3 {
-      display: grid !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 16px !important;
-    }
-
-    html.store-preview-tablet main .space-y-10 > section:not(.space-y-3) .space-y-0 {
-      display: grid !important;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-      gap: 12px !important;
-    }
-
-    html.store-preview-tablet .flex.min-h-screen {
+      padding-left: 24px !important;
+      padding-right: 24px !important;
+      max-width: 800px !important;
       width: 100% !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    html.store-preview-tablet header > div {
+      max-width: 800px !important;
+      width: 100% !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    html.store-preview-tablet .app-chrome-bottom > div {
+      max-width: 800px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
     }
   `
     : "";
@@ -100,6 +98,7 @@ export function injectIframeViewport(
       overflow-x: hidden !important;
       margin: 0 !important;
       padding: 0 !important;
+      padding-top: ${Math.max(0, chromeTop - 18)}px !important;
       box-sizing: border-box !important;
     }
     body * {
@@ -119,31 +118,154 @@ function drawStatusBar(
   exportWidth: number,
   topExport: number,
   viewportWidth: number,
+  theme: "light" | "dark" = "dark",
+  presetId?: string,
 ) {
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, 0, exportWidth, topExport);
-
   const scale = exportWidth / viewportWidth;
-
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = `600 ${Math.round(15 * scale)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif`;
-  ctx.textBaseline = "middle";
-  ctx.fillText("9:41", 28 * scale, topExport / 2);
-
-  const rightX = exportWidth - 28 * scale;
   const barY = topExport / 2;
 
-  ctx.fillStyle = "#FFFFFF";
-  for (let i = 0; i < 4; i++) {
-    const h = (6 + i * 3) * scale;
-    ctx.fillRect(rightX - 18 * scale + i * 5 * scale, barY - h / 2, 3 * scale, h);
+  // Draw Dynamic Island if preset is iphone-67 or iphone-65
+  if (presetId === "iphone-67" || presetId === "iphone-65") {
+    const diWidth = 110 * scale;
+    const diHeight = 30 * scale;
+    const diX = exportWidth / 2 - diWidth / 2;
+    const diY = 11 * scale;
+
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.roundRect(diX, diY, diWidth, diHeight, diHeight / 2);
+    ctx.fill();
+
+    // Draw Camera Lens inside
+    const lensX = diX + 20 * scale;
+    const lensY = diY + diHeight / 2;
+    const lensR = 4.25 * scale;
+
+    // Lens outer reflection (dark blue-gray gradient)
+    const grad = ctx.createRadialGradient(lensX, lensY, 0.5 * scale, lensX, lensY, lensR);
+    grad.addColorStop(0, "#1e293b");
+    grad.addColorStop(0.5, "#0f172a");
+    grad.addColorStop(1, "#020617");
+    
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, lensR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle outer border (rgba white for lens rim)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 0.5 * scale;
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, lensR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Flare dot (cyan)
+    ctx.fillStyle = "rgba(56, 189, 248, 0.6)";
+    ctx.beginPath();
+    ctx.arc(lensX - 1.5 * scale, lensY - 1.5 * scale, 0.9 * scale, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Secondary flare (indigo)
+    ctx.fillStyle = "rgba(129, 140, 248, 0.5)";
+    ctx.beginPath();
+    ctx.arc(lensX + 1.5 * scale, lensY + 1.5 * scale, 0.7 * scale, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  ctx.strokeStyle = "#FFFFFF";
+  const color = theme === "light" ? "#000000" : "#FFFFFF";
+  const mutedColor = theme === "light" ? "rgba(0, 0, 0, 0.3)" : "rgba(255, 255, 255, 0.4)";
+
+  // 1. Time (9:41)
+  ctx.fillStyle = color;
+  ctx.font = `600 ${Math.round(14.5 * scale)}px -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillText("9:41", 32 * scale, barY);
+
+  // 2. Status Icons (Cellular, Wifi, Battery) on the right
+  let rightX = exportWidth - 32 * scale;
+
+  // A. Battery
+  const batWidth = 22 * scale;
+  const batHeight = 11.5 * scale;
+  const batX = rightX - batWidth;
+  const batY = barY - batHeight / 2;
+
+  // Battery Outline
+  ctx.strokeStyle = mutedColor;
+  ctx.lineWidth = 1 * scale;
+  ctx.beginPath();
+  ctx.roundRect(batX, batY, batWidth, batHeight, 3.5 * scale);
+  ctx.stroke();
+
+  // Battery Fill
+  ctx.fillStyle = color;
+  const innerPad = 2 * scale;
+  const innerW = batWidth - innerPad * 2;
+  const innerH = batHeight - innerPad * 2;
+  ctx.beginPath();
+  ctx.roundRect(batX + innerPad, batY + innerPad, innerW, innerH, 1.5 * scale);
+  ctx.fill();
+
+  // Battery Nipple
+  const capWidth = 1.3 * scale;
+  const capHeight = 4 * scale;
+  ctx.fillStyle = mutedColor;
+  ctx.beginPath();
+  ctx.roundRect(
+    batX + batWidth + 1 * scale,
+    barY - capHeight / 2,
+    capWidth,
+    capHeight,
+    [0, 1 * scale, 1 * scale, 0]
+  );
+  ctx.fill();
+
+  // Shift cursor to the left of battery
+  rightX -= (batWidth + 7 * scale);
+
+  // B. Wifi Icon (Solid arcs)
+  const wifiSize = 13 * scale;
+  const wifiX = rightX - wifiSize / 2;
+  const wifiY = barY;
+
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
   ctx.lineWidth = 1.5 * scale;
-  ctx.strokeRect(rightX - 2 * scale, barY - 5 * scale, 22 * scale, 10 * scale);
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(rightX + 1 * scale, barY - 2 * scale, 14 * scale, 4 * scale);
+  ctx.lineCap = "round";
+
+  // Wifi Dot
+  ctx.beginPath();
+  ctx.arc(wifiX, wifiY + 3 * scale, 1.3 * scale, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wifi Arcs
+  ctx.beginPath();
+  ctx.arc(wifiX, wifiY + 3 * scale, 5 * scale, -Math.PI * 0.72, -Math.PI * 0.28);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(wifiX, wifiY + 3 * scale, 9 * scale, -Math.PI * 0.72, -Math.PI * 0.28);
+  ctx.stroke();
+
+  // Shift cursor to the left of Wifi
+  rightX -= (wifiSize + 6 * scale);
+
+  // C. Cellular Signal Bars
+  const cellWidth = 3 * scale;
+  const cellSpacing = 1.5 * scale;
+  const cellHeightMax = 10 * scale;
+  const cellX = rightX - (cellWidth * 4 + cellSpacing * 3);
+
+  ctx.fillStyle = color;
+  for (let i = 0; i < 4; i++) {
+    const h = (3 + i * 2.3) * scale;
+    const x = cellX + i * (cellWidth + cellSpacing);
+    const y = barY + cellHeightMax / 2 - h;
+    ctx.beginPath();
+    ctx.roundRect(x, y, cellWidth, h, 0.8 * scale);
+    ctx.fill();
+  }
 }
 
 function drawBottomBar(
@@ -152,17 +274,15 @@ function drawBottomBar(
   exportHeight: number,
   bottomExport: number,
   viewportWidth: number,
+  theme: "light" | "dark" = "dark",
 ) {
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, exportHeight - bottomExport, exportWidth, bottomExport);
-
   const scale = exportWidth / viewportWidth;
   const barW = 134 * scale;
   const barH = 5 * scale;
   const x = exportWidth / 2 - barW / 2;
   const y = exportHeight - bottomExport / 2 - barH / 2;
 
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.fillStyle = theme === "light" ? "rgba(0, 0, 0, 0.8)" : "rgba(255, 255, 255, 0.92)";
   ctx.beginPath();
   ctx.roundRect(x, y, barW, barH, barH / 2);
   ctx.fill();
@@ -171,12 +291,15 @@ function drawBottomBar(
 export async function compositeScreenshot(
   contentDataUrl: string,
   preset: {
+    id: string;
     viewportWidth: number;
     viewportHeight: number;
     exportWidth: number;
     exportHeight: number;
   },
   chrome: DeviceChromeConfig,
+  theme: "light" | "dark" = "dark",
+  bgImageDataUrl?: string,
 ): Promise<string> {
   const topExport = Math.round(
     preset.exportHeight * (chrome.top / preset.viewportHeight),
@@ -184,7 +307,7 @@ export async function compositeScreenshot(
   const bottomExport = Math.round(
     preset.exportHeight * (chrome.bottom / preset.viewportHeight),
   );
-  const contentExportH = preset.exportHeight - topExport - bottomExport;
+  const contentExportHeight = preset.exportHeight - topExport;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -199,11 +322,36 @@ export async function compositeScreenshot(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, topExport, preset.exportWidth, contentExportH);
+  // 1. Draw background image if provided (cover fill)
+  if (bgImageDataUrl) {
+    const bgImg = new Image();
+    await new Promise<void>((resolve) => {
+      bgImg.onload = () => resolve();
+      bgImg.onerror = () => resolve();
+      bgImg.src = bgImageDataUrl;
+    });
+    const scale = Math.max(
+      preset.exportWidth / bgImg.width,
+      preset.exportHeight / bgImg.height,
+    );
+    const dw = bgImg.width * scale;
+    const dh = bgImg.height * scale;
+    const dx = (preset.exportWidth - dw) / 2;
+    const dy = (preset.exportHeight - dh) / 2;
+    ctx.drawImage(bgImg, dx, dy, dw, dh);
+  }
 
-  drawStatusBar(ctx, preset.exportWidth, topExport, preset.viewportWidth);
+  // 2. Draw black status bar background
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, preset.exportWidth, topExport);
+
+  // 3. Draw the content image BELOW the status bar zone
+  ctx.drawImage(img, 0, topExport, preset.exportWidth, contentExportHeight);
+
+  // 4. Draw status bar icons
+  drawStatusBar(ctx, preset.exportWidth, topExport, preset.viewportWidth, theme, preset.id);
+
+  // 5. Draw bottom bar
   if (chrome.bottom > 0) {
     drawBottomBar(
       ctx,
@@ -211,6 +359,7 @@ export async function compositeScreenshot(
       preset.exportHeight,
       bottomExport,
       preset.viewportWidth,
+      theme,
     );
   }
 

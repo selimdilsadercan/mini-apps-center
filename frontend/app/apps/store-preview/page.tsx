@@ -13,6 +13,7 @@ import {
   Spinner,
   Images,
   X,
+  Image,
 } from "@phosphor-icons/react";
 import { toPng } from "html-to-image";
 import { toast, Toaster } from "react-hot-toast";
@@ -29,28 +30,12 @@ const GALLERY_KEY = "store-preview-gallery";
 
 const DEVICE_PRESETS = [
   {
-    id: "iphone-67",
-    label: 'iPhone 6.7"',
-    viewportWidth: 430,
-    viewportHeight: 932,
-    exportWidth: 1290,
-    exportHeight: 2796,
-  },
-  {
     id: "iphone-65",
     label: 'iPhone 6.5"',
     viewportWidth: 414,
     viewportHeight: 896,
     exportWidth: 1284,
     exportHeight: 2778,
-  },
-  {
-    id: "iphone-55",
-    label: 'iPhone 5.5"',
-    viewportWidth: 414,
-    viewportHeight: 736,
-    exportWidth: 1242,
-    exportHeight: 2208,
   },
   {
     id: "ipad-129",
@@ -116,6 +101,9 @@ export default function StorePreviewPage() {
   const [appSearch, setAppSearch] = useState("");
   const [captures, setCaptures] = useState<CaptureItem[]>([]);
   const [scale, setScale] = useState(0.3);
+  const [statusBarTheme, setStatusBarTheme] = useState<"light" | "dark">("dark");
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const bgImageInputRef = useRef<HTMLInputElement>(null);
 
   const implementedApps = useMemo(
     () =>
@@ -203,7 +191,7 @@ export default function StorePreviewPage() {
     const doc = iframe?.contentDocument;
     if (!doc) return;
 
-    injectIframeViewport(doc, preset.viewportWidth, contentHeight);
+    injectIframeViewport(doc, preset.viewportWidth, preset.viewportHeight, chrome.top, preset.id);
 
     if (iframe.dataset.viewportPrepared !== "true") {
       iframe.dataset.viewportPrepared = "true";
@@ -215,21 +203,25 @@ export default function StorePreviewPage() {
 
     doc.documentElement.style.width = `${preset.viewportWidth}px`;
     doc.documentElement.style.maxWidth = `${preset.viewportWidth}px`;
-    doc.documentElement.style.height = `${contentHeight}px`;
+    doc.documentElement.style.height = `${preset.viewportHeight}px`;
     doc.documentElement.style.overflow = "hidden";
     doc.documentElement.style.overflowX = "hidden";
     doc.documentElement.style.backgroundColor = "#FAF9F7";
 
     doc.body.style.width = `${preset.viewportWidth}px`;
     doc.body.style.maxWidth = `${preset.viewportWidth}px`;
-    doc.body.style.minHeight = `${contentHeight}px`;
-    doc.body.style.height = `${contentHeight}px`;
+    doc.body.style.minHeight = `${preset.viewportHeight}px`;
+    doc.body.style.height = `${preset.viewportHeight}px`;
     doc.body.style.overflow = "hidden";
     doc.body.style.overflowX = "hidden";
     doc.body.style.backgroundColor = "#FAF9F7";
     doc.body.style.margin = "0";
-    doc.body.style.padding = "0";
-  }, [preset.viewportWidth, contentHeight]);
+    // NOTE: Do NOT set doc.body.style.padding here — CSS injection from
+    // injectIframeViewport sets padding-top for the status bar safe area.
+    doc.body.style.paddingLeft = "0";
+    doc.body.style.paddingRight = "0";
+    doc.body.style.paddingBottom = "0";
+  }, [preset.viewportWidth, preset.viewportHeight]);
 
   useEffect(() => {
     if (iframeRef.current) {
@@ -266,20 +258,71 @@ export default function StorePreviewPage() {
 
       prepareIframeViewport();
 
-      const contentDataUrl = await toPng(doc.body, {
-        width: preset.viewportWidth,
-        height: contentHeight,
-        canvasWidth: preset.exportWidth,
-        canvasHeight: Math.round(
-          preset.exportHeight *
-            (contentHeight / preset.viewportHeight),
-        ),
-        pixelRatio: 1,
-        cacheBust: true,
-        backgroundColor: "#FAF9F7",
+      // Zero out padding-top for capture — we'll composite the status bar separately in canvas
+      const styleEl = doc.getElementById("store-preview-frame-styles");
+      const origStyleContent = styleEl?.textContent || "";
+      if (styleEl) {
+        // Override padding-top to 0 so content starts from top edge
+        styleEl.textContent = origStyleContent.replace(
+          /padding-top:\s*[\d.]+px\s*!important/g,
+          "padding-top: 0px !important"
+        );
+      }
+      // Force reflow
+      void doc.body.offsetHeight;
+
+      // Temporarily replace external (cross-origin) images with a styled placeholder
+      const externalImgs: { el: HTMLImageElement; originalSrc: string }[] = [];
+      doc.body.querySelectorAll("img").forEach((img) => {
+        const src = img.src || "";
+        if (src.startsWith("http") && !src.includes(window.location.host)) {
+          externalImgs.push({ el: img, originalSrc: src });
+          // Create an SVG placeholder with an image icon
+          const w = img.clientWidth || 48;
+          const h = img.clientHeight || 48;
+          const iconSize = Math.min(Math.max(Math.min(w, h) * 0.4, 14), 28);
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+            <rect width="${w}" height="${h}" rx="8" fill="#2A2A2E"/>
+            <g transform="translate(${w / 2 - iconSize / 2}, ${h / 2 - iconSize / 2})">
+              <rect width="${iconSize}" height="${iconSize}" rx="${iconSize * 0.15}" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="${iconSize * 0.08}"/>
+              <circle cx="${iconSize * 0.35}" cy="${iconSize * 0.33}" r="${iconSize * 0.1}" fill="rgba(255,255,255,0.35)"/>
+              <path d="M${iconSize * 0.08} ${iconSize * 0.75} L${iconSize * 0.35} ${iconSize * 0.5} L${iconSize * 0.55} ${iconSize * 0.65} L${iconSize * 0.7} ${iconSize * 0.52} L${iconSize * 0.92} ${iconSize * 0.75} L${iconSize * 0.92} ${iconSize * 0.88} Q${iconSize * 0.92} ${iconSize} ${iconSize * 0.85} ${iconSize} L${iconSize * 0.15} ${iconSize} Q${iconSize * 0.08} ${iconSize} ${iconSize * 0.08} ${iconSize * 0.88} Z" fill="rgba(255,255,255,0.25)"/>
+            </g>
+          </svg>`;
+          img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+        }
       });
 
-      const dataUrl = await compositeScreenshot(contentDataUrl, preset, chrome);
+      // Capture only the content area (without status bar padding)
+      const captureHeight = preset.viewportHeight - chrome.top;
+      const captureExportHeight = Math.round(preset.exportHeight * (captureHeight / preset.viewportHeight));
+
+      let contentDataUrl: string;
+      try {
+        contentDataUrl = await toPng(doc.body, {
+          width: preset.viewportWidth,
+          height: captureHeight,
+          canvasWidth: preset.exportWidth,
+          canvasHeight: captureExportHeight,
+          pixelRatio: 1,
+          cacheBust: false,
+          skipFonts: true,
+          backgroundColor: "#FAF9F7",
+          imagePlaceholder: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+        });
+      } finally {
+        // Restore original style (re-adds the padding-top)
+        if (styleEl) {
+          styleEl.textContent = origStyleContent;
+        }
+        externalImgs.forEach(({ el, originalSrc }) => {
+          el.src = originalSrc;
+        });
+        // Re-apply viewport prep so the live preview returns to normal
+        prepareIframeViewport();
+      }
+
+      const dataUrl = await compositeScreenshot(contentDataUrl, preset, chrome, statusBarTheme, bgImage ?? undefined);
 
       const item: CaptureItem = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -293,11 +336,23 @@ export default function StorePreviewPage() {
 
       setCaptures((prev) => [item, ...prev]);
       toast.success("Ekran görüntüsü kaydedildi");
-    } catch (err) {
-      console.error(err);
-      toast.error(
-        err instanceof Error ? err.message : "Capture başarısız oldu",
-      );
+    } catch (err: any) {
+      console.error("Capture error:", err);
+      let errMsg = "Bilinmeyen hata";
+      if (err instanceof Error) {
+        errMsg = err.message;
+      } else if (err instanceof Event) {
+        errMsg = `Yükleme hatası (Event type: ${err.type}, target: ${err.target?.constructor?.name || "unknown"})`;
+      } else if (typeof err === "object") {
+        try {
+          errMsg = JSON.stringify(err);
+        } catch {
+          errMsg = String(err);
+        }
+      } else {
+        errMsg = String(err);
+      }
+      toast.error(`Capture başarısız oldu: ${errMsg}`);
     } finally {
       setCapturing(false);
     }
@@ -459,6 +514,72 @@ export default function StorePreviewPage() {
             </button>
           </div>
 
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Durum Çubuğu İkonları
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setStatusBarTheme("light")}
+                className={`flex-1 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+                  statusBarTheme === "light"
+                    ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+                }`}
+              >
+                Siyah
+              </button>
+              <button
+                onClick={() => setStatusBarTheme("dark")}
+                className={`flex-1 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+                  statusBarTheme === "dark"
+                    ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+                }`}
+              >
+                Beyaz
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Arka Plan Görseli
+            </p>
+            <input
+              ref={bgImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => setBgImage(ev.target?.result as string);
+                reader.readAsDataURL(file);
+              }}
+            />
+            {bgImage ? (
+              <div className="relative rounded-xl overflow-hidden" style={{ height: 60 }}>
+                <img src={bgImage} alt="Arka plan" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => { setBgImage(null); if (bgImageInputRef.current) bgImageInputRef.current.value = ""; }}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
+                >
+                  <X size={10} weight="bold" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => bgImageInputRef.current?.click()}
+                className="w-full h-12 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-[#7C3AED]/40 hover:text-[#7C3AED] transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wide active:scale-95"
+              >
+                <Image size={14} weight="bold" />
+                Görsel Seç
+              </button>
+            )}
+          </div>
+
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-2">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
               Bilgi
@@ -513,14 +634,13 @@ export default function StorePreviewPage() {
                     src={iframeSrc}
                     title="Store Preview Frame"
                     onLoad={handleIframeLoad}
-                    className="absolute left-0 border-0 block m-0 p-0 bg-[#FAF9F7]"
                     style={{
-                      top: chrome.top,
+                      top: 0,
                       width: preset.viewportWidth,
-                      height: contentHeight,
+                      height: preset.viewportHeight,
                     }}
                   />
-                  <DeviceChromeOverlay chrome={chrome} width={preset.viewportWidth} />
+                  <DeviceChromeOverlay chrome={chrome} width={preset.viewportWidth} theme={statusBarTheme} presetId={preset.id} />
                 </div>
               </div>
             </div>

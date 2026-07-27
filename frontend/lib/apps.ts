@@ -944,8 +944,7 @@ const RAW_MINI_APPS: MiniApp[] = [
     color: "#7C3AED",
     href: "/apps/store-preview",
     isImplemented: true,
-    subdomain: "storepreview",
-    isCancelled: true,
+    subdomain: "storepreview"
   },
   {
     id: "icon-export",
@@ -958,7 +957,6 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/icon-export",
     isImplemented: true,
     subdomain: "iconexport",
-    isCancelled: true,
   },
   {
     id: "siparis-takip",
