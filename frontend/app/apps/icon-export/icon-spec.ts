@@ -59,6 +59,7 @@ export const ANDROID_ICON_TARGETS: IconExportTarget[] = [
 
 /** Web / PWA — frontend/public dosya adları */
 export const WEB_ICON_TARGETS: IconExportTarget[] = [
+  { path: "web/favicon.ico", size: 32 },
   { path: "web/favicon-16x16.png", size: 16 },
   { path: "web/favicon-32x32.png", size: 32 },
   { path: "web/apple-touch-icon.png", size: 180 },

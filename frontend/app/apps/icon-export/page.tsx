@@ -18,7 +18,8 @@ import {
   IOS_ICON_TARGETS,
   WEB_ICON_TARGETS,
 } from "./icon-spec";
-import { buildIconExportZip, downloadBlob } from "./icon-engine";
+import { buildIconExportZip, createIcoBlob, downloadBlob, loadImageFromFile } from "./icon-engine";
+import { DownloadSimple } from "@phosphor-icons/react";
 
 export default function IconExportPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,6 +28,7 @@ export default function IconExportPage() {
   const [exporting, setExporting] = useState(false);
   const [slug, setSlug] = useState("app-icon");
   const [opaqueBg, setOpaqueBg] = useState("#FFFFFF");
+  const [borderRadius, setBorderRadius] = useState<number>(0.22);
 
   const setSelectedFile = useCallback((next: File | null) => {
     setFile(next);
@@ -47,6 +49,25 @@ export default function IconExportPage() {
     e.target.value = "";
   };
 
+  const handleExportFavicon = async () => {
+    if (!file) {
+      toast.error("Önce bir görsel seçin");
+      return;
+    }
+    setExporting(true);
+    try {
+      const source = await loadImageFromFile(file);
+      const icoBlob = await createIcoBlob(source, [16, 32, 48], { borderRadius });
+      downloadBlob(icoBlob, "favicon.ico");
+      toast.success("favicon.ico başarıyla indirildi");
+    } catch (err) {
+      console.error(err);
+      toast.error("favicon.ico oluşturulamadı");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleExport = async () => {
     if (!file) {
       toast.error("Önce bir görsel seçin");
@@ -55,7 +76,7 @@ export default function IconExportPage() {
 
     setExporting(true);
     try {
-      const zip = await buildIconExportZip(file, { opaqueBackground: opaqueBg });
+      const zip = await buildIconExportZip(file, { opaqueBackground: opaqueBg, borderRadius });
       const safeSlug = slug.trim().replace(/[^\w-]+/g, "-").replace(/^-|-$/g, "") || "app-icon";
       downloadBlob(zip, `${safeSlug}-icons.zip`);
       toast.success(`${ALL_ICON_TARGETS.length} dosya indirildi`);
@@ -160,6 +181,32 @@ export default function IconExportPage() {
 
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
+              Köşe Yuvarlama (Border Radius)
+            </label>
+            <div className="mt-1 flex gap-2">
+              {[
+                { label: "Düz (0%)", val: 0 },
+                { label: "iOS Squircle (22%)", val: 0.22 },
+                { label: "Daire (50%)", val: 0.5 },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  type="button"
+                  onClick={() => setBorderRadius(item.val)}
+                  className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide border transition-all ${
+                    borderRadius === item.val
+                      ? "bg-[#0EA5E9] text-white border-[#0EA5E9]"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
               iOS 1024 arka plan (opak)
             </label>
             <div className="mt-1 flex items-center gap-2">
@@ -217,27 +264,39 @@ export default function IconExportPage() {
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={handleExport}
-          disabled={!file || exporting}
-          className="w-full h-12 rounded-2xl bg-[#0EA5E9] hover:bg-[#0284C7] disabled:opacity-50 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.99] shadow-lg shadow-[#0EA5E9]/20"
-        >
-          {exporting ? (
-            <>
-              <Spinner size={18} className="animate-spin" />
-              Export...
-            </>
-          ) : (
-            <>
-              <Package size={18} weight="bold" />
-              Tümünü ZIP İndir
-            </>
-          )}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          <button
+            type="button"
+            onClick={handleExportFavicon}
+            disabled={!file || exporting}
+            className="flex-1 h-12 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 disabled:opacity-50 font-black uppercase tracking-wider text-xs flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm"
+          >
+            <DownloadSimple size={18} weight="bold" className="text-[#0EA5E9]" />
+            favicon.ico İndir
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={!file || exporting}
+            className="flex-1 h-12 rounded-2xl bg-[#0EA5E9] hover:bg-[#0284C7] disabled:opacity-50 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 active:scale-[0.99] shadow-lg shadow-[#0EA5E9]/20"
+          >
+            {exporting ? (
+              <>
+                <Spinner size={18} className="animate-spin" />
+                Export...
+              </>
+            ) : (
+              <>
+                <Package size={18} weight="bold" />
+                Tümünü ZIP İndir
+              </>
+            )}
+          </button>
+        </div>
 
         <p className="text-[11px] text-gray-400 text-center leading-relaxed pb-4">
-          iOS, Android mipmap ve web/PWA ikonları — projedeki mevcut klasör yapısıyla uyumlu.
+          iOS, Android mipmap, Web/PWA ve favicon.ico (16/32/48px katmanlı) — projedeki mevcut klasör yapısıyla uyumlu.
         </p>
       </main>
     </div>
