@@ -378,6 +378,10 @@
       "name": "Study",
       "description": "Haftalık ders çalışma planını oluştur ve kendi başına takip et."
     },
+    "yks-tercih": {
+      "name": "YKS Taban Puanları",
+      "description": "YKS üniversite taban puanları, başarı sıralamaları ve tercih robotu."
+    },
     "surdurulebilirlik": {
       "name": "Sürdürülebiliriz",
       "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."

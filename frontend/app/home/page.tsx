@@ -645,7 +645,7 @@ function HomePageContent() {
   }, [apps]);
 
   const lifeHealthApps = useMemo(() => {
-    const order = ["rutinler", "meal-planner", "gym", "study"];
+    const order = ["rutinler", "meal-planner", "gym", "study", "yks-tercih"];
     return apps
       .filter((app: MiniApp) => app.category === "Kampüslülere Özel" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));

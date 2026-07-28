@@ -382,6 +382,10 @@
       "name": "Study",
       "description": "Create and track your weekly study plan on your own."
     },
+    "yks-tercih": {
+      "name": "YKS Rankings & Cutoffs",
+      "description": "YKS university score cutoffs, ranking history, and choice builder."
+    },
     "surdurulebilirlik": {
       "name": "We're Sustainable",
       "description": "Track your eco-friendly steps and contribute to our world."

@@ -92,6 +92,7 @@ export default class Client {
     public readonly users: users.ServiceClient
     public readonly workplaces: workplaces.ServiceClient
     public readonly yazboz: yazboz.ServiceClient
+    public readonly yks_tercih: yks_tercih.ServiceClient
     public readonly ytdb: ytdb.ServiceClient
     private readonly options: ClientOptions
     private readonly target: string
@@ -167,6 +168,7 @@ export default class Client {
         this.users = new users.ServiceClient(base)
         this.workplaces = new workplaces.ServiceClient(base)
         this.yazboz = new yazboz.ServiceClient(base)
+        this.yks_tercih = new yks_tercih.ServiceClient(base)
         this.ytdb = new ytdb.ServiceClient(base)
     }
 
@@ -11247,6 +11249,158 @@ export namespace yazboz {
     }
 }
 
+export namespace yks_tercih {
+    export interface ActionResponse {
+        success: boolean
+        message?: string
+    }
+
+    export interface AddSavedChoiceRequest {
+        userId: string
+        programId: string
+        note?: string
+    }
+
+    export interface ListProgramsRequest {
+        query?: string
+        scoreType?: "SAY" | "EA" | "SÖZ" | "DİL" | "TYT" | "ALL"
+        city?: string
+        universityType?: "Devlet" | "Vakıf" | "ALL"
+        scholarshipType?: string
+        minRank?: number
+        maxRank?: number
+        candidateRank?: number
+        durationYears?: number
+        limit?: number
+        offset?: number
+    }
+
+    export interface ListProgramsResponse {
+        programs: data.YKSProgram[]
+        totalCount: number
+    }
+
+    export interface ListSavedChoicesRequest {
+        userId: string
+    }
+
+    export interface ListSavedChoicesResponse {
+        items: SavedChoiceItem[]
+    }
+
+    export interface RemoveSavedChoiceRequest {
+        userId: string
+        programId: string
+    }
+
+    export interface ReorderSavedChoicesRequest {
+        userId: string
+        programIds: string[]
+    }
+
+    export interface SavedChoiceItem {
+        id: string
+        userId: string
+        programId: string
+        sortOrder: number
+        note: string
+        createdAt: string
+        program?: data.YKSProgram
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addSavedChoice = this.addSavedChoice.bind(this)
+            this.getProgram = this.getProgram.bind(this)
+            this.getSavedChoices = this.getSavedChoices.bind(this)
+            this.listPrograms = this.listPrograms.bind(this)
+            this.removeSavedChoice = this.removeSavedChoice.bind(this)
+            this.reorderSavedChoices = this.reorderSavedChoices.bind(this)
+        }
+
+        /**
+         * Add a program to candidate's tercih list.
+         */
+        public async addSavedChoice(params: AddSavedChoiceRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yks/saved/add`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        /**
+         * Get detailed info for a single program by ID or code.
+         */
+        public async getProgram(id: string): Promise<{
+    program: data.YKSProgram
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yks/program/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    program: data.YKSProgram
+}
+        }
+
+        /**
+         * Get saved preference choices for a user.
+         */
+        public async getSavedChoices(params: ListSavedChoicesRequest): Promise<ListSavedChoicesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yks/saved`, undefined, {query})
+            return await resp.json() as ListSavedChoicesResponse
+        }
+
+        /**
+         * List & search YKS university programs with detailed multi-criteria filters.
+         */
+        public async listPrograms(params: ListProgramsRequest): Promise<ListProgramsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                candidateRank:   params.candidateRank === undefined ? undefined : String(params.candidateRank),
+                city:            params.city,
+                durationYears:   params.durationYears === undefined ? undefined : String(params.durationYears),
+                limit:           params.limit === undefined ? undefined : String(params.limit),
+                maxRank:         params.maxRank === undefined ? undefined : String(params.maxRank),
+                minRank:         params.minRank === undefined ? undefined : String(params.minRank),
+                offset:          params.offset === undefined ? undefined : String(params.offset),
+                query:           params.query,
+                scholarshipType: params.scholarshipType,
+                scoreType:       params.scoreType === undefined ? undefined : String(params.scoreType),
+                universityType:  params.universityType === undefined ? undefined : String(params.universityType),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/yks/programs`, undefined, {query})
+            return await resp.json() as ListProgramsResponse
+        }
+
+        /**
+         * Remove a program from candidate's tercih list.
+         */
+        public async removeSavedChoice(params: RemoveSavedChoiceRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yks/saved/remove`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        /**
+         * Reorder candidate's tercih list items.
+         */
+        public async reorderSavedChoices(params: ReorderSavedChoicesRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/yks/saved/reorder`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+    }
+}
+
 export namespace ytdb {
     export interface Episode {
         id: string
@@ -11540,6 +11694,30 @@ export namespace ytdb {
     series: Series
 }
         }
+    }
+}
+
+export namespace data {
+    export interface ProgramHistory {
+        year: number
+        rank: number | null
+        score: number | null
+        quota: number
+    }
+
+    export interface YKSProgram {
+        id: string
+        code: string
+        universityName: string
+        facultyName: string
+        departmentName: string
+        language?: string
+        scoreType: "SAY" | "EA" | "SÖZ" | "DİL" | "TYT"
+        city: string
+        universityType: "Devlet" | "Vakıf" | "KKTC" | "Yurtdışı"
+        scholarshipType: "Ücretsiz" | "Burslu" | "%75 İndirimli" | "%50 İndirimli" | "%25 İndirimli" | "Ücretli"
+        durationYears: 2 | 4
+        history: ProgramHistory[]
     }
 }
 
