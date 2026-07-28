@@ -73,7 +73,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   surdurulebilirlik: "/apps/surdurulebilirlik",
   standups: "/apps/standups",
   page: "/apps/business-page",
-  feedback: "/apps/feedback-board",
+  feedback: "/apps/feedback-board", 
 };
 
 /**
@@ -216,6 +216,11 @@ export function proxy(request: NextRequest) {
 
   if (originalPath === "/updates") {
     url.pathname = "/landing/updates";
+    return NextResponse.rewrite(url);
+  }
+
+  if (originalPath === "/directory" || originalPath.startsWith("/directory/")) {
+    url.pathname = `/landing${originalPath}`;
     return NextResponse.rewrite(url);
   }
 

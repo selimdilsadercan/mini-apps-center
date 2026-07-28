@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { List, X } from "@phosphor-icons/react";
@@ -10,6 +11,7 @@ import { getAppRootUrl } from "@/lib/apps";
 
 const Header: React.FC = () => {
   const t = useTranslations("Header");
+  const pathname = usePathname();
   const { locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -45,16 +47,24 @@ const Header: React.FC = () => {
           </Link>
 
           <ul className="hidden md:flex items-center gap-2">
-            {menuItems.map((item) => (
-              <li key={item.id}>
-                <Link
-                  href={item.url}
-                  className="text-sm font-medium text-zinc-500 px-4 py-2 rounded-lg hover:text-white hover:bg-[#1d2128]"
-                >
-                  {item.text}
-                </Link>
-              </li>
-            ))}
+            {menuItems.map((item) => {
+              const isActive =
+                item.url === "/" ? pathname === "/" : pathname?.startsWith(item.url);
+              return (
+                <li key={item.id}>
+                  <Link
+                    href={item.url}
+                    className={`text-sm font-bold px-4 py-2 rounded-xl border transition-all ${
+                      isActive
+                        ? "bg-zinc-800 text-white border-zinc-700 shadow-sm"
+                        : "text-zinc-500 border-transparent hover:text-white hover:bg-zinc-900"
+                    }`}
+                  >
+                    {item.text}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="hidden md:flex items-center gap-4">
@@ -63,7 +73,7 @@ const Header: React.FC = () => {
                 onClick={() => setLocale("tr")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   locale === "tr"
-                    ? "bg-zinc-700 text-white shadow-sm"
+                    ? "bg-white text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >
@@ -73,7 +83,7 @@ const Header: React.FC = () => {
                 onClick={() => setLocale("en")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   locale === "en"
-                    ? "bg-zinc-700 text-white shadow-sm"
+                    ? "bg-white text-zinc-950 shadow-sm"
                     : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >
@@ -116,16 +126,24 @@ const Header: React.FC = () => {
             className="md:hidden bg-[#111114] border-b border-zinc-800 overflow-hidden"
           >
             <div className="px-6 py-8 flex flex-col gap-6 text-center">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.url}
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg font-medium text-zinc-500 px-4 py-3 rounded-lg hover:text-white hover:bg-[#1d2128]"
-                >
-                  {item.text}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const isActive =
+                  item.url === "/" ? pathname === "/" : pathname?.startsWith(item.url);
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.url}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-lg font-bold px-4 py-3 rounded-2xl border transition-all ${
+                      isActive
+                        ? "bg-zinc-800 text-white border-zinc-700"
+                        : "text-zinc-500 border-transparent"
+                    }`}
+                  >
+                    {item.text}
+                  </Link>
+                );
+              })}
               <Link
                 href={mounted ? getAppRootUrl() : "/login"}
                 onClick={() => setIsOpen(false)}

@@ -233,6 +233,18 @@
       }
     }
   },
+  "Directory": {
+    "badge": "Uygulama Kataloğu",
+    "title": "Tüm mini uygulamalar tek yerde",
+    "subtitle": "Web araçları, şehir rehberleri, kampüs uygulamaları ve işletme çözümleri. Her uygulama için tanıtım sayfası ve doğrudan erişim linki."
+  },
+  "AppLanding": {
+    "backToDirectory": "Kataloğa dön",
+    "openApp": "Uygulamayı Aç",
+    "browseAll": "Tüm uygulamalar",
+    "aboutTitle": "Everything ekosisteminde",
+    "aboutBody": "{appName}, Everything super app içinde çalışan bağımsız bir mini uygulamadır. Tek hesapla web, iOS ve Android üzerinden erişebilirsiniz."
+  },
   "Footer": {
     "cta": {
       "title": "Şehrini keşfetmeye başla",

@@ -21,8 +21,8 @@ const Footer: React.FC<FooterProps> = ({ hideCTA = false }) => {
 
   const footerLinks = {
     product: [
-      { text: t("linkTexts.apps"), url: "#apps" },
-      { text: t("linkTexts.features"), url: "#features" },
+      { text: t("linkTexts.apps"), url: "/directory" },
+      { text: t("linkTexts.features"), url: "/#features" },
       { text: t("linkTexts.forBusinesses"), url: "/for-businesses" },
       { text: t("linkTexts.directory"), url: "/directory" },
     ],

@@ -187,6 +187,18 @@
       }
     }
   },
+  "Directory": {
+    "badge": "App Catalog",
+    "title": "All mini apps in one place",
+    "subtitle": "Web tools, city guides, campus apps, and business solutions — with an intro page and direct link for each app."
+  },
+  "AppLanding": {
+    "backToDirectory": "Back to catalog",
+    "openApp": "Open App",
+    "browseAll": "Browse all apps",
+    "aboutTitle": "Inside the Everything ecosystem",
+    "aboutBody": "{appName} is a standalone mini app inside the Everything super app. Access it on web, iOS, and Android with one account."
+  },
   "Footer": {
     "cta": {
       "title": "Start exploring your city",
