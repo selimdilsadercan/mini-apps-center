@@ -173,11 +173,14 @@ export function proxy(request: NextRequest) {
 
     const originalPath = url.pathname;
 
-    // Avoid rewrite loop if already starting with target path
+    // If the path ALREADY starts with the target path (e.g. /apps/yks-tercih/saved)
+    // on a subdomain (ykstercih.domain), redirect to the clean path (/saved)
+    // to keep the URL consistent and avoid duplicate paths.
     if (originalPath.startsWith(targetPath)) {
-      const res = NextResponse.next();
-      res.headers.set("x-subdomain", subdomain);
-      return res;
+      const cleanPath = originalPath.replace(targetPath, "") || "/";
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = cleanPath;
+      return NextResponse.redirect(redirectUrl);
     }
 
     url.pathname = `${targetPath}${originalPath === "/" ? "" : originalPath}`;
