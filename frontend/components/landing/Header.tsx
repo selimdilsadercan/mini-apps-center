@@ -39,7 +39,7 @@ const Header: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6">
         <nav className="flex justify-between items-center">
           <Link href="/" className="group">
-            <span className="text-xl font-black tracking-tight text-white group-hover:text-teal-400 transition-colors">
+            <span className="text-xl font-black tracking-tight text-white group-hover:text-teal-400">
               Everything
             </span>
           </Link>
@@ -49,7 +49,7 @@ const Header: React.FC = () => {
               <li key={item.id}>
                 <Link
                   href={item.url}
-                  className="text-sm font-medium text-zinc-500 px-4 py-2 rounded-lg transition-all duration-200 hover:text-white hover:bg-[#1d2128]"
+                  className="text-sm font-medium text-zinc-500 px-4 py-2 rounded-lg hover:text-white hover:bg-[#1d2128]"
                 >
                   {item.text}
                 </Link>
@@ -121,7 +121,7 @@ const Header: React.FC = () => {
                   key={item.id}
                   href={item.url}
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-medium text-zinc-500 px-4 py-3 rounded-lg transition-all duration-200 hover:text-white hover:bg-[#1d2128]"
+                  className="text-lg font-medium text-zinc-500 px-4 py-3 rounded-lg hover:text-white hover:bg-[#1d2128]"
                 >
                   {item.text}
                 </Link>

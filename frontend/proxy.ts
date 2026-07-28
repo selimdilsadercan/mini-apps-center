@@ -70,6 +70,10 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   dashboard: "/dashboard",
   storepreview: "/apps/store-preview",
   iconexport: "/apps/icon-export",
+  surdurulebilirlik: "/apps/surdurulebilirlik",
+  standups: "/apps/standups",
+  page: "/apps/business-page",
+  feedback: "/apps/feedback-board",
 };
 
 /**

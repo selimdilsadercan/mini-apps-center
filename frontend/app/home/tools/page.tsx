@@ -42,6 +42,8 @@ function ToolsPageContent() {
     []
   );
 
+  const yksApp = useMemo(() => apps.find((a) => a.id === "yks-tercih"), [apps]);
+
   const practicalApps = useMemo(() => {
     const order = ["pdf-tools", "daily-weather", "tasket", "siparis-takip"];
     return order
@@ -83,6 +85,7 @@ function ToolsPageContent() {
           <HomeSkeleton />
         ) : (
           <ToolsTab
+            yksApp={yksApp}
             practicalApps={practicalApps}
             devApps={devApps}
             tApps={tApps}

@@ -4,6 +4,7 @@ import type { MiniApp } from "@/lib/apps";
 import { AppListSection } from "./common/AppListSection";
 
 interface ToolsTabProps {
+  yksApp?: MiniApp;
   practicalApps: MiniApp[];
   devApps: MiniApp[];
   tApps: any;
@@ -13,6 +14,7 @@ interface ToolsTabProps {
 }
 
 export function ToolsTab({
+  yksApp,
   practicalApps,
   devApps,
   tApps,
@@ -22,6 +24,16 @@ export function ToolsTab({
 }: ToolsTabProps) {
   return (
     <div className="space-y-8">
+      {yksApp && (
+        <AppListSection
+          title="YKS Tercih"
+          apps={[yksApp]}
+          tApps={tApps}
+          pinnedIds={pinnedIds}
+          togglePin={togglePin}
+          handleAppClick={handleAppClick}
+        />
+      )}
       <AppListSection
         title="Pratik Araçlar"
         apps={practicalApps}
