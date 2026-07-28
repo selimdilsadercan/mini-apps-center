@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  HUB_INTERNAL_PREFIX,
+  isMySubdomainCleanPath,
+  isMySubdomainHost,
+  toCleanHubPath,
+  toInternalHubPath,
+} from "./lib/hub-routes";
 
 /**
  * Map of subdomain slug → internal Next.js path (rewrite target).
@@ -122,13 +129,36 @@ export function proxy(request: NextRequest) {
 
     appUrl.hostname = isLocal ? "my.localhost" : `my.${ROOT_DOMAIN}`;
     appUrl.port = isLocal && host.split(":")[1] ? host.split(":")[1] : "";
-    appUrl.pathname = "/home";
+    appUrl.pathname = "/today";
     return NextResponse.redirect(appUrl);
   }
 
   // ── Special 'my' subdomain → serves the main application ─────────────────
   if (subdomain === "my") {
-    // Let all app routes and root path '/' (original auth logic) pass through
+    // Canonicalize legacy /home/* URLs → clean paths (/today, /life, …)
+    if (pathname === "/home" || pathname.startsWith("/home/")) {
+      const cleanUrl = request.nextUrl.clone();
+      cleanUrl.pathname = toCleanHubPath(pathname);
+      return NextResponse.redirect(cleanUrl);
+    }
+
+    // Root → today dashboard
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = `${HUB_INTERNAL_PREFIX}/today`;
+      return NextResponse.rewrite(url);
+    }
+
+    // Clean hub paths → internal /home/* routes
+    if (isMySubdomainCleanPath(pathname)) {
+      const internalPath = toInternalHubPath(pathname);
+      if (internalPath) {
+        const url = request.nextUrl.clone();
+        url.pathname = internalPath;
+        return NextResponse.rewrite(url);
+      }
+    }
+
     return NextResponse.next();
   }
 
@@ -161,7 +191,7 @@ export function proxy(request: NextRequest) {
 
     appUrl.hostname = isLocal ? "my.localhost" : `my.${ROOT_DOMAIN}`;
     appUrl.port = isLocal && host.split(":")[1] ? host.split(":")[1] : "";
-    appUrl.pathname = "/home";
+    appUrl.pathname = "/today";
     return NextResponse.redirect(appUrl);
   }
 
@@ -180,9 +210,32 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (originalPath === "/updates") {
+    url.pathname = "/landing/updates";
+    return NextResponse.rewrite(url);
+  }
+
   // If trying to access application paths directly on the root domain,
   // redirect to the personal 'my' subdomain.
-  const APP_ROUTES = ["/home", "/discover", "/profile", "/friends", "/ai-chat", "/sign-in", "/sign-up", "/login", "/apps", "/dashboard"];
+  const APP_ROUTES = [
+    "/home",
+    "/today",
+    "/explore",
+    "/life",
+    "/hobby",
+    "/tools",
+    "/studio",
+    "/list",
+    "/discover",
+    "/profile",
+    "/friends",
+    "/ai-chat",
+    "/sign-in",
+    "/sign-up",
+    "/login",
+    "/apps",
+    "/dashboard",
+  ];
   const isAppRoute = APP_ROUTES.some(route => originalPath.startsWith(route));
 
   if (isAppRoute) {

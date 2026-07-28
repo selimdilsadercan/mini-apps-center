@@ -35,7 +35,7 @@ export function AppRow({
         onClick={onClick}
         role="button"
         tabIndex={0}
-        className="w-full flex items-center gap-4 py-3 px-1 transition-all active:scale-[0.98] text-left border-b border-app-border last:border-0 cursor-pointer"
+        className="w-full flex items-center gap-4 py-3 px-3 transition-all active:scale-[0.98] text-left cursor-pointer hover:bg-app-surface-muted/30"
       >
         <div
           className="w-11 h-11 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 shadow-sm"

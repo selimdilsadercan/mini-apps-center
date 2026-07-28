@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarCheck,
@@ -49,7 +49,7 @@ import {
   Ticket,
   Anchor,
 } from "@phosphor-icons/react";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from "react";
 import { MINI_APPS } from "@/lib/apps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
@@ -66,6 +66,11 @@ import {
 
 const browserClient = createBrowserClient();
 
+const WIDGET_MASONRY =
+  "flex flex-col gap-3 md:gap-4";
+const WIDGET_MASONRY_ITEM =
+  "w-full overflow-hidden min-w-0";
+
 const DEFAULT_MOVIES = [
   { id: "101", title: "Dune: Part Two", year: 2024, voteAverage: 8.6, posterUrl: "https://image.tmdb.org/t/p/w500/1pdfLPoL6VFiH2G2WFiipM32M2Y.jpg" },
   { id: "102", title: "Oppenheimer", year: 2023, voteAverage: 8.9, posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
@@ -79,7 +84,7 @@ import {
   HomeGroupHeader,
 } from "./common/HomeSummaryCard";
 import { getLinkedAppForRoutine } from "@/app/apps/rutinler/routineAppLinks";
-import { AIChatView } from "@/components/ai-chat/AIChatView";
+import { isCapacitorIOS } from "@/lib/app-root";
 
 interface DiscoverTabProps {
   isAdmin?: boolean;
@@ -225,8 +230,42 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const subTabParam = searchParams?.get("subTab");
+
+  const isIOSApp = useSyncExternalStore(
+    () => () => {},
+    () => isCapacitorIOS(),
+    () => false
+  );
+
   const [subTab, setSubTab] = useState<"explore" | "daily">("explore");
+
+  useEffect(() => {
+    if (isIOSApp) {
+      setSubTab("explore");
+      return;
+    }
+    if (subTabParam === "explore" || subTabParam === "daily") {
+      setSubTab(subTabParam);
+    } else {
+      setSubTab("explore");
+    }
+  }, [subTabParam, isIOSApp]);
+
+  const activeSubTab: "explore" | "daily" = isIOSApp ? "explore" : subTab;
+  const [isDesktop, setIsDesktop] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+
+  useEffect(() => {
+    const checkViewport = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkViewport();
+    window.addEventListener("resize", checkViewport);
+    return () => window.removeEventListener("resize", checkViewport);
+  }, []);
 
   const handleSeedMaras = async () => {
     try {
@@ -578,117 +617,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 );
               });
             })()}
-          </HomeSummaryCard>
-        );
-      })()
-    },
-    {
-      key: "cinema-sessions-widget",
-      title: "Bugün Sinemada",
-      icon: Ticket,
-      color: "#DC2626",
-      loading: sessionsLoading,
-      hasContent: (cineverseData?.sessions || []).length > 0,
-      card: (() => {
-        const sessions = cineverseData?.sessions || [];
-        const movies = cineverseData?.movies || [];
-
-        // Group sessions by movie
-        const grouped = sessions.reduce((acc: any, s: any) => {
-          if (!acc[s.movie_title]) acc[s.movie_title] = [];
-          acc[s.movie_title].push(s);
-          return acc;
-        }, {});
-
-        const hasContent = Object.keys(grouped).length > 0;
-
-        return (
-          <HomeSummaryCard
-            href="/apps/film-graph?tab=sessions"
-            icon={Ticket}
-            color="#DC2626"
-            title="Sinema Seansları"
-            subtitle="Piazza Kahramanmaraş"
-            loading={sessionsLoading}
-            emptyText="Bugün için sinema seansı bulunamadı 🎬"
-            hasContent={hasContent}
-            onHideToday={() => triggerHide("cinema-sessions-widget", "today")}
-            onHidePermanent={() => triggerHide("cinema-sessions-widget", "permanent")}
-            isTodayHidden={isWidgetTodayHidden("cinema-sessions-widget")}
-            isPermanentlyHidden={isWidgetPermanentlyHidden("cinema-sessions-widget")}
-            onRestore={() => handleRestoreWidget("cinema-sessions-widget")}
-          >
-            {Object.entries(grouped).slice(0, 3).map(([movieTitle, movieSessions]: any) => {
-              const movieInfo = movies.find((m: any) => m.title === movieTitle);
-              return (
-                <div
-                  key={movieTitle}
-                  className="px-4 py-3.5 border-t border-app-border flex gap-3.5 text-left hover:bg-app-surface-muted/10 transition-colors"
-                >
-                  {/* Poster */}
-                  <div
-                    onClick={() => router.push("/apps/film-graph?tab=sessions")}
-                    className="w-10 h-14 rounded-lg overflow-hidden bg-app-surface-muted shrink-0 border border-app-border flex items-center justify-center cursor-pointer"
-                  >
-                    {movieInfo?.image_url ? (
-                      <img
-                        src={movieInfo.image_url}
-                        alt={movieTitle}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Ticket size={20} className="text-app-muted" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="min-w-0 flex-1 flex flex-col justify-between">
-                    <div className="cursor-pointer" onClick={() => router.push("/apps/film-graph?tab=sessions")}>
-                      <p className="text-[11px] font-black text-app-text truncate uppercase tracking-tight">
-                        {movieTitle}
-                      </p>
-                      <p className="text-[8px] text-app-muted font-bold truncate mt-0.5 uppercase tracking-widest">
-                        {movieInfo?.genre} {movieInfo?.duration ? `· ${movieInfo.duration}` : ""}
-                      </p>
-                    </div>
-
-                    {/* Showtime Badges */}
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {movieSessions.slice(0, 5).map((s: any, idx: number) => {
-                        const isPast = !s.booking_url;
-                        return isPast ? (
-                          <span
-                            key={idx}
-                            className="px-2 py-0.5 text-[8px] font-black tracking-widest border border-app-border text-app-muted/30 line-through rounded cursor-not-allowed"
-                            title="Geçmiş Seans"
-                          >
-                            {s.time}
-                          </span>
-                        ) : (
-                          <a
-                            key={idx}
-                            href={s.booking_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2 py-0.5 text-[8px] font-black tracking-widest bg-red-600/10 text-red-600 border border-red-600/20 hover:bg-red-600 hover:text-white rounded transition-colors"
-                          >
-                            {s.time}
-                          </a>
-                        );
-                      })}
-                      {movieSessions.length > 5 && (
-                        <span 
-                          onClick={() => router.push("/apps/film-graph?tab=sessions")}
-                          className="px-2 py-0.5 text-[8px] font-black tracking-widest text-app-muted hover:text-app-text cursor-pointer"
-                        >
-                          +{movieSessions.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </HomeSummaryCard>
         );
       })()
@@ -2242,7 +2170,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const filteredWidgets = widgets.filter((w) => {
     const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget";
-    if (subTab === "explore") {
+    if (activeSubTab === "explore") {
       return isExploreWidget;
     } else {
       return !isExploreWidget;
@@ -2301,6 +2229,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key === "places-widget" ||
       widget.key === "upcoming-concerts-widget" ||
       widget.key === "outdoor-activities-widget" ||
+      widget.key === "cinema-widget" ||
       isWidgetHidden(widget.key)
     )
       return false;
@@ -2318,30 +2247,40 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Admin Sub-Tabs */}
-      {isAdmin && (
-        <div className="flex justify-center mb-2">
-          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-surface-muted shadow-sm">
-            <button
-              onClick={() => setSubTab("explore")}
-              className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                subTab === "explore"
-                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
-                  : "text-app-muted hover:text-app-text"
-              }`}
-            >
-              Keşfet
-            </button>
-            <button
-              onClick={() => setSubTab("daily")}
-              className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                subTab === "daily"
-                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
-                  : "text-app-muted hover:text-app-text"
-              }`}
-            >
-              Gündelik
-            </button>
+      {/* Today tabs — Şehirde / Günlük (iOS native: yalnızca Şehirde) */}
+      {!isIOSApp && (
+        <div className="flex justify-start">
+          <div className="relative inline-flex items-center gap-0.5 rounded-xl border border-app-border/70 bg-app-tab-track p-0.5">
+            {(
+              [
+                { id: "explore" as const, label: "Şehirde", icon: Compass },
+                { id: "daily" as const, label: "Günlük", icon: CalendarCheck },
+              ] as const
+            ).map(({ id, label, icon: Icon }) => {
+              const isActive = subTab === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSubTab(id)}
+                  className={`relative z-10 flex items-center justify-center gap-1 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wide transition-colors duration-200 cursor-pointer select-none ${
+                    isActive ? "text-app-text" : "text-app-muted hover:text-app-text"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="today-subtab-pill"
+                      className="absolute inset-0 rounded-lg bg-app-tab-active shadow-sm ring-1 ring-app-border/40"
+                      transition={{ type: "spring", stiffness: 520, damping: 38 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1">
+                    <Icon size={12} weight={isActive ? "fill" : "bold"} />
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -2349,12 +2288,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
       {pendingWidgets.length > 0 && (
         <div className="space-y-2.5">
           <HomeGroupHeader title="Yapılacaklar" />
-          <div className="space-y-2.5">
+          <div className={WIDGET_MASONRY}>
             <AnimatePresence initial={false}>
               {pendingWidgets.map((widget) => (
                 <motion.div
                   key={widget.key}
-                  layout
                   initial={{ opacity: 0, height: 0, scale: 0.98 }}
                   animate={{ opacity: 1, height: "auto", scale: 1 }}
                   exit={{
@@ -2366,7 +2304,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     transition: { duration: 0.45, ease: "easeOut" }
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="overflow-hidden"
+                  className={WIDGET_MASONRY_ITEM}
                 >
                   {widget.card}
                 </motion.div>
@@ -2406,13 +2344,12 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
         return (
           <div className="pt-2 space-y-2.5">
-            <HomeGroupHeader title={subTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
-            <div className="space-y-3">
+            <HomeGroupHeader title={activeSubTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
+            <div className={WIDGET_MASONRY}>
               <AnimatePresence initial={false}>
                 {visibleOutdoor && outdoorWidget && (
                   <motion.div
                     key="outdoor-activities-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2424,7 +2361,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {outdoorWidget.card}
                   </motion.div>
@@ -2432,7 +2369,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visiblePlaces && placesWidget && (
                   <motion.div
                     key="places-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2444,7 +2380,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {placesWidget.card}
                   </motion.div>
@@ -2452,7 +2388,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleEvents && eventsWidget && (
                   <motion.div
                     key="events-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2464,7 +2399,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {eventsWidget.card}
                   </motion.div>
@@ -2472,7 +2407,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleCinema && cinemaWidget && (
                   <motion.div
                     key="cinema-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2484,7 +2418,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {cinemaWidget.card}
                   </motion.div>
@@ -2492,7 +2426,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleUpcomingConcerts && upcomingConcertsWidget && (
                   <motion.div
                     key="upcoming-concerts-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2504,7 +2437,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {upcomingConcertsWidget.card}
                   </motion.div>
@@ -2512,7 +2445,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleWorkplaces && workplacesWidget && (
                   <motion.div
                     key="workplaces-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2524,7 +2456,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {workplacesWidget.card}
                   </motion.div>
@@ -2532,7 +2464,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleMovies && moviesWidget && (
                   <motion.div
                     key="movies"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2544,7 +2475,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {moviesWidget.card}
                   </motion.div>
@@ -2552,7 +2483,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleYazboz && yazbozWidget && (
                   <motion.div
                     key="yazboz-widget"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2564,7 +2494,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {yazbozWidget.card}
                   </motion.div>
@@ -2572,7 +2502,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleMatches && matchesWidget && (
                   <motion.div
                     key="matches"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2584,7 +2513,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {matchesWidget.card}
                   </motion.div>
@@ -2592,7 +2521,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                 {visibleYt && ytWidget && (
                   <motion.div
                     key="youtubeSeries"
-                    layout
                     initial={{ opacity: 0, height: 0, scale: 0.98 }}
                     animate={{ opacity: 1, height: "auto", scale: 1 }}
                     exit={{
@@ -2604,7 +2532,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       transition: { duration: 0.45, ease: "easeOut" }
                     }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="overflow-hidden"
+                    className={WIDGET_MASONRY_ITEM}
                   >
                     {ytWidget.card}
                   </motion.div>
@@ -2619,12 +2547,11 @@ export function DiscoverTab(props: DiscoverTabProps) {
       {finishedWidgets.length > 0 && (
         <div className="space-y-2.5 pt-2">
           <HomeGroupHeader title="Bugün Bitirdiklerim" />
-          <div className="space-y-2.5">
+          <div className={WIDGET_MASONRY}>
             <AnimatePresence initial={false}>
               {finishedWidgets.map((widget) => (
                 <motion.div
                   key={widget.key}
-                  layout
                   initial={{ opacity: 0, height: 0, scale: 0.98 }}
                   animate={{ opacity: 1, height: "auto", scale: 1 }}
                   exit={{
@@ -2636,7 +2563,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     transition: { duration: 0.45, ease: "easeOut" }
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="overflow-hidden"
+                  className={WIDGET_MASONRY_ITEM}
                 >
                   {widget.card}
                 </motion.div>
@@ -2713,7 +2640,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       {todayHidden.map((w) => (
                         <motion.div
                           key={w.key}
-                          layout
                           initial={{ opacity: 0, height: 0, scale: 0.98 }}
                           animate={{ opacity: 1, height: "auto", scale: 1 }}
                           exit={{
@@ -2780,7 +2706,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                       {permHidden.map((w) => (
                         <motion.div
                           key={w.key}
-                          layout
                           initial={{ opacity: 0, height: 0, scale: 0.98 }}
                           animate={{ opacity: 1, height: "auto", scale: 1 }}
                           exit={{

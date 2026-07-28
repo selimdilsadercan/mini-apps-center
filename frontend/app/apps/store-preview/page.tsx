@@ -19,6 +19,7 @@ import { toPng } from "html-to-image";
 import { toast, Toaster } from "react-hot-toast";
 import { Drawer } from "vaul";
 import { DeviceChromeOverlay } from "./components/DeviceChromeOverlay";
+import { StorePreviewDeviceFrame } from "@/components/device/IosDeviceChrome";
 import {
   compositeScreenshot,
   getContentHeight,
@@ -606,44 +607,33 @@ export default function StorePreviewPage() {
               </div>
             )}
 
-            <div
-              className="shrink-0 rounded-[2rem] bg-gray-900 p-[6px] shadow-2xl"
-              style={{
-                width: preset.viewportWidth * scale + 12,
-                height: preset.viewportHeight * scale + 12,
-              }}
+            <StorePreviewDeviceFrame
+              screenWidth={preset.viewportWidth * scale}
+              screenHeight={preset.viewportHeight * scale}
             >
               <div
-                className="relative overflow-hidden rounded-[1.5rem] bg-black"
+                className="absolute top-0 left-0 origin-top-left overflow-hidden bg-black"
                 style={{
-                  width: preset.viewportWidth * scale,
-                  height: preset.viewportHeight * scale,
+                  width: preset.viewportWidth,
+                  height: preset.viewportHeight,
+                  transform: `scale(${scale})`,
                 }}
               >
-                <div
-                  className="absolute top-0 left-0 origin-top-left overflow-hidden bg-black"
+                <iframe
+                  key={preset.id}
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  title="Store Preview Frame"
+                  onLoad={handleIframeLoad}
                   style={{
+                    top: 0,
                     width: preset.viewportWidth,
                     height: preset.viewportHeight,
-                    transform: `scale(${scale})`,
                   }}
-                >
-                  <iframe
-                    key={preset.id}
-                    ref={iframeRef}
-                    src={iframeSrc}
-                    title="Store Preview Frame"
-                    onLoad={handleIframeLoad}
-                    style={{
-                      top: 0,
-                      width: preset.viewportWidth,
-                      height: preset.viewportHeight,
-                    }}
-                  />
-                  <DeviceChromeOverlay chrome={chrome} width={preset.viewportWidth} theme={statusBarTheme} presetId={preset.id} />
-                </div>
+                />
+                <DeviceChromeOverlay chrome={chrome} width={preset.viewportWidth} theme={statusBarTheme} presetId={preset.id} />
               </div>
-            </div>
+            </StorePreviewDeviceFrame>
           </div>
 
           <button

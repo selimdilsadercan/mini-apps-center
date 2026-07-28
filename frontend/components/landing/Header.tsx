@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { List, X, Sparkle } from "@phosphor-icons/react";
+import { List, X } from "@phosphor-icons/react";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getAppRootUrl } from "@/lib/apps";
@@ -16,17 +16,14 @@ const Header: React.FC = () => {
   const [mounted, setMounted] = useState(false);
 
   const menuItems = [
-    { text: t("apps"), url: "#apps" },
-    { text: t("features"), url: "#features" },
-    { text: t("forBusinesses"), url: "/for-businesses" },
-    { text: t("faq"), url: "#faq" },
+    { id: "apps", text: t("apps"), url: "/directory" },
+    { id: "updates", text: t("updates"), url: "/updates" },
+    { id: "forBusinesses", text: t("forBusinesses"), url: "/for-businesses" },
   ];
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -35,29 +32,24 @@ const Header: React.FC = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-xl py-3 border-b border-gray-100/80 shadow-sm"
+          ? "bg-[#0a0a0c]/85 backdrop-blur-xl py-3 border-b border-zinc-800/80"
           : "bg-transparent py-5"
       }`}
     >
       <div className="max-w-6xl mx-auto px-6">
         <nav className="flex justify-between items-center">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-all">
-              <Sparkle size={20} weight="fill" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
+          <Link href="/" className="group">
+            <span className="text-xl font-black tracking-tight text-white group-hover:text-teal-400 transition-colors">
               Everything
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <ul className="hidden md:flex items-center gap-1">
+          <ul className="hidden md:flex items-center gap-2">
             {menuItems.map((item) => (
-              <li key={item.text}>
+              <li key={item.id}>
                 <Link
                   href={item.url}
-                  className="text-sm font-bold text-gray-600 hover:text-indigo-600 px-4 py-2 rounded-xl transition-all duration-200"
+                  className="text-sm font-medium text-zinc-500 px-4 py-2 rounded-lg transition-all duration-200 hover:text-white hover:bg-[#1d2128]"
                 >
                   {item.text}
                 </Link>
@@ -65,16 +57,14 @@ const Header: React.FC = () => {
             ))}
           </ul>
 
-          {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Language Switcher */}
-            <div className="flex items-center bg-gray-100 border border-gray-200/50 rounded-xl p-1">
+            <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-1">
               <button
                 onClick={() => setLocale("tr")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   locale === "tr"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-800"
+                    ? "bg-zinc-700 text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >
                 TR
@@ -83,8 +73,8 @@ const Header: React.FC = () => {
                 onClick={() => setLocale("en")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   locale === "en"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-800"
+                    ? "bg-zinc-700 text-white shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >
                 EN
@@ -92,26 +82,24 @@ const Header: React.FC = () => {
             </div>
 
             <Link
-              href={mounted ? getAppRootUrl() : "/"}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-md shadow-indigo-500/10 active:scale-95"
+              href={mounted ? getAppRootUrl() : "/login"}
+              className="bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-bold py-2.5 px-6 rounded-xl transition-all active:scale-95"
             >
               {t("openApp")}
             </Link>
           </div>
 
-          {/* Mobile Menu Trigger & Language */}
           <div className="flex items-center gap-3 md:hidden">
-            {/* Language Switcher Small */}
             <button
               onClick={() => setLocale(locale === "tr" ? "en" : "tr")}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-700 active:scale-95 transition-all"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 active:scale-95 transition-all"
             >
               <span className="text-xs font-black">{locale.toUpperCase()}</span>
             </button>
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20 active:scale-95 transition-all"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-800 border border-zinc-700 text-white active:scale-95 transition-all"
             >
               {isOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
             </button>
@@ -119,30 +107,29 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-b border-gray-100 overflow-hidden"
+            className="md:hidden bg-[#111114] border-b border-zinc-800 overflow-hidden"
           >
             <div className="px-6 py-8 flex flex-col gap-6 text-center">
               {menuItems.map((item) => (
                 <Link
-                  key={item.text}
+                  key={item.id}
                   href={item.url}
                   onClick={() => setIsOpen(false)}
-                  className="text-xl font-bold text-gray-700 hover:text-indigo-600 transition-colors"
+                  className="text-lg font-medium text-zinc-500 px-4 py-3 rounded-lg transition-all duration-200 hover:text-white hover:bg-[#1d2128]"
                 >
                   {item.text}
                 </Link>
               ))}
               <Link
-                href={mounted ? getAppRootUrl() : "/"}
+                href={mounted ? getAppRootUrl() : "/login"}
                 onClick={() => setIsOpen(false)}
-                className="bg-indigo-600 text-white py-3.5 rounded-2xl text-base font-bold shadow-lg shadow-indigo-500/10 mt-2 active:scale-95 transition-all"
+                className="bg-white text-zinc-950 py-3.5 rounded-2xl text-base font-bold mt-2 active:scale-95 transition-all"
               >
                 {t("openApp")}
               </Link>

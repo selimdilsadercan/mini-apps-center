@@ -1,99 +1,125 @@
 {
   "Header": {
-    "apps": "Keşfet",
-    "features": "Özellikler",
+    "apps": "Uygulamalar",
+    "updates": "Güncellemeler",
     "forBusinesses": "İşletmeler İçin",
-    "faq": "SSS",
-    "openApp": "Merkezi Aç",
+    "openApp": "Uygulamayı Aç",
     "signIn": "Giriş Yap"
   },
   "Hero": {
-    "badge": "Tamamen Canlı Arayüz",
-    "title1": "Tüm Günlük Araçların",
-    "title2": "Tek Bir Merkezde.",
-    "subtitle": "Oyunlardan verimlilik araçlarına, finans takipçilerinden kişisel yaşam asistanlarına kadar her şey tek bir noktada.",
-    "openApp": "Merkezi Keşfet",
-    "now": "Hemen",
+    "badge": "Şehrin için süper uygulama",
+    "title1": "Şehrini keşfet,",
+    "title2": "günlüğünü yönet.",
+    "subtitle": "Sinema seanslarından mekan rehberlerine, alışveriş listenden rutinlerine — Kahramanmaraş ve ötesi için tek merkez. 60+ mini uygulama, tek hesap.",
+    "openApp": "Hemen Başla",
+    "now": "Ücretsiz",
+    "forBusinesses": "İşletmeni Ekle",
     "stats": {
-      "players": "Aktif Kullanıcı",
-      "games": "Modül",
-      "puzzles": "Çözülen Görev",
-      "rating": "Memnuniyet Oranı"
+      "modules": "Mini Uygulama",
+      "city": "Şehir Odaklı",
+      "platforms": "iOS & Android",
+      "free": "Ücretsiz"
     }
   },
   "AppPreview": {
-    "badge": "🧩 Zengin Modül Kütüphanesi",
-    "title": "İhtiyacın Olan Her Şey Burda",
-    "subtitle": "Kategorize edilmiş onlarca mini araç arasından dilediğini seç, ana ekranına ekle ve kendine özel çalışma alanını oluştur.",
-    "tryLive": "Hemen Keşfet",
-    "descriptionSuffix": "Bu mini araç ile günlük rutinlerini kolaylaştır, zamandan tasarruf et ve hayatını düzene sok.",
-    "difficulty": "Kategori",
-    "players": "Geliştirici",
-    "playNow": "Aç",
-    "share": "Paylaş",
-    "loading": "Yükleniyor...",
-    "fallbackDesc": "Bu modülün detaylı görünümü yakında burada olacak!"
+    "badge": "Modüller",
+    "title": "Dört modül, tek platform",
+    "subtitle": "Şehir keşfinden günlük ajandana, işletme araçlarından geliştirici modüllerine — hepsi Everything içinde.",
+    "includedTools": "Dahil araçlar",
+    "toolLabels": {
+      "campaigns": "Kampanyalar"
+    },
+    "modules": {
+      "explore": {
+        "name": "Şehrini Keşfet",
+        "description": "Mekanlar, etkinlikler, sinema, konserler ve açık hava aktiviteleri. Şehrinde ne var, tek modülde keşfet.",
+        "platform": "Mobil modül",
+        "toolIds": "outdoor-activities|places|workplaces|campus-events|concert-list|film-graph",
+        "cta": "Keşfetmeye Başla"
+      },
+      "daily": {
+        "name": "Günlük Ajanda",
+        "description": "Bugün ekranındaki tüm widget'lar: yapılacaklar, alışveriş listesi, rutinler, antrenman, okuma ve daha fazlası.",
+        "platform": "Mobil modül",
+        "toolIds": "rutinler|eksik-var|budget|subcenter|film-graph|series-track|read-tracker|gym",
+        "cta": "Bugün Ekranını Aç"
+      },
+      "business": {
+        "name": "İşletmeler için",
+        "description": "Dijital menü, müdavim kartı, işletme sayfası ve kampanyalarla müşterilerine ulaş.",
+        "platform": "Mobil & web",
+        "toolIds": "digital-menu|business-page|stamp-card|campaigns|feedback-board|campus-events",
+        "cta": "İşletmeni Ekle"
+      },
+      "developers": {
+        "name": "Geliştiriciler için",
+        "description": "Uygulamanı yayına hazırlayan araçlar: görev yönetimi, ikon export, store preview ve daha fazlası.",
+        "platform": "Web modül",
+        "toolIds": "tasket|store-preview|icon-export|icon-set-guide|feedback-board",
+        "cta": "Stüdyoyu Aç"
+      }
+    }
   },
   "Features": {
-    "badge": "✨ Özellikler",
-    "title": "Gelişmiş Deneyim",
-    "subtitle": "Everything'i benzersiz kılan bazı temel özellikler",
+    "badge": "Neden Everything?",
+    "title": "Tek merkez, onlarca araç",
+    "subtitle": "Dağınık uygulamalar yerine şehrine ve günlük hayatına özel tek bir hub.",
     "items": {
-      "daily": {
-        "title": "Kişiselleştirilebilir Ana Ekran",
-        "description": "Dilediğin modülü ana ekranına ekle, çıkar ve kendine özel bir kontrol paneli oluştur."
+      "city": {
+        "title": "Şehir Keşfi Öncelikli",
+        "description": "Sinema, etkinlik, mekan ve açık hava aktiviteleri — bugün şehirde ne var, tek ekranda."
       },
-      "chest": {
-        "title": "Tek Hesap, Onlarca Servis",
-        "description": "Clerk ile tek bir güvenli üyelik açarak tüm verilerini bulut üzerinde senkronize et."
+      "hub": {
+        "title": "Akıllı Bugün Ekranı",
+        "description": "Yapılacaklar, alışveriş, antrenman ve diziler widget olarak; gizle, ertele, tamamla."
       },
-      "hints": {
-        "title": "Encore & Supabase Altyapısı",
-        "description": "Yüksek performanslı backend servisleri ve gerçek zamanlı veritabanı sayesinde anında yanıt al."
+      "account": {
+        "title": "Tek Hesap",
+        "description": "Tüm modüllere tek girişle eriş; verilerin bulutta senkronize kalır."
       },
       "social": {
-        "title": "Sosyal Paylaşım & Arkadaşlar",
-        "description": "Arkadaş ekle, QR profilinle paylaş ve ortak listelerde veya araçlarda birlikte etkileşime geç."
+        "title": "Sosyal & Paylaşım",
+        "description": "Arkadaş ekle, öneri gönder, birlikte plan yap — sosyal modüller entegre."
       },
-      "duel": {
-        "title": "Mobil & Web Desteği",
-        "description": "Duyarlı tasarımı sayesinde ister bilgisayarından, ister telefonundan (Capacitor/Android) sorunsuz eriş."
+      "crossplatform": {
+        "title": "Mobil + Web",
+        "description": "Capacitor ile native iOS/Android; tarayıcıdan da tam deneyim."
       },
-      "premium": {
-        "title": "Geliştirici Dostu Yapı",
-        "description": "Yeni modüller eklemek çok kolay! Tanımlı standartlar sayesinde hızla yeni bir araç geliştir."
+      "modular": {
+        "title": "Sürekli Büyüyen",
+        "description": "Yeni şehir araçları ve pratik web modülleri düzenli ekleniyor."
       }
     }
   },
   "FAQ": {
-    "badge": "❓ SSS",
+    "badge": "SSS",
     "title": "Sıkça Sorulan Sorular",
-    "subtitle": "Everything Merkezi hakkında merak ettikleriniz",
-    "moreQuestions": "Başka bir sorunuz mu var?",
+    "subtitle": "Everything hakkında merak ettiklerin",
+    "moreQuestions": "Başka bir sorun mu var?",
     "questions": {
       "0": {
         "q": "Everything nedir?",
-        "a": "Everything, günlük hayatta ihtiyaç duyabileceğiniz bütçe yönetimi, alışveriş listeleri, mini oyunlar ve üretkenlik araçları gibi farklı modülleri tek bir çatı altında birleştiren bir araç kutusudur."
+        "a": "Everything, şehir keşfi ve günlük yaşam araçlarını tek çatı altında toplayan bir super app'tir. Sinema seansları, mekan rehberleri, alışveriş listesi, rutinler ve 60'tan fazla mini uygulama içerir."
       },
       "1": {
-        "q": "Modülleri kullanmak ücretli mi?",
-        "a": "Hayır! Platformumuzdaki tüm temel araçlar tamamen ücretsizdir ve herhangi bir reklam içermez."
+        "q": "Ücretsiz mi?",
+        "a": "Evet. Temel modüller tamamen ücretsizdir ve reklam içermez."
       },
       "2": {
-        "q": "Verilerim nasıl saklanıyor?",
-        "a": "Verileriniz Clerk entegrasyonuyla güvenli bir şekilde doğrulanır ve Supabase bulut veritabanında saklanır. Böylece telefon veya bilgisayar değiştirdiğinizde verileriniz kaybolmaz."
+        "q": "Hangi şehirler için?",
+        "a": "Şu an Kahramanmaraş odaklı içeriklerle başlıyoruz — sinema, etkinlik, mekan ve aktivite verileri yerel olarak güncelleniyor. Diğer şehirler için modüller zamanla genişliyor."
       },
       "3": {
-        "q": "Kendi modülümü ekleyebilir miyim?",
-        "a": "Evet, projemiz modüler bir yapıya sahiptir. Geliştirici kurallarına uyarak yeni bir frontend sayfası ve backend servisi ekleyip kolayca platforma dahil edebilirsiniz."
+        "q": "Mobil uygulama var mı?",
+        "a": "Evet. iOS ve Android için Capacitor ile native uygulama olarak kullanılabilir. Web'den de my.allminiapps.com üzerinden erişebilirsin."
       },
       "4": {
-        "q": "Mobil uygulama olarak yüklenebilir mi?",
-        "a": "Platformumuz Capacitor altyapısı sayesinde yerel Android ve iOS uygulaması olarak derlenebilir. Mobil uyumlu arayüzü sayesinde tarayıcıda da uygulama benzeri bir deneyim sunar."
+        "q": "Verilerim güvende mi?",
+        "a": "Hesabın Clerk ile doğrulanır, verilerin güvenli bulut altyapısında saklanır. Cihaz değiştirdiğinde verilerin kaybolmaz."
       },
       "5": {
-        "q": "Arkadaş ekleme özelliği ne işe yarıyor?",
-        "a": "Arkadaşlarınızı ekleyerek platformdaki bazı modüllerde ortak listeler oluşturabilir veya ilerlemelerinizi paylaşabilirsiniz."
+        "q": "İşletmemi ekleyebilir miyim?",
+        "a": "Evet! Dijital menü, damga kartı ve etkinlik modülleri ile işletmeni platforma ekleyebilirsin. İşletmeler sayfasından detaylara bak."
       }
     }
   },
@@ -104,7 +130,7 @@
     "sections": {
       "1": {
         "title": "1. Giriş",
-        "content": "Everything Merkezi (\"Hizmet\"), kullanıcılarımızın gizliliğine son derece önem vermektedir. Bu Gizlilik Politikası, hizmetimizi kullanırken hangi bilgilerinizin toplandığını, nasıl kullanıldığını ve nasıl korunduğunu açıklar."
+        "content": "Everything (\"Hizmet\"), kullanıcılarımızın gizliliğine son derece önem vermektedir. Bu Gizlilik Politikası, hizmetimizi kullanırken hangi bilgilerinizin toplandığını, nasıl kullanıldığını ve nasıl korunduğunu açıklar."
       },
       "2": {
         "title": "2. Toplanan Veriler",
@@ -120,17 +146,17 @@
         "content": "Toplanan veriler aşağıdaki amaçlarla sınırlı olarak kullanılır:",
         "items": [
           "Hizmete güvenli bir şekilde giriş yapmanızı sağlamak",
-          "Kişiselleştirilmiş verilerinizi (kiler, bütçe vb.) hesabınızla eşleştirmek",
+          "Kişiselleştirilmiş verilerinizi hesabınızla eşleştirmek",
           "Kullanıcı deneyimini iyileştirmek ve teknik sorunları çözmek"
         ]
       },
       "4": {
         "title": "4. Veri Güvenliği ve Paylaşımı",
-        "content": "Kullanıcı verileriniz hiçbir şekilde üçüncü taraflara satılmaz, kiralanmaz veya ticari amaçlarla paylaşılmaz. Verileriniz endüstri standardı güvenlik önlemleri ve güvenli altyapılar (Clerk ve Supabase) kullanılarak korunmaktadır."
+        "content": "Kullanıcı verileriniz hiçbir şekilde üçüncü taraflara satılmaz, kiralanmaz veya ticari amaçlarla paylaşılmaz. Verileriniz endüstri standardı güvenlik önlemleri kullanılarak korunmaktadır."
       },
       "5": {
         "title": "5. Kullanıcı Hakları",
-        "content": "Dilediğiniz zaman profil ayarlarınızdan hesabınızı ve hesabınızla ilişkili tüm verileri kalıcı olarak silme hakkına sahipsiniz. Sorularınız veya veri silme talepleriniz için bizimle iletişime geçebilirsiniz."
+        "content": "Dilediğiniz zaman profil ayarlarınızdan hesabınızı ve hesabınızla ilişkili tüm verileri kalıcı olarak silme hakkına sahipsiniz."
       }
     },
     "contact": {
@@ -145,57 +171,90 @@
     "sections": {
       "1": {
         "title": "1. Koşulların Kabulü",
-        "content": "Everything Merkezi'ne (\"Hizmet\") erişerek veya Hizmet'i kullanarak, bu Kullanım Koşulları'nı (\"Koşullar\") okuduğunuzu, anladığınızı ve bunlara bağlı kalmayı kabul ettiğinizi beyan edersiniz. Eğer bu koşulları kabul etmiyorsanız, lütfen Hizmet'i kullanmayınız."
+        "content": "Everything'e erişerek bu Kullanım Koşulları'nı kabul etmiş sayılırsınız."
       },
       "2": {
-        "title": "2. Hizmet Kullanımı ve Hesap Güvenliği",
-        "content": "Hizmet'i kullanabilmek için Google OAuth veya sunulan diğer yöntemlerle kimlik doğrulama yapmanız gerekebilir. Hesabınızın güvenliğini ve şifrenizin gizliliğini korumak sizin sorumluluğunuzdadır. Hesabınız altında gerçekleşen tüm faaliyetlerden tamamen siz sorumlu olursunuz."
+        "title": "2. Hizmet Kullanımı",
+        "content": "Hesabınızın güvenliğini korumak sizin sorumluluğunuzdadır."
       },
       "3": {
-        "title": "3. Fikri Mülkiyet Hakları",
-        "content": "Everything Merkezi ve içinde barındırılan tüm modüllerin tasarımı, kodları, logoları, grafikleri ve markaları Everything ekibine aittir ve uluslararası fikri mülkiyet yasalarıyla korunmaktadır. Yazılı izin olmaksızın kopyalanamaz, çoğaltılamaz veya dağıtılamaz."
+        "title": "3. Fikri Mülkiyet",
+        "content": "Everything ve modüllerinin tasarımı, kodları ve markaları korunmaktadır."
       },
       "4": {
         "title": "4. Kabul Edilebilir Kullanım",
-        "content": "Kullanıcılar, Hizmet'i yalnızca yasal amaçlar doğrultusunda kullanmayı kabul ederler. Platformu kötüye kullanmak, sunuculara veya veritabanına zarar verecek saldırılarda bulunmak, diğer kullanıcıların deneyimini olumsuz etkileyecek faaliyetler yürütmek kesinlikle yasaktır."
+        "content": "Platformu yalnızca yasal amaçlarla kullanmayı kabul edersiniz."
       },
       "5": {
         "title": "5. Sorumluluk Reddi",
-        "content": "Everything Merkezi, hizmetleri \"olduğu gibi\" ve \"kullanılabilir olduğu sürece\" sunmaktadır. Hizmetin kesintisiz, hatasız veya tamamen güvenli olacağını garanti etmeyiz. Doğrudan veya dolaylı olarak ortaya çıkabilecek veri kayıplarından Everything sorumlu tutulamaz."
+        "content": "Hizmet \"olduğu gibi\" sunulmaktadır; kesintisiz veya hatasız olacağı garanti edilmez."
       }
     },
     "contact": {
       "title": "İletişim",
-      "content": "Kullanım koşulları hakkında herhangi bir sorunuz olması durumunda bizimle iletişime geçebilirsiniz:"
+      "content": "Kullanım koşulları hakkında sorularınız için:"
+    }
+  },
+  "Updates": {
+    "badge": "Yenilikler",
+    "title": "Güncellemeler",
+    "subtitle": "Everything'e eklenen yeni özellikler, iyileştirmeler ve duyurular.",
+    "tags": {
+      "feature": "Yeni özellik",
+      "improvement": "İyileştirme",
+      "new": "Yeni modül"
+    },
+    "entries": {
+      "0": {
+        "date": "28 Temmuz 2026",
+        "tag": "feature",
+        "title": "Yeni landing ve modül önizlemeleri",
+        "body": "Ana sayfa yenilendi. Şehrini Keşfet, Günlük Ajanda, İşletmeler ve Geliştiriciler modülleri gerçek uygulama arayüzüyle önizlenebiliyor."
+      },
+      "1": {
+        "date": "28 Temmuz 2026",
+        "tag": "new",
+        "title": "Budget ve Subcenter günlük sekmesinde",
+        "body": "Bütçe takibi ve abonelik yönetimi artık Günlük ajandada widget olarak görünüyor."
+      },
+      "2": {
+        "date": "Temmuz 2026",
+        "tag": "improvement",
+        "title": "Uygulama kataloğu",
+        "body": "Tüm mini uygulamalar ve web araçları tek bir katalog sayfasında toplandı. B2C ve işletme araçları ayrı modlarda listeleniyor."
+      },
+      "3": {
+        "date": "Temmuz 2026",
+        "tag": "improvement",
+        "title": "Store Preview cihaz çerçevesi",
+        "body": "Landing ve mağaza önizlemelerinde gerçekçi iOS çerçevesi: status bar, Dynamic Island ve home indicator."
+      }
     }
   },
   "Footer": {
     "cta": {
-      "title": "Bugün Keşfetmeye Başla",
-      "subtitle": "Tüm günlük araçlarını tek bir yerden yöneterek dijital hayatını sadeleştir.",
-      "openApp": "Merkezi Aç"
+      "title": "Şehrini keşfetmeye başla",
+      "subtitle": "Bugün sinemada ne var, dışarıda ne yapılır — hepsi tek uygulamada.",
+      "openApp": "Uygulamayı Aç"
     },
-    "tagline": "Zeki ve modüler günlük yaşam araçları merkezi.",
+    "tagline": "Şehrin ve günlük hayatın için super app.",
     "links": {
-      "product": "Platform",
-      "company": "Geliştirici",
+      "product": "Ürün",
+      "company": "Şirket",
       "legal": "Yasal"
     },
     "copyright": "© 2026 Everything. Tüm hakları saklıdır.",
-    "madeWith": "❤️ ile geliştirildi",
+    "madeWith": "Kahramanmaraş'tan ❤️ ile",
     "linkTexts": {
-      "games": "Keşfet",
+      "apps": "Uygulamalar",
       "features": "Özellikler",
-      "premium": "Dokümantasyon",
-      "howToPlay": "Destek",
+      "forBusinesses": "İşletmeler İçin",
+      "directory": "Web Araçları",
       "about": "Hakkımızda",
-      "blog": "Geliştirici Blogu",
-      "careers": "İletişim",
-      "contact": "Bize Ulaşın",
+      "contact": "İletişim",
       "faq": "SSS",
       "privacy": "Gizlilik Politikası",
-      "terms": "Kullanım Şartları",
-      "cookies": "Çerez Politikası"
+      "terms": "Kullanım Şartları"
     }
   }
 }

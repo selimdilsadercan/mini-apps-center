@@ -11,8 +11,9 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslations, useLanguage } from "@/contexts/LanguageContext";
 import { useProfileUser } from "@/lib/cache/profileCache";
+import { hubPath } from "@/lib/hub-routes";
 
-type HomeTab = "discover" | "deck";
+type HomeTab = "discover" | "explore" | "hobby" | "wallet" | "life";
 
 interface HomeHeaderProps {
   activeTab: string;
@@ -34,7 +35,10 @@ function getGreetingKey(hour: number): "greetingMorning" | "greetingAfternoon" |
 
 const TAB_KEYS: Record<HomeTab, string> = {
   discover: "tabDiscover",
-  deck: "tabDeck",
+  explore: "tabExplore",
+  hobby: "tabHobby",
+  wallet: "tabWallet",
+  life: "tabLife",
 };
 
 export default function HomeHeader({
@@ -51,7 +55,7 @@ export default function HomeHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const tab = (["discover", "deck"].includes(activeTab)
+  const tab = (["discover", "explore", "hobby", "wallet", "life"].includes(activeTab)
     ? activeTab
     : "discover") as HomeTab;
 
@@ -102,12 +106,12 @@ export default function HomeHeader({
       dateShort,
       dateLong,
       displayName: dbUser?.username || dbUser?.full_name || user?.firstName || user?.username || t("guestName"),
-      tabLabel: tab === "deck" ? "Günün Kartları" : t(TAB_KEYS[tab]),
+      tabLabel: t(TAB_KEYS[tab]),
     };
   }, [locale, t, tab, user?.firstName, user?.username, dbUser?.username, dbUser?.full_name]);
 
   return (
-    <header className="sticky top-0 z-30 app-chrome-top">
+    <header className="sticky top-0 z-30 app-chrome-top md:hidden">
       <div className="max-w-lg mx-auto w-full px-4 py-3 flex items-center justify-between gap-3">
         {!isLoaded ? (
           <>
@@ -158,7 +162,7 @@ export default function HomeHeader({
               {isAdmin && (
                 <button
                   type="button"
-                  onClick={() => router.push("/home/list")}
+                  onClick={() => router.push(hubPath("list"))}
                   className={actionBtn}
                   title={t("appList")}
                 >
@@ -168,7 +172,7 @@ export default function HomeHeader({
 
               <button
                 type="button"
-                onClick={() => router.push("/profile")}
+                onClick={() => router.push(hubPath("profile"))}
                 className="w-9 h-9 rounded-lg overflow-hidden border border-app-border active:scale-95 transition-transform cursor-pointer"
               >
                 {user?.imageUrl ? (

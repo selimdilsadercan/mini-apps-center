@@ -2,12 +2,12 @@ import LandingPage from "@/components/landing/LandingPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Everything | Tüm Günlük Araçlarınız Tek Bir Yerde",
-  description: "Verimlilik araçlarından finans takipçilerine, kişisel yaşam asistanlarına kadar her şey tek bir noktada. Everything ile dijital hayatınızı sadeleştirin.",
+  title: "Everything | Şehrini Keşfet, Günlüğünü Yönet",
+  description: "Kahramanmaraş ve ötesi için super app. Sinema seansları, mekan rehberleri, etkinlikler ve 60+ günlük yaşam aracı — tek hesap, tek merkez.",
   keywords: ["toolkit", "araç kutusu", "verimlilik araçları", "günlük araçlar", "everything center"],
   openGraph: {
     title: "Everything",
-    description: "Tüm günlük dijital ihtiyaçlarınız için tek merkez - Araçlar, Verimlilik ve daha fazlası.",
+    description: "Şehir keşfi ve günlük yaşam araçları tek merkezde — sinema, mekanlar, rutinler ve daha fazlası.",
     url: "https://allminiapps.com",
     siteName: "Everything",
     images: [

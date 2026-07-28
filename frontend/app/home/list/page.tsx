@@ -20,6 +20,7 @@ import AppBar, { ActivePage } from "@/components/AppBar";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useHome } from "@/contexts/HomeContext";
+import { hubPath } from "@/lib/hub-routes";
 
 type TabType = "all" | "favorites";
 
@@ -171,7 +172,7 @@ export default function Home() {
             </button>
 
             <button 
-              onClick={() => router.push("/profile")}
+              onClick={() => router.push(hubPath("profile"))}
               className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm active:scale-95 transition-all"
             >
               {user?.imageUrl ? (

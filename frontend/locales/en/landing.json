@@ -1,99 +1,125 @@
 {
   "Header": {
-    "apps": "Explore",
-    "features": "Features",
+    "apps": "Apps",
+    "updates": "Updates",
     "forBusinesses": "For Businesses",
-    "faq": "FAQ",
-    "openApp": "Open Center",
+    "openApp": "Open App",
     "signIn": "Sign In"
   },
   "Hero": {
-    "badge": "Fully Live Interface",
-    "title1": "All Your Daily Tools",
-    "title2": "In One Center.",
-    "subtitle": "From mini-games to productivity tools, expense trackers to personal lifestyle helpers, everything is combined in one single place.",
-    "openApp": "Explore Center",
-    "now": "Now",
+    "badge": "Super app for your city",
+    "title1": "Explore your city,",
+    "title2": "run your day.",
+    "subtitle": "From cinema showtimes to place guides, shopping lists to routines — one hub for your city and daily life. 60+ mini apps, one account.",
+    "openApp": "Get Started",
+    "now": "Free",
+    "forBusinesses": "Add Your Business",
     "stats": {
-      "players": "Active Users",
-      "games": "Module",
-      "puzzles": "Tasks Solved",
-      "rating": "Satisfaction Rate"
+      "modules": "Mini Apps",
+      "city": "City-First",
+      "platforms": "iOS & Android",
+      "free": "Free"
     }
   },
   "AppPreview": {
-    "badge": "🧩 Rich Module Library",
-    "title": "Everything You Need is Here",
-    "subtitle": "Choose from dozens of categorized mini tools, add them to your home screen, and construct your own custom workspace.",
-    "tryLive": "Explore Now",
-    "descriptionSuffix": "Simplify your daily routines, save time, and organize your life with this mini tool.",
-    "difficulty": "Category",
-    "players": "Developer",
-    "playNow": "Open",
-    "share": "Share",
-    "loading": "Loading...",
-    "fallbackDesc": "A detailed interactive preview of this module is coming soon!"
+    "badge": "Modules",
+    "title": "Four modules, one platform",
+    "subtitle": "From city discovery to daily agenda, business tools to developer modules — all inside Everything.",
+    "includedTools": "Included tools",
+    "toolLabels": {
+      "campaigns": "Campaigns"
+    },
+    "modules": {
+      "explore": {
+        "name": "Explore Your City",
+        "description": "Places, events, cinema, concerts, and outdoor activities. Discover what's in your city in one module.",
+        "platform": "Mobile module",
+        "toolIds": "outdoor-activities|places|workplaces|campus-events|concert-list|film-graph",
+        "cta": "Start Exploring"
+      },
+      "daily": {
+        "name": "Daily Agenda",
+        "description": "All Today screen widgets: todos, shopping lists, routines, workouts, reading goals, and more.",
+        "platform": "Mobile module",
+        "toolIds": "rutinler|eksik-var|budget|subcenter|film-graph|series-track|read-tracker|gym",
+        "cta": "Open Today"
+      },
+      "business": {
+        "name": "For Businesses",
+        "description": "Reach customers with digital menus, stamp cards, business pages, and in-app campaigns.",
+        "platform": "Mobile & web",
+        "toolIds": "digital-menu|business-page|stamp-card|campaigns|feedback-board|campus-events",
+        "cta": "Add Your Business"
+      },
+      "developers": {
+        "name": "For Developers",
+        "description": "Tools to ship your app: task management, icon export, store preview, and more.",
+        "platform": "Web module",
+        "toolIds": "tasket|store-preview|icon-export|icon-set-guide|feedback-board",
+        "cta": "Open Studio"
+      }
+    }
   },
   "Features": {
-    "badge": "✨ Features",
-    "title": "Advanced Experience",
-    "subtitle": "Key highlights that make Everything unique",
+    "badge": "Why Everything?",
+    "title": "One hub, dozens of tools",
+    "subtitle": "Instead of scattered apps — one place built for your city and daily life.",
     "items": {
-      "daily": {
-        "title": "Customizable Home Screen",
-        "description": "Add, remove, and arrange any module on your home dashboard to customize your view."
+      "city": {
+        "title": "City Discovery First",
+        "description": "Cinema, events, places, and outdoor activities — what's happening in your city, on one screen."
       },
-      "chest": {
-        "title": "One Account, Dozens of Services",
-        "description": "Create a single secure login using Clerk and sync all your data seamlessly in the cloud."
+      "hub": {
+        "title": "Smart Today Dashboard",
+        "description": "Todos, shopping, workouts, and series as widgets — hide, postpone, complete."
       },
-      "hints": {
-        "title": "Encore & Supabase Backend",
-        "description": "Experience lightning-fast API responses and real-time database synchronization."
+      "account": {
+        "title": "Single Account",
+        "description": "One login for all modules; your data stays synced in the cloud."
       },
       "social": {
-        "title": "Social Sharing & Friends",
-        "description": "Add friends, share via QR, and collaborate on shared lists or interactive modules."
+        "title": "Social & Sharing",
+        "description": "Add friends, send suggestions, plan together — social modules built in."
       },
-      "duel": {
-        "title": "Mobile & Web Support",
-        "description": "Access seamlessly from desktop or mobile (Capacitor/Android) with fully responsive layouts."
+      "crossplatform": {
+        "title": "Mobile + Web",
+        "description": "Native iOS/Android via Capacitor; full experience in the browser too."
       },
-      "premium": {
-        "title": "Developer Friendly Architecture",
-        "description": "Easily develop and add new modules using our structured guidelines and boilerplate."
+      "modular": {
+        "title": "Always Growing",
+        "description": "New city tools and practical web modules added regularly."
       }
     }
   },
   "FAQ": {
-    "badge": "❓ FAQ",
+    "badge": "FAQ",
     "title": "Frequently Asked Questions",
-    "subtitle": "Everything you need to know about the Center",
-    "moreQuestions": "Have more questions?",
+    "subtitle": "What you need to know about Everything",
+    "moreQuestions": "Have another question?",
     "questions": {
       "0": {
         "q": "What is Everything?",
-        "a": "Everything is a toolkit that gathers multiple daily utilities like budget tracking, meal planners, simple games, and productivity dashboards under a single platform."
+        "a": "Everything is a super app that combines city discovery and daily life tools. Cinema showtimes, place guides, shopping lists, routines, and 60+ mini apps in one place."
       },
       "1": {
-        "q": "Is the platform free to use?",
-        "a": "Yes! All core tools on our platform are completely free and free of advertisements."
+        "q": "Is it free?",
+        "a": "Yes. Core modules are completely free with no ads."
       },
       "2": {
-        "q": "How is my data saved?",
-        "a": "Your identity is safely authenticated via Clerk, and your data is securely stored in a Supabase cloud database. Changing devices won't lose your data."
+        "q": "Which cities are supported?",
+        "a": "We start with Kahramanmaraş-focused content — cinema, events, places, and activities updated locally. More cities coming soon."
       },
       "3": {
-        "q": "Can I add my own module?",
-        "a": "Yes, our platform is highly modular. You can easily add a new frontend page and matching backend service following our developer rules."
+        "q": "Is there a mobile app?",
+        "a": "Yes. Native iOS and Android via Capacitor. Also accessible at my.allminiapps.com on the web."
       },
       "4": {
-        "q": "Is there a mobile app?",
-        "a": "Yes, our platform is built to compile as a native Android or iOS app using Capacitor. The responsive interface provides an app-like experience in any browser."
+        "q": "Is my data safe?",
+        "a": "Your account is authenticated via Clerk and data is stored securely in the cloud. Switching devices won't lose your data."
       },
       "5": {
-        "q": "What does the friends feature do?",
-        "a": "Adding friends allows you to share lists, view progress, and collaborate in shared modules."
+        "q": "Can I add my business?",
+        "a": "Yes! Digital menu, stamp card, and event modules let you list your business on the platform. See the For Businesses page."
       }
     }
   },
@@ -102,100 +128,87 @@
     "lastUpdated": "Last Updated: June 20, 2026",
     "backToHome": "Back to Home",
     "sections": {
-      "1": {
-        "title": "1. Introduction",
-        "content": "Everything Center (\"the Service\") values the privacy of our users. This Privacy Policy explains what information is collected, how it is used, and how it is protected when you use our service."
-      },
-      "2": {
-        "title": "2. Data Collection",
-        "content": "When you sign in via Google OAuth or other methods, only basic profile information is collected for authentication and secure account management purposes:",
-        "items": [
-          "Your Name and Surname",
-          "Your Email Address",
-          "Your Profile Picture (optional)"
-        ]
-      },
-      "3": {
-        "title": "3. Purpose of Data Use",
-        "content": "The collected data is used for the following limited purposes:",
-        "items": [
-          "Ensuring secure login to the service",
-          "Matching your personalized data (pantry, budget, etc.) with your account",
-          "Improving user experience and resolving technical issues"
-        ]
-      },
-      "4": {
-        "title": "4. Data Security and Sharing",
-        "content": "Your user data is never sold, rented, or shared with third parties for commercial purposes. Your data is protected using industry-standard security measures and secure infrastructures (Clerk and Supabase)."
-      },
-      "5": {
-        "title": "5. User Rights",
-        "content": "You have the right to permanently delete your account and all associated data from your profile settings at any time. You can contact us for questions or data deletion requests."
-      }
+      "1": { "title": "1. Introduction", "content": "Everything values your privacy. This policy explains what we collect and how we protect it." },
+      "2": { "title": "2. Data Collection", "content": "When you sign in, we collect basic profile info for authentication:", "items": ["Name", "Email", "Profile picture (optional)"] },
+      "3": { "title": "3. Purpose", "content": "Data is used to:", "items": ["Secure login", "Sync your personalized data", "Improve the experience"] },
+      "4": { "title": "4. Security", "content": "Your data is never sold to third parties." },
+      "5": { "title": "5. Your Rights", "content": "You can delete your account and all data at any time." }
     },
-    "contact": {
-      "title": "Contact",
-      "content": "For questions about our privacy policy, you can reach us at:"
-    }
+    "contact": { "title": "Contact", "content": "For privacy questions:" }
   },
   "Terms": {
     "title": "Terms of Service",
     "lastUpdated": "Last Updated: June 20, 2026",
     "backToHome": "Back to Home",
     "sections": {
+      "1": { "title": "1. Acceptance", "content": "By using Everything you agree to these terms." },
+      "2": { "title": "2. Account", "content": "You are responsible for your account security." },
+      "3": { "title": "3. IP", "content": "Everything design, code, and brands are protected." },
+      "4": { "title": "4. Acceptable Use", "content": "Use the platform only for lawful purposes." },
+      "5": { "title": "5. Disclaimer", "content": "Service is provided as-is without guarantees." }
+    },
+    "contact": { "title": "Contact", "content": "For terms questions:" }
+  },
+  "Updates": {
+    "badge": "What's new",
+    "title": "Updates",
+    "subtitle": "New features, improvements, and announcements across Everything.",
+    "tags": {
+      "feature": "New feature",
+      "improvement": "Improvement",
+      "new": "New module"
+    },
+    "entries": {
+      "0": {
+        "date": "July 28, 2026",
+        "tag": "feature",
+        "title": "New landing and module previews",
+        "body": "The homepage has been refreshed. Explore City, Daily Agenda, Businesses, and Developers modules can now be previewed with real app UI."
+      },
       "1": {
-        "title": "1. Acceptance of Terms",
-        "content": "By accessing or using Everything Center (\"the Service\"), you declare that you have read, understood, and agree to be bound by these Terms of Service (\"Terms\"). If you do not accept these terms, please do not use the Service."
+        "date": "July 28, 2026",
+        "tag": "new",
+        "title": "Budget and Subcenter on the daily tab",
+        "body": "Budget tracking and subscription management now appear as widgets on the Daily agenda."
       },
       "2": {
-        "title": "2. Service Use and Account Security",
-        "content": "You may be required to authenticate via Google OAuth or other provided methods to use the Service. You are responsible for maintaining the security of your account and the confidentiality of your password. You are fully responsible for all activities that occur under your account."
+        "date": "July 2026",
+        "tag": "improvement",
+        "title": "App catalog",
+        "body": "All mini apps and web tools are now collected on a single catalog page, with separate B2C and business modes."
       },
       "3": {
-        "title": "3. Intellectual Property Rights",
-        "content": "The design, codes, logos, graphics, and brands of Everything Center and all modules hosted within it belong to the Everything team and are protected by international intellectual property laws. They cannot be copied, reproduced, or distributed without written permission."
-      },
-      "4": {
-        "title": "4. Acceptable Use",
-        "content": "Users agree to use the Service only for lawful purposes. It is strictly forbidden to misuse the platform, conduct attacks that damage servers or databases, or engage in activities that negatively affect the experience of other users."
-      },
-      "5": {
-        "title": "5. Sorumluluk Reddi",
-        "content": "Everything Center provides services \"as is\" and \"as available\". We do not guarantee that the service will be uninterrupted, error-free, or completely secure. Everything cannot be held responsible for any data loss that may occur directly or indirectly."
+        "date": "July 2026",
+        "tag": "improvement",
+        "title": "Store Preview device frame",
+        "body": "Landing and store previews now use a realistic iOS frame with status bar, Dynamic Island, and home indicator."
       }
-    },
-    "contact": {
-      "title": "Contact",
-      "content": "If you have any questions about the terms of use, you can contact us at:"
     }
   },
   "Footer": {
     "cta": {
-      "title": "Start Exploring Today",
-      "subtitle": "Simplify your digital life by managing all your daily tools from one dashboard.",
-      "openApp": "Open Center"
+      "title": "Start exploring your city",
+      "subtitle": "What's on at the cinema, what to do outdoors — all in one app.",
+      "openApp": "Open App"
     },
-    "tagline": "Smart and modular daily tools hub.",
+    "tagline": "Super app for your city and daily life.",
     "links": {
-      "product": "Platform",
-      "company": "Developer",
+      "product": "Product",
+      "company": "Company",
       "legal": "Legal"
     },
     "copyright": "© 2026 Everything. All rights reserved.",
-    "madeWith": "Developed with ❤️",
+    "madeWith": "Made with ❤️ from Kahramanmaraş",
     "linkTexts": {
-      "games": "Explore",
+      "apps": "Apps",
       "features": "Features",
-      "premium": "Documentation",
-      "howToPlay": "Support",
-      "about": "About Us",
-      "blog": "Dev Blog",
-      "careers": "Contact",
-      "contact": "Contact Us",
+      "forBusinesses": "For Businesses",
+      "directory": "Web Tools",
+      "about": "About",
+      "contact": "Contact",
       "faq": "FAQ",
       "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy"
+      "terms": "Terms of Service"
     }
   }
 }

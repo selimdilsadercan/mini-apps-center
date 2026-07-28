@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/clerk-react";
+import { getAppHomePath } from "@/lib/app-root";
 
 export default function Page() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function Page() {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn) {
-        router.replace("/home");
+        router.replace(getAppHomePath());
       } else {
         router.replace("/login");
       }

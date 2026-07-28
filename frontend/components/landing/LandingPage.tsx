@@ -10,7 +10,7 @@ import Footer from "./Footer";
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="relative min-h-screen bg-[#FAF9F7] text-gray-900 overflow-x-hidden antialiased">
+    <div className="relative min-h-screen bg-[#0a0a0c] text-zinc-100 overflow-x-hidden antialiased">
       <Header />
       <main>
         <Hero />

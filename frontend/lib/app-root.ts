@@ -10,6 +10,8 @@
  * Capacitor'da bu geçersiz — aynı origin içinde /home kullanılmalı.
  */
 
+import { getHubRootPath, hubPath, isMySubdomain } from "./hub-routes";
+
 export function isCapacitorNative(): boolean {
   if (typeof window === "undefined") return false;
 
@@ -21,6 +23,15 @@ export function isCapacitorNative(): boolean {
   if (protocol === "capacitor:" || protocol === "ionic:") return true;
 
   return process.env.NEXT_PUBLIC_CAPACITOR === "true";
+}
+
+/** Capacitor iOS native app (Safari / web değil). */
+export function isCapacitorIOS(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const cap = (window as Window & { Capacitor?: { getPlatform?: () => string } })
+    .Capacitor;
+  return cap?.getPlatform?.() === "ios";
 }
 
 export function getWebViewOrigin(): string {
@@ -56,8 +67,12 @@ export function getPublicSubdomainUrl(subdomain: string, path: string): string {
   return `https://${subdomain}.${rootDomain}${normalizedPath}`;
 }
 
-/** Hub ana sayfası path'i (Capacitor + web aynı origin). */
+/** Hub ana sayfası path'i — my subdomain'de /today, Capacitor'da /home/today */
 export const APP_HOME_PATH = "/home";
+
+export function getAppHomePath(): string {
+  return getHubRootPath();
+}
 
 export const HOME_TABS = ["discover", "explore", "hobby", "wallet", "life"] as const;
 export type HomeTab = (typeof HOME_TABS)[number];
@@ -97,7 +112,7 @@ export function resolveInitialHomeTab(queryTab: string | null): HomeTab {
  * Capacitor'da relative path; web'de my subdomain tam URL.
  */
 export function getAppRootUrl(): string {
-  let path = APP_HOME_PATH;
+  let path = getAppHomePath();
   
   if (typeof window !== "undefined") {
     // Priority 1: If we came from a business profile page, go back there
@@ -109,13 +124,57 @@ export function getAppRootUrl(): string {
     // Priority 2: Go back to the last active tab on the home page
     const lastTab = localStorage.getItem("last_active_tab");
     if (lastTab && lastTab !== "discover") {
-      path = `${APP_HOME_PATH}?tab=${lastTab}`;
+      if (isCapacitorNative()) {
+        path = `${APP_HOME_PATH}?tab=${lastTab}`;
+      } else if (lastTab === "explore") {
+        path = hubPath("explore");
+      } else if (lastTab === "life") {
+        path = hubPath("life");
+      } else if (lastTab === "hobby") {
+        path = hubPath("hobby");
+      } else if (lastTab === "wallet") {
+        path = hubPath("tools");
+      } else {
+        path = hubPath("today", { query: { tab: lastTab } });
+      }
     }
   }
 
   if (typeof window === "undefined") return path;
 
   if (isCapacitorNative()) {
+    return path.startsWith("/") ? path : APP_HOME_PATH;
+  }
+
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+
+  if (isMySubdomain()) {
+    return path;
+  }
+
+  if (isLocalWebDev(hostname)) {
+    const primary = port ? `my.localhost:${port}` : "my.localhost";
+    return `${protocol}//${primary}${path}`;
+  }
+
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+  return `${protocol}//my.${rootDomain}${path}`;
+}
+
+/**
+ * /home hub URL'i — tam sayfa yönlendirme için.
+ */
+export function getRootHomeUrl(): string {
+  const path = getAppHomePath();
+  if (typeof window === "undefined") return path;
+
+  if (isCapacitorNative()) {
+    return path.startsWith("/home") ? path : `${APP_HOME_PATH}${path === "/today" ? "/today" : path}`;
+  }
+
+  if (isMySubdomain()) {
     return path;
   }
 
@@ -133,36 +192,13 @@ export function getAppRootUrl(): string {
 }
 
 /**
- * /home hub URL'i — tam sayfa yönlendirme için.
- */
-export function getRootHomeUrl(): string {
-  if (typeof window === "undefined") return APP_HOME_PATH;
-
-  if (isCapacitorNative()) {
-    return APP_HOME_PATH;
-  }
-
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-  const protocol = window.location.protocol;
-
-  if (isLocalWebDev(hostname)) {
-    const primary = port ? `localhost:${port}` : "localhost";
-    return `${protocol}//${primary}${APP_HOME_PATH}`;
-  }
-
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
-  return `${protocol}//${rootDomain}${APP_HOME_PATH}`;
-}
-
-/**
  * Hub'a git — router varsa client-side, yoksa location.
  */
 export function navigateToAppRoot(router?: { push: (href: string) => void }): void {
   const target = getAppRootUrl();
 
   if (router && (target.startsWith("/") || isCapacitorNative())) {
-    router.push(target.startsWith("/") ? target : APP_HOME_PATH);
+    router.push(target.startsWith("/") ? target : getAppHomePath());
     return;
   }
 

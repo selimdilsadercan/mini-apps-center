@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { hubPath } from "@/lib/hub-routes";
 import { 
   Users, 
   UserPlus, 
@@ -240,7 +241,7 @@ function FriendsContent() {
         <header className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => router.push("/profile")} 
+              onClick={() => router.push(hubPath("profile"))} 
               className="p-2 -ml-2 hover:bg-app-surface-muted rounded-full transition-colors active:scale-95 cursor-pointer"
             >
               <ArrowLeft size={24} className="text-app-text" />

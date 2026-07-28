@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PaperPlaneTilt, Users } from "@phosphor-icons/react";
 import type { MiniApp } from "@/lib/apps";
-import { AppRow } from "./common/AppRow";
+import { AppListSection } from "./common/AppListSection";
 
 interface LifeTabProps {
   suggestions: any[];
@@ -120,71 +120,32 @@ export function LifeTab({
         </section>
       )}
 
-      {/* Ev & Düzen */}
-      {lifeHomeApps.length > 0 && (
-        <section className="space-y-2">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-            Ev & Düzen
-          </h3>
-          <div className="space-y-0">
-            {lifeHomeApps.map((app, index) => (
-              <AppRow
-                key={app.id}
-                app={app}
-                index={index}
-                tApps={tApps}
-                isPinned={pinnedIds.includes(app.id)}
-                onPin={(e) => togglePin(e, app.id)}
-                onClick={() => handleAppClick(app)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <AppListSection
+        title="Ev & Düzen"
+        apps={lifeHomeApps}
+        tApps={tApps}
+        pinnedIds={pinnedIds}
+        togglePin={togglePin}
+        handleAppClick={handleAppClick}
+      />
 
-      {/* Sağlık & Odak */}
-      {lifeHealthApps.length > 0 && (
-        <section className="space-y-2">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-            Sağlık & Odak
-          </h3>
-          <div className="space-y-0">
-            {lifeHealthApps.map((app, index) => (
-              <AppRow
-                key={app.id}
-                app={app}
-                index={index}
-                tApps={tApps}
-                isPinned={pinnedIds.includes(app.id)}
-                onPin={(e) => togglePin(e, app.id)}
-                onClick={() => handleAppClick(app)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <AppListSection
+        title="Sağlık & Odak"
+        apps={lifeHealthApps}
+        tApps={tApps}
+        pinnedIds={pinnedIds}
+        togglePin={togglePin}
+        handleAppClick={handleAppClick}
+      />
 
-      {/* Finans & Bütçe */}
-      {walletApps.length > 0 && (
-        <section className="space-y-2">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-            Finans & Bütçe
-          </h3>
-          <div className="space-y-0">
-            {walletApps.map((app, index) => (
-              <AppRow
-                key={app.id}
-                app={app}
-                index={index}
-                tApps={tApps}
-                isPinned={pinnedIds.includes(app.id)}
-                onPin={(e) => togglePin(e, app.id)}
-                onClick={() => handleAppClick(app)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <AppListSection
+        title="Finans & Bütçe"
+        apps={walletApps}
+        tApps={tApps}
+        pinnedIds={pinnedIds}
+        togglePin={togglePin}
+        handleAppClick={handleAppClick}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useTranslations } from "@/contexts/LanguageContext";
 import { createBrowserClient } from "@/lib/api";
 import { deleteCurrentUser } from "@/lib/firebase";
 import { setOnboardingFinishedAction } from "../../home/actions";
+import { hubPath } from "@/lib/hub-routes";
 
 const client = createBrowserClient();
 
@@ -72,7 +73,7 @@ export default function AccountSettingsPage() {
     <div className="flex min-h-screen flex-col bg-[#FAF9F7] text-gray-900">
       <main className="flex-1 px-4 pb-32 max-w-md mx-auto w-full pt-8">
         <Link
-          href="/profile"
+          href={hubPath("profile")}
           className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-800 mb-6 no-underline"
         >
           <ArrowLeft size={16} weight="bold" />

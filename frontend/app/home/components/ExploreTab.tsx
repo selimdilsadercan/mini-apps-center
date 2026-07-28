@@ -1,7 +1,7 @@
 "use client";
 
 import type { MiniApp } from "@/lib/apps";
-import { AppRow } from "./common/AppRow";
+import { AppListSection } from "./common/AppListSection";
 
 interface ExploreTabProps {
   explorePlacesApps: MiniApp[];
@@ -22,49 +22,22 @@ export function ExploreTab({
 }: ExploreTabProps) {
   return (
     <div className="space-y-8">
-      {/* Mekanlar & Rehberler */}
-      {explorePlacesApps.length > 0 && (
-        <section className="space-y-2">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-            Mekanlar & Rehberler
-          </h3>
-          <div className="space-y-0">
-            {explorePlacesApps.map((app, index) => (
-              <AppRow
-                key={app.id}
-                app={app}
-                index={index}
-                tApps={tApps}
-                isPinned={pinnedIds.includes(app.id)}
-                onPin={(e) => togglePin(e, app.id)}
-                onClick={() => handleAppClick(app)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Etkinlik & Topluluk */}
-      {exploreEventsApps.length > 0 && (
-        <section className="space-y-2">
-          <h3 className="text-[11px] font-black uppercase tracking-widest text-app-muted px-1">
-            Etkinlik & Topluluk
-          </h3>
-          <div className="space-y-0">
-            {exploreEventsApps.map((app, index) => (
-              <AppRow
-                key={app.id}
-                app={app}
-                index={index}
-                tApps={tApps}
-                isPinned={pinnedIds.includes(app.id)}
-                onPin={(e) => togglePin(e, app.id)}
-                onClick={() => handleAppClick(app)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <AppListSection
+        title="Mekanlar & Rehberler"
+        apps={explorePlacesApps}
+        tApps={tApps}
+        pinnedIds={pinnedIds}
+        togglePin={togglePin}
+        handleAppClick={handleAppClick}
+      />
+      <AppListSection
+        title="Etkinlik & Topluluk"
+        apps={exploreEventsApps}
+        tApps={tApps}
+        pinnedIds={pinnedIds}
+        togglePin={togglePin}
+        handleAppClick={handleAppClick}
+      />
     </div>
   );
 }

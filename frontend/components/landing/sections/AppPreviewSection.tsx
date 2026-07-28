@@ -1,258 +1,135 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CreditCard, 
-  Trophy, 
-  Timer, 
-  Basket, 
-  Sparkle,
-  Checks,
-  Plus
-} from "@phosphor-icons/react";
+import { Compass, CalendarCheck, Storefront, Code, Megaphone } from "@phosphor-icons/react";
+import type { ElementType } from "react";
 import PhoneMockup from "../PhoneMockup";
 import PhoneScreen from "../PhoneScreen";
+import BrowserMockup from "../BrowserMockup";
+import LandingPhoneAppPreview from "../LandingPhoneAppPreview";
+import LandingPhoneDailyPreview from "../LandingPhoneDailyPreview";
+import LandingPhoneBusinessPreview from "../LandingPhoneBusinessPreview";
+import LandingBrowserDevPreview from "../LandingBrowserDevPreview";
 import { useTranslations } from "@/contexts/LanguageContext";
-import { getAppRootUrl } from "@/lib/apps";
+import { getAppRootUrl, MINI_APPS, BUSINESS_APPS, type MiniApp } from "@/lib/apps";
 
-interface AppData {
+const MODULE_IDS = ["explore", "daily", "business", "developers"] as const;
+type ModuleId = (typeof MODULE_IDS)[number];
+
+const ALL_APPS: MiniApp[] = [...MINI_APPS, ...BUSINESS_APPS];
+
+const CUSTOM_TOOLS: Record<string, { icon: ElementType; color: string }> = {
+  campaigns: { icon: Megaphone, color: "#F59E0B" },
+};
+
+function findApp(id: string): MiniApp | undefined {
+  return ALL_APPS.find((app) => app.id === id);
+}
+
+function resolveTool(
+  toolId: string,
+  tApps: (key: string) => string,
+  tPreview: (key: string) => string
+): {
   id: string;
-  name: string;
-  category: string;
-  icon: React.ComponentType<any>;
+  label: string;
+  icon: ElementType;
   color: string;
-  descriptionKey: string;
-  mockRender: () => React.ReactNode;
+} | null {
+  const custom = CUSTOM_TOOLS[toolId];
+  if (custom) {
+    const label = tPreview(`toolLabels.${toolId}`);
+    if (!label || label === `AppPreview.toolLabels.${toolId}`) return null;
+    return { id: toolId, label, icon: custom.icon, color: custom.color };
+  }
+
+  const app = findApp(toolId);
+  if (!app) return null;
+
+  const translated = tApps(`${toolId}.name`);
+  const label =
+    translated !== `apps.${toolId}.name` ? translated : app.name;
+
+  return { id: toolId, label, icon: app.icon, color: app.color };
+}
+
+type ModuleTool = NonNullable<ReturnType<typeof resolveTool>>;
+
+const MODULE_META: Record<
+  ModuleId,
+  {
+    icon: React.ComponentType<{ size?: number; weight?: "bold" | "fill" }>;
+    color: string;
+    previewMode: "phone" | "browser";
+    url: string;
+  }
+> = {
+  explore: { icon: Compass, color: "#0F766E", previewMode: "phone", url: "my.allminiapps.com/explore" },
+  daily: { icon: CalendarCheck, color: "#6366F1", previewMode: "phone", url: "my.allminiapps.com/today" },
+  business: { icon: Storefront, color: "#6366F1", previewMode: "phone", url: "allminiapps.com/for-businesses" },
+  developers: { icon: Code, color: "#7C3AED", previewMode: "browser", url: "my.allminiapps.com/studio" },
+};
+
+function ModulePreview({ moduleId }: { moduleId: ModuleId }) {
+  switch (moduleId) {
+    case "explore":
+      return <LandingPhoneAppPreview />;
+    case "daily":
+      return <LandingPhoneDailyPreview />;
+    case "business":
+      return <LandingPhoneBusinessPreview />;
+    case "developers":
+      return <LandingBrowserDevPreview />;
+  }
 }
 
 const AppPreviewSection: React.FC = () => {
   const t = useTranslations("AppPreview");
-  const [selectedAppId, setSelectedAppId] = useState<string>("subcenter");
+  const tApps = useTranslations("apps");
+  const [selectedModuleId, setSelectedModuleId] = useState<ModuleId>("explore");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Define custom mock screens for apps inside the Phone
-  const apps: AppData[] = [
-    {
-      id: "subcenter",
-      name: "Subcenter",
-      category: "Utilities",
-      icon: CreditCard,
-      color: "#339AF0",
-      descriptionKey: "Subcenter",
-      mockRender: () => (
-        <div className="p-4 bg-gray-50 h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[11px] font-bold text-gray-500">Subscriptions</span>
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">3 Active</span>
-            </div>
-            
-            <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm mb-4">
-              <span className="text-[10px] text-gray-400 font-bold block mb-1">Monthly Cost</span>
-              <span className="text-xl font-black text-gray-900">₺189.90</span>
-            </div>
+  const selectedMeta = MODULE_META[selectedModuleId];
 
-            <div className="space-y-2">
-              {[
-                { name: "Netflix", cost: "₺119.90", color: "#E50914" },
-                { name: "Spotify", cost: "₺39.99", color: "#1DB954" },
-                { name: "iCloud", cost: "₺29.99", color: "#007AFF" }
-              ].map((sub, i) => (
-                <div key={i} className="flex justify-between items-center bg-white border border-gray-100 p-2 rounded-xl shadow-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-black" style={{ backgroundColor: sub.color }}>
-                      {sub.name[0]}
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-700">{sub.name}</span>
-                  </div>
-                  <span className="text-[10px] font-black text-gray-900">{sub.cost}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl text-[10px] font-bold shadow-md shadow-blue-100">
-            + Add Subscription
-          </button>
-        </div>
-      )
-    },
-    {
-      id: "tasket",
-      name: "Tasket",
-      category: "Utilities",
-      icon: Checks,
-      color: "#20c997",
-      descriptionKey: "Tasket",
-      mockRender: () => (
-        <div className="p-4 bg-gray-50 h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[11px] font-bold text-gray-500">My Tasket</span>
-              <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold">2 Remaining</span>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { text: "Go to grocery store", done: true },
-                { text: "Update subscription limits", done: false },
-                { text: "Read 10 pages of book", done: false }
-              ].map((todo, i) => (
-                <div key={i} className={`flex items-center gap-2 bg-white border border-gray-100 p-2.5 rounded-xl shadow-xs ${todo.done ? 'opacity-60' : ''}`}>
-                  <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${todo.done ? 'bg-teal-500 border-teal-500 text-white' : 'border-gray-300'}`}>
-                    {todo.done && <Checks size={10} weight="bold" />}
-                  </div>
-                  <span className={`text-[10px] font-bold ${todo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{todo.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <input type="text" placeholder="Add task..." disabled className="flex-1 bg-white border border-gray-100 px-3 py-1.5 rounded-xl text-[9px]" />
-            <button className="bg-teal-500 text-white p-2 rounded-xl">
-              <Plus size={12} weight="bold" />
-            </button>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: "pomodoro",
-      name: "Melt & Work",
-      category: "Utilities",
-      icon: Timer,
-      color: "#4dabf7",
-      descriptionKey: "pomodoro",
-      mockRender: () => (
-        <div className="p-4 bg-slate-900 h-full flex flex-col justify-between text-white items-center text-center">
-          <div className="w-full flex justify-between text-[9px] text-slate-400 font-bold">
-            <span>Focus Mode</span>
-            <span>Melt & Work</span>
-          </div>
-
-          <div className="flex flex-col items-center">
-            {/* Melting Ice Box Mock */}
-            <div className="w-24 h-24 rounded-3xl bg-blue-400/20 border border-blue-400/30 flex items-center justify-center relative mb-4 overflow-hidden">
-              <div className="absolute bottom-0 left-0 right-0 bg-blue-500/40 h-2/3 rounded-b-2xl animate-pulse" />
-              <span className="text-xl font-black text-white relative z-10">24:59</span>
-            </div>
-            <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Ice is Melting</span>
-          </div>
-
-          <button className="w-full bg-blue-500 text-white py-2 rounded-xl text-[10px] font-bold shadow-md shadow-blue-900/50">
-            Pause Timer
-          </button>
-        </div>
-      )
-    },
-    {
-      id: "tournament-manager",
-      name: "Turnuva",
-      category: "Board Games",
-      icon: Trophy,
-      color: "#FCC419",
-      descriptionKey: "tournament",
-      mockRender: () => (
-        <div className="p-4 bg-gray-50 h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[11px] font-bold text-gray-500">Championship Bracket</span>
-              <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">Semis</span>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-white border border-gray-100 p-2.5 rounded-xl shadow-xs space-y-2">
-                <div className="flex justify-between text-[9px] font-bold text-gray-700 border-b border-gray-100 pb-1">
-                  <span>Player A</span>
-                  <span className="text-emerald-500">3</span>
-                </div>
-                <div className="flex justify-between text-[9px] font-bold text-gray-500">
-                  <span>Player B</span>
-                  <span>1</span>
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 p-2.5 rounded-xl shadow-xs space-y-2">
-                <div className="flex justify-between text-[9px] font-bold text-gray-500 border-b border-gray-100 pb-1">
-                  <span>Player C</span>
-                  <span>0</span>
-                </div>
-                <div className="flex justify-between text-[9px] font-bold text-gray-700">
-                  <span>Player D</span>
-                  <span className="text-emerald-500">2</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button className="w-full bg-yellow-500 text-gray-900 py-2 rounded-xl text-[10px] font-bold shadow-md">
-            Next Round
-          </button>
-        </div>
-      )
-    },
-    {
-      id: "kiler",
-      name: "Kiler",
-      category: "Lifestyle",
-      icon: Basket,
-      color: "#40C057",
-      descriptionKey: "kiler",
-      mockRender: () => (
-        <div className="p-4 bg-gray-50 h-full flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[11px] font-bold text-gray-500">Pantry Items</span>
-              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">2 Expiring</span>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { name: "Milk", expiry: "Today", critical: true },
-                { name: "Yogurt", expiry: "Tomorrow", critical: true },
-                { name: "Eggs", expiry: "In 5 days", critical: false }
-              ].map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-white border border-gray-100 p-2.5 rounded-xl shadow-xs">
-                  <span className="text-[10px] font-bold text-gray-700">{item.name}</span>
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${item.critical ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500'}`}>
-                    {item.expiry}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button className="w-full bg-green-500 text-white py-2 rounded-xl text-[10px] font-bold shadow-md shadow-green-100">
-            Open Inventory
-          </button>
-        </div>
-      )
+  const ctaHref = useMemo(() => {
+    if (!mounted) return "/login";
+    const root = getAppRootUrl();
+    switch (selectedModuleId) {
+      case "explore":
+        return `${root}/explore`;
+      case "daily":
+        return `${root}/today`;
+      case "business":
+        return "/for-businesses";
+      case "developers":
+        return `${root}/studio`;
     }
-  ];
+  }, [mounted, selectedModuleId]);
 
-  const selectedApp = apps.find(a => a.id === selectedAppId) || apps[0];
+  const tools = useMemo(() => {
+    const raw = t(`modules.${selectedModuleId}.toolIds`);
+    if (!raw) return [];
+    return raw
+      .split("|")
+      .map((id: string) => id.trim())
+      .map((id: string) => resolveTool(id, tApps, t))
+      .filter((tool: ModuleTool | null): tool is ModuleTool => tool !== null);
+  }, [t, tApps, selectedModuleId]);
 
   return (
-    <section
-      id="apps"
-      className="py-24 relative overflow-hidden bg-white"
-    >
-      {/* Background Blurs */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="absolute top-1/4 -left-20 w-[450px] h-[450px] bg-indigo-100/30 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 -right-20 w-[450px] h-[450px] bg-purple-100/20 rounded-full blur-[100px]" />
-      </div>
-
+    <section id="apps" className="py-24 relative overflow-hidden bg-[#0a0a0c]">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 space-y-4">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-4 shadow-sm"
+            className="inline-flex items-center px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-bold"
           >
             {t("badge")}
           </motion.div>
@@ -261,7 +138,7 @@ const AppPreviewSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight"
+            className="text-3xl md:text-4xl font-black text-white tracking-tight"
           >
             {t("title")}
           </motion.h2>
@@ -270,141 +147,169 @@ const AppPreviewSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-gray-500 text-base md:text-lg max-w-2xl mx-auto font-semibold leading-relaxed"
+            className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto font-medium leading-relaxed"
           >
             {t("subtitle")}
           </motion.p>
         </div>
 
-        <div className="flex flex-col gap-12">
-          {/* Apps Horizontal Selector */}
-          <div className="w-full overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar flex justify-start sm:justify-center">
-            <div className="flex gap-3">
-              {apps.map((app, index) => {
-                const Icon = app.icon;
-                const isSelected = selectedAppId === app.id;
+        <div className="max-w-5xl mx-auto w-full">
+          <div className="overflow-x-auto pb-4 no-scrollbar flex justify-center">
+            <div className="flex gap-2 px-1">
+              {MODULE_IDS.map((id, index) => {
+                const isSelected = selectedModuleId === id;
+                const meta = MODULE_META[id];
+                const Icon = meta.icon;
                 return (
                   <motion.button
-                    key={app.id}
+                    key={id}
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => setSelectedAppId(app.id)}
-                    className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                    onClick={() => setSelectedModuleId(id)}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-2xl border-2 transition-all cursor-pointer whitespace-nowrap ${
                       isSelected
-                        ? "bg-gray-900 border-gray-900 text-white shadow-lg"
-                        : "bg-white border-gray-100 text-gray-600 hover:border-gray-200"
+                        ? "bg-white border-white text-zinc-950 shadow-lg"
+                        : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-600"
                     }`}
                   >
-                    <div 
-                      className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: app.color }}
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white"
+                      style={{ backgroundColor: meta.color }}
                     >
-                      <Icon size={16} color="white" weight="fill" />
+                      <Icon size={16} weight="fill" />
                     </div>
-                    <span className="text-xs font-bold">{app.name}</span>
+                    <span className="text-xs font-bold">{t(`modules.${id}.name`)}</span>
                   </motion.button>
                 );
               })}
             </div>
           </div>
 
-          {/* Interactive Showcase */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-4xl mx-auto w-full pt-6">
-            {/* Left - Phone Preview */}
-            <div className="flex justify-center order-2 lg:order-1 relative">
-              <div className="absolute inset-0 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none" />
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative z-10"
-              >
-                <PhoneMockup>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={selectedApp.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="h-full w-full"
-                    >
-                      <PhoneScreen>
-                        {selectedApp.mockRender()}
-                      </PhoneScreen>
-                    </motion.div>
-                  </AnimatePresence>
-                </PhoneMockup>
-              </motion.div>
+          <div className="mt-8 rounded-3xl border border-zinc-800 bg-[#111114] px-6 py-4 md:px-10 md:py-6">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center lg:items-stretch">
+            <div className="flex h-full w-full items-center justify-center order-2 lg:order-1 relative py-3 lg:py-4">
+              <AnimatePresence mode="wait">
+                {selectedMeta.previewMode === "phone" ? (
+                  <motion.div
+                    key={`phone-${selectedModuleId}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="relative z-10"
+                  >
+                    <PhoneMockup>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedModuleId}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="h-full w-full"
+                        >
+                          <PhoneScreen>
+                            <ModulePreview moduleId={selectedModuleId} />
+                          </PhoneScreen>
+                        </motion.div>
+                      </AnimatePresence>
+                    </PhoneMockup>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={`browser-${selectedModuleId}`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="relative z-10 w-full"
+                  >
+                    <BrowserMockup url={selectedMeta.url}>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={selectedModuleId}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="h-full w-full"
+                        >
+                          <ModulePreview moduleId={selectedModuleId} />
+                        </motion.div>
+                      </AnimatePresence>
+                    </BrowserMockup>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Right - App Details Info */}
             <motion.div
-              key={selectedApp.id}
+              key={selectedModuleId}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="order-1 lg:order-2 space-y-6 text-center lg:text-left"
+              className="order-1 lg:order-2 space-y-6 text-center lg:text-left lg:justify-self-start w-full max-w-lg mx-auto lg:mx-0 flex flex-col justify-center"
             >
               <div className="flex items-center gap-3 justify-center lg:justify-start">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100"
-                  style={{ backgroundColor: selectedApp.color }}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg"
+                  style={{ backgroundColor: selectedMeta.color }}
                 >
-                  <selectedApp.icon size={28} weight="fill" />
+                  <selectedMeta.icon size={28} weight="fill" />
                 </div>
                 <div>
-                  <h3 className="text-2xl md:text-3xl font-black text-gray-900 leading-tight">
-                    {selectedApp.name}
+                  <h3 className="text-2xl md:text-3xl font-black text-white leading-tight">
+                    {t(`modules.${selectedModuleId}.name`)}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-indigo-600 text-xs font-bold uppercase tracking-wider mt-1 justify-center lg:justify-start">
-                    <span className="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse" />
-                    {t("tryLive")}
+                  <div className="flex items-center gap-1.5 text-teal-400 text-xs font-bold uppercase tracking-wider mt-1 justify-center lg:justify-start">
+                    <span className="flex h-2 w-2 rounded-full bg-teal-400" />
+                    <span>{t(`modules.${selectedModuleId}.platform`)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 rounded-3xl bg-gray-50 border border-gray-100">
-                <p className="text-gray-600 text-base leading-relaxed mb-6 font-semibold">
-                  {/* Since translations are dynamically resolved: */}
-                  {selectedApp.id === "subcenter" && "Track all your subscriptions & spending. Get notifications when your cards are about to be charged."}
-                  {selectedApp.id === "tasket" && "Collect your thoughts, todo lists, and notes in your bucket. Organize and sweep through tasks effortlessly."}
-                  {selectedApp.id === "pomodoro" && "Focus on your tasks with a gorgeous melting ice block animation helper. Work while the ice melts!"}
-                  {selectedApp.id === "tournament-manager" && "Create, edit, and organize leagues, knockouts, or custom brackets. Share results instantly."}
-                  {selectedApp.id === "kiler" && "Manage your home pantry, track shelf life of ingredients, and cook before they expire."}
-                  {" "}{t("descriptionSuffix")}
+              <div className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800">
+                <p className="text-zinc-300 text-base leading-relaxed mb-6 font-medium">
+                  {t(`modules.${selectedModuleId}.description`)}
                 </p>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">
-                      {t("difficulty")}
-                    </p>
-                    <p className="text-gray-800 font-bold text-sm">
-                      {selectedApp.category}
-                    </p>
-                  </div>
-                  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">
-                      {t("players")}
-                    </p>
-                    <p className="text-gray-800 font-bold text-sm">
-                      Everything Team
-                    </p>
+                <div>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase mb-3">
+                    {t("includedTools")}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {tools.map((tool: ModuleTool) => {
+                      const Icon = tool.icon;
+                      return (
+                        <span
+                          key={tool.id}
+                          className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300"
+                        >
+                          <span
+                            className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-white"
+                            style={{ backgroundColor: tool.color }}
+                          >
+                            <Icon size={13} weight="fill" />
+                          </span>
+                          <span className="text-xs font-bold">{tool.label}</span>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
                 <a
-                  href={mounted ? getAppRootUrl() : "/"} 
-                  className="px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md shadow-indigo-500/10 active:scale-95 text-center"
+                  href={ctaHref}
+                  className="px-8 py-3.5 rounded-2xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold transition-all active:scale-95 text-center"
                 >
-                  {t("playNow")}
+                  {t(`modules.${selectedModuleId}.cta`)}
                 </a>
               </div>
             </motion.div>
+            </div>
           </div>
         </div>
       </div>

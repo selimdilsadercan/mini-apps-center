@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getAppHomePath } from "@/lib/app-root";
 import Link from "next/link";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -41,7 +42,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.replace("/home");
+      router.replace(getAppHomePath());
     }
   }, [isAuthenticated, loading, router]);
 
