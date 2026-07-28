@@ -14,6 +14,8 @@ import {
   BookOpen,
   Check,
   GraduationCap,
+  CaretRight,
+  CaretDown,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
@@ -35,6 +37,13 @@ export default function YKSSavedPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [tempNoteText, setTempNoteText] = useState<string>("");
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+
+  const toggleExpand = (programId: string) => {
+    setExpandedIds((prev) =>
+      prev.includes(programId) ? prev.filter((id) => id !== programId) : [...prev, programId]
+    );
+  };
 
   useEffect(() => {
     loadSavedChoices();
@@ -169,15 +178,15 @@ export default function YKSSavedPage() {
   const getScoreTypeBadge = (type?: string) => {
     switch (type) {
       case "SAY":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200/50 dark:border-blue-800/50";
       case "EA":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-800/50";
       case "SÖZ":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200/50 dark:border-amber-800/50";
       case "DİL":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200/50 dark:border-purple-800/50";
       default:
-        return "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+        return "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200/50 dark:border-rose-800/50";
     }
   };
 
@@ -190,8 +199,9 @@ export default function YKSSavedPage() {
             <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">
               Tercih Listeniz ({savedItems.length} / 24)
             </h2>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-              Sıralamayı yukarı/aşağı oklarla ayarlayabilirsiniz. Verileriniz veritabanına eşzamanlı kaydedilir.
+            <p className="text-[10px] md:text-xs text-gray-500 dark:text-zinc-400 mt-0.5 leading-tight max-w-[200px] md:max-w-none">
+              <span className="hidden md:inline">Sıralamayı yukarı/aşağı oklarla ayarlayabilirsiniz. Verileriniz veritabanına eşzamanlı kaydedilir.</span>
+              <span className="md:hidden">Sıralamayı güncelleyebilir ve paylaşabilirsiniz.</span>
             </p>
           </div>
           {savedItems.length > 0 && (
@@ -219,7 +229,7 @@ export default function YKSSavedPage() {
             </p>
             <Link
               href="/apps/yks-tercih"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Plus size={14} weight="bold" /> Program Taramaya Başla
             </Link>
@@ -227,175 +237,245 @@ export default function YKSSavedPage() {
         ) : (
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs table-fixed md:table-auto">
                 <thead>
                   <tr className="bg-gray-50/80 dark:bg-zinc-800/80 text-gray-700 dark:text-zinc-300 font-bold border-b border-gray-200/80 dark:border-zinc-800 align-middle">
-                    <th className="py-3 px-2 text-center w-10 align-middle">#</th>
-                    <th className="py-3 px-2 text-center min-w-[70px] align-middle">Sırala</th>
-                    <th className="py-3 px-3 min-w-[140px] align-middle">Üniversiteler</th>
-                    <th className="py-3 px-3 min-w-[180px] align-middle">Bölümler & Not</th>
-                    <th className="py-3 px-2 text-center align-middle">Yıllar</th>
-                    <th className="py-3 px-2 text-center align-middle">Puan Türü</th>
-                    <th className="py-3 px-2 text-right align-middle">Kontenjan</th>
-                    <th className="py-3 px-3 text-right align-middle">Taban Puan</th>
-                    <th className="py-3 px-3 text-right align-middle">Başarı Sırası</th>
-                    <th className="py-3 px-2 text-center align-middle">Çıkar</th>
+                    <th className="py-3 px-2 text-center w-8 align-middle">#</th>
+                    <th className="py-3 px-1 text-center w-8 sm:hidden align-middle"></th>
+                    <th className="py-3 px-2 text-center w-14 hidden sm:table-cell align-middle">Sırala</th>
+                    <th className="py-3 px-3 w-[45%] md:w-auto md:min-w-[140px] align-middle">Üniversiteler</th>
+                    <th className="py-3 px-3 w-[40%] md:w-auto md:min-w-[180px] align-middle">Bölümler</th>
+                    <th className="py-3 px-2 text-center hidden md:table-cell align-middle">Yıllar</th>
+                    <th className="py-3 px-2 text-center hidden lg:table-cell align-middle">Puan Türü</th>
+                    <th className="py-3 px-2 text-right hidden xl:table-cell align-middle">Kontenjan</th>
+                    <th className="py-3 px-3 text-right hidden sm:table-cell align-middle">Taban Puan</th>
+                    <th className="py-3 px-3 text-right w-16 md:w-auto align-middle">Sıralama</th>
+                    <th className="py-3 px-2 text-center w-10 align-middle"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60 align-middle">
                   {savedItems.map((item, index) => {
                     const prog = item.program;
                     const latest = prog?.history.find((h) => h.rank !== null || h.score !== null) || prog?.history[0];
+                    const isExpanded = expandedIds.includes(item.programId);
+                    const previousYears = prog?.history.filter((h) => h.year !== latest?.year) || [];
 
                     return (
-                      <tr
-                        key={item.programId}
-                        className="hover:bg-blue-50/40 dark:hover:bg-zinc-800/40 transition-colors align-middle"
-                      >
-                        {/* Tercih Sırası Badge */}
-                        <td className="py-3 px-2 text-center align-middle">
-                          <span className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-black flex items-center justify-center mx-auto">
-                            {index + 1}
-                          </span>
-                        </td>
-
-                        {/* Yukarı / Aşağı Sıralama Butonları */}
-                        <td className="py-3 px-2 text-center align-middle">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => moveItem(index, "up")}
-                              disabled={index === 0}
-                              className="w-6 h-6 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 flex items-center justify-center hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Yukarı Taşı"
-                            >
-                              <ArrowUp size={12} weight="bold" />
-                            </button>
-                            <button
-                              onClick={() => moveItem(index, "down")}
-                              disabled={index === savedItems.length - 1}
-                              className="w-6 h-6 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 flex items-center justify-center hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Aşağı Taşı"
-                            >
-                              <ArrowDown size={12} weight="bold" />
-                            </button>
-                          </div>
-                        </td>
-
-                        {/* Üniversite */}
-                        <td className="py-3 px-3 font-bold text-gray-900 dark:text-white align-middle">
-                          <div>{prog ? prog.universityName : item.programId}</div>
-                          {prog && (
-                            <div className="text-[10px] font-medium text-gray-400 dark:text-zinc-500 mt-0.5">
-                              {prog.city} • {prog.universityType}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Bölüm & Inline Not Alanı */}
-                        <td className="py-3 px-3 font-semibold text-gray-800 dark:text-zinc-200 align-middle">
-                          <div>
-                            {prog ? prog.departmentName : item.programId}
-                            {prog?.language && (
-                              <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400">
-                                {" "}({prog.language})
-                              </span>
-                            )}
-                            {prog && (
-                              <span className="text-[10px] font-normal text-gray-400 block">
-                                ({prog.durationYears} Yıllık) ({prog.scholarshipType})
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Not Alanı */}
-                          <div className="mt-1.5">
-                            {editingNoteId === item.programId ? (
-                              <div className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={tempNoteText}
-                                  onChange={(e) => setTempNoteText(e.target.value)}
-                                  placeholder="Notunuzu yazın..."
-                                  className="bg-gray-50 dark:bg-zinc-800 text-[11px] px-2 py-0.5 rounded-md border border-gray-200 dark:border-zinc-700 focus:outline-none w-44"
-                                />
-                                <button
-                                  onClick={() => saveNote(item.programId)}
-                                  className="px-2 py-0.5 bg-blue-600 text-white rounded-md text-[10px] font-bold"
-                                >
-                                  Kaydet
-                                </button>
-                                <button
-                                  onClick={() => setEditingNoteId(null)}
-                                  className="text-[10px] text-gray-400"
-                                >
-                                  İptal
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {item.note ? (
-                                  <span className="text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-md font-medium border border-amber-200/60 dark:border-amber-800/40">
-                                    📝 {item.note}
-                                  </span>
-                                ) : null}
-                                <button
-                                  onClick={() => {
-                                    setEditingNoteId(item.programId);
-                                    setTempNoteText(item.note);
-                                  }}
-                                  className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 font-semibold flex items-center gap-0.5"
-                                >
-                                  <PencilSimple size={11} /> {item.note ? "Düzenle" : "+ Not Ekle"}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Yıl */}
-                        <td className="py-3 px-2 text-center font-bold text-gray-800 dark:text-zinc-200 align-middle">
-                          {latest?.year || "—"}
-                        </td>
-
-                        {/* Puan Türü */}
-                        <td className="py-3 px-2 text-center align-middle">
-                          {prog && (
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-black border ${getScoreTypeBadge(
-                                prog.scoreType
-                              )}`}
-                            >
-                              {prog.scoreType}
+                      <React.Fragment key={item.programId}>
+                        <tr
+                          onClick={() => toggleExpand(item.programId)}
+                          className="hover:bg-blue-50/40 dark:hover:bg-zinc-800/40 transition-colors align-middle cursor-pointer"
+                        >
+                          {/* Tercih Sırası Badge */}
+                          <td className="py-3 px-1 text-center align-middle">
+                            <span className="w-5 h-5 rounded-md bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-black flex items-center justify-center mx-auto">
+                              {index + 1}
                             </span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Kontenjan */}
-                        <td className="py-3 px-2 text-right font-medium text-gray-700 dark:text-zinc-300 align-middle">
-                          {latest?.quota || "—"}
-                        </td>
+                          {/* Genişletme Butonu - Mobil için */}
+                          <td className="py-3 px-0.5 text-center align-middle sm:hidden">
+                            <div className="w-6 h-6 rounded-md bg-app-surface text-app-muted flex items-center justify-center mx-auto">
+                              {isExpanded ? <CaretDown size={11} weight="bold" /> : <CaretRight size={11} weight="bold" />}
+                            </div>
+                          </td>
 
-                        {/* Taban Puan */}
-                        <td className="py-3 px-3 text-right font-bold text-gray-900 dark:text-zinc-100 align-middle">
-                          {latest?.score ? latest.score.toFixed(5).replace(".", ",") : "—"}
-                        </td>
+                          {/* Yukarı / Aşağı Sıralama Butonları - Masaüstü */}
+                          <td className="py-3 px-2 text-center align-middle hidden sm:table-cell">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); moveItem(index, "up"); }}
+                                disabled={index === 0}
+                                className="w-6 h-6 rounded-md bg-app-surface text-app-muted flex items-center justify-center hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Yukarı Taşı"
+                              >
+                                <ArrowUp size={12} weight="bold" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); moveItem(index, "down"); }}
+                                disabled={index === savedItems.length - 1}
+                                className="w-6 h-6 rounded-md bg-app-surface text-app-muted flex items-center justify-center hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Aşağı Taşı"
+                              >
+                                <ArrowDown size={12} weight="bold" />
+                              </button>
+                            </div>
+                          </td>
 
-                        {/* Başarı Sırası */}
-                        <td className="py-3 px-3 text-right font-black text-blue-600 dark:text-blue-400 align-middle">
-                          {latest?.rank ? latest.rank.toLocaleString("tr-TR") : "—"}
-                        </td>
+                          {/* Üniversite */}
+                          <td className="py-3 px-3 font-bold text-gray-900 dark:text-white align-middle">
+                            <div className="line-clamp-3 leading-tight">{prog ? prog.universityName : item.programId}</div>
+                            {prog && (
+                              <div className="text-[9px] md:text-[10px] font-medium text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2 leading-tight">
+                                {prog.city} • {prog.universityType}
+                              </div>
+                            )}
+                          </td>
 
-                        {/* Listeden Çıkar Butonu */}
-                        <td className="py-3 px-2 text-center align-middle">
-                          <button
-                            onClick={() => removeItem(item.programId)}
-                            className="w-7 h-7 mx-auto rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-100 border border-red-200/60 dark:border-red-800/40"
-                            title="Listeden Çıkar"
-                          >
-                            <Trash size={14} weight="bold" />
-                          </button>
-                        </td>
-                      </tr>
+                          {/* Bölüm & Inline Not Alanı */}
+                          <td className="py-3 px-3 font-semibold text-gray-800 dark:text-zinc-200 align-middle">
+                            <div className="line-clamp-3 leading-tight">
+                              {prog ? prog.departmentName : item.programId}
+                              {prog?.language && (
+                                <span className="text-[10px] md:text-[11px] font-normal text-gray-500 dark:text-zinc-400">
+                                  {" "}({prog.language})
+                                </span>
+                              )}
+                            </div>
+                            {prog && (
+                              <span className="text-[9px] md:text-[10px] font-normal text-gray-400 block mt-0.5 line-clamp-2 leading-tight">
+                                ({prog.durationYears}Y) ({prog.scholarshipType})
+                              </span>
+                            )}
+
+                            {/* Not Alanı */}
+                            <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
+                              {editingNoteId === item.programId ? (
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={tempNoteText}
+                                    onChange={(e) => setTempNoteText(e.target.value)}
+                                    placeholder="Not..."
+                                    className="bg-app-surface text-[10px] px-2 py-0.5 rounded-md border border-app-border focus:outline-none w-24 md:w-44"
+                                  />
+                                  <button
+                                    onClick={() => saveNote(item.programId)}
+                                    className="px-2 py-0.5 bg-blue-600 text-white rounded-md text-[9px] font-bold cursor-pointer"
+                                  >
+                                    OK
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {item.note ? (
+                                    <span className="text-[9px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded-md font-medium border border-amber-200/60 dark:border-amber-800/40 truncate max-w-[80px] md:max-w-none">
+                                      📝 {item.note}
+                                    </span>
+                                  ) : null}
+                                  <button
+                                    onClick={() => {
+                                      setEditingNoteId(item.programId);
+                                      setTempNoteText(item.note);
+                                    }}
+                                    className="text-[9px] text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 font-semibold flex items-center gap-0.5 cursor-pointer"
+                                  >
+                                    <PencilSimple size={10} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Yıl - Masaüstü */}
+                          <td className="py-3 px-2 text-center font-bold text-gray-800 dark:text-zinc-200 align-middle hidden md:table-cell">
+                            {latest?.year || "—"}
+                          </td>
+
+                          {/* Puan Türü - Masaüstü */}
+                          <td className="py-3 px-2 text-center align-middle hidden lg:table-cell">
+                            {prog && (
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded text-[10px] font-black border ${getScoreTypeBadge(
+                                  prog.scoreType
+                                )}`}
+                              >
+                                {prog.scoreType}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Kontenjan - Masaüstü */}
+                          <td className="py-3 px-2 text-right font-medium text-gray-700 dark:text-zinc-300 align-middle hidden xl:table-cell">
+                            {latest?.quota || "—"}
+                          </td>
+
+                          {/* Taban Puan - Masaüstü */}
+                          <td className="py-3 px-3 text-right font-bold text-gray-900 dark:text-zinc-100 align-middle hidden sm:table-cell">
+                            {latest?.score ? latest.score.toFixed(2).replace(".", ",") : "—"}
+                          </td>
+
+                          {/* Başarı Sırası */}
+                          <td className="py-3 px-3 text-right font-black text-blue-600 dark:text-blue-400 align-middle">
+                            {latest?.rank ? latest.rank.toLocaleString("tr-TR") : "—"}
+                          </td>
+
+                          {/* Listeden Çıkar Butonu */}
+                          <td className="py-3 px-2 text-center align-middle">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); removeItem(item.programId); }}
+                              className="w-7 h-7 mx-auto rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-100 border border-red-200/60 dark:border-red-800/40 cursor-pointer"
+                              title="Listeden Çıkar"
+                            >
+                              <Trash size={14} weight="bold" />
+                            </button>
+                          </td>
+                        </tr>
+
+                        {/* Expanded Detail Panel */}
+                        {isExpanded && (
+                          <tr className="bg-gray-50/50 dark:bg-zinc-800/20 border-t border-gray-100 dark:border-zinc-800/40">
+                            <td colSpan={10} className="py-4 px-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Puan Türü</span>
+                                  {prog && (
+                                    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black border ${getScoreTypeBadge(prog.scoreType)}`}>
+                                      {prog.scoreType}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Kontenjan</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{latest?.quota || "—"}</span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Taban Puan</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                                    {latest?.score ? latest.score.toFixed(2).replace(".", ",") : "—"}
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Şehir / Tür</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{prog?.city} • {prog?.universityType}</span>
+                                </div>
+                              </div>
+
+                              {previousYears.length > 0 && (
+                                <div className="space-y-2">
+                                  <h4 className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider">Geçmiş Yıl Verileri</h4>
+                                  <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-zinc-900/50">
+                                    <table className="w-full text-left text-[11px]">
+                                      <thead>
+                                        <tr className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-zinc-400 font-bold border-b border-gray-100 dark:border-zinc-800">
+                                          <th className="p-2">Yıl</th>
+                                          <th className="p-2 text-right">Sıralama</th>
+                                          <th className="p-2 text-right">Puan</th>
+                                          <th className="p-2 text-right">Kont.</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-50 dark:divide-zinc-800/40">
+                                        {previousYears.map((prev) => (
+                                          <tr key={prev.year} className="text-gray-600 dark:text-zinc-300">
+                                            <td className="p-2 font-bold">{prev.year}</td>
+                                            <td className="p-2 text-right font-black text-blue-600 dark:text-blue-400">
+                                              {prev.rank ? prev.rank.toLocaleString("tr-TR") : "—"}
+                                            </td>
+                                            <td className="p-2 text-right">
+                                              {prev.score ? prev.score.toFixed(2).replace(".", ",") : "—"}
+                                            </td>
+                                            <td className="p-2 text-right">{prev.quota}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

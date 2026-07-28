@@ -93,6 +93,7 @@ export default function YKSExplorePage() {
   });
 
   const [isCitiesExpanded, setIsCitiesExpanded] = useState<boolean>(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [citySearchQuery, setCitySearchQuery] = useState<string>("");
 
   const [candidateRankStr, setCandidateRankStr] = useState<string>(() => {
@@ -314,15 +315,15 @@ export default function YKSExplorePage() {
   const getScoreTypeBadge = (type: string) => {
     switch (type) {
       case "SAY":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200/50 dark:border-blue-800/50";
       case "EA":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
+        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-800/50";
       case "SÖZ":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200/50 dark:border-amber-800/50";
       case "DİL":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200/50 dark:border-purple-800/50";
       default:
-        return "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+        return "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200/50 dark:border-rose-800/50";
     }
   };
 
@@ -341,19 +342,16 @@ export default function YKSExplorePage() {
     <YKSShell activeTab="explore">
       <div className="space-y-4">
         {/* Unified Search & Robot Filter Box */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-gray-200/80 dark:border-zinc-800 shadow-sm space-y-4">
-          {/* Top Row: Rank Robot & Text Search in 2 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 md:p-4 border border-gray-200/80 dark:border-zinc-800 shadow-sm space-y-3">
+          {/* Main Filter Row: Rank & Search */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             {/* Rank Robot Input */}
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider flex items-center gap-1 mb-1.5">
-                <Sparkle size={12} weight="fill" className="text-amber-400" />
-                Başarı Sıralamanız (Robot)
-              </label>
+            <div className="md:col-span-4">
               <div className="relative">
+                <Sparkle size={14} weight="fill" className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
                 <input
                   type="text"
-                  placeholder="Örn: 100.000 (Sıralamanız)"
+                  placeholder="Sıralamanız (Örn: 100.000)"
                   value={candidateRankStr}
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, "");
@@ -363,27 +361,24 @@ export default function YKSExplorePage() {
                       setCandidateRankStr(parseInt(digits, 10).toLocaleString("tr-TR"));
                     }
                   }}
-                  className="w-full bg-gray-50 dark:bg-zinc-800/80 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 px-3.5 py-2 rounded-xl text-xs font-medium border border-gray-200/80 dark:border-zinc-700/60 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-50 dark:bg-zinc-800/80 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 pl-9 pr-8 py-2.5 rounded-xl text-xs font-bold border border-gray-200/80 dark:border-zinc-700/60 focus:outline-none focus:border-blue-500 transition-all"
                 />
                 {candidateRankStr && (
                   <button
                     onClick={() => setCandidateRankStr("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-[11px] font-bold"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-pointer"
                   >
-                    <X size={14} weight="bold" />
+                    <X size={12} weight="bold" />
                   </button>
                 )}
               </div>
             </div>
 
             {/* Search Box */}
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider block mb-1.5">
-                Kelime İle Arama
-              </label>
+            <div className="md:col-span-8">
               <div className="relative">
                 <MagnifyingGlass
-                  size={16}
+                  size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500"
                 />
                 <input
@@ -391,151 +386,139 @@ export default function YKSExplorePage() {
                   placeholder="Bölüm, Üniversite veya Şehir Ara..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-zinc-800/80 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 pl-9 pr-3 py-2 rounded-xl text-xs font-medium border border-gray-200/80 dark:border-zinc-700/60 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-50 dark:bg-zinc-800/80 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl text-xs font-medium border border-gray-200/80 dark:border-zinc-700/60 focus:outline-none focus:border-blue-500 transition-all"
                 />
               </div>
             </div>
           </div>
 
-          {/* Score Types & University Type in 2 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-zinc-800">
-            {/* Score Types Filter Pills */}
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider block mb-1.5">
-                Puan Türü
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {["ALL", "SAY", "EA", "SÖZ", "DİL", "TYT"].map((st) => {
-                  const active = scoreType === st;
-                  return (
-                    <button
-                      key={st}
-                      onClick={() => setScoreType(st)}
-                      className={`px-3 py-1 rounded-lg text-[11px] font-bold uppercase transition-all border ${active
-                          ? "bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-gray-900 dark:border-zinc-100 shadow-xs"
-                          : "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border-gray-200/80 dark:border-zinc-700 hover:bg-gray-100"
-                        }`}
-                    >
-                      {st === "ALL" ? "Tümü" : st}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Tür Select */}
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider block mb-1.5">
-                Üniversite Türü
-              </label>
-              <select
-                value={universityType}
-                onChange={(e) => setUniversityType(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none"
-              >
-                <option value="ALL">Tüm Üniversiteler (Devlet & Vakıf)</option>
-                <option value="Devlet">Devlet Üniversiteleri</option>
-                <option value="Vakıf">Vakıf (Özel) Üniversiteler</option>
-              </select>
-            </div>
-          </div>
-
-          {/* DEDICATED FULL ROW CITY MULTI-SELECT FILTER (DESIGN SYSTEM COHESIVE) */}
-          <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-[10px] font-black uppercase text-gray-700 dark:text-zinc-300 tracking-wider flex items-center gap-1.5">
-                <MapPin size={14} weight="fill" className="text-gray-500 dark:text-zinc-400" />
-                Şehir Filtresi (Çoklu Seçim)
-                {selectedCities.length > 0 ? (
-                  <span className="ml-1 px-2 py-0.5 rounded-lg bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-[10px] font-bold">
-                    {selectedCities.length} Şehir Seçili
-                  </span>
-                ) : (
-                  <span className="ml-1 px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 text-[10px] font-medium border border-gray-200/80 dark:border-zinc-700/80">
-                    Tüm Şehirler ({cityStats.length})
-                  </span>
-                )}
-              </label>
-
-              {/* City Action Buttons */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={clearCities}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${selectedCities.length === 0
-                      ? "bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-gray-900 dark:border-zinc-100 shadow-xs"
-                      : "bg-gray-50 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border-gray-200 dark:border-zinc-700 hover:bg-gray-100"
-                    }`}
-                >
-                  Tüm Şehirler
-                </button>
-
-                <button
-                  onClick={selectAllCities}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-750 transition-all"
-                >
-                  Tümünü Seç
-                </button>
-
-                <button
-                  onClick={() => setIsCitiesExpanded(!isCitiesExpanded)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border border-gray-900 dark:border-zinc-100 hover:bg-black dark:hover:bg-white transition-all shadow-xs"
-                >
-                  {isCitiesExpanded ? (
-                    <>
-                      <span>Daralt</span>
-                      <CaretUp size={12} weight="bold" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Tüm 81 Şehir ({cityStats.length})</span>
-                      <CaretDown size={12} weight="bold" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Quick search input inside expanded city panel */}
-            {isCitiesExpanded && (
-              <div className="relative max-w-xs">
-                <MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Şehir Ara... (Örn: Bursa)"
-                  value={citySearchQuery}
-                  onChange={(e) => setCitySearchQuery(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 pl-8 pr-3 py-1.5 rounded-xl text-xs border border-gray-200/80 dark:border-zinc-700 focus:outline-none"
-                />
-              </div>
-            )}
-
-            {/* City Tag Pills Grid */}
-            <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
-              {displayedCityStats.map((cs) => {
-                const isSelected = selectedCities.includes(cs.name);
+          {/* Secondary Row: Score Type & Advanced Toggle */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1">
+              {["ALL", "SAY", "EA", "SÖZ", "DİL", "TYT"].map((st) => {
+                const active = scoreType === st;
                 return (
                   <button
-                    key={cs.name}
-                    onClick={() => toggleCity(cs.name)}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs transition-all border ${isSelected
-                        ? "bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-gray-900 dark:border-zinc-100 font-bold shadow-xs"
-                        : "bg-gray-50 dark:bg-zinc-800/90 text-gray-700 dark:text-zinc-300 border-gray-200/80 dark:border-zinc-700/80 hover:bg-gray-100 dark:hover:bg-zinc-750 font-medium"
+                    key={st}
+                    onClick={() => setScoreType(st)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border cursor-pointer ${
+                      st === "ALL" ? "hidden md:block" : ""
+                    } ${active
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-app-surface text-app-muted border-app-border hover:text-app-text"
                       }`}
                   >
-                    <span>{cs.name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-md font-extrabold ${isSelected
-                          ? "bg-white/20 dark:bg-black/20 text-white dark:text-zinc-900"
-                          : "bg-gray-200/80 dark:bg-zinc-700 text-gray-600 dark:text-zinc-400"
-                        }`}
-                    >
-                      {cs.count.toLocaleString("tr-TR")}
-                    </span>
+                    {st === "ALL" ? "Tümü" : st}
                   </button>
                 );
               })}
             </div>
+
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border cursor-pointer ${showAdvancedFilters || selectedCities.length > 0 || universityType !== "ALL"
+                  ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-800/50"
+                  : "bg-app-surface text-app-muted border-app-border"
+                }`}
+            >
+              <span>{showAdvancedFilters ? "Basit Görünüm" : "Detaylı Filtreler"}</span>
+              {selectedCities.length > 0 || universityType !== "ALL" ? (
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              ) : (
+                <CaretDown size={10} weight="bold" className={`transition-transform ${showAdvancedFilters ? "rotate-180" : ""}`} />
+              )}
+            </button>
           </div>
+
+          {/* Advanced Filters Section */}
+          {showAdvancedFilters && (
+            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Tür Select */}
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider block mb-1">
+                    Üniversite Türü
+                  </label>
+                  <select
+                    value={universityType}
+                    onChange={(e) => setUniversityType(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none"
+                  >
+                    <option value="ALL">Tüm Üniversiteler (Devlet & Vakıf)</option>
+                    <option value="Devlet">Devlet Üniversiteleri</option>
+                    <option value="Vakıf">Vakıf (Özel) Üniversiteler</option>
+                  </select>
+                </div>
+
+                {/* City Search inside Advanced */}
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider block mb-1">
+                    Şehir Seçimi ({selectedCities.length} Seçili)
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsCitiesExpanded(!isCitiesExpanded)}
+                      className="flex-1 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700 rounded-xl px-3 py-2 text-xs font-medium flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="truncate">
+                        {selectedCities.length === 0 ? "Tüm Şehirler" : selectedCities.join(", ")}
+                      </span>
+                      <CaretDown size={12} weight="bold" />
+                    </button>
+                    {selectedCities.length > 0 && (
+                      <button
+                        onClick={clearCities}
+                        className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/40 rounded-xl px-2.5 py-2 cursor-pointer"
+                      >
+                        <X size={14} weight="bold" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Expanded City Grid */}
+              {isCitiesExpanded && (
+                <div className="space-y-2 bg-gray-50/50 dark:bg-zinc-800/40 p-3 rounded-2xl border border-gray-200/50 dark:border-zinc-700/50">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="relative flex-1">
+                      <MagnifyingGlass size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Şehir Ara..."
+                        value={citySearchQuery}
+                        onChange={(e) => setCitySearchQuery(e.target.value)}
+                        className="w-full bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 pl-8 pr-3 py-1.5 rounded-lg text-[11px] border border-gray-200/80 dark:border-zinc-800 focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={selectAllCities} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 px-2 py-1 cursor-pointer">Tümünü Seç</button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto pr-1">
+                    {displayedCityStats.map((cs) => {
+                      const isSelected = selectedCities.includes(cs.name);
+                      return (
+                        <button
+                          key={cs.name}
+                          onClick={() => toggleCity(cs.name)}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] transition-all border cursor-pointer ${isSelected
+                              ? "bg-blue-600 text-white border-blue-600 font-bold"
+                              : "bg-white dark:bg-zinc-900 text-app-muted border-app-border hover:text-app-text font-medium"
+                            }`}
+                        >
+                          <span>{cs.name}</span>
+                          <span className={`text-[9px] opacity-70 font-extrabold`}>
+                            {cs.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Count Summary */}
@@ -544,9 +527,10 @@ export default function YKSExplorePage() {
             Toplam <strong className="text-gray-900 dark:text-white font-bold">{filteredPrograms.length.toLocaleString("tr-TR")}</strong> program listelendi
           </span>
           {candidateRankStr && (
-            <span className="text-blue-600 dark:text-blue-400 font-semibold text-[11px]">
-              Sıralama robotu filtresi aktif
-            </span>
+            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold text-[10px] bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800/40">
+              <Sparkle size={10} weight="fill" />
+              <span>Robot Aktif</span>
+            </div>
           )}
         </div>
 
@@ -566,18 +550,18 @@ export default function YKSExplorePage() {
         ) : (
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs table-fixed md:table-auto">
                 <thead>
                   <tr className="bg-gray-50/80 dark:bg-zinc-800/80 text-gray-700 dark:text-zinc-300 font-bold border-b border-gray-200/80 dark:border-zinc-800 align-middle">
-                    <th className="py-3 px-2 text-center w-9 align-middle"></th>
-                    <th className="py-3 px-3 min-w-[140px] align-middle">Üniversiteler</th>
-                    <th className="py-3 px-3 min-w-[180px] align-middle">Bölümler</th>
-                    <th className="py-3 px-2 text-center align-middle">Yıllar</th>
-                    <th className="py-3 px-2 text-center align-middle">Puan Türü</th>
-                    <th className="py-3 px-2 text-right align-middle">Kontenjan</th>
-                    <th className="py-3 px-3 text-right align-middle">Taban Puan</th>
-                    <th className="py-3 px-3 text-right align-middle">Başarı Sırası</th>
-                    <th className="py-3 px-2 text-center align-middle">Ekle</th>
+                    <th className="py-3 px-2 text-center w-10 align-middle"></th>
+                    <th className="py-3 px-3 w-[45%] md:w-auto md:min-w-[140px] align-middle">Üniversiteler</th>
+                    <th className="py-3 px-3 w-[40%] md:w-auto md:min-w-[180px] align-middle">Bölümler</th>
+                    <th className="py-3 px-2 text-center hidden md:table-cell align-middle">Yıllar</th>
+                    <th className="py-3 px-2 text-center hidden lg:table-cell align-middle">Puan Türü</th>
+                    <th className="py-3 px-2 text-right hidden xl:table-cell align-middle">Kontenjan</th>
+                    <th className="py-3 px-3 text-right hidden sm:table-cell align-middle">Taban Puan</th>
+                    <th className="py-3 px-3 text-right w-20 md:w-auto align-middle">Sıralama</th>
+                    <th className="py-3 px-2 text-center w-12 align-middle"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/60 align-middle">
@@ -605,7 +589,7 @@ export default function YKSExplorePage() {
                                   e.stopPropagation();
                                   toggleExpand(prog.id);
                                 }}
-                                className="w-6 h-6 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-600 transition-all mx-auto"
+                                className="w-6 h-6 rounded-md bg-app-surface text-app-muted flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-600 transition-all mx-auto cursor-pointer"
                                 title={isExpanded ? "Geçmiş Yılları Gizle" : "Geçmiş Yılları Göster"}
                               >
                                 {isExpanded ? (
@@ -621,34 +605,34 @@ export default function YKSExplorePage() {
 
                           {/* Üniversite */}
                           <td className="py-3 px-3 font-bold text-gray-900 dark:text-white align-middle">
-                            <div>{prog.universityName}</div>
-                            <div className="text-[10px] font-medium text-gray-400 dark:text-zinc-500 mt-0.5">
+                            <div className="line-clamp-3 leading-tight">{prog.universityName}</div>
+                            <div className="text-[9px] md:text-[10px] font-medium text-gray-400 dark:text-zinc-500 mt-0.5 line-clamp-2 leading-tight">
                               {prog.city} • {prog.universityType}
                             </div>
                           </td>
 
                           {/* Bölüm */}
                           <td className="py-3 px-3 font-semibold text-gray-800 dark:text-zinc-200 align-middle">
-                            <div>
+                            <div className="line-clamp-3 leading-tight">
                               {prog.departmentName}
                               {prog.language && (
-                                <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400">
+                                <span className="text-[10px] md:text-[11px] font-normal text-gray-500 dark:text-zinc-400">
                                   {" "}({prog.language})
                                 </span>
                               )}
-                              <span className="text-[10px] font-normal text-gray-400 block">
-                                ({prog.durationYears} Yıllık) ({prog.scholarshipType})
-                              </span>
                             </div>
+                            <span className="text-[9px] md:text-[10px] font-normal text-gray-400 block mt-0.5 line-clamp-2 leading-tight">
+                              ({prog.durationYears}Y) ({prog.scholarshipType})
+                            </span>
                           </td>
 
-                          {/* Yıl (En Son Yıl) */}
-                          <td className="py-3 px-2 text-center font-bold text-gray-800 dark:text-zinc-200 align-middle">
+                          {/* Yıl - Mobil Gizli */}
+                          <td className="py-3 px-2 text-center font-bold text-gray-800 dark:text-zinc-200 align-middle hidden md:table-cell">
                             {latest?.year || "—"}
                           </td>
 
-                          {/* Puan Türü */}
-                          <td className="py-3 px-2 text-center align-middle">
+                          {/* Puan Türü - Mobil Gizli */}
+                          <td className="py-3 px-2 text-center align-middle hidden lg:table-cell">
                             <span
                               className={`inline-block px-2 py-0.5 rounded text-[10px] font-black border ${getScoreTypeBadge(
                                 prog.scoreType
@@ -658,14 +642,14 @@ export default function YKSExplorePage() {
                             </span>
                           </td>
 
-                          {/* Kontenjan */}
-                          <td className="py-3 px-2 text-right font-medium text-gray-700 dark:text-zinc-300 align-middle">
+                          {/* Kontenjan - Mobil Gizli */}
+                          <td className="py-3 px-2 text-right font-medium text-gray-700 dark:text-zinc-300 align-middle hidden xl:table-cell">
                             {latest?.quota || "—"}
                           </td>
 
-                          {/* Taban Puan */}
-                          <td className="py-3 px-3 text-right font-bold text-gray-900 dark:text-zinc-100 align-middle">
-                            {latest?.score ? latest.score.toFixed(5).replace(".", ",") : "—"}
+                          {/* Taban Puan - Mobil Gizli */}
+                          <td className="py-3 px-3 text-right font-bold text-gray-900 dark:text-zinc-100 align-middle hidden sm:table-cell">
+                            {latest?.score ? latest.score.toFixed(2).replace(".", ",") : "—"}
                           </td>
 
                           {/* Başarı Sırası */}
@@ -680,9 +664,9 @@ export default function YKSExplorePage() {
                                 e.stopPropagation();
                                 toggleSaveChoice(prog.id);
                               }}
-                              className={`w-7 h-7 mx-auto rounded-lg flex items-center justify-center transition-all ${isSaved
+                              className={`w-7 h-7 mx-auto rounded-lg flex items-center justify-center transition-all cursor-pointer ${isSaved
                                   ? "bg-blue-600 text-white shadow-xs"
-                                  : "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200"
+                                  : "bg-app-surface text-app-muted border-app-border hover:text-app-text"
                                 }`}
                               title={isSaved ? "Çıkar" : "Ekle"}
                             >
@@ -691,25 +675,67 @@ export default function YKSExplorePage() {
                           </td>
                         </tr>
 
-                        {/* Sub-rows for previous years when expanded */}
-                        {isExpanded &&
-                          previousYears.map((prevH) => (
-                            <tr
-                              key={`${prog.id}-${prevH.year}`}
-                              className="bg-blue-50/20 dark:bg-zinc-800/30 text-gray-600 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800/40 text-[11px] align-middle"
-                            >
-                              <td className="align-middle"></td>
-                              <td colSpan={2} className="py-2 px-3 italic text-gray-400 dark:text-zinc-500 text-[10px] align-middle">
-                                └ Geçmiş Yıl Verisi ({prog.universityName})
-                              </td>
-                              <td className="py-2 px-2 text-center font-bold align-middle">{prevH.year}</td>
-                              <td className="py-2 px-2 text-center font-semibold text-gray-500 align-middle">{prog.scoreType}</td>
-                              <td className="py-2 px-2 text-right align-middle">{prevH.quota || "—"}</td>
-                              <td className="py-2 px-3 text-right font-semibold align-middle">{prevH.score ? prevH.score.toFixed(5).replace(".", ",") : "—"}</td>
-                              <td className="py-2 px-3 text-right font-bold text-blue-500 align-middle">{prevH.rank ? prevH.rank.toLocaleString("tr-TR") : "—"}</td>
-                              <td className="align-middle"></td>
-                            </tr>
-                          ))}
+                        {/* Expanded Detail Panel */}
+                        {isExpanded && (
+                          <tr className="bg-gray-50/50 dark:bg-zinc-800/20 border-t border-gray-100 dark:border-zinc-800/40">
+                            <td colSpan={9} className="py-4 px-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Puan Türü</span>
+                                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black border ${getScoreTypeBadge(prog.scoreType)}`}>
+                                    {prog.scoreType}
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Kontenjan</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{latest?.quota || "—"}</span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Taban Puan</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                                    {latest?.score ? latest.score.toFixed(2).replace(".", ",") : "—"}
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 block">Şehir / Tür</span>
+                                  <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{prog.city} • {prog.universityType}</span>
+                                </div>
+                              </div>
+
+                              {hasMoreYears && (
+                                <div className="space-y-2">
+                                  <h4 className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider">Geçmiş Yıl Verileri</h4>
+                                  <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-zinc-800/60 bg-white dark:bg-zinc-900/50">
+                                    <table className="w-full text-left text-[11px]">
+                                      <thead>
+                                        <tr className="bg-gray-50 dark:bg-zinc-800/50 text-gray-500 dark:text-zinc-400 font-bold border-b border-gray-100 dark:border-zinc-800">
+                                          <th className="p-2">Yıl</th>
+                                          <th className="p-2 text-right">Sıralama</th>
+                                          <th className="p-2 text-right">Puan</th>
+                                          <th className="p-2 text-right">Kont.</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-50 dark:divide-zinc-800/40">
+                                        {previousYears.map((prev) => (
+                                          <tr key={prev.year} className="text-gray-600 dark:text-zinc-300">
+                                            <td className="p-2 font-bold">{prev.year}</td>
+                                            <td className="p-2 text-right font-black text-blue-600 dark:text-blue-400">
+                                              {prev.rank ? prev.rank.toLocaleString("tr-TR") : "—"}
+                                            </td>
+                                            <td className="p-2 text-right">
+                                              {prev.score ? prev.score.toFixed(2).replace(".", ",") : "—"}
+                                            </td>
+                                            <td className="p-2 text-right">{prev.quota}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
                       </React.Fragment>
                     );
                   })}
@@ -718,10 +744,10 @@ export default function YKSExplorePage() {
             </div>
 
             {filteredPrograms.length > displayLimit && (
-              <div className="p-3 text-center border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50">
+              <div className="p-3 text-center border-t border-app-border bg-app-surface/30">
                 <button
                   onClick={() => setDisplayLimit((prev) => prev + 100)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   Daha Fazla Program Göster ({displayLimit} / {filteredPrograms.length.toLocaleString("tr-TR")})
                 </button>
