@@ -11,11 +11,13 @@ export function LandingPhonePreviewFrame({
 }) {
   return (
     <div className="dark h-full w-full overflow-hidden bg-app-bg text-app-text select-none pointer-events-none">
-      <div
-        className={`origin-top-left scale-[0.68] w-[390px] px-5 pt-16 pb-6 ${className}`}
-        style={{ transformOrigin: "top left" }}
-      >
-        {children}
+      <div className="h-full w-full overflow-y-auto overflow-x-hidden pointer-events-auto overscroll-contain">
+        <div
+          className={`origin-top-left scale-[0.68] w-[390px] px-5 pt-16 pb-6 ${className}`}
+          style={{ transformOrigin: "top left" }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

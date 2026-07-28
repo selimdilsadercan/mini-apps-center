@@ -11,8 +11,10 @@
     "title1": "Explore your city,",
     "title2": "run your day.",
     "subtitle": "From cinema showtimes to place guides, shopping lists to routines — one hub for your city and daily life. 60+ mini apps, one account.",
-    "openApp": "Get Started",
+    "playWeb": "Open on Web",
     "now": "Free",
+    "download": "Download",
+    "openApp": "Get Started",
     "forBusinesses": "Add Your Business",
     "stats": {
       "modules": "Mini Apps",
@@ -41,7 +43,7 @@
         "name": "Daily Agenda",
         "description": "All Today screen widgets: todos, shopping lists, routines, workouts, reading goals, and more.",
         "platform": "Mobile module",
-        "toolIds": "rutinler|eksik-var|budget|subcenter|film-graph|series-track|read-tracker|gym",
+        "toolIds": "rutinler|eksik-var|film-graph|series-track|read-tracker|gym",
         "cta": "Open Today"
       },
       "business": {

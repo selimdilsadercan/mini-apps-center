@@ -67,9 +67,9 @@ import {
 const browserClient = createBrowserClient();
 
 const WIDGET_MASONRY =
-  "flex flex-col gap-3 md:gap-4";
+  "columns-1 md:columns-2 gap-3 md:gap-4";
 const WIDGET_MASONRY_ITEM =
-  "w-full overflow-hidden min-w-0";
+  "break-inside-avoid mb-3 md:mb-4 w-full overflow-hidden min-w-0";
 
 const DEFAULT_MOVIES = [
   { id: "101", title: "Dune: Part Two", year: 2024, voteAverage: 8.6, posterUrl: "https://image.tmdb.org/t/p/w500/1pdfLPoL6VFiH2G2WFiipM32M2Y.jpg" },
@@ -255,17 +255,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   }, [subTabParam, isIOSApp]);
 
   const activeSubTab: "explore" | "daily" = isIOSApp ? "explore" : subTab;
-  const [isDesktop, setIsDesktop] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
-
-  useEffect(() => {
-    const checkViewport = () => {
-      setIsDesktop(window.innerWidth >= 768);
-    };
-    checkViewport();
-    window.addEventListener("resize", checkViewport);
-    return () => window.removeEventListener("resize", checkViewport);
-  }, []);
 
   const handleSeedMaras = async () => {
     try {

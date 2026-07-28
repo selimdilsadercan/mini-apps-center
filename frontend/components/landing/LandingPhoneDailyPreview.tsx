@@ -9,12 +9,13 @@ import {
   ProjectorScreen,
   BookOpen,
   UserCircle,
-  CreditCard,
-  Wallet,
+  CheckCircle,
+  Plus,
 } from "@phosphor-icons/react";
 import {
   HomeSummaryCard,
   HomeGroupHeader,
+  WidgetActionButton,
 } from "@/app/home/components/common/HomeSummaryCard";
 import { LandingPhonePreviewFrame } from "./LandingPhonePreviewFrame";
 
@@ -115,63 +116,6 @@ export default function LandingPhoneDailyPreview() {
             </HomeSummaryCard>
 
             <HomeSummaryCard
-              href="/apps/budget"
-              icon={Wallet}
-              color="#EC4899"
-              title="Budget"
-              subtitle="Bütçe & Harcamalar"
-              loading={false}
-              emptyText=""
-              hasContent
-              onHideToday={() => {}}
-              onHidePermanent={() => {}}
-            >
-              <div className="px-4 py-3 border-t border-app-border space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black text-app-text">Bu Ay</p>
-                    <p className="text-[9px] text-app-muted font-bold mt-0.5">₺4.280 / ₺6.000</p>
-                  </div>
-                  <span className="text-[10px] font-black text-pink-500">%71</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-app-surface-muted overflow-hidden">
-                  <div className="h-full w-[71%] rounded-full bg-pink-500" />
-                </div>
-              </div>
-            </HomeSummaryCard>
-
-            <HomeSummaryCard
-              href="/apps/subcenter"
-              icon={CreditCard}
-              color="#339AF0"
-              title="Subcenter"
-              subtitle="Abonelikler"
-              loading={false}
-              emptyText=""
-              hasContent
-              onHideToday={() => {}}
-              onHidePermanent={() => {}}
-            >
-              {[
-                { name: "Netflix", amount: "₺229", due: "3 gün" },
-                { name: "Spotify", amount: "₺59", due: "12 gün" },
-              ].map((sub) => (
-                <div
-                  key={sub.name}
-                  className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 text-left"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-black text-app-text truncate">{sub.name}</p>
-                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                      Yenileme · {sub.due}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black text-sky-400 shrink-0">{sub.amount}</span>
-                </div>
-              ))}
-            </HomeSummaryCard>
-
-            <HomeSummaryCard
               href="/apps/film-graph"
               icon={ProjectorScreen}
               color="#D97706"
@@ -232,29 +176,34 @@ export default function LandingPhoneDailyPreview() {
             <HomeSummaryCard
               href="/apps/read-tracker"
               icon={BookOpen}
-              color="#3B82F6"
-              title="Okuma Hedefin"
-              subtitle="Read Tracker"
+              color="#7C5C43"
+              title="Haftalık Okuma"
+              subtitle="Oku Oku"
               loading={false}
               emptyText=""
               hasContent
               onHideToday={() => {}}
               onHidePermanent={() => {}}
             >
-              <div className="px-4 py-3 border-t border-app-border space-y-2">
+              <div className="px-4 py-3 border-t border-app-border space-y-2.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-12 rounded-lg bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                    <BookOpen size={16} className="text-app-muted" />
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100 text-amber-600">
+                    <BookOpen size={16} weight="fill" />
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-black text-app-text truncate">Sapiens</p>
-                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                      Bugün 24 sayfa · 142/498
-                    </p>
+                    <p className="text-[9px] text-app-muted font-bold">Sayfa 142 / 498</p>
                   </div>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-app-surface-muted overflow-hidden">
-                  <div className="h-full w-[28%] rounded-full bg-blue-500" />
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <WidgetActionButton onClick={() => {}} icon={CheckCircle} selected>
+                    <span className="line-through">
+                      30 <span className="normal-case font-bold">syf</span>
+                    </span>
+                  </WidgetActionButton>
+                  <WidgetActionButton onClick={() => {}} icon={Plus}>
+                    30 <span className="normal-case font-bold">syf</span>
+                  </WidgetActionButton>
                 </div>
               </div>
             </HomeSummaryCard>

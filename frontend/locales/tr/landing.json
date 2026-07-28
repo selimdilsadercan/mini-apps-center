@@ -11,8 +11,10 @@
     "title1": "Şehrini keşfet,",
     "title2": "günlüğünü yönet.",
     "subtitle": "Sinema seanslarından mekan rehberlerine, alışveriş listenden rutinlerine — Kahramanmaraş ve ötesi için tek merkez. 60+ mini uygulama, tek hesap.",
+    "playWeb": "Web'de Aç",
+    "now": "Hemen",
+    "download": "İndirin",
     "openApp": "Hemen Başla",
-    "now": "Ücretsiz",
     "forBusinesses": "İşletmeni Ekle",
     "stats": {
       "modules": "Mini Uygulama",
@@ -41,7 +43,7 @@
         "name": "Günlük Ajanda",
         "description": "Bugün ekranındaki tüm widget'lar: yapılacaklar, alışveriş listesi, rutinler, antrenman, okuma ve daha fazlası.",
         "platform": "Mobil modül",
-        "toolIds": "rutinler|eksik-var|budget|subcenter|film-graph|series-track|read-tracker|gym",
+        "toolIds": "rutinler|eksik-var|film-graph|series-track|read-tracker|gym",
         "cta": "Bugün Ekranını Aç"
       },
       "business": {

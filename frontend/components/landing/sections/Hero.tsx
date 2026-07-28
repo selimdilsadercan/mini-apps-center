@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { Play, Storefront } from "@phosphor-icons/react";
 import PhoneMockup from "../PhoneMockup";
 import PhoneScreen from "../PhoneScreen";
+import LandingCtaButtons from "../LandingCtaButtons";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { getAppRootUrl } from "@/lib/apps";
 
@@ -72,25 +71,9 @@ const Hero: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
-              <Link
-                href={mounted ? getAppRootUrl() : "/login"}
-                className="w-full sm:w-auto bg-white hover:bg-zinc-100 text-zinc-950 font-bold py-3.5 px-8 rounded-2xl transition-all shadow-lg shadow-white/5 active:scale-95 text-center flex items-center justify-center gap-2.5"
-              >
-                <Play size={18} weight="fill" />
-                <div className="text-left">
-                  <div className="text-[10px] opacity-60 leading-tight">{t("now")}</div>
-                  <div className="text-sm leading-none font-black">{t("openApp")}</div>
-                </div>
-              </Link>
-              <Link
-                href="/for-businesses"
-                className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-zinc-100 font-bold py-3.5 px-8 rounded-2xl border border-zinc-700 transition-all active:scale-95 text-center flex items-center justify-center gap-2"
-              >
-                <Storefront size={18} weight="bold" className="text-amber-400" />
-                <span className="text-sm">{t("forBusinesses")}</span>
-              </Link>
+              <LandingCtaButtons primaryHref={mounted ? getAppRootUrl() : "/login"} />
             </motion.div>
 
             <motion.div
