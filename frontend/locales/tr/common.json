@@ -382,6 +382,10 @@
       "name": "YKS Taban Puanları",
       "description": "YKS üniversite taban puanları, başarı sıralamaları ve tercih robotu."
     },
+    "tus-tercih": {
+      "name": "TUS Taban Puanları",
+      "description": "TUS uzmanlık dalı taban puanları, kurum karşılaştırması ve tercih robotu."
+    },
     "surdurulebilirlik": {
       "name": "Sürdürülebiliriz",
       "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."

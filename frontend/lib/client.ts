@@ -88,6 +88,7 @@ export default class Client {
     public readonly tasarruf_challenges: tasarruf_challenges.ServiceClient
     public readonly tasket: tasket.ServiceClient
     public readonly tournament: tournament.ServiceClient
+    public readonly tus_tercih: tus_tercih.ServiceClient
     public readonly tutor_crm: tutor_crm.ServiceClient
     public readonly users: users.ServiceClient
     public readonly workplaces: workplaces.ServiceClient
@@ -164,6 +165,7 @@ export default class Client {
         this.tasarruf_challenges = new tasarruf_challenges.ServiceClient(base)
         this.tasket = new tasket.ServiceClient(base)
         this.tournament = new tournament.ServiceClient(base)
+        this.tus_tercih = new tus_tercih.ServiceClient(base)
         this.tutor_crm = new tutor_crm.ServiceClient(base)
         this.users = new users.ServiceClient(base)
         this.workplaces = new workplaces.ServiceClient(base)
@@ -10096,6 +10098,141 @@ export namespace tournament {
     }
 }
 
+export namespace tus_tercih {
+    export interface ActionResponse {
+        success: boolean
+        message?: string
+    }
+
+    export interface AddSavedChoiceRequest {
+        userId: string
+        placementId: string
+        note?: string
+    }
+
+    export interface ListPlacementsRequest {
+        query?: string
+        specialtySlug?: string
+        institutionType?: string
+        candidateScore?: number
+        limit?: number
+        offset?: number
+    }
+
+    export interface ListPlacementsResponse {
+        placements: data.TUSPlacement[]
+        totalCount: number
+    }
+
+    export interface ListSavedChoicesRequest {
+        userId: string
+    }
+
+    export interface ListSavedChoicesResponse {
+        items: SavedChoiceItem[]
+    }
+
+    export interface RemoveSavedChoiceRequest {
+        userId: string
+        placementId: string
+    }
+
+    export interface ReorderSavedChoicesRequest {
+        userId: string
+        placementIds: string[]
+    }
+
+    export interface SavedChoiceItem {
+        id: string
+        userId: string
+        placementId: string
+        sortOrder: number
+        note: string
+        createdAt: string
+        placement?: data.TUSPlacement
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addSavedChoice = this.addSavedChoice.bind(this)
+            this.getPlacement = this.getPlacement.bind(this)
+            this.getSavedChoices = this.getSavedChoices.bind(this)
+            this.listPlacements = this.listPlacements.bind(this)
+            this.listSpecialties = this.listSpecialties.bind(this)
+            this.removeSavedChoice = this.removeSavedChoice.bind(this)
+            this.reorderSavedChoices = this.reorderSavedChoices.bind(this)
+        }
+
+        public async addSavedChoice(params: AddSavedChoiceRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tus/saved/add`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        public async getPlacement(id: string): Promise<{
+    placement: data.TUSPlacement
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tus/placement/${encodeURIComponent(id)}`)
+            return await resp.json() as {
+    placement: data.TUSPlacement
+}
+        }
+
+        public async getSavedChoices(params: ListSavedChoicesRequest): Promise<ListSavedChoicesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tus/saved`, undefined, {query})
+            return await resp.json() as ListSavedChoicesResponse
+        }
+
+        public async listPlacements(params: ListPlacementsRequest): Promise<ListPlacementsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                candidateScore:  params.candidateScore === undefined ? undefined : String(params.candidateScore),
+                institutionType: params.institutionType,
+                limit:           params.limit === undefined ? undefined : String(params.limit),
+                offset:          params.offset === undefined ? undefined : String(params.offset),
+                query:           params.query,
+                specialtySlug:   params.specialtySlug,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tus/placements`, undefined, {query})
+            return await resp.json() as ListPlacementsResponse
+        }
+
+        public async listSpecialties(): Promise<{
+    specialties: data.TUSSpecialty[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/tus/specialties`)
+            return await resp.json() as {
+    specialties: data.TUSSpecialty[]
+}
+        }
+
+        public async removeSavedChoice(params: RemoveSavedChoiceRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tus/saved/remove`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+
+        public async reorderSavedChoices(params: ReorderSavedChoicesRequest): Promise<ActionResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/tus/saved/reorder`, JSON.stringify(params))
+            return await resp.json() as ActionResponse
+        }
+    }
+}
+
 export namespace tutor_crm {
     export interface AddHomeworkRequest {
         userId: string
@@ -11703,6 +11840,34 @@ export namespace data {
         rank: number | null
         score: number | null
         quota: number
+    }
+
+    export interface TUSPeriodHistory {
+        period: string
+        score: number | null
+        quota: number | null
+        rank?: number | null
+    }
+
+    export interface TUSPlacement {
+        id: string
+        specialtySlug: string
+        specialtyName: string
+        educationYears: number
+        institutionName: string
+        institutionType: string
+        history: TUSPeriodHistory[]
+    }
+
+    export interface TUSSpecialty {
+        slug: string
+        name: string
+        educationYears: number
+        institutionCount: number
+        minScore: number | null
+        maxScore: number | null
+        totalQuota: number | null
+        placed: number | null
     }
 
     export interface YKSProgram {

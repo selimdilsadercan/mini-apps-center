@@ -40,6 +40,7 @@ import {
   Camera,
   ImageSquare,
   BookOpen,
+  Stethoscope,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -737,6 +738,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     href: "/apps/yks-tercih",
     isImplemented: true,
     subdomain: "ykstercih",
+    statusBarColor: "#FAF9F7",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "tus-tercih",
+    name: "TUS Taban Puanları",
+    description: "TUS uzmanlık dalı taban puanları, kurum karşılaştırması ve tercih robotu.",
+    cta: "Tercih Yap",
+    icon: Stethoscope,
+    category: "Kampüslülere Özel",
+    color: "#DC2626",
+    href: "/apps/tus-tercih",
+    isImplemented: true,
+    subdomain: "tustercih",
     statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",

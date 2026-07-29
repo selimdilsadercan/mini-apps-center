@@ -386,6 +386,10 @@
       "name": "YKS Rankings & Cutoffs",
       "description": "YKS university score cutoffs, ranking history, and choice builder."
     },
+    "tus-tercih": {
+      "name": "TUS Rankings & Cutoffs",
+      "description": "TUS specialty score cutoffs, institution comparison, and choice builder."
+    },
     "surdurulebilirlik": {
       "name": "We're Sustainable",
       "description": "Track your eco-friendly steps and contribute to our world."
