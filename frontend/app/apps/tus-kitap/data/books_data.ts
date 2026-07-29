@@ -31,6 +31,10 @@ export function getBookById(id: string): TUSBook | undefined {
   return TUS_BOOKS.find((b) => b.id === id);
 }
 
+export function getBookDetailHref(bookId: string): string {
+  return `/apps/tus-kitap/book?id=${encodeURIComponent(bookId)}`;
+}
+
 export function formatBookName(name: string): string {
   return name.replace(/&/g, " & ");
 }

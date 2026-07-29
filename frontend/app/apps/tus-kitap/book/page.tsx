@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Minus, Plus, Check } from "@phosphor-icons/react";
+import { toast } from "react-hot-toast";
 import TUSKitapShell from "../components/TUSKitapShell";
 import { getBookById, formatBookName } from "../data/books_data";
 import {
@@ -13,15 +16,12 @@ import {
   saveProgress,
   type AllProgress,
 } from "../lib/progress";
-import { Minus, Plus, Check } from "@phosphor-icons/react";
-import { toast } from "react-hot-toast";
-import Image from "next/image";
 
 const USER_ID = "local_user";
 
-export default function TUSBookDetailPage() {
-  const params = useParams();
-  const bookId = params.bookId as string;
+function TUSBookDetailContent() {
+  const searchParams = useSearchParams();
+  const bookId = searchParams.get("id") ?? "";
   const book = getBookById(bookId);
 
   const [progress, setProgress] = useState<AllProgress>({});
@@ -55,7 +55,7 @@ export default function TUSBookDetailPage() {
     updateProgress(decrementSection(progress, book.id, sectionId));
   };
 
-  if (!book) {
+  if (!bookId || !book) {
     return (
       <TUSKitapShell showTabs={false} title="Kitap bulunamadı">
         <div className="text-center py-12 text-gray-400 text-sm">Bu kitap mevcut değil.</div>
@@ -66,7 +66,6 @@ export default function TUSBookDetailPage() {
   return (
     <TUSKitapShell showTabs={false} title={formatBookName(book.name)}>
       <div className="space-y-3">
-        {/* Compact header */}
         <div className="flex items-center gap-3 px-1">
           <div className="w-10 h-14 shrink-0">
             <Image
@@ -98,7 +97,6 @@ export default function TUSBookDetailPage() {
           </div>
         </div>
 
-        {/* Sections */}
         {sortedSections.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-8">Bölüm listesi henüz yok.</p>
         ) : (
@@ -108,10 +106,7 @@ export default function TUSBookDetailPage() {
               const done = sp.completions > 0;
 
               return (
-                <li
-                  key={section.id}
-                  className="flex items-center gap-2.5 px-3 py-2"
-                >
+                <li key={section.id} className="flex items-center gap-2.5 px-3 py-2">
                   <div
                     className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${
                       done
@@ -160,5 +155,19 @@ export default function TUSBookDetailPage() {
         )}
       </div>
     </TUSKitapShell>
+  );
+}
+
+export default function TUSBookDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <TUSKitapShell showTabs={false} title="Yükleniyor...">
+          <div className="text-center py-12 text-gray-400 text-sm">Yükleniyor...</div>
+        </TUSKitapShell>
+      }
+    >
+      <TUSBookDetailContent />
+    </Suspense>
   );
 }

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import TUSKitapShell from "../components/TUSKitapShell";
-import { TUS_BOOKS, formatBookName } from "../data/books_data";
+import { TUS_BOOKS, formatBookName, getBookDetailHref } from "../data/books_data";
 import { getBookCompletionStats, loadProgress, type AllProgress } from "../lib/progress";
 import { CaretRight, ArrowsClockwise } from "@phosphor-icons/react";
 
@@ -66,7 +66,7 @@ export default function TUSKitapProgressPage() {
               return (
                 <Link
                   key={book.id}
-                  href={`/apps/tus-kitap/${book.id}`}
+                  href={getBookDetailHref(book.id)}
                   className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                 >
                   <div className="w-8 h-11 shrink-0">
