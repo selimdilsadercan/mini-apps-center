@@ -6,6 +6,7 @@ import { AppListSection } from "./common/AppListSection";
 interface ToolsTabProps {
   yksApp?: MiniApp;
   tusApp?: MiniApp;
+  tusKitapApp?: MiniApp;
   practicalApps: MiniApp[];
   devApps: MiniApp[];
   tApps: any;
@@ -17,6 +18,7 @@ interface ToolsTabProps {
 export function ToolsTab({
   yksApp,
   tusApp,
+  tusKitapApp,
   practicalApps,
   devApps,
   tApps,
@@ -26,10 +28,10 @@ export function ToolsTab({
 }: ToolsTabProps) {
   return (
     <div className="space-y-8">
-      {(yksApp || tusApp) && (
+      {(yksApp || tusApp || tusKitapApp) && (
         <AppListSection
-          title="Tercih Araçları"
-          apps={[yksApp, tusApp].filter((a): a is MiniApp => Boolean(a))}
+          title="Sınav Araçları"
+          apps={[yksApp, tusApp, tusKitapApp].filter((a): a is MiniApp => Boolean(a))}
           tApps={tApps}
           pinnedIds={pinnedIds}
           togglePin={togglePin}

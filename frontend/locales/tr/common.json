@@ -386,6 +386,10 @@
       "name": "TUS Taban Puanları",
       "description": "TUS uzmanlık dalı taban puanları, kurum karşılaştırması ve tercih robotu."
     },
+    "tus-kitap": {
+      "name": "TUS Kitap Takibi",
+      "description": "Infotus TUS konu kitapları çalışma takibi ve bölüm tekrar sayacı."
+    },
     "surdurulebilirlik": {
       "name": "Sürdürülebiliriz",
       "description": "Doğa dostu adımlarını takip et, dünyamıza katkıda bulun."

@@ -390,6 +390,10 @@
       "name": "TUS Rankings & Cutoffs",
       "description": "TUS specialty score cutoffs, institution comparison, and choice builder."
     },
+    "tus-kitap": {
+      "name": "TUS Book Tracker",
+      "description": "Infotus TUS subject books study tracker and section repeat counter."
+    },
     "surdurulebilirlik": {
       "name": "We're Sustainable",
       "description": "Track your eco-friendly steps and contribute to our world."

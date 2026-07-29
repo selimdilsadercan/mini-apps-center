@@ -1,0 +1,850 @@
+{
+  "scrapedAt": "2026-07-29T13:16:29.574Z",
+  "source": "https://tustime.com/tus-kitaplarimiz",
+  "books": [
+    {
+      "id": "anatomi",
+      "slug": "anatomi-8",
+      "name": "Anatomi",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_c337e48f69284314b3d1038e8f440927.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/anatomi-8",
+      "price": "874,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "kemikler",
+          "name": "Kemikler",
+          "order": 1
+        },
+        {
+          "id": "eklemler",
+          "name": "Eklemler",
+          "order": 2
+        },
+        {
+          "id": "kaslar",
+          "name": "Kaslar",
+          "order": 3
+        },
+        {
+          "id": "solunum-sistemi",
+          "name": "Solunum Sistemi",
+          "order": 4
+        },
+        {
+          "id": "dolasim-sistemi",
+          "name": "Dolaşım Sistemi",
+          "order": 5
+        },
+        {
+          "id": "gastrointestinal-sistem",
+          "name": "Gastrointestinal Sistem",
+          "order": 6
+        },
+        {
+          "id": "urogenital-sistem",
+          "name": "Ürogenital Sistem",
+          "order": 7
+        },
+        {
+          "id": "noroanatomi",
+          "name": "Nöroanatomi",
+          "order": 8
+        }
+      ]
+    },
+    {
+      "id": "biyokimya",
+      "slug": "biyokimya-9",
+      "name": "Biyokimya",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_505f191ddf974c7a8e513faa87899ea3.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/biyokimya-9",
+      "price": "875,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "hucre-ve-organeller",
+          "name": "Hücre ve Organeller",
+          "order": 1
+        },
+        {
+          "id": "metabolizma",
+          "name": "Metabolizma",
+          "order": 2
+        },
+        {
+          "id": "karbonhidratlar",
+          "name": "Karbonhidratlar",
+          "order": 3
+        },
+        {
+          "id": "lipitler",
+          "name": "Lipitler",
+          "order": 4
+        },
+        {
+          "id": "aminoasitler",
+          "name": "Aminoasitler",
+          "order": 5
+        },
+        {
+          "id": "proteinler",
+          "name": "Proteinler",
+          "order": 6
+        },
+        {
+          "id": "nukleik-asitler",
+          "name": "Nükleik Asitler",
+          "order": 7
+        },
+        {
+          "id": "vitaminler",
+          "name": "Vitaminler",
+          "order": 8
+        },
+        {
+          "id": "hormonlar",
+          "name": "Hormonlar",
+          "order": 9
+        }
+      ]
+    },
+    {
+      "id": "farmakoloji",
+      "slug": "farmakoloji-11",
+      "name": "Farmakoloji",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_af38e8f5ab2c401db09ab2382f9070fd.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/farmakoloji-11",
+      "price": "875,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "genel-farmakoloji",
+          "name": "Genel Farmakoloji",
+          "order": 1
+        },
+        {
+          "id": "otonom-sinir-sistemi",
+          "name": "Otonom Sinir Sistemi",
+          "order": 2
+        },
+        {
+          "id": "santral-sinir-sistemi",
+          "name": "Santral Sinir Sistemi",
+          "order": 3
+        },
+        {
+          "id": "kardiyovaskuler-sistem",
+          "name": "Kardiyovasküler Sistem",
+          "order": 4
+        },
+        {
+          "id": "solunum-sistemi",
+          "name": "Solunum Sistemi",
+          "order": 5
+        },
+        {
+          "id": "gastrointestinal-sistem",
+          "name": "Gastrointestinal Sistem",
+          "order": 6
+        },
+        {
+          "id": "endokrin-sistem",
+          "name": "Endokrin Sistem",
+          "order": 7
+        },
+        {
+          "id": "otakoidler",
+          "name": "Otakoidler",
+          "order": 8
+        },
+        {
+          "id": "nsai-i-gut-ra",
+          "name": "NSAİİ & GUT & RA",
+          "order": 9
+        },
+        {
+          "id": "kemoterapotikler",
+          "name": "Kemoterapotikler",
+          "order": 10
+        },
+        {
+          "id": "toksikoloji",
+          "name": "Toksikoloji",
+          "order": 11
+        }
+      ]
+    },
+    {
+      "id": "fizyoloji",
+      "slug": "fizyoloji-12",
+      "name": "Fizyoloji",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_517b92a3ff2d45e692b7f176baa1d84d.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/fizyoloji-12",
+      "price": "695,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "gastrointestinal-sistem",
+          "name": "Gastrointestinal Sistem",
+          "order": 1
+        },
+        {
+          "id": "kardiyovaskuler-sistem",
+          "name": "Kardiyovasküler Sistem",
+          "order": 2
+        },
+        {
+          "id": "endokrin-sistem",
+          "name": "Endokrin Sistem",
+          "order": 3
+        },
+        {
+          "id": "solunum-sistemi",
+          "name": "Solunum Sistemi",
+          "order": 4
+        },
+        {
+          "id": "sinir-sistemi",
+          "name": "Sinir Sistemi",
+          "order": 5
+        },
+        {
+          "id": "uriner-sistem",
+          "name": "Üriner Sistem",
+          "order": 6
+        }
+      ]
+    },
+    {
+      "id": "histolojiembriyoloji",
+      "slug": "histolojiembriyoloji-7",
+      "name": "Histoloji&Embriyoloji",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_37be61c877544c4bb8a4ea2cb1174e4e.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/histolojiembriyoloji-7",
+      "price": "640,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "embriyoloji",
+          "name": "Embriyoloji",
+          "order": 1
+        },
+        {
+          "id": "hucre",
+          "name": "Hücre",
+          "order": 2
+        },
+        {
+          "id": "doku",
+          "name": "Doku",
+          "order": 3
+        },
+        {
+          "id": "kas",
+          "name": "Kas",
+          "order": 4
+        },
+        {
+          "id": "genital-sistem",
+          "name": "Genital Sistem",
+          "order": 5
+        },
+        {
+          "id": "hematopetik-sistem",
+          "name": "Hematopetik Sistem",
+          "order": 6
+        }
+      ]
+    },
+    {
+      "id": "mikrobiyoloji",
+      "slug": "mikrobiyoloji-15",
+      "name": "Mikrobiyoloji",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_9fcb38f2a0fc4391b44e0c66b4bbf6b3.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/mikrobiyoloji-15",
+      "price": "875,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "temel-mikrobiyoloji",
+          "name": "Temel Mikrobiyoloji",
+          "order": 1
+        },
+        {
+          "id": "bakteriyoloji",
+          "name": "Bakteriyoloji",
+          "order": 2
+        },
+        {
+          "id": "viroloji",
+          "name": "Viroloji",
+          "order": 3
+        },
+        {
+          "id": "mikoloji",
+          "name": "Mikoloji",
+          "order": 4
+        },
+        {
+          "id": "parazitoloji",
+          "name": "Parazitoloji",
+          "order": 5
+        },
+        {
+          "id": "i-mmunoloji",
+          "name": "İmmünoloji",
+          "order": 6
+        }
+      ]
+    },
+    {
+      "id": "patoloji",
+      "slug": "patoloji-16",
+      "name": "Patoloji",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_6cc9ddfde0f5466b95a27e981d0c6507.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/patoloji-16",
+      "price": "875,00 ₺",
+      "category": "temel",
+      "sections": [
+        {
+          "id": "hucre",
+          "name": "Hücre",
+          "order": 1
+        },
+        {
+          "id": "i-nflamasyon",
+          "name": "İnflamasyon",
+          "order": 2
+        },
+        {
+          "id": "i-mmun-sistem",
+          "name": "İmmün Sistem",
+          "order": 3
+        },
+        {
+          "id": "yara-i-yilesmesi-ve-onarim",
+          "name": "Yara İyileşmesi ve Onarım",
+          "order": 4
+        },
+        {
+          "id": "hemodinamik-hastaliklar",
+          "name": "Hemodinamik Hastalıklar",
+          "order": 5
+        },
+        {
+          "id": "neoplazi",
+          "name": "Neoplazi",
+          "order": 6
+        },
+        {
+          "id": "solunum-sistemi",
+          "name": "Solunum Sistemi",
+          "order": 7
+        },
+        {
+          "id": "kardiyovaskuler-sistem",
+          "name": "Kardiyovasküler Sistem",
+          "order": 8
+        },
+        {
+          "id": "hematopoetik-sistem",
+          "name": "Hematopoetik Sistem",
+          "order": 9
+        },
+        {
+          "id": "gastrointestinal-sistem",
+          "name": "Gastrointestinal Sistem",
+          "order": 10
+        },
+        {
+          "id": "hepatoloji-ve-safra",
+          "name": "Hepatoloji ve Safra",
+          "order": 11
+        },
+        {
+          "id": "uriner-sistem",
+          "name": "Üriner Sistem",
+          "order": 12
+        },
+        {
+          "id": "endokrin-sistem",
+          "name": "Endokrin Sistem",
+          "order": 13
+        },
+        {
+          "id": "kadin-genital-sistemi",
+          "name": "Kadın Genital Sistemi",
+          "order": 14
+        },
+        {
+          "id": "erkek-genital-sistemi",
+          "name": "Erkek Genital Sistemi",
+          "order": 15
+        },
+        {
+          "id": "meme-hastaliklari",
+          "name": "Meme Hastalıkları",
+          "order": 16
+        },
+        {
+          "id": "sinir-sistemi",
+          "name": "Sinir Sistemi",
+          "order": 17
+        },
+        {
+          "id": "kas-i-skelet-sistemi",
+          "name": "Kas İskelet Sistemi",
+          "order": 18
+        },
+        {
+          "id": "deri-hastaliklari",
+          "name": "Deri Hastalıkları",
+          "order": 19
+        }
+      ]
+    },
+    {
+      "id": "dahiliye",
+      "slug": "dahiliye-10",
+      "name": "Dahiliye",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_923d55b244d64b458ad7edba6f2886b1.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/dahiliye-10",
+      "price": "1.250,00 ₺",
+      "category": "klinik",
+      "sections": [
+        {
+          "id": "hematoloji",
+          "name": "Hematoloji",
+          "order": 1
+        },
+        {
+          "id": "onkoloji",
+          "name": "Onkoloji",
+          "order": 2
+        },
+        {
+          "id": "nefroloji",
+          "name": "Nefroloji",
+          "order": 3
+        },
+        {
+          "id": "kardiyoloji",
+          "name": "Kardiyoloji",
+          "order": 4
+        },
+        {
+          "id": "gogus-hastaliklari",
+          "name": "Göğüs Hastalıkları",
+          "order": 5
+        },
+        {
+          "id": "gastroenteroloji",
+          "name": "Gastroenteroloji",
+          "order": 6
+        },
+        {
+          "id": "hepatoloji",
+          "name": "Hepatoloji",
+          "order": 7
+        },
+        {
+          "id": "endokrinoloji",
+          "name": "Endokrinoloji",
+          "order": 8
+        },
+        {
+          "id": "romatoloji",
+          "name": "Romatoloji",
+          "order": 9
+        },
+        {
+          "id": "enfeksiyon-hastaliklari",
+          "name": "Enfeksiyon Hastalıkları",
+          "order": 10
+        },
+        {
+          "id": "alerji-i-mmunoloji",
+          "name": "Alerji & İmmünoloji",
+          "order": 11
+        }
+      ]
+    },
+    {
+      "id": "genel-cerrahi",
+      "slug": "genel-cerrahi-13",
+      "name": "Genel Cerrahi",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_f32e7417a99a4430869e7a894b258679.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/genel-cerrahi-13",
+      "price": "875,00 ₺",
+      "category": "klinik",
+      "sections": [
+        {
+          "id": "sivi-elektrolit-asit-baz",
+          "name": "Sıvı - Elektrolit & Asit -Baz",
+          "order": 1
+        },
+        {
+          "id": "beslenme",
+          "name": "Beslenme",
+          "order": 2
+        },
+        {
+          "id": "travmaya-yanit",
+          "name": "Travmaya Yanıt",
+          "order": 3
+        },
+        {
+          "id": "sok",
+          "name": "Şok",
+          "order": 4
+        },
+        {
+          "id": "cerrahi-enfeksiyonlar",
+          "name": "Cerrahi Enfeksiyonlar",
+          "order": 5
+        },
+        {
+          "id": "yara-i-yilesmesi",
+          "name": "Yara İyileşmesi",
+          "order": 6
+        },
+        {
+          "id": "hemostaz-transfuzyon",
+          "name": "Hemostaz & Transfüzyon",
+          "order": 7
+        },
+        {
+          "id": "travmali-hastaya-yaklasim",
+          "name": "Travmalı Hastaya Yaklaşım",
+          "order": 8
+        },
+        {
+          "id": "yanik",
+          "name": "Yanık",
+          "order": 9
+        },
+        {
+          "id": "transplantasyon",
+          "name": "Transplantasyon",
+          "order": 10
+        },
+        {
+          "id": "temel-cerrahi",
+          "name": "Temel Cerrahi",
+          "order": 11
+        },
+        {
+          "id": "meme-hastaliklari",
+          "name": "Meme Hastalıkları",
+          "order": 12
+        },
+        {
+          "id": "tiroid-hastaliklari",
+          "name": "Tiroid Hastalıkları",
+          "order": 13
+        },
+        {
+          "id": "mide-hastaliklari",
+          "name": "Mide Hastalıkları",
+          "order": 14
+        },
+        {
+          "id": "kolorektal-cerrahi",
+          "name": "Kolorektal Cerrahi",
+          "order": 15
+        },
+        {
+          "id": "karaciger-hastaliklari",
+          "name": "Karaciğer Hastalıkları",
+          "order": 16
+        },
+        {
+          "id": "safra-kesesi-safra-yolu",
+          "name": "Safra Kesesi - Safra Yolu",
+          "order": 17
+        },
+        {
+          "id": "pankreas-hastaliklari",
+          "name": "Pankreas Hastalıkları",
+          "order": 18
+        },
+        {
+          "id": "dalak-hastaliklari",
+          "name": "Dalak Hastalıkları",
+          "order": 19
+        },
+        {
+          "id": "periton-mezenter-hastaliklari",
+          "name": "Periton & Mezenter Hastalıkları",
+          "order": 20
+        }
+      ]
+    },
+    {
+      "id": "kadin-dogum",
+      "slug": "kadin-dogum-14",
+      "name": "Kadın Doğum",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_2c379e5e601d4997875fb0409895fbb2.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/kadin-dogum-14",
+      "price": "795,00 ₺",
+      "category": "klinik",
+      "sections": [
+        {
+          "id": "jinekoloji",
+          "name": "Jinekoloji",
+          "order": 1
+        },
+        {
+          "id": "onkoloji",
+          "name": "Onkoloji",
+          "order": 2
+        },
+        {
+          "id": "endokrinoloji",
+          "name": "Endokrinoloji",
+          "order": 3
+        },
+        {
+          "id": "obstetri",
+          "name": "Obstetri",
+          "order": 4
+        }
+      ]
+    },
+    {
+      "id": "kucuk-stajlar",
+      "slug": "kucuk-stajlar-6",
+      "name": "Küçük Stajlar",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_bb4fc265115a4290b08d917010c911a4.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/kucuk-stajlar-6",
+      "price": "750,00 ₺",
+      "category": "klinik",
+      "sections": [
+        {
+          "id": "noroloji",
+          "name": "Nöroloji",
+          "order": 1
+        },
+        {
+          "id": "norosiruji",
+          "name": "Nöroşiruji",
+          "order": 2
+        },
+        {
+          "id": "psikiyatri",
+          "name": "Psikiyatri",
+          "order": 3
+        },
+        {
+          "id": "halk-sagligi",
+          "name": "Halk Sağlığı",
+          "order": 4
+        },
+        {
+          "id": "dermatoloji",
+          "name": "Dermatoloji",
+          "order": 5
+        },
+        {
+          "id": "radyoloji",
+          "name": "Radyoloji",
+          "order": 6
+        },
+        {
+          "id": "nukleer-tip",
+          "name": "Nükleer Tıp",
+          "order": 7
+        },
+        {
+          "id": "kbb-hastaliklari",
+          "name": "KBB Hastalıkları",
+          "order": 8
+        },
+        {
+          "id": "goz-hastaliklari",
+          "name": "Göz Hastalıkları",
+          "order": 9
+        },
+        {
+          "id": "ortopedi",
+          "name": "Ortopedi",
+          "order": 10
+        },
+        {
+          "id": "ftr",
+          "name": "FTR",
+          "order": 11
+        },
+        {
+          "id": "uroloji",
+          "name": "Üroloji",
+          "order": 12
+        },
+        {
+          "id": "cocuk-cerrahisi",
+          "name": "Çocuk Cerrahisi",
+          "order": 13
+        },
+        {
+          "id": "kalp-damar-cerrahisi",
+          "name": "Kalp Damar Cerrahisi",
+          "order": 14
+        },
+        {
+          "id": "gogus-cerrahisi",
+          "name": "Göğüs Cerrahisi",
+          "order": 15
+        },
+        {
+          "id": "plastik-cerrahi",
+          "name": "Plastik Cerrahi",
+          "order": 16
+        },
+        {
+          "id": "anesteziyoloji-ve-reanimasyon",
+          "name": "Anesteziyoloji ve Reanimasyon",
+          "order": 17
+        },
+        {
+          "id": "acil-tip",
+          "name": "Acil Tıp",
+          "order": 18
+        },
+        {
+          "id": "toksikoloji",
+          "name": "Toksikoloji",
+          "order": 19
+        }
+      ]
+    },
+    {
+      "id": "pediatri",
+      "slug": "pediatri-4",
+      "name": "Pediatri",
+      "imageUrl": "https://ttcdn.tustime.com/web/general/genel_422e29c58048409f919226eb6708fc38.png",
+      "productUrl": "https://tustime.com/tus-kitaplarimiz/urun/pediatri-4",
+      "price": "1.190,00 ₺",
+      "category": "klinik",
+      "sections": [
+        {
+          "id": "yenidogan",
+          "name": "Yenidoğan",
+          "order": 1
+        },
+        {
+          "id": "genetik",
+          "name": "Genetik",
+          "order": 2
+        },
+        {
+          "id": "buyume-ve-gelisme",
+          "name": "Büyüme ve Gelişme",
+          "order": 3
+        },
+        {
+          "id": "beslenme",
+          "name": "Beslenme",
+          "order": 4
+        },
+        {
+          "id": "gastroenteroloji",
+          "name": "Gastroenteroloji",
+          "order": 5
+        },
+        {
+          "id": "hepatobiliyer-sistem",
+          "name": "Hepatobiliyer Sistem",
+          "order": 6
+        },
+        {
+          "id": "noroloji",
+          "name": "Nöroloji",
+          "order": 7
+        },
+        {
+          "id": "kardiyoloji",
+          "name": "Kardiyoloji",
+          "order": 8
+        },
+        {
+          "id": "gogus-hastaliklari",
+          "name": "Göğüs Hastalıkları",
+          "order": 9
+        },
+        {
+          "id": "dokuntulu-hastaliklar",
+          "name": "Döküntülü Hastalıklar",
+          "order": 10
+        },
+        {
+          "id": "bagisiklama",
+          "name": "Bağışıklama",
+          "order": 11
+        },
+        {
+          "id": "alerji",
+          "name": "Alerji",
+          "order": 12
+        },
+        {
+          "id": "i-mmunoloji",
+          "name": "İmmünoloji",
+          "order": 13
+        },
+        {
+          "id": "enfeksiyon-hastaliklari",
+          "name": "Enfeksiyon Hastalıkları",
+          "order": 14
+        },
+        {
+          "id": "endokrinoloji",
+          "name": "Endokrinoloji",
+          "order": 15
+        },
+        {
+          "id": "metabolik-hastaliklar",
+          "name": "Metabolik Hastalıklar",
+          "order": 16
+        },
+        {
+          "id": "hematoloji",
+          "name": "Hematoloji",
+          "order": 17
+        },
+        {
+          "id": "onkoloji",
+          "name": "Onkoloji",
+          "order": 18
+        },
+        {
+          "id": "nefroloji",
+          "name": "Nefroloji",
+          "order": 19
+        },
+        {
+          "id": "romatoloji",
+          "name": "Romatoloji",
+          "order": 20
+        },
+        {
+          "id": "acil-tip-yogun-bakim",
+          "name": "Acil Tıp & Yoğun Bakım",
+          "order": 21
+        },
+        {
+          "id": "cocuk-psikiyatrisi",
+          "name": "Çocuk Psikiyatrisi",
+          "order": 22
+        },
+        {
+          "id": "cocuk-cerrahisi",
+          "name": "Çocuk Cerrahisi",
+          "order": 23
+        }
+      ]
+    }
+  ],
+  "sectionsSource": "https://tus.doktorbun.com/category/tus-analizleri/soru-dagilimlari/",
+  "sectionsUpdatedAt": "2026-07-29T13:22:20.284Z"
+}
