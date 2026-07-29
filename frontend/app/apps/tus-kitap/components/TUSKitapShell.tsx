@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CaretLeft, BookOpen, Books, ChartLineUp } from "@phosphor-icons/react";
 import { getAppRootUrl } from "@/lib/apps";
 
@@ -10,6 +11,7 @@ interface TUSKitapShellProps {
   activeTab?: "books" | "progress";
   title?: string;
   showTabs?: boolean;
+  backHref?: string;
 }
 
 export default function TUSKitapShell({
@@ -17,7 +19,17 @@ export default function TUSKitapShell({
   activeTab = "books",
   title,
   showTabs = true,
+  backHref,
 }: TUSKitapShellProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (!showTabs) {
+      router.push(backHref ?? "/apps/tus-kitap");
+      return;
+    }
+    window.location.href = getAppRootUrl();
+  };
   const tabClass = (tabName: "books" | "progress") => {
     const isActive = activeTab === tabName;
     return `inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
@@ -33,11 +45,10 @@ export default function TUSKitapShell({
         <div className="px-4 pt-3 pb-3 max-w-5xl mx-auto w-full">
           <div className="flex items-center gap-2 mb-2.5">
             <button
-              onClick={() => {
-                window.location.href = getAppRootUrl();
-              }}
+              type="button"
+              onClick={handleBack}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
-              title="Ana Sayfaya Dön"
+              title={showTabs ? "Ana Sayfaya Dön" : "Kitaplara Dön"}
             >
               <CaretLeft size={16} weight="bold" className="text-red-600 dark:text-red-400" />
             </button>
