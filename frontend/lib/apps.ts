@@ -75,6 +75,7 @@ export interface MiniApp {
 export {
   isCapacitorNative,
   getAppRootUrl,
+  getDirectoryUrl,
   getRootHomeUrl,
   navigateToAppRoot,
   APP_HOME_PATH,

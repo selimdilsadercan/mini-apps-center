@@ -164,6 +164,41 @@ export function getAppRootUrl(): string {
 }
 
 /**
+ * Public uygulama kataloğu (/directory) — giriş gerektirmez.
+ * App veya my subdomain'den root domain'e yönlendirir.
+ */
+export function getDirectoryUrl(path = "/directory"): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (typeof window === "undefined") return normalizedPath;
+
+  if (isCapacitorNative()) {
+    return normalizedPath;
+  }
+
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "allminiapps.com";
+
+  const isRootHost =
+    hostname === rootDomain ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1";
+
+  if (isRootHost) {
+    return normalizedPath;
+  }
+
+  if (isLocalWebDev(hostname)) {
+    const root = port ? `localhost:${port}` : "localhost";
+    return `${protocol}//${root}${normalizedPath}`;
+  }
+
+  return `${protocol}//${rootDomain}${normalizedPath}`;
+}
+
+/**
  * /home hub URL'i — tam sayfa yönlendirme için.
  */
 export function getRootHomeUrl(): string {

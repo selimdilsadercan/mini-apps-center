@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CaretLeft, BookOpen, Books, ChartLineUp } from "@phosphor-icons/react";
-import { getAppRootUrl } from "@/lib/apps";
+import { getDirectoryUrl } from "@/lib/apps";
 
 interface TUSKitapShellProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export default function TUSKitapShell({
       router.push(backHref ?? "/apps/tus-kitap");
       return;
     }
-    window.location.href = getAppRootUrl();
+    window.location.href = getDirectoryUrl();
   };
   const tabClass = (tabName: "books" | "progress") => {
     const isActive = activeTab === tabName;
@@ -48,7 +48,7 @@ export default function TUSKitapShell({
               type="button"
               onClick={handleBack}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
-              title={showTabs ? "Ana Sayfaya Dön" : "Kitaplara Dön"}
+              title={showTabs ? "Kataloğa Dön" : "Kitaplara Dön"}
             >
               <CaretLeft size={16} weight="bold" className="text-red-600 dark:text-red-400" />
             </button>

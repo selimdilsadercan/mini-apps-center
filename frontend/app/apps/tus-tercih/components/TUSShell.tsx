@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { CaretLeft, Stethoscope, ListChecks, MagnifyingGlass } from "@phosphor-icons/react";
-import { getAppRootUrl } from "@/lib/apps";
+import { getDirectoryUrl } from "@/lib/apps";
 
 interface TUSShellProps {
   children: React.ReactNode;
@@ -26,11 +26,12 @@ export default function TUSShell({ children, activeTab = "explore" }: TUSShellPr
         <div className="px-4 pt-3 pb-3 max-w-5xl mx-auto w-full">
           <div className="flex items-center gap-2 mb-2.5">
             <button
+              type="button"
               onClick={() => {
-                window.location.href = getAppRootUrl();
+                window.location.href = getDirectoryUrl();
               }}
               className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 shadow-sm cursor-pointer"
-              title="Ana Sayfaya Dön"
+              title="Kataloğa Dön"
             >
               <CaretLeft size={16} weight="bold" className="text-red-600 dark:text-red-400" />
             </button>
