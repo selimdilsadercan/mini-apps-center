@@ -11491,8 +11491,7 @@ export namespace workplaces {
         }
 
         /**
-         * Proxy endpoint for Google Place photos.
-         * Does NOT re-host images — streams from Google per request (with short in-memory cache).
+         * Legacy route — Google Place photo proxy disabled (no API key / manual images only).
          */
         public async serveGooglePlacePhoto(method: "GET", googlePlaceId: string, body?: RequestInit["body"], options?: CallParameters): Promise<globalThis.Response> {
             return this.baseClient.callAPI(method, `/workplaces/google-photo/${encodeURIComponent(googlePlaceId)}`, body, options)

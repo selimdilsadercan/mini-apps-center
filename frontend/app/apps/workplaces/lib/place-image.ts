@@ -1,16 +1,9 @@
-import { getEncoreApiBase } from "@/lib/api";
-
-/** Resolve place image URL — Google photos use our API proxy, not CDN re-hosting. */
+/** Resolve place image URL (direct https or app-relative paths). */
 export function resolvePlaceImageSrc(imageUrl?: string | null): string | undefined {
   if (!imageUrl?.trim()) return undefined;
 
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
     return imageUrl;
-  }
-
-  if (imageUrl.startsWith("/workplaces/google-photo/")) {
-    const base = getEncoreApiBase().replace(/\/$/, "");
-    return `${base}${imageUrl}`;
   }
 
   if (imageUrl.startsWith("/encore-api/")) {
@@ -20,6 +13,6 @@ export function resolvePlaceImageSrc(imageUrl?: string | null): string | undefin
   return imageUrl;
 }
 
-export function isGooglePlacePhoto(imageUrl?: string | null): boolean {
-  return !!imageUrl?.includes("/workplaces/google-photo/");
+export function isGooglePlacePhoto(_imageUrl?: string | null): boolean {
+  return false;
 }

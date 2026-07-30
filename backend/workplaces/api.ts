@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { secret } from "encore.dev/config";
 import { createSupabaseClient } from "../lib/supabase";
 import { users } from "~encore/clients";
-import { extractGooglePlaceId, fetchAndCachePlacePhoto, isGooglePhotoProxyPath } from "./google-photos";
+import { extractGooglePlaceId } from "./google-photos";
 
 // Supabase credentials as Encore secrets
 const supabaseUrl = secret("SupabaseUrl");
@@ -793,15 +793,6 @@ export const addPlace = api(
     }
 
     let place = { ...mapPlace(data[0]), is_favorite: false, is_visited: false };
-    const googlePlaceId =
-      extractGooglePlaceId(req.metadata?.google_place_id) || extractGooglePlaceId(req.url);
-    if (googlePlaceId) {
-      const imageUrl = await maybeAttachCachedPhoto(place.id, googlePlaceId, place.image_url);
-      if (imageUrl) {
-        place = { ...place, image_url: imageUrl };
-      }
-    }
-
     return { place };
   },
 );
@@ -881,39 +872,6 @@ export interface ApprovePlaceResponse {
 }
 
 
-async function maybeAttachCachedPhoto(
-  placeId: string,
-  googlePlaceId: string | undefined | null,
-  existingImageUrl?: string | null,
-): Promise<string | null> {
-  // Keep manually uploaded / external URLs; only skip if not our Google proxy
-  if (existingImageUrl?.trim() && !isGooglePhotoProxyPath(existingImageUrl)) {
-    return existingImageUrl;
-  }
-
-  const normalizedId = extractGooglePlaceId(googlePlaceId ?? undefined);
-  if (!normalizedId) {
-    return null;
-  }
-
-  const imageUrl = await fetchAndCachePlacePhoto(supabase, normalizedId);
-  if (!imageUrl) {
-    return null;
-  }
-
-  const { error } = await supabase
-    .schema("workplaces")
-    .from("places")
-    .update({ image_url: imageUrl })
-    .eq("id", placeId);
-
-  if (error) {
-    console.warn("Failed to persist photo proxy path on place:", error.message);
-  }
-
-  return imageUrl;
-}
-
 async function requireAdmin(userId: string) {
   if (!userId?.trim()) {
     throw APIError.unauthenticated("Authentication required");
@@ -945,35 +903,15 @@ export interface CachePlacePhotoResponse {
 
 export const cachePlacePhoto = api(
   { expose: true, method: "POST", path: "/workplaces/photo" },
-  async ({ placeId, userId, googlePlaceId }: CachePlacePhotoRequest): Promise<CachePlacePhotoResponse> => {
+  async ({ placeId, userId }: CachePlacePhotoRequest): Promise<CachePlacePhotoResponse> => {
     await requireAdmin(userId);
 
-    const { data: directRow, error } = await supabase
-      .schema("workplaces")
-      .from("places")
-      .select("id, image_url, url, metadata")
-      .eq("id", placeId)
-      .maybeSingle();
-
-    const row = directRow ?? (await loadPlaceRowById(placeId).catch(() => null));
-    if (error && !row) {
-      console.error("cachePlacePhoto lookup error:", error.message);
-    }
+    const row = await loadPlaceRowById(placeId).catch(() => null);
     if (!row) {
       throw APIError.notFound("place not found");
     }
 
-    const resolvedId =
-      extractGooglePlaceId(googlePlaceId) ||
-      extractGooglePlaceId((row as any).metadata?.google_place_id) ||
-      extractGooglePlaceId((row as any).url);
-
-    if (!resolvedId) {
-      throw APIError.invalidArgument("Google Place ID or Maps URL required");
-    }
-
-    const imageUrl = await maybeAttachCachedPhoto((row as any).id, resolvedId, (row as any).image_url);
-    return { image_url: imageUrl };
+    return { image_url: (row as { image_url?: string | null }).image_url ?? null };
   },
 );
 
@@ -1031,12 +969,7 @@ export const updatePlace = api(
       throw APIError.notFound("place not found to update");
     }
 
-    let place = { ...mapPlace(data[0]), is_favorite: false, is_visited: false };
-    const imageUrl = await maybeAttachCachedPhoto(place.id, gId, finalImageUrl);
-    if (imageUrl) {
-      place = { ...place, image_url: imageUrl };
-    }
-
+    const place = { ...mapPlace(data[0]), is_favorite: false, is_visited: false };
     return { place };
   }
 );
@@ -1124,16 +1057,7 @@ export const approvePlace = api(
       throw APIError.internal(`Failed to approve place: ${error.message}`);
     }
 
-    let place = { ...mapPlace(data[0]), is_favorite: false, is_visited: false };
-    const googlePlaceId =
-      extractGooglePlaceId(place.metadata?.google_place_id) || extractGooglePlaceId(place.url);
-    if (googlePlaceId) {
-      const imageUrl = await maybeAttachCachedPhoto(place.id, googlePlaceId, place.image_url);
-      if (imageUrl) {
-        place = { ...place, image_url: imageUrl };
-      }
-    }
-
+    const place = { ...mapPlace(data[0]), is_favorite: false, is_visited: false };
     return { place };
   }
 );

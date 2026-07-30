@@ -132,7 +132,6 @@ function WorkplacesContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPlace, setEditingPlace] = useState<workplaces.Place | null>(null);
-  const [photoFetchLoading, setPhotoFetchLoading] = useState(false);
 
   const { data: homePlacesData, isLoading: loadingHome } = useQuery({
     queryKey: ["home-places", DEFAULT_VENUE_CITY],
@@ -187,6 +186,7 @@ function WorkplacesContent() {
     latitude: undefined as number | undefined,
     longitude: undefined as number | undefined,
     google_place_id: "",
+    image_url: "",
     rating: "" as string | number,
     user_ratings_total: "" as string | number,
   });
@@ -323,6 +323,7 @@ function WorkplacesContent() {
       latitude: place.latitude,
       longitude: place.longitude,
       google_place_id: place.metadata?.google_place_id || "",
+      image_url: place.image_url || "",
       rating: place.rating ?? "",
       user_ratings_total: place.user_ratings_total ?? "",
     } as any);
@@ -354,43 +355,10 @@ function WorkplacesContent() {
       latitude: undefined,
       longitude: undefined,
       google_place_id: "",
+      image_url: "",
       rating: "",
       user_ratings_total: "",
     } as any);
-  };
-
-  const handleFetchPhoto = async () => {
-    if (!user?.id || !isAdmin) return;
-    const googlePlaceId =
-      (newPlace as any).google_place_id?.trim() || newPlace.url?.trim();
-    if (!googlePlaceId) {
-      toast.error("Google Place ID veya Maps linki girin");
-      return;
-    }
-
-    try {
-      setPhotoFetchLoading(true);
-      if (editingPlace) {
-        const res = await client.workplaces.cachePlacePhoto({
-          placeId: editingPlace.id,
-          userId: user.id,
-          googlePlaceId,
-        });
-        if (res.image_url) {
-          setNewPlace({ ...newPlace, image_url: res.image_url } as any);
-          toast.success("Fotoğraf kaydedildi");
-        } else {
-          toast.error("Fotoğraf bulunamadı");
-        }
-      } else {
-        toast("Önce mekanı kaydedin, sonra fotoğraf çekilebilir", { icon: "ℹ️" });
-      }
-    } catch (err) {
-      console.error("cachePlacePhoto failed:", err);
-      toast.error("Fotoğraf alınamadı");
-    } finally {
-      setPhotoFetchLoading(false);
-    }
   };
 
   const handleDeletePlace = async (placeId: string) => {
@@ -462,6 +430,7 @@ function WorkplacesContent() {
           district: (newPlace as any).district || undefined,
           latitude: (newPlace as any).latitude,
           longitude: (newPlace as any).longitude,
+          image_url: (newPlace as any).image_url || undefined,
           rating,
           user_ratings_total: userRatingsTotal,
         });
@@ -481,6 +450,7 @@ function WorkplacesContent() {
           district: (newPlace as any).district || undefined,
           latitude: (newPlace as any).latitude,
           longitude: (newPlace as any).longitude,
+          image_url: (newPlace as any).image_url || undefined,
           rating,
           user_ratings_total: userRatingsTotal,
         } as any);
@@ -695,29 +665,19 @@ function WorkplacesContent() {
                   {isAdmin && (
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-1">
-                        Google Place ID (sadece fotoğraf için)
+                        Kapak fotoğrafı URL
                       </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={(newPlace as any).google_place_id || ""}
-                          onChange={(e) =>
-                            setNewPlace({ ...newPlace, google_place_id: e.target.value } as any)
-                          }
-                          className="flex-1 px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
-                          placeholder="ChIJ... veya Maps linki"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleFetchPhoto}
-                          disabled={photoFetchLoading || !editingPlace}
-                          className="shrink-0 px-3 py-2 bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white font-bold rounded-xl text-[10px] cursor-pointer"
-                        >
-                          {photoFetchLoading ? "..." : "Foto"}
-                        </button>
-                      </div>
+                      <input
+                        type="url"
+                        value={(newPlace as any).image_url || ""}
+                        onChange={(e) =>
+                          setNewPlace({ ...newPlace, image_url: e.target.value } as any)
+                        }
+                        className="w-full px-4 py-2 bg-neutral-100 border-transparent focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                        placeholder="https://..."
+                      />
                       <p className="text-[10px] text-neutral-400 mt-1">
-                        Fotoğraf Google üzerinden proxy ile gösterilir; CDN&apos;e indirilmez.
+                        Görseli kendin yükle; doğrudan https linki kullan.
                       </p>
                     </div>
                   )}
