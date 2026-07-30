@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import { useTheme } from "next-themes";
 import L from "leaflet";
@@ -19,6 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   mall: "#4B6584", // Muted Blue Gray
   museum: "#8E735C", // Muted Teracotta/Clay
   complex: "#576574", // Muted Slate/Steel
+  shop: "#A55EEA", // Muted Purple
 };
 
 function getMarkerHtml(place: workplaces.Place, isSelected: boolean, showLabel: boolean, isDark: boolean) {
@@ -70,6 +71,8 @@ interface MapProps {
   selectedPlaceId?: string;
   /** Room above a bottom app bar (workplaces map tab) */
   insetBottom?: boolean;
+  /** Static, non-interactive embed (home widget preview) */
+  preview?: boolean;
 }
 
 const MAP_TILES = {
@@ -85,6 +88,53 @@ const MAP_TILES = {
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
   },
 } as const;
+
+/** NW: Renkli Yaşam Parkı — SE: Halk Eğitimi Merkezi (home widget preview) */
+const WIDGET_PREVIEW_BOUNDS = L.latLngBounds(
+  [37.5853466, 36.8568443],
+  [37.5994934, 36.9025323],
+);
+
+const WIDGET_PREVIEW_CENTER: [number, number] = [
+  (37.5994934 + 37.5853466) / 2,
+  (36.8568443 + 36.9025323) / 2,
+];
+
+function PreviewMapBounds() {
+  const map = useMap();
+  const lockedZoomRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const fit = () => {
+      map.invalidateSize();
+      map.fitBounds(WIDGET_PREVIEW_BOUNDS, { animate: false, padding: [0, 0] });
+      lockedZoomRef.current = map.getZoom();
+      map.scrollWheelZoom.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.boxZoom.disable();
+    };
+
+    fit();
+    const t1 = window.setTimeout(fit, 50);
+    const t2 = window.setTimeout(fit, 300);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [map]);
+
+  useMapEvents({
+    zoomend: () => {
+      const locked = lockedZoomRef.current;
+      if (locked !== null && map.getZoom() !== locked) {
+        map.setZoom(locked, { animate: false });
+      }
+    },
+  });
+
+  return null;
+}
 
 // Controller component to handle programmatic panning/zooming to user coordinates
 function MapController({ center, onZoomChange }: { center: [number, number] | null, onZoomChange: (zoom: number) => void }) {
@@ -104,12 +154,21 @@ function MapController({ center, onZoomChange }: { center: [number, number] | nu
   return null;
 }
 
-export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId, insetBottom = false }: MapProps) {
+export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId, insetBottom = false, preview = false }: MapProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [panTarget, setPanTarget] = useState<[number, number] | null>(null);
-  const [zoom, setZoom] = useState(13);
+  const [zoom, setZoom] = useState(preview ? 14 : 13);
+
+  // Filter places that have coordinates (preview: only inside widget bounds)
+  const validPlaces = React.useMemo(() => {
+    const withCoords = places.filter((p) => p.latitude && p.longitude);
+    if (!preview) return withCoords;
+    return withCoords.filter((p) =>
+      WIDGET_PREVIEW_BOUNDS.contains([p.latitude!, p.longitude!]),
+    );
+  }, [places, preview]);
 
   useEffect(() => {
     setMounted(true);
@@ -118,14 +177,11 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
   const isDark = mounted && (resolvedTheme === "dark" || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark')));
   const tiles = isDark ? MAP_TILES.dark : MAP_TILES.light;
 
-  // Filter places that have coordinates
-  const validPlaces = React.useMemo(() => places.filter((p) => p.latitude && p.longitude), [places]);
-
   // Pre-calculate label visibility to prevent overlap
   const placesWithLabels = React.useMemo(() => {
     if (!mounted) return [];
 
-    // 1. Prioritize: Selected > High Rating * Reviews
+    const labelZoom = preview ? 14 : zoom;
     const prioritized = [...validPlaces].sort((a, b) => {
       if (a.id === selectedPlaceId) return -1;
       if (b.id === selectedPlaceId) return 1;
@@ -146,26 +202,22 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
     
     // Distance threshold in degrees (scales with zoom)
     // Much tighter thresholds for the new minimal labels
-    const latThreshold = 0.004 / Math.pow(2, zoom - 13);
-    const lngThreshold = 0.012 / Math.pow(2, zoom - 13); 
+    const latThreshold = 0.004 / Math.pow(2, labelZoom - 13);
+    const lngThreshold = 0.012 / Math.pow(2, labelZoom - 13);
 
     return prioritized.map(place => {
       const pos = { lat: place.latitude!, lng: place.longitude! };
       let showLabel = place.id === selectedPlaceId;
 
       if (!showLabel) {
-        // Base minimum zoom for any labels
-        if (zoom < 14) {
+        if (labelZoom < 14) {
           showLabel = false;
-        } else if (zoom >= 17.5) {
-          showLabel = true; // Show all at extreme zoom
-        } else {
-          // Just rely on popularity priority + collision detection
+        } else if (labelZoom >= 17.5) {
           showLabel = true;
-
-          // Collision detection: Check if it overlaps with any already labelled higher-priority place
+        } else {
+          showLabel = true;
           for (const other of labelledPositions) {
-            if (Math.abs(pos.lat - other.lat) < latThreshold && 
+            if (Math.abs(pos.lat - other.lat) < latThreshold &&
                 Math.abs(pos.lng - other.lng) < lngThreshold) {
               showLabel = false;
               break;
@@ -180,16 +232,18 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
 
       return { ...place, showLabel };
     });
-  }, [validPlaces, zoom, selectedPlaceId, mounted]);
+  }, [validPlaces, zoom, selectedPlaceId, mounted, preview]);
 
   const defaultCenter: [number, number] = [37.585, 36.937];
-  const center: [number, number] = validPlaces.length > 0
-    ? [validPlaces[0].latitude!, validPlaces[0].longitude!]
-    : defaultCenter;
+  const center: [number, number] = preview
+    ? WIDGET_PREVIEW_CENTER
+    : validPlaces.length > 0
+      ? [validPlaces[0].latitude!, validPlaces[0].longitude!]
+      : defaultCenter;
 
-  // Ask for and trace user location on mount
+  // Ask for and trace user location on mount (interactive map only)
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || preview) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -204,9 +258,10 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
         { enableHighAccuracy: true }
       );
     }
-  }, [mounted]);
+  }, [mounted, preview]);
 
   const handleLocateMe = () => {
+    if (preview) return;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const latLng: [number, number] = [position.coords.latitude, position.coords.longitude];
@@ -227,15 +282,33 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
     return <div className="w-full h-full bg-app-bg" />;
   }
 
+  const mapZoom = preview ? 14 : 13;
+
   return (
-    <div className={`w-full h-full relative ${isDark ? "leaflet-map-google-dark" : ""}`}>
+    <div
+      className={`w-full h-full relative ${
+        isDark ? "leaflet-map-google-dark" : ""
+      } ${
+        preview
+          ? "leaflet-map-preview-embed cursor-grab active:cursor-grabbing [&_.leaflet-container]:!absolute [&_.leaflet-container]:!inset-0 [&_.leaflet-container]:!h-full [&_.leaflet-container]:!w-full [&_.leaflet-map-pane]:!h-full [&_.leaflet-map-pane]:!w-full"
+          : ""
+      }`}
+    >
       <MapContainer
         center={center}
-        zoom={13}
+        zoom={mapZoom}
         style={{ width: "100%", height: "100%", background: isDark ? "#17263c" : "#eef2f6" }}
         zoomControl={false}
+        dragging
+        touchZoom={!preview}
+        scrollWheelZoom={!preview}
+        doubleClickZoom={!preview}
+        boxZoom={!preview}
+        keyboard={!preview}
+        attributionControl={!preview}
       >
-        <MapController center={panTarget} onZoomChange={setZoom} />
+        {!preview && <MapController center={panTarget} onZoomChange={setZoom} />}
+        {preview && <PreviewMapBounds />}
 
         <TileLayer
           key={isDark ? "dark" : "light"}
@@ -245,7 +318,7 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
         />
 
         {/* User's Current Location Marker */}
-        {userLocation && (
+        {!preview && userLocation && (
           <Marker position={userLocation} icon={userMarkerIcon} />
         )}
 
@@ -263,28 +336,31 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
               key={place.id}
               position={[place.latitude!, place.longitude!]}
               icon={mapIcon}
-              eventHandlers={{
-                click: () => onSelectPlace(place),
-              }}
+              eventHandlers={
+                preview
+                  ? undefined
+                  : { click: () => onSelectPlace(place) }
+              }
             />
           );
         })}
       </MapContainer>
 
-      {/* Floating Action Button to Locate User */}
-      <button
-        onClick={handleLocateMe}
-        className={`absolute right-4 w-11 h-11 bg-app-surface hover:bg-app-bg text-app-text rounded-full flex items-center justify-center shadow-xl z-[999] border border-app-border transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-          insetBottom ? "bottom-24" : "bottom-6"
-        }`}
-        title="Konumumu Bul"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 text-amber-600 dark:text-amber-400">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" className="opacity-30" />
-          <circle cx="12" cy="12" r="3" fill="currentColor" />
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" strokeLinecap="round" />
-        </svg>
-      </button>
+      {!preview && (
+        <button
+          onClick={handleLocateMe}
+          className={`absolute right-4 w-11 h-11 bg-app-surface hover:bg-app-bg text-app-text rounded-full flex items-center justify-center shadow-xl z-[999] border border-app-border transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+            insetBottom ? "bottom-24" : "bottom-6"
+          }`}
+          title="Konumumu Bul"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5 text-amber-600 dark:text-amber-400">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" className="opacity-30" />
+            <circle cx="12" cy="12" r="3" fill="currentColor" />
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

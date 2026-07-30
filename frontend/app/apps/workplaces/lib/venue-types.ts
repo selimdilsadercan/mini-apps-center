@@ -17,6 +17,7 @@ export const VENUE_PRIMARY_TYPES = [
   { id: "mall", label: "AVM" },
   { id: "museum", label: "Müze" },
   { id: "complex", label: "Yerleşke" },
+  { id: "shop", label: "Mağaza" },
 ] as const;
 
 export type VenuePrimaryType = (typeof VENUE_PRIMARY_TYPES)[number]["id"] | "bar";

@@ -40,7 +40,7 @@ function ExplorePageContent() {
   );
 
   const explorePlacesApps = useMemo(() => {
-    const order = ["workplaces", "places-ranked", "outdoor-activities", "digital-menu", "stamp-card"];
+    const order = ["workplaces", "outdoor-activities", "digital-menu", "stamp-card"];
     return apps
       .filter((app: MiniApp) => app.category === "Şehrini Keşfet" && order.includes(app.id))
       .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));

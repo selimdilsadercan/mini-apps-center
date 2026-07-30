@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { workplaces } from "@/lib/client";
@@ -18,6 +19,7 @@ import {
   Globe,
   ArrowSquareOut,
   Clock,
+  ArrowRight,
 } from "@phosphor-icons/react";
 
 import toast from "react-hot-toast";
@@ -42,6 +44,80 @@ import {
   wifiLabels,
 } from "./lib/place-amenity-labels";
 
+import { useQuery } from "@tanstack/react-query";
+
+interface HorizontalPlaceCardProps {
+  place: workplaces.LeaderboardEntry;
+}
+
+function HorizontalPlaceCard({ place }: HorizontalPlaceCardProps) {
+  const imageSrc = resolvePlaceImageSrc(place.imageUrl);
+  
+  return (
+    <Link
+      href={`/apps/workplaces/place?placeId=${encodeURIComponent(place.placeId)}`}
+      className="block w-40 shrink-0 bg-app-surface rounded-2xl border border-app-border overflow-hidden active:scale-[0.98] transition-transform no-underline group"
+    >
+      <div className="aspect-[4/3] relative bg-app-surface-muted overflow-hidden">
+        {imageSrc ? (
+          <img src={imageSrc} alt={place.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Coffee size={24} className="text-app-muted" />
+          </div>
+        )}
+        {place.averageRating > 0 && (
+          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg flex items-center gap-0.5">
+            <span>★</span>
+            <span>{place.averageRating.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <h4 className="text-[11px] font-black text-app-text leading-tight line-clamp-2 min-h-[2rem]">
+          {place.name}
+        </h4>
+        {place.district && (
+          <p className="text-[9px] text-app-muted font-bold mt-1 truncate">{place.district}</p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+interface RankedSectionProps {
+  list: workplaces.RankList;
+  entries: workplaces.LeaderboardEntry[];
+}
+
+function RankedSection({ list, entries }: RankedSectionProps) {
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between px-4">
+        <h3 className="text-sm font-black uppercase tracking-tight text-app-text">
+          {list.title || list.label}
+        </h3>
+        <Link 
+          href={`/apps/workplaces/ranked?listId=${list.id}`}
+          className="flex h-7 w-7 items-center justify-center rounded-full text-amber-600 hover:bg-amber-500/10 hover:text-amber-700 transition-colors"
+          aria-label={`${list.title || list.label} — tümünü gör`}
+        >
+          <ArrowRight size={16} weight="bold" />
+        </Link>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-none px-4 snap-x scroll-pl-4">
+        {entries.map((entry) => (
+          <div key={entry.placeId} className="snap-start">
+            <HorizontalPlaceCard place={entry} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function WorkplacesContent() {
   const t = useTranslations("workplaces");
   const client = useMemo(() => createBrowserClient(), []);
@@ -57,6 +133,17 @@ function WorkplacesContent() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingPlace, setEditingPlace] = useState<workplaces.Place | null>(null);
   const [photoFetchLoading, setPhotoFetchLoading] = useState(false);
+
+  const { data: homePlacesData, isLoading: loadingHome } = useQuery({
+    queryKey: ["home-places", DEFAULT_VENUE_CITY],
+    queryFn: () => client.workplaces.listHomePlaces({
+      city: DEFAULT_VENUE_CITY,
+      limit: 10,
+    }),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const homeSections = homePlacesData?.sections ?? [];
 
   useEffect(() => {
     if (!user?.id) {
@@ -427,27 +514,39 @@ function WorkplacesContent() {
         }}
       />
 
-      {loading ? (
+      {loading || loadingHome ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
             <p className="text-neutral-500 font-medium">{t("loading")}</p>
           </div>
-        ) : filteredPlaces.length > 0 ? (
-          <div className="space-y-2">
-            {filteredPlaces.map((place) => (
-              <PlaceCard
-                key={place.id}
-                place={place}
-                onToggleFavorite={handleToggleFavorite}
-                onToggleVisited={handleToggleVisited}
+        ) : (searchQuery || hasActiveFilters) ? (
+          filteredPlaces.length > 0 ? (
+            <div className="space-y-2">
+              {filteredPlaces.map((place) => (
+                <PlaceCard
+                  key={place.id}
+                  place={place}
+                  onToggleFavorite={handleToggleFavorite}
+                  onToggleVisited={handleToggleVisited}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-app-surface rounded-2xl border border-app-border">
+              <Coffee size={32} className="mx-auto text-app-muted mb-2" />
+              <h3 className="text-sm font-bold text-app-text">{t("noResults")}</h3>
+              <p className="text-xs text-app-muted mt-1">{t("noResultsHint")}</p>
+            </div>
+          )
+        ) : (
+          <div className="space-y-10 pb-10">
+            {homeSections.map((section) => (
+              <RankedSection
+                key={section.listId}
+                list={section.list}
+                entries={section.entries}
               />
             ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-app-surface rounded-2xl border border-app-border">
-            <Coffee size={32} className="mx-auto text-app-muted mb-2" />
-            <h3 className="text-sm font-bold text-app-text">{t("noResults")}</h3>
-            <p className="text-xs text-app-muted mt-1">{t("noResultsHint")}</p>
           </div>
         )}
 

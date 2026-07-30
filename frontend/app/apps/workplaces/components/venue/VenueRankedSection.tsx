@@ -7,7 +7,7 @@ import { Star, Trophy, X } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { createBrowserClient } from "@/lib/api";
-import { places_ranked } from "@/lib/client";
+import { workplaces } from "@/lib/client";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { DEFAULT_VENUE_CITY } from "../../lib/venue-types";
 import { resolvePlaceImageSrc } from "../../lib/place-image";
@@ -22,7 +22,7 @@ export default function VenueRankedSection({ placeId, city = DEFAULT_VENUE_CITY 
   const client = useMemo(() => createBrowserClient(), []);
   const t = useTranslations("workplaces");
 
-  const [stats, setStats] = useState<places_ranked.PlaceRatingStats | null>(null);
+  const [stats, setStats] = useState<workplaces.GetPlaceStatsResponse["stats"] | null>(null);
   const [allTimeVotes, setAllTimeVotes] = useState(0);
   const [myOverall, setMyOverall] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ export default function VenueRankedSection({ placeId, city = DEFAULT_VENUE_CITY 
     try {
       setLoading(true);
       const [statsRes, myRes] = await Promise.all([
-        client.places_ranked.getPlaceStats(placeId, { city }),
+        client.workplaces.getPlaceStats(placeId, { city }),
         user?.id
           ? client.workplaces.getMyPlaceRating(placeId, { userId: user.id })
           : Promise.resolve({ rating: null }),
@@ -84,7 +84,7 @@ export default function VenueRankedSection({ placeId, city = DEFAULT_VENUE_CITY 
           {t("ranked.title")}
         </p>
         <Link
-          href="/apps/places-ranked"
+          href="/home/explore"
           className="text-[11px] font-bold text-violet-600 hover:text-violet-700 no-underline"
         >
           {t("ranked.viewLeaderboard")} →

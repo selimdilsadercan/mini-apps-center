@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { resolvePlaceImageSrc } from "@/app/apps/workplaces/lib/place-image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarCheck,
@@ -51,6 +50,7 @@ import {
   Anchor,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { MINI_APPS } from "@/lib/apps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
@@ -66,6 +66,16 @@ import {
 } from "@/components/ui/drawer";
 
 const browserClient = createBrowserClient();
+
+const StudyPlacesMapPreview = dynamic(
+  () => import("@/components/maps/StudyPlacesMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[176px] bg-[#17263c] animate-pulse rounded-b-2xl" />
+    ),
+  },
+);
 
 const WIDGET_MASONRY =
   "columns-1 md:columns-2 gap-3 md:gap-4";
@@ -537,42 +547,20 @@ export function DiscoverTab(props: DiscoverTabProps) {
           title="Mekanlar"
           subtitle="Kahramanmaraş"
           loading={loading}
-          emptyText="Yakınlarda mekan bulunamadı ☕"
-          hasContent={places.length > 0}
-          onHideToday={() => triggerHide("places-widget", "today")}
-          onHidePermanent={() => triggerHide("places-widget", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("places-widget")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("places-widget")}
-          onRestore={() => handleRestoreWidget("places-widget")}
+          emptyText="Harita yüklenemedi"
+          hasContent
         >
-          {places.slice(0, 3).map((place: any) => (
-            <div
-              key={place.id}
-              onClick={() => router.push(`/apps/workplaces/place?placeId=${place.id}`)}
-              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                  {resolvePlaceImageSrc(place.image_url) ? (
-                    <img src={resolvePlaceImageSrc(place.image_url)} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Coffee size={16} className="text-app-muted" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {place.district || "Kahramanmaraş"} · {(place.types?.length > 0 ? place.types[0] : "") || place.tags?.slice(0, 2).join(", ") || "Mekan"} {place.internal_rating ? `· ★ ${place.internal_rating.toFixed(1)}` : ""}
-                  </p>
-                </div>
-              </div>
-              {place.business_id && (
-                <span className="text-[9px] font-black text-[#D97706] bg-[#D97706]/10 px-1.5 py-0.5 rounded-full border border-[#D97706]/20 uppercase tracking-tight shrink-0">
-                  MENÜ
-                </span>
-              )}
-            </div>
-          ))}
+          <div
+            className="relative h-[176px] w-full overflow-hidden rounded-b-2xl bg-[#17263c]"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <StudyPlacesMapPreview
+              places={places}
+              onSelectPlace={() => {}}
+              preview
+            />
+          </div>
         </HomeSummaryCard>
       )
     },
@@ -624,11 +612,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
             loading={loading}
             emptyText="Aktivite mekanı bulunamadı 🏕️"
             hasContent={outdoorVenues.length > 0}
-            onHideToday={() => triggerHide("outdoor-activities-widget", "today")}
-            onHidePermanent={() => triggerHide("outdoor-activities-widget", "permanent")}
-            isTodayHidden={isWidgetTodayHidden("outdoor-activities-widget")}
-            isPermanentlyHidden={isWidgetPermanentlyHidden("outdoor-activities-widget")}
-            onRestore={() => handleRestoreWidget("outdoor-activities-widget")}
           >
             {(() => {
               const CATEGORY_ORDER = ["horse-riding", "canoeing", "camping", "lasertag", "paintball", "diving", "gokart", "skiing"];
@@ -704,11 +687,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
             loading={sessionsLoading}
             emptyText="Bugün için seans bilgisi yok 🎬"
             hasContent={sessions.length > 0}
-            onHideToday={() => triggerHide("cinema-widget", "today")}
-            onHidePermanent={() => triggerHide("cinema-widget", "permanent")}
-            isTodayHidden={isWidgetTodayHidden("cinema-widget")}
-            isPermanentlyHidden={isWidgetPermanentlyHidden("cinema-widget")}
-            onRestore={() => handleRestoreWidget("cinema-widget")}
           >
             {topMovies.map((movie) => (
               <div
@@ -771,11 +749,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Yakında konser bulunamadı 🎸"
           hasContent={upcomingConcerts.length > 0}
-          onHideToday={() => triggerHide("upcoming-concerts-widget", "today")}
-          onHidePermanent={() => triggerHide("upcoming-concerts-widget", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("upcoming-concerts-widget")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("upcoming-concerts-widget")}
-          onRestore={() => handleRestoreWidget("upcoming-concerts-widget")}
         >
           {upcomingConcerts.slice(0, 3).map((concert: any) => {
             const concertDate = new Date(concert.date);
@@ -825,11 +798,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
           loading={loading}
           emptyText="Bugün için planlanmış etkinlik yok 🎭"
           hasContent={events.length > 0}
-          onHideToday={() => triggerHide("events-widget", "today")}
-          onHidePermanent={() => triggerHide("events-widget", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("events-widget")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("events-widget")}
-          onRestore={() => handleRestoreWidget("events-widget")}
         >
           {events.slice(0, 3).map((event: any) => {
             const eventDate = new Date(event.event_date);
@@ -2266,12 +2234,15 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
         const visibleMovies = moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies");
-        const visibleYazboz = yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget");
-        const visibleCinema = cinemaWidget && cinemaWidget.hasContent && !isWidgetHidden("cinema-widget");
-        const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
-        const visibleEvents = eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget");
-        const visiblePlaces = placesWidget && !isWidgetHidden("places-widget");
-        const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget");
+        const showCityWidget = (key: string) =>
+          activeSubTab === "explore" || !isWidgetHidden(key);
+
+        const visibleYazboz = yazbozWidget && yazbozWidget.hasContent && showCityWidget("yazboz-widget");
+        const visibleCinema = cinemaWidget && cinemaWidget.hasContent && showCityWidget("cinema-widget");
+        const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && showCityWidget("outdoor-activities-widget");
+        const visibleEvents = eventsWidget && eventsWidget.hasContent && showCityWidget("events-widget");
+        const visiblePlaces = placesWidget && showCityWidget("places-widget");
+        const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && showCityWidget("upcoming-concerts-widget");
 
         const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
 
@@ -2502,8 +2473,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
         </div>
       )}
 
-      {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) */}
-      {(() => {
+      {/* 4. BUGÜN GİZLENENLER (Collapsible Accordion) — sadece Günlük sekmesi */}
+      {activeSubTab === "daily" && (() => {
         const HIDDEN_WIDGET_ORDER: Record<string, number> = {
           "agenda": 1,
           "meals": 2,
@@ -2581,8 +2552,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
         );
       })()}
 
-      {/* 5. KOMPLE GİZLENENLER (Collapsible Accordion) */}
-      {(() => {
+      {/* 5. KOMPLE GİZLENENLER (Collapsible Accordion) — sadece Günlük sekmesi */}
+      {activeSubTab === "daily" && (() => {
         const permHidden = filteredWidgets.filter((w) => isWidgetPermanentlyHidden(w.key));
         return (
           <div className="pt-3 border-t border-app-border/60 space-y-2.5">

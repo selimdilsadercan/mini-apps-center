@@ -28,6 +28,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   mall: "#4B6584", // Muted Blue Gray
   museum: "#8E735C", // Muted Teracotta/Clay
   complex: "#576574", // Muted Slate/Steel
+  shop: "#A55EEA", // Muted Purple
 };
 
 function venueTypeLabel(

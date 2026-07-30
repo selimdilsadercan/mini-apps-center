@@ -43,6 +43,7 @@
     "mall": "Mall",
     "museum": "Museum",
     "complex": "Complex",
+    "shop": "Shop",
     "fallback": "Place"
   },
   "toast": {

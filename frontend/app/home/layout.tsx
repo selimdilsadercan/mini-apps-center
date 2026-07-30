@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthContext, useUser } from "@/contexts/AuthContext";
-import { House, Compass, Wrench, Storefront, UserCircle, Gear, Heart, GameController } from "@phosphor-icons/react";
+import { House, Compass, Wrench, Storefront, UserCircle, Gear, Heart, GameController, Trophy } from "@phosphor-icons/react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { hubPath, matchHubRoute } from "@/lib/hub-routes";
 
@@ -75,7 +75,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
           <nav className="space-y-1">
             {[
               { id: "today", label: "Bugün", path: hubPath("today"), icon: House },
-              { id: "explore", label: "Şehrini Keşfet", path: hubPath("explore"), icon: Compass },
+              { id: "explore", label: "Sıralama", path: hubPath("explore"), icon: Trophy },
               { id: "life", label: "Yaşam", path: hubPath("life"), icon: Heart },
               { id: "hobby", label: "Hobi", path: hubPath("hobby"), icon: GameController },
               { id: "tools", label: "Araçlar", path: hubPath("tools"), icon: Wrench },

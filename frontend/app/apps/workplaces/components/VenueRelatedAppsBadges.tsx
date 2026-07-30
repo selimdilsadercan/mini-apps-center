@@ -4,7 +4,7 @@ import Link from "next/link";
 import { MINI_APPS } from "@/lib/apps";
 import { useTranslations } from "@/contexts/LanguageContext";
 
-const LINKED_MINI_APP_IDS = ["outdoor-activities", "places-ranked"] as const;
+const LINKED_MINI_APP_IDS = ["outdoor-activities"] as const;
 
 export default function VenueRelatedAppsBadges() {
   const tApps = useTranslations("apps");

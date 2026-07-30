@@ -21,6 +21,7 @@ export interface RankList {
   id: string;
   label: string;
   emoji: string;
+  title?: string;
 }
 
 export interface PlaceRatingStats {
@@ -63,20 +64,31 @@ function placeMatchesList(place: PlaceRow, listId: string): boolean {
 
   const tags = (place.tags ?? []).map((t) => t.toLowerCase());
   const name = place.name.toLowerCase();
+  const venueTypes = place.types || [];
 
+  let matchesTag = false;
   if (list.tagKeywords?.length) {
-    const tagHit = list.tagKeywords.some(
-      (kw) =>
-        tags.some((t) => t.includes(kw.toLowerCase())) ||
-        name.includes(kw.toLowerCase()),
-    );
-    if (tagHit) return true;
-    return false;
+    matchesTag = list.tagKeywords.some((kw) => {
+      const lowerKw = kw.toLowerCase();
+      return (
+        tags.some((t) => t.toLowerCase().includes(lowerKw) || lowerKw.includes(t.toLowerCase())) ||
+        name.includes(lowerKw)
+      );
+    });
   }
 
+  let matchesType = false;
   if (list.primaryTypes?.length) {
-    const venueTypes = place.types || [];
-    return list.primaryTypes.some(type => venueTypes.includes(type));
+    matchesType = list.primaryTypes.some((type) => venueTypes.includes(type));
+  }
+
+  // If list has both, either one can match. If it only has one, that one must match.
+  if (list.tagKeywords?.length && list.primaryTypes?.length) {
+    return matchesTag || matchesType;
+  } else if (list.tagKeywords?.length) {
+    return matchesTag;
+  } else if (list.primaryTypes?.length) {
+    return matchesType;
   }
 
   return true;
@@ -94,7 +106,7 @@ export const getLists = api(
   { expose: true, method: "GET", path: "/places-ranked/lists" },
   async (): Promise<{ lists: RankList[] }> => {
     return {
-      lists: RANK_LISTS.map((l) => ({ id: l.id, label: l.label, emoji: l.emoji })),
+      lists: RANK_LISTS.map((l) => ({ id: l.id, label: l.label, emoji: l.emoji, title: l.title })),
     };
   },
 );
@@ -124,6 +136,9 @@ export const getLeaderboard = api(
     if (placesErr) {
       throw APIError.internal(`Failed to load places: ${placesErr.message}`);
     }
+
+    // DEBUG LOG
+    console.log(`Loaded ${places?.length || 0} places for city ${city}. First few tags:`, places?.slice(0, 3).map(p => ({ name: p.name, tags: p.tags })));
 
     let filtered = (places ?? []).filter((p) => placeMatchesList(p as PlaceRow, listId));
     if (district) {
@@ -166,9 +181,14 @@ export const getLeaderboard = api(
       .map((place) => {
         const scores = byPlace.get(place.id) ?? [];
         const voteCount = scores.length;
+
+        // Ensure we show places even if they have 0 votes if MIN_VOTES_FOR_RANKING is 0
         if (voteCount < MIN_VOTES_FOR_RANKING) return null;
 
-        const averageRating = scores.reduce((a, b) => a + b, 0) / voteCount;
+        const averageRating = voteCount > 0 
+          ? scores.reduce((a, b) => a + b, 0) / voteCount 
+          : 0;
+
         const weightedScore = computeWeightedScore(
           averageRating,
           voteCount,

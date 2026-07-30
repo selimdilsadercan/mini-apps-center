@@ -7046,6 +7046,7 @@ export namespace places_ranked {
         id: string
         label: string
         emoji: string
+        title?: string
     }
 
     export class ServiceClient {
@@ -11100,6 +11101,18 @@ export namespace workplaces {
         success: boolean
     }
 
+    export interface GetLeaderboardRequest {
+        listId?: string
+        city?: string
+        district?: string
+        limit?: number
+    }
+
+    export interface GetLeaderboardResponse {
+        listId: string
+        entries: LeaderboardEntry[]
+    }
+
     export interface GetMyPlaceRatingRequest {
         userId: string
     }
@@ -11114,6 +11127,54 @@ export namespace workplaces {
 
     export interface GetPlaceResponse {
         place: Place
+    }
+
+    export interface GetPlaceStatsRequest {
+        listId?: string
+        city?: string
+    }
+
+    export interface GetPlaceStatsResponse {
+        stats: {
+            placeId: string
+            averageRating: number
+            voteCount: number
+            weightedScore: number
+            rankInList?: number | null
+            listSize?: number | null
+        } | null
+        allTimeAverage?: number | null
+        allTimeVotes?: number
+    }
+
+    export interface GetRankListsResponse {
+        lists: RankList[]
+    }
+
+    export interface HomePlaceSection {
+        listId: string
+        list: RankList
+        entries: LeaderboardEntry[]
+    }
+
+    export interface LeaderboardEntry {
+        rank: number
+        placeId: string
+        name: string
+        district?: string | null
+        imageUrl?: string | null
+        types?: string[] | null
+        averageRating: number
+        voteCount: number
+    }
+
+    export interface ListHomePlacesRequest {
+        city?: string
+        limit?: number
+    }
+
+    export interface ListHomePlacesResponse {
+        sections: HomePlaceSection[]
     }
 
     export interface ListPendingPlacesRequest {
@@ -11170,6 +11231,13 @@ export namespace workplaces {
         service?: number | null
         atmosphere?: number | null
         updatedAt: string
+    }
+
+    export interface RankList {
+        id: string
+        label: string
+        emoji: string
+        title?: string
     }
 
     export interface RatePlaceRequest {
@@ -11263,8 +11331,12 @@ export namespace workplaces {
             this.approvePlace = this.approvePlace.bind(this)
             this.cachePlacePhoto = this.cachePlacePhoto.bind(this)
             this.deletePlace = this.deletePlace.bind(this)
+            this.getLeaderboard = this.getLeaderboard.bind(this)
             this.getMyPlaceRating = this.getMyPlaceRating.bind(this)
             this.getPlace = this.getPlace.bind(this)
+            this.getPlaceStats = this.getPlaceStats.bind(this)
+            this.getRankLists = this.getRankLists.bind(this)
+            this.listHomePlaces = this.listHomePlaces.bind(this)
             this.listPendingPlaces = this.listPendingPlaces.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
             this.listPlacesByBusiness = this.listPlacesByBusiness.bind(this)
@@ -11300,6 +11372,20 @@ export namespace workplaces {
             return await resp.json() as DeletePlaceResponse
         }
 
+        public async getLeaderboard(params: GetLeaderboardRequest): Promise<GetLeaderboardResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:     params.city,
+                district: params.district,
+                limit:    params.limit === undefined ? undefined : String(params.limit),
+                listId:   params.listId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/leaderboard`, undefined, {query})
+            return await resp.json() as GetLeaderboardResponse
+        }
+
         public async getMyPlaceRating(placeId: string, params: GetMyPlaceRatingRequest): Promise<GetMyPlaceRatingResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
@@ -11320,6 +11406,39 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/place/${encodeURIComponent(id)}`, undefined, {query})
             return await resp.json() as GetPlaceResponse
+        }
+
+        public async getPlaceStats(placeId: string, params: GetPlaceStatsRequest): Promise<GetPlaceStatsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:   params.city,
+                listId: params.listId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/place/${encodeURIComponent(placeId)}/stats`, undefined, {query})
+            return await resp.json() as GetPlaceStatsResponse
+        }
+
+        public async getRankLists(): Promise<GetRankListsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/rank-lists`)
+            return await resp.json() as GetRankListsResponse
+        }
+
+        /**
+         * All home sections in a single request
+         */
+        public async listHomePlaces(params: ListHomePlacesRequest): Promise<ListHomePlacesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:  params.city,
+                limit: params.limit === undefined ? undefined : String(params.limit),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/home`, undefined, {query})
+            return await resp.json() as ListHomePlacesResponse
         }
 
         public async listPendingPlaces(userId: string, params: ListPendingPlacesRequest): Promise<ListPendingPlacesResponse> {

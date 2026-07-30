@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Trophy } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
-import { places_ranked } from "@/lib/client";
+import { workplaces } from "@/lib/client";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { DEFAULT_VENUE_CITY } from "../lib/venue-types";
 import { RankedPlaceThumb } from "./venue/VenueRankedSection";
@@ -12,11 +13,12 @@ import { RankedPlaceThumb } from "./venue/VenueRankedSection";
 export default function RankedLeaderboard() {
   const t = useTranslations("workplaces");
   const client = useMemo(() => createBrowserClient(), []);
+  const searchParams = useSearchParams();
+  const listIdFromUrl = searchParams.get("listId");
 
-  const [lists, setLists] = useState<places_ranked.RankList[]>([]);
-  const [selectedListId, setSelectedListId] = useState("cafe");
-  const [entries, setEntries] = useState<places_ranked.LeaderboardEntry[]>([]);
-  const [windowDays, setWindowDays] = useState(90);
+  const [lists, setLists] = useState<workplaces.RankList[]>([]);
+  const [selectedListId, setSelectedListId] = useState(listIdFromUrl ?? "kahve");
+  const [entries, setEntries] = useState<workplaces.LeaderboardEntry[]>([]);
   const [loadingLists, setLoadingLists] = useState(true);
   const [loadingBoard, setLoadingBoard] = useState(true);
 
@@ -26,23 +28,28 @@ export default function RankedLeaderboard() {
   );
 
   useEffect(() => {
-    client.places_ranked
-      .getLists()
+    if (listIdFromUrl) {
+      setSelectedListId(listIdFromUrl);
+    }
+  }, [listIdFromUrl]);
+
+  useEffect(() => {
+    client.workplaces
+      .getRankLists()
       .then((res) => setLists(res.lists ?? []))
-      .catch((err) => console.error("getLists error:", err))
+      .catch((err) => console.error("getRankLists error:", err))
       .finally(() => setLoadingLists(false));
   }, [client]);
 
   const loadLeaderboard = useCallback(async () => {
     setLoadingBoard(true);
     try {
-      const res = await client.places_ranked.getLeaderboard({
+      const res = await client.workplaces.getLeaderboard({
         listId: selectedListId,
         city: DEFAULT_VENUE_CITY,
         limit: 50,
       });
       setEntries(res.entries ?? []);
-      setWindowDays(res.windowDays ?? 90);
     } catch (err) {
       console.error("getLeaderboard error:", err);
       setEntries([]);
@@ -124,10 +131,10 @@ export default function RankedLeaderboard() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-black text-app-text tabular-nums">
-                    {entry.averageRating.toFixed(1)}
+                    {entry.voteCount > 0 ? entry.averageRating.toFixed(1) : "—"}
                   </p>
                   <p className="text-[10px] text-app-muted">
-                    {t("ranked.votes", { count: entry.voteCount })}
+                    {entry.voteCount > 0 ? t("ranked.votes", { count: entry.voteCount }) : "Oy yok"}
                   </p>
                 </div>
               </Link>

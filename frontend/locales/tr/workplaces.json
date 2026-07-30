@@ -43,6 +43,7 @@
     "mall": "AVM",
     "museum": "Müze",
     "complex": "Yerleşke",
+    "shop": "Mağaza/Dükkan",
     "fallback": "Mekan"
   },
   "toast": {

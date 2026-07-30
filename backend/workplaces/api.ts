@@ -26,9 +26,215 @@ export const VENUE_PRIMARY_TYPES = [
   "mall",
   "museum",
   "complex",
+  "shop",
 ] as const;
 
 export type VenuePrimaryType = (typeof VENUE_PRIMARY_TYPES)[number];
+
+export interface RankList {
+  id: string;
+  label: string;
+  emoji: string;
+  title?: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  placeId: string;
+  name: string;
+  district?: string | null;
+  imageUrl?: string | null;
+  types?: string[] | null;
+  averageRating: number;
+  voteCount: number;
+}
+
+export interface RankListConfig {
+  id: string;
+  label: string;
+  emoji: string;
+  title?: string;
+  primaryTypes?: string[];
+  tagKeywords?: string[];
+}
+
+export const RANK_LISTS: RankListConfig[] = [
+  {
+    id: "kahve",
+    label: "Kahve",
+    emoji: "☕",
+    tagKeywords: ["kahve", "coffee", "roastery", "nitelikli kahve"],
+    title: "En iyi kahve nerede içilir?",
+  },
+  {
+    id: "hamburger",
+    label: "Hamburger",
+    emoji: "🍔",
+    tagKeywords: ["hamburger", "burger"],
+    title: "En iyi burger nerede yenir?",
+  },
+  {
+    id: "pizza",
+    label: "Pizza",
+    emoji: "🍕",
+    tagKeywords: ["pizza"],
+    title: "En iyi pizza nerede yenir?",
+  },
+  {
+    id: "maras_dondurmasi",
+    label: "Maraş Dondurması",
+    emoji: "🍦",
+    tagKeywords: ["maraş dondurması", "dondurma", "ice cream"],
+    title: "Gerçek Maraş dondurması nerede yenir?",
+  },
+  {
+    id: "okey",
+    label: "101 Okey",
+    emoji: "🀄",
+    tagKeywords: ["101 okey", "okey", "oyun"],
+    title: "Okey nerede oynanır?",
+  },
+  {
+    id: "firik_tarhana",
+    label: "Firik & Tarhana",
+    emoji: "🍲",
+    tagKeywords: ["firik", "tarhana"],
+    title: "Firik & Tarhana nerede yenir?",
+  },
+  {
+    id: "piknik",
+    label: "Piknik",
+    emoji: "🧺",
+    tagKeywords: ["piknik", "mesire"],
+    title: "Piknik için nereye gidilir?",
+  },
+  {
+    id: "study",
+    label: "Çalışma Mekanı",
+    emoji: "📚",
+    primaryTypes: ["study_spot", "library"],
+    tagKeywords: ["çalışma", "ders", "sessiz"],
+  },
+  {
+    id: "breakfast",
+    label: "Kahvaltı",
+    emoji: "🥐",
+    tagKeywords: ["kahvaltı", "breakfast", "brunch"],
+  },
+  {
+    id: "shop",
+    label: "Mağaza",
+    emoji: "🛍️",
+    primaryTypes: ["shop"],
+    title: "Alışveriş yapılacak yerler",
+  },
+];
+
+export function getRankList(listId: string): RankListConfig | undefined {
+  return RANK_LISTS.find((l) => l.id === listId);
+}
+
+const MIN_VOTES_FOR_RANKING = 0;
+const WEIGHTED_MIN_VOTES = 1;
+
+function computeWeightedScore(
+  averageRating: number,
+  voteCount: number,
+  globalMean: number,
+  minVotes: number,
+): number {
+  return (voteCount * averageRating + minVotes * globalMean) / (voteCount + minVotes);
+}
+
+function roundScore(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+function placeMatchesList(place: any, listId: string): boolean {
+  if (listId === "all") return true;
+  const list = getRankList(listId);
+  if (!list) return false;
+
+  const tags = (place.tags ?? []).map((t: string) => t.toLowerCase());
+  const name = (place.name ?? "").toLowerCase();
+  const venueTypes = place.types || [];
+
+  let matchesTag = false;
+  if (list.tagKeywords?.length) {
+    matchesTag = list.tagKeywords.some((kw) => {
+      const lowerKw = kw.toLowerCase();
+      return (
+        tags.some((t: string) => t.toLowerCase().includes(lowerKw) || lowerKw.includes(t.toLowerCase())) ||
+        name.includes(lowerKw)
+      );
+    });
+  }
+
+  let matchesType = false;
+  if (list.primaryTypes?.length) {
+    matchesType = list.primaryTypes.some((type) => venueTypes.includes(type));
+  }
+
+  if (list.tagKeywords?.length && list.primaryTypes?.length) {
+    return matchesTag || matchesType;
+  } else if (list.tagKeywords?.length) {
+    return matchesTag;
+  } else if (list.primaryTypes?.length) {
+    return matchesType;
+  }
+
+  return true;
+}
+
+export interface GetLeaderboardRequest {
+  listId?: string;
+  city?: string;
+  district?: string;
+  limit?: number;
+}
+
+export interface GetLeaderboardResponse {
+  listId: string;
+  entries: LeaderboardEntry[];
+}
+
+export interface GetRankListsResponse {
+  lists: RankList[];
+}
+
+export interface HomePlaceSection {
+  listId: string;
+  list: RankList;
+  entries: LeaderboardEntry[];
+}
+
+export interface ListHomePlacesRequest {
+  city?: string;
+  limit?: number;
+}
+
+export interface ListHomePlacesResponse {
+  sections: HomePlaceSection[];
+}
+
+export interface GetPlaceStatsRequest {
+  placeId: string;
+  listId?: string;
+  city?: string;
+}
+
+export interface GetPlaceStatsResponse {
+  stats: {
+    placeId: string;
+    averageRating: number;
+    voteCount: number;
+    weightedScore: number;
+    rankInList?: number | null;
+    listSize?: number | null;
+  } | null;
+  allTimeAverage?: number | null;
+  allTimeVotes?: number;
+}
 
 export interface Place {
   id: string;
@@ -929,5 +1135,169 @@ export const approvePlace = api(
     }
 
     return { place };
+  }
+);
+
+async function fetchLeaderboardEntries(
+  listConfig: RankListConfig,
+  city: string,
+  limit: number,
+  district?: string,
+): Promise<LeaderboardEntry[]> {
+  // RPC ranks by Google Maps rating with IMDB-style weighting (user_ratings_total)
+  const { data, error } = await supabase.schema("workplaces").rpc("get_leaderboard", {
+    p_city: city,
+    p_primary_types: listConfig.primaryTypes || [],
+    p_tag_keywords: listConfig.tagKeywords || [],
+    p_limit: limit,
+  });
+
+  if (error) {
+    throw APIError.internal(`Leaderboard loading failed: ${error.message}`);
+  }
+
+  let entries: LeaderboardEntry[] = (data || []).map((row: any, idx: number) => ({
+    rank: idx + 1,
+    placeId: row.place_id,
+    name: row.name,
+    district: row.district,
+    imageUrl: row.image_url,
+    types: row.types,
+    averageRating: Number(row.average_rating),
+    voteCount: row.vote_count,
+  }));
+
+  if (district) {
+    entries = entries
+      .filter((e: LeaderboardEntry) => e.district?.trim() === district)
+      .map((e: LeaderboardEntry, idx: number) => ({ ...e, rank: idx + 1 }));
+  }
+
+  return entries;
+}
+
+export const getRankLists = api(
+  { expose: true, method: "GET", path: "/workplaces/rank-lists" },
+  async (): Promise<GetRankListsResponse> => {
+    return {
+      lists: RANK_LISTS.map((l) => ({ id: l.id, label: l.label, emoji: l.emoji, title: l.title })),
+    };
+  }
+);
+
+/** All home sections in a single request */
+export const listHomePlaces = api(
+  { expose: true, method: "GET", path: "/workplaces/home" },
+  async ({
+    city = DEFAULT_VENUE_CITY,
+    limit = 10,
+  }: ListHomePlacesRequest): Promise<ListHomePlacesResponse> => {
+    const sections = await Promise.all(
+      RANK_LISTS.map(async (listConfig) => {
+        const entries = await fetchLeaderboardEntries(listConfig, city, limit);
+        return {
+          listId: listConfig.id,
+          list: {
+            id: listConfig.id,
+            label: listConfig.label,
+            emoji: listConfig.emoji,
+            title: listConfig.title,
+          },
+          entries,
+        };
+      }),
+    );
+
+    return { sections };
+  },
+);
+
+export const getLeaderboard = api(
+  { expose: true, method: "GET", path: "/workplaces/leaderboard" },
+  async ({
+    listId = "all",
+    city = DEFAULT_VENUE_CITY,
+    district,
+    limit = 30,
+  }: GetLeaderboardRequest): Promise<GetLeaderboardResponse> => {
+    const list = getRankList(listId);
+    if (!list) {
+      return { listId, entries: [] };
+    }
+
+    const entries = await fetchLeaderboardEntries(list, city, limit, district);
+    return { listId, entries };
+  }
+);
+
+export const getPlaceStats = api(
+  { expose: true, method: "GET", path: "/workplaces/place/:placeId/stats" },
+  async ({
+    placeId,
+    listId = "all",
+    city = DEFAULT_VENUE_CITY,
+  }: GetPlaceStatsRequest): Promise<GetPlaceStatsResponse> => {
+    const rpc = await supabase.schema("workplaces").rpc("get_place", { p_id: placeId });
+    if (rpc.error || !rpc.data?.length) {
+      return {
+        stats: null,
+        allTimeAverage: null,
+        allTimeVotes: 0,
+      };
+    }
+
+    const place = mapPlace(rpc.data[0]);
+    const averageRating = place.internal_rating ?? 0;
+    const voteCount = place.internal_review_count ?? 0;
+
+    if (voteCount === 0) {
+      return {
+        stats: null,
+        allTimeAverage: null,
+        allTimeVotes: 0,
+      };
+    }
+
+    const { data: cityRatings } = await supabase
+      .schema("workplaces")
+      .from("place_ratings")
+      .select("overall");
+
+    const globalScores = (cityRatings ?? []).map((r: any) => Number(r.overall));
+    const globalMean =
+      globalScores.length > 0
+        ? globalScores.reduce((a: number, b: number) => a + b, 0) / globalScores.length
+        : 7;
+
+    const weightedScore = computeWeightedScore(
+      averageRating,
+      voteCount,
+      globalMean,
+      WEIGHTED_MIN_VOTES,
+    );
+
+    let rankInList: number | null = null;
+    let listSize: number | null = null;
+    try {
+      const board = await getLeaderboard({ listId, city, limit: 200 });
+      listSize = board.entries.length;
+      const found = board.entries.find((e: LeaderboardEntry) => e.placeId === placeId);
+      rankInList = found?.rank ?? null;
+    } catch {
+      // rank optional
+    }
+
+    return {
+      stats: {
+        placeId,
+        averageRating: roundScore(averageRating),
+        voteCount,
+        weightedScore: roundScore(weightedScore),
+        rankInList,
+        listSize,
+      },
+      allTimeAverage: roundScore(averageRating),
+      allTimeVotes: voteCount,
+    };
   }
 );
