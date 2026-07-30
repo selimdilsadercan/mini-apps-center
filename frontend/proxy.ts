@@ -14,7 +14,7 @@ import {
  * These pages are public-facing — auth is handled client-side by Clerk.
  */
 const SUBDOMAIN_ROUTES: Record<string, string> = {
-  places: "/apps/places",
+  places: "/apps/workplaces",
   gaminghub: "/apps/gaming-hub",
   kalimba: "/apps/kalimba",
   cardgames: "/apps/iskambil",
@@ -51,6 +51,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   kampus: "/apps/campus-concerts",
   tasket: "/apps/tasket",
   workplaces: "/apps/workplaces",
+  ranked: "/apps/places-ranked",
   melt: "/apps/pomodoro",
   kimgelir: "/apps/kim-gelir",
   suggest: "/apps/suggest",

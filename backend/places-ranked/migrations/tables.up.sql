@@ -1,0 +1,2 @@
+-- Ratings live in workplaces.place_ratings (see workplaces/migrations/07_place_ratings.up.sql).
+-- places-ranked service only reads that data for leaderboards and stats.

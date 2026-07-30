@@ -200,13 +200,7 @@ function TodayPageContent() {
 
   const placesQuery = useQuery({
     queryKey: ["workplaces-all", userId],
-    queryFn: () => client.workplaces.listPlaces({ userId: userId || undefined }),
-    enabled: isLoaded,
-  });
-
-  const cafeRestaurantPlacesQuery = useQuery({
-    queryKey: ["places-all", userId],
-    queryFn: () => client.places.listPlaces({ userId: userId || undefined }),
+    queryFn: () => client.workplaces.listPlaces({ userId: userId || undefined, city: "kahramanmaras" }),
     enabled: isLoaded,
   });
 
@@ -263,7 +257,10 @@ function TodayPageContent() {
   const hasFollowedSeries = data?.hasFollowedSeries || false;
   const events = eventsQuery.data?.events || [];
   const places = placesQuery.data?.places || [];
-  const cafeRestaurantPlaces = cafeRestaurantPlacesQuery.data?.places || [];
+  const cafeRestaurantPlaces = places.filter((p) => {
+    const venueTypes = p.types || [];
+    return venueTypes.some(type => ["cafe", "restaurant", "dessert", "library"].includes(type));
+  });
   const upcomingConcerts = upcomingConcertsQuery.data?.concerts || [];
   const outdoorVenues = outdoorVenuesQuery.data?.venues || [];
 

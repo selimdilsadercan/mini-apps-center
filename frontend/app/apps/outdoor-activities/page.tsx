@@ -1,17 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useUser } from "@clerk/clerk-react";
 import {
   CaretLeft,
   Compass,
   Plus,
-  Tent,
-  Waves,
-  Snowflake,
-  Car,
-  Target,
-  Anchor,
   Star,
   MapPin,
   Globe,
@@ -23,26 +18,25 @@ import { createBrowserClient } from "@/lib/api";
 import { outdoor_activities } from "@/lib/client";
 import { Drawer } from "vaul";
 import { toast, Toaster } from "react-hot-toast";
+import { OUTDOOR_CATEGORIES } from "../workplaces/lib/outdoor-categories";
 
 const client = createBrowserClient();
 
 interface CategoryConfig {
   id: string;
   name: string;
-  icon: any;
+  icon: typeof Compass;
   color: string;
 }
 
 const CATEGORIES: CategoryConfig[] = [
   { id: "all", name: "Tümü", icon: Compass, color: "#0F766E" },
-  { id: "horse-riding", name: "At Binme", icon: Compass, color: "#8B5A2B" },
-  { id: "canoeing", name: "Kano Sürme", icon: Waves, color: "#00aeef" },
-  { id: "skiing", name: "Kayak Yapma", icon: Snowflake, color: "#3B82F6" },
-  { id: "camping", name: "Kamp Yapma", icon: Tent, color: "#10B981" },
-  { id: "lasertag", name: "Lasertag", icon: Target, color: "#EF4444" },
-  { id: "paintball", name: "Paintball", icon: Target, color: "#EF4444" },
-  { id: "diving", name: "Dalışçılık", icon: Anchor, color: "#845EF7" },
-  { id: "gokart", name: "Gokart", icon: Car, color: "#F59E0B" }
+  ...OUTDOOR_CATEGORIES.map((c) => ({
+    id: c.id,
+    name: c.name,
+    icon: c.icon,
+    color: c.color,
+  })),
 ];
 
 export default function OutdoorActivitiesPage() {
@@ -159,7 +153,7 @@ export default function OutdoorActivitiesPage() {
             <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
               <Compass size={18} weight="fill" className="text-[#0F766E] shrink-0" />
               <span className="truncate">
-                Dışarıda <span className="text-[#0F766E]">Ne Yapılır?</span>
+                Aktiviteler
               </span>
             </h1>
           </div>
@@ -244,9 +238,10 @@ export default function OutdoorActivitiesPage() {
 
                     <div className="space-y-4">
                       {catVenues.map((venue: any) => (
-                        <div
+                        <Link
                           key={venue.id}
-                          className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex flex-col md:flex-row gap-4 items-start relative group transition-all"
+                          href={`/apps/workplaces/place?outdoorId=${encodeURIComponent(venue.id)}`}
+                          className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex flex-col md:flex-row gap-4 items-start relative group transition-all hover:border-[#0F766E]/30 no-underline"
                         >
                           <div className="w-full md:w-28 h-28 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
                             {venue.imageUrl ? (
@@ -268,7 +263,7 @@ export default function OutdoorActivitiesPage() {
                               )}
                             </div>
 
-                            <h3 className="text-sm font-black text-app-text group-hover:text-[#0F766E] transition-colors">
+                            <h3 className="text-sm font-black text-app-text group-hover:text-[#0F766E] transition-colors leading-tight line-clamp-2">
                               {venue.name}
                             </h3>
 
@@ -284,18 +279,15 @@ export default function OutdoorActivitiesPage() {
                             )}
 
                             {venue.websiteUrl && (
-                              <a
-                                href={venue.websiteUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#0F766E] mt-3 hover:underline"
+                              <span
+                                className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#0F766E] mt-3"
                               >
                                 <Globe size={10} />
-                                <span>Burada Yap (Detay/Web)</span>
-                              </a>
+                                <span>Web sitesi mevcut</span>
+                              </span>
                             )}
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>

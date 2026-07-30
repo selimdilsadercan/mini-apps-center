@@ -36,6 +36,14 @@ interface GetVenuesResponse {
   venues: Venue[];
 }
 
+interface GetVenueRequest {
+  id: string;
+}
+
+interface GetVenueResponse {
+  venue: Venue | null;
+}
+
 interface AddVenueRequest {
   name: string;
   category: string;
@@ -78,22 +86,49 @@ export const getVenues = api(
       throw APIError.internal(`Failed to load venues: ${error.message}`);
     }
 
-    const formatted = (data || []).map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      category: row.category,
-      city: row.city,
-      district: row.district,
-      address: row.address,
-      notes: row.notes,
-      rating: row.rating ? Number(row.rating) : null,
-      websiteUrl: row.website_url,
-      imageUrl: row.image_url,
-      createdBy: row.created_by,
-      createdAt: row.created_at,
-    }));
+    const formatted = (data || []).map((row: Record<string, unknown>) => formatVenueRow(row));
 
     return { venues: formatted };
+  }
+);
+
+function formatVenueRow(row: Record<string, unknown>): Venue {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    category: row.category as string,
+    city: row.city as string,
+    district: row.district as string | null | undefined,
+    address: row.address as string | null | undefined,
+    notes: row.notes as string | null | undefined,
+    rating: row.rating != null ? Number(row.rating) : null,
+    websiteUrl: row.website_url as string | null | undefined,
+    imageUrl: row.image_url as string | null | undefined,
+    createdBy: row.created_by as string | null | undefined,
+    createdAt: row.created_at as string,
+  };
+}
+
+/**
+ * Retrieve a single outdoor venue
+ * GET /outdoor-activities/venues/:id
+ */
+export const getVenue = api(
+  { expose: true, method: "GET", path: "/outdoor-activities/venues/:id" },
+  async ({ id }: GetVenueRequest): Promise<GetVenueResponse> => {
+    const { data, error } = await supabase
+      .schema("outdoor_activities")
+      .from("venues")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("getVenue error:", error);
+      throw APIError.internal(`Failed to load venue: ${error.message}`);
+    }
+
+    return { venue: data ? formatVenueRow(data) : null };
   }
 );
 
@@ -154,22 +189,7 @@ export const addVenue = api(
       throw APIError.internal(`Failed to add venue: ${error.message}`);
     }
 
-    const formatted: Venue = {
-      id: data.id,
-      name: data.name,
-      category: data.category,
-      city: data.city,
-      district: data.district,
-      address: data.address,
-      notes: data.notes,
-      rating: data.rating ? Number(data.rating) : null,
-      websiteUrl: data.website_url,
-      imageUrl: data.image_url,
-      createdBy: data.created_by,
-      createdAt: data.created_at
-    };
-
-    return { venue: formatted };
+    return { venue: formatVenueRow(data) };
   }
 );
 

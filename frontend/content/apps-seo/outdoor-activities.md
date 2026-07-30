@@ -1,4 +1,4 @@
-# Dışarıda Ne Yapılır? SEO İçeriği
+# Aktiviteler SEO İçeriği
 
 ## Kısa Açıklama (Katalogda görünür)
 At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.
@@ -7,10 +7,10 @@ At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki 
 At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet. Everything super app ile ücretsiz ve tarayıcıda anında çalışır.
 
 ## Anahtar Kelimeler
-Dışarıda Ne Yapılır?, everything, mini uygulama, ücretsiz araç, Şehrini Keşfet, online tool
+Aktiviteler, everything, mini uygulama, ücretsiz araç, Şehrini Keşfet, online tool
 
 ## Sayfa İçeriği (SEO Yazısı)
-Everything super app içindeki Dışarıda Ne Yapılır? uygulaması ile at binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.
+Everything super app içindeki Aktiviteler uygulaması ile at binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.
 
 ### Özellikler
 - Tamamen ücretsiz

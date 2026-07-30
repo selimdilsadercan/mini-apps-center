@@ -1,7 +1,18 @@
 {
-  "title": "Workplaces",
-  "subtitle": "The best libraries and cafés for getting work done",
+  "title": "Venues",
+  "subtitle": "Cafés, restaurants and study spots in Kahramanmaraş",
   "suggestPlace": "Suggest a place",
+  "addPlace": "Add place",
+  "tabs": {
+    "explore": "Explore",
+    "map": "Map",
+    "ranked": "Rankings",
+    "forYou": "Saved"
+  },
+  "appBar": {
+    "label": "Places navigation",
+    "backToHub": "Back to catalog"
+  },
   "searchPlaceholder": "Search by name, tag, or notes...",
   "filters": {
     "wifi": "WiFi",
@@ -10,9 +21,29 @@
     "wantToGo": "Want to go",
     "visited": "Visited"
   },
+  "filterPanel": {
+    "toggle": "Filter",
+    "clear": "Clear filters"
+  },
   "district": {
     "label": "District",
     "all": "All"
+  },
+  "venueTypes": {
+    "cafe": "Café",
+    "restaurant": "Restaurant",
+    "dessert": "Dessert",
+    "library": "Library",
+    "study_spot": "Study spot",
+    "park": "Park",
+    "activity": "Activity",
+    "natural_beauty": "Natural Beauty",
+    "historical": "Historical Place",
+    "bar": "Bar",
+    "mall": "Mall",
+    "museum": "Museum",
+    "complex": "Complex",
+    "fallback": "Place"
   },
   "toast": {
     "signInRequired": "Sign in to save your lists.",
@@ -23,7 +54,7 @@
   "noResults": "No places found",
   "noResultsHint": "We couldn't find any places matching your filters.",
   "modal": {
-    "title": "Suggest a new place",
+    "title": "Add place",
     "subtitle": "Share a spot you think is great for focused work.",
     "name": "Place name",
     "notes": "Notes",
@@ -74,6 +105,34 @@
     "notes": "Notes",
     "tags": "Tags",
     "openMaps": "Open in Maps",
-    "suggestedBy": "Suggested by: {name}"
+    "suggestedBy": "Suggested by: {name}",
+    "menu": "Menu",
+    "events": "Events",
+    "activity": "Activity"
+  },
+  "ranked": {
+    "title": "Community score",
+    "subtitle": "Last {days} days · community votes",
+    "emptyTitle": "No rankings yet",
+    "emptyHint": "Places appear here once enough votes are collected.",
+    "viewLeaderboard": "Rankings",
+    "votes": "{count} votes (90 days)",
+    "notEnoughVotes": "Not enough recent votes to rank this place yet.",
+    "noVotesYet": "No community votes yet — be the first!",
+    "yourRating": "Your rating: {score}/10",
+    "ratePrompt": "Rate this place (1–10)",
+    "rateButton": "Rate Now",
+    "updateRateButton": "Update Rating",
+    "rateModalHint": "Rate your experience at this place from 1 to 10.",
+    "signIn": "Sign in to rate.",
+    "signInHint": "You need to sign in to rate.",
+    "saved": "Your rating was saved.",
+    "saveFailed": "Could not save your rating."
+  },
+  "relatedApps": {
+    "title": "Related apps",
+    "ranked": "Rankings",
+    "outdoor": "Activities",
+    "menu": "Menu"
   }
 }

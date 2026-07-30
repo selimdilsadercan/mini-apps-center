@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
-import { workplaces } from "@/lib/client";
+import { campus_events, outdoor_activities, workplaces } from "@/lib/client";
+import VenueOutdoorSection from "../components/venue/VenueOutdoorSection";
+import VenueQuickLinks from "../components/venue/VenueQuickLinks";
+import VenueRankedSection from "../components/venue/VenueRankedSection";
+import { getOutdoorCategory } from "../lib/outdoor-categories";
+import { getOutdoorCategoryId, hasWorkplaceDetails } from "../lib/venue-details";
 import {
   ArrowLeft,
   ArrowSquareOut,
@@ -16,7 +21,6 @@ import {
   MapPin,
   Plug,
   SpeakerLow,
-  Tag,
   WifiHigh,
   Globe,
   Clock,
@@ -27,11 +31,17 @@ import {
   Eye,
   X,
   Phone,
-  Compass,
+  DotsThreeVertical,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "@/contexts/LanguageContext";
+import {
+  DEFAULT_VENUE_CITY,
+  VENUE_PRIMARY_TYPES,
+} from "../lib/venue-types";
+import { resolvePlaceImageSrc } from "../lib/place-image";
+import { resolveMapsHref } from "../lib/maps-link";
 
 function quietLevelLabel(
   level: number,
@@ -50,15 +60,21 @@ function PlaceDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const placeId = searchParams.get("placeId");
+  const outdoorId = searchParams.get("outdoorId");
   const { user, isLoaded: isUserLoaded } = useUser();
 
   const [place, setPlace] = useState<workplaces.Place | null>(null);
+  const [outdoorVenue, setOutdoorVenue] = useState<outdoor_activities.Venue | null>(null);
+  const [venueEvents, setVenueEvents] = useState<campus_events.CampusEvent[]>([]);
+  const [hasMenu, setHasMenu] = useState(false);
+  const [businessName, setBusinessName] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [isHoursExpanded, setIsHoursExpanded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
 
   const [newPlace, setNewPlace] = useState({
     name: "",
@@ -76,7 +92,10 @@ function PlaceDetailContent() {
     view_status: "NO",
     coffee_price: "MODERATE",
     areas: [] as string[],
+    types: ["cafe"] as string[],
     google_place_id: "",
+    rating: "" as string | number,
+    user_ratings_total: "" as string | number,
   });
 
   useEffect(() => {
@@ -89,8 +108,10 @@ function PlaceDetailContent() {
       .catch((err) => console.error("Failed to check admin status:", err));
   }, [user?.id, client]);
 
-  const loadPlace = useCallback(async () => {
-    if (!placeId) {
+  const backHref = outdoorId ? "/apps/outdoor-activities" : "/apps/workplaces";
+
+  const loadVenue = useCallback(async () => {
+    if (!placeId && !outdoorId) {
       setLoading(false);
       setError(t("detail.noPlaceId"));
       return;
@@ -99,36 +120,71 @@ function PlaceDetailContent() {
     try {
       setLoading(true);
       setError(null);
+      setPlace(null);
+      setOutdoorVenue(null);
+      setVenueEvents([]);
+      setHasMenu(false);
+      setBusinessName(undefined);
+
+      if (outdoorId) {
+        const res = await client.outdoor_activities.getVenue(outdoorId);
+        if (res.venue) {
+          setOutdoorVenue(res.venue);
+        } else {
+          setError(t("detail.notFound"));
+        }
+        return;
+      }
 
       let found: workplaces.Place | undefined;
       try {
-        const res = await client.workplaces.getPlace(placeId, {
+        const res = await client.workplaces.getPlace(placeId!, {
           userId: user?.id,
         });
         found = res.place;
       } catch (getErr) {
         console.warn("getPlace failed, falling back to listPlaces:", getErr);
-        const res = await client.workplaces.listPlaces({ userId: user?.id });
+        const res = await client.workplaces.listPlaces({ userId: user?.id, city: DEFAULT_VENUE_CITY });
         found = res.places.find((p) => p.id === placeId);
       }
 
       if (found) {
         setPlace(found);
+
+        if (found.businessId) {
+          const [businessRes, menuRes, eventsRes] = await Promise.all([
+            client.digital_menu.getBusiness(found.businessId).catch(() => null),
+            client.digital_menu.getMenuData(found.businessId).catch(() => null),
+            client.campus_events.getEvents({ businessId: found.businessId }).catch(() => null),
+          ]);
+
+          if (businessRes?.business) {
+            setBusinessName(businessRes.business.name);
+          }
+          const menuItems = menuRes?.items?.length ?? 0;
+          const menuCategories = menuRes?.categories?.length ?? 0;
+          setHasMenu(menuItems > 0 || menuCategories > 0);
+          setVenueEvents(eventsRes?.events ?? []);
+        }
       } else {
         setError(t("detail.notFound"));
       }
     } catch (err) {
-      console.error("Failed to fetch place:", err);
+      console.error("Failed to fetch venue:", err);
       setError(t("detail.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [placeId, user?.id, client]);
+  }, [placeId, outdoorId, user?.id, client]);
 
   useEffect(() => {
     if (!isUserLoaded) return;
-    loadPlace();
-  }, [isUserLoaded, loadPlace]);
+    loadVenue();
+  }, [isUserLoaded, loadVenue]);
+
+  useEffect(() => {
+    setShowAdminMenu(false);
+  }, [placeId, outdoorId]);
 
   const handleToggleFavorite = async () => {
     if (!place) return;
@@ -199,7 +255,10 @@ function PlaceDetailContent() {
       view_status: place.metadata?.view_status || "NO",
       coffee_price: place.metadata?.coffee_price || "MODERATE",
       areas: Array.isArray(place.metadata?.areas) ? place.metadata.areas : [],
+      types: place.types || ["cafe"],
       google_place_id: place.metadata?.google_place_id || (place.url ? place.url.match(/place_id:([^&\?#]+)/)?.[1] : "") || "",
+      rating: place.rating ?? "",
+      user_ratings_total: place.user_ratings_total ?? "",
     });
     setShowEditModal(true);
   };
@@ -255,10 +314,11 @@ function PlaceDetailContent() {
           google_place_id: gId,
         },
         google_place_id: gId,
+        types: newPlace.types,
       });
       toast.success("Google Maps verileri başarıyla senkronize edildi!");
       setShowEditModal(false);
-      loadPlace();
+      loadVenue();
     } catch (err) {
       console.error(err);
       toast.error("Google Maps'ten veri çekilirken hata oluştu.");
@@ -288,6 +348,17 @@ function PlaceDetailContent() {
         google_place_id: newPlace.google_place_id || place.metadata?.google_place_id,
       };
 
+      const parseRating = (v: string | number | undefined) => {
+        if (v === "" || v === undefined || v === null) return undefined;
+        const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
+        return Number.isNaN(n) ? undefined : n;
+      };
+      const parseReviewCount = (v: string | number | undefined) => {
+        if (v === "" || v === undefined || v === null) return undefined;
+        const n = typeof v === "number" ? v : parseInt(String(v).replace(/[^\d]/g, ""), 10);
+        return Number.isNaN(n) ? undefined : n;
+      };
+
       await client.workplaces.updatePlace({
         id: place.id,
         userId: user.id,
@@ -301,10 +372,13 @@ function PlaceDetailContent() {
         tags: newPlace.tags.split(",").map((t) => t.trim()).filter(Boolean),
         metadata: metadata,
         google_place_id: newPlace.google_place_id || place.metadata?.google_place_id,
+        types: newPlace.types,
+        rating: parseRating(newPlace.rating),
+        user_ratings_total: parseReviewCount(newPlace.user_ratings_total),
       });
       toast.success("Mekan başarıyla güncellendi");
       setShowEditModal(false);
-      loadPlace();
+      loadVenue();
     } catch (err) {
       console.error("Failed to save place:", err);
       toast.error("İşlem başarısız oldu");
@@ -313,13 +387,7 @@ function PlaceDetailContent() {
     }
   };
 
-  const mapsHref =
-    place?.url ||
-    (place?.latitude != null && place?.longitude != null
-      ? `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`
-      : place?.address
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address)}`
-        : undefined);
+  const mapsHref = place ? resolveMapsHref(place) : undefined;
 
   const todayDay = new Date().getDay();
   const todayText = useMemo(() => {
@@ -392,171 +460,338 @@ function PlaceDetailContent() {
     return labels[place.quiet_level] || "Orta";
   }, [place]);
 
+  const isOutdoorOnly = !!outdoorVenue && !place;
+  const outdoorCategoryId = isOutdoorOnly
+    ? outdoorVenue?.category ?? null
+    : place
+      ? getOutdoorCategoryId(place)
+      : null;
+  const showWorkplaceDetails = !!place && hasWorkplaceDetails(place);
+  const venueName = place?.name ?? outdoorVenue?.name ?? "";
+  const venueDistrict = place?.district ?? outdoorVenue?.district ?? null;
+  const venueCity = place?.city ?? outdoorVenue?.city ?? null;
+  
+  const venueRating = place ? place.internal_rating : (outdoorVenue?.rating ?? null);
+  const venueRatingsTotal = place ? place.internal_review_count : null;
+
+  const venueAddress =
+    place?.address ??
+    outdoorVenue?.address ??
+    (outdoorVenue
+      ? [outdoorVenue.district, outdoorVenue.city].filter(Boolean).join(", ")
+      : null);
+  const outdoorCategory = outdoorCategoryId ? getOutdoorCategory(outdoorCategoryId) : undefined;
+
   return (
-    <div className="min-h-screen bg-neutral-50 pb-16">
-      <div className="max-w-5xl mx-auto px-4 pt-6">
+    <div className="space-y-3 pb-24 sm:pb-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
-            <p className="text-neutral-500 font-medium">{t("detail.loading")}</p>
+            <p className="text-app-muted font-medium">{t("detail.loading")}</p>
           </div>
-        ) : error || !place ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-neutral-300 px-6">
-            <Coffee size={40} className="text-neutral-300 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-neutral-900">
+        ) : error || (!place && !outdoorVenue) ? (
+          <div className="text-center py-12 bg-app-surface rounded-2xl border border-app-border px-6">
+            <Coffee size={40} className="text-app-muted mx-auto mb-4" />
+            <h2 className="text-sm font-bold text-app-text">
               {error ?? t("detail.notFound")}
             </h2>
             <Link
-              href="/apps/workplaces"
-              className="inline-flex items-center gap-2 mt-6 px-5 py-3 bg-amber-700 text-white font-medium rounded-xl hover:bg-amber-800 transition-colors"
+              href={backHref}
+              className="inline-flex items-center gap-2 mt-4 px-4 py-2.5 bg-[#D97706] text-white text-xs font-bold rounded-xl hover:opacity-90 transition-opacity"
             >
-              <ArrowLeft size={18} weight="bold" />
+              <ArrowLeft size={16} weight="bold" />
               {t("detail.backToList")}
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Top Section: Header & Image Gallery (Spans full width) */}
-            <article className="bg-white rounded-3xl border border-neutral-200 overflow-hidden shadow-sm p-6 sm:p-8 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {place.district && (
-                      <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-bold rounded-lg border border-amber-200">
-                        {place.district}
-                      </span>
-                    )}
-                    {place.rating != null && (
-                      <span className="px-2.5 py-1 bg-neutral-50 text-neutral-800 text-xs font-bold rounded-lg border border-neutral-200 flex items-center gap-1">
-                        <span className="text-amber-500">★</span>
-                        {place.rating}
-                        {place.user_ratings_total != null && (
-                          <span className="text-neutral-400 font-normal text-[10px]">
-                            ({place.user_ratings_total})
-                          </span>
-                        )}
-                      </span>
-                    )}
+          <div className="space-y-3">
+            {/* Hero image — mobile-first, edge-to-edge */}
+            {place && resolvePlaceImageSrc(place.image_url) ? (
+              <div className="-mx-4 relative aspect-[4/3] sm:aspect-[16/9] sm:mx-0 sm:rounded-2xl overflow-hidden bg-neutral-100 dark:bg-zinc-800 border-y sm:border border-app-border">
+                <img
+                  src={resolvePlaceImageSrc(place.image_url)}
+                  alt={venueName}
+                  className="w-full h-full object-cover"
+                />
+                <p className="absolute bottom-2 right-2 text-[9px] text-white/90 bg-black/40 px-2 py-0.5 rounded-full">
+                  © Google
+                </p>
+              </div>
+            ) : place?.metadata?.photos && place.metadata.photos.length > 0 ? (
+              <div className="-mx-4 sm:mx-0 flex overflow-x-auto gap-2 pb-1 px-4 sm:px-0 scrollbar-none snap-x snap-mandatory">
+                {place.metadata.photos.map((photoUrl: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-[4/3] w-[88vw] sm:w-[280px] shrink-0 rounded-2xl overflow-hidden bg-neutral-100 dark:bg-zinc-800 border border-app-border snap-start"
+                  >
+                    <img
+                      src={photoUrl}
+                      alt={`${venueName} - Görsel ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => router.push("/apps/workplaces")}
-                      className="p-2 -ml-2 rounded-xl text-neutral-600 hover:bg-neutral-100 transition-colors cursor-pointer shrink-0"
-                      aria-label="Geri Dön"
-                    >
-                      <ArrowLeft size={22} weight="bold" />
-                    </button>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                      {place.name}
-                    </h2>
-                  </div>
+                ))}
+              </div>
+            ) : outdoorVenue?.imageUrl ? (
+              <div className="-mx-4 relative aspect-[4/3] sm:aspect-[16/9] sm:mx-0 sm:rounded-2xl overflow-hidden bg-neutral-100 dark:bg-zinc-800 border-y sm:border border-app-border">
+                <img
+                  src={outdoorVenue.imageUrl}
+                  alt={venueName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : null}
 
-                  {place.address && (
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-neutral-500">
-                      <div className="flex items-start gap-2">
-                        <MapPin size={18} className="shrink-0 mt-0.5 text-amber-700" />
-                        <span>{place.address}</span>
-                      </div>
-                      {mapsHref && (
-                        <a
-                          href={mapsHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/60 font-bold rounded-lg transition-all text-[11px] no-underline"
-                        >
-                          <ArrowSquareOut size={13} weight="bold" />
-                          {t("detail.openMaps")}
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions inline inside the card */}
-                <div className="flex items-center gap-1.5 shrink-0 self-start md:self-center">
-                  {isAdmin && (
+            {/* Title & badges */}
+            <article className="relative bg-app-surface rounded-2xl border border-app-border p-4 space-y-3">
+              {place && isAdmin && (
+                <div className="absolute top-3 right-3 z-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminMenu((open) => !open)}
+                    className="p-1.5 rounded-lg text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    aria-label="Yönetim menüsü"
+                  >
+                    <DotsThreeVertical size={20} weight="bold" />
+                  </button>
+                  {showAdminMenu && (
                     <>
                       <button
                         type="button"
-                        onClick={handleEditClick}
-                        className="p-2.5 rounded-xl text-neutral-500 hover:bg-neutral-100 transition-colors cursor-pointer"
-                        title="Mekanı Düzenle"
-                      >
-                        <Pencil size={20} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDeletePlace}
-                        disabled={statusLoading}
-                        className="p-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                        title="Mekanı Sil"
-                      >
-                        <Trash size={20} />
-                      </button>
+                        className="fixed inset-0 z-10 cursor-default"
+                        aria-label="Menüyü kapat"
+                        onClick={() => setShowAdminMenu(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-1 z-20 min-w-[9.5rem] rounded-xl border border-app-border bg-app-surface shadow-lg py-1 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAdminMenu(false);
+                            handleEditClick();
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-xs font-bold text-app-text hover:bg-neutral-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        >
+                          <Pencil size={16} />
+                          Düzenle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAdminMenu(false);
+                            handleDeletePlace();
+                          }}
+                          disabled={statusLoading}
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          <Trash size={16} />
+                          Sil
+                        </button>
+                      </div>
                     </>
                   )}
+                </div>
+              )}
+
+              <div className={`flex flex-wrap items-center gap-1.5 ${place && isAdmin ? "pr-8" : ""}`}>
+                {venueDistrict && (
+                  <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 text-[10px] font-bold rounded-md border border-amber-200 dark:border-amber-800/60">
+                    {venueDistrict}
+                  </span>
+                )}
+                {!venueDistrict && venueCity && (
+                  <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 text-[10px] font-bold rounded-md border border-amber-200 dark:border-amber-800/60">
+                    {venueCity}
+                  </span>
+                )}
+                {outdoorCategory && (
+                  <span className="px-2 py-0.5 bg-[#0F766E]/10 text-[#0F766E] text-[10px] font-bold rounded-md border border-[#0F766E]/20">
+                    {outdoorCategory.name}
+                  </span>
+                )}
+                {venueRating != null && (
+                  <span className="px-2 py-0.5 bg-neutral-50 dark:bg-zinc-800 text-neutral-800 dark:text-zinc-200 text-[10px] font-bold rounded-md border border-neutral-200 dark:border-zinc-700 flex items-center gap-1">
+                    <span className="text-amber-500">★</span>
+                    {typeof venueRating === 'number' ? venueRating.toFixed(1) : venueRating}
+                    {venueRatingsTotal != null && venueRatingsTotal > 0 && (
+                      <span className="text-neutral-400 dark:text-zinc-500 font-normal">
+                        ({venueRatingsTotal})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
+
+              <h2 className="text-xl font-extrabold text-app-text tracking-tight leading-tight">
+                {venueName}
+              </h2>
+
+              {venueAddress && (
+                <div className="space-y-2">
+                  <p className="text-sm text-app-muted leading-snug">{venueAddress}</p>
+                  {mapsHref && (
+                    <a
+                      href={mapsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hidden sm:flex w-full items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-200/60 dark:border-amber-800/60 font-bold rounded-xl transition-all text-xs no-underline"
+                    >
+                      <ArrowSquareOut size={14} weight="bold" />
+                      {t("detail.openMaps")}
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {place && (
+                <div className="hidden sm:flex items-center gap-2 pt-1 border-t border-app-border">
                   <button
                     type="button"
                     onClick={handleToggleFavorite}
                     disabled={statusLoading}
-                    className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 ${
                       place.is_favorite
                         ? "bg-rose-500 text-white"
-                        : "text-neutral-500 hover:bg-rose-50 hover:text-rose-500"
-                    } disabled:opacity-50`}
-                    aria-label={place.is_favorite ? t("aria.removeWantToGo") : t("aria.addWantToGo")}
+                        : "border border-app-border text-app-muted hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                    }`}
                   >
-                    <Heart size={20} weight={place.is_favorite ? "fill" : "regular"} />
+                    <Heart size={16} weight={place.is_favorite ? "fill" : "regular"} />
+                    {place.is_favorite ? "Listede" : "Gitmek istiyorum"}
                   </button>
                   <button
                     type="button"
                     onClick={handleToggleVisited}
                     disabled={statusLoading}
-                    className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 ${
                       place.is_visited
                         ? "bg-emerald-600 text-white"
-                        : "text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600"
-                    } disabled:opacity-50`}
-                    aria-label={place.is_visited ? t("aria.removeVisited") : t("aria.addVisited")}
+                        : "border border-app-border text-app-muted hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                    }`}
                   >
-                    <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
+                    <CheckCircle size={16} weight={place.is_visited ? "fill" : "regular"} />
+                    {place.is_visited ? "Gittim" : "Gittim de"}
                   </button>
                 </div>
-              </div>
-
-              {/* Photo Gallery Grid - Scrollable horizontal row */}
-              {place.metadata?.photos && place.metadata.photos.length > 0 ? (
-                <div className="flex overflow-x-auto gap-3 pb-1 scrollbar-none snap-x snap-mandatory">
-                  {place.metadata.photos.map((photoUrl: string, idx: number) => (
-                    <div key={idx} className="relative aspect-video w-[70vw] sm:w-[280px] md:w-[320px] shrink-0 rounded-2xl overflow-hidden bg-neutral-100 group shadow-sm border border-neutral-200/50 snap-start">
-                      <img
-                        src={photoUrl}
-                        alt={`${place.name} - Görsel ${idx + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                place.image_url && (
-                  <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden bg-neutral-100 shadow-sm border border-neutral-200/50">
-                    <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
-                  </div>
-                )
               )}
             </article>
 
-            {/* Bottom Section: Split Columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Bottom Left: Notes, Tags & Amenities */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Amenities Card (7 items grid) */}
-                <article className="bg-white rounded-3xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-neutral-450">Özellikler & İmkanlar</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {place?.businessId && (
+              <VenueQuickLinks
+                businessId={place.businessId}
+                businessName={businessName}
+                events={venueEvents}
+                hasMenu={hasMenu}
+              />
+            )}
+
+            {place && (
+              <VenueRankedSection placeId={place.id} city={place.city} />
+            )}
+
+            {place && (
+              <div className="bg-app-surface border border-app-border rounded-2xl p-4 shadow-sm space-y-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted">
+                  İletişim & Çalışma Saatleri
+                </p>
+
+                {place.metadata?.phone && (
+                  <a
+                    href={`tel:${place.metadata.phone}`}
+                    className="flex items-center gap-3 text-sm text-app-muted font-medium no-underline"
+                  >
+                    <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 shrink-0">
+                      <Phone size={18} />
+                    </div>
+                    <span className="font-bold text-xs">{place.metadata.phone}</span>
+                  </a>
+                )}
+                {place.metadata?.website && (
+                  <a
+                    href={place.metadata.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-sm text-app-muted font-medium no-underline"
+                  >
+                    <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 shrink-0">
+                      <Globe size={18} />
+                    </div>
+                    <span className="font-bold text-xs truncate">{place.metadata.website}</span>
+                  </a>
+                )}
+                {place.metadata?.opening_hours && (
+                  <div className="border-t border-app-border pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsHoursExpanded(!isHoursExpanded)}
+                      className="flex items-center justify-between w-full hover:bg-neutral-50 dark:hover:bg-zinc-800/60 p-1.5 rounded-xl transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 text-xs text-app-muted min-w-0">
+                        <Clock size={18} className="text-amber-700 dark:text-amber-500 shrink-0" />
+                        {place.metadata.opening_hours.open_now !== undefined && (
+                          <span
+                            className={`font-extrabold shrink-0 ${place.metadata.opening_hours.open_now ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}
+                          >
+                            {place.metadata.opening_hours.open_now ? "Açık" : "Kapalı"}
+                          </span>
+                        )}
+                        {todayText && (
+                          <span className="text-[11px] text-app-muted font-bold truncate">
+                            • {todayText}
+                          </span>
+                        )}
+                      </div>
+                      <motion.span
+                        animate={{ rotate: isHoursExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-app-muted flex items-center shrink-0"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </motion.span>
+                    </button>
+
+                    {isHoursExpanded && place.metadata.opening_hours.weekday_text && (
+                      <motion.ul
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="pl-7 pt-1.5 space-y-1 text-xs text-app-muted font-bold border-l-2 border-amber-200 dark:border-amber-800 ml-2 mt-1"
+                      >
+                        {place.metadata.opening_hours.weekday_text.map((text: string, idx: number) => {
+                          const isToday = idx === (todayDay === 0 ? 6 : todayDay - 1);
+                          return (
+                            <li
+                              key={idx}
+                              className={`${isToday ? "text-amber-800 dark:text-amber-300 font-extrabold" : "text-app-muted"}`}
+                            >
+                              {formatTo24Hour(text)}
+                            </li>
+                          );
+                        })}
+                      </motion.ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {outdoorCategoryId && (
+              <VenueOutdoorSection
+                categoryId={outdoorCategoryId}
+                websiteUrl={
+                  isOutdoorOnly
+                    ? outdoorVenue?.websiteUrl
+                    : place?.metadata?.website || place?.url
+                }
+              />
+            )}
+
+            {showWorkplaceDetails && place && (
+              <article className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm space-y-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted">
+                  Özellikler & İmkanlar
+                </p>
+                <div className="grid grid-cols-2 gap-2">
                     <AmenityCard
                       label="WiFi"
                       statusText={wifiLabels[place.metadata?.wifi_status] || (place.wifi ? "Var" : "Yok")}
@@ -601,153 +836,54 @@ function PlaceDetailContent() {
                     />
                   </div>
                 </article>
-
-                {(place.note || place.tags.length > 0) && (
-                  <article className="bg-white rounded-3xl border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-sm">
-                    {place.note && (
-                      <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-100">
-                        <p className="text-xs font-bold text-neutral-455 uppercase tracking-wider mb-2">{t("detail.notes")}</p>
-                        <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                          {place.note}
-                        </p>
-                      </div>
-                    )}
-
-                    {place.tags.length > 0 && (
-                      <div>
-                        <p className="text-xs font-bold text-neutral-455 uppercase tracking-wider mb-3">{t("detail.tags")}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {place.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3 py-1.5 bg-neutral-50 border border-neutral-150 text-neutral-600 text-xs font-bold rounded-xl flex items-center gap-1.5"
-                            >
-                              <Tag size={13} className="text-neutral-400" />
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </article>
                 )}
-              </div>
 
-              {/* Bottom Right: Hours & Contact */}
-              <div className="space-y-6">
-
-                {/* Suggest App Promotion / Recommendation Banner */}
-                <Link
-                  href={`/apps/suggest?category=place&suggestPlaceName=${encodeURIComponent(place.name)}&suggestPlaceUrl=${encodeURIComponent(place.url || "")}&suggestPlaceImage=${encodeURIComponent(place.image_url || (place.metadata?.photos && place.metadata.photos[0]) || "")}&suggestPlaceAddress=${encodeURIComponent(place.address || "")}&suggestPlaceId=${encodeURIComponent(place.metadata?.google_place_id || "")}`}
-                  className="flex items-center justify-between p-4 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100/50 text-indigo-950 rounded-[1.4rem] transition-colors no-underline cursor-pointer group shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Suggest App Icon styled exactly like Discover Page */}
-                    <div 
-                      className="w-12 h-12 rounded-[1.05rem] flex items-center justify-center shadow-lg relative overflow-hidden shrink-0 transition-transform duration-300 group-hover:scale-105"
-                      style={{ 
-                        backgroundColor: "#6366f1",
-                        boxShadow: `0 6px 16px -4px rgba(99, 102, 241, 0.4)`
-                      }}
+            {place && (
+              <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-app-border bg-app-bg/95 backdrop-blur-md px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
+                <div className="flex gap-2 max-w-5xl mx-auto">
+                  {mapsHref && (
+                    <a
+                      href={mapsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center p-2.5 rounded-xl bg-app-surface border border-app-border text-app-muted transition-colors no-underline shrink-0"
+                      aria-label={t("detail.openMaps")}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
-                      <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent"></div>
-                      <div className="absolute inset-0 border border-white/20 rounded-[1.05rem]"></div>
-                      <Compass size={24} weight="fill" className="relative z-10 text-white" />
-                    </div>
-                    <div>
-                      <span className="text-[14px] font-black text-indigo-950 block leading-tight">Suggest</span>
-                      <span className="text-[11px] font-bold text-gray-500 block mt-0.5">Bu mekanı arkadaşlarına tavsiye et!</span>
-                    </div>
-                  </div>
-                  <div className="text-indigo-400 group-hover:text-indigo-650 transition-colors pl-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="bold" viewBox="0 0 256 256">
-                      <path d="M96,40V216a8,8,0,0,0,13.66,5.66l88-88a8,8,0,0,0,0-11.32l-88-88A8,8,0,0,0,96,40Z"></path>
-                    </svg>
-                  </div>
-                </Link>
-
-                {/* Hours / Contact Card */}
-                <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-neutral-450">İletişim & Çalışma Saatleri</p>
-
-                  {place.metadata?.phone && (
-                    <div className="flex items-center gap-3 text-sm text-neutral-600 font-medium">
-                      <div className="p-2 rounded-xl bg-amber-50 text-amber-700 shrink-0">
-                        <Phone size={18} />
-                      </div>
-                      <a href={`tel:${place.metadata.phone}`} className="hover:text-amber-800 transition-colors font-bold text-xs truncate">
-                        {place.metadata.phone}
-                      </a>
-                    </div>
+                      <MapPin size={20} />
+                    </a>
                   )}
-                  {place.metadata?.website && (
-                    <div className="flex items-center gap-3 text-sm text-neutral-600 font-medium">
-                      <div className="p-2 rounded-xl bg-amber-50 text-amber-700 shrink-0">
-                        <Globe size={18} />
-                      </div>
-                      <a href={place.metadata.website} target="_blank" rel="noopener noreferrer" className="hover:text-amber-800 transition-colors font-bold text-xs truncate">
-                        {place.metadata.website}
-                      </a>
-                    </div>
-                  )}
-                  {place.metadata?.opening_hours && (
-                    <div className="border-t border-neutral-100 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => setIsHoursExpanded(!isHoursExpanded)}
-                        className="flex items-center justify-between w-full hover:bg-neutral-50 p-1.5 rounded-xl transition-all cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5 text-xs text-neutral-600">
-                          <Clock size={18} className="text-amber-700 shrink-0" />
-                          {place.metadata.opening_hours.open_now !== undefined && (
-                            <span className={`font-extrabold ${place.metadata.opening_hours.open_now ? "text-emerald-700" : "text-rose-700"}`}>
-                              {place.metadata.opening_hours.open_now ? "Açık" : "Kapalı"}
-                            </span>
-                          )}
-                          {todayText && (
-                            <span className="text-[11px] text-neutral-400 font-bold hidden sm:inline">
-                              • {todayText}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <motion.span
-                            animate={{ rotate: isHoursExpanded ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-neutral-500 flex items-center"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </motion.span>
-                        </div>
-                      </button>
-
-                      {isHoursExpanded && place.metadata.opening_hours.weekday_text && (
-                        <motion.ul
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="pl-7 pt-1.5 space-y-1 text-xs text-neutral-500 font-bold border-l-2 border-amber-150 ml-2 mt-1"
-                        >
-                          {place.metadata.opening_hours.weekday_text.map((text: string, idx: number) => {
-                            const isToday = idx === (todayDay === 0 ? 6 : todayDay - 1);
-                            return (
-                              <li key={idx} className={`${isToday ? "text-amber-800 font-extrabold" : "text-neutral-500"}`}>
-                                {formatTo24Hour(text)}
-                              </li>
-                            );
-                          })}
-                        </motion.ul>
-                      )}
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleToggleFavorite}
+                    disabled={statusLoading}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 ${
+                      place.is_favorite
+                        ? "bg-rose-500 text-white"
+                        : "bg-app-surface border border-app-border text-app-muted"
+                    }`}
+                    aria-label={place.is_favorite ? t("aria.removeWantToGo") : t("aria.addWantToGo")}
+                  >
+                    <Heart size={16} weight={place.is_favorite ? "fill" : "regular"} />
+                    {place.is_favorite ? "Listede" : "Gitmek istiyorum"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleVisited}
+                    disabled={statusLoading}
+                    className={`flex items-center justify-center p-2.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50 ${
+                      place.is_visited
+                        ? "bg-emerald-600 text-white"
+                        : "bg-app-surface border border-app-border text-app-muted"
+                    }`}
+                    aria-label={place.is_visited ? t("aria.removeVisited") : t("aria.addVisited")}
+                  >
+                    <CheckCircle size={20} weight={place.is_visited ? "fill" : "regular"} />
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
-      </div>
 
       {/* Admin Edit Modal */}
       <AnimatePresence>
@@ -764,14 +900,14 @@ function PlaceDetailContent() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden z-10 max-h-[90vh] flex flex-col"
+              className="relative w-full max-w-lg bg-app-surface rounded-3xl shadow-2xl overflow-hidden z-10 max-h-[90vh] flex flex-col border border-app-border"
             >
-              <div className="px-6 py-4 border-b flex justify-between items-center shrink-0">
-                <h2 className="text-lg font-bold text-neutral-900">Mekanı Düzenle</h2>
+              <div className="px-6 py-4 border-b border-app-border flex justify-between items-center shrink-0">
+                <h2 className="text-lg font-bold text-app-text">Mekanı Düzenle</h2>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="p-1 rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 cursor-pointer"
+                  className="p-1 rounded-lg text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-800 hover:text-app-text cursor-pointer"
                 >
                   <X size={20} weight="bold" />
                 </button>
@@ -779,37 +915,37 @@ function PlaceDetailContent() {
 
               <form onSubmit={handleSaveEdit} className="p-6 space-y-4 overflow-y-auto flex-1 no-scrollbar">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Mekan Adı</label>
+                  <label className="block text-sm font-medium text-app-text mb-1">Mekan Adı</label>
                   <input
                     required
                     type="text"
                     value={newPlace.name}
                     onChange={(e) => setNewPlace({ ...newPlace, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                    className="w-full px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-app-text font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Notlar / Açıklama</label>
+                  <label className="block text-sm font-medium text-app-text mb-1">Notlar / Açıklama</label>
                   <textarea
                     value={newPlace.note}
                     onChange={(e) => setNewPlace({ ...newPlace, note: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all h-24 resize-none text-xs text-neutral-800 font-semibold"
+                    className="w-full px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all h-24 resize-none text-xs text-app-text font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Harita Linki (Google Maps)</label>
+                  <label className="block text-sm font-medium text-app-text mb-1">Harita Linki (Google Maps)</label>
                   <div className="flex gap-2">
                     <input
                       type="url"
                       value={newPlace.url}
                       onChange={(e) => setNewPlace({ ...newPlace, url: e.target.value })}
-                      className="flex-1 min-w-0 px-4 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                      className="flex-1 min-w-0 px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-app-text font-semibold"
                     />
                     {(newPlace.google_place_id || place?.metadata?.google_place_id || (newPlace.url ? newPlace.url.match(/place_id:([^&\?#]+)/)?.[1] : null)) && (
                       <button
                         type="button"
                         onClick={handleSyncFromMaps}
-                        className="px-3 bg-amber-50 hover:bg-amber-100 text-amber-850 font-bold border border-amber-200 rounded-xl transition-colors text-xs cursor-pointer whitespace-nowrap"
+                        className="px-3 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-200 font-bold border border-amber-200 dark:border-amber-800 rounded-xl transition-colors text-xs cursor-pointer whitespace-nowrap"
                         title="Google Maps üzerinden verileri çeker"
                       >
                         Maps'ten Güncelle
@@ -818,10 +954,70 @@ function PlaceDetailContent() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-app-text mb-1">Google Maps Puanı</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={5}
+                      step={0.1}
+                      value={newPlace.rating ?? ""}
+                      onChange={(e) => setNewPlace({ ...newPlace, rating: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-app-text font-semibold"
+                      placeholder="4.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-app-text mb-1">Yorum Sayısı</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={newPlace.user_ratings_total ?? ""}
+                      onChange={(e) => setNewPlace({ ...newPlace, user_ratings_total: e.target.value })}
+                      className="w-full px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-app-text font-semibold"
+                      placeholder="246"
+                    />
+                  </div>
+                </div>
+
                 {/* Badges selects */}
-                <div className="grid grid-cols-1 gap-4 py-2 border-y border-neutral-100 my-2">
+                <div className="grid grid-cols-1 gap-4 py-2 border-y border-app-border my-2">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">WiFi Durumu</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Mekan Türleri</label>
+                    <div className="flex flex-wrap gap-2">
+                      {VENUE_PRIMARY_TYPES.map((type) => {
+                        const isSelected = newPlace.types.includes(type.id);
+                        return (
+                          <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => {
+                              const current = [...newPlace.types];
+                              if (current.includes(type.id)) {
+                                if (current.length > 1) {
+                                  setNewPlace({ ...newPlace, types: current.filter(t => t !== type.id) });
+                                }
+                              } else {
+                                current.push(type.id);
+                                setNewPlace({ ...newPlace, types: current });
+                              }
+                            }}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
+                              }`}
+                          >
+                            {t(`venueTypes.${type.id}`)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">WiFi Durumu</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(wifiLabels).map(([key, label]) => {
                         const isSelected = newPlace.wifi_status === key;
@@ -831,8 +1027,8 @@ function PlaceDetailContent() {
                             type="button"
                             onClick={() => setNewPlace({ ...newPlace, wifi_status: key })}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -843,7 +1039,7 @@ function PlaceDetailContent() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Kahve Fiyatı</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Kahve Fiyatı</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(priceLabels).map(([key, label]) => {
                         const isSelected = newPlace.coffee_price === key;
@@ -853,8 +1049,8 @@ function PlaceDetailContent() {
                             type="button"
                             onClick={() => setNewPlace({ ...newPlace, coffee_price: key })}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -865,7 +1061,7 @@ function PlaceDetailContent() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Priz / Güç Çıkışı</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Priz / Güç Çıkışı</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(outletsLabels).map(([key, label]) => {
                         const isSelected = newPlace.outlets_status === key;
@@ -875,8 +1071,8 @@ function PlaceDetailContent() {
                             type="button"
                             onClick={() => setNewPlace({ ...newPlace, outlets_status: key })}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -887,7 +1083,7 @@ function PlaceDetailContent() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Manzara</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Manzara</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(viewLabels).map(([key, label]) => {
                         const isSelected = newPlace.view_status === key;
@@ -897,8 +1093,8 @@ function PlaceDetailContent() {
                             type="button"
                             onClick={() => setNewPlace({ ...newPlace, view_status: key })}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -909,7 +1105,7 @@ function PlaceDetailContent() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Otopark Seçenekleri</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Otopark Seçenekleri</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(parkingLabels).map(([key, label]) => {
                         if (key === "NO") return null;
@@ -930,8 +1126,8 @@ function PlaceDetailContent() {
                               setNewPlace({ ...newPlace, parking_status: current });
                             }}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -942,7 +1138,7 @@ function PlaceDetailContent() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Mevcut Alanlar</label>
+                    <label className="block text-xs font-bold text-app-muted uppercase tracking-wider mb-1.5">Mevcut Alanlar</label>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(areaLabels).map(([key, label]) => {
                         const isSelected = Array.isArray(newPlace.areas)
@@ -962,8 +1158,8 @@ function PlaceDetailContent() {
                               setNewPlace({ ...newPlace, areas: current });
                             }}
                             className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${isSelected
-                                ? "bg-amber-100 border-amber-300 text-amber-900"
-                                : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                                ? "bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                                : "bg-neutral-50 dark:bg-zinc-800 border-neutral-200 dark:border-zinc-700 text-app-muted hover:bg-neutral-100 dark:hover:bg-zinc-700"
                               }`}
                           >
                             {label}
@@ -975,20 +1171,20 @@ function PlaceDetailContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Etiketler (Virgülle ayırın)</label>
+                  <label className="block text-sm font-medium text-app-text mb-1">Etiketler (Virgülle ayırın)</label>
                   <input
                     type="text"
                     value={newPlace.tags}
                     onChange={(e) => setNewPlace({ ...newPlace, tags: e.target.value })}
-                    className="w-full px-4 py-2 bg-neutral-100 border border-neutral-200 focus:bg-white focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-neutral-800 font-semibold"
+                    className="w-full px-4 py-2 bg-neutral-100 dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 focus:bg-app-surface focus:border-amber-500 rounded-xl outline-none transition-all text-xs text-app-text font-semibold"
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t sticky bottom-0 bg-white">
+                <div className="flex gap-3 pt-4 border-t border-app-border sticky bottom-0 bg-app-surface">
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="flex-1 px-4 py-3 bg-neutral-100 text-neutral-700 font-medium rounded-xl hover:bg-neutral-200 transition-colors text-xs cursor-pointer"
+                    className="flex-1 px-4 py-3 bg-neutral-100 dark:bg-zinc-800 text-app-text font-medium rounded-xl hover:bg-neutral-200 dark:hover:bg-zinc-700 transition-colors text-xs cursor-pointer"
                   >
                     İptal
                   </button>
@@ -1069,16 +1265,16 @@ function AmenityCard({
   return (
     <div
       className={`rounded-2xl border px-4 py-3 flex items-center gap-3 transition-all ${active
-          ? "bg-amber-50/70 border-amber-200/80 text-amber-900 shadow-sm"
-          : "bg-neutral-50 border-neutral-100 text-neutral-450"
+          ? "bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-100 shadow-sm"
+          : "bg-neutral-50 dark:bg-zinc-800/50 border-neutral-100 dark:border-zinc-700 text-app-muted"
         }`}
     >
-      <div className={`p-2 rounded-xl shrink-0 ${active ? "bg-amber-100 text-amber-800" : "bg-neutral-150 text-neutral-400"}`}>
+      <div className={`p-2 rounded-xl shrink-0 ${active ? "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300" : "bg-neutral-100 dark:bg-zinc-700 text-neutral-400 dark:text-zinc-400"}`}>
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">{label}</p>
-        <p className={`text-xs font-bold truncate ${active ? "text-amber-950" : "text-neutral-500"}`} title={statusText}>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-app-muted">{label}</p>
+        <p className={`text-xs font-bold truncate ${active ? "text-amber-950 dark:text-amber-100" : "text-app-text/70"}`} title={statusText}>
           {statusText}
         </p>
       </div>
@@ -1090,9 +1286,9 @@ function PlaceDetailFallback() {
   const t = useTranslations("workplaces");
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4">
-      <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
-      <p className="text-neutral-500 font-medium">{t("detail.loading")}</p>
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
+      <p className="text-xs text-app-muted font-medium">{t("detail.loading")}</p>
     </div>
   );
 }

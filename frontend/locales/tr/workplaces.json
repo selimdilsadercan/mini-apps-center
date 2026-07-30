@@ -1,7 +1,18 @@
 {
-  "title": "Workplaces",
-  "subtitle": "Çalışmaya uygun en iyi kütüphane ve kafeler",
+  "title": "Mekanlar",
+  "subtitle": "Kahramanmaraş'taki kafeler, restoranlar ve çalışma mekanları",
   "suggestPlace": "Mekan Öner",
+  "addPlace": "Mekan Ekle",
+  "tabs": {
+    "explore": "Keşfet",
+    "map": "Harita",
+    "ranked": "Mekan Sıralaması",
+    "forYou": "Kaydedilenler"
+  },
+  "appBar": {
+    "label": "Mekanlar gezinmesi",
+    "backToHub": "Kataloğa dön"
+  },
   "searchPlaceholder": "Mekan adı, etiket veya notlarda ara...",
   "filters": {
     "wifi": "WiFi",
@@ -10,9 +21,29 @@
     "wantToGo": "Gitmek istiyorum",
     "visited": "Gittim"
   },
+  "filterPanel": {
+    "toggle": "Filtre",
+    "clear": "Filtreleri temizle"
+  },
   "district": {
     "label": "İlçe",
     "all": "Tümü"
+  },
+  "venueTypes": {
+    "cafe": "Kafe",
+    "restaurant": "Restoran",
+    "dessert": "Tatlıcı",
+    "library": "Kütüphane",
+    "study_spot": "Çalışma Alanı",
+    "park": "Park",
+    "activity": "Aktivite",
+    "natural_beauty": "Doğal Güzellik",
+    "historical": "Tarihi Yer",
+    "bar": "Bar",
+    "mall": "AVM",
+    "museum": "Müze",
+    "complex": "Yerleşke",
+    "fallback": "Mekan"
   },
   "toast": {
     "signInRequired": "İşaretlemek için giriş yapmalısın.",
@@ -23,7 +54,7 @@
   "noResults": "Mekan bulunamadı",
   "noResultsHint": "Arama kriterlerine uygun mekan bulamadık.",
   "modal": {
-    "title": "Yeni Mekan Öner",
+    "title": "Mekan Ekle",
     "subtitle": "Çalışmaya uygun olduğunu düşündüğün bir yeri paylaş.",
     "name": "Mekan Adı",
     "notes": "Notlar",
@@ -74,6 +105,34 @@
     "notes": "Notlar",
     "tags": "Etiketler",
     "openMaps": "Haritada aç",
-    "suggestedBy": "Öneren: {name}"
+    "suggestedBy": "Öneren: {name}",
+    "menu": "Menü",
+    "events": "Etkinlikler",
+    "activity": "Aktivite"
+  },
+  "ranked": {
+    "title": "Topluluk puanı",
+    "subtitle": "Son {days} gün · topluluk oyları",
+    "emptyTitle": "Henüz sıralama yok",
+    "emptyHint": "Bu listede yeterli oy toplanınca mekanlar burada görünür.",
+    "viewLeaderboard": "Sıralamalar",
+    "votes": "{count} oy",
+    "notEnoughVotes": "Sıralamaya girmek için yeterli oy yok.",
+    "noVotesYet": "Henüz topluluk oyu yok — ilk sen puanla!",
+    "yourRating": "Senin puanın: {score}/10",
+    "ratePrompt": "Bu mekana puan ver (1–10)",
+    "rateButton": "Puan Ver",
+    "updateRateButton": "Puanı Güncelle",
+    "rateModalHint": "Bu mekanı deneyimini 1 ile 10 arasında puanlayabilirsin.",
+    "signIn": "Puan vermek için giriş yap.",
+    "signInHint": "Puan vermek için giriş yapmalısın.",
+    "saved": "Puanın kaydedildi.",
+    "saveFailed": "Puan kaydedilemedi."
+  },
+  "relatedApps": {
+    "title": "İlgili uygulamalar",
+    "ranked": "Sıralama",
+    "outdoor": "Aktiviteler",
+    "menu": "Menü"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { resolvePlaceImageSrc } from "@/app/apps/workplaces/lib/place-image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarCheck,
@@ -521,8 +522,63 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const widgets = [
     {
+      key: "places-widget",
+      title: "Mekanlar",
+      icon: Coffee,
+      color: "#D97706",
+      loading: loading,
+      hasContent: true,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/workplaces"
+          icon={Coffee}
+          color="#D97706"
+          title="Mekanlar"
+          subtitle="Kahramanmaraş"
+          loading={loading}
+          emptyText="Yakınlarda mekan bulunamadı ☕"
+          hasContent={places.length > 0}
+          onHideToday={() => triggerHide("places-widget", "today")}
+          onHidePermanent={() => triggerHide("places-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("places-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("places-widget")}
+          onRestore={() => handleRestoreWidget("places-widget")}
+        >
+          {places.slice(0, 3).map((place: any) => (
+            <div
+              key={place.id}
+              onClick={() => router.push(`/apps/workplaces/place?placeId=${place.id}`)}
+              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                  {resolvePlaceImageSrc(place.image_url) ? (
+                    <img src={resolvePlaceImageSrc(place.image_url)} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Coffee size={16} className="text-app-muted" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
+                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
+                    {place.district || "Kahramanmaraş"} · {(place.types?.length > 0 ? place.types[0] : "") || place.tags?.slice(0, 2).join(", ") || "Mekan"} {place.internal_rating ? `· ★ ${place.internal_rating.toFixed(1)}` : ""}
+                  </p>
+                </div>
+              </div>
+              {place.business_id && (
+                <span className="text-[9px] font-black text-[#D97706] bg-[#D97706]/10 px-1.5 py-0.5 rounded-full border border-[#D97706]/20 uppercase tracking-tight shrink-0">
+                  MENÜ
+                </span>
+              )}
+            </div>
+          ))}
+        </HomeSummaryCard>
+      )
+    },
+    {
       key: "outdoor-activities-widget",
-      title: "Dışarıda Ne Yapılır?",
+      title: "Aktiviteler",
       icon: Compass,
       color: "#0F766E",
       loading: loading,
@@ -563,7 +619,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
             href="/apps/outdoor-activities"
             icon={Compass}
             color="#0F766E"
-            title="Dışarıda Ne Yapılır?"
+            title="Aktiviteler"
             subtitle="Aktif Doğa ve Spor Seçenekleri"
             loading={loading}
             emptyText="Aktivite mekanı bulunamadı 🏕️"
@@ -802,111 +858,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
               </div>
             );
           })}
-        </HomeSummaryCard>
-      )
-    },
-    {
-      key: "workplaces-widget",
-      title: "Çalışmaya Gidilecek Yerler",
-      icon: Coffee,
-      color: "#6F4E37",
-      loading: loading,
-      hasContent: places.length > 0,
-      hasCompletedOnly: false,
-      card: (
-        <HomeSummaryCard
-          href="/apps/workplaces"
-          icon={Coffee}
-          color="#6F4E37"
-          title="Çalışmaya Gidilecek Yerler"
-          subtitle="Workplaces"
-          loading={loading}
-          emptyText="Kaydedilmiş mekan bulunamadı ☕"
-          hasContent={places.length > 0}
-          onHideToday={() => triggerHide("workplaces-widget", "today")}
-          onHidePermanent={() => triggerHide("workplaces-widget", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("workplaces-widget")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("workplaces-widget")}
-          onRestore={() => handleRestoreWidget("workplaces-widget")}
-        >
-          {places.slice(0, 3).map((place: any) => (
-            <div
-              key={place.id}
-              onClick={() => router.push(`/apps/workplaces/place?slug=${place.id}`)}
-              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                  {place.image_url ? (
-                    <img src={place.image_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Coffee size={16} className="text-app-muted" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {place.district || "Popüler Mekan"} · {place.tags?.slice(0, 2).join(", ") || "Kafeler"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </HomeSummaryCard>
-      )
-    },
-    {
-      key: "places-widget",
-      title: "Nereye Gitsek?",
-      icon: Coffee,
-      color: "#D97706",
-      loading: loading,
-      hasContent: cafeRestaurantPlaces.length > 0,
-      hasCompletedOnly: false,
-      card: (
-        <HomeSummaryCard
-          href="/apps/places"
-          icon={Coffee}
-          color="#D97706"
-          title="Nereye Gitsek?"
-          subtitle="Places"
-          loading={loading}
-          emptyText="Yakınlarda mekan bulunamadı ☕"
-          hasContent={cafeRestaurantPlaces.length > 0}
-          onHideToday={() => triggerHide("places-widget", "today")}
-          onHidePermanent={() => triggerHide("places-widget", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("places-widget")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("places-widget")}
-          onRestore={() => handleRestoreWidget("places-widget")}
-        >
-          {cafeRestaurantPlaces.slice(0, 3).map((place: any) => (
-            <div
-              key={place.id}
-              onClick={() => router.push(`/apps/places?id=${place.id}`)}
-              className="px-4 py-3 border-t border-app-border flex items-center justify-between gap-3 cursor-pointer hover:bg-app-surface-muted/30 transition-all text-left"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-[48px] h-[36px] rounded-lg overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                  {place.image_url ? (
-                    <img src={place.image_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Coffee size={16} className="text-app-muted" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black text-app-text truncate">{place.name}</p>
-                  <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                    {place.district || "Popüler Mekan"} · {place.category} {place.rating ? `· ★ ${place.rating}` : ""}
-                  </p>
-                </div>
-              </div>
-              {place.business_id && (
-                <span className="text-[9px] font-black text-[#D97706] bg-[#D97706]/10 px-1.5 py-0.5 rounded-full border border-[#D97706]/20 uppercase tracking-tight shrink-0">
-                  MENÜ
-                </span>
-              )}
-            </div>
-          ))}
         </HomeSummaryCard>
       )
     },
@@ -2159,7 +2110,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "workplaces-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget";
+    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget";
     if (activeSubTab === "explore") {
       return isExploreWidget;
     } else {
@@ -2175,7 +2126,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "yazboz-widget" &&
       widget.key !== "cinema-widget" &&
       widget.key !== "events-widget" &&
-      widget.key !== "workplaces-widget" &&
       widget.key !== "places-widget" &&
       widget.key !== "upcoming-concerts-widget" &&
       widget.key !== "outdoor-activities-widget" &&
@@ -2189,7 +2139,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
     const moviesWidget = filteredWidgets.find((w) => w.key === "movies");
     const yazbozWidget = filteredWidgets.find((w) => w.key === "yazboz-widget");
     const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
-    const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
     const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
     const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
     const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
@@ -2199,8 +2148,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       Boolean(moviesWidget && moviesWidget.hasContent && !isWidgetHidden("movies")) ||
       Boolean(yazbozWidget && yazbozWidget.hasContent && !isWidgetHidden("yazboz-widget")) ||
       Boolean(eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget")) ||
-      Boolean(workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget")) ||
-      Boolean(placesWidget && placesWidget.hasContent && !isWidgetHidden("places-widget")) ||
+      Boolean(placesWidget && !isWidgetHidden("places-widget")) ||
       Boolean(upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget")) ||
       Boolean(outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget"))
     );
@@ -2215,7 +2163,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key === "movies" ||
       widget.key === "yazboz-widget" ||
       widget.key === "events-widget" ||
-      widget.key === "workplaces-widget" ||
       widget.key === "places-widget" ||
       widget.key === "upcoming-concerts-widget" ||
       widget.key === "outdoor-activities-widget" ||
@@ -2313,7 +2260,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const cinemaWidget = filteredWidgets.find((w) => w.key === "cinema-widget");
         const outdoorWidget = filteredWidgets.find((w) => w.key === "outdoor-activities-widget");
         const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
-        const workplacesWidget = filteredWidgets.find((w) => w.key === "workplaces-widget");
         const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
 
@@ -2324,11 +2270,10 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visibleCinema = cinemaWidget && cinemaWidget.hasContent && !isWidgetHidden("cinema-widget");
         const visibleOutdoor = outdoorWidget && outdoorWidget.hasContent && !isWidgetHidden("outdoor-activities-widget");
         const visibleEvents = eventsWidget && eventsWidget.hasContent && !isWidgetHidden("events-widget");
-        const visibleWorkplaces = workplacesWidget && workplacesWidget.hasContent && !isWidgetHidden("workplaces-widget");
-        const visiblePlaces = placesWidget && placesWidget.hasContent && !isWidgetHidden("places-widget");
+        const visiblePlaces = placesWidget && !isWidgetHidden("places-widget");
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && !isWidgetHidden("upcoming-concerts-widget");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visibleWorkplaces || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
+        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
 
         if (!hasAny) return null;
 
@@ -2337,25 +2282,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
             <HomeGroupHeader title={activeSubTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
             <div className={WIDGET_MASONRY}>
               <AnimatePresence initial={false}>
-                {visibleOutdoor && outdoorWidget && (
-                  <motion.div
-                    key="outdoor-activities-widget"
-                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 1.15,
-                      y: -30,
-                      filter: "blur(12px)",
-                      height: 0,
-                      transition: { duration: 0.45, ease: "easeOut" }
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className={WIDGET_MASONRY_ITEM}
-                  >
-                    {outdoorWidget.card}
-                  </motion.div>
-                )}
                 {visiblePlaces && placesWidget && (
                   <motion.div
                     key="places-widget"
@@ -2373,6 +2299,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className={WIDGET_MASONRY_ITEM}
                   >
                     {placesWidget.card}
+                  </motion.div>
+                )}
+                {visibleOutdoor && outdoorWidget && (
+                  <motion.div
+                    key="outdoor-activities-widget"
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={WIDGET_MASONRY_ITEM}
+                  >
+                    {outdoorWidget.card}
                   </motion.div>
                 )}
                 {visibleEvents && eventsWidget && (
@@ -2430,25 +2375,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className={WIDGET_MASONRY_ITEM}
                   >
                     {upcomingConcertsWidget.card}
-                  </motion.div>
-                )}
-                {visibleWorkplaces && workplacesWidget && (
-                  <motion.div
-                    key="workplaces-widget"
-                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 1.15,
-                      y: -30,
-                      filter: "blur(12px)",
-                      height: 0,
-                      transition: { duration: 0.45, ease: "easeOut" }
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className={WIDGET_MASONRY_ITEM}
-                  >
-                    {workplacesWidget.card}
                   </motion.div>
                 )}
                 {visibleMovies && moviesWidget && (

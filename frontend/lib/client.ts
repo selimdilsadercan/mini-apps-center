@@ -71,6 +71,7 @@ export default class Client {
     public readonly outdoor_activities: outdoor_activities.ServiceClient
     public readonly penalty_jar: penalty_jar.ServiceClient
     public readonly places: places.ServiceClient
+    public readonly places_ranked: places_ranked.ServiceClient
     public readonly pomodoro: pomodoro.ServiceClient
     public readonly read_tracker: read_tracker.ServiceClient
     public readonly recipe: recipe.ServiceClient
@@ -148,6 +149,7 @@ export default class Client {
         this.outdoor_activities = new outdoor_activities.ServiceClient(base)
         this.penalty_jar = new penalty_jar.ServiceClient(base)
         this.places = new places.ServiceClient(base)
+        this.places_ranked = new places_ranked.ServiceClient(base)
         this.pomodoro = new pomodoro.ServiceClient(base)
         this.read_tracker = new read_tracker.ServiceClient(base)
         this.recipe = new recipe.ServiceClient(base)
@@ -6557,6 +6559,10 @@ export namespace outdoor_activities {
         venue: Venue | null
     }
 
+    export interface GetVenueResponse {
+        venue: Venue | null
+    }
+
     export interface GetVenuesRequest {
         category?: string
         city?: string
@@ -6587,6 +6593,7 @@ export namespace outdoor_activities {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addVenue = this.addVenue.bind(this)
+            this.getVenue = this.getVenue.bind(this)
             this.getVenues = this.getVenues.bind(this)
             this.seedOutdoorVenues = this.seedOutdoorVenues.bind(this)
         }
@@ -6599,6 +6606,16 @@ export namespace outdoor_activities {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/outdoor-activities/venues/add`, JSON.stringify(params))
             return await resp.json() as AddVenueResponse
+        }
+
+        /**
+         * Retrieve a single outdoor venue
+         * GET /outdoor-activities/venues/:id
+         */
+        public async getVenue(id: string): Promise<GetVenueResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/outdoor-activities/venues/${encodeURIComponent(id)}`)
+            return await resp.json() as GetVenueResponse
         }
 
         /**
@@ -7000,6 +7017,109 @@ export namespace places {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/places/favorite`, JSON.stringify(params))
             return await resp.json() as ToggleFavoriteResponse
+        }
+    }
+}
+
+export namespace places_ranked {
+    export interface LeaderboardEntry {
+        rank: number
+        placeId: string
+        name: string
+        district?: string | null
+        imageUrl?: string | null
+        types?: string[] | null
+        averageRating: number
+        voteCount: number
+    }
+
+    export interface PlaceRatingStats {
+        placeId: string
+        averageRating: number
+        voteCount: number
+        weightedScore: number
+        rankInList?: number | null
+        listSize?: number | null
+    }
+
+    export interface RankList {
+        id: string
+        label: string
+        emoji: string
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getLeaderboard = this.getLeaderboard.bind(this)
+            this.getLists = this.getLists.bind(this)
+            this.getPlaceStats = this.getPlaceStats.bind(this)
+        }
+
+        public async getLeaderboard(params: {
+    listId?: string
+    city?: string
+    district?: string
+    windowDays?: number
+    limit?: number
+}): Promise<{
+    listId: string
+    windowDays: number
+    entries: LeaderboardEntry[]
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:       params.city,
+                district:   params.district,
+                limit:      params.limit === undefined ? undefined : String(params.limit),
+                listId:     params.listId,
+                windowDays: params.windowDays === undefined ? undefined : String(params.windowDays),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/places-ranked/leaderboard`, undefined, {query})
+            return await resp.json() as {
+    listId: string
+    windowDays: number
+    entries: LeaderboardEntry[]
+}
+        }
+
+        public async getLists(): Promise<{
+    lists: RankList[]
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/places-ranked/lists`)
+            return await resp.json() as {
+    lists: RankList[]
+}
+        }
+
+        public async getPlaceStats(placeId: string, params: {
+    listId?: string
+    city?: string
+    windowDays?: number
+}): Promise<{
+    stats: PlaceRatingStats | null
+    allTimeAverage?: number | null
+    allTimeVotes?: number
+}> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city:       params.city,
+                listId:     params.listId,
+                windowDays: params.windowDays === undefined ? undefined : String(params.windowDays),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/places-ranked/place/${encodeURIComponent(placeId)}/stats`, undefined, {query})
+            return await resp.json() as {
+    stats: PlaceRatingStats | null
+    allTimeAverage?: number | null
+    allTimeVotes?: number
+}
         }
     }
 }
@@ -10944,6 +11064,8 @@ export namespace workplaces {
         "user_ratings_total"?: number
         metadata?: any
         businessId?: string
+        city?: string
+        types?: string[]
     }
 
     export interface AddPlaceResponse {
@@ -10959,6 +11081,16 @@ export namespace workplaces {
         place: Place
     }
 
+    export interface CachePlacePhotoRequest {
+        placeId: string
+        userId: string
+        googlePlaceId?: string
+    }
+
+    export interface CachePlacePhotoResponse {
+        "image_url": string | null
+    }
+
     export interface DeletePlaceRequest {
         placeId: string
         userId: string
@@ -10966,6 +11098,14 @@ export namespace workplaces {
 
     export interface DeletePlaceResponse {
         success: boolean
+    }
+
+    export interface GetMyPlaceRatingRequest {
+        userId: string
+    }
+
+    export interface GetMyPlaceRatingResponse {
+        rating: PlaceUserRating | null
     }
 
     export interface GetPlaceRequest {
@@ -10976,12 +11116,17 @@ export namespace workplaces {
         place: Place
     }
 
+    export interface ListPendingPlacesRequest {
+        city?: string
+    }
+
     export interface ListPendingPlacesResponse {
         places: Place[]
     }
 
     export interface ListPlacesRequest {
         userId?: string
+        city?: string
     }
 
     export interface ListPlacesResponse {
@@ -11006,11 +11151,40 @@ export namespace workplaces {
         address?: string
         rating?: number
         "user_ratings_total"?: number
+        "internal_rating"?: number
+        "internal_review_count"?: number
         metadata?: any
         businessId?: string
+        city?: string
+        types: string[]
         "created_at": string
         "is_favorite"?: boolean
         "is_visited"?: boolean
+    }
+
+    export interface PlaceUserRating {
+        placeId: string
+        overall: number
+        taste?: number | null
+        valueScore?: number | null
+        service?: number | null
+        atmosphere?: number | null
+        updatedAt: string
+    }
+
+    export interface RatePlaceRequest {
+        placeId: string
+        userId: string
+        overall: number
+        taste?: number
+        valueScore?: number
+        service?: number
+        atmosphere?: number
+    }
+
+    export interface RatePlaceResponse {
+        success: boolean
+        rating: PlaceUserRating
     }
 
     export interface SearchPlaceRequest {
@@ -11073,6 +11247,7 @@ export namespace workplaces {
         metadata?: any
         "google_place_id"?: string
         businessId?: string
+        types?: string[]
     }
 
     export interface UpdatePlaceResponse {
@@ -11086,12 +11261,16 @@ export namespace workplaces {
             this.baseClient = baseClient
             this.addPlace = this.addPlace.bind(this)
             this.approvePlace = this.approvePlace.bind(this)
+            this.cachePlacePhoto = this.cachePlacePhoto.bind(this)
             this.deletePlace = this.deletePlace.bind(this)
+            this.getMyPlaceRating = this.getMyPlaceRating.bind(this)
             this.getPlace = this.getPlace.bind(this)
             this.listPendingPlaces = this.listPendingPlaces.bind(this)
             this.listPlaces = this.listPlaces.bind(this)
             this.listPlacesByBusiness = this.listPlacesByBusiness.bind(this)
+            this.ratePlace = this.ratePlace.bind(this)
             this.searchPlace = this.searchPlace.bind(this)
+            this.serveGooglePlacePhoto = this.serveGooglePlacePhoto.bind(this)
             this.toggleFavorite = this.toggleFavorite.bind(this)
             this.toggleVisited = this.toggleVisited.bind(this)
             this.updatePlace = this.updatePlace.bind(this)
@@ -11109,10 +11288,27 @@ export namespace workplaces {
             return await resp.json() as ApprovePlaceResponse
         }
 
+        public async cachePlacePhoto(params: CachePlacePhotoRequest): Promise<CachePlacePhotoResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/photo`, JSON.stringify(params))
+            return await resp.json() as CachePlacePhotoResponse
+        }
+
         public async deletePlace(params: DeletePlaceRequest): Promise<DeletePlaceResponse> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/delete`, JSON.stringify(params))
             return await resp.json() as DeletePlaceResponse
+        }
+
+        public async getMyPlaceRating(placeId: string, params: GetMyPlaceRatingRequest): Promise<GetMyPlaceRatingResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/place/${encodeURIComponent(placeId)}/my-rating`, undefined, {query})
+            return await resp.json() as GetMyPlaceRatingResponse
         }
 
         public async getPlace(id: string, params: GetPlaceRequest): Promise<GetPlaceResponse> {
@@ -11126,9 +11322,14 @@ export namespace workplaces {
             return await resp.json() as GetPlaceResponse
         }
 
-        public async listPendingPlaces(userId: string): Promise<ListPendingPlacesResponse> {
+        public async listPendingPlaces(userId: string, params: ListPendingPlacesRequest): Promise<ListPendingPlacesResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                city: params.city,
+            })
+
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/pending/${encodeURIComponent(userId)}`)
+            const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/pending/${encodeURIComponent(userId)}`, undefined, {query})
             return await resp.json() as ListPendingPlacesResponse
         }
 
@@ -11138,6 +11339,7 @@ export namespace workplaces {
         public async listPlaces(params: ListPlacesRequest): Promise<ListPlacesResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
+                city:   params.city,
                 userId: params.userId,
             })
 
@@ -11152,6 +11354,12 @@ export namespace workplaces {
             return await resp.json() as ListPlacesResponse
         }
 
+        public async ratePlace(params: RatePlaceRequest): Promise<RatePlaceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workplaces/rate`, JSON.stringify(params))
+            return await resp.json() as RatePlaceResponse
+        }
+
         public async searchPlace(params: SearchPlaceRequest): Promise<SearchPlaceResponse> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
@@ -11161,6 +11369,14 @@ export namespace workplaces {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/workplaces/search`, undefined, {query})
             return await resp.json() as SearchPlaceResponse
+        }
+
+        /**
+         * Proxy endpoint for Google Place photos.
+         * Does NOT re-host images — streams from Google per request (with short in-memory cache).
+         */
+        public async serveGooglePlacePhoto(method: "GET", googlePlaceId: string, body?: RequestInit["body"], options?: CallParameters): Promise<globalThis.Response> {
+            return this.baseClient.callAPI(method, `/workplaces/google-photo/${encodeURIComponent(googlePlaceId)}`, body, options)
         }
 
         public async toggleFavorite(params: ToggleFavoriteRequest): Promise<ToggleFavoriteResponse> {

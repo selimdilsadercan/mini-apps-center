@@ -3,11 +3,11 @@ import DirectoryAppShell from "@/components/landing/directory/DirectoryAppShell"
 import OutdoorActivitiesDirectoryPage from "@/components/landing/directory/apps/outdoor-activities";
 
 export const metadata: Metadata = {
-  title: "Dışarıda Ne Yapılır? | Everything",
+  title: "Aktiviteler | Everything",
   description: "At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.",
   alternates: { canonical: "https://allminiapps.com/directory/outdoor-activities" },
   openGraph: {
-    title: "Dışarıda Ne Yapılır? | Everything",
+    title: "Aktiviteler | Everything",
     description: "At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.",
     url: "https://allminiapps.com/directory/outdoor-activities",
     siteName: "Everything",

@@ -279,7 +279,7 @@
       "description": "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et, durumlarını takip et!"
     },
     "outdoor-activities": {
-      "name": "Dışarıda Ne Yapılır?",
+      "name": "Aktiviteler",
       "description": "At binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet."
     },
     "neyapsam": {
@@ -291,8 +291,12 @@
       "description": "Seçtiğin şehirde bir günde ne yapılır? En iyi rotalar ve tavsiyeler."
     },
     "workplaces": {
-      "name": "Workplaces",
-      "description": "Çalışmaya uygun kütüphane ve kafeleri keşfet, yenilerini öner."
+      "name": "Mekanlar",
+      "description": "Kahramanmaraş'taki kafeler, restoranlar ve çalışma mekanlarını keşfet."
+    },
+    "places-ranked": {
+      "name": "Mekan Sıralaması",
+      "description": "Mekanları topluluk oylarıyla konseptlere göre sırala."
     },
     "places": {
       "name": "Places",

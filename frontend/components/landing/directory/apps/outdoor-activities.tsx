@@ -4,7 +4,7 @@ import React from "react";
 import { DirectoryAppIcon } from "@/components/landing/directory/DirectoryAppIcon";
 
 /**
- * Dışarıda Ne Yapılır? — tanıtım sayfası.
+ * Aktiviteler — tanıtım sayfası.
  * Bu dosyayı özgürce düzenleyin; her uygulamanın tasarımı ayrıdır.
  */
 export default function OutdoorActivitiesDirectoryPage() {
@@ -18,7 +18,7 @@ export default function OutdoorActivitiesDirectoryPage() {
               Şehrini Keşfet
             </p>
             <h1 className="text-4xl md:text-5xl font-[1000] tracking-tight text-white">
-              Dışarıda Ne Yapılır?
+              Aktiviteler
             </h1>
           </div>
         </div>
@@ -28,7 +28,7 @@ export default function OutdoorActivitiesDirectoryPage() {
       </section>
 
       <div className="prose prose-invert max-w-none">
-        <p className="text-zinc-400 leading-relaxed mb-4">Everything super app içindeki Dışarıda Ne Yapılır? uygulaması ile at binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.</p>
+        <p className="text-zinc-400 leading-relaxed mb-4">Everything super app içindeki Aktiviteler uygulaması ile at binme, kano, paintball, gokart gibi açık hava aktivitelerini ve şehirdeki mekanları keşfet.</p>
 
 <h3 className="text-xl font-bold text-white mt-8 mb-4">Özellikler</h3>
 <li className="text-zinc-400 ml-4 mb-2">Tamamen ücretsiz</li>

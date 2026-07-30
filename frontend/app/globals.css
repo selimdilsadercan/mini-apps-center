@@ -178,4 +178,36 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .workplaces-map .leaflet-control-attribution {
+    margin-bottom: 4.25rem;
+    font-size: 9px;
+    opacity: 0.85;
+  }
+
+  .custom-venue-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /*
+   * Google Maps Night Mode Effect
+   * We take a colorful light map (Voyager) and:
+   * 1. Invert colors (White becomes Black, but Green becomes Purple)
+   * 2. Rotate Hue 180deg (Purple becomes Green again, Blue stays Blue)
+   * 3. Adjust brightness/contrast for that premium feel
+   */
+  .leaflet-map-google-dark .leaflet-container {
+    background: #17263c; /* Official Google Maps Night background */
+  }
+  .leaflet-map-google-dark .leaflet-tile-pane {
+    filter: invert(100%) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+  }
+  .leaflet-map-google-dark .leaflet-control-attribution {
+    background: rgba(23, 38, 60, 0.8) !important;
+    color: #9ca5b3 !important;
+  }
+  .leaflet-map-google-dark .leaflet-control-attribution a {
+    color: #8ab4f8 !important;
+  }
 }

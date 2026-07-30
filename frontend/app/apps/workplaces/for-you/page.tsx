@@ -4,11 +4,11 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { createBrowserClient } from "@/lib/api";
 import { workplaces } from "@/lib/client";
-import { Heart, CheckCircle, MagnifyingGlass } from "@phosphor-icons/react";
+import { Heart, CheckCircle } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "@/contexts/LanguageContext";
 import { PlaceCard } from "../components/PlaceCard";
+import { DEFAULT_VENUE_CITY } from "../lib/venue-types";
 
 export default function ForYouPage() {
   const t = useTranslations("workplaces");
@@ -23,6 +23,7 @@ export default function ForYouPage() {
       setLoading(true);
       const res = await client.workplaces.listPlaces({
         userId: user?.id,
+        city: DEFAULT_VENUE_CITY,
       });
       setPlaces(res.places ?? []);
     } catch (err) {
@@ -91,95 +92,78 @@ export default function ForYouPage() {
   }, [places, activeTab]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-28">
-      {/* Header Info */}
-      <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <h1 className="text-xl md:text-2xl font-bold text-neutral-900 flex items-center gap-2">
-            <Heart className="text-rose-500 animate-pulse" weight="fill" />
-            For You
-          </h1>
-          <p className="text-neutral-500 text-xs mt-0.5">
-            Gitmek istediğin ve gittiğin favori mekanlarının listesi
+    <div className="space-y-4">
+      <p className="text-xs text-app-muted">
+        Gitmek istediğin ve gittiğin favori mekanların listesi
+      </p>
+
+      <div className="inline-flex items-center gap-0.5 p-0.5 rounded-xl border border-app-border bg-app-tab-track">
+        <button
+          type="button"
+          onClick={() => setActiveTab("wantToGo")}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
+            activeTab === "wantToGo"
+              ? "bg-app-tab-active text-app-text shadow-sm"
+              : "text-app-muted"
+          }`}
+        >
+          <Heart size={14} weight={activeTab === "wantToGo" ? "fill" : "bold"} />
+          <span>{t("filters.wantToGo") || "Gitmek İstiyorum"}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10">
+            {places.filter((p) => p.is_favorite).length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("visited")}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
+            activeTab === "visited"
+              ? "bg-app-tab-active text-app-text shadow-sm"
+              : "text-app-muted"
+          }`}
+        >
+          <CheckCircle size={14} weight={activeTab === "visited" ? "fill" : "bold"} />
+          <span>{t("filters.visited") || "Gittim"}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10">
+            {places.filter((p) => p.is_visited).length}
+          </span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
+          <p className="text-xs text-app-muted font-medium">{t("loading")}</p>
+        </div>
+      ) : filteredPlaces.length > 0 ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden divide-y divide-gray-100/80 dark:divide-zinc-800/80">
+          {filteredPlaces.map((place) => (
+            <PlaceCard
+              key={place.id}
+              place={place}
+              onToggleFavorite={handleToggleFavorite}
+              onToggleVisited={handleToggleVisited}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-app-surface rounded-2xl border border-app-border">
+          {activeTab === "wantToGo" ? (
+            <Heart size={32} className="mx-auto text-rose-400 mb-2" />
+          ) : (
+            <CheckCircle size={32} className="mx-auto text-emerald-400 mb-2" />
+          )}
+          <h3 className="text-sm font-bold text-app-text">
+            {activeTab === "wantToGo" ? "Henüz ekleme yapmadın" : "Henüz mekan ziyaret etmedin"}
+          </h3>
+          <p className="text-xs text-app-muted mt-1 max-w-sm mx-auto">
+            {activeTab === "wantToGo"
+              ? "Gitmek istediğin mekanların kalp simgesine basarak bu listeye ekleyebilirsin."
+              : "Ziyaret ettiğin mekanları işaretleyerek burada listeleyebilirsin."}
           </p>
         </div>
-      </div>
-
-      {/* Tabs Menu */}
-      <div className="bg-white border-b sticky top-0 z-10 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex gap-2">
-          <button
-            onClick={() => setActiveTab("wantToGo")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              activeTab === "wantToGo"
-                ? "bg-rose-500 text-white border-rose-500 shadow-sm"
-                : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-            }`}
-          >
-            <Heart size={16} weight={activeTab === "wantToGo" ? "fill" : "regular"} />
-            <span>{t("filters.wantToGo") || "Gitmek İstiyorum"}</span>
-            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "wantToGo" ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"}`}>
-              {places.filter(p => p.is_favorite).length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("visited")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              activeTab === "visited"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-            }`}
-          >
-            <CheckCircle size={16} weight={activeTab === "visited" ? "fill" : "regular"} />
-            <span>{t("filters.visited") || "Gittim"}</span>
-            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "visited" ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"}`}>
-              {places.filter(p => p.is_visited).length}
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Grid Content */}
-      <div className="max-w-7xl mx-auto px-4 mt-6">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-700 rounded-full animate-spin" />
-            <p className="text-neutral-500 font-medium">{t("loading")}</p>
-          </div>
-        ) : filteredPlaces.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <AnimatePresence mode="popLayout">
-              {filteredPlaces.map((place) => (
-                <PlaceCard
-                  key={place.id}
-                  place={place}
-                  onToggleFavorite={handleToggleFavorite}
-                  onToggleVisited={handleToggleVisited}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-neutral-300">
-            <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              {activeTab === "wantToGo" ? (
-                <Heart size={32} className="text-rose-400" />
-              ) : (
-                <CheckCircle size={32} className="text-emerald-400" />
-              )}
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900">
-              {activeTab === "wantToGo" ? "Henüz ekleme yapmadın" : "Henüz mekan ziyaret etmedin"}
-            </h3>
-            <p className="text-neutral-500 text-sm mt-2 max-w-sm mx-auto">
-              {activeTab === "wantToGo" 
-                ? "Gitmek istediğin mekanların kalp simgesine basarak bu listeye ekleyebilirsin."
-                : "Ziyaret ettiğin mekanları işaretleyerek burada listeleyebilirsin."}
-            </p>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 -- 1. Get Places
 DROP FUNCTION IF EXISTS workplaces.get_places();
-CREATE OR REPLACE FUNCTION workplaces.get_places()
+DROP FUNCTION IF EXISTS workplaces.get_places(TEXT);
+CREATE OR REPLACE FUNCTION workplaces.get_places(p_city TEXT DEFAULT 'kahramanmaras')
 RETURNS TABLE (
     id UUID,
     name TEXT,
@@ -21,9 +22,13 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
     business_id TEXT,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -32,9 +37,19 @@ BEGIN
     SELECT 
         p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
         p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total, p.metadata, p.approved, p.business_id, p.created_at, p.updated_at
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.business_id, p.city, p.types,
+        p.created_at, p.updated_at
     FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
     WHERE p.approved = TRUE
+      AND p.city = p_city
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
@@ -60,9 +75,13 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
     business_id TEXT,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -71,8 +90,17 @@ BEGIN
     SELECT 
         p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
         p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total, p.metadata, p.approved, p.business_id, p.created_at, p.updated_at
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.business_id, p.city, p.types,
+        p.created_at, p.updated_at
     FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
     WHERE p.business_id = p_business_id
     ORDER BY p.created_at DESC;
 END;
@@ -80,7 +108,8 @@ $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 -- 2. Get Pending Places
 DROP FUNCTION IF EXISTS workplaces.get_pending_places();
-CREATE OR REPLACE FUNCTION workplaces.get_pending_places()
+DROP FUNCTION IF EXISTS workplaces.get_pending_places(TEXT);
+CREATE OR REPLACE FUNCTION workplaces.get_pending_places(p_city TEXT DEFAULT 'kahramanmaras')
 RETURNS TABLE (
     id UUID,
     name TEXT,
@@ -99,8 +128,12 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -109,9 +142,18 @@ BEGIN
     SELECT 
         p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
         p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total, p.metadata, p.approved, p.created_at, p.updated_at
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.city, p.types, p.created_at, p.updated_at
     FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
     WHERE p.approved = FALSE
+      AND p.city = p_city
     ORDER BY p.created_at DESC;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
@@ -137,8 +179,13 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    business_id TEXT,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
@@ -147,15 +194,24 @@ BEGIN
     SELECT 
         p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
         p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total, p.metadata, p.approved, p.created_at, p.updated_at
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.business_id, p.city, p.types,
+        p.created_at, p.updated_at
     FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
     WHERE p.id = p_id
     LIMIT 1;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 -- 4. Add Place
-DROP FUNCTION IF EXISTS workplaces.add_place(TEXT, TEXT, TEXT, TEXT[], BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, TEXT, NUMERIC, NUMERIC, TEXT, TEXT, TEXT, NUMERIC, INTEGER, JSONB, BOOLEAN);
+DROP FUNCTION IF EXISTS workplaces.add_place(TEXT, TEXT, TEXT, TEXT[], BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, TEXT, NUMERIC, NUMERIC, TEXT, TEXT, TEXT, NUMERIC, INTEGER, JSONB, BOOLEAN, TEXT, TEXT, TEXT[]);
 CREATE OR REPLACE FUNCTION workplaces.add_place(
     p_name TEXT,
     p_note TEXT DEFAULT NULL,
@@ -175,7 +231,9 @@ CREATE OR REPLACE FUNCTION workplaces.add_place(
     p_user_ratings_total INTEGER DEFAULT NULL,
     p_metadata JSONB DEFAULT '{}',
     p_approved BOOLEAN DEFAULT FALSE,
-    p_business_id TEXT DEFAULT NULL
+    p_business_id TEXT DEFAULT NULL,
+    p_city TEXT DEFAULT 'kahramanmaras',
+    p_types TEXT[] DEFAULT '{}'
 )
 RETURNS TABLE (
     id UUID,
@@ -195,36 +253,52 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
     business_id TEXT,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
 DECLARE
     v_user_id UUID := public.get_internal_user_id(p_user_id);
+    v_place_id UUID;
 BEGIN
-    RETURN QUERY
     INSERT INTO workplaces.places (
         name, note, url, tags, wifi, parking, power_outlets, quiet_level, user_id,
-        latitude, longitude, district, image_url, address, rating, user_ratings_total, metadata, approved, business_id
+        latitude, longitude, district, image_url, address, rating, user_ratings_total,
+        metadata, approved, business_id, city, types
     ) VALUES (
         p_name, p_note, p_url, p_tags, p_wifi, p_parking, p_power_outlets, p_quiet_level, v_user_id,
-        p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total, p_metadata, p_approved, p_business_id
+        p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total,
+        p_metadata, p_approved, p_business_id, p_city, p_types
     )
-    RETURNING 
-        workplaces.places.id, workplaces.places.name, workplaces.places.note, workplaces.places.url, 
-        workplaces.places.tags, workplaces.places.wifi, workplaces.places.parking, 
-        workplaces.places.power_outlets, workplaces.places.quiet_level, workplaces.places.user_id, 
-        workplaces.places.latitude, workplaces.places.longitude, workplaces.places.district, 
-        workplaces.places.image_url, workplaces.places.address, workplaces.places.rating, 
-        workplaces.places.user_ratings_total, workplaces.places.metadata, workplaces.places.approved, 
-        workplaces.places.business_id, workplaces.places.created_at, workplaces.places.updated_at;
+    RETURNING id INTO v_place_id;
+
+    RETURN QUERY
+    SELECT 
+        p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
+        p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.business_id, p.city, p.types,
+        p.created_at, p.updated_at
+    FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
+    WHERE p.id = v_place_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. Update Place
-DROP FUNCTION IF EXISTS workplaces.update_place(UUID, TEXT, TEXT, TEXT, TEXT[], BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, NUMERIC, NUMERIC, TEXT, TEXT, TEXT, NUMERIC, INTEGER, JSONB);
+DROP FUNCTION IF EXISTS workplaces.update_place(UUID, TEXT, TEXT, TEXT, TEXT[], BOOLEAN, BOOLEAN, BOOLEAN, INTEGER, NUMERIC, NUMERIC, TEXT, TEXT, TEXT, NUMERIC, INTEGER, JSONB, TEXT, TEXT[]);
 CREATE OR REPLACE FUNCTION workplaces.update_place(
     p_id UUID,
     p_name TEXT,
@@ -243,7 +317,8 @@ CREATE OR REPLACE FUNCTION workplaces.update_place(
     p_rating NUMERIC DEFAULT NULL,
     p_user_ratings_total INTEGER DEFAULT NULL,
     p_metadata JSONB DEFAULT '{}',
-    p_business_id TEXT DEFAULT NULL
+    p_business_id TEXT DEFAULT NULL,
+    p_types TEXT[] DEFAULT NULL
 )
 RETURNS TABLE (
     id UUID,
@@ -263,14 +338,17 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
     business_id TEXT,
+    city TEXT,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
 BEGIN
-    RETURN QUERY
     UPDATE workplaces.places SET
         name = p_name,
         note = p_note,
@@ -289,16 +367,26 @@ BEGIN
         user_ratings_total = p_user_ratings_total,
         metadata = p_metadata,
         business_id = COALESCE(p_business_id, workplaces.places.business_id),
+        types = COALESCE(p_types, workplaces.places.types),
         updated_at = NOW()
-    WHERE workplaces.places.id = p_id
-    RETURNING 
-        workplaces.places.id, workplaces.places.name, workplaces.places.note, workplaces.places.url, 
-        workplaces.places.tags, workplaces.places.wifi, workplaces.places.parking, 
-        workplaces.places.power_outlets, workplaces.places.quiet_level, workplaces.places.user_id, 
-        workplaces.places.latitude, workplaces.places.longitude, workplaces.places.district, 
-        workplaces.places.image_url, workplaces.places.address, workplaces.places.rating, 
-        workplaces.places.user_ratings_total, workplaces.places.metadata, workplaces.places.approved, 
-        workplaces.places.business_id, workplaces.places.created_at, workplaces.places.updated_at;
+    WHERE workplaces.places.id = p_id;
+
+    RETURN QUERY
+    SELECT 
+        p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
+        p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.business_id, p.city, p.types,
+        p.created_at, p.updated_at
+    FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
+    WHERE p.id = p_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -323,24 +411,35 @@ RETURNS TABLE (
     address TEXT,
     rating NUMERIC,
     user_ratings_total INTEGER,
+    internal_rating NUMERIC,
+    internal_review_count INTEGER,
     metadata JSONB,
     approved BOOLEAN,
+    types TEXT[],
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
 BEGIN
-    RETURN QUERY
     UPDATE workplaces.places
     SET approved = TRUE, updated_at = NOW()
-    WHERE workplaces.places.id = p_id
-    RETURNING 
-        workplaces.places.id, workplaces.places.name, workplaces.places.note, workplaces.places.url, 
-        workplaces.places.tags, workplaces.places.wifi, workplaces.places.parking, 
-        workplaces.places.power_outlets, workplaces.places.quiet_level, workplaces.places.user_id, 
-        workplaces.places.latitude, workplaces.places.longitude, workplaces.places.district, 
-        workplaces.places.image_url, workplaces.places.address, workplaces.places.rating, 
-        workplaces.places.user_ratings_total, workplaces.places.metadata, workplaces.places.approved, 
-        workplaces.places.created_at, workplaces.places.updated_at;
+    WHERE workplaces.places.id = p_id;
+
+    RETURN QUERY
+    SELECT 
+        p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
+        p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
+        p.user_ratings_total,
+        r.avg_rating::NUMERIC as internal_rating,
+        r.count_rating::INTEGER as internal_review_count,
+        p.metadata, p.approved, p.types,
+        p.created_at, p.updated_at
+    FROM workplaces.places p
+    LEFT JOIN (
+        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        FROM workplaces.place_ratings
+        GROUP BY place_id
+    ) r ON p.id = r.place_id
+    WHERE p.id = p_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

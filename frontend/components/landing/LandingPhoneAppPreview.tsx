@@ -59,13 +59,13 @@ export default function LandingPhoneAppPreview() {
         <div className="space-y-2.5 pt-1">
           <HomeGroupHeader title="Bugün Şehirde" />
           <div className={MASONRY}>
-            {/* Dışarıda Ne Yapılır? */}
+            {/* Aktiviteler */}
             <div className={MASONRY_ITEM}>
               <HomeSummaryCard
                 href="/apps/outdoor-activities"
                 icon={Compass}
                 color="#0F766E"
-                title="Dışarıda Ne Yapılır?"
+                title="Aktiviteler"
                 subtitle="Aktif Doğa ve Spor Seçenekleri"
                 loading={false}
                 emptyText=""

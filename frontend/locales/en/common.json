@@ -283,7 +283,7 @@
       "description": "Recommend movies, series, games, or venues to your friends and track their status!"
     },
     "outdoor-activities": {
-      "name": "Outdoor Activities",
+      "name": "Activities",
       "description": "Discover outdoor activities like horse riding, canoeing, paintball, gokart, and find venues in your city."
     },
     "neyapsam": {
@@ -297,6 +297,10 @@
     "workplaces": {
       "name": "Workplaces",
       "description": "Discover libraries and cafes suitable for working, and suggest new ones."
+    },
+    "places-ranked": {
+      "name": "Venue Rankings",
+      "description": "Rank venues by community votes — best of the last 90 days."
     },
     "places": {
       "name": "Places",

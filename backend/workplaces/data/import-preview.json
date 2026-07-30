@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Test Kafe",
+    "url": "https://maps.google.com/?cid=123",
+    "tags": [],
+    "primary_type": "cafe",
+    "source": "test-mekanlar.csv",
+    "dedupeKey": "cid:123",
+    "metadata": {
+      "import_source": "test-mekanlar.csv",
+      "maps_ftid": "cid:123",
+      "imported_at": "2026-07-29T21:37:51.963Z"
+    }
+  },
+  {
+    "name": "Test Lokanta",
+    "url": "https://maps.google.com/?cid=456",
+    "tags": [],
+    "primary_type": "restaurant",
+    "source": "test-mekanlar.csv",
+    "dedupeKey": "cid:456",
+    "metadata": {
+      "import_source": "test-mekanlar.csv",
+      "maps_ftid": "cid:456",
+      "imported_at": "2026-07-29T21:37:51.963Z"
+    }
+  }
+]

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS workplaces.places (
     user_ratings_total INTEGER,
     metadata JSONB DEFAULT '{}',
     approved BOOLEAN DEFAULT FALSE,
+    city TEXT DEFAULT 'kahramanmaras',
+    types TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -133,12 +135,26 @@ CREATE INDEX IF NOT EXISTS idx_workplaces_favorites_user_id ON workplaces.favori
 CREATE INDEX IF NOT EXISTS idx_workplaces_favorites_place_id ON workplaces.favorites(place_id);
 CREATE INDEX IF NOT EXISTS idx_workplaces_visited_user_id ON workplaces.visited(user_id);
 CREATE INDEX IF NOT EXISTS idx_workplaces_visited_place_id ON workplaces.visited(place_id);
+CREATE INDEX IF NOT EXISTS idx_workplaces_places_city ON workplaces.places(city);
+CREATE INDEX IF NOT EXISTS idx_workplaces_places_types ON workplaces.places USING GIN (types);
+
+CREATE TABLE IF NOT EXISTS workplaces.photo_cache (
+    google_place_id TEXT PRIMARY KEY,
+    photo_reference TEXT,
+    attributions JSONB DEFAULT '[]',
+    image_url TEXT,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_workplaces_photo_cache_fetched_at
+    ON workplaces.photo_cache(fetched_at);
 
 -- 6. Grants
 GRANT USAGE ON SCHEMA workplaces TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA workplaces TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA workplaces TO anon, authenticated, service_role;
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA workplaces TO anon, authenticated, service_role;
+GRANT ALL ON workplaces.photo_cache TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA workplaces GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA workplaces GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA workplaces GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
