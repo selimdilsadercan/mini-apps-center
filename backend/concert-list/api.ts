@@ -8,6 +8,9 @@ const supabaseAnonKey = secret("SupabaseAnonKey");
 
 const supabase = createSupabaseClient(supabaseUrl(), supabaseAnonKey());
 
+const AUGUST_FAIR_INFO_URL =
+  "https://kahramanmaras.bel.tr/duyuru/2026/07/24/geleneksel-agustos-fuari-etkinlik-takvimi";
+
 // ==================== TYPES ====================
 
 export interface ConcertFriend {
@@ -24,11 +27,15 @@ export interface Concert {
   artist: string;
   date: string; // YYYY-MM-DD
   venue?: string;
+  placeId?: string;
   notes?: string;
   rating?: number;
   createdAt: string;
   friends?: ConcertFriend[];
   imageUrl?: string | null;
+  infoUrl?: string;
+  status?: "planned" | "attended";
+  upcomingConcertId?: string;
 }
 
 export interface UpcomingConcert {
@@ -36,8 +43,10 @@ export interface UpcomingConcert {
   artist: string;
   date: string; // YYYY-MM-DD
   venue?: string;
+  placeId?: string;
   description?: string;
   imageUrl?: string;
+  infoUrl?: string;
   createdAt: string;
 }
 
@@ -60,10 +69,14 @@ interface AddConcertRequest {
   artist: string;
   date: string;
   venue?: string;
+  placeId?: string;
   notes?: string;
   rating?: number;
   friendIds?: string[];
   imageUrl?: string;
+  infoUrl?: string;
+  status?: "planned" | "attended";
+  upcomingConcertId?: string;
 }
 
 interface AddConcertResponse {
@@ -76,10 +89,13 @@ interface EditConcertRequest {
   artist: string;
   date: string;
   venue?: string;
+  placeId?: string;
   notes?: string;
   rating?: number;
   friendIds?: string[];
   imageUrl?: string;
+  infoUrl?: string;
+  status?: "planned" | "attended";
 }
 
 interface EditConcertResponse {
@@ -92,8 +108,10 @@ interface BulkImportRequest {
     artist: string;
     date: string;
     venue?: string;
+    placeId?: string;
     notes?: string;
     rating?: number;
+    infoUrl?: string;
   }[];
 }
 
@@ -112,6 +130,27 @@ interface DeleteConcertResponse {
 
 // ==================== API ENDPOINTS ====================
 
+function mapConcertRow(concert: any): Concert {
+  return {
+    id: concert.id,
+    userId: concert.user_id,
+    creatorUsername: concert.creator_username,
+    creatorAvatar: concert.creator_avatar,
+    artist: concert.artist,
+    date: concert.date,
+    venue: concert.venue,
+    placeId: concert.place_id || undefined,
+    notes: concert.notes,
+    rating: concert.rating,
+    createdAt: concert.created_at,
+    friends: concert.friends,
+    imageUrl: concert.image_url,
+    infoUrl: concert.info_url || undefined,
+    status: (concert.status as "planned" | "attended") || "attended",
+    upcomingConcertId: concert.upcoming_concert_id || undefined,
+  };
+}
+
 /**
  * Get all concerts for a user
  * GET /concert-list/concerts/:userId
@@ -128,21 +167,8 @@ export const getConcerts = api(
       throw APIError.internal(`Failed to load concerts: ${error.message}`);
     }
 
-    return { 
-      concerts: (data || []).map((c: any) => ({
-        id: c.id,
-        userId: c.user_id,
-        creatorUsername: c.creator_username,
-        creatorAvatar: c.creator_avatar,
-        artist: c.artist,
-        date: c.date,
-        venue: c.venue,
-        notes: c.notes,
-        rating: c.rating,
-        createdAt: c.created_at,
-        friends: c.friends,
-        imageUrl: c.image_url
-      }))
+    return {
+      concerts: (data || []).map(mapConcertRow),
     };
   }
 );
@@ -153,16 +179,20 @@ export const getConcerts = api(
  */
 export const addConcert = api(
   { expose: true, method: "POST", path: "/concert-list/concerts/add" },
-  async ({ userId, artist, date, venue, notes, rating, friendIds, imageUrl }: AddConcertRequest): Promise<AddConcertResponse> => {
+  async ({ userId, artist, date, venue, placeId, notes, rating, friendIds, imageUrl, infoUrl, status, upcomingConcertId }: AddConcertRequest): Promise<AddConcertResponse> => {
     const { data, error } = await supabase.schema("concert_list").rpc("add_concert", {
       clerk_id_param: userId,
       artist_param: artist,
       date_param: date,
       venue_param: venue || null,
+      place_id_param: placeId || null,
       notes_param: notes || null,
-      rating_param: rating || null,
+      rating_param: rating ?? null,
       friend_ids_param: friendIds || [],
       image_url_param: imageUrl || null,
+      info_url_param: infoUrl || null,
+      status_param: status || "attended",
+      upcoming_concert_id_param: upcomingConcertId || null,
     });
 
     if (error) {
@@ -173,22 +203,7 @@ export const addConcert = api(
     const concert = (data as any[] | null)?.[0];
     if (!concert) return { concert: null };
 
-    return { 
-      concert: {
-        id: concert.id,
-        userId: concert.user_id,
-        creatorUsername: concert.creator_username,
-        creatorAvatar: concert.creator_avatar,
-        artist: concert.artist,
-        date: concert.date,
-        venue: concert.venue,
-        notes: concert.notes,
-        rating: concert.rating,
-        createdAt: concert.created_at,
-        friends: concert.friends,
-        imageUrl: concert.image_url
-      }
-    };
+    return { concert: mapConcertRow(concert) };
   }
 );
 
@@ -198,17 +213,20 @@ export const addConcert = api(
  */
 export const editConcert = api(
   { expose: true, method: "POST", path: "/concert-list/concerts/edit" },
-  async ({ id, userId, artist, date, venue, notes, rating, friendIds, imageUrl }: EditConcertRequest): Promise<EditConcertResponse> => {
+  async ({ id, userId, artist, date, venue, placeId, notes, rating, friendIds, imageUrl, infoUrl, status }: EditConcertRequest): Promise<EditConcertResponse> => {
     const { data, error } = await supabase.schema("concert_list").rpc("edit_concert", {
       concert_id_param: id,
       clerk_id_param: userId,
       artist_param: artist,
       date_param: date,
       venue_param: venue || null,
+      place_id_param: placeId || null,
       notes_param: notes || null,
-      rating_param: rating || null,
+      rating_param: rating ?? null,
       friend_ids_param: friendIds || [],
       image_url_param: imageUrl || null,
+      info_url_param: infoUrl || null,
+      status_param: status || null,
     });
 
     if (error) {
@@ -219,22 +237,7 @@ export const editConcert = api(
     const concert = (data as any[] | null)?.[0];
     if (!concert) return { concert: null };
 
-    return { 
-      concert: {
-        id: concert.id,
-        userId: concert.user_id,
-        creatorUsername: concert.creator_username,
-        creatorAvatar: concert.creator_avatar,
-        artist: concert.artist,
-        date: concert.date,
-        venue: concert.venue,
-        notes: concert.notes,
-        rating: concert.rating,
-        createdAt: concert.created_at,
-        friends: concert.friends,
-        imageUrl: concert.image_url
-      }
-    };
+    return { concert: mapConcertRow(concert) };
   }
 );
 
@@ -500,15 +503,47 @@ export const getUpcomingConcerts = api(
       throw APIError.internal(`Failed to fetch upcoming concerts: ${error.message}`);
     }
 
-    const formatted = (data || []).map((row: any) => ({
-      id: row.id,
-      artist: row.artist,
-      date: row.date,
-      venue: row.venue || undefined,
-      description: row.description || undefined,
-      imageUrl: row.image_url || undefined,
-      createdAt: row.created_at,
-    }));
+    const rows = data || [];
+    const placeIds = [...new Set(rows.map((row: any) => row.place_id).filter(Boolean))] as string[];
+    const placeMap = new Map<string, { name: string; district?: string | null }>();
+
+    if (placeIds.length > 0) {
+      const placeRows = await Promise.all(
+        placeIds.map(async (placeId) => {
+          const { data: placeData, error: placeError } = await supabase
+            .schema("workplaces")
+            .rpc("get_place", { p_id: placeId });
+
+          if (placeError) {
+            console.error("getUpcomingConcerts get_place error:", placeError);
+            return null;
+          }
+
+          const place = (placeData as any[] | null)?.[0];
+          if (!place?.id || !place?.name) return null;
+          return { id: place.id as string, name: place.name as string, district: place.district as string | null };
+        }),
+      );
+
+      for (const place of placeRows) {
+        if (place) placeMap.set(place.id, { name: place.name, district: place.district });
+      }
+    }
+
+    const formatted = rows.map((row: any) => {
+      const linked = row.place_id ? placeMap.get(row.place_id) : undefined;
+      return {
+        id: row.id,
+        artist: row.artist,
+        date: row.date,
+        venue: linked?.name || row.venue || undefined,
+        placeId: row.place_id || undefined,
+        description: row.description || undefined,
+        imageUrl: row.image_url || undefined,
+        infoUrl: row.info_url || undefined,
+        createdAt: row.created_at,
+      };
+    });
 
     return { concerts: formatted };
   }
@@ -568,7 +603,8 @@ export const seedUpcomingConcerts = api(
           description: c.description,
           venue: c.venue,
           date: c.date,
-          image_url: image || null
+          image_url: image || null,
+          info_url: AUGUST_FAIR_INFO_URL,
         };
       })
     );

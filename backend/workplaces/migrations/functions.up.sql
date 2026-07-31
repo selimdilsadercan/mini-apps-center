@@ -263,6 +263,7 @@ RETURNS TABLE (
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ
 ) AS $$
+#variable_conflict use_column
 DECLARE
     v_user_id UUID := public.get_internal_user_id(p_user_id);
     v_place_id UUID;
@@ -276,24 +277,24 @@ BEGIN
         p_latitude, p_longitude, p_district, p_image_url, p_address, p_rating, p_user_ratings_total,
         p_metadata, p_approved, p_business_id, p_city, p_types
     )
-    RETURNING id INTO v_place_id;
+    RETURNING workplaces.places.id INTO v_place_id;
 
     RETURN QUERY
-    SELECT 
-        p.id, p.name, p.note, p.url, p.tags, p.wifi, p.parking, p.power_outlets, p.quiet_level, 
-        p.user_id, p.latitude, p.longitude, p.district, p.image_url, p.address, p.rating, 
-        p.user_ratings_total,
-        r.avg_rating::NUMERIC as internal_rating,
-        r.count_rating::INTEGER as internal_review_count,
-        p.metadata, p.approved, p.business_id, p.city, p.types,
-        p.created_at, p.updated_at
-    FROM workplaces.places p
+    SELECT
+        pl.id, pl.name, pl.note, pl.url, pl.tags, pl.wifi, pl.parking, pl.power_outlets, pl.quiet_level,
+        pl.user_id, pl.latitude, pl.longitude, pl.district, pl.image_url, pl.address, pl.rating,
+        pl.user_ratings_total,
+        r.avg_rating::NUMERIC AS internal_rating,
+        r.count_rating::INTEGER AS internal_review_count,
+        pl.metadata, pl.approved, pl.business_id, pl.city, pl.types,
+        pl.created_at, pl.updated_at
+    FROM workplaces.places pl
     LEFT JOIN (
-        SELECT place_id, AVG(overall) as avg_rating, COUNT(*) as count_rating
+        SELECT place_id, AVG(overall) AS avg_rating, COUNT(*) AS count_rating
         FROM workplaces.place_ratings
         GROUP BY place_id
-    ) r ON p.id = r.place_id
-    WHERE p.id = v_place_id;
+    ) r ON pl.id = r.place_id
+    WHERE pl.id = v_place_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

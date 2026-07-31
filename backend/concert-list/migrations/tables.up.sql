@@ -41,14 +41,30 @@ BEGIN
     END IF;
 END $$;
 
--- 2. Migration: Add upcoming_concerts table
+-- 2. Migration: Link concerts to workplaces.places
+ALTER TABLE concert_list.concerts
+  ADD COLUMN IF NOT EXISTS place_id UUID REFERENCES workplaces.places(id) ON DELETE SET NULL;
+ALTER TABLE concert_list.upcoming_concerts
+  ADD COLUMN IF NOT EXISTS place_id UUID REFERENCES workplaces.places(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_concerts_place_id ON concert_list.concerts(place_id);
+CREATE INDEX IF NOT EXISTS idx_upcoming_concerts_place_id ON concert_list.upcoming_concerts(place_id);
+
+-- 4. Migration: External detail URL for concerts
+ALTER TABLE concert_list.concerts
+  ADD COLUMN IF NOT EXISTS info_url TEXT;
+ALTER TABLE concert_list.upcoming_concerts
+  ADD COLUMN IF NOT EXISTS info_url TEXT;
+
+-- 3. Migration: Add upcoming_concerts table
 CREATE TABLE IF NOT EXISTS concert_list.upcoming_concerts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     artist TEXT NOT NULL,
     date DATE NOT NULL,
     venue TEXT,
+    place_id UUID REFERENCES workplaces.places(id) ON DELETE SET NULL,
     description TEXT,
     image_url TEXT,
+    info_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_upcoming_concerts_date ON concert_list.upcoming_concerts(date);
@@ -70,9 +86,11 @@ CREATE TABLE IF NOT EXISTS concert_list.concerts (
     artist TEXT NOT NULL,
     date DATE NOT NULL,
     venue TEXT,
+    place_id UUID REFERENCES workplaces.places(id) ON DELETE SET NULL,
     notes TEXT,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     image_url TEXT,
+    info_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -89,8 +107,10 @@ CREATE TABLE IF NOT EXISTS concert_list.upcoming_concerts (
     artist TEXT NOT NULL,
     date DATE NOT NULL,
     venue TEXT,
+    place_id UUID REFERENCES workplaces.places(id) ON DELETE SET NULL,
     description TEXT,
     image_url TEXT,
+    info_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

@@ -172,6 +172,7 @@ interface DiscoverTabProps {
 }
 
 import { DeckView } from "./DeckView";
+import { ConcertVenueLink } from "@/app/apps/concert-list/components/PlacePicker";
 
 export function DiscoverTab(props: DiscoverTabProps) {
   const {
@@ -769,8 +770,18 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-black text-app-text truncate">{concert.artist}</p>
-                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                      {concert.venue || "Konser Salonu"} · {dateStr}
+                    <p className="text-[9px] text-app-muted font-bold truncate mt-0.5 flex items-center gap-1">
+                      <span
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-w-0"
+                      >
+                        <ConcertVenueLink
+                          venue={concert.venue || "Konser Salonu"}
+                          placeId={concert.placeId}
+                          className="text-[9px] text-app-muted font-bold"
+                        />
+                      </span>
+                      <span className="shrink-0">· {dateStr}</span>
                     </p>
                   </div>
                 </div>
@@ -782,7 +793,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     },
     {
       key: "events-widget",
-      title: "Bugünün Etkinlikleri",
+      title: "Yaklaşan Etkinlikler",
       icon: Megaphone,
       color: "#00aeef",
       loading: loading,
@@ -793,14 +804,15 @@ export function DiscoverTab(props: DiscoverTabProps) {
           href="/apps/campus-events"
           icon={Megaphone}
           color="#00aeef"
-          title="Bugünün Etkinlikleri"
+          title="Yaklaşan Etkinlikler"
           subtitle="Şehirde Neler Var?"
           loading={loading}
-          emptyText="Bugün için planlanmış etkinlik yok 🎭"
+          emptyText="Yaklaşan etkinlik yok 🎭"
           hasContent={events.length > 0}
         >
           {events.slice(0, 3).map((event: any) => {
             const eventDate = new Date(event.event_date);
+            const dateStr = eventDate.toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
             const timeStr = eventDate.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
             return (
               <div
@@ -819,7 +831,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-black text-app-text truncate">{event.title}</p>
                     <p className="text-[9px] text-app-muted font-bold truncate mt-0.5">
-                      {event.location || "Şehir Etkinliği"} · {timeStr}
+                      {event.location || "Şehir Etkinliği"} · {dateStr} · {timeStr}
                     </p>
                   </div>
                 </div>

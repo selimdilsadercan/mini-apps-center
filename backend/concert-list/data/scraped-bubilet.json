@@ -1,0 +1,55 @@
+[
+  {
+    "bubiletUrl": "https://www.bubilet.com.tr/kahramanmaras/etkinlik/-kurk-mantolu-madonna-",
+    "bubiletSlug": "-kurk-mantolu-madonna-",
+    "title": "Kürk Mantolu Madonna",
+    "artist": "Kürk Mantolu Madonna",
+    "eventType": "theater",
+    "categoryLabel": "Tiyatro",
+    "date": "2026-10-15",
+    "time": "20:30",
+    "startAt": "2026-10-15T17:30:00+00:00",
+    "venueName": "Kahramanmaraş Mehmet Akif Ersoy Kültür Merkezi",
+    "venueSlug": "mekan/kahramanmaras-mehmet-akif-ersoy-kultur-merkezi",
+    "venueAddress": "Akçakoyunlu, 77035. Sk., 46050 Kahramanmaraş Merkez/Kahramanmaraş",
+    "latitude": 37.58616413,
+    "longitude": 36.922523,
+    "city": "kahramanmaras",
+    "imageUrl": "https://cdn.bubilet.com.tr/cdn-cgi/image/width=1200,quality=100/files/Etkinlik/-kurk-mantolu-madonna--37369.png",
+    "description": "Bubilet — 700₺'den · Saat: 20:30",
+    "priceFrom": 700,
+    "priceCurrency": "TRY",
+    "tags": [
+      "#Trendler",
+      "#Tiyatro"
+    ],
+    "scrapedAt": "2026-07-31T06:28:40.474Z"
+  },
+  {
+    "bubiletUrl": "https://www.bubilet.com.tr/kahramanmaras/etkinlik/soner-sarikabadayi-konseri-",
+    "bubiletSlug": "soner-sarikabadayi-konseri-",
+    "title": "Soner Sarıkabadayı Konseri",
+    "artist": "Soner Sarıkabadayı",
+    "eventType": "concert",
+    "categoryLabel": "Konser",
+    "date": "2027-02-20",
+    "time": "21:00",
+    "startAt": "2027-02-20T18:00:00+00:00",
+    "venueName": "Kahramanmaraş Mehmet Akif Ersoy Kültür Merkezi",
+    "venueSlug": "mekan/kahramanmaras-mehmet-akif-ersoy-kultur-merkezi",
+    "venueAddress": "Akçakoyunlu, 77035. Sk., 46050 Kahramanmaraş Merkez/Kahramanmaraş",
+    "latitude": 37.58616413,
+    "longitude": 36.922523,
+    "city": "kahramanmaras",
+    "imageUrl": "https://cdn.bubilet.com.tr/cdn-cgi/image/width=1200,quality=100/files/Etkinlik/soner-sarikabadayi-konseri--18644.png",
+    "description": "Soner Sarıkabadayı · Bubilet — 650₺'den · Saat: 21:00",
+    "priceFrom": 650,
+    "priceCurrency": "TRY",
+    "tags": [
+      "#Trendler",
+      "#Konser",
+      "#750₺ Altı Biletler"
+    ],
+    "scrapedAt": "2026-07-31T06:28:34.940Z"
+  }
+]

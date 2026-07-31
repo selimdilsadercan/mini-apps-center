@@ -145,7 +145,7 @@ function resolveChromePath(): string | undefined {
   return undefined;
 }
 
-async function launchBrowser(headed: boolean): Promise<Browser> {
+export async function launchBrowser(headed: boolean): Promise<Browser> {
   const executablePath = resolveChromePath();
   return puppeteer.launch({
     headless: !headed,
@@ -184,6 +184,35 @@ const TR_DAYS = [
   "cumartesi",
   "pazar",
 ];
+
+function parseNameFromPreview(body: string): string | undefined {
+  const patterns = [
+    /\[\[\["([^"]{3,200})"/,
+    /"title"\s*,\s*"([^"]{3,200})"/,
+    /"name"\s*,\s*"([^"]{3,200})"/,
+  ];
+  for (const re of patterns) {
+    const m = body.match(re);
+    if (m?.[1] && !isBadPlaceName(m[1])) return m[1];
+  }
+  return undefined;
+}
+
+function nameFromMapsUrl(url: string): string | undefined {
+  try {
+    const part = decodeURIComponent(url.split("/place/")[1]?.split("/@")[0] || "")
+      .replace(/\+/g, " ")
+      .trim();
+    return part && !isBadPlaceName(part) ? part : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isBadPlaceName(name?: string): boolean {
+  if (!name?.trim()) return true;
+  return /google haritalar|google maps|^maps$|^before you continue/i.test(name.trim());
+}
 
 function parseRatingFromPreview(body: string): { rating?: number; review_count?: number } {
   const result: { rating?: number; review_count?: number } = {};
@@ -450,6 +479,7 @@ async function scrapeOpeningHours(
 
 /** Tek mekan detay sayfasından veri çek */
 export async function scrapePlacePage(page: Page, url: string): Promise<ScrapedPlace | null> {
+  const inputUrl = url;
   let previewBody = "";
   const onResponse = async (res: { url: () => string; text: () => Promise<string> }) => {
     if (res.url().includes("/maps/preview/place")) {
@@ -466,13 +496,12 @@ export async function scrapePlacePage(page: Page, url: string): Promise<ScrapedP
   page.off("response", onResponse);
 
   await page
-    .waitForSelector('div.F7nice, button[jsaction*="reviews"], [aria-label*="yorum"], [aria-label*="review"]', {
-      timeout: 6000,
-    })
+    .waitForSelector("h1.DUwDvf, h1", { timeout: 12000 })
     .catch(() => undefined);
+  await sleep(1500);
 
   const currentUrl = page.url();
-  const urlCoords = parseCoordsFromUrl(currentUrl);
+  const urlCoords = { ...parseCoordsFromUrl(inputUrl), ...parseCoordsFromUrl(currentUrl) };
 
   const data = await page.evaluate(() => {
     const pickText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
@@ -574,11 +603,15 @@ export async function scrapePlacePage(page: Page, url: string): Promise<ScrapedP
   const fromPreview = previewBody ? parseRatingFromPreview(previewBody) : {};
   const opening_hours = await scrapeOpeningHours(page, previewBody);
 
-  if (!data.name) return null;
+  let resolvedName = data.name;
+  if (isBadPlaceName(resolvedName)) {
+    resolvedName = parseNameFromPreview(previewBody) || nameFromMapsUrl(inputUrl) || resolvedName;
+  }
+  if (isBadPlaceName(resolvedName)) return null;
 
   return {
-    name: data.name,
-    url: currentUrl,
+    name: resolvedName,
+    url: inputUrl,
     address: data.address || undefined,
     district: parseDistrict(data.address),
     latitude: urlCoords.lat,
@@ -846,6 +879,7 @@ Kullanım:
       await page.close();
       console.log("");
     } else if (placeUrl) {
+      const page = await browser.newPage();
       const one = await scrapePlacePage(page, placeUrl);
       if (!one) throw new Error("Mekan verisi alınamadı.");
       places = [{ ...one, types: one.types || (defaultCategory ? [defaultCategory] : []) }];
@@ -911,7 +945,9 @@ Kullanım:
   }
 }
 
-main().catch((err) => {
-  console.error("❌ Hata:", err);
-  process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error("❌ Hata:", err);
+    process.exit(1);
+  });
+}

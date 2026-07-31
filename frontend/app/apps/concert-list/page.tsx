@@ -8,15 +8,15 @@ import {
   Plus,
   Trash,
   Calendar,
-  MapPin,
   Star,
   CaretLeft,
-  Sliders,
   Notebook,
-  TrendUp,
-  FramerLogo,
   PencilSimple,
   ArrowSquareIn,
+  Compass,
+  BookmarkSimple,
+  Check,
+  ListBullets,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Drawer } from "vaul";
@@ -24,9 +24,18 @@ import { toast, Toaster } from "react-hot-toast";
 import { createBrowserClient } from "@/lib/api";
 import { concert_list, friendship } from "@/lib/client";
 import { useRouter } from "next/navigation";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+
+import { PlacePicker, ConcertVenueLink, ConcertInfoLink, type SelectedPlace } from "./components/PlacePicker";
 
 const client = createBrowserClient();
+const ACCENT = "#FF1493";
+
+const tabClass = (active: boolean) =>
+  `inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-[0.98] outline-none whitespace-nowrap ${
+    active ? "bg-app-tab-active text-app-text shadow-sm" : "text-app-muted hover:text-app-text"
+  }`;
+
+type TabId = "discover" | "list";
 
 export default function ConcertListPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -42,11 +51,9 @@ export default function ConcertListPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"discover" | "attended">("discover");
+  const [activeTab, setActiveTab] = useState<TabId>("discover");
   const [upcomingConcerts, setUpcomingConcerts] = useState<concert_list.UpcomingConcert[]>([]);
   const [upcomingLoading, setUpcomingLoading] = useState(true);
-  const [isSeeding, setIsSeeding] = useState(false);
-  const { isAdmin } = useIsAdmin();
 
   // Load concerts when user is loaded
   useEffect(() => {
@@ -60,6 +67,311 @@ export default function ConcertListPage() {
     fetchUpcomingConcerts();
   }, []);
 
+  const getPlannedForUpcoming = (upcomingId: string) =>
+    concerts.find(
+      (c) =>
+        c.status === "planned" &&
+        c.upcomingConcertId === upcomingId &&
+        c.userId === internalUserId,
+    );
+
+  const getAttendedForUpcoming = (upcomingId: string) =>
+    concerts.find(
+      (c) =>
+        c.status !== "planned" &&
+        c.upcomingConcertId === upcomingId &&
+        c.userId === internalUserId,
+    );
+
+  const isPlannedUpcoming = (upcomingId: string) => !!getPlannedForUpcoming(upcomingId);
+  const isAttendedUpcoming = (upcomingId: string) => !!getAttendedForUpcoming(upcomingId);
+
+  const handleWantToGo = async (upcoming: concert_list.UpcomingConcert) => {
+    if (!user) {
+      toast.error("Gitmek istediğin konserleri kaydetmek için giriş yap.");
+      return;
+    }
+    if (isAttendedUpcoming(upcoming.id)) {
+      toast("Zaten gittiklerinde.");
+      return;
+    }
+    if (isPlannedUpcoming(upcoming.id)) {
+      toast("Zaten gitmek istediklerinde.");
+      return;
+    }
+    try {
+      await client.concert_list.addConcert({
+        userId: user.id,
+        artist: upcoming.artist,
+        date: upcoming.date,
+        placeId: upcoming.placeId,
+        venue: upcoming.venue,
+        infoUrl: upcoming.infoUrl,
+        imageUrl: upcoming.imageUrl || undefined,
+        status: "planned",
+        upcomingConcertId: upcoming.id,
+      });
+      await fetchConcerts();
+      toast.success("Gitmek istediklerine eklendi!");
+    } catch {
+      toast.error("Kaydedilemedi.");
+    }
+  };
+
+  const handleRemovePlanned = async (concertId: string) => {
+    if (!user) return;
+    try {
+      await client.concert_list.deleteConcert(concertId, user.id);
+      setConcerts(concerts.filter((c) => c.id !== concertId));
+      toast.success("Listeden çıkarıldı.");
+    } catch {
+      toast.error("Silinemedi.");
+    }
+  };
+
+  const handleQuickWent = async (upcoming: concert_list.UpcomingConcert) => {
+    if (!user) {
+      toast.error("Konser kaydetmek için giriş yap.");
+      return;
+    }
+    if (isAttendedUpcoming(upcoming.id)) {
+      toast("Zaten gittiklerinde.");
+      return;
+    }
+    try {
+      const existing = getPlannedForUpcoming(upcoming.id);
+      if (existing) {
+        await client.concert_list.editConcert({
+          id: existing.id,
+          userId: user.id,
+          artist: existing.artist,
+          date: existing.date,
+          venue: existing.venue,
+          placeId: existing.placeId,
+          notes: existing.notes,
+          rating: 5,
+          infoUrl: existing.infoUrl,
+          imageUrl: existing.imageUrl || undefined,
+          status: "attended",
+        });
+      } else {
+        await client.concert_list.addConcert({
+          userId: user.id,
+          artist: upcoming.artist,
+          date: upcoming.date,
+          placeId: upcoming.placeId,
+          venue: upcoming.venue,
+          infoUrl: upcoming.infoUrl,
+          imageUrl: upcoming.imageUrl || undefined,
+          rating: 5,
+          status: "attended",
+          upcomingConcertId: upcoming.id,
+        });
+      }
+      await fetchConcerts();
+      toast.success("Listene eklendi!");
+    } catch {
+      toast.error("Kaydedilemedi.");
+    }
+  };
+
+  const handleMarkAttended = async (concert: concert_list.Concert) => {
+    if (!user) return;
+    try {
+      await client.concert_list.editConcert({
+        id: concert.id,
+        userId: user.id,
+        artist: concert.artist,
+        date: concert.date,
+        venue: concert.venue,
+        placeId: concert.placeId,
+        notes: concert.notes,
+        rating: concert.rating ?? 5,
+        infoUrl: concert.infoUrl,
+        imageUrl: concert.imageUrl || undefined,
+        status: "attended",
+      });
+      await fetchConcerts();
+      toast.success("Gittiklerine eklendi!");
+    } catch {
+      toast.error("Kaydedilemedi.");
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  };
+
+  const matchesUpcomingSearch = (c: concert_list.UpcomingConcert) =>
+    c.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.venue && c.venue.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const filteredUpcomingList = upcomingConcerts.filter(matchesUpcomingSearch);
+  const futureUpcomingConcerts = filteredUpcomingList
+    .filter((c) => c.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const pastUpcomingConcerts = filteredUpcomingList
+    .filter((c) => c.date < todayStr)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const renderUpcomingCard = (upcoming: concert_list.UpcomingConcert) => {
+    const planned = isPlannedUpcoming(upcoming.id);
+    const attended = isAttendedUpcoming(upcoming.id);
+
+    return (
+      <div
+        key={upcoming.id}
+        className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm"
+      >
+        <div className="flex gap-4 items-center min-w-0">
+          <div className="w-16 h-16 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+            {upcoming.imageUrl ? (
+              <img src={upcoming.imageUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
+                <MusicNotes size={24} className="text-[#FF1493]/60" />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="text-[9px] text-[#FF1493] font-black uppercase tracking-wider block mb-0.5">
+              {formatDate(upcoming.date)}
+            </span>
+            <h3 className="text-sm font-black text-app-text truncate">{upcoming.artist}</h3>
+            <p className="text-[11px] text-app-muted font-bold truncate mt-0.5">
+              <ConcertVenueLink
+                venue={upcoming.venue || "Şehir Etkinliği"}
+                placeId={upcoming.placeId}
+                className="text-[11px] text-app-muted font-bold"
+              />
+            </p>
+            {upcoming.description && (
+              <p className="text-[10px] text-app-muted truncate mt-1">{upcoming.description}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {upcoming.infoUrl ? (
+            <a
+              href={upcoming.infoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-app-muted hover:text-app-text transition-colors"
+            >
+              Detayları Gör
+            </a>
+          ) : (
+            <span />
+          )}
+          {user && (
+            <div className="flex items-center gap-1.5 ml-auto">
+              <button
+                type="button"
+                onClick={() => handleWantToGo(upcoming)}
+                disabled={planned}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer border ${
+                  planned
+                    ? "border-[#FF1493]/30 text-[#FF1493] bg-[#FF1493]/10 cursor-default"
+                    : "border-app-border bg-app-surface-muted hover:bg-app-surface text-app-muted hover:text-[#FF1493]"
+                }`}
+                title={planned ? "Listede" : "Gitmek İstiyorum"}
+                aria-label={planned ? "Listede" : "Gitmek İstiyorum"}
+              >
+                <BookmarkSimple size={16} weight={planned ? "fill" : "bold"} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickWent(upcoming)}
+                disabled={attended}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer border ${
+                  attended
+                    ? "border-[#FF1493]/30 text-[#FF1493] bg-[#FF1493]/10 cursor-default"
+                    : "border-app-border bg-app-surface-muted hover:bg-app-surface text-app-muted hover:text-[#FF1493]"
+                }`}
+                title={attended ? "Gittin" : "Gittim"}
+                aria-label={attended ? "Gittin" : "Gittim"}
+              >
+                <Check size={16} weight={attended ? "bold" : "bold"} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPlannedCard = (concert: concert_list.Concert) => (
+    <div
+      key={concert.id}
+      className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm"
+    >
+      <div className="flex gap-4 items-center min-w-0">
+        <div className="w-16 h-16 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+          {concert.imageUrl ? (
+            <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
+              <MusicNotes size={24} className="text-[#FF1493]/60" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="text-[9px] text-[#FF1493] font-black uppercase tracking-wider block mb-0.5">
+            {formatDate(concert.date)}
+          </span>
+          <h3 className="text-sm font-black text-app-text truncate">{concert.artist}</h3>
+          {concert.venue && (
+            <p className="text-[11px] text-app-muted font-bold truncate mt-0.5">
+              <ConcertVenueLink
+                venue={concert.venue}
+                placeId={concert.placeId}
+                className="text-[11px] text-app-muted font-bold"
+              />
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2">
+        {concert.infoUrl ? (
+          <a
+            href={concert.infoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-bold text-app-muted hover:text-app-text transition-colors"
+          >
+            Detayları Gör
+          </a>
+        ) : (
+          <span />
+        )}
+        <div className="flex items-center gap-1.5 ml-auto">
+          <button
+            type="button"
+            onClick={() => handleRemovePlanned(concert.id)}
+            className="w-9 h-9 rounded-xl border border-app-border bg-app-surface-muted hover:bg-red-500/10 hover:text-red-500 text-app-muted flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+            title="Kaldır"
+            aria-label="Kaldır"
+          >
+            <Trash size={16} weight="bold" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleMarkAttended(concert)}
+            className="w-9 h-9 rounded-xl bg-[#FF1493] hover:opacity-90 text-white flex items-center justify-center transition-all shadow-sm active:scale-95 cursor-pointer"
+            title="Gittim"
+            aria-label="Gittim"
+          >
+            <Check size={16} weight="bold" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const fetchUpcomingConcerts = async () => {
     try {
       setUpcomingLoading(true);
@@ -69,19 +381,6 @@ export default function ConcertListPage() {
       console.error("fetchUpcomingConcerts error:", error);
     } finally {
       setUpcomingLoading(false);
-    }
-  };
-
-  const handleSeedUpcoming = async () => {
-    try {
-      setIsSeeding(true);
-      const res = await client.concert_list.seedUpcomingConcerts();
-      toast.success(`${res.count} Fuar konseri başarıyla yüklendi!`);
-      await fetchUpcomingConcerts();
-    } catch (error: any) {
-      toast.error(`Yükleme hatası: ${error.message || "Bilinmeyen hata"}`);
-    } finally {
-      setIsSeeding(false);
     }
   };
 
@@ -132,18 +431,25 @@ export default function ConcertListPage() {
     }
   };
 
-  // Filter concerts
-  const filteredConcerts = concerts.filter((c) => {
-    const matchesSearch =
-      c.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (c.venue && c.venue.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      c.date.includes(searchQuery);
-    const matchesRating = selectedRating === "all" ? true : c.rating === selectedRating;
-    return matchesSearch && matchesRating;
-  });
+  const matchesConcertSearch = (c: concert_list.Concert) =>
+    c.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.venue && c.venue.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    c.date.includes(searchQuery);
 
-  // Group concerts by year
-  const groupedByYear = filteredConcerts.reduce((groups: Record<string, concert_list.Concert[]>, concert) => {
+  const plannedConcerts = concerts
+    .filter((c) => c.status === "planned" && c.userId === internalUserId)
+    .filter(matchesConcertSearch)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const filteredAttendedConcerts = concerts
+    .filter((c) => c.status !== "planned")
+    .filter((c) => {
+      const matchesSearch = matchesConcertSearch(c);
+      const matchesRating = selectedRating === "all" ? true : c.rating === selectedRating;
+      return matchesSearch && matchesRating;
+    });
+
+  const groupedByYear = filteredAttendedConcerts.reduce((groups: Record<string, concert_list.Concert[]>, concert) => {
     const year = new Date(concert.date).getFullYear().toString();
     if (!groups[year]) groups[year] = [];
     groups[year].push(concert);
@@ -153,20 +459,9 @@ export default function ConcertListPage() {
   // Sort years descending
   const sortedYears = Object.keys(groupedByYear).sort((a, b) => b.localeCompare(a));
 
-  // Format date helper (Turkish locale)
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-  };
-
   return (
-    <div className="flex min-h-screen flex-col bg-app-bg text-app-text relative overflow-hidden selection:bg-[#FF1493]/20">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text relative overflow-hidden selection:bg-pink-100 dark:selection:bg-pink-950/40">
       <Toaster position="top-center" />
-
-      {/* Subtle Background Glow */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full blur-[120px] opacity-10 bg-[#FF1493]" />
-      </div>
 
       {/* Mandatory Header Pattern */}
       <header className="sticky top-0 z-30 app-chrome-top bg-app-surface/95 backdrop-blur-md border-b border-app-border/60">
@@ -177,18 +472,18 @@ export default function ConcertListPage() {
                 onClick={() => window.location.href = getAppRootUrl()}
                 className="shrink-0 flex items-center justify-center w-8 h-8 text-app-muted hover:text-app-text transition-all bg-app-surface rounded-lg border border-app-border active:scale-95 cursor-pointer"
               >
-                <CaretLeft size={14} weight="bold" className="text-[#FF1493]" />
+                <CaretLeft size={14} weight="bold" style={{ color: ACCENT }} />
               </button>
 
               <h1 className="flex-1 min-w-0 text-base font-black tracking-tight uppercase leading-none text-app-text flex items-center gap-1.5">
-                <MusicNotes size={18} weight="fill" className="text-[#FF1493] shrink-0" />
+                <MusicNotes size={18} weight="fill" className="shrink-0" style={{ color: ACCENT }} />
                 <span className="truncate">
-                  My <span className="text-[#FF1493]">Concert List</span>
+                  My <span style={{ color: ACCENT }}>Concert List</span>
                 </span>
               </h1>
             </div>
 
-            {user && activeTab === "attended" && (
+            {user && activeTab === "list" && (
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => setShowImportDrawer(true)}
@@ -210,38 +505,35 @@ export default function ConcertListPage() {
               </div>
             )}
 
-            {user && activeTab === "discover" && isAdmin && (
-              <button
-                onClick={handleSeedUpcoming}
-                disabled={isSeeding}
-                className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95 transition-all flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
-              >
-                <span>{isSeeding ? "Yükleniyor..." : "Fuarı Yükle 🎡"}</span>
-              </button>
-            )}
           </div>
 
-          <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-surface-muted mt-2.5">
-            <button
-              onClick={() => setActiveTab("discover")}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                activeTab === "discover"
-                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
-                  : "text-app-muted hover:text-app-text"
-              }`}
-            >
-              Keşfet
-            </button>
-            <button
-              onClick={() => setActiveTab("attended")}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                activeTab === "attended"
-                  ? "bg-app-surface text-app-text shadow-sm border border-app-border/40"
-                  : "text-app-muted hover:text-app-text"
-              }`}
-            >
-              Gittiklerim
-            </button>
+          <div className="flex overflow-x-auto no-scrollbar">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-2xl border border-app-border bg-app-tab-track mt-2.5">
+              <button
+                type="button"
+                onClick={() => setActiveTab("discover")}
+                className={tabClass(activeTab === "discover")}
+              >
+                <Compass
+                  size={13}
+                  weight={activeTab === "discover" ? "fill" : "bold"}
+                  className={activeTab === "discover" ? "text-[#FF1493]" : "text-app-muted"}
+                />
+                <span className="normal-case">Keşfet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("list")}
+                className={tabClass(activeTab === "list")}
+              >
+                <ListBullets
+                  size={13}
+                  weight={activeTab === "list" ? "fill" : "bold"}
+                  className={activeTab === "list" ? "text-[#FF1493]" : "text-app-muted"}
+                />
+                <span className="normal-case">Listem</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -269,70 +561,27 @@ export default function ConcertListPage() {
               <MusicNotes size={40} className="text-app-muted mb-4" />
               <p className="text-sm font-bold text-app-muted">Yaklaşan konser bulunamadı 🎭</p>
             </div>
+          ) : filteredUpcomingList.length === 0 ? (
+            <div className="text-center py-16 text-app-muted text-xs font-bold uppercase tracking-widest">
+              Aradığınız kriterlere uygun konser bulunamadı.
+            </div>
           ) : (
-            <div className="space-y-4">
-              {upcomingConcerts
-                .filter((c) => 
-                  c.artist.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                  (c.venue && c.venue.toLowerCase().includes(searchQuery.toLowerCase()))
-                )
-                .map((upcoming) => {
-                  return (
-                    <div
-                      key={upcoming.id}
-                      className="bg-app-surface rounded-2xl border border-app-border p-4 shadow-sm flex gap-4 items-center justify-between"
-                    >
-                      <div className="flex gap-4 items-center min-w-0 flex-1">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                          {upcoming.imageUrl ? (
-                            <img src={upcoming.imageUrl} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
-                              <MusicNotes size={24} className="text-[#FF1493]/60" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-[9px] text-[#FF1493] font-black uppercase tracking-wider block mb-0.5">
-                            {formatDate(upcoming.date)}
-                          </span>
-                          <h3 className="text-sm font-black text-app-text truncate">{upcoming.artist}</h3>
-                          <p className="text-[11px] text-app-muted font-bold truncate mt-0.5 flex items-center gap-1">
-                            <MapPin size={10} weight="fill" className="text-app-muted shrink-0" />
-                            <span>{upcoming.venue || "Şehir Etkinliği"}</span>
-                          </p>
-                          {upcoming.description && (
-                            <p className="text-[10px] text-app-muted truncate mt-1">{upcoming.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {user && (
-                        <button
-                          onClick={() => {
-                            const mockConcert: concert_list.Concert = {
-                              id: "",
-                              userId: internalUserId || "",
-                              artist: upcoming.artist,
-                              date: upcoming.date,
-                              venue: upcoming.venue || "",
-                              notes: "",
-                              rating: 5,
-                              createdAt: new Date().toISOString(),
-                              friends: [],
-                              imageUrl: upcoming.imageUrl || null
-                            };
-                            setSelectedConcertForEdit(mockConcert);
-                            setShowAddDrawer(true);
-                          }}
-                          className="bg-[#FF1493] hover:opacity-90 text-white text-[10px] font-black px-3 py-2 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
-                        >
-                          Gittiklerime Ekle
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="space-y-8">
+              {futureUpcomingConcerts.length > 0 && (
+                <div className="space-y-4">
+                  {futureUpcomingConcerts.map((upcoming) => renderUpcomingCard(upcoming))}
+                </div>
+              )}
+              {pastUpcomingConcerts.length > 0 && (
+                <section>
+                  <h2 className="text-[10px] font-black uppercase tracking-widest text-app-muted mb-4">
+                    Geçmiş Konserler
+                  </h2>
+                  <div className="space-y-4">
+                    {pastUpcomingConcerts.map((upcoming) => renderUpcomingCard(upcoming))}
+                  </div>
+                </section>
+              )}
             </div>
           )
         ) : loading ? (
@@ -344,125 +593,146 @@ export default function ConcertListPage() {
             <MusicNotes size={40} className="text-app-muted mb-4" />
             <p className="text-sm font-bold text-app-muted">Konser listeni görebilmek ve yeni konserler eklemek için giriş yapmalısın.</p>
           </div>
-        ) : concerts.length === 0 ? (
+        ) : plannedConcerts.length === 0 && filteredAttendedConcerts.length === 0 ? (
           <div className="text-center py-16 bg-app-surface rounded-3xl border border-app-border flex flex-col items-center justify-center p-6 shadow-sm">
             <MusicNotes size={40} className="text-app-muted mb-4" />
             <p className="text-sm font-bold text-app-muted mb-6">Henüz kayıtlı bir konser yok.</p>
-            <div className="flex flex-col gap-3 w-full max-w-xs">
-              <button
-                onClick={() => {
-                  setSelectedConcertForEdit(null);
-                  setShowAddDrawer(true);
-                }}
-                className="w-full bg-[#FF1493] hover:opacity-90 text-white font-black py-3.5 px-6 rounded-xl transition-all shadow-lg active:scale-98 text-sm uppercase tracking-widest cursor-pointer"
-              >
-                İlk Konserini Ekle
-              </button>
-            </div>
-          </div>
-        ) : filteredConcerts.length === 0 ? (
-          <div className="text-center py-16 text-app-muted text-xs font-bold uppercase tracking-widest">
-            Aradığınız kriterlere uygun konser bulunamadı.
+            <button
+              type="button"
+              onClick={() => setActiveTab("discover")}
+              className="text-[11px] font-black text-[#FF1493] hover:opacity-80 cursor-pointer"
+            >
+              Keşfet sekmesine git →
+            </button>
           </div>
         ) : (
-          <div className="relative border-l-2 border-[#FF1493]/20 pl-6 ml-3 space-y-12">
-            {sortedYears.map((year) => (
-              <div key={year} className="relative">
-                {/* Year Marker */}
-                <div className="absolute left-[-37px] top-0 bg-app-surface px-2.5 py-1 rounded-lg text-[#FF1493] font-black text-xs tracking-wider border border-[#FF1493]/30 shadow-sm">
-                  {year}
+          <div className="space-y-10">
+            {plannedConcerts.length > 0 && (
+              <section>
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-app-muted mb-4 flex items-center gap-1.5">
+                  <BookmarkSimple size={14} weight="fill" className="text-[#FF1493]" />
+                  Gitmek İstediğim
+                </h2>
+                <div className="space-y-4">
+                  {plannedConcerts.map((concert) => renderPlannedCard(concert))}
                 </div>
+              </section>
+            )}
 
-                <div className="space-y-6 pt-8">
-                  {groupedByYear[year].map((concert) => {
-                    const companions = concert.friends || [];
-                    return (
-                      <motion.div
-                        key={concert.id}
-                        layout
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-app-surface rounded-3xl border border-app-border p-5 relative shadow-sm transition-all group"
-                      >
-                        {/* Rating Star */}
-                        {concert.rating && (
-                          <div className="absolute top-5 right-5 flex items-center gap-1 bg-[#FF1493]/10 text-[#FF1493] px-2 py-0.5 rounded-full text-[10px] font-black">
-                            <Star size={10} weight="fill" />
-                            <span>{concert.rating}/5</span>
-                          </div>
-                        )}
+            {filteredAttendedConcerts.length > 0 ? (
+              <section>
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-app-muted mb-4 flex items-center gap-1.5">
+                  <Check size={14} weight="bold" className="text-[#FF1493]" />
+                  Gittiklerim
+                </h2>
+                <div className="relative border-l-2 border-[#FF1493]/20 pl-6 ml-3 space-y-12">
+                  {sortedYears.map((year) => (
+                    <div key={year} className="relative">
+                      <div className="absolute left-[-37px] top-0 bg-app-surface px-2.5 py-1 rounded-lg text-[#FF1493] font-black text-xs tracking-wider border border-[#FF1493]/30 shadow-sm">
+                        {year}
+                      </div>
 
-                        <div className="flex items-start gap-4">
-                          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
-                            {concert.imageUrl ? (
-                              <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
-                                <MusicNotes size={24} className="text-[#FF1493]/60" />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="min-w-0 flex-1 pr-12">
-                            <h3 className="text-base font-black text-app-text truncate group-hover:text-[#FF1493] transition-colors">
-                              {concert.artist}
-                            </h3>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-muted font-bold">
-                              <span className="flex items-center gap-1">
-                                <Calendar size={12} />
-                                {formatDate(concert.date)}
-                              </span>
-                              {concert.venue && (
-                                <span className="flex items-center gap-1 truncate">
-                                  <MapPin size={12} />
-                                  {concert.venue}
-                                </span>
+                      <div className="space-y-6 pt-8">
+                        {groupedByYear[year].map((concert) => {
+                          return (
+                            <motion.div
+                              key={concert.id}
+                              layout
+                              initial={{ opacity: 0, y: 15 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="bg-app-surface rounded-3xl border border-app-border p-5 relative shadow-sm transition-all group"
+                            >
+                              {concert.rating && (
+                                <div className="absolute top-5 right-5 flex items-center gap-1 bg-[#FF1493]/10 text-[#FF1493] px-2 py-0.5 rounded-full text-[10px] font-black">
+                                  <Star size={10} weight="fill" />
+                                  <span>{concert.rating}/5</span>
+                                </div>
                               )}
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Hover Actions */}
-                        {concert.userId === internalUserId && (
-                          <div className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
-                            <button
-                              onClick={() => {
-                                setSelectedConcertForEdit(concert);
-                                setShowAddDrawer(true);
-                              }}
-                              className="w-7 h-7 rounded-lg bg-app-bg hover:bg-app-surface-muted text-app-muted hover:text-app-text border border-app-border flex items-center justify-center transition-colors cursor-pointer"
-                              title="Düzenle"
-                            >
-                              <PencilSimple size={13} weight="bold" />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTargetId(concert.id)}
-                              className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 flex items-center justify-center transition-colors cursor-pointer"
-                              title="Sil"
-                            >
-                              <Trash size={13} weight="bold" />
-                            </button>
-                          </div>
-                        )}
+                              <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-app-surface-muted border border-app-border flex items-center justify-center shrink-0">
+                                  {concert.imageUrl ? (
+                                    <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-tr from-[#FF1493]/20 to-purple-500/20 flex items-center justify-center">
+                                      <MusicNotes size={24} className="text-[#FF1493]/60" />
+                                    </div>
+                                  )}
+                                </div>
 
-                        {concert.userId !== internalUserId && (
-                          <div className="absolute bottom-5 right-5 flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-app-muted bg-app-surface-muted px-2 py-1 rounded-md border border-app-border">
-                            <span>Arkadaştan</span>
-                          </div>
-                        )}
+                                <div className="min-w-0 flex-1 pr-12">
+                                  <h3 className="text-base font-black text-app-text truncate group-hover:text-[#FF1493] transition-colors">
+                                    {concert.artist}
+                                  </h3>
+                                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-app-muted font-bold">
+                                    <span className="flex items-center gap-1">
+                                      <Calendar size={12} />
+                                      {formatDate(concert.date)}
+                                    </span>
+                                    {concert.venue && (
+                                      <ConcertVenueLink
+                                        venue={concert.venue}
+                                        placeId={concert.placeId}
+                                        className="text-xs text-app-muted font-bold"
+                                      />
+                                    )}
+                                    {concert.infoUrl && (
+                                      <ConcertInfoLink
+                                        infoUrl={concert.infoUrl}
+                                        className="text-xs font-bold text-[#FF1493]"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
 
-                        {concert.notes && (
-                          <div className="mt-4 pt-3 border-t border-app-border flex items-start gap-2 text-xs text-app-muted leading-relaxed italic">
-                            <Notebook size={14} className="shrink-0 text-[#FF1493]/70 mt-0.5" />
-                            <p>{concert.notes}</p>
-                          </div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
+                              {concert.userId === internalUserId && (
+                                <div className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedConcertForEdit(concert);
+                                      setShowAddDrawer(true);
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-app-bg hover:bg-app-surface-muted text-app-muted hover:text-app-text border border-app-border flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Düzenle"
+                                  >
+                                    <PencilSimple size={13} weight="bold" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteTargetId(concert.id)}
+                                    className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Sil"
+                                  >
+                                    <Trash size={13} weight="bold" />
+                                  </button>
+                                </div>
+                              )}
+
+                              {concert.userId !== internalUserId && (
+                                <div className="absolute bottom-5 right-5 flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-app-muted bg-app-surface-muted px-2 py-1 rounded-md border border-app-border">
+                                  <span>Arkadaştan</span>
+                                </div>
+                              )}
+
+                              {concert.notes && (
+                                <div className="mt-4 pt-3 border-t border-app-border flex items-start gap-2 text-xs text-app-muted leading-relaxed italic">
+                                  <Notebook size={14} className="shrink-0 text-[#FF1493]/70 mt-0.5" />
+                                  <p>{concert.notes}</p>
+                                </div>
+                              )}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              </section>
+            ) : plannedConcerts.length > 0 ? (
+              <p className="text-center text-app-muted text-xs font-bold uppercase tracking-widest py-8">
+                Aradığınız kriterlere uygun gittiğin konser bulunamadı.
+              </p>
+            ) : null}
           </div>
         )}
       </main>
@@ -494,7 +764,11 @@ export default function ConcertListPage() {
                 friends={friends}
                 initialConcert={selectedConcertForEdit}
                 internalUserId={internalUserId}
-                onComplete={() => { fetchConcerts(); setShowAddDrawer(false); setSelectedConcertForEdit(null); }}
+                onComplete={() => {
+                  fetchConcerts();
+                  setShowAddDrawer(false);
+                  setSelectedConcertForEdit(null);
+                }}
                 onDelete={(id) => {
                   setDeleteTargetId(id);
                   setShowAddDrawer(false);
@@ -597,10 +871,15 @@ function AddConcertForm({
   const [formData, setFormData] = useState({
     artist: initialConcert?.artist || "",
     date: initialConcert?.date || new Date().toISOString().split("T")[0],
-    venue: initialConcert?.venue || "",
     notes: initialConcert?.notes || "",
     rating: initialConcert?.rating || 5,
+    infoUrl: initialConcert?.infoUrl || "",
   });
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(
+    initialConcert?.placeId && initialConcert.venue
+      ? { placeId: initialConcert.placeId, name: initialConcert.venue }
+      : null,
+  );
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>(
     initialConcert?.friends?.map(f => f.id) || []
   );
@@ -645,11 +924,13 @@ function AddConcertForm({
           userId: user.id,
           artist: formData.artist,
           date: formData.date,
-          venue: formData.venue || undefined,
+          placeId: selectedPlace?.placeId,
+          venue: selectedPlace?.name,
           notes: formData.notes || undefined,
           rating: formData.rating,
           friendIds: selectedFriendIds,
           imageUrl: selectedImageUrl || undefined,
+          infoUrl: formData.infoUrl.trim() || undefined,
         });
         toast.success("Konser güncellendi!");
       } else {
@@ -657,11 +938,13 @@ function AddConcertForm({
           userId: user.id,
           artist: formData.artist,
           date: formData.date,
-          venue: formData.venue || undefined,
+          placeId: selectedPlace?.placeId,
+          venue: selectedPlace?.name,
           notes: formData.notes || undefined,
           rating: formData.rating,
           friendIds: selectedFriendIds,
           imageUrl: selectedImageUrl || undefined,
+          infoUrl: formData.infoUrl.trim() || undefined,
         });
         toast.success("Konser kaydedildi!");
       }
@@ -749,13 +1032,22 @@ function AddConcertForm({
       </div>
 
       <div>
-        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Mekan / Şehir (Opsiyonel)</label>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Mekan (Opsiyonel)</label>
+        <PlacePicker
+          value={selectedPlace}
+          onChange={setSelectedPlace}
+          disabled={!isCreator}
+        />
+      </div>
+
+      <div>
+        <label className="text-xs font-bold text-app-muted uppercase tracking-wider mb-2 block">Detay Linki (Opsiyonel)</label>
         <input
           disabled={!isCreator}
-          type="text"
-          value={formData.venue}
-          onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-          placeholder="Örn: KüçükÇiftlik Park, VW Arena..."
+          type="url"
+          value={formData.infoUrl}
+          onChange={(e) => setFormData({ ...formData, infoUrl: e.target.value })}
+          placeholder="https://..."
           className="w-full bg-app-surface border border-app-border rounded-xl px-4 py-3 text-sm focus:border-[#FF1493]/50 outline-none text-app-text placeholder:text-app-muted disabled:opacity-50"
         />
       </div>

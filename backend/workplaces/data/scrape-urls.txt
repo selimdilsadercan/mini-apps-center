@@ -1,5 +1,1 @@
-https://www.google.com/maps/place/Oniki%C5%9Fubat+Belediyesi+EXPO+2023+Onikisubat%2FKahramanmara%C5%9F/@37.6026422,36.788156,16.21z/data=!4m6!3m5!1s0x152ddbb6f77da313:0x7d910e94b58acf0a!8m2!3d37.6046241!4d36.7837829!16s%2Fg%2F11fgjhxv3g?entry=ttu
-https://www.google.com/maps/place/Oniki%C5%9Fubat+Belediyesi+Bisiklet+ve+Y%C3%BCr%C3%BCy%C3%BC%C5%9F+Parkuru/@37.5985762,36.7941666,14.83z/data=!4m6!3m5!1s0x152dda469401de61:0xe4299ffcbf8241e8!8m2!3d37.6032455!4d36.8105439!16s%2Fg%2F11fyzcsgh2?entry=ttu
-https://www.google.com/maps/place/Extrem+Park+Kap%C4%B1%C3%A7am/@37.4895679,37.0257554,17z/data=!3m1!4b1!4m6!3m5!1s0x152de13604135843:0xe5868d183bc5de0e!8m2!3d37.4895679!4d37.0283303!16s%2Fg%2F11g3y25hyc?entry=ttu
-https://www.google.com/maps/place/Arena+karting/@37.5654769,36.9016486,16.04z/data=!4m5!3m4!1s0x152ddc3d74d6a3db:0xd1bc5b4f0befc0b2!8m2!3d37.5635533!4d36.8905395?entry=ttu
-https://www.google.com/maps/place/Massa+Oyun+Salonu/@37.5880371,36.8270405,15z/data=!4m6!3m5!1s0x152ddd406535515f:0x73266803dd909f7a!8m2!3d37.5898008!4d36.876292!16s%2Fg%2F11hzpkpzzq?entry=ttu
+https://www.google.com/maps/place/Kahramanmara%C5%9F+Belediyesi+Fuar+Mer./@37.5584933,36.9206684,17z/data=!4m10!1m2!2m1!1skafum+fuar+merkezi!3m6!1s0x152dddc7f4cdd1e1:0xe1093e16fb4f3db!8m2!3d37.558479!4d36.923184!16s%2Fg%2F11b7q8nc8v?entry=ttu

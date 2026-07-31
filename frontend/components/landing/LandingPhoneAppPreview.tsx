@@ -179,13 +179,13 @@ export default function LandingPhoneAppPreview() {
               </HomeSummaryCard>
             </div>
 
-            {/* Bugünün Etkinlikleri */}
+            {/* Yaklaşan Etkinlikler */}
             <div className={MASONRY_ITEM}>
               <HomeSummaryCard
                 href="/apps/campus-events"
                 icon={Megaphone}
                 color="#00aeef"
-                title="Bugünün Etkinlikleri"
+                title="Yaklaşan Etkinlikler"
                 subtitle="Şehirde Neler Var?"
                 loading={false}
                 emptyText=""

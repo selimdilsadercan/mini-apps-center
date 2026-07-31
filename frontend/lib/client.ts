@@ -2610,10 +2610,14 @@ export namespace concert_list {
         artist: string
         date: string
         venue?: string
+        placeId?: string
         notes?: string
         rating?: number
         friendIds?: string[]
         imageUrl?: string
+        infoUrl?: string
+        status?: "planned" | "attended"
+        upcomingConcertId?: string
     }
 
     export interface AddConcertResponse {
@@ -2626,8 +2630,10 @@ export namespace concert_list {
             artist: string
             date: string
             venue?: string
+            placeId?: string
             notes?: string
             rating?: number
+            infoUrl?: string
         }[]
     }
 
@@ -2643,11 +2649,15 @@ export namespace concert_list {
         artist: string
         date: string
         venue?: string
+        placeId?: string
         notes?: string
         rating?: number
         createdAt: string
         friends?: ConcertFriend[]
         imageUrl?: string | null
+        infoUrl?: string
+        status?: "planned" | "attended"
+        upcomingConcertId?: string
     }
 
     export interface ConcertFriend {
@@ -2666,10 +2676,13 @@ export namespace concert_list {
         artist: string
         date: string
         venue?: string
+        placeId?: string
         notes?: string
         rating?: number
         friendIds?: string[]
         imageUrl?: string
+        infoUrl?: string
+        status?: "planned" | "attended"
     }
 
     export interface EditConcertResponse {
@@ -2705,8 +2718,10 @@ export namespace concert_list {
         artist: string
         date: string
         venue?: string
+        placeId?: string
         description?: string
         imageUrl?: string
+        infoUrl?: string
         createdAt: string
     }
 
@@ -11261,6 +11276,7 @@ export namespace workplaces {
 
     export interface SearchPlaceResponse {
         results: {
+            id: string
             name: string
             address?: string
             url?: string

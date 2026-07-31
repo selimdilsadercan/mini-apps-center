@@ -840,6 +840,7 @@ export interface SearchPlaceRequest {
 
 export interface SearchPlaceResponse {
   results: Array<{
+    id: string;
     name: string;
     address?: string;
     url?: string;
@@ -1010,6 +1011,7 @@ export const searchPlace = api(
         })
         .slice(0, 10)
         .map((place) => ({
+          id: place.id,
           name: place.name,
           address: place.address,
           url: place.url,
