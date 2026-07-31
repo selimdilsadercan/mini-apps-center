@@ -50,7 +50,6 @@ import {
   Anchor,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from "react";
-import dynamic from "next/dynamic";
 import { MINI_APPS } from "@/lib/apps";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@/lib/api";
@@ -64,18 +63,18 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import {
+  HomeSummaryCard,
+  HomeTaskCheckButton,
+  WidgetActionButton,
+  HomeWidgetsDivider,
+  HomeGroupHeader,
+} from "./common/HomeSummaryCard";
+import { PlacesHomeWidget } from "./PlacesHomeWidget";
+import { getLinkedAppForRoutine } from "@/app/apps/rutinler/routineAppLinks";
+import { isCapacitorIOS } from "@/lib/app-root";
 
 const browserClient = createBrowserClient();
-
-const StudyPlacesMapPreview = dynamic(
-  () => import("@/components/maps/StudyPlacesMap"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[176px] bg-[#17263c] animate-pulse rounded-b-2xl" />
-    ),
-  },
-);
 
 const WIDGET_MASONRY =
   "columns-1 md:columns-2 gap-3 md:gap-4";
@@ -87,15 +86,6 @@ const DEFAULT_MOVIES = [
   { id: "102", title: "Oppenheimer", year: 2023, voteAverage: 8.9, posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
   { id: "103", title: "Interstellar", year: 2014, voteAverage: 8.7, posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
 ];
-import {
-  HomeSummaryCard,
-  HomeTaskCheckButton,
-  WidgetActionButton,
-  HomeWidgetsDivider,
-  HomeGroupHeader,
-} from "./common/HomeSummaryCard";
-import { getLinkedAppForRoutine } from "@/app/apps/rutinler/routineAppLinks";
-import { isCapacitorIOS } from "@/lib/app-root";
 
 interface DiscoverTabProps {
   isAdmin?: boolean;
@@ -173,6 +163,8 @@ interface DiscoverTabProps {
 
 import { DeckView } from "./DeckView";
 import { ConcertVenueLink } from "@/app/apps/concert-list/components/PlacePicker";
+import { NeYapsakWidget } from "./NeYapsakWidget";
+import { useMarasSources } from "@/app/apps/kim-gelir/hooks/useMarasSources";
 
 export function DiscoverTab(props: DiscoverTabProps) {
   const {
@@ -309,6 +301,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const cineverseData = cineverseSessionsQuery.data;
   const sessionsLoading = cineverseSessionsQuery.isLoading;
+
+  const marasSources = useMarasSources(userId);
 
   const recentGameSaves = useMemo(() => {
     if (!gameSavesQuery.data?.gameSaves) return [];
@@ -541,30 +535,28 @@ export function DiscoverTab(props: DiscoverTabProps) {
       icon: Coffee,
       color: "#D97706",
       loading: loading,
-      hasContent: true,
+      hasContent: (cafeRestaurantPlaces.length > 0 ? cafeRestaurantPlaces : places).some(
+        (p: { latitude?: number | null; longitude?: number | null }) =>
+          p.latitude != null && p.longitude != null
+      ),
       hasCompletedOnly: false,
       card: (
         <HomeSummaryCard
-          href="/apps/workplaces"
+          href="/apps/workplaces/map"
           icon={Coffee}
           color="#D97706"
           title="Mekanlar"
           subtitle="Kahramanmaraş"
           loading={loading}
-          emptyText="Harita yüklenemedi"
-          hasContent
+          emptyText="Mekan bulunamadı"
+          hasContent={(cafeRestaurantPlaces.length > 0 ? cafeRestaurantPlaces : places).some(
+            (p: { latitude?: number | null; longitude?: number | null }) =>
+              p.latitude != null && p.longitude != null
+          )}
         >
-          <div
-            className="relative h-[176px] w-full overflow-hidden rounded-b-2xl bg-[#17263c]"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <StudyPlacesMapPreview
-              places={places}
-              onSelectPlace={() => {}}
-              preview
-            />
-          </div>
+          <PlacesHomeWidget
+            places={cafeRestaurantPlaces.length > 0 ? cafeRestaurantPlaces : places}
+          />
         </HomeSummaryCard>
       )
     },
@@ -1174,74 +1166,27 @@ export function DiscoverTab(props: DiscoverTabProps) {
       ),
     },
     {
-      key: "activities",
-      title: "Etkinlikler",
+      key: "ne-yapsak",
+      title: "Ne Yapsak?",
       icon: Users,
-      color: "#EC4899",
-      loading: loading,
-      hasContent: previewActivities.length > 0,
+      color: "#FF5252",
+      loading: loading || marasSources.loading,
+      hasContent: marasSources.suggestions.length > 0 || previewActivities.length > 0,
       hasCompletedOnly: false,
       card: (
-        <HomeSummaryCard
-          href="/apps/kim-gelir"
-          icon={Users}
-          color="#3B82F6"
-          title="Etkinlik Davetleri"
-          subtitle="Kim Gelir"
-          loading={loading}
-          emptyText="Henüz yeni bir etkinlik davetin yok 🎉"
-          hasContent={previewActivities.length > 0}
-          onHideToday={() => triggerHide("activities", "today")}
-          onHidePermanent={() => triggerHide("activities", "permanent")}
-          isTodayHidden={isWidgetTodayHidden("activities")}
-          isPermanentlyHidden={isWidgetPermanentlyHidden("activities")}
-          onRestore={() => handleRestoreWidget("activities")}
-        >
-          {previewActivities.map((activity: any) => {
-            const myResponse = activity.responses.find((response: any) => response.userId === userId)?.status;
-            return (
-              <div key={activity.id} className="px-4 py-3 border-t border-app-border space-y-2.5">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-red-500">
-                    <Users size={16} weight="fill" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-app-text truncate">{activity.title}</p>
-                    <p className="text-[9px] text-app-muted font-bold truncate">
-                      {activity.location || "Konum belirtilmedi"} · {activity.responses.length} yanıt
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <WidgetActionButton
-                    onClick={() => handleActivityRespond(activity.id, "gelirim")}
-                    loading={actionLoading === `activity-${activity.id}-gelirim`}
-                    icon={Check}
-                    selected={myResponse === "gelirim"}
-                  >
-                    Gelirim
-                  </WidgetActionButton>
-                  <WidgetActionButton
-                    onClick={() => handleActivityRespond(activity.id, "belki")}
-                    loading={actionLoading === `activity-${activity.id}-belki`}
-                    icon={Question}
-                    selected={myResponse === "belki"}
-                  >
-                    Belki
-                  </WidgetActionButton>
-                  <WidgetActionButton
-                    onClick={() => handleActivityRespond(activity.id, "gelemem")}
-                    loading={actionLoading === `activity-${activity.id}-gelemem`}
-                    icon={X}
-                    selected={myResponse === "gelemem"}
-                  >
-                    Gelemiyorum
-                  </WidgetActionButton>
-                </div>
-              </div>
-            );
-          })}
-        </HomeSummaryCard>
+        <NeYapsakWidget
+          suggestions={marasSources.suggestions}
+          suggestionsLoading={marasSources.loading}
+          activities={activities}
+          userId={userId}
+          actionLoading={actionLoading}
+          onRespond={handleActivityRespond}
+          onHideToday={() => triggerHide("ne-yapsak", "today")}
+          onHidePermanent={() => triggerHide("ne-yapsak", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("ne-yapsak")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("ne-yapsak")}
+          onRestore={() => handleRestoreWidget("ne-yapsak")}
+        />
       ),
     },
     {
@@ -2093,7 +2038,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget";
+    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget" || w.key === "ne-yapsak";
     if (activeSubTab === "explore") {
       return isExploreWidget;
     } else {
@@ -2112,6 +2057,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "places-widget" &&
       widget.key !== "upcoming-concerts-widget" &&
       widget.key !== "outdoor-activities-widget" &&
+      widget.key !== "ne-yapsak" &&
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
@@ -2140,7 +2086,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   const finishedWidgets = filteredWidgets.filter((widget) => {
     if (
       widget.key === "suggest" ||
-      widget.key === "activities" ||
+      widget.key === "ne-yapsak" ||
       widget.key === "matches" ||
       widget.key === "youtubeSeries" ||
       widget.key === "movies" ||
@@ -2245,6 +2191,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const eventsWidget = filteredWidgets.find((w) => w.key === "events-widget");
         const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
+        const neYapsakWidget = filteredWidgets.find((w) => w.key === "ne-yapsak");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
@@ -2258,8 +2205,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visibleEvents = eventsWidget && eventsWidget.hasContent && showCityWidget("events-widget");
         const visiblePlaces = placesWidget && showCityWidget("places-widget");
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && showCityWidget("upcoming-concerts-widget");
+        const visibleNeYapsak = neYapsakWidget && neYapsakWidget.hasContent && showCityWidget("ne-yapsak");
 
-        const hasAny = visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
+        const hasAny = visibleNeYapsak || visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
 
         if (!hasAny) return null;
 
@@ -2268,6 +2216,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
             <HomeGroupHeader title={activeSubTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
             <div className={WIDGET_MASONRY}>
               <AnimatePresence initial={false}>
+                {visibleNeYapsak && neYapsakWidget && (
+                  <motion.div
+                    key="ne-yapsak"
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={WIDGET_MASONRY_ITEM}
+                  >
+                    {neYapsakWidget.card}
+                  </motion.div>
+                )}
                 {visiblePlaces && placesWidget && (
                   <motion.div
                     key="places-widget"

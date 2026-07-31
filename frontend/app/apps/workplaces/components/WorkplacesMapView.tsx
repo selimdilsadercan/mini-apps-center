@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   Coffee,
@@ -39,15 +39,26 @@ const StudyPlacesMap = dynamic(() => import("@/components/maps/StudyPlacesMap"),
 interface WorkplacesMapViewProps {
   places: workplaces.Place[];
   loading: boolean;
+  initialPlaceId?: string | null;
 }
 
-export default function WorkplacesMapView({ places, loading }: WorkplacesMapViewProps) {
+export default function WorkplacesMapView({
+  places,
+  loading,
+  initialPlaceId,
+}: WorkplacesMapViewProps) {
   const t = useTranslations("workplaces");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDistrict, setFilterDistrict] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<workplaces.Place | null>(null);
+
+  useEffect(() => {
+    if (!initialPlaceId || loading) return;
+    const place = places.find((p) => p.id === initialPlaceId);
+    if (place) setSelectedPlace(place);
+  }, [initialPlaceId, places, loading]);
 
   const districts = useMemo(() => {
     const names = new Set<string>();

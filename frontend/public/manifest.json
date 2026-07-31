@@ -4,6 +4,7 @@
   "description": "Your unified toolkit for daily life - Productivity, Utilities, and more.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#FAF9F7",
   "theme_color": "#4f46e5",
   "icons": [

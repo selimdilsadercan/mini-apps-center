@@ -1,9 +1,24 @@
--- FUNCTIONS
--- 1. kim_gelir.create_activity
--- 2. kim_gelir.get_activities
--- 3. kim_gelir.respond_to_activity
+-- Kim Gelir: custom_time TIMESTAMPTZ -> TEXT
+-- Run ONLY this file in Supabase SQL Editor (do not re-run full tables.up.sql).
+-- Fixes: invalid input syntax for type timestamp with time zone: "19:50"
 
--- 1. Create Activity
+-- 1. Column type
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'kim_gelir'
+          AND table_name = 'activities'
+          AND column_name = 'custom_time'
+          AND udt_name = 'timestamptz'
+    ) THEN
+        ALTER TABLE kim_gelir.activities
+            ALTER COLUMN custom_time TYPE TEXT USING custom_time::TEXT;
+    END IF;
+END $$;
+
+-- 2. create_activity (p_custom_time TEXT)
 DROP FUNCTION IF EXISTS kim_gelir.create_activity(TEXT, TEXT, TEXT, TEXT, TIMESTAMP WITH TIME ZONE, TEXT[]);
 DROP FUNCTION IF EXISTS kim_gelir.create_activity(TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, TEXT[], TEXT, JSONB);
 DROP FUNCTION IF EXISTS kim_gelir.create_activity(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT[], TEXT, JSONB);
@@ -25,13 +40,11 @@ DECLARE
     v_invited_clerk_id TEXT;
     v_invited_user_id UUID;
 BEGIN
-    -- Get creator internal ID
     v_creator_id := public.get_internal_user_id(p_creator_clerk_id);
     IF v_creator_id IS NULL THEN
         RAISE EXCEPTION 'Creator not found';
     END IF;
 
-    -- Insert the activity
     INSERT INTO kim_gelir.activities (
         creator_id,
         title,
@@ -50,7 +63,6 @@ BEGIN
         p_options
     ) RETURNING id INTO v_activity_id;
 
-    -- Creator automatically gets added with 'gelirim' response
     INSERT INTO kim_gelir.activity_invites (
         activity_id,
         user_id,
@@ -61,7 +73,6 @@ BEGIN
         'gelirim'
     );
 
-    -- Insert invites for all invited users
     FOREACH v_invited_clerk_id IN ARRAY p_invited_clerk_ids
     LOOP
         v_invited_user_id := public.get_internal_user_id(v_invited_clerk_id);
@@ -82,8 +93,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 2. Get Activities
+-- 3. get_activities (custom_time TEXT in return type)
 DROP FUNCTION IF EXISTS kim_gelir.get_activities(TEXT);
+
 CREATE OR REPLACE FUNCTION kim_gelir.get_activities(
     p_clerk_id TEXT
 )
@@ -109,7 +121,7 @@ BEGIN
     v_user_id := public.get_internal_user_id(p_clerk_id);
 
     RETURN QUERY
-    SELECT 
+    SELECT
         a.id,
         a.creator_id,
         cu.clerk_id AS creator_clerk_id,
@@ -143,56 +155,13 @@ BEGIN
         ) AS responses
     FROM kim_gelir.activities a
     LEFT JOIN public.users cu ON a.creator_id = cu.id
-    WHERE 
-        -- Must be the creator OR must have an invite/response row
+    WHERE
         a.creator_id = v_user_id
         OR EXISTS (
-            SELECT 1 
-            FROM kim_gelir.activity_invites ai 
+            SELECT 1
+            FROM kim_gelir.activity_invites ai
             WHERE ai.activity_id = a.id AND ai.user_id = v_user_id
         )
     ORDER BY a.created_at DESC;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 3. Respond to Activity
-DROP FUNCTION IF EXISTS kim_gelir.respond_to_activity(UUID, TEXT, TEXT);
-DROP FUNCTION IF EXISTS kim_gelir.respond_to_activity(UUID, TEXT, TEXT, JSONB);
-
-CREATE OR REPLACE FUNCTION kim_gelir.respond_to_activity(
-    p_activity_id UUID,
-    p_clerk_id TEXT,
-    p_status TEXT,
-    p_selected_options JSONB DEFAULT '[]'::jsonb
-)
-RETURNS BOOLEAN AS $$
-DECLARE
-    v_user_id UUID;
-BEGIN
-    v_user_id := public.get_internal_user_id(p_clerk_id);
-    IF v_user_id IS NULL THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    INSERT INTO kim_gelir.activity_invites (
-        activity_id,
-        user_id,
-        status,
-        selected_options,
-        updated_at
-    ) VALUES (
-        p_activity_id,
-        v_user_id,
-        p_status,
-        p_selected_options,
-        NOW()
-    )
-    ON CONFLICT (activity_id, user_id) 
-    DO UPDATE SET 
-        status = EXCLUDED.status,
-        selected_options = EXCLUDED.selected_options,
-        updated_at = NOW();
-
-    RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

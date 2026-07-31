@@ -1,14 +1,17 @@
 "use client";
 
 import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import WorkplacesMapView from "../components/WorkplacesMapView";
 import { useWorkplacesPlaces } from "../hooks/use-workplaces-places";
 
 function MapPageContent() {
+  const searchParams = useSearchParams();
+  const placeId = searchParams.get("placeId");
   const { places, loading } = useWorkplacesPlaces();
   return (
     <div className="h-full w-full">
-      <WorkplacesMapView places={places} loading={loading} />
+      <WorkplacesMapView places={places} loading={loading} initialPlaceId={placeId} />
     </div>
   );
 }

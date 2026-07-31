@@ -11,6 +11,7 @@ import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import OTAProvider from "@/components/OTAProvider";
 import OtaBootstrap from "@/components/OtaBootstrap";
 import { MobileThemeProvider } from "@/components/MobileThemeManager";
+import { PortraitOrientationLock } from "@/components/PortraitOrientationLock";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { HomeProvider } from "@/contexts/HomeContext";
 import QueryProvider from "@/contexts/QueryProvider";
@@ -65,6 +66,7 @@ export default function RootLayout({
                 <HomeProvider>
                   <ConfirmDialogProvider>
                     <MobileThemeProvider>
+                      <PortraitOrientationLock />
                       <NotificationHandler />
                       <GreetingHandler />
                       {children}

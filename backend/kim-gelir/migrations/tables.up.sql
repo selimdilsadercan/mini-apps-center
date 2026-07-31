@@ -11,8 +11,14 @@
 -- 1. Migration: Internal UUID Transition (clerk_id TEXT -> user_id UUID)
 DO $$ 
 BEGIN 
-    -- activities table: creator_id
-    IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'kim_gelir' AND table_name = 'activities' AND column_name = 'creator_id') THEN
+    -- activities table: creator_id (only when still TEXT clerk_id)
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'kim_gelir'
+          AND table_name = 'activities'
+          AND column_name = 'creator_id'
+          AND data_type = 'text'
+    ) THEN
         -- Add creator_uuid column
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'kim_gelir' AND table_name = 'activities' AND column_name = 'creator_uuid') THEN
             ALTER TABLE kim_gelir.activities ADD COLUMN creator_uuid UUID REFERENCES public.users(id) ON DELETE CASCADE;
@@ -65,6 +71,8 @@ BEGIN
     END IF;
 END $$;
 
+-- custom_time TEXT migration: see migrations/01_custom_time_text.up.sql
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------
@@ -82,7 +90,7 @@ CREATE TABLE IF NOT EXISTS kim_gelir.activities (
     title TEXT NOT NULL,
     location TEXT NOT NULL,
     time_option TEXT NOT NULL,
-    custom_time TIMESTAMPTZ,
+    custom_time TEXT,
     scope TEXT NOT NULL DEFAULT 'friends',
     activity_type TEXT NOT NULL DEFAULT 'quick_invite' CHECK (activity_type IN ('quick_invite', 'plan_poll', 'time_poll')),
     options JSONB DEFAULT '[]'::jsonb NOT NULL,

@@ -591,7 +591,7 @@ const RAW_MINI_APPS: MiniApp[] = [
   {
     id: "kim-gelir",
     name: "Ne Yapsak?",
-    description: "Hızlıca aktivite daveti veya anket oluştur, arkadaşlarını davet et.",
+    description: "Maraş'ta ne yapalım? Canlı sinema, mekan ve etkinlik verisiyle davet oluştur.",
     cta: "Etkinlik Daveti Oluştur",
     icon: Users,
     category: "Sosyal",
