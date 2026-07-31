@@ -294,11 +294,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
   const cineverseSessionsQuery = useQuery({
     queryKey: ["film-graph", "cineverse-sessions", todayStr],
     queryFn: async () => {
-      const sessionsRes = await browserClient.film_graph.getCineverseSessions({ date: todayStr, theaterSlug: "piazza-kahramanmaras" });
+      const [piazzaRes, arsanRes] = await Promise.all([
+        browserClient.film_graph.getCineverseSessions({ date: todayStr, theaterSlug: "piazza-kahramanmaras" }),
+        browserClient.film_graph.getCineverseSessions({ date: todayStr, theaterSlug: "kahramanmaras-arsan-sinemasi" }),
+      ]);
       const moviesRes = await browserClient.film_graph.getCineverseMovies();
       return {
-        sessions: sessionsRes.sessions || [],
-        movies: moviesRes.movies || []
+        sessions: [...(piazzaRes.sessions || []), ...(arsanRes.sessions || [])],
+        movies: moviesRes.movies || [],
       };
     },
     staleTime: 60 * 1000,
@@ -684,7 +687,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
             icon={Ticket}
             color="#D97706"
             title="Bugün Sinemada"
-            subtitle="Paribu Cineverse Piazza"
+            subtitle="Piazza & Arsan Sineması"
             loading={sessionsLoading}
             emptyText="Bugün için seans bilgisi yok 🎬"
             hasContent={sessions.length > 0}

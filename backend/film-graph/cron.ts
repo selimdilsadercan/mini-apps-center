@@ -2,6 +2,7 @@ import { CronJob } from "encore.dev/cron";
 import { api } from "encore.dev/api";
 import log from "encore.dev/log";
 import { supabase } from "./api";
+import { BILETINIAL_ARSAN, scrapeBiletinialVenue } from "./scrape-biletinial";
 
 declare const document: any;
 
@@ -250,6 +251,67 @@ export async function scrapeTheaterSessions(theaterSlug: string): Promise<{ succ
   }
 }
 
+async function persistCineverseData(
+  theaterSlug: string,
+  moviesToInsert: Map<string, { title: string; image_url: string; duration: string; genre: string; description: string; tmdb_id: number | null }>,
+  allSessions: Array<{ movie_title: string; theater_name: string; theater_slug: string; time: string; date: string; booking_url: string | null }>,
+): Promise<number> {
+  if (moviesToInsert.size > 0) {
+    const moviesList = Array.from(moviesToInsert.values());
+    const { error: movieErr } = await supabase
+      .schema("film_graph")
+      .from("cineverse_movies")
+      .upsert(moviesList, { onConflict: "title" });
+
+    if (movieErr) {
+      log.error("Failed to upsert cineverse movies:", movieErr.message);
+    }
+  }
+
+  let sessionsCount = 0;
+  if (allSessions.length > 0) {
+    const { error: clearErr } = await supabase
+      .schema("film_graph")
+      .from("cineverse_sessions")
+      .delete()
+      .eq("theater_slug", theaterSlug);
+
+    if (clearErr) {
+      log.error("Failed to clear stale sessions:", clearErr.message);
+    }
+
+    const { error: sessionErr } = await supabase
+      .schema("film_graph")
+      .from("cineverse_sessions")
+      .insert(allSessions);
+
+    if (sessionErr) {
+      log.error("Failed to insert cineverse sessions:", sessionErr.message);
+    } else {
+      sessionsCount = allSessions.length;
+    }
+  }
+
+  return sessionsCount;
+}
+
+export async function scrapeBiletinialTheater(): Promise<{ success: boolean; count: number }> {
+  log.info("Starting Biletinial Arsan scraper...");
+
+  try {
+    const result = await scrapeBiletinialVenue(BILETINIAL_ARSAN, searchTmdbMovie, 7);
+    if (!result.success) return { success: false, count: 0 };
+
+    const moviesMap = new Map(result.movies.map((m) => [m.title, m]));
+    const count = await persistCineverseData(BILETINIAL_ARSAN.slug, moviesMap, result.sessions);
+    log.info(`Biletinial scrape done: ${count} sessions`);
+    return { success: true, count };
+  } catch (error: any) {
+    log.error("Biletinial scraper execution error:", error.message || error);
+    return { success: false, count: 0 };
+  }
+}
+
 // 1. Sync Trigger Endpoint
 export const triggerCineverseSync = api(
   { expose: true, method: "POST", path: "/film-graph/cineverse/sync" },
@@ -258,9 +320,23 @@ export const triggerCineverseSync = api(
   }
 );
 
-// 2. Background Cron Definition (every 24 hours)
-const _ = new CronJob("sync-cineverse-sessions", {
+// Biletinial sync endpoint
+export const triggerBiletinialSync = api(
+  { expose: true, method: "POST", path: "/film-graph/biletinial/sync" },
+  async (): Promise<{ success: boolean; count: number }> => {
+    return await scrapeBiletinialTheater();
+  },
+);
+
+// 2. Background Cron Definitions (every 24 hours)
+const _cineverseCron = new CronJob("sync-cineverse-sessions", {
   title: "Scrape Paribu Cineverse Sessions",
   every: "24h",
-  endpoint: triggerCineverseSync
+  endpoint: triggerCineverseSync,
+});
+
+const _biletinialCron = new CronJob("sync-biletinial-sessions", {
+  title: "Scrape Biletinial Arsan Sessions",
+  every: "24h",
+  endpoint: triggerBiletinialSync,
 });

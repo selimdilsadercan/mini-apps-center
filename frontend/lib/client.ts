@@ -4365,6 +4365,7 @@ export namespace film_graph {
             this.resetDailySuggestions = this.resetDailySuggestions.bind(this)
             this.searchFilms = this.searchFilms.bind(this)
             this.syncUserFilm = this.syncUserFilm.bind(this)
+            this.triggerBiletinialSync = this.triggerBiletinialSync.bind(this)
             this.triggerCineverseSync = this.triggerCineverseSync.bind(this)
         }
 
@@ -4526,6 +4527,21 @@ export namespace film_graph {
             const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/user-films/sync`, JSON.stringify(params))
             return await resp.json() as {
     success: boolean
+}
+        }
+
+        /**
+         * Biletinial sync endpoint
+         */
+        public async triggerBiletinialSync(): Promise<{
+    success: boolean
+    count: number
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/film-graph/biletinial/sync`)
+            return await resp.json() as {
+    success: boolean
+    count: number
 }
         }
 

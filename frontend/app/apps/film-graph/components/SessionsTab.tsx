@@ -12,9 +12,15 @@ interface SessionsTabProps {
 
 const client = new Client(getEncoreApiBase());
 
+const THEATERS = [
+  { slug: "piazza-kahramanmaras", label: "Paribu Cineverse Piazza" },
+  { slug: "kahramanmaras-arsan-sinemasi", label: "Arsan Sineması (Biletinial)" },
+] as const;
+
 export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
   const [cineverseMovies, setCineverseMovies] = useState<film_graph.CineverseMovie[]>([]);
   const [cineverseSessions, setCineverseSessions] = useState<film_graph.CineverseSession[]>([]);
+  const [selectedTheater, setSelectedTheater] = useState<string>(THEATERS[0].slug);
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
     const year = d.getFullYear();
@@ -25,16 +31,16 @@ export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchCineverseData(selectedDate);
-  }, [selectedDate]);
+    fetchCineverseData(selectedDate, selectedTheater);
+  }, [selectedDate, selectedTheater]);
 
-  const fetchCineverseData = async (dateStr: string) => {
+  const fetchCineverseData = async (dateStr: string, theaterSlug: string) => {
     try {
       setLoading(true);
       const moviesRes = await client.film_graph.getCineverseMovies();
       setCineverseMovies(moviesRes.movies || []);
       
-      const sessionsRes = await client.film_graph.getCineverseSessions({ date: dateStr, theaterSlug: "piazza-kahramanmaras" });
+      const sessionsRes = await client.film_graph.getCineverseSessions({ date: dateStr, theaterSlug });
       setCineverseSessions(sessionsRes.sessions || []);
     } catch (e) {
       console.error("Fetch Cineverse error:", e);
@@ -81,11 +87,27 @@ export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
 
   return (
     <div className="space-y-5">
-      {/* Header Info */}
+      {/* Theater + Header Info */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {THEATERS.map((t) => (
+          <button
+            key={t.slug}
+            type="button"
+            onClick={() => setSelectedTheater(t.slug)}
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black border transition-all cursor-pointer ${
+              selectedTheater === t.slug
+                ? "bg-app-tab-active border-app-border text-app-text shadow-sm"
+                : "bg-app-surface/60 border-app-border/50 text-app-muted hover:text-app-text"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
       <div className="text-center py-2 bg-app-surface-muted/40 rounded-xl border border-app-border/40">
         <p className="text-[10px] font-black tracking-widest text-app-muted uppercase flex items-center justify-center gap-1.5">
           <MapPin size={12} weight="fill" style={{ color: ACCENT }} />
-          <span>Piazza Kahramanmaraş Paribu Cineverse</span>
+          <span>{THEATERS.find((t) => t.slug === selectedTheater)?.label}</span>
         </p>
       </div>
 
