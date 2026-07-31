@@ -164,7 +164,7 @@ interface DiscoverTabProps {
 import { DeckView } from "./DeckView";
 import { ConcertVenueLink } from "@/app/apps/concert-list/components/PlacePicker";
 import { NeYapsakWidget } from "./NeYapsakWidget";
-import { useMarasSources } from "@/app/apps/kim-gelir/hooks/useMarasSources";
+import { isActivePlan } from "@/app/apps/kim-gelir/components/ActivePlanRow";
 
 export function DiscoverTab(props: DiscoverTabProps) {
   const {
@@ -301,8 +301,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
 
   const cineverseData = cineverseSessionsQuery.data;
   const sessionsLoading = cineverseSessionsQuery.isLoading;
-
-  const marasSources = useMarasSources(userId);
 
   const recentGameSaves = useMemo(() => {
     if (!gameSavesQuery.data?.gameSaves) return [];
@@ -502,7 +500,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
   };
 
   const previewSuggestions = suggestions.slice(0, 2);
-  const previewActivities = activities.slice(0, 2);
   const pendingTodayAgenda = todayAgenda.filter((item: any) => !item.is_completed);
   const completedTodayAgenda = todayAgenda.filter((item: any) => item.is_completed_today);
   const previewTodayAgenda = pendingTodayAgenda.slice(0, 4);
@@ -1169,15 +1166,14 @@ export function DiscoverTab(props: DiscoverTabProps) {
       key: "ne-yapsak",
       title: "Ne Yapsak?",
       icon: Users,
-      color: "#FF5252",
-      loading: loading || marasSources.loading,
-      hasContent: marasSources.suggestions.length > 0 || previewActivities.length > 0,
+      color: "#D97706",
+      loading: loading,
+      hasContent: true,
       hasCompletedOnly: false,
       card: (
         <NeYapsakWidget
-          suggestions={marasSources.suggestions}
-          suggestionsLoading={marasSources.loading}
           activities={activities}
+          loading={loading}
           userId={userId}
           actionLoading={actionLoading}
           onRespond={handleActivityRespond}

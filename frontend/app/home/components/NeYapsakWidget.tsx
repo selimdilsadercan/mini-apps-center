@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Plus, Question, Sparkle, Users, X } from "@phosphor-icons/react";
-import { NeYapsakSuggestionRow } from "@/app/apps/kim-gelir/components/NeYapsakSuggestionRow";
-import { NE_YAPSAK_ACCENT } from "@/app/apps/kim-gelir/lib/theme";
-import type { NeYapsakSuggestion } from "@/app/apps/kim-gelir/lib/maras-sources";
+import { Check, Plus, Question, Sparkle, X } from "@phosphor-icons/react";
+import { ActivePlanRow, isActivePlan } from "@/app/apps/kim-gelir/components/ActivePlanRow";
+import type { kim_gelir } from "@/lib/client";
 import { HomeSummaryCard, WidgetActionButton } from "./common/HomeSummaryCard";
 
 interface NeYapsakWidgetProps {
-  suggestions: NeYapsakSuggestion[];
-  suggestionsLoading?: boolean;
-  activities: any[];
+  activities: kim_gelir.Activity[];
+  loading?: boolean;
   userId?: string;
   actionLoading: string | null;
   onRespond: (activityId: string, status: string) => Promise<void>;
@@ -22,9 +20,8 @@ interface NeYapsakWidgetProps {
 }
 
 export function NeYapsakWidget({
-  suggestions,
-  suggestionsLoading = false,
   activities,
+  loading = false,
   userId,
   actionLoading,
   onRespond,
@@ -34,102 +31,81 @@ export function NeYapsakWidget({
   isPermanentlyHidden,
   onRestore,
 }: NeYapsakWidgetProps) {
-  const invited = activities.filter((a) => a.creatorId !== userId).slice(0, 2);
-  const hasContent = suggestions.length > 0 || invited.length > 0;
+  const activePlans = activities.filter(isActivePlan).slice(0, 4);
 
   return (
     <HomeSummaryCard
       href="/apps/kim-gelir"
       icon={Sparkle}
-      color={NE_YAPSAK_ACCENT}
+      color="#D97706"
       title="Ne Yapsak?"
-      subtitle="Maraş · sinema, mekan, etkinlik"
-      loading={suggestionsLoading}
-      emptyText="Öneri yok — yine de plan oluşturabilirsin"
-      hasContent={hasContent}
+      subtitle="Planlar ve davetler"
+      loading={loading}
+      emptyText="Henüz aktif plan yok"
+      hasContent={activePlans.length > 0}
       onHideToday={onHideToday}
       onHidePermanent={onHidePermanent}
       isTodayHidden={isTodayHidden}
       isPermanentlyHidden={isPermanentlyHidden}
       onRestore={onRestore}
+      emptyFooter={
+        <div className="px-4 py-3 border-t border-app-border">
+          <Link
+            href="/apps/kim-gelir/create"
+            className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-app-muted hover:text-app-text transition-colors"
+          >
+            <Plus size={12} weight="bold" />
+            İlk planını oluştur
+          </Link>
+        </div>
+      }
       footerAction={
-        <Link
-          href="/apps/kim-gelir/create"
-          className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-app-muted hover:text-app-text transition-colors"
-        >
-          <Plus size={12} weight="bold" style={{ color: NE_YAPSAK_ACCENT }} />
-          Plan Oluştur
-        </Link>
+        activePlans.length > 0 ? (
+          <Link
+            href="/apps/kim-gelir/create"
+            className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-app-muted hover:text-app-text transition-colors"
+          >
+            <Plus size={12} weight="bold" />
+            Plan Oluştur
+          </Link>
+        ) : undefined
       }
     >
-      {suggestions.length > 0 && (
-        <div className="px-3 py-2 border-t border-app-border space-y-1.5">
-          <p className="px-1 text-[9px] font-black uppercase tracking-[0.16em] text-app-muted">
-            Bugün için fikirler
-          </p>
-          {suggestions.map((s) => (
-            <NeYapsakSuggestionRow key={s.id} suggestion={s} compact />
-          ))}
-        </div>
-      )}
+      {activePlans.map((activity) => {
+        const myResponse = activity.responses.find((r) => r.userId === userId)?.status;
+        const needsRsvp =
+          activity.creatorId !== userId && (!myResponse || myResponse === "bekliyor");
 
-      {invited.length > 0 && (
-        <div className="border-t border-app-border">
-          <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.16em] text-app-muted">
-            Gelen davetler
-          </p>
-          {invited.map((activity: any) => {
-            const myResponse = activity.responses.find((r: any) => r.userId === userId)?.status;
-            return (
-              <div key={activity.id} className="px-4 py-3 border-t border-app-border/70 space-y-2.5">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border"
-                    style={{
-                      backgroundColor: `${NE_YAPSAK_ACCENT}12`,
-                      borderColor: `${NE_YAPSAK_ACCENT}25`,
-                      color: NE_YAPSAK_ACCENT,
-                    }}
-                  >
-                    <Users size={16} weight="fill" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-app-text truncate">{activity.title}</p>
-                    <p className="text-[9px] text-app-muted font-bold truncate">
-                      {activity.location || "Konum belirtilmedi"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <WidgetActionButton
-                    onClick={() => onRespond(activity.id, "gelirim")}
-                    loading={actionLoading === `activity-${activity.id}-gelirim`}
-                    icon={Check}
-                    selected={myResponse === "gelirim"}
-                  >
-                    Gelirim
-                  </WidgetActionButton>
-                  <WidgetActionButton
-                    onClick={() => onRespond(activity.id, "belki")}
-                    loading={actionLoading === `activity-${activity.id}-belki`}
-                    icon={Question}
-                    selected={myResponse === "belki"}
-                  >
-                    Belki
-                  </WidgetActionButton>
-                  <WidgetActionButton
-                    onClick={() => onRespond(activity.id, "gelemem")}
-                    icon={X}
-                    selected={myResponse === "gelemem"}
-                  >
-                    Gelemiyorum
-                  </WidgetActionButton>
-                </div>
+        return (
+          <div key={activity.id} className="border-t border-app-border first:border-t-0">
+            <ActivePlanRow activity={activity} currentUserId={userId} />
+            {needsRsvp && (
+              <div className="flex items-center gap-1.5 flex-wrap px-4 pb-3 pl-[3.75rem]">
+                <WidgetActionButton
+                  onClick={() => onRespond(activity.id, "gelirim")}
+                  loading={actionLoading === `activity-${activity.id}-gelirim`}
+                  icon={Check}
+                >
+                  Gelirim
+                </WidgetActionButton>
+                <WidgetActionButton
+                  onClick={() => onRespond(activity.id, "belki")}
+                  loading={actionLoading === `activity-${activity.id}-belki`}
+                  icon={Question}
+                >
+                  Belki
+                </WidgetActionButton>
+                <WidgetActionButton
+                  onClick={() => onRespond(activity.id, "gelemem")}
+                  icon={X}
+                >
+                  Gelemiyorum
+                </WidgetActionButton>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </div>
+        );
+      })}
     </HomeSummaryCard>
   );
 }
