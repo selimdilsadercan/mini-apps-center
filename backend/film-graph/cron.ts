@@ -1,6 +1,7 @@
 import { CronJob } from "encore.dev/cron";
 import { api } from "encore.dev/api";
 import log from "encore.dev/log";
+import { launchBrowser } from "../scrape/launch-browser";
 import { supabase } from "./api";
 import { BILETINIAL_ARSAN, scrapeBiletinialVenue } from "./scrape-biletinial";
 
@@ -46,25 +47,10 @@ export async function scrapeTheaterSessions(theaterSlug: string): Promise<{ succ
   let sessionsCount = 0;
 
   try {
-    // Dynamic import to prevent Encore bundler bugs
-    const puppeteer = await import("puppeteer-extra");
-    const StealthPlugin = await import("puppeteer-extra-plugin-stealth");
-    
-    const extra = puppeteer.default;
-    extra.use(StealthPlugin.default());
-
     log.info("Launching Puppeteer browser...");
-    browser = await extra.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-blink-features=AutomationControlled"
-      ]
-    });
+    browser = await launchBrowser(false, { defaultViewport: { width: 1280, height: 800 } });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
     
     const url = `https://www.paribucineverse.com/sinemalar/${theaterSlug}`;
     log.info(`Navigating to URL: ${url}`);

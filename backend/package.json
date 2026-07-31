@@ -10,7 +10,8 @@
     "test": "bun ../docs/scripts/backend/test.ts",
     "generate": "bun ../docs/scripts/backend/generate.ts",
     "generate:watch": "bun ../docs/scripts/backend/generate-watch.ts",
-    "clean": "bun ../docs/scripts/backend/clean.ts"
+    "clean": "bun ../docs/scripts/backend/clean.ts",
+    "postinstall": "bunx puppeteer browsers install chrome"
   },
   "devDependencies": {
     "@types/cheerio": "^1.0.0",

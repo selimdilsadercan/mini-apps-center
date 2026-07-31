@@ -1,32 +1,6 @@
 import log from "encore.dev/log";
-import fs from "fs";
-import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { launchBrowser } from "../scrape/launch-browser";
 import type { Browser, Page } from "puppeteer";
-
-puppeteer.use(StealthPlugin());
-
-function resolveChromePath(): string | undefined {
-  const candidates = [
-    process.env.PUPPETEER_EXECUTABLE_PATH,
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "/Applications/Chromium.app/Contents/MacOS/Chromium",
-    `${process.env.HOME}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`,
-  ];
-  for (const p of candidates) {
-    if (p && fs.existsSync(p)) return p;
-  }
-  return undefined;
-}
-
-async function launchBrowser(headed: boolean): Promise<Browser> {
-  return puppeteer.launch({
-    headless: !headed,
-    executablePath: resolveChromePath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--lang=tr-TR,tr"],
-    defaultViewport: { width: 1400, height: 900 },
-  });
-}
 
 export const BILETINIAL_ARSAN = {
   slug: "kahramanmaras-arsan-sinemasi",
