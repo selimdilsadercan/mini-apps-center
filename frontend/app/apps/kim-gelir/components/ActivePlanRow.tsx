@@ -39,7 +39,7 @@ export function ActivePlanRow({
 
   return (
     <Link
-      href={`/apps/kim-gelir/plan/${activity.id}`}
+      href={`/apps/kim-gelir/plan?id=${encodeURIComponent(activity.id)}`}
       className={`group flex items-center gap-3 transition-all active:scale-[0.99] ${
         compact
           ? "px-4 py-3 hover:bg-app-surface-muted/40"

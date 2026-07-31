@@ -29,7 +29,7 @@ export function PlanCard({
 
   return (
     <Link
-      href={`/apps/kim-gelir/plan/${activity.id}`}
+      href={`/apps/kim-gelir/plan?id=${encodeURIComponent(activity.id)}`}
       className="group block bg-app-surface rounded-2xl border border-app-border p-4 hover:border-[#FF5252]/25 transition-all active:scale-[0.99]"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
