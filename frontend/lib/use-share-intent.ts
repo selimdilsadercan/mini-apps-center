@@ -1,43 +1,74 @@
 import { useEffect, useState } from 'react';
-import { App } from '@capacitor/app';
+
+interface ShareData {
+  action?: string;
+  type?: string;
+  text?: string;
+  subject?: string;
+  mediaType?: string;
+  mediaUri?: string;
+  isMultiple?: boolean;
+}
 
 export function useShareIntent() {
   const [sharedText, setSharedText] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for initial share intent
-    const checkShareIntent = async () => {
+    const checkShare = () => {
       try {
-        const result = await App.getLaunchUrl();
-        if (result?.url) {
-          const url = new URL(result.url);
-          const text = url.searchParams.get('sharedText');
-          if (text) {
-            setSharedText(decodeURIComponent(text));
+        // 1. URL search params (örnek: ?sharedText=https://instagram.com/...)
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const fromUrl = urlParams.get('sharedText');
+          if (fromUrl) {
+            setSharedText(decodeURIComponent(fromUrl));
+            return;
           }
         }
-      } catch (error) {
-        console.error('Error checking share intent:', error);
+
+        // 2. localStorage pendingShareData (MainActivity.java tarafından yazılır)
+        const raw = localStorage.getItem('pendingShareData');
+        const ts = localStorage.getItem('pendingShareDataTimestamp');
+        if (raw && ts) {
+          const age = Date.now() - parseInt(ts, 10);
+          // 60 saniyeden yeni paylaşımları kabul et
+          if (age < 60 * 1000) {
+            const data: ShareData = JSON.parse(raw);
+            const text = data.text || null;
+            if (text) {
+              setSharedText(text);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[useShareIntent] read error:', e);
       }
     };
 
-    checkShareIntent();
+    // İlk kontrol
+    checkShare();
 
-    // Listen for app URL open events (when app is already running)
-    const listener = App.addListener('appUrlOpen', (event) => {
+    // Periyodik kontrol (MainActivity gecikmeli inject ederse yakalamak için)
+    const interval = setInterval(checkShare, 500);
+
+    // CustomEvent dinleyicisi
+    const handleShareEvent = (event: Event) => {
       try {
-        const url = new URL(event.url);
-        const text = url.searchParams.get('sharedText');
+        const data: ShareData = (event as CustomEvent).detail;
+        const text = data.text || null;
         if (text) {
-          setSharedText(decodeURIComponent(text));
+          setSharedText(text);
         }
-      } catch (error) {
-        console.error('Error handling app URL open:', error);
+      } catch (e) {
+        console.error('[useShareIntent] event error:', e);
       }
-    });
+    };
+
+    window.addEventListener('shareIntent', handleShareEvent);
 
     return () => {
-      listener.then(l => l.remove());
+      clearInterval(interval);
+      window.removeEventListener('shareIntent', handleShareEvent);
     };
   }, []);
 

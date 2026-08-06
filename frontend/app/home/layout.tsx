@@ -27,12 +27,10 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   // Instagram paylaşımı gelirse kaydedilenler'e yönlendir
   useEffect(() => {
     if (sharedText && sharedText.includes("instagram.com")) {
-      const kaydedilenlerApp = MINI_APPS.find((a: MiniApp) => a.id === "kaydedilenler");
-      if (kaydedilenlerApp) {
-        window.location.href = getAppHref(kaydedilenlerApp);
-      }
+      const targetUrl = `/apps/kaydedilenler?sharedText=${encodeURIComponent(sharedText)}`;
+      router.push(targetUrl);
     }
-  }, [sharedText]);
+  }, [sharedText, router]);
 
   if (loading || !user) {
     return (
@@ -59,6 +57,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-app-bg">
+
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 border-r border-app-border bg-app-surface text-app-text h-screen sticky top-0 px-4 py-6 justify-between select-none shrink-0">
         <div className="space-y-6">

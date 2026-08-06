@@ -159,35 +159,41 @@ public class MainActivity extends BridgeActivity {
     }
     
     private void injectShareDataToWebView(final String jsonData) {
-        runOnUiThread(() -> {
-            try {
-                WebView webView = getBridge().getWebView();
-                if (webView != null) {
-                    // Escape for JavaScript
-                    String escapedJson = jsonData
-                        .replace("\\", "\\\\")
-                        .replace("'", "\\'")
-                        .replace("\n", "\\n")
-                        .replace("\r", "\\r");
-                    
-                    String jsCode = 
-                        "try {" +
-                        "  var shareData = JSON.parse('" + escapedJson + "');" +
-                        "  localStorage.setItem('pendingShareData', JSON.stringify(shareData));" +
-                        "  localStorage.setItem('pendingShareDataTimestamp', '" + System.currentTimeMillis() + "');" +
-                        "  window.dispatchEvent(new CustomEvent('shareIntent', { detail: shareData }));" +
-                        "  console.log('[ShareIntent] Data injected:', shareData);" +
-                        "} catch(e) { console.error('[ShareIntent] Injection error:', e); }";
-                    
-                    webView.evaluateJavascript(jsCode, result -> {
-                        Log.d(TAG, "JavaScript injection result: " + result);
-                    });
-                } else {
-                    Log.e(TAG, "WebView is null");
+        // Run injection immediately and again at 1s, 2.5s, 5s to handle cold boot / webview loading delays
+        long[] delays = new long[]{0, 1000, 2500, 5000};
+        android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+        
+        for (long delay : delays) {
+            handler.postDelayed(() -> {
+                try {
+                    WebView webView = getBridge().getWebView();
+                    if (webView != null) {
+                        String escapedJson = jsonData
+                            .replace("\\", "\\\\")
+                            .replace("'", "\\'")
+                            .replace("\n", "\\n")
+                            .replace("\r", "\\r");
+                        
+                        String jsCode = 
+                            "try {" +
+                            "  var shareData = JSON.parse('" + escapedJson + "');" +
+                            "  localStorage.setItem('pendingShareData', JSON.stringify(shareData));" +
+                            "  localStorage.setItem('pendingShareDataTimestamp', '" + System.currentTimeMillis() + "');" +
+                            "  window.dispatchEvent(new CustomEvent('shareIntent', { detail: shareData }));" +
+                            "  console.log('[ShareIntent] Data injected successfully:', shareData);" +
+                            "} catch(e) { console.error('[ShareIntent] Injection error:', e); }";
+                        
+                        webView.evaluateJavascript(jsCode, result -> {
+                            Log.d(TAG, "JavaScript injection (delay " + delay + "ms) result: " + result);
+                        });
+                    } else {
+                        Log.e(TAG, "WebView is null at delay " + delay + "ms");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error injecting share data at delay " + delay + "ms", e);
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "Error injecting share data", e);
-            }
-        });
+            }, delay);
+        }
     }
 }
+

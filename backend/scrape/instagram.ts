@@ -1,11 +1,7 @@
 import { api } from "encore.dev/api";
-import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { launchBrowser } from "./launch-browser";
 
 declare const document: any;
-
-// Stealth plugin ekle - Instagram'ın bot detection'ını bypass etmek için
-puppeteer.use(StealthPlugin());
 
 interface ScrapeReelsRequest {
   url: string;
@@ -37,14 +33,12 @@ export const scrapeInstagramReel = api(
         };
       }
 
-      browser = await puppeteer.launch({
-        headless: true,
+      browser = await launchBrowser(false, {
         args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
           "--disable-web-security",
           "--disable-features=IsolateOrigins,site-per-process",
         ],
+        defaultViewport: { width: 1920, height: 1080 },
       });
 
       const page = await browser.newPage();

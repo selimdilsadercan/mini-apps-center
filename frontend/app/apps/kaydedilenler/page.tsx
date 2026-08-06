@@ -180,21 +180,6 @@ export default function BookmarksPage() {
   return (
     <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
 
-      {/* 🐛 DEBUG PANEL — geçici */}
-      <div className="fixed bottom-20 left-2 right-2 z-[999] bg-black/80 backdrop-blur-sm rounded-2xl p-3 text-[9px] font-mono text-white space-y-0.5 border border-white/10">
-        <p className="font-black text-[10px] text-yellow-400 mb-1">🐛 DEBUG</p>
-        <p>sharedText: <span className="text-green-400">{sharedText ?? "null"}</span></p>
-        <p>dbUserId: <span className="text-green-400">{dbUserId ?? "null"}</span></p>
-        <p>showAddDrawer: <span className="text-green-400">{showAddDrawer ? "true" : "false"}</span></p>
-        <p>user: <span className="text-green-400">{user?.id?.slice(0, 12) ?? "null"}</span></p>
-        <button
-          onClick={() => { setEditingBookmark(null); setShowAddDrawer(true); }}
-          className="mt-1.5 w-full py-1 bg-rose-500 rounded-lg text-[9px] font-black uppercase tracking-wider"
-        >
-          Force Open Drawer
-        </button>
-      </div>
-
       {/* Header */}
       <header className="sticky top-0 z-30 bg-app-surface/95 backdrop-blur-md border-b border-app-border shadow-xs">
         <div className="px-4 pt-3 pb-3 max-w-xl mx-auto w-full">
