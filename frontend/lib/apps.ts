@@ -41,6 +41,7 @@ import {
   ImageSquare,
   BookOpen,
   Stethoscope,
+  BookmarkSimple,
 } from "@phosphor-icons/react";
 import React from "react";
 
@@ -1037,6 +1038,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     isImplemented: false,
     subdomain: "store",
     statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
+  {
+    id: "kaydedilenler",
+    name: "Kaydedilenler",
+    description: "Sosyal medyadan mekan, tarif ve içerik kaydet, kendi koleksiyonlarını oluştur.",
+    cta: "İçerikleri Kaydet",
+    icon: BookmarkSimple,
+    category: "Şehrini Keşfet",
+    color: "#E11D48",
+    href: "/apps/kaydedilenler",
+    isImplemented: true,
+    subdomain: "kaydet",
+    statusBarColor: "#FAF9F7",
     statusBarStyle: "light",
     navigationBarColor: "#FAF9F7",
     navigationBarStyle: "light",

@@ -39,8 +39,10 @@ import { buyukMaclarAssistant } from "../buyuk-maclar/assistant";
 import { readTrackerAssistant } from "../read-tracker/assistant";
 import { placesAssistant } from "../places/assistant";
 import { storeAssistant } from "../store/assistant";
+import { kaydedilenlerAssistant } from "../kaydedilenler/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
+  kaydedilenlerAssistant,
   placesAssistant,
   storeAssistant,
   readTrackerAssistant,

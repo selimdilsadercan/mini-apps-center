@@ -63,6 +63,7 @@ export default class Client {
     public readonly icon_set_guide: icon_set_guide.ServiceClient
     public readonly iskambil: iskambil.ServiceClient
     public readonly itu_yemekhane: itu_yemekhane.ServiceClient
+    public readonly kaydedilenler: kaydedilenler.ServiceClient
     public readonly kim_gelir: kim_gelir.ServiceClient
     public readonly map_tracker: map_tracker.ServiceClient
     public readonly memedex: memedex.ServiceClient
@@ -142,6 +143,7 @@ export default class Client {
         this.icon_set_guide = new icon_set_guide.ServiceClient(base)
         this.iskambil = new iskambil.ServiceClient(base)
         this.itu_yemekhane = new itu_yemekhane.ServiceClient(base)
+        this.kaydedilenler = new kaydedilenler.ServiceClient(base)
         this.kim_gelir = new kim_gelir.ServiceClient(base)
         this.map_tracker = new map_tracker.ServiceClient(base)
         this.memedex = new memedex.ServiceClient(base)
@@ -6040,6 +6042,134 @@ export namespace itu_yemekhane {
     sent: number
     skipped: number
 }
+        }
+    }
+}
+
+/**
+ * Bookmarks service - handles general bookmarks and place saving
+ */
+export namespace kaydedilenler {
+    export interface Bookmark {
+        id: string
+        title: string
+        description: string | null
+        url: string | null
+        "image_url": string | null
+        category: string
+        "instagram_username": string | null
+        city: string | null
+        district: string | null
+        rating: number | null
+        "is_visited": boolean
+        "is_favorite": boolean
+        "created_at": string
+    }
+
+    export interface CreateBookmarkRequest {
+        userId: string
+        title: string
+        description?: string | null
+        url?: string | null
+        imageUrl?: string | null
+        category: string
+        instagramUsername?: string | null
+        city?: string | null
+        district?: string | null
+        rating?: number | null
+        isVisited?: boolean | null
+        isFavorite?: boolean | null
+    }
+
+    export interface CreateBookmarkResponse {
+        bookmark: Bookmark | null
+    }
+
+    export interface DeleteBookmarkRequest {
+        userId: string
+    }
+
+    export interface DeleteBookmarkResponse {
+        success: boolean
+    }
+
+    export interface GetUserBookmarksResponse {
+        bookmarks: Bookmark[]
+    }
+
+    export interface UpdateBookmarkRequest {
+        userId: string
+        title: string
+        description?: string | null
+        url?: string | null
+        imageUrl?: string | null
+        category: string
+        instagramUsername?: string | null
+        city?: string | null
+        district?: string | null
+        rating?: number | null
+        isVisited: boolean
+        isFavorite: boolean
+    }
+
+    export interface UpdateBookmarkResponse {
+        bookmark: Bookmark | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createBookmark = this.createBookmark.bind(this)
+            this.deleteBookmark = this.deleteBookmark.bind(this)
+            this.getUserBookmarks = this.getUserBookmarks.bind(this)
+            this.updateBookmark = this.updateBookmark.bind(this)
+        }
+
+        /**
+         * Yeni kaydedilen (bookmark) oluşturur
+         * POST /kaydedilenler/create
+         */
+        public async createBookmark(params: CreateBookmarkRequest): Promise<CreateBookmarkResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kaydedilenler/create`, JSON.stringify(params))
+            return await resp.json() as CreateBookmarkResponse
+        }
+
+        /**
+         * Kaydedileni siler
+         * DELETE /kaydedilenler/:bookmarkId
+         */
+        public async deleteBookmark(bookmarkId: string, params: DeleteBookmarkRequest): Promise<DeleteBookmarkResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/kaydedilenler/${encodeURIComponent(bookmarkId)}`, undefined, {query})
+            return await resp.json() as DeleteBookmarkResponse
+        }
+
+        /**
+         * Belirli kullanıcının tüm kaydedilenlerini getirir
+         * GET /kaydedilenler/user/:userId
+         */
+        public async getUserBookmarks(userId: string): Promise<GetUserBookmarksResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/kaydedilenler/user/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetUserBookmarksResponse
+        }
+
+        /**
+         * Kaydedileni günceller
+         * PUT /kaydedilenler/:bookmarkId
+         */
+        public async updateBookmark(bookmarkId: string, params: UpdateBookmarkRequest): Promise<UpdateBookmarkResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/kaydedilenler/${encodeURIComponent(bookmarkId)}`, JSON.stringify(params))
+            return await resp.json() as UpdateBookmarkResponse
         }
     }
 }

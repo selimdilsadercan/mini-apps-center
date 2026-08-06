@@ -278,6 +278,10 @@
     "emptyAction": "Add Subscription"
   },
   "apps": {
+    "kaydedilenler": {
+      "name": "Saved Bookmarks",
+      "description": "Save venues, recipes, and content from social media, create your own collections."
+    },
     "suggest": {
       "name": "Suggest",
       "description": "Recommend movies, series, games, or venues to your friends and track their status!"

@@ -274,6 +274,10 @@
     "emptyAction": "Abonelik Ekle"
   },
   "apps": {
+    "kaydedilenler": {
+      "name": "Kaydedilenler",
+      "description": "Sosyal medyadan mekan, tarif ve içerik kaydet, kendi koleksiyonlarını oluştur."
+    },
     "suggest": {
       "name": "Suggest",
       "description": "Arkadaşlarına film, dizi, oyun veya mekan tavsiye et, durumlarını takip et!"
