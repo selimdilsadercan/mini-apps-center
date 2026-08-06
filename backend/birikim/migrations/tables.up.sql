@@ -51,6 +51,55 @@ BEGIN
     END IF;
 END $$;
 
+-- 2. Migration: Update account types check constraint to include 'sukuk', 'stock', 'fund'
+ALTER TABLE birikim.accounts DROP CONSTRAINT IF EXISTS accounts_type_check;
+ALTER TABLE birikim.accounts ADD CONSTRAINT accounts_type_check CHECK (type IN ('cash', 'bank_account', 'gold', 'foreign_currency', 'other', 'sukuk', 'stock', 'fund'));
+
+-- 3. Migration: Add sukuk_instruments table and populate it with initial data
+CREATE TABLE IF NOT EXISTS birikim.sukuk_instruments (
+    isin TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'TRY',
+    maturity_date DATE NOT NULL,
+    payment_frequency_months INT NOT NULL,
+    rent_rate_per_period NUMERIC(5, 2) NOT NULL,
+    annual_simple_rate NUMERIC(5, 2) NOT NULL,
+    reference_price NUMERIC(8, 4) NOT NULL DEFAULT 100.00,
+    price_source TEXT NOT NULL,
+    instrument_source TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+INSERT INTO birikim.sukuk_instruments (isin, name, type, currency, maturity_date, payment_frequency_months, rent_rate_per_period, annual_simple_rate, reference_price, price_source, instrument_source)
+VALUES (
+    'TRD070933T11',
+    'TRD070933T11 - Sabit Hazine Kira Sertifikası',
+    'Sabit kira getirili',
+    'TRY',
+    '2033-09-07',
+    6,
+    13.19,
+    26.38,
+    102.00,
+    'Halk Yatırım',
+    'Hazine ve Maliye Bakanlığı'
+) ON CONFLICT (isin) DO UPDATE SET
+    name = EXCLUDED.name,
+    type = EXCLUDED.type,
+    currency = EXCLUDED.currency,
+    maturity_date = EXCLUDED.maturity_date,
+    payment_frequency_months = EXCLUDED.payment_frequency_months,
+    rent_rate_per_period = EXCLUDED.rent_rate_per_period,
+    annual_simple_rate = EXCLUDED.annual_simple_rate,
+    reference_price = EXCLUDED.reference_price,
+    price_source = EXCLUDED.price_source,
+    instrument_source = EXCLUDED.instrument_source,
+    updated_at = NOW();
+
+-- 4. Migration: Add purchase_date column to accounts table
+ALTER TABLE birikim.accounts ADD COLUMN IF NOT EXISTS purchase_date DATE;
+
 --------------------------------------------------------------------------------
 -- IDEAL STATE (Current Schema)
 --------------------------------------------------------------------------------
@@ -66,9 +115,10 @@ CREATE TABLE IF NOT EXISTS birikim.accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('cash', 'bank_account', 'gold', 'foreign_currency', 'other')),
+    type TEXT NOT NULL CHECK (type IN ('cash', 'bank_account', 'gold', 'foreign_currency', 'other', 'sukuk', 'stock', 'fund')),
     balance NUMERIC(15, 2) DEFAULT 0 NOT NULL,
     currency TEXT NOT NULL DEFAULT 'TRY', -- e.g., 'TRY', 'USD', 'EUR', 'GOLD'
+    purchase_date DATE, -- Alış/Valör tarihi
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
@@ -96,12 +146,28 @@ CREATE TABLE IF NOT EXISTS birikim.transactions (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 5. Indexes
+-- 5. Sukuk instruments table
+CREATE TABLE IF NOT EXISTS birikim.sukuk_instruments (
+    isin TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'TRY',
+    maturity_date DATE NOT NULL,
+    payment_frequency_months INT NOT NULL,
+    rent_rate_per_period NUMERIC(5, 2) NOT NULL,
+    annual_simple_rate NUMERIC(5, 2) NOT NULL,
+    reference_price NUMERIC(8, 4) NOT NULL DEFAULT 100.00,
+    price_source TEXT NOT NULL,
+    instrument_source TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- 6. Indexes
 CREATE INDEX IF NOT EXISTS idx_birikim_accounts_user ON birikim.accounts(user_id);
 CREATE INDEX IF NOT EXISTS idx_birikim_targets_user ON birikim.targets(user_id);
 CREATE INDEX IF NOT EXISTS idx_birikim_transactions_user ON birikim.transactions(user_id);
 
--- 6. Grants
+-- 7. Grants
 GRANT ALL ON ALL TABLES IN SCHEMA birikim TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA birikim TO anon, authenticated, service_role;
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA birikim TO anon, authenticated, service_role;

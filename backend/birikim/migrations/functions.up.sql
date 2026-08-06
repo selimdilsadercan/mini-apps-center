@@ -7,6 +7,7 @@
 -- 6. upsert_target(p_id UUID, p_user_id TEXT, p_title TEXT, p_target_amount NUMERIC, p_current_amount NUMERIC, p_currency TEXT, p_target_date DATE)
 -- 7. delete_target(p_id UUID, p_user_id TEXT)
 -- 8. add_transaction(p_user_id TEXT, p_account_id UUID, p_target_id UUID, p_amount NUMERIC, p_type TEXT, p_description TEXT)
+-- 9. get_sukuk_instruments()
 
 -- 1. get_accounts
 DROP FUNCTION IF EXISTS birikim.get_accounts(TEXT);
@@ -18,6 +19,7 @@ RETURNS TABLE (
     type TEXT,
     balance NUMERIC,
     currency TEXT,
+    purchase_date DATE,
     created_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql
@@ -36,6 +38,7 @@ BEGIN
         a.type,
         a.balance,
         a.currency,
+        a.purchase_date,
         a.created_at
     FROM birikim.accounts a
     WHERE a.user_id = v_internal_id
@@ -129,13 +132,15 @@ $$;
 
 -- 4. upsert_account
 DROP FUNCTION IF EXISTS birikim.upsert_account(UUID, TEXT, TEXT, TEXT, NUMERIC, TEXT);
+DROP FUNCTION IF EXISTS birikim.upsert_account(UUID, TEXT, TEXT, TEXT, NUMERIC, TEXT, DATE);
 CREATE OR REPLACE FUNCTION birikim.upsert_account(
     p_id UUID,
     p_user_id TEXT,
     p_name TEXT,
     p_type TEXT,
     p_balance NUMERIC,
-    p_currency TEXT
+    p_currency TEXT,
+    p_purchase_date DATE DEFAULT NULL
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -148,15 +153,16 @@ BEGIN
     v_internal_id := public.get_internal_user_id(p_user_id);
 
     IF p_id IS NULL THEN
-        INSERT INTO birikim.accounts (user_id, name, type, balance, currency)
-        VALUES (v_internal_id, p_name, p_type, p_balance, p_currency)
+        INSERT INTO birikim.accounts (user_id, name, type, balance, currency, purchase_date)
+        VALUES (v_internal_id, p_name, p_type, p_balance, p_currency, p_purchase_date)
         RETURNING id INTO v_id;
     ELSE
         UPDATE birikim.accounts
         SET name = p_name,
             type = p_type,
             balance = p_balance,
-            currency = p_currency
+            currency = p_currency,
+            purchase_date = p_purchase_date
         WHERE id = p_id AND user_id = v_internal_id
         RETURNING id INTO v_id;
     END IF;
@@ -311,5 +317,45 @@ BEGIN
     END IF;
 
     RETURN v_tx_id;
+END;
+$$;
+
+-- 9. get_sukuk_instruments
+DROP FUNCTION IF EXISTS birikim.get_sukuk_instruments();
+CREATE OR REPLACE FUNCTION birikim.get_sukuk_instruments()
+RETURNS TABLE (
+    isin TEXT,
+    name TEXT,
+    type TEXT,
+    currency TEXT,
+    maturity_date DATE,
+    payment_frequency_months INT,
+    rent_rate_per_period NUMERIC,
+    annual_simple_rate NUMERIC,
+    reference_price NUMERIC,
+    price_source TEXT,
+    instrument_source TEXT,
+    updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.isin,
+        s.name,
+        s.type,
+        s.currency,
+        s.maturity_date,
+        s.payment_frequency_months,
+        s.rent_rate_per_period::NUMERIC,
+        s.annual_simple_rate::NUMERIC,
+        s.reference_price::NUMERIC,
+        s.price_source,
+        s.instrument_source,
+        s.updated_at
+    FROM birikim.sukuk_instruments s
+    ORDER BY s.isin ASC;
 END;
 $$;

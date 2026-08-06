@@ -592,6 +592,7 @@ export namespace birikim {
         type: string
         balance: number
         currency: string
+        "purchase_date"?: string | null
         "created_at": string
     }
 
@@ -631,6 +632,51 @@ export namespace birikim {
         transactions: Transaction[]
     }
 
+    export interface GetSukukInstrumentsResponse {
+        instruments: SukukInstrument[]
+    }
+
+    export interface GetUnifiedPriceRequest {
+        symbol: string
+        assetType: string
+    }
+
+    export interface GetUnifiedPriceResponse {
+        price: number
+        name: string
+        priceDate: string
+        priceDelay: string
+        currency: string
+        source: string
+        maturityDate?: string
+        periodicRate?: number
+        paymentFrequencyMonths?: number
+    }
+
+    export interface SearchInstrumentsRequest {
+        query: string
+        assetType: string
+    }
+
+    export interface SearchInstrumentsResponse {
+        results: UnifiedSearchInstrument[]
+    }
+
+    export interface SukukInstrument {
+        isin: string
+        name: string
+        type: string
+        currency: string
+        maturityDate: string
+        paymentFrequencyMonths: number
+        rentRatePerPeriod: number
+        annualSimpleRate: number
+        referencePrice: number
+        priceSource: string
+        instrumentSource: string
+        updatedAt: string
+    }
+
     export interface Target {
         id: string
         "user_id": string
@@ -655,6 +701,20 @@ export namespace birikim {
         "created_at": string
     }
 
+    export interface UnifiedSearchInstrument {
+        symbol: string
+        name: string
+        price: number
+        assetType: string
+        currency: string
+        priceDate: string
+        priceDelay: string
+        source: string
+        maturityDate?: string
+        periodicRate?: number
+        paymentFrequencyMonths?: number
+    }
+
     export interface UpsertAccountRequest {
         id?: string
         userId: string
@@ -662,6 +722,7 @@ export namespace birikim {
         type: string
         balance: number
         currency: string
+        purchaseDate?: string
     }
 
     export interface UpsertAccountResponse {
@@ -693,6 +754,9 @@ export namespace birikim {
             this.deleteAccount = this.deleteAccount.bind(this)
             this.deleteTarget = this.deleteTarget.bind(this)
             this.getBirikimData = this.getBirikimData.bind(this)
+            this.getSukukInstruments = this.getSukukInstruments.bind(this)
+            this.getUnifiedPrice = this.getUnifiedPrice.bind(this)
+            this.searchInstruments = this.searchInstruments.bind(this)
             this.upsertAccount = this.upsertAccount.bind(this)
             this.upsertTarget = this.upsertTarget.bind(this)
         }
@@ -741,6 +805,27 @@ export namespace birikim {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/birikim/data/${encodeURIComponent(userId)}`)
             return await resp.json() as GetBirikimDataResponse
+        }
+
+        /**
+         * Fetches the active lease certificate catalog
+         */
+        public async getSukukInstruments(): Promise<GetSukukInstrumentsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/birikim/sukuk-instruments`)
+            return await resp.json() as GetSukukInstrumentsResponse
+        }
+
+        public async getUnifiedPrice(params: GetUnifiedPriceRequest): Promise<GetUnifiedPriceResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/unified-price`, JSON.stringify(params))
+            return await resp.json() as GetUnifiedPriceResponse
+        }
+
+        public async searchInstruments(params: SearchInstrumentsRequest): Promise<SearchInstrumentsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/birikim/search-instruments`, JSON.stringify(params))
+            return await resp.json() as SearchInstrumentsResponse
         }
 
         /**
