@@ -32,10 +32,13 @@ function resolveChromePath(): string | undefined {
   }
 
   try {
-    return puppeteer.executablePath();
+    const p = puppeteer.executablePath();
+    if (p && fs.existsSync(p)) return p;
   } catch {
-    return undefined;
+    // ignore
   }
+
+  return undefined;
 }
 
 export async function launchBrowser(

@@ -15,9 +15,95 @@ interface ScrapeReelsResponse {
   thumbnail?: string;
 }
 
+async function fetchInstagramFast(url: string): Promise<ScrapeReelsResponse | null> {
+  try {
+    // 1. Try oEmbed
+    const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
+    const res = await fetch(oembedUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as any;
+      if (data && (data.title || data.thumbnail_url)) {
+        return {
+          success: true,
+          caption: data.title || "",
+          username: data.author_name || "",
+          thumbnail: data.thumbnail_url || "",
+        };
+      }
+    }
+  } catch (e) {
+    console.log("oEmbed failed, trying embed HTML:", e);
+  }
+
+  try {
+    // 2. Try embed/captioned HTML
+    const cleanUrl = url.split("?")[0].replace(/\/$/, "");
+    const embedUrl = `${cleanUrl}/embed/captioned/`;
+    const res = await fetch(embedUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+      },
+    });
+
+    if (res.ok) {
+      const html = await res.text();
+
+      // Extract caption
+      let caption = "";
+      const captionMatch =
+        html.match(/<div class="Caption"[^>]*>([\s\S]*?)<\/div>/i) ||
+        html.match(/<span class="CaptionText"[^>]*>([\s\S]*?)<\/span>/i);
+      if (captionMatch) {
+        caption = captionMatch[1]
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<[^>]+>/g, "")
+          .trim();
+      }
+
+      // Extract username
+      let username = "";
+      const usernameMatch =
+        html.match(/class="UsernameText"[^>]*>([^<]+)</i) ||
+        html.match(/class="Username"[^>]*>([^<]+)</i) ||
+        html.match(/@([a-zA-Z0-9._]+)/);
+      if (usernameMatch) {
+        username = usernameMatch[1].trim();
+      }
+
+      // Extract thumbnail
+      let thumbnail = "";
+      const imgMatch =
+        html.match(/class="EmbeddedMediaImage"[^>]*src="([^"]+)"/i) ||
+        html.match(/<img[^>]+src="([^"]+)"[^>]*class="EmbeddedMediaImage"/i) ||
+        html.match(/<meta property="og:image" content="([^"]+)"/i);
+      if (imgMatch) {
+        thumbnail = imgMatch[1].replace(/&amp;/g, "&");
+      }
+
+      if (caption || thumbnail || username) {
+        return {
+          success: true,
+          caption,
+          username,
+          thumbnail,
+        };
+      }
+    }
+  } catch (e) {
+    console.log("Embed HTML failed:", e);
+  }
+
+  return null;
+}
+
 /**
- * Scrapes Instagram Reels caption using Puppeteer
- * No authentication required - uses browser automation
+ * Scrapes Instagram Reels caption using fast HTTP + Puppeteer fallback
  */
 export const scrapeInstagramReel = api(
   { expose: true, method: "POST", path: "/scrape/instagram/reels" },
@@ -33,6 +119,14 @@ export const scrapeInstagramReel = api(
         };
       }
 
+      // 1. Try fast HTTP scraper first (oEmbed + embed HTML)
+      const fastResult = await fetchInstagramFast(req.url);
+      if (fastResult && (fastResult.caption || fastResult.thumbnail)) {
+        console.log("⚡ Instagram fast scrape successful");
+        return fastResult;
+      }
+
+      // 2. Fallback to Puppeteer if fast scrape fails
       browser = await launchBrowser(false, {
         args: [
           "--disable-web-security",
