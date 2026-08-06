@@ -15,38 +15,23 @@ interface ScrapeReelsResponse {
   thumbnail?: string;
 }
 
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#([0-9]+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
 async function fetchInstagramFast(url: string): Promise<ScrapeReelsResponse | null> {
   try {
-    // 1. Try oEmbed
-    const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
-    const res = await fetch(oembedUrl, {
+    // 1. Social Crawler User-Agent (Facebook / Meta External Hit)
+    const res = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-
-    if (res.ok) {
-      const data = (await res.json()) as any;
-      if (data && (data.title || data.thumbnail_url)) {
-        return {
-          success: true,
-          caption: data.title || "",
-          username: data.author_name || "",
-          thumbnail: data.thumbnail_url || "",
-        };
-      }
-    }
-  } catch (e) {
-    console.log("oEmbed failed, trying embed HTML:", e);
-  }
-
-  try {
-    // 2. Try embed/captioned HTML
-    const cleanUrl = url.split("?")[0].replace(/\/$/, "");
-    const embedUrl = `${cleanUrl}/embed/captioned/`;
-    const res = await fetch(embedUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
         "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
       },
     });
@@ -54,36 +39,37 @@ async function fetchInstagramFast(url: string): Promise<ScrapeReelsResponse | nu
     if (res.ok) {
       const html = await res.text();
 
-      // Extract caption
-      let caption = "";
-      const captionMatch =
-        html.match(/<div class="Caption"[^>]*>([\s\S]*?)<\/div>/i) ||
-        html.match(/<span class="CaptionText"[^>]*>([\s\S]*?)<\/span>/i);
-      if (captionMatch) {
-        caption = captionMatch[1]
-          .replace(/<br\s*\/?>/gi, "\n")
-          .replace(/<[^>]+>/g, "")
-          .trim();
-      }
+      const ogTitleRaw = (html.match(/<meta property="og:title" content="([^"]+)"/i) || [])[1];
+      const ogDescRaw = (html.match(/<meta property="og:description" content="([^"]+)"/i) || [])[1];
+      const ogImageRaw = (html.match(/<meta property="og:image" content="([^"]+)"/i) || [])[1];
 
-      // Extract username
+      const title = ogTitleRaw ? decodeHtmlEntities(ogTitleRaw) : "";
+      const desc = ogDescRaw ? decodeHtmlEntities(ogDescRaw) : "";
+      const thumbnail = ogImageRaw ? decodeHtmlEntities(ogImageRaw) : "";
+
       let username = "";
-      const usernameMatch =
-        html.match(/class="UsernameText"[^>]*>([^<]+)</i) ||
-        html.match(/class="Username"[^>]*>([^<]+)</i) ||
-        html.match(/@([a-zA-Z0-9._]+)/);
-      if (usernameMatch) {
-        username = usernameMatch[1].trim();
+      let caption = "";
+
+      if (title) {
+        const match = title.match(/^(.+?)(?:\s+on\s+|,[\s]*)Instagram:\s*"([\s\S]*)"$/i);
+        if (match) {
+          const rawUser = match[1].trim();
+          caption = match[2].trim();
+
+          if (rawUser.includes("-")) {
+            const parts = rawUser.split("-");
+            username = parts[parts.length - 1].trim();
+          } else {
+            username = rawUser;
+          }
+        } else {
+          caption = title;
+        }
       }
 
-      // Extract thumbnail
-      let thumbnail = "";
-      const imgMatch =
-        html.match(/class="EmbeddedMediaImage"[^>]*src="([^"]+)"/i) ||
-        html.match(/<img[^>]+src="([^"]+)"[^>]*class="EmbeddedMediaImage"/i) ||
-        html.match(/<meta property="og:image" content="([^"]+)"/i);
-      if (imgMatch) {
-        thumbnail = imgMatch[1].replace(/&amp;/g, "&");
+      if (!caption && desc) {
+        const match = desc.match(/^.+?\s+on\s+[^:]+:\s*"([\s\S]*)"$/i);
+        if (match) caption = match[1].trim();
       }
 
       if (caption || thumbnail || username) {
@@ -96,7 +82,7 @@ async function fetchInstagramFast(url: string): Promise<ScrapeReelsResponse | nu
       }
     }
   } catch (e) {
-    console.log("Embed HTML failed:", e);
+    console.log("Social crawler fetch failed:", e);
   }
 
   return null;

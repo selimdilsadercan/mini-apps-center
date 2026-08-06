@@ -8013,8 +8013,7 @@ export namespace scrape {
         }
 
         /**
-         * Scrapes Instagram Reels caption using Puppeteer
-         * No authentication required - uses browser automation
+         * Scrapes Instagram Reels caption using fast HTTP + Puppeteer fallback
          */
         public async scrapeInstagramReel(params: ScrapeReelsRequest): Promise<ScrapeReelsResponse> {
             // Now make the actual call to the API
