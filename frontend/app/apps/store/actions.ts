@@ -1,6 +1,6 @@
-"use server";
 
-import { createServerClient } from "@/lib/api";
+import { createBrowserClient } from "@/lib/api";
+
 import { getErrorMessage } from "@/lib/api-error-handler";
 import type { Store, Product, ProductWithStore } from "./types";
 
@@ -11,7 +11,7 @@ interface ActionResponse<T> {
 
 export async function getStoreByUserAction(userId: string): Promise<ActionResponse<Store>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.getStoreByUserId(userId);
     return { data: response.store as Store | null, error: null };
   } catch (error) {
@@ -21,7 +21,7 @@ export async function getStoreByUserAction(userId: string): Promise<ActionRespon
 
 export async function getStoreByIdAction(storeId: string): Promise<ActionResponse<Store>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.getStoreById(storeId);
     return { data: response.store as Store | null, error: null };
   } catch (error) {
@@ -40,7 +40,7 @@ export async function createStoreAction(params: {
   contactEmail?: string | null;
 }): Promise<ActionResponse<Store>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.createStore(params);
     return { data: response.store as Store | null, error: null };
   } catch (error) {
@@ -60,7 +60,7 @@ export async function updateStoreAction(params: {
   contactEmail?: string | null;
 }): Promise<ActionResponse<Store>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.updateStore(params.storeId, params);
     return { data: response.store as Store | null, error: null };
   } catch (error) {
@@ -70,7 +70,7 @@ export async function updateStoreAction(params: {
 
 export async function getStoreProductsAction(storeId: string): Promise<ActionResponse<Product[]>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.getStoreProducts(storeId);
     return { data: (response.products ?? []) as Product[], error: null };
   } catch (error) {
@@ -80,7 +80,7 @@ export async function getStoreProductsAction(storeId: string): Promise<ActionRes
 
 export async function getAllProductsAction(category?: string | null): Promise<ActionResponse<ProductWithStore[]>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.getAllProducts({ category });
     return { data: (response.products ?? []) as ProductWithStore[], error: null };
   } catch (error) {
@@ -90,7 +90,7 @@ export async function getAllProductsAction(category?: string | null): Promise<Ac
 
 export async function getProductByIdAction(productId: string): Promise<ActionResponse<Product>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.getProductById(productId);
     return { data: response.product as Product | null, error: null };
   } catch (error) {
@@ -109,7 +109,7 @@ export async function createProductAction(params: {
   category: string;
 }): Promise<ActionResponse<Product>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.createProduct(params);
     return { data: response.product as Product | null, error: null };
   } catch (error) {
@@ -129,7 +129,7 @@ export async function updateProductAction(params: {
   isAvailable: boolean;
 }): Promise<ActionResponse<Product>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.updateProduct(params.productId, params);
     return { data: response.product as Product | null, error: null };
   } catch (error) {
@@ -139,7 +139,7 @@ export async function updateProductAction(params: {
 
 export async function deleteProductAction(productId: string, userId: string): Promise<ActionResponse<boolean>> {
   try {
-    const client = await createServerClient();
+    const client = createBrowserClient();
     const response = await client.store.deleteProduct(productId, { userId });
     return { data: response.success, error: null };
   } catch (error) {
