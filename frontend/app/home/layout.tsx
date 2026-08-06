@@ -6,19 +6,33 @@ import { useAuthContext, useUser } from "@/contexts/AuthContext";
 import { House, Compass, Wrench, Storefront, UserCircle, Gear, Heart, GameController, Trophy } from "@phosphor-icons/react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { hubPath, matchHubRoute } from "@/lib/hub-routes";
+import { useShareIntent } from "@/lib/use-share-intent";
+import { MINI_APPS, MiniApp, getAppHref } from "@/lib/apps";
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuthContext(); 
   const { user: clerkUser } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const { locale } = useLanguage();
+
+  const sharedText = useShareIntent();
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login");
     }
   }, [user, loading, router]);
+
+  // Instagram paylaşımı gelirse kaydedilenler'e yönlendir
+  useEffect(() => {
+    if (sharedText && sharedText.includes("instagram.com")) {
+      const kaydedilenlerApp = MINI_APPS.find((a: MiniApp) => a.id === "kaydedilenler");
+      if (kaydedilenlerApp) {
+        window.location.href = getAppHref(kaydedilenlerApp);
+      }
+    }
+  }, [sharedText]);
 
   if (loading || !user) {
     return (

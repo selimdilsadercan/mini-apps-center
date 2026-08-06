@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Star, Heart, MapPin, InstagramLogo, Check, MagnifyingGlass } from "@phosphor-icons/react";
+import { useState, useEffect, useRef } from "react";
+import { X, MapPin, InstagramLogo, MagnifyingGlass, Star, ArrowRight, Check } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import toast from "react-hot-toast";
 import { createBookmarkAction, updateBookmarkAction } from "../actions";
-
-type CategoryType = "Mekan" | "Tarif" | "Alışveriş" | "Genel" | "Diğer";
 
 export default function AddBookmarkDrawer({
   isOpen,
@@ -14,26 +12,28 @@ export default function AddBookmarkDrawer({
   onSave,
   userId,
   editBookmark,
+  initialUrl,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
   userId: string;
   editBookmark?: any;
+  initialUrl?: string;
 }) {
   const [url, setUrl] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [caption, setCaption] = useState(""); // instagram caption — kaydediliyor ama gösterilmiyor
   const [imageUrl, setImageUrl] = useState("");
   const [instagramUsername, setInstagramUsername] = useState("");
-  const [category, setCategory] = useState<CategoryType>("Mekan");
+  const [fetched, setFetched] = useState(false);
 
-  // Place specific
-  const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("");
-  const [rating, setRating] = useState<number>(5);
-  const [isVisited, setIsVisited] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  // Mekan seçimi
+  const [selectedPlace, setSelectedPlace] = useState<{ name: string; id?: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isFetching, setIsFetching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,80 +42,62 @@ export default function AddBookmarkDrawer({
     if (isOpen) {
       if (editBookmark) {
         setUrl(editBookmark.url || "");
-        setTitle(editBookmark.title || "");
-        setDescription(editBookmark.description || "");
+        setCaption(editBookmark.description || "");
         setImageUrl(editBookmark.image_url || "");
         setInstagramUsername(editBookmark.instagram_username || "");
-        setCategory((editBookmark.category as CategoryType) || "Mekan");
-        setCity(editBookmark.city || "");
-        setDistrict(editBookmark.district || "");
-        setRating(editBookmark.rating ? Number(editBookmark.rating) : 5);
-        setIsVisited(editBookmark.is_visited || false);
-        setIsFavorite(editBookmark.is_favorite || false);
+        setSelectedPlace({ name: editBookmark.title || "" });
+        setSearchQuery(editBookmark.title || "");
+        setFetched(true);
       } else {
-        setUrl("");
-        setTitle("");
-        setDescription("");
-        setImageUrl("");
-        setInstagramUsername("");
-        setCategory("Mekan");
-        setCity("");
-        setDistrict("");
-        setRating(5);
-        setIsVisited(false);
-        setIsFavorite(false);
+        setUrl(initialUrl || ""); setCaption(""); setImageUrl(""); setInstagramUsername("");
+        setSelectedPlace(null); setSearchQuery(""); setFetched(false);
       }
+      setSearchResults([]); setShowSuggestions(false);
     }
   }, [isOpen, editBookmark]);
 
-  if (!isOpen) return null;
-
-  const handleFetchInfo = async () => {
-    if (!url.trim()) {
-      toast.error("Lütfen geçerli bir sosyal medya linki girin.");
+  // DB search debounce
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (selectedPlace || searchQuery.trim().length < 2) {
+      setSearchResults([]); setShowSuggestions(false);
       return;
     }
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const client = createBrowserClient();
+        const res = await client.workplaces.searchPlace({ query: searchQuery.trim() });
+        setSearchResults(res.results || []);
+        setShowSuggestions((res.results || []).length > 0);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 350);
+  }, [searchQuery, selectedPlace]);
 
+  const handleFetch = async () => {
+    if (!url.trim() || !url.includes("instagram.com")) {
+      toast.error("Geçerli bir Instagram linki girin.");
+      return;
+    }
     try {
       setIsFetching(true);
       const client = createBrowserClient();
-
-      let res;
-      if (url.includes("instagram.com")) {
-        res = await client.scrape.scrapeInstagramReel({ url });
-      } else {
-        toast.error("Şu an sadece Instagram linkleri otomatik çözülebilir.");
-        setIsFetching(false);
-        return;
-      }
-
+      const res = await client.scrape.scrapeInstagramReel({ url });
       if (res.success) {
-        // Autofill
-        setDescription(res.caption || "");
+        setCaption(res.caption || ""); // kaydet ama gösterme
         setImageUrl(res.thumbnail || "");
         setInstagramUsername(res.username || "");
-
-        // Try to guess a place name from username or caption first sentence
-        if (res.username) {
-          setTitle(`${res.username} Paylaşımı`);
-        }
-
-        // Simple heuristic for place title: take first few words of caption
-        if (res.caption) {
-          const cleanText = res.caption.replace(/[#\n]/g, " ").trim();
-          const words = cleanText.split(/\s+/).slice(0, 4).join(" ");
-          if (words) {
-            setTitle(words);
-          }
-        }
-
-        toast.success("Bilgiler başarıyla çekildi!");
+        setFetched(true);
+        toast.success("Görseller çekildi!");
       } else {
-        toast.error(res.error || "İçerik bilgileri alınamadı.");
+        toast.error(res.error || "İçerik alınamadı.");
       }
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Bağlantı sırasında bir hata oluştu.");
+    } catch {
+      toast.error("Bağlantı hatası.");
     } finally {
       setIsFetching(false);
     }
@@ -123,329 +105,236 @@ export default function AddBookmarkDrawer({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Lütfen bir başlık girin.");
-      return;
-    }
-
+    const placeName = selectedPlace?.name || searchQuery.trim();
+    if (!placeName) { toast.error("Bir mekan seç veya yaz."); return; }
     try {
       setIsSaving(true);
-
       if (editBookmark) {
-        // Update
         const res = await updateBookmarkAction({
-          bookmarkId: editBookmark.id,
-          userId,
-          title: title.trim(),
-          description: description.trim() || null,
-          url: url.trim() || null,
-          imageUrl: imageUrl.trim() || null,
-          category,
-          instagramUsername: instagramUsername.trim() || null,
-          city: category === "Mekan" ? (city.trim() || null) : null,
-          district: category === "Mekan" ? (district.trim() || null) : null,
-          rating: category === "Mekan" ? rating : null,
-          isVisited: category === "Mekan" ? isVisited : false,
-          isFavorite: category === "Mekan" ? isFavorite : editBookmark.is_favorite || false,
+          bookmarkId: editBookmark.id, userId,
+          title: placeName, description: caption || null,
+          url: url.trim() || null, imageUrl: imageUrl.trim() || null,
+          category: "Mekan", instagramUsername: instagramUsername.trim() || null,
+          isVisited: editBookmark.is_visited || false, isFavorite: editBookmark.is_favorite || false,
         });
-        if (res.error) {
-          toast.error(res.error);
-          return;
-        }
-        toast.success("Kayıt güncellendi!");
+        if (res.error) { toast.error(res.error); return; }
+        toast.success("Güncellendi!");
       } else {
-        // Create
         const res = await createBookmarkAction({
-          userId,
-          title: title.trim(),
-          description: description.trim() || null,
-          url: url.trim() || null,
-          imageUrl: imageUrl.trim() || null,
-          category,
-          instagramUsername: instagramUsername.trim() || null,
-          city: category === "Mekan" ? (city.trim() || null) : null,
-          district: category === "Mekan" ? (district.trim() || null) : null,
-          rating: category === "Mekan" ? rating : null,
-          isVisited: category === "Mekan" ? isVisited : false,
-          isFavorite: category === "Mekan" ? isFavorite : false,
+          userId, title: placeName, description: caption || null,
+          url: url.trim() || null, imageUrl: imageUrl.trim() || null,
+          category: "Mekan", instagramUsername: instagramUsername.trim() || null,
+          isVisited: false, isFavorite: false,
         });
-        if (res.error) {
-          toast.error(res.error);
-          return;
-        }
-        toast.success("Kayıt başarıyla eklendi! 🔖");
+        if (res.error) { toast.error(res.error); return; }
+        toast.success("Mekan eklendi! 📍");
       }
-
-      onSave();
-      onClose();
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Kaydetme işlemi başarısız oldu.");
+      onSave(); onClose();
+    } catch {
+      toast.error("Kaydetme başarısız.");
     } finally {
       setIsSaving(false);
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40 transition-opacity backdrop-blur-xs"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-xs" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-5 shadow-2xl max-h-[92vh] flex flex-col">
 
-      {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-app-surface rounded-t-3xl border-t border-app-border z-50 p-5 shadow-2xl max-h-[92vh] flex flex-col transition-transform duration-300">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-app-border shrink-0">
           <h2 className="text-sm font-black text-app-text uppercase tracking-wider flex items-center gap-1.5">
             <MapPin size={18} weight="fill" className="text-rose-500" />
-            {editBookmark ? "Kaydı Düzenle" : "Yeni İçerik Kaydet"}
+            {editBookmark ? "Mekanı Düzenle" : "Mekan Kaydet"}
           </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-app-tab-track flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95 cursor-pointer"
-          >
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-app-tab-track flex items-center justify-center text-app-muted hover:text-app-text transition-all active:scale-95 cursor-pointer">
             <X size={16} weight="bold" />
           </button>
         </div>
 
-        {/* Form Content */}
-        <form onSubmit={handleSave} className="flex-1 overflow-y-auto pt-4 space-y-4 pb-6 pr-1">
+        <form onSubmit={handleSave} className="flex-1 overflow-y-auto pt-4 space-y-5 pb-6 pr-1">
 
-          {/* Instagram / Social Media Link Link Loader */}
-          {!editBookmark && (
-            <div className="bg-app-tab-track/30 p-3 rounded-2xl border border-app-border space-y-2">
+          {/* 1. INSTAGRAM LİNKİ */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <InstagramLogo size={13} className="text-pink-500" />
+              <label className="text-[10px] font-black text-app-muted uppercase tracking-wider">Instagram Linki</label>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => { setUrl(e.target.value); if (fetched && !editBookmark) setFetched(false); }}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleFetch())}
+                placeholder="https://www.instagram.com/reel/..."
+                autoFocus={!editBookmark}
+                className="flex-1 px-3 py-2.5 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/50 text-app-text text-xs placeholder:text-app-muted"
+              />
+              <button
+                type="button"
+                onClick={handleFetch}
+                disabled={isFetching || !url.trim()}
+                className="px-4 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-black text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                {isFetching
+                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <ArrowRight size={14} weight="bold" />}
+                {isFetching ? "..." : "Çek"}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. POST BİLGİSİ (çekildikten sonra) */}
+          {fetched && (
+            <div className="flex items-center gap-3 p-3 bg-app-tab-track/30 border border-app-border rounded-2xl">
+              {imageUrl ? (
+                <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-app-border shrink-0">
+                  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-app-tab-track border border-app-border flex items-center justify-center shrink-0">
+                  <InstagramLogo size={22} className="text-pink-400" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-0.5">Instagram Paylaşımı</p>
+                {instagramUsername && (
+                  <div className="flex items-center gap-1">
+                    <InstagramLogo size={11} className="text-pink-500" />
+                    <span className="text-xs font-bold text-app-text">@{instagramUsername}</span>
+                  </div>
+                )}
+                {caption && (
+                  <p className="text-[10px] text-app-muted leading-snug mt-1 line-clamp-2 break-words">
+                    {caption}
+                  </p>
+                )}
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  className="text-[9px] text-rose-500 hover:underline truncate block mt-0.5"
+                >
+                  Paylaşımı aç ↗
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => setImageUrl("")}
+                className="shrink-0 text-app-muted hover:text-app-text"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* 3. MEKAN SEÇ (büyük alan) */}
+          {fetched && (
+            <div className="space-y-2">
               <label className="text-[10px] font-black text-app-muted uppercase tracking-wider block">
-                Instagram Linkinden Otomatik Çek (Opsiyonel)
+                Bu postaki mekan hangisi?
               </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://www.instagram.com/reel/..."
-                    className="w-full pl-3 pr-8 py-2.5 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs placeholder:text-app-muted"
-                  />
-                  {url && (
-                    <button
-                      type="button"
-                      onClick={() => setUrl("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-text text-xs"
-                    >
-                      <X size={14} />
-                    </button>
+
+              {/* Seçilmiş mekan */}
+              {selectedPlace ? (
+                <div className="flex items-center gap-3 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl">
+                  <div className="w-9 h-9 rounded-xl bg-rose-500 flex items-center justify-center shrink-0">
+                    <MapPin size={16} weight="fill" className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-app-text truncate">{selectedPlace.name}</p>
+                    <p className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">Seçildi</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedPlace(null); setSearchQuery(""); }}
+                    className="shrink-0 text-app-muted hover:text-rose-500 transition-colors"
+                  >
+                    <X size={16} weight="bold" />
+                  </button>
+                </div>
+              ) : (
+                /* Arama alanı */
+                <div className="relative">
+                  <div className="relative">
+                    <MagnifyingGlass size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Mekan adını yaz veya ara..."
+                      className="w-full pl-10 pr-4 py-3.5 bg-app-surface border border-app-border rounded-2xl focus:outline-none focus:border-rose-500/40 text-app-text text-sm font-bold placeholder:font-normal placeholder:text-app-muted"
+                    />
+                    {isSearching && (
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                    )}
+                  </div>
+
+                  {/* Özel mekan kartı — DB'de bulunamadıysa */}
+                  {!isSearching && searchQuery.trim().length >= 2 && !showSuggestions && searchResults.length === 0 && (
+                    <div className="mt-2 flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+                        <MapPin size={16} weight="fill" className="text-amber-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-app-text truncate">"{searchQuery}"</p>
+                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Özel mekan olarak eklenecek</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Suggestions */}
+                  {showSuggestions && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 z-50 bg-app-surface border border-app-border rounded-2xl shadow-xl mt-1.5 overflow-hidden max-h-52 overflow-y-auto">
+                      {searchResults.map((place) => (
+                        <button
+                          key={place.id}
+                          type="button"
+                          onClick={() => { setSelectedPlace({ name: place.name, id: place.id }); setShowSuggestions(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-app-tab-track/50 transition-colors text-left border-b border-app-border/50 last:border-0"
+                        >
+                          {place.image_url
+                            ? <img src={place.image_url} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-app-border" />
+                            : <div className="w-10 h-10 rounded-xl bg-app-tab-track flex items-center justify-center shrink-0"><MapPin size={16} weight="fill" className="text-rose-400" /></div>
+                          }
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-app-text truncate">{place.name}</p>
+                            <p className="text-[10px] text-app-muted truncate">{place.district || place.address || ""}</p>
+                          </div>
+                          {place.rating && (
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <Star size={11} weight="fill" className="text-amber-400" />
+                              <span className="text-[11px] font-black text-app-text">{Number(place.rating).toFixed(1)}</span>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleFetchInfo}
-                  disabled={isFetching || !url.trim()}
-                  className="px-4 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1 cursor-pointer shrink-0"
-                >
-                  {isFetching ? "Çekiliyor..." : "Bilgileri Çek"}
-                </button>
-              </div>
+              )}
             </div>
           )}
 
-          {/* Title */}
-          <div>
-            <label className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-1.5 block">
-              Başlık / Mekan Adı *
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Örn: Kahve Dünyası, Leziz Börek Tarifi..."
-              className="w-full p-3 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs font-bold shadow-xs"
-            />
-          </div>
-
-          {/* Category Selector */}
-          <div>
-            <label className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-1.5 block">
-              Kategori
-            </label>
-            <div className="inline-flex flex-wrap gap-1.5">
-              {(["Mekan", "Tarif", "Alışveriş", "Genel", "Diğer"] as CategoryType[]).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${category === cat
-                      ? "bg-rose-500 text-white shadow-xs"
-                      : "bg-app-tab-track text-app-muted hover:text-app-text border border-app-border"
-                    }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Place Specific Fields */}
-          {category === "Mekan" && (
-            <div className="bg-rose-50/10 border border-rose-500/10 p-4 rounded-2xl space-y-4 transition-all">
-              <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-wider flex items-center gap-1">
-                <MapPin size={12} weight="fill" />
-                Mekan Detayları
-              </h3>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1 block">
-                    Şehir
-                  </label>
-                  <input
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="İstanbul, Ankara..."
-                    className="w-full p-2.5 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1 block">
-                    İlçe
-                  </label>
-                  <input
-                    type="text"
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    placeholder="Kadıköy, Beşiktaş..."
-                    className="w-full p-2.5 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs font-semibold"
-                  />
-                </div>
-              </div>
-
-              {/* Rating Selector */}
-              <div>
-                <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1.5 block">
-                  Puanlama ({rating} Yıldız)
-                </label>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className="text-yellow-400 hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                    >
-                      <Star
-                        size={24}
-                        weight={star <= rating ? "fill" : "regular"}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* visited & favorite toggles */}
-              <div className="flex gap-4 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={isVisited}
-                    onChange={(e) => setIsVisited(e.target.checked)}
-                    className="w-4 h-4 accent-rose-500 rounded-xs border-app-border bg-app-surface"
-                  />
-                  <span className="text-xs font-bold text-app-text">Ziyaret Ettim</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={isFavorite}
-                    onChange={(e) => setIsFavorite(e.target.checked)}
-                    className="w-4 h-4 accent-rose-500 rounded-xs border-app-border bg-app-surface"
-                  />
-                  <span className="text-xs font-bold text-app-text flex items-center gap-1">
-                    <Heart size={14} weight={isFavorite ? "fill" : "regular"} className="text-rose-500" />
-                    Favori Mekan
-                  </span>
-                </label>
-              </div>
+          {/* Kaydet */}
+          {fetched && (
+            <div className="pt-1 shrink-0">
+              <button
+                type="submit"
+                disabled={isSaving || (!selectedPlace && !searchQuery.trim())}
+                className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 text-white font-black uppercase tracking-wider text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isSaving
+                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Check size={14} weight="bold" />}
+                {isSaving ? "Kaydediliyor..." : editBookmark ? "Güncelle" : "Koleksiyona Ekle 📍"}
+              </button>
             </div>
           )}
-
-          {/* Description / Notes */}
-          <div>
-            <label className="text-[10px] font-black text-app-muted uppercase tracking-wider mb-1.5 block">
-              Notlar / Açıklama
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Mekan veya tarif hakkında notlarını yaz..."
-              className="w-full h-24 p-3 bg-app-surface border border-app-border rounded-xl resize-none focus:outline-none focus:border-rose-500/30 text-app-text text-xs leading-relaxed"
-            />
-          </div>
-
-          {/* Instagram Username / Link Source (Hidden/Optional advanced details) */}
-          <div className="border-t border-app-border pt-4 space-y-3">
-            <h4 className="text-[9px] font-black text-app-muted uppercase tracking-wider">Gelişmiş Bilgiler (Opsiyonel)</h4>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1 block">
-                  İçerik Sahibi
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={instagramUsername}
-                    onChange={(e) => setInstagramUsername(e.target.value)}
-                    placeholder="Kullanıcı adı"
-                    className="w-full pl-7 pr-3 py-2 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs"
-                  />
-                  <InstagramLogo size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-pink-500" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1 block">
-                  Görsel Linki
-                </label>
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Görsel URL..."
-                  className="w-full p-2 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs truncate"
-                />
-              </div>
-            </div>
-
-            {editBookmark && (
-              <div>
-                <label className="text-[9px] font-black text-app-muted uppercase tracking-wider mb-1 block">
-                  Kaynak URL
-                </label>
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Sosyal Medya Linki"
-                  className="w-full p-2 bg-app-surface border border-app-border rounded-xl focus:outline-none focus:border-rose-500/30 text-app-text text-xs truncate"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="pt-2 shrink-0">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="w-full py-3 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white font-black uppercase tracking-wider text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
-            >
-              {isSaving ? "Kaydediliyor..." : editBookmark ? "Güncellemeleri Kaydet" : "Koleksiyona Ekle"}
-            </button>
-          </div>
         </form>
       </div>
     </>

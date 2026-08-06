@@ -48,6 +48,8 @@ import {
   Car,
   Ticket,
   Anchor,
+  MapPin,
+  Star,
 } from "@phosphor-icons/react";
 import React, { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from "react";
 import { MINI_APPS } from "@/lib/apps";
@@ -282,6 +284,27 @@ export function DiscoverTab(props: DiscoverTabProps) {
     enabled: !!userId,
     staleTime: 0,
   });
+
+  const savedPlacesQuery = useQuery({
+    queryKey: ["kaydedilenler", "saved-places", userId],
+    queryFn: () => browserClient.kaydedilenler.getUserBookmarks(userId || ""),
+    enabled: !!userId,
+    staleTime: 60 * 1000,
+  });
+
+  const savedPlaces = useMemo(() => {
+    if (!savedPlacesQuery.data?.bookmarks) return [];
+    return savedPlacesQuery.data.bookmarks
+      .filter((b: any) => b.category === "Mekan")
+      .sort((a: any, b: any) => {
+        // Gidilmeyenler önce
+        if (a.is_visited !== b.is_visited) return a.is_visited ? 1 : -1;
+        // Favoriler önce
+        if (a.is_favorite !== b.is_favorite) return a.is_favorite ? -1 : 1;
+        return 0;
+      })
+      .slice(0, 6);
+  }, [savedPlacesQuery.data]);
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -556,6 +579,78 @@ export function DiscoverTab(props: DiscoverTabProps) {
           <PlacesHomeWidget
             places={cafeRestaurantPlaces.length > 0 ? cafeRestaurantPlaces : places}
           />
+        </HomeSummaryCard>
+      )
+    },
+    {
+      key: "saved-places-widget",
+      title: "Kaydedilenlerim",
+      icon: MapPin,
+      color: "#E11D48",
+      loading: savedPlacesQuery.isLoading,
+      hasContent: savedPlaces.length > 0,
+      hasCompletedOnly: false,
+      card: (
+        <HomeSummaryCard
+          href="/apps/kaydedilenler"
+          icon={MapPin}
+          color="#E11D48"
+          title="Kaydedilenlerim"
+          subtitle="Gitmeyi planladıklarım"
+          loading={savedPlacesQuery.isLoading && !!userId}
+          emptyText={userId ? "Henüz kayıtlı mekan yok" : "Giriş yapınca görünür"}
+          hasContent={savedPlaces.length > 0}
+        >
+          <div className="divide-y divide-app-border">
+            {savedPlaces.map((place: any) => (
+              <div
+                key={place.id}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                {/* Thumbnail */}
+                <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-app-tab-track border border-app-border">
+                  {place.image_url ? (
+                    <img
+                      src={place.image_url}
+                      alt={place.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <MapPin size={16} weight="fill" className="text-rose-500" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-black text-app-text truncate">{place.title}</p>
+                  <p className="text-[10px] text-app-muted font-medium truncate">
+                    {[place.district, place.city].filter(Boolean).join(" · ") || "Konum yok"}
+                  </p>
+                </div>
+
+                {/* Rating / visited badge */}
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                  {place.rating != null && (
+                    <div className="flex items-center gap-0.5">
+                      <Star size={10} weight="fill" className="text-amber-400" />
+                      <span className="text-[10px] font-black text-app-text">{place.rating}</span>
+                    </div>
+                  )}
+                  {place.is_visited ? (
+                    <span className="text-[9px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                      Gidildi
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-black uppercase text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
+                      Plan
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </HomeSummaryCard>
       )
     },
@@ -2036,7 +2131,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget" || w.key === "ne-yapsak";
+    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget" || w.key === "ne-yapsak" || w.key === "saved-places-widget";
     if (activeSubTab === "explore") {
       return isExploreWidget;
     } else {
@@ -2056,6 +2151,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "upcoming-concerts-widget" &&
       widget.key !== "outdoor-activities-widget" &&
       widget.key !== "ne-yapsak" &&
+      widget.key !== "saved-places-widget" &&
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
@@ -2192,6 +2288,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const placesWidget = filteredWidgets.find((w) => w.key === "places-widget");
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
         const neYapsakWidget = filteredWidgets.find((w) => w.key === "ne-yapsak");
+        const savedPlacesWidget = filteredWidgets.find((w) => w.key === "saved-places-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
@@ -2206,8 +2303,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visiblePlaces = placesWidget && showCityWidget("places-widget");
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && showCityWidget("upcoming-concerts-widget");
         const visibleNeYapsak = neYapsakWidget && neYapsakWidget.hasContent && showCityWidget("ne-yapsak");
+        const visibleSavedPlaces = savedPlacesWidget && showCityWidget("saved-places-widget");
 
-        const hasAny = visibleNeYapsak || visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor;
+        const hasAny = visibleNeYapsak || visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor || visibleSavedPlaces;
 
         if (!hasAny) return null;
 
@@ -2233,6 +2331,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className={WIDGET_MASONRY_ITEM}
                   >
                     {placesWidget.card}
+                  </motion.div>
+                )}
+                {visibleSavedPlaces && savedPlacesWidget && (
+                  <motion.div
+                    key="saved-places-widget"
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={WIDGET_MASONRY_ITEM}
+                  >
+                    {savedPlacesWidget.card}
                   </motion.div>
                 )}
                 {visibleNeYapsak && neYapsakWidget && (
