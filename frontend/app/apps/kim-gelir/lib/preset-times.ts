@@ -3,6 +3,7 @@ export const PRESET_TIMES = [
   { id: "30mins", label: "30 dk sonra" },
   { id: "evening", label: "Bugün akşam" },
   { id: "tomorrow", label: "Yarın" },
+  { id: "weekend", label: "Hafta sonu" },
   { id: "custom", label: "Özel saat" },
 ] as const;
 

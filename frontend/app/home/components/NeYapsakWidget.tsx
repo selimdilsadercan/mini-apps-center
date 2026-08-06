@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, Plus, Question, Sparkle, X } from "@phosphor-icons/react";
 import { ActivePlanRow, isActivePlan } from "@/app/apps/kim-gelir/components/ActivePlanRow";
+import { NE_YAPSAK_ACCENT } from "@/app/apps/kim-gelir/lib/theme";
 import type { kim_gelir } from "@/lib/client";
 import { HomeSummaryCard, WidgetActionButton } from "./common/HomeSummaryCard";
 
@@ -31,13 +32,13 @@ export function NeYapsakWidget({
   isPermanentlyHidden,
   onRestore,
 }: NeYapsakWidgetProps) {
-  const activePlans = activities.filter(isActivePlan).slice(0, 4);
+  const activePlans = activities.filter(isActivePlan).slice(0, 3);
 
   return (
     <HomeSummaryCard
       href="/apps/kim-gelir"
       icon={Sparkle}
-      color="#D97706"
+      color={NE_YAPSAK_ACCENT}
       title="Ne Yapsak?"
       subtitle="Planlar ve davetler"
       loading={loading}

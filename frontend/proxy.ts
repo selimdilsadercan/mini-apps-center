@@ -71,6 +71,7 @@ const SUBDOMAIN_ROUTES: Record<string, string> = {
   menu: "/apps/digital-menu",
   siparistakip: "/apps/siparis-takip",
   dashboard: "/dashboard",
+  store: "/apps/store",
   storepreview: "/apps/store-preview",
   iconexport: "/apps/icon-export",
   surdurulebilirlik: "/apps/surdurulebilirlik",

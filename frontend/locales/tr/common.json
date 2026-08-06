@@ -409,6 +409,10 @@
     "siparis-takip": {
       "name": "Sipariş Takip",
       "description": "Müşterilerinizin siparişlerini, detaylarını ve ödemelerini kolayca yönetin."
+    },
+    "store": {
+      "name": "Katalog Mağazası",
+      "description": "Kendi butik mağazanızı açın, ürünlerinizi listeleyin ve müşterilerle doğrudan iletişim kurun."
     }
   },
   "birikim": {

@@ -413,6 +413,10 @@
     "siparis-takip": {
       "name": "Order Tracker",
       "description": "Easily manage your customers' orders, details, and payments."
+    },
+    "store": {
+      "name": "Catalog Store",
+      "description": "Launch your boutique store, list products, and let customers contact you directly."
     }
   },
   "birikim": {

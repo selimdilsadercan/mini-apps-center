@@ -108,12 +108,12 @@ export default function DiscoverTab({
           )}
 
           {loading ? (
-            <div className="grid grid-cols-3 gap-2.5">
-              {Array.from({ length: 9 }).map((_, i) => (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="space-y-1.5 animate-pulse">
-                  <div className="aspect-[2/3] rounded-xl bg-app-surface-muted" />
+                  <div className="w-full max-w-[96px] mx-auto aspect-[2/3] max-h-[144px] rounded-xl bg-app-surface-muted" />
                   <div className="h-3 rounded bg-app-surface-muted" />
-                  <div className="h-2 w-2/3 rounded bg-app-surface-muted" />
+                  <div className="h-2 w-2/3 rounded bg-app-surface-muted mx-auto" />
                 </div>
               ))}
             </div>
@@ -123,7 +123,7 @@ export default function DiscoverTab({
               <p className="text-sm font-bold text-app-muted">Film bulunamadı</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {movies.map((film) => (
                 <button
                   key={film.id}
@@ -131,7 +131,7 @@ export default function DiscoverTab({
                   onClick={() => onSelect(film)}
                   className="text-left group active:scale-[0.98] transition-transform"
                 >
-                  <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-app-surface-muted border border-app-border shadow-sm">
+                  <div className="relative w-full max-w-[96px] mx-auto aspect-[2/3] max-h-[144px] rounded-xl overflow-hidden bg-app-surface-muted border border-app-border shadow-sm">
                     {film.posterUrl ? (
                       <img
                         src={film.posterUrl}
@@ -149,10 +149,10 @@ export default function DiscoverTab({
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] font-bold text-app-text mt-1.5 line-clamp-2 leading-tight">
+                  <p className="text-[11px] font-bold text-app-text mt-1.5 line-clamp-2 leading-tight text-center">
                     {film.title}
                   </p>
-                  <div className="flex items-center gap-1 mt-0.5">
+                  <div className="flex items-center justify-center gap-1 mt-0.5">
                     <Star size={10} weight="fill" className="text-amber-500" />
                     <span className="text-[10px] font-bold text-app-muted">
                       {film.imdbRating ? `${parseFloat(String(film.imdbRating)).toFixed(1)}` : "-"} · {film.year}

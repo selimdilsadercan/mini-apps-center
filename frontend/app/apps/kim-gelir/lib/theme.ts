@@ -26,7 +26,7 @@ export const segmentedWrapClass =
   "flex p-1 gap-1 rounded-xl bg-app-surface-muted border border-app-border";
 
 export const segmentedItemClass = (active: boolean) =>
-  `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
+  `flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all cursor-pointer ${
     active
       ? "bg-app-tab-active text-app-text shadow-sm"
       : "text-app-muted hover:text-app-text"

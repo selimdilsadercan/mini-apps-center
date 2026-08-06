@@ -109,10 +109,12 @@ function PreviewMapBounds() {
       map.invalidateSize();
       map.fitBounds(WIDGET_PREVIEW_BOUNDS, { animate: false, padding: [0, 0] });
       lockedZoomRef.current = map.getZoom();
+      map.panBy(L.point(0, 28), { animate: false });
       map.scrollWheelZoom.disable();
       map.touchZoom.disable();
       map.doubleClickZoom.disable();
       map.boxZoom.disable();
+      map.dragging.disable();
     };
 
     fit();
@@ -199,26 +201,31 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
     });
 
     const labelledPositions: { lat: number, lng: number }[] = [];
-    
-    // Distance threshold in degrees (scales with zoom)
-    // Much tighter thresholds for the new minimal labels
-    const latThreshold = 0.004 / Math.pow(2, labelZoom - 13);
-    const lngThreshold = 0.012 / Math.pow(2, labelZoom - 13);
+    const maxPreviewLabels = 12;
 
-    return prioritized.map(place => {
+    // Distance threshold in degrees (scales with zoom)
+    // Preview: tighter spacing so more names fit in the widget crop
+    const latThreshold = (preview ? 0.0012 : 0.004) / Math.pow(2, labelZoom - 13);
+    const lngThreshold = (preview ? 0.0035 : 0.012) / Math.pow(2, labelZoom - 13);
+
+    return prioritized.map((place) => {
       const pos = { lat: place.latitude!, lng: place.longitude! };
       let showLabel = place.id === selectedPlaceId;
 
       if (!showLabel) {
-        if (labelZoom < 14) {
+        if (!preview && labelZoom < 14) {
           showLabel = false;
-        } else if (labelZoom >= 17.5) {
+        } else if (!preview && labelZoom >= 17.5) {
           showLabel = true;
+        } else if (preview && labelledPositions.length >= maxPreviewLabels) {
+          showLabel = false;
         } else {
           showLabel = true;
           for (const other of labelledPositions) {
-            if (Math.abs(pos.lat - other.lat) < latThreshold &&
-                Math.abs(pos.lng - other.lng) < lngThreshold) {
+            if (
+              Math.abs(pos.lat - other.lat) < latThreshold &&
+              Math.abs(pos.lng - other.lng) < lngThreshold
+            ) {
               showLabel = false;
               break;
             }
@@ -290,7 +297,7 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
         isDark ? "leaflet-map-google-dark" : ""
       } ${
         preview
-          ? "leaflet-map-preview-embed cursor-grab active:cursor-grabbing [&_.leaflet-container]:!absolute [&_.leaflet-container]:!inset-0 [&_.leaflet-container]:!h-full [&_.leaflet-container]:!w-full [&_.leaflet-map-pane]:!h-full [&_.leaflet-map-pane]:!w-full"
+          ? "leaflet-map-preview-embed [&_.leaflet-container]:!absolute [&_.leaflet-container]:!inset-0 [&_.leaflet-container]:!h-full [&_.leaflet-container]:!w-full [&_.leaflet-map-pane]:!h-full [&_.leaflet-map-pane]:!w-full"
           : ""
       }`}
     >
@@ -299,7 +306,7 @@ export default function StudyPlacesMap({ places, onSelectPlace, selectedPlaceId,
         zoom={mapZoom}
         style={{ width: "100%", height: "100%", background: isDark ? "#17263c" : "#eef2f6" }}
         zoomControl={false}
-        dragging
+        dragging={!preview}
         touchZoom={!preview}
         scrollWheelZoom={!preview}
         doubleClickZoom={!preview}

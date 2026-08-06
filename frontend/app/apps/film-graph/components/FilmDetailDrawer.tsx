@@ -42,7 +42,7 @@ export default function FilmDetailDrawer({
           {film && (
             <div className="flex-1 overflow-y-auto pb-10">
               {/* BACKDROP HEADER (SeriesTrack Style) */}
-              <div className="relative h-56 md:h-64 w-full overflow-hidden shrink-0 bg-app-surface-muted">
+              <div className="relative h-44 md:h-52 w-full overflow-hidden shrink-0 bg-app-surface-muted">
                 {film.backdropUrl ? (
                   <img
                     src={film.backdropUrl}
@@ -89,7 +89,7 @@ export default function FilmDetailDrawer({
               <div className="px-5 pb-8 -mt-16 relative z-10 space-y-5">
                 {/* Floating Poster & Info Header */}
                 <div className="flex gap-4 items-end">
-                  <div className="w-28 md:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-app-surface shadow-2xl bg-app-surface-muted shrink-0 relative">
+                  <div className="w-20 md:w-24 max-w-[96px] aspect-[2/3] rounded-2xl overflow-hidden border-2 border-app-surface shadow-2xl bg-app-surface-muted shrink-0 relative">
                     {film.posterUrl ? (
                       <img
                         src={film.posterUrl}

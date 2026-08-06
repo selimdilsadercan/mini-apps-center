@@ -82,6 +82,7 @@ export default class Client {
     public readonly stamp_card: stamp_card.ServiceClient
     public readonly standups: standups.ServiceClient
     public readonly storage: storage.ServiceClient
+    public readonly store: store.ServiceClient
     public readonly study: study.ServiceClient
     public readonly subcenter: subcenter.ServiceClient
     public readonly suggest: suggest.ServiceClient
@@ -160,6 +161,7 @@ export default class Client {
         this.stamp_card = new stamp_card.ServiceClient(base)
         this.standups = new standups.ServiceClient(base)
         this.storage = new storage.ServiceClient(base)
+        this.store = new store.ServiceClient(base)
         this.study = new study.ServiceClient(base)
         this.subcenter = new subcenter.ServiceClient(base)
         this.suggest = new suggest.ServiceClient(base)
@@ -6036,6 +6038,15 @@ export namespace kim_gelir {
         activities: Activity[]
     }
 
+    export interface LeaveActivityRequest {
+        activityId: string
+        userId: string
+    }
+
+    export interface LeaveActivityResponse {
+        success: boolean
+    }
+
     export interface RespondToActivityRequest {
         activityId: string
         userId: string
@@ -6057,6 +6068,7 @@ export namespace kim_gelir {
             this.deleteActivity = this.deleteActivity.bind(this)
             this.editActivity = this.editActivity.bind(this)
             this.getActivities = this.getActivities.bind(this)
+            this.leaveActivity = this.leaveActivity.bind(this)
             this.respondToActivity = this.respondToActivity.bind(this)
         }
 
@@ -6108,6 +6120,16 @@ export namespace kim_gelir {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/kim-gelir/activities/${encodeURIComponent(userId)}`)
             return await resp.json() as GetActivitiesResponse
+        }
+
+        /**
+         * Davetli kullanıcıyı plandan çıkarır (sahip kullanamaz)
+         * POST /kim-gelir/leave
+         */
+        public async leaveActivity(params: LeaveActivityRequest): Promise<LeaveActivityResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/kim-gelir/leave`, JSON.stringify(params))
+            return await resp.json() as LeaveActivityResponse
         }
 
         /**
@@ -8972,6 +8994,260 @@ export namespace storage {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/storage/upload-url`, JSON.stringify(params))
             return await resp.json() as GetUploadURLResponse
+        }
+    }
+}
+
+/**
+ * Store service - catalog and marketplace profile manager
+ */
+export namespace store {
+    export interface CreateProductRequest {
+        userId: string
+        storeId: string
+        name: string
+        description?: string | null
+        price: number
+        currency?: string | null
+        imageUrls?: string[] | null
+        category: string
+    }
+
+    export interface CreateProductResponse {
+        product: Product | null
+    }
+
+    export interface CreateStoreRequest {
+        userId: string
+        name: string
+        description?: string | null
+        logoUrl?: string | null
+        bannerUrl?: string | null
+        contactWhatsapp?: string | null
+        contactInstagram?: string | null
+        contactEmail?: string | null
+    }
+
+    export interface DeleteProductRequest {
+        userId: string
+    }
+
+    export interface DeleteProductResponse {
+        success: boolean
+    }
+
+    export interface GetAllProductsRequest {
+        category?: string | null
+    }
+
+    export interface GetAllProductsResponse {
+        products: ProductWithStore[]
+    }
+
+    export interface GetProductByIdResponse {
+        product: Product | null
+    }
+
+    export interface GetStoreProductsResponse {
+        products: Product[]
+    }
+
+    export interface GetStoreResponse {
+        store: Store | null
+    }
+
+    export interface Product {
+        id: string
+        "store_id": string
+        name: string
+        description: string | null
+        price: number
+        currency: string
+        "image_urls": string[]
+        category: string
+        "is_available": boolean
+        "created_at": string
+    }
+
+    export interface ProductWithStore {
+        id: string
+        "store_id": string
+        "store_name": string
+        "store_logo_url": string | null
+        name: string
+        description: string | null
+        price: number
+        currency: string
+        "image_urls": string[]
+        category: string
+        "is_available": boolean
+        "created_at": string
+    }
+
+    export interface Store {
+        id: string
+        "created_user_id": string
+        name: string
+        description: string | null
+        "logo_url": string | null
+        "banner_url": string | null
+        "contact_whatsapp": string | null
+        "contact_instagram": string | null
+        "contact_email": string | null
+        "created_at": string
+    }
+
+    export interface UpdateProductRequest {
+        userId: string
+        name: string
+        description?: string | null
+        price: number
+        currency?: string | null
+        imageUrls?: string[] | null
+        category: string
+        isAvailable: boolean
+    }
+
+    export interface UpdateProductResponse {
+        product: Product | null
+    }
+
+    export interface UpdateStoreRequest {
+        userId: string
+        name: string
+        description?: string | null
+        logoUrl?: string | null
+        bannerUrl?: string | null
+        contactWhatsapp?: string | null
+        contactInstagram?: string | null
+        contactEmail?: string | null
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.createProduct = this.createProduct.bind(this)
+            this.createStore = this.createStore.bind(this)
+            this.deleteProduct = this.deleteProduct.bind(this)
+            this.getAllProducts = this.getAllProducts.bind(this)
+            this.getProductById = this.getProductById.bind(this)
+            this.getStoreById = this.getStoreById.bind(this)
+            this.getStoreByUserId = this.getStoreByUserId.bind(this)
+            this.getStoreProducts = this.getStoreProducts.bind(this)
+            this.updateProduct = this.updateProduct.bind(this)
+            this.updateStore = this.updateStore.bind(this)
+        }
+
+        /**
+         * Yeni ürün ekler.
+         * POST /store/product
+         */
+        public async createProduct(params: CreateProductRequest): Promise<CreateProductResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/store/product`, JSON.stringify(params))
+            return await resp.json() as CreateProductResponse
+        }
+
+        /**
+         * Yeni mağaza oluşturur.
+         * POST /store
+         */
+        public async createStore(params: CreateStoreRequest): Promise<GetStoreResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/store`, JSON.stringify(params))
+            return await resp.json() as GetStoreResponse
+        }
+
+        /**
+         * Ürün siler.
+         * DELETE /store/product/:productId
+         */
+        public async deleteProduct(productId: string, params: DeleteProductRequest): Promise<DeleteProductResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                userId: params.userId,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("DELETE", `/store/product/${encodeURIComponent(productId)}`, undefined, {query})
+            return await resp.json() as DeleteProductResponse
+        }
+
+        /**
+         * Tüm mağazaların ürünlerini toplu listeler (Keşfet akışı).
+         * GET /store/products
+         */
+        public async getAllProducts(params: GetAllProductsRequest): Promise<GetAllProductsResponse> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                category: params.category === undefined ? undefined : String(params.category),
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/store/products`, undefined, {query})
+            return await resp.json() as GetAllProductsResponse
+        }
+
+        /**
+         * Tek bir ürünün detaylarını getirir.
+         * GET /store/product/:productId
+         */
+        public async getProductById(productId: string): Promise<GetProductByIdResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/store/product/${encodeURIComponent(productId)}`)
+            return await resp.json() as GetProductByIdResponse
+        }
+
+        /**
+         * Mağaza ID'sine göre detay getirir.
+         * GET /store/:storeId
+         */
+        public async getStoreById(storeId: string): Promise<GetStoreResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/store/${encodeURIComponent(storeId)}`)
+            return await resp.json() as GetStoreResponse
+        }
+
+        /**
+         * Belirli bir kullanıcının sahip olduğu mağazayı getirir.
+         * GET /store/user/:userId
+         */
+        public async getStoreByUserId(userId: string): Promise<GetStoreResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/store/user/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetStoreResponse
+        }
+
+        /**
+         * Belirli bir mağazaya ait ürünleri listeler.
+         * GET /store/:storeId/products
+         */
+        public async getStoreProducts(storeId: string): Promise<GetStoreProductsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/store/${encodeURIComponent(storeId)}/products`)
+            return await resp.json() as GetStoreProductsResponse
+        }
+
+        /**
+         * Ürünü günceller.
+         * PUT /store/product/:productId
+         */
+        public async updateProduct(productId: string, params: UpdateProductRequest): Promise<UpdateProductResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/store/product/${encodeURIComponent(productId)}`, JSON.stringify(params))
+            return await resp.json() as UpdateProductResponse
+        }
+
+        /**
+         * Var olan mağazayı günceller.
+         * PUT /store/:storeId
+         */
+        public async updateStore(storeId: string, params: UpdateStoreRequest): Promise<GetStoreResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("PUT", `/store/${encodeURIComponent(storeId)}`, JSON.stringify(params))
+            return await resp.json() as GetStoreResponse
         }
     }
 }

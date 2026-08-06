@@ -5,9 +5,11 @@ import { useUser } from "@clerk/clerk-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
   CaretLeft,
-  MapPin, 
-  X, 
+  MapPin,
+  PencilSimple,
   Spinner,
+  Storefront,
+  X,
 } from "@phosphor-icons/react";
 import { createBrowserClient } from "@/lib/api";
 import { friendship } from "@/lib/client";
@@ -16,7 +18,6 @@ import dynamic from "next/dynamic";
 import { PlanCreateForm, type FieldMode, type WhatMode } from "../components/PlanCreateForm";
 import {
   buildDetailedTitle,
-  isMoviePreset,
   type MoviePlanDetail,
 } from "../lib/activity-detail";
 import type { MarasEventOption } from "../lib/maras-sources";
@@ -35,6 +36,8 @@ import {
   primaryBtnClass,
   secondaryBtnClass,
   sectionLabelClass,
+  segmentedItemClass,
+  segmentedWrapClass,
 } from "../lib/theme";
 
 const StudyPlacesMap = dynamic(() => import("@/components/maps/StudyPlacesMap"), {
@@ -54,6 +57,7 @@ const PRESET_TIMES = [
   { id: "30mins", label: "30 dk sonra" },
   { id: "evening", label: "Bugün akşam" },
   { id: "tomorrow", label: "Yarın" },
+  { id: "weekend", label: "Hafta sonu" },
   { id: "custom", label: "Özel Saat" },
 ];
 
@@ -87,6 +91,7 @@ function CreatePlanContent() {
   const [tempSelectedActivity, setTempSelectedActivity] = useState<{ id: string; label: string; icon: string } | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [location, setLocation] = useState("");
+  const [locationPickerTab, setLocationPickerTab] = useState<"places" | "custom">("places");
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -143,7 +148,7 @@ function CreatePlanContent() {
 
     if (!preset && !title && !loc && !time) return;
 
-    setWhatMode(preset ? "detailed" : "open");
+    setWhatMode(preset || title ? "fixed" : "open");
 
     if (preset) {
       const found = ALL_PRESET_ACTIVITIES.find((p) => p.id === preset);
@@ -161,7 +166,7 @@ function CreatePlanContent() {
         setActivityDetail(title);
       } else if (!preset) {
         setCustomTitle(title);
-        setWhatMode("detailed");
+        setWhatMode("fixed");
       }
     }
 
@@ -219,7 +224,7 @@ function CreatePlanContent() {
     e.preventDefault();
     if (!user) return;
 
-    if ((whatMode === "category" || whatMode === "detailed") && !selectedPreset && !customTitle.trim()) {
+    if (whatMode === "fixed" && !selectedPreset && !customTitle.trim()) {
       showToastMsg("Lütfen bir aktivite seç.", "error");
       return;
     }
@@ -235,9 +240,7 @@ function CreatePlanContent() {
     }
 
     let finalTitle = PLAN_OPEN_WHAT;
-    if (whatMode === "category") {
-      finalTitle = selectedPreset?.label || customTitle.trim();
-    } else if (whatMode === "detailed") {
+    if (whatMode === "fixed") {
       const base = selectedPreset?.label || customTitle.trim();
       finalTitle = buildDetailedTitle(base, activityDetail, movieDetail);
     }
@@ -285,6 +288,7 @@ function CreatePlanContent() {
 
   const openLocationPicker = () => {
     setPresetPickerGoal("location");
+    setLocationPickerTab("places");
     if (selectedPreset) {
       setTempSelectedActivity({
         id: selectedPreset.id,
@@ -323,13 +327,8 @@ function CreatePlanContent() {
     setTempSelectedActivity(null);
   };
 
-  const needsMovieSession =
-    whatMode === "detailed" && isMoviePreset(selectedPresetId) && maras.cinemas.some((c) => c.moviesToday.length > 0);
-
   const canSubmitPlan =
-    (whatMode === "open" ||
-      ((whatMode === "category" || whatMode === "detailed") && (!!selectedPreset || !!customTitle.trim()))) &&
-    (!needsMovieSession || !!movieDetail?.sessionTime) &&
+    (whatMode === "open" || (whatMode === "fixed" && (!!selectedPreset || !!customTitle.trim()))) &&
     (whereMode === "open" || !!location.trim()) &&
     (whenMode === "open" || selectedTimeId !== "custom" || !!customTime.trim());
 
@@ -427,6 +426,7 @@ function CreatePlanContent() {
         setShowPresetModal(open);
         if (!open) {
           setPresetSearch("");
+          setLocationPickerTab("places");
           if (presetPickerGoal === "activity") setTempSelectedActivity(null);
         }
       }}>
@@ -562,8 +562,27 @@ function CreatePlanContent() {
 
                   return (
                     <div className="space-y-3 mb-4 flex flex-col min-h-0">
+                      <div className={`${segmentedWrapClass} shrink-0`}>
+                        <button
+                          type="button"
+                          onClick={() => setLocationPickerTab("places")}
+                          className={segmentedItemClass(locationPickerTab === "places")}
+                        >
+                          <Storefront size={12} weight="fill" />
+                          Mekanlar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLocationPickerTab("custom")}
+                          className={segmentedItemClass(locationPickerTab === "custom")}
+                        >
+                          <PencilSimple size={12} weight="bold" />
+                          Özel yer
+                        </button>
+                      </div>
+
                       <label className={sectionLabelClass}>
-                        {locationLabel}
+                        {locationPickerTab === "custom" ? "Yer adını yaz" : locationLabel}
                       </label>
                       <div className="relative shrink-0">
                         <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
@@ -571,7 +590,11 @@ function CreatePlanContent() {
                           type="text"
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
-                          placeholder={locationPlaceholder}
+                          placeholder={
+                            locationPickerTab === "custom"
+                              ? "Örn: Evimin önü, Kampüs bahçesi, arkadaşımın evi…"
+                              : locationPlaceholder
+                          }
                           className={`${fieldClass} pl-10 pr-10`}
                           autoFocus
                         />
@@ -586,6 +609,12 @@ function CreatePlanContent() {
                         )}
                       </div>
 
+                      {locationPickerTab === "custom" ? (
+                        <p className="text-[10px] text-app-muted font-medium leading-relaxed">
+                          Listede olmayan bir yer yazabilirsin — adres, mahalle veya buluşma noktası.
+                        </p>
+                      ) : (
+                        <>
                       {actId === "movie" && (
                         <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1 flex-1">
                           {maras.loading && (
@@ -778,6 +807,8 @@ function CreatePlanContent() {
                             })}
                           </div>
                         </div>
+                      )}
+                        </>
                       )}
                     </div>
                   );

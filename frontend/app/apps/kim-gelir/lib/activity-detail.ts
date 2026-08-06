@@ -8,7 +8,7 @@ export interface MoviePlanDetail {
   sessionTime: string;
 }
 
-export const MOVIE_PRESET_IDS = new Set(["movie", "movie_night"]);
+export const MOVIE_PRESET_IDS = new Set(["movie"]);
 
 export const EVENT_PRESET_IDS: Record<string, MarasEventOption["kind"][]> = {
   concert: ["concert"],

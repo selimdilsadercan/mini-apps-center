@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Question, Spinner, X } from "@phosphor-icons/react";
+import { Check, Question, SignOut, Spinner, Trash, X } from "@phosphor-icons/react";
 import type { kim_gelir } from "@/lib/client";
 import {
   AXIS_META,
@@ -23,6 +23,8 @@ export interface ActivityCardProps {
   maras: MarasSources;
   onRespond: (activityId: string, status: string, selectedOptions: string[]) => Promise<void>;
   onAddOption: (activityId: string, optionText: string) => Promise<void>;
+  onDelete?: () => Promise<void>;
+  onLeave?: () => Promise<void>;
   actionLoading: string | null;
 }
 
@@ -32,8 +34,11 @@ export function ActivityCard({
   maras,
   onRespond,
   onAddOption,
+  onDelete,
+  onLeave,
   actionLoading,
 }: ActivityCardProps) {
+  const isOwner = activity.creatorId === currentUserId;
   const myInviteResponse = activity.responses.find((r) => r.userId === currentUserId);
   const myResponse = myInviteResponse?.status || "bekliyor";
   const mySelectedOptions = myInviteResponse?.selectedOptions || [];
@@ -148,6 +153,29 @@ export function ActivityCard({
           </div>
         )}
       </section>
+
+      {(isOwner ? onDelete : onLeave) && (
+        <button
+          type="button"
+          onClick={() => (isOwner ? onDelete?.() : onLeave?.())}
+          disabled={actionLoading !== null}
+          className="w-full py-3 rounded-xl border border-red-500/25 bg-red-500/5 text-red-500 text-[11px] font-black uppercase tracking-wide flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+        >
+          {actionLoading === "plan-action" ? (
+            <Spinner size={14} className="animate-spin" />
+          ) : isOwner ? (
+            <>
+              <Trash size={14} weight="bold" />
+              Planı Sil
+            </>
+          ) : (
+            <>
+              <SignOut size={14} weight="bold" />
+              Plandan Çık
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

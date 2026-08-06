@@ -8,26 +8,6 @@
         "icon": "🎬"
       },
       {
-        "id": "series",
-        "label": "Dizi / Film gecesi",
-        "icon": "🍿"
-      },
-      {
-        "id": "game",
-        "label": "Oyun oynamak",
-        "icon": "🎮"
-      },
-      {
-        "id": "board_game",
-        "label": "Kutu Oyunu",
-        "icon": "🎲"
-      },
-      {
-        "id": "card_game",
-        "label": "Kart Oyunu",
-        "icon": "🃏"
-      },
-      {
         "id": "concert",
         "label": "Konser / Etkinlik",
         "icon": "🎵"
@@ -81,11 +61,6 @@
         "id": "shopping",
         "label": "Alışveriş",
         "icon": "🛍️"
-      },
-      {
-        "id": "chill",
-        "label": "Takılmak",
-        "icon": "🛋️"
       }
     ]
   },
@@ -141,11 +116,6 @@
         "id": "swimming",
         "label": "Yüzme",
         "icon": "🏊‍♂️"
-      },
-      {
-        "id": "yoga",
-        "label": "Yoga / Esneme",
-        "icon": "🧘‍♂️"
       },
       {
         "id": "climbing",
@@ -231,37 +201,12 @@
         "id": "street_food",
         "label": "Sokak Lezzeti",
         "icon": "🌯"
-      },
-      {
-        "id": "order_food",
-        "label": "Yemek söylemek",
-        "icon": "🛵"
-      },
-      {
-        "id": "cook_together",
-        "label": "Birlikte yemek yapmak",
-        "icon": "👨‍🍳"
       }
     ]
   },
   {
     "category": "Eğitim & Çalışma",
     "items": [
-      {
-        "id": "study",
-        "label": "Ders çalışmak",
-        "icon": "📚"
-      },
-      {
-        "id": "exam_study",
-        "label": "Sınava çalışmak",
-        "icon": "📝"
-      },
-      {
-        "id": "project",
-        "label": "Proje yapmak",
-        "icon": "💻"
-      },
       {
         "id": "library",
         "label": "Kütüphaneye gitmek",
@@ -273,29 +218,9 @@
         "icon": "🧑‍💻"
       },
       {
-        "id": "homework",
-        "label": "Ödev yapmak",
-        "icon": "📖"
-      },
-      {
-        "id": "presentation",
-        "label": "Sunum hazırlamak",
-        "icon": "📊"
-      },
-      {
-        "id": "brainstorm",
-        "label": "Fikir üretmek",
-        "icon": "💡"
-      },
-      {
-        "id": "reading",
-        "label": "Kitap okumak",
-        "icon": "📕"
-      },
-      {
-        "id": "language_practice",
-        "label": "Dil pratiği yapmak",
-        "icon": "🗣️"
+        "id": "study",
+        "label": "Ders çalışmak",
+        "icon": "📚"
       }
     ]
   },
@@ -396,51 +321,6 @@
         "id": "shopping_errand",
         "label": "Bir şey almaya gitmek",
         "icon": "🛍️"
-      }
-    ]
-  },
-  {
-    "category": "Ev & Rahat Takılma",
-    "items": [
-      {
-        "id": "home_chill",
-        "label": "Evde takılmak",
-        "icon": "🏠"
-      },
-      {
-        "id": "house_party",
-        "label": "Ev buluşması",
-        "icon": "🎉"
-      },
-      {
-        "id": "movie_night",
-        "label": "Film gecesi",
-        "icon": "🎥"
-      },
-      {
-        "id": "dinner_at_home",
-        "label": "Evde yemek",
-        "icon": "🍝"
-      },
-      {
-        "id": "tea_at_home",
-        "label": "Evde çay / kahve",
-        "icon": "☕"
-      },
-      {
-        "id": "gaming_night",
-        "label": "Oyun gecesi",
-        "icon": "🎮"
-      },
-      {
-        "id": "watch_match",
-        "label": "Maç izlemek",
-        "icon": "📺"
-      },
-      {
-        "id": "sleepover",
-        "label": "Kalmalı buluşma",
-        "icon": "🛌"
       }
     ]
   },

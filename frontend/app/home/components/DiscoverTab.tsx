@@ -71,6 +71,7 @@ import {
   HomeGroupHeader,
 } from "./common/HomeSummaryCard";
 import { PlacesHomeWidget } from "./PlacesHomeWidget";
+import { CitySelector } from "@/components/home/CitySelector";
 import { getLinkedAppForRoutine } from "@/app/apps/rutinler/routineAppLinks";
 import { isCapacitorIOS } from "@/lib/app-root";
 
@@ -165,6 +166,7 @@ import { DeckView } from "./DeckView";
 import { ConcertVenueLink } from "@/app/apps/concert-list/components/PlacePicker";
 import { NeYapsakWidget } from "./NeYapsakWidget";
 import { isActivePlan } from "@/app/apps/kim-gelir/components/ActivePlanRow";
+import { NE_YAPSAK_ACCENT } from "@/app/apps/kim-gelir/lib/theme";
 
 export function DiscoverTab(props: DiscoverTabProps) {
   const {
@@ -1166,7 +1168,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       key: "ne-yapsak",
       title: "Ne Yapsak?",
       icon: Users,
-      color: "#D97706",
+      color: NE_YAPSAK_ACCENT,
       loading: loading,
       hasContent: true,
       hasCompletedOnly: false,
@@ -2146,6 +2148,8 @@ export function DiscoverTab(props: DiscoverTabProps) {
           </div>
         </div>
       )}
+
+      <CitySelector className="w-full justify-between py-2.5 px-3 rounded-xl" />
       {/* 1. YAPILACAKLAR */}
       {pendingWidgets.length > 0 && (
         <div className="space-y-2.5">
@@ -2212,25 +2216,6 @@ export function DiscoverTab(props: DiscoverTabProps) {
             <HomeGroupHeader title={activeSubTab === "explore" ? "Bugün Şehirde" : "Başka Ne Yapabilirim?"} />
             <div className={WIDGET_MASONRY}>
               <AnimatePresence initial={false}>
-                {visibleNeYapsak && neYapsakWidget && (
-                  <motion.div
-                    key="ne-yapsak"
-                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 1.15,
-                      y: -30,
-                      filter: "blur(12px)",
-                      height: 0,
-                      transition: { duration: 0.45, ease: "easeOut" }
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className={WIDGET_MASONRY_ITEM}
-                  >
-                    {neYapsakWidget.card}
-                  </motion.div>
-                )}
                 {visiblePlaces && placesWidget && (
                   <motion.div
                     key="places-widget"
@@ -2248,6 +2233,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className={WIDGET_MASONRY_ITEM}
                   >
                     {placesWidget.card}
+                  </motion.div>
+                )}
+                {visibleNeYapsak && neYapsakWidget && (
+                  <motion.div
+                    key="ne-yapsak"
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={WIDGET_MASONRY_ITEM}
+                  >
+                    {neYapsakWidget.card}
                   </motion.div>
                 )}
                 {visibleOutdoor && outdoorWidget && (

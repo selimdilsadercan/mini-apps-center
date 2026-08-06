@@ -1025,6 +1025,22 @@ const RAW_MINI_APPS: MiniApp[] = [
     navigationBarColor: "#FAF9F7",
     navigationBarStyle: "light",
   },
+  {
+    id: "store",
+    name: "Katalog Mağazası",
+    description: "Ürünlerinizi listeleyin, fiyatları gösterin ve müşterilerinizle iletişime geçin.",
+    cta: "Mağazayı Yönet",
+    icon: Storefront,
+    category: "Pratik Araçlar",
+    color: "#D97706",
+    href: "/apps/store",
+    isImplemented: false,
+    subdomain: "store",
+    statusBarColor: "#ffffff",
+    statusBarStyle: "light",
+    navigationBarColor: "#FAF9F7",
+    navigationBarStyle: "light",
+  },
 ];
 
 const RAW_BUSINESS_APPS: MiniApp[] = [

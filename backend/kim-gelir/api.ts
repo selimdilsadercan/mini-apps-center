@@ -311,3 +311,61 @@ export const deleteActivity = api(
     return { success: true };
   }
 );
+
+export interface LeaveActivityRequest {
+  activityId: string;
+  userId: string; // clerk_id
+}
+
+export interface LeaveActivityResponse {
+  success: boolean;
+}
+
+/**
+ * Davetli kullanıcıyı plandan çıkarır (sahip kullanamaz)
+ * POST /kim-gelir/leave
+ */
+export const leaveActivity = api(
+  { expose: true, method: "POST", path: "/kim-gelir/leave" },
+  async (req: LeaveActivityRequest): Promise<LeaveActivityResponse> => {
+    const { data: userData, error: userErr } = await supabase
+      .schema("public")
+      .from("users")
+      .select("id")
+      .or(`clerk_id.eq.${req.userId},local_clerk_id.eq.${req.userId}`)
+      .single();
+
+    if (userErr || !userData) {
+      throw APIError.notFound("User not found");
+    }
+
+    const { data: activity, error: actErr } = await supabase
+      .schema("kim_gelir")
+      .from("activities")
+      .select("id, creator_id")
+      .eq("id", req.activityId)
+      .single();
+
+    if (actErr || !activity) {
+      throw APIError.notFound("Activity not found");
+    }
+
+    if (activity.creator_id === userData.id) {
+      throw APIError.invalidArgument("Plan sahibi plandan çıkamaz; planı silmelisin.");
+    }
+
+    const { error } = await supabase
+      .schema("kim_gelir")
+      .from("activity_invites")
+      .delete()
+      .eq("activity_id", req.activityId)
+      .eq("user_id", userData.id);
+
+    if (error) {
+      console.error("leaveActivity error:", error);
+      throw APIError.internal(`Failed to leave activity: ${error.message}`);
+    }
+
+    return { success: true };
+  }
+);

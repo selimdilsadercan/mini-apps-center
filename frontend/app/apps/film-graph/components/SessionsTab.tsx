@@ -156,7 +156,7 @@ export default function SessionsTab({ onFilmClick }: SessionsTabProps) {
               >
                 {/* Left: Poster */}
                 <div 
-                  className={`w-[80px] sm:w-[90px] aspect-[2/3] border border-app-border rounded-lg bg-app-surface-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center ${movieInfo?.tmdb_id && onFilmClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                  className={`w-[64px] h-[96px] max-h-[96px] self-start border border-app-border rounded-lg bg-app-surface-muted/30 overflow-hidden flex-shrink-0 flex items-center justify-center ${movieInfo?.tmdb_id && onFilmClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
                   onClick={() => {
                     if (movieInfo?.tmdb_id && onFilmClick) {
                       onFilmClick(String(movieInfo.tmdb_id));

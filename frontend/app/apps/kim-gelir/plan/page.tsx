@@ -91,6 +91,38 @@ function PlanDetailContent() {
     }
   };
 
+  const handleDeletePlan = async () => {
+    if (!user || !activity) return;
+    if (!window.confirm("Bu planı silmek istediğine emin misin?")) return;
+    try {
+      setActionLoading("plan-action");
+      await client.kim_gelir.deleteActivity({
+        activityId: activity.id,
+        userId: user.id,
+      });
+      router.push("/apps/kim-gelir");
+    } catch (err) {
+      console.error(err);
+      setActionLoading(null);
+    }
+  };
+
+  const handleLeavePlan = async () => {
+    if (!user || !activity) return;
+    if (!window.confirm("Bu plandan çıkmak istediğine emin misin?")) return;
+    try {
+      setActionLoading("plan-action");
+      await client.kim_gelir.leaveActivity({
+        activityId: activity.id,
+        userId: user.id,
+      });
+      router.push("/apps/kim-gelir");
+    } catch (err) {
+      console.error(err);
+      setActionLoading(null);
+    }
+  };
+
   if (!isLoaded || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-app-bg">
@@ -148,6 +180,8 @@ function PlanDetailContent() {
             maras={maras}
             onRespond={handleRespond}
             onAddOption={handleAddOption}
+            onDelete={handleDeletePlan}
+            onLeave={handleLeavePlan}
             actionLoading={actionLoading}
           />
         )}

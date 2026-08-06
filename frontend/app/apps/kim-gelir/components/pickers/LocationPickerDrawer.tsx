@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CaretLeft, MapPin, X } from "@phosphor-icons/react";
+import { CaretLeft, MapPin, PencilSimple, Storefront, X } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import dynamic from "next/dynamic";
 import { GAMES_DATA } from "../../../iskambil/games-registry";
@@ -22,6 +22,8 @@ import {
   pickerRowClass,
   primaryBtnClass,
   sectionLabelClass,
+  segmentedItemClass,
+  segmentedWrapClass,
 } from "../../lib/theme";
 import type { ActivityPreset } from "./ActivityPickerDrawer";
 
@@ -30,6 +32,7 @@ const StudyPlacesMap = dynamic(() => import("@/components/maps/StudyPlacesMap"),
 });
 
 type MarasSources = ReturnType<typeof useMarasSources>;
+type LocationTab = "places" | "custom";
 
 export interface LocationPickerDrawerProps {
   open: boolean;
@@ -47,6 +50,7 @@ export function LocationPickerDrawer({
   onConfirm,
 }: LocationPickerDrawerProps) {
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<LocationTab>("places");
   const actId = activity.id || "general";
   const copy = getLocationPickerCopy(actId);
 
@@ -74,11 +78,16 @@ export function LocationPickerDrawer({
       : [];
   const filteredWorkplaces = isStudyActivity(actId) ? maras.studyPlaces(query) : [];
 
+  const reset = () => {
+    setQuery("");
+    setTab("places");
+  };
+
   const handleConfirm = () => {
     if (!query.trim()) return;
     onConfirm(query.trim());
     onOpenChange(false);
-    setQuery("");
+    reset();
   };
 
   return (
@@ -86,7 +95,7 @@ export function LocationPickerDrawer({
       open={open}
       onOpenChange={(next) => {
         onOpenChange(next);
-        if (!next) setQuery("");
+        if (!next) reset();
       }}
     >
       <Drawer.Portal>
@@ -106,7 +115,7 @@ export function LocationPickerDrawer({
               </button>
             </header>
 
-            <div className={`flex items-center gap-3 p-3.5 rounded-xl border mb-5 shrink-0 ${fieldClass}`}>
+            <div className={`flex items-center gap-3 p-3.5 rounded-xl border mb-4 shrink-0 ${fieldClass}`}>
               <span className="text-xl">{activity.icon}</span>
               <div className="min-w-0">
                 <span className={sectionLabelClass}>Bağlam</span>
@@ -114,15 +123,32 @@ export function LocationPickerDrawer({
               </div>
             </div>
 
+            <div className={`${segmentedWrapClass} mb-4 shrink-0`}>
+              <button type="button" onClick={() => setTab("places")} className={segmentedItemClass(tab === "places")}>
+                <Storefront size={12} weight="fill" />
+                Mekanlar
+              </button>
+              <button type="button" onClick={() => setTab("custom")} className={segmentedItemClass(tab === "custom")}>
+                <PencilSimple size={12} weight="bold" />
+                Özel yer
+              </button>
+            </div>
+
             <div className="space-y-3 mb-4 flex flex-col min-h-0">
-              <label className={sectionLabelClass}>{copy.label}</label>
+              <label className={sectionLabelClass}>
+                {tab === "custom" ? "Yer adını yaz" : copy.label}
+              </label>
               <div className="relative shrink-0">
                 <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder={copy.placeholder}
+                  placeholder={
+                    tab === "custom"
+                      ? "Örn: Evimin önü, Kampüs bahçesi, arkadaşımın evi…"
+                      : copy.placeholder
+                  }
                   className={`${fieldClass} pl-10 pr-10`}
                   autoFocus
                 />
@@ -137,157 +163,165 @@ export function LocationPickerDrawer({
                 )}
               </div>
 
-              {actId === "movie" && (
-                <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1">
-                  {maras.loading && (
-                    <p className="text-[10px] text-app-muted font-bold px-1">Sinema seansları yükleniyor…</p>
-                  )}
-                  {filteredCinemas.map((cinema) => {
-                    const value = `${cinema.name} (${cinema.district})`;
-                    const isSelected = query === value;
-                    const topMovie = cinema.moviesToday[0];
-                    return (
-                      <button
-                        key={cinema.slug}
-                        type="button"
-                        onClick={() => setQuery(value)}
-                        className={`${pickerRowClass(isSelected)} flex flex-col gap-1 p-3 w-full`}
-                      >
-                        <div className="flex items-center justify-between gap-2 w-full">
-                          <div className="flex items-center gap-2 truncate min-w-0">
-                            <span className="text-sm shrink-0">🎬</span>
-                            <span className="truncate">{cinema.name}</span>
-                          </div>
-                          <span className={pickerBadgeClass(isSelected)}>{cinema.district}</span>
-                        </div>
-                        {topMovie && (
-                          <p className="text-[10px] font-semibold text-app-muted pl-6 truncate">
-                            Bugün: {topMovie.title}
-                            {topMovie.times[0] ? ` · ${topMovie.times.slice(0, 3).join(", ")}` : ""}
-                          </p>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {actId === "theater" &&
-                filteredTheaters.map((theater) => {
-                  const value = `${theater.name} (${theater.district || "Kahramanmaraş"})`;
-                  return (
-                    <button
-                      key={theater.id}
-                      type="button"
-                      onClick={() => setQuery(value)}
-                      className={`${pickerRowClass(query === value)} flex items-center justify-between p-3 w-full`}
-                    >
-                      <span className="truncate">🎭 {theater.name}</span>
-                      <span className={pickerBadgeClass(query === value)}>{theater.district || "Maraş"}</span>
-                    </button>
-                  );
-                })}
-
-              {(actId === "concert" || actId === "festival" || actId === "standup") &&
-                filteredEvents.map((event) => {
-                  const value = `${event.title} · ${event.location}`;
-                  return (
-                    <button
-                      key={event.id}
-                      type="button"
-                      onClick={() => setQuery(value)}
-                      className={`${pickerRowClass(query === value || query === event.location)} flex items-center justify-between p-3 w-full`}
-                    >
-                      <div className="min-w-0 truncate">
-                        <span className="block truncate">{event.title}</span>
-                        <span className="text-[10px] text-app-muted">{event.location}</span>
-                      </div>
-                      <span className="text-[10px] text-app-muted shrink-0 ml-2">{event.dateLabel}</span>
-                    </button>
-                  );
-                })}
-
-              {(actId === "coffee" || actId === "tea") &&
-                filteredCafePlaces.map((place) => {
-                  const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
-                  return (
-                    <button
-                      key={place.id}
-                      type="button"
-                      onClick={() => setQuery(value)}
-                      className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
-                    >
-                      <span className="truncate">☕ {place.name}</span>
-                      <span className="text-[10px] text-app-muted">{place.district}</span>
-                    </button>
-                  );
-                })}
-
-              {isFoodActivity(actId) &&
-                filteredFoodPlaces.map((place) => {
-                  const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
-                  return (
-                    <button
-                      key={place.id}
-                      type="button"
-                      onClick={() => setQuery(value)}
-                      className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
-                    >
-                      <span className="truncate">🍽️ {place.name}</span>
-                      <span className="text-[10px] text-app-muted">{place.district}</span>
-                    </button>
-                  );
-                })}
-
-              {actId === "card_game" &&
-                filteredGames.map((game) => (
-                  <button
-                    key={game.id}
-                    type="button"
-                    onClick={() => setQuery(game.name_tr)}
-                    className={`${pickerRowClass(query === game.name_tr)} flex justify-between p-3 w-full`}
-                  >
-                    <span>🃏 {game.name_tr}</span>
-                    <span className={pickerBadgeClass(query === game.name_tr)}>
-                      {game.minPlayers}-{game.maxPlayers}
-                    </span>
-                  </button>
-                ))}
-
-              {isStudyActivity(actId) && (
-                <div className="flex flex-col gap-2 min-h-0">
-                  {filteredWorkplaces.some((w) => w.latitude && w.longitude) && (
-                    <div className="w-full h-40 rounded-xl overflow-hidden border border-app-border">
-                      <StudyPlacesMap
-                        places={filteredWorkplaces}
-                        onSelectPlace={(place) =>
-                          setQuery(`${place.name} (${place.district || "Kahramanmaraş"})`)
-                        }
-                        selectedPlaceId={
-                          maras.places.find(
-                            (w) => `${w.name} (${w.district || "Kahramanmaraş"})` === query
-                          )?.id
-                        }
-                      />
+              {tab === "custom" ? (
+                <p className="text-[10px] text-app-muted font-medium leading-relaxed">
+                  Listede olmayan bir yer yazabilirsin — adres, mahalle veya buluşma noktası.
+                </p>
+              ) : (
+                <>
+                  {actId === "movie" && (
+                    <div className="mt-2 space-y-1.5 overflow-y-auto max-h-60 pr-1">
+                      {maras.loading && (
+                        <p className="text-[10px] text-app-muted font-bold px-1">Sinema seansları yükleniyor…</p>
+                      )}
+                      {filteredCinemas.map((cinema) => {
+                        const value = `${cinema.name} (${cinema.district})`;
+                        const isSelected = query === value;
+                        const topMovie = cinema.moviesToday[0];
+                        return (
+                          <button
+                            key={cinema.slug}
+                            type="button"
+                            onClick={() => setQuery(value)}
+                            className={`${pickerRowClass(isSelected)} flex flex-col gap-1 p-3 w-full`}
+                          >
+                            <div className="flex items-center justify-between gap-2 w-full">
+                              <div className="flex items-center gap-2 truncate min-w-0">
+                                <span className="text-sm shrink-0">🎬</span>
+                                <span className="truncate">{cinema.name}</span>
+                              </div>
+                              <span className={pickerBadgeClass(isSelected)}>{cinema.district}</span>
+                            </div>
+                            {topMovie && (
+                              <p className="text-[10px] font-semibold text-app-muted pl-6 truncate">
+                                Bugün: {topMovie.title}
+                                {topMovie.times[0] ? ` · ${topMovie.times.slice(0, 3).join(", ")}` : ""}
+                              </p>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                  {filteredWorkplaces.map((place) => {
-                    const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
-                    return (
+
+                  {actId === "theater" &&
+                    filteredTheaters.map((theater) => {
+                      const value = `${theater.name} (${theater.district || "Kahramanmaraş"})`;
+                      return (
+                        <button
+                          key={theater.id}
+                          type="button"
+                          onClick={() => setQuery(value)}
+                          className={`${pickerRowClass(query === value)} flex items-center justify-between p-3 w-full`}
+                        >
+                          <span className="truncate">🎭 {theater.name}</span>
+                          <span className={pickerBadgeClass(query === value)}>{theater.district || "Maraş"}</span>
+                        </button>
+                      );
+                    })}
+
+                  {(actId === "concert" || actId === "festival" || actId === "standup") &&
+                    filteredEvents.map((event) => {
+                      const value = `${event.title} · ${event.location}`;
+                      return (
+                        <button
+                          key={event.id}
+                          type="button"
+                          onClick={() => setQuery(value)}
+                          className={`${pickerRowClass(query === value || query === event.location)} flex items-center justify-between p-3 w-full`}
+                        >
+                          <div className="min-w-0 truncate">
+                            <span className="block truncate">{event.title}</span>
+                            <span className="text-[10px] text-app-muted">{event.location}</span>
+                          </div>
+                          <span className="text-[10px] text-app-muted shrink-0 ml-2">{event.dateLabel}</span>
+                        </button>
+                      );
+                    })}
+
+                  {(actId === "coffee" || actId === "tea") &&
+                    filteredCafePlaces.map((place) => {
+                      const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
+                      return (
+                        <button
+                          key={place.id}
+                          type="button"
+                          onClick={() => setQuery(value)}
+                          className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
+                        >
+                          <span className="truncate">☕ {place.name}</span>
+                          <span className="text-[10px] text-app-muted">{place.district}</span>
+                        </button>
+                      );
+                    })}
+
+                  {isFoodActivity(actId) &&
+                    filteredFoodPlaces.map((place) => {
+                      const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
+                      return (
+                        <button
+                          key={place.id}
+                          type="button"
+                          onClick={() => setQuery(value)}
+                          className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
+                        >
+                          <span className="truncate">🍽️ {place.name}</span>
+                          <span className="text-[10px] text-app-muted">{place.district}</span>
+                        </button>
+                      );
+                    })}
+
+                  {actId === "card_game" &&
+                    filteredGames.map((game) => (
                       <button
-                        key={place.id}
+                        key={game.id}
                         type="button"
-                        onClick={() => setQuery(value)}
-                        className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
+                        onClick={() => setQuery(game.name_tr)}
+                        className={`${pickerRowClass(query === game.name_tr)} flex justify-between p-3 w-full`}
                       >
-                        <span className="truncate">🏫 {place.name}</span>
-                        <span className={pickerBadgeClass(query === value)}>
-                          {place.district || "Çalışma Alanı"}
+                        <span>🃏 {game.name_tr}</span>
+                        <span className={pickerBadgeClass(query === game.name_tr)}>
+                          {game.minPlayers}-{game.maxPlayers}
                         </span>
                       </button>
-                    );
-                  })}
-                </div>
+                    ))}
+
+                  {isStudyActivity(actId) && (
+                    <div className="flex flex-col gap-2 min-h-0">
+                      {filteredWorkplaces.some((w) => w.latitude && w.longitude) && (
+                        <div className="w-full h-40 rounded-xl overflow-hidden border border-app-border">
+                          <StudyPlacesMap
+                            places={filteredWorkplaces}
+                            onSelectPlace={(place) =>
+                              setQuery(`${place.name} (${place.district || "Kahramanmaraş"})`)
+                            }
+                            selectedPlaceId={
+                              maras.places.find(
+                                (w) => `${w.name} (${w.district || "Kahramanmaraş"})` === query
+                              )?.id
+                            }
+                          />
+                        </div>
+                      )}
+                      {filteredWorkplaces.map((place) => {
+                        const value = `${place.name} (${place.district || "Kahramanmaraş"})`;
+                        return (
+                          <button
+                            key={place.id}
+                            type="button"
+                            onClick={() => setQuery(value)}
+                            className={`${pickerRowClass(query === value)} flex justify-between p-3 w-full`}
+                          >
+                            <span className="truncate">🏫 {place.name}</span>
+                            <span className={pickerBadgeClass(query === value)}>
+                              {place.district || "Çalışma Alanı"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -298,7 +332,7 @@ export function LocationPickerDrawer({
               className={primaryBtnClass}
               style={{ backgroundColor: NE_YAPSAK_ACCENT }}
             >
-              Öneriyi Ekle
+              Yeri Onayla
             </button>
           </div>
         </Drawer.Content>

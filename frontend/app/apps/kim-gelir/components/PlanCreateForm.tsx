@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Spinner } from "@phosphor-icons/react";
+import { Clock, MapPin, SkipForward, Sparkle, Spinner } from "@phosphor-icons/react";
 import type { friendship } from "@/lib/client";
 import {
   fieldClass,
@@ -21,7 +21,7 @@ import { ActivityDetailFields } from "./ActivityDetailFields";
 import type { MoviePlanDetail } from "../lib/activity-detail";
 import type { MarasCinema, MarasEventOption } from "../lib/maras-sources";
 
-export type WhatMode = "open" | "category" | "detailed";
+export type WhatMode = "open" | "fixed";
 export type FieldMode = "open" | "fixed";
 
 const PRESET_TIMES = [
@@ -29,6 +29,7 @@ const PRESET_TIMES = [
   { id: "30mins", label: "30 dk sonra" },
   { id: "evening", label: "Bugün akşam" },
   { id: "tomorrow", label: "Yarın" },
+  { id: "weekend", label: "Hafta sonu" },
   { id: "custom", label: "Özel saat" },
 ];
 
@@ -106,67 +107,55 @@ export function PlanCreateForm({
         <label className={sectionLabelClass}>Ne yapalım?</label>
 
         <div className={segmentedWrapClass}>
-          {(
-            [
-              { id: "open" as const, label: "Belli değil" },
-              { id: "category" as const, label: "Genel" },
-              { id: "detailed" as const, label: "Detaylı" },
-            ] as const
-          ).map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setWhatMode(opt.id)}
-              className={segmentedItemClass(whatMode === opt.id)}
-            >
-              {opt.label}
-            </button>
-          ))}
+          <button type="button" onClick={() => setWhatMode("open")} className={segmentedItemClass(whatMode === "open")}>
+            <SkipForward size={12} weight="bold" />
+            Sonra karar
+          </button>
+          <button type="button" onClick={() => setWhatMode("fixed")} className={segmentedItemClass(whatMode === "fixed")}>
+            <Sparkle size={12} weight="fill" />
+            Aktivite seç
+          </button>
         </div>
 
-        {whatMode === "open" && (
+        {whatMode === "open" ? (
           <p className="text-[10px] text-app-muted font-medium leading-relaxed">
             Arkadaşların plana seçenek ekleyip birlikte karar verebilir.
           </p>
-        )}
-
-        {(whatMode === "category" || whatMode === "detailed") && (
-          <button
-            type="button"
-            onClick={onOpenActivityPicker}
-            className="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-app-surface-muted/70 text-left transition-all cursor-pointer active:scale-[0.99] ring-1 ring-app-border hover:ring-[#FF5252]/20"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-lg shrink-0">{selectedPresetLabel ? selectedPresetIcon : "🔍"}</span>
-              <span className="text-xs font-black text-app-text truncate">
-                {selectedPresetLabel || "Aktivite seç…"}
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={onOpenActivityPicker}
+              className="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-app-surface-muted/70 text-left transition-all cursor-pointer active:scale-[0.99] ring-1 ring-app-border hover:ring-[#FF5252]/20"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-lg shrink-0">{selectedPresetLabel ? selectedPresetIcon : "🔍"}</span>
+                <span className="text-xs font-black text-app-text truncate">
+                  {selectedPresetLabel || "Aktivite seç…"}
+                </span>
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-wider shrink-0" style={{ color: NE_YAPSAK_ACCENT }}>
+                {selectedPresetLabel ? "Değiştir" : "Seç"}
               </span>
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-wider shrink-0" style={{ color: NE_YAPSAK_ACCENT }}>
-              {selectedPresetLabel ? "Değiştir" : "Seç"}
-            </span>
-          </button>
-        )}
+            </button>
 
-        {whatMode === "detailed" && selectedPresetLabel && (
-          <div className={planCardInnerClass}>
-            <span className={innerLabelClass}>Detay</span>
-            <ActivityDetailFields
-              presetId={selectedPresetId}
-              activityDetail={activityDetail}
-              setActivityDetail={setActivityDetail}
-              movieDetail={movieDetail}
-              onMovieDetailChange={onMovieDetailChange}
-              cinemas={cinemas}
-              cinemasLoading={cinemasLoading}
-              events={events}
-              onEventPick={onEventPick}
-            />
-          </div>
-        )}
-
-        {whatMode === "detailed" && !selectedPresetLabel && (
-          <p className="text-[10px] text-app-muted font-medium">Önce aktivite seç.</p>
+            {selectedPresetLabel && (
+              <div className={planCardInnerClass}>
+                <span className={innerLabelClass}>Detay (isteğe bağlı)</span>
+                <ActivityDetailFields
+                  presetId={selectedPresetId}
+                  activityDetail={activityDetail}
+                  setActivityDetail={setActivityDetail}
+                  movieDetail={movieDetail}
+                  onMovieDetailChange={onMovieDetailChange}
+                  cinemas={cinemas}
+                  cinemasLoading={cinemasLoading}
+                  events={events}
+                  onEventPick={onEventPick}
+                />
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -174,10 +163,12 @@ export function PlanCreateForm({
         <label className={sectionLabelClass}>Nerede?</label>
         <div className={segmentedWrapClass}>
           <button type="button" onClick={() => setWhereMode("open")} className={segmentedItemClass(whereMode === "open")}>
+            <SkipForward size={12} weight="bold" />
             Sonra karar
           </button>
           <button type="button" onClick={() => setWhereMode("fixed")} className={segmentedItemClass(whereMode === "fixed")}>
-            Yer belli
+            <MapPin size={12} weight="fill" />
+            Yer seç
           </button>
         </div>
 
@@ -201,10 +192,12 @@ export function PlanCreateForm({
         <label className={sectionLabelClass}>Ne zaman?</label>
         <div className={segmentedWrapClass}>
           <button type="button" onClick={() => setWhenMode("open")} className={segmentedItemClass(whenMode === "open")}>
+            <SkipForward size={12} weight="bold" />
             Sonra karar
           </button>
           <button type="button" onClick={() => setWhenMode("fixed")} className={segmentedItemClass(whenMode === "fixed")}>
-            Zaman belli
+            <Clock size={12} weight="fill" />
+            Zaman seç
           </button>
         </div>
 
