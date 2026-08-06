@@ -13,6 +13,50 @@ const DEFAULT_ARGS = [
   "--lang=tr-TR,tr",
 ];
 
+function findPuppeteerChrome(): string | undefined {
+  const baseDirs = [
+    process.env.PUPPETEER_CACHE_DIR,
+    process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : undefined,
+    "/root/.cache/puppeteer",
+    "/home/encore/.cache/puppeteer",
+    "/tmp/.cache/puppeteer",
+  ].filter(Boolean) as string[];
+
+  try {
+    if (fs.existsSync("/home")) {
+      const users = fs.readdirSync("/home");
+      for (const u of users) {
+        baseDirs.push(`/home/${u}/.cache/puppeteer`);
+      }
+    }
+  } catch {}
+
+  const findInDir = (dir: string, depth = 0): string | undefined => {
+    if (depth > 6 || !fs.existsSync(dir)) return undefined;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = `${dir}/${entry.name}`;
+        if (entry.isFile() && entry.name === "chrome") {
+          return fullPath;
+        }
+        if (entry.isDirectory()) {
+          const found = findInDir(fullPath, depth + 1);
+          if (found) return found;
+        }
+      }
+    } catch {}
+    return undefined;
+  };
+
+  for (const base of baseDirs) {
+    const found = findInDir(base);
+    if (found) return found;
+  }
+
+  return undefined;
+}
+
 function resolveChromePath(): string | undefined {
   const candidates = [
     process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -37,6 +81,10 @@ function resolveChromePath(): string | undefined {
   } catch {
     // ignore
   }
+
+  // Scan all .cache/puppeteer locations
+  const scanned = findPuppeteerChrome();
+  if (scanned) return scanned;
 
   return undefined;
 }
