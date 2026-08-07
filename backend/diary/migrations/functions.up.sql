@@ -1,0 +1,3 @@
+-- FUNCTIONS
+-- This service uses direct Supabase client queries for its operations.
+-- No custom RPC functions are defined here.

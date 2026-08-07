@@ -40,6 +40,7 @@ import { readTrackerAssistant } from "../read-tracker/assistant";
 import { placesAssistant } from "../places/assistant";
 import { storeAssistant } from "../store/assistant";
 import { kaydedilenlerAssistant } from "../kaydedilenler/assistant";
+import { diaryAssistant } from "../diary/assistant";
 
 export const APP_ASSISTANTS: AppAssistantModule[] = [
   kaydedilenlerAssistant,
@@ -79,6 +80,7 @@ export const APP_ASSISTANTS: AppAssistantModule[] = [
   digitalMenuAssistant,
   businessAssistant,
   eksikVarAssistant,
+  diaryAssistant,
 ];
 
 const assistantByAppId = new Map(

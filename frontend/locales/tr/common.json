@@ -274,6 +274,10 @@
     "emptyAction": "Abonelik Ekle"
   },
   "apps": {
+    "diary": {
+      "name": "Diary",
+      "description": "Tüm aktivitelerini (sinema, ders, kafe vb.) günlüğe kaydet, arkadaşlarının neler yaptığını gör ve aylık özet kartlarını paylaş."
+    },
     "kaydedilenler": {
       "name": "Kaydedilenler",
       "description": "Sosyal medyadan mekan, tarif ve içerik kaydet, kendi koleksiyonlarını oluştur."

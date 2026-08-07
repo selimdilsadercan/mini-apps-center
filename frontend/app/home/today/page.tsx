@@ -110,6 +110,7 @@ function TodayPageContent() {
         Promise.all([
           queryClient.invalidateQueries({ queryKey: discoverQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] }),
+          queryClient.invalidateQueries({ queryKey: ["diary-summary", userId] }),
         ]).then(() => {
           setTimeout(() => {
             setIsRefreshing(false);
@@ -150,6 +151,7 @@ function TodayPageContent() {
         Promise.all([
           queryClient.invalidateQueries({ queryKey: discoverQueryKey(userId) }),
           queryClient.invalidateQueries({ queryKey: ["film-graph", "daily-suggestions", userId] }),
+          queryClient.invalidateQueries({ queryKey: ["diary-summary", userId] }),
         ]).then(() => {
           setTimeout(() => {
             setIsRefreshing(false);
@@ -224,6 +226,16 @@ function TodayPageContent() {
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
     refetchOnReconnect: "always",
+  });
+
+  const diarySummaryQuery = useQuery({
+    queryKey: ["diary-summary", userId, new Date().getFullYear(), new Date().getMonth() + 1],
+    queryFn: () => client.diary.getSummary(
+      userId || "",
+      new Date().getFullYear(),
+      new Date().getMonth() + 1
+    ),
+    enabled: isLoaded && !!userId,
   });
 
   const handleResetMovieSuggestions = async () => {
@@ -389,6 +401,7 @@ function TodayPageContent() {
             onResetMovieSuggestions={handleResetMovieSuggestions}
             eksikItems={eksikItems}
             hasFollowedSeries={hasFollowedSeries}
+            diarySummary={diarySummaryQuery.data || null}
           />
         )}
       </main>

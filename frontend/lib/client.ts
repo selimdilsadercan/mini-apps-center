@@ -48,6 +48,7 @@ export default class Client {
     public readonly concert_list: concert_list.ServiceClient
     public readonly contributions: contributions.ServiceClient
     public readonly daily_weather: daily_weather.ServiceClient
+    public readonly diary: diary.ServiceClient
     public readonly digital_menu: digital_menu.ServiceClient
     public readonly eksik_var: eksik_var.ServiceClient
     public readonly esles: esles.ServiceClient
@@ -128,6 +129,7 @@ export default class Client {
         this.concert_list = new concert_list.ServiceClient(base)
         this.contributions = new contributions.ServiceClient(base)
         this.daily_weather = new daily_weather.ServiceClient(base)
+        this.diary = new diary.ServiceClient(base)
         this.digital_menu = new digital_menu.ServiceClient(base)
         this.eksik_var = new eksik_var.ServiceClient(base)
         this.esles = new esles.ServiceClient(base)
@@ -3198,6 +3200,194 @@ export namespace daily_weather {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/daily-weather/preferences`, JSON.stringify(params))
             return await resp.json() as UpsertPreferencesResponse
+        }
+    }
+}
+
+export namespace diary {
+    export interface AddLogRequest {
+        userId: string
+        activityType: string
+        title: string
+        location?: string
+        date: string
+        notes?: string
+        rating?: number
+        imageUrl?: string
+        isImported?: boolean
+        isPrivate?: boolean
+        metadata?: any
+    }
+
+    export interface AddLogResponse {
+        success: boolean
+        log: Log | null
+    }
+
+    export interface DeleteLogRequest {
+        userId: string
+        logId: string
+    }
+
+    export interface DeleteLogResponse {
+        success: boolean
+    }
+
+    export interface GetFeedResponse {
+        feed: Log[]
+    }
+
+    export interface GetLogsResponse {
+        logs: Log[]
+    }
+
+    export interface GetSuggestionsResponse {
+        suggestions: Suggestion[]
+    }
+
+    export interface GetSummaryResponse {
+        totalCount: number
+        badge: string
+        badgeEmoji: string
+        categoryCounts: {
+            category: string
+            count: number
+        }[]
+        highlightLog: Log | null
+    }
+
+    export interface Log {
+        id: string
+        userId: string
+        activityType: string
+        title: string
+        location?: string | null
+        date: string
+        notes?: string | null
+        rating?: number | null
+        imageUrl?: string | null
+        isImported: boolean
+        isPrivate: boolean
+        metadata: any
+        createdAt: string
+        reactions: Reaction[]
+        username?: string | null
+        avatarUrl?: string | null
+    }
+
+    export interface ReactLogRequest {
+        userId: string
+        logId: string
+        reactionType: string
+    }
+
+    export interface ReactLogResponse {
+        success: boolean
+        reactions: Reaction[]
+    }
+
+    export interface Reaction {
+        id: string
+        logId: string
+        userId: string
+        reactionType: string
+        username?: string | null
+        avatarUrl?: string | null
+    }
+
+    export interface Suggestion {
+        id: string
+        source: "stamp_card" | "campus_events" | "workplaces"
+        title: string
+        location?: string | null
+        activityType: string
+        date: string
+        imageUrl?: string | null
+        metadata: any
+    }
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.addLog = this.addLog.bind(this)
+            this.deleteLog = this.deleteLog.bind(this)
+            this.getFeed = this.getFeed.bind(this)
+            this.getLogs = this.getLogs.bind(this)
+            this.getSuggestions = this.getSuggestions.bind(this)
+            this.getSummary = this.getSummary.bind(this)
+            this.reactLog = this.reactLog.bind(this)
+        }
+
+        /**
+         * Add a new log entry
+         * POST /diary/logs/add
+         */
+        public async addLog(params: AddLogRequest): Promise<AddLogResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/diary/logs/add`, JSON.stringify(params))
+            return await resp.json() as AddLogResponse
+        }
+
+        /**
+         * Delete a log entry
+         * POST /diary/logs/delete
+         */
+        public async deleteLog(params: DeleteLogRequest): Promise<DeleteLogResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/diary/logs/delete`, JSON.stringify(params))
+            return await resp.json() as DeleteLogResponse
+        }
+
+        /**
+         * Get social feed: recent public logs from friends
+         * GET /diary/feed/:userId
+         */
+        public async getFeed(userId: string): Promise<GetFeedResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/diary/feed/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetFeedResponse
+        }
+
+        /**
+         * Retrieve all logs for a user, including reactions
+         * GET /diary/logs/:userId
+         */
+        public async getLogs(userId: string): Promise<GetLogsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/diary/logs/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetLogsResponse
+        }
+
+        /**
+         * Retrieve cross-app suggestions for logs
+         * GET /diary/suggestions/:userId
+         */
+        public async getSuggestions(userId: string): Promise<GetSuggestionsResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/diary/suggestions/${encodeURIComponent(userId)}`)
+            return await resp.json() as GetSuggestionsResponse
+        }
+
+        /**
+         * Get monthly summary metrics
+         * GET /diary/summary/:userId/:year/:month
+         */
+        public async getSummary(userId: string, year: number, month: number): Promise<GetSummaryResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/diary/summary/${encodeURIComponent(userId)}/${encodeURIComponent(year)}/${encodeURIComponent(month)}`)
+            return await resp.json() as GetSummaryResponse
+        }
+
+        /**
+         * Add or remove a reaction to a log
+         * POST /diary/logs/react
+         */
+        public async reactLog(params: ReactLogRequest): Promise<ReactLogResponse> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/diary/logs/react`, JSON.stringify(params))
+            return await resp.json() as ReactLogResponse
         }
     }
 }

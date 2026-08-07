@@ -162,11 +162,13 @@ interface DiscoverTabProps {
   onResetMovieSuggestions?: () => void;
   eksikItems: any[];
   hasFollowedSeries: boolean;
+  diarySummary?: any;
 }
 
 import { DeckView } from "./DeckView";
 import { ConcertVenueLink } from "@/app/apps/concert-list/components/PlacePicker";
 import { NeYapsakWidget } from "./NeYapsakWidget";
+import { DiaryHomeWidget } from "./DiaryHomeWidget";
 import { isActivePlan } from "@/app/apps/kim-gelir/components/ActivePlanRow";
 import { NE_YAPSAK_ACCENT } from "@/app/apps/kim-gelir/lib/theme";
 
@@ -234,6 +236,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
     onResetMovieSuggestions,
     eksikItems = [],
     hasFollowedSeries,
+    diarySummary = null,
   } = props;
 
   const queryClient = useQueryClient();
@@ -1260,6 +1263,26 @@ export function DiscoverTab(props: DiscoverTabProps) {
       ),
     },
     {
+      key: "diary-widget",
+      title: "Diary Günlük",
+      icon: BookmarkSimple,
+      color: "#F43F5E",
+      loading: loading,
+      hasContent: true,
+      hasCompletedOnly: false,
+      card: (
+        <DiaryHomeWidget
+          summary={diarySummary}
+          loading={loading}
+          onHideToday={() => triggerHide("diary-widget", "today")}
+          onHidePermanent={() => triggerHide("diary-widget", "permanent")}
+          isTodayHidden={isWidgetTodayHidden("diary-widget")}
+          isPermanentlyHidden={isWidgetPermanentlyHidden("diary-widget")}
+          onRestore={() => handleRestoreWidget("diary-widget")}
+        />
+      ),
+    },
+    {
       key: "ne-yapsak",
       title: "Ne Yapsak?",
       icon: Users,
@@ -2131,7 +2154,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
   ];
 
   const filteredWidgets = widgets.filter((w) => {
-    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget" || w.key === "ne-yapsak" || w.key === "saved-places-widget";
+    const isExploreWidget = w.key === "events-widget" || w.key === "upcoming-concerts-widget" || w.key === "outdoor-activities-widget" || w.key === "cinema-widget" || w.key === "places-widget" || w.key === "ne-yapsak" || w.key === "saved-places-widget" || w.key === "diary-widget";
     if (activeSubTab === "explore") {
       return isExploreWidget;
     } else {
@@ -2152,6 +2175,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
       widget.key !== "outdoor-activities-widget" &&
       widget.key !== "ne-yapsak" &&
       widget.key !== "saved-places-widget" &&
+      widget.key !== "diary-widget" &&
       !isWidgetHidden(widget.key) &&
       (widget.loading || widget.hasContent)
   );
@@ -2289,6 +2313,7 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const upcomingConcertsWidget = filteredWidgets.find((w) => w.key === "upcoming-concerts-widget");
         const neYapsakWidget = filteredWidgets.find((w) => w.key === "ne-yapsak");
         const savedPlacesWidget = filteredWidgets.find((w) => w.key === "saved-places-widget");
+        const diaryWidget = filteredWidgets.find((w) => w.key === "diary-widget");
 
         const visibleMatches = matchesWidget && matchesWidget.hasContent && !isWidgetHidden("matches");
         const visibleYt = ytWidget && ytWidget.hasContent && !isWidgetHidden("youtubeSeries");
@@ -2304,8 +2329,9 @@ export function DiscoverTab(props: DiscoverTabProps) {
         const visibleUpcomingConcerts = upcomingConcertsWidget && upcomingConcertsWidget.hasContent && showCityWidget("upcoming-concerts-widget");
         const visibleNeYapsak = neYapsakWidget && neYapsakWidget.hasContent && showCityWidget("ne-yapsak");
         const visibleSavedPlaces = savedPlacesWidget && showCityWidget("saved-places-widget");
+        const visibleDiary = diaryWidget && showCityWidget("diary-widget");
 
-        const hasAny = visibleNeYapsak || visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor || visibleSavedPlaces;
+        const hasAny = visibleNeYapsak || visibleMatches || visibleYt || visibleMovies || visibleYazboz || visibleCinema || visibleEvents || visiblePlaces || visibleUpcomingConcerts || visibleOutdoor || visibleSavedPlaces || visibleDiary;
 
         if (!hasAny) return null;
 
@@ -2369,6 +2395,25 @@ export function DiscoverTab(props: DiscoverTabProps) {
                     className={WIDGET_MASONRY_ITEM}
                   >
                     {neYapsakWidget.card}
+                  </motion.div>
+                )}
+                {visibleDiary && diaryWidget && (
+                  <motion.div
+                    key="diary-widget"
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: "auto", scale: 1 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 1.15,
+                      y: -30,
+                      filter: "blur(12px)",
+                      height: 0,
+                      transition: { duration: 0.45, ease: "easeOut" }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={WIDGET_MASONRY_ITEM}
+                  >
+                    {diaryWidget.card}
                   </motion.div>
                 )}
                 {visibleOutdoor && outdoorWidget && (

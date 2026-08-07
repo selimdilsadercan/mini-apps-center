@@ -15,6 +15,7 @@ import {
  */
 const SUBDOMAIN_ROUTES: Record<string, string> = {
   places: "/apps/workplaces",
+  diary: "/apps/diary",
   gaminghub: "/apps/gaming-hub",
   kalimba: "/apps/kalimba",
   cardgames: "/apps/iskambil",
